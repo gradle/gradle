@@ -43,7 +43,7 @@ class TransformationOperation implements TransformationResult, RunnableBuildOper
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        String displayName = "Transform " + subject.getDisplayName() + " with " + transformation.getDisplayName();
+        String displayName = "Transforming";
         return BuildOperationDescriptor.displayName(displayName)
             .progressDisplayName(displayName)
             .operationType(BuildOperationCategory.UNCATEGORIZED);
