@@ -156,18 +156,3 @@ static List<String> toPatterns(List<String> packages) {
             .replaceAll('###', '.*?')
     }
 }
-
-static Map<String, String> loadBreakingChanges(File file) {
-    def map = [:]
-    if (file.exists()) {
-        file.eachLine { line ->
-            line = line.trim()
-            if (line) {
-                def (lookup, reason) = line.split(';')
-                map[lookup] = reason
-            }
-        }
-    }
-    map
-}
-
