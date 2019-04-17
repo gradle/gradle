@@ -18,7 +18,6 @@ package org.gradle.workers.internal;
 
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -57,12 +56,12 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
 
     private static class BuildSessionScopeServices {
 
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationExecutor buildOperationExecutor) {
             return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
         }
 
-        IsolatedClassloaderWorkerFactory createIsolatedClassloaderWorkerFactory(ClassLoaderFactory classLoaderFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
-            return new IsolatedClassloaderWorkerFactory(classLoaderFactory, buildOperationExecutor);
+        IsolatedClassloaderWorkerFactory createIsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor) {
+            return new IsolatedClassloaderWorkerFactory(buildOperationExecutor);
         }
 
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {

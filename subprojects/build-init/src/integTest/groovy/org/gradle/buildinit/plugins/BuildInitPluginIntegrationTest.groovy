@@ -274,6 +274,7 @@ include("child")
      --test-framework     Set the test framework to be used.
                           Available values are:
                                junit
+                               junitjupiter
                                kotlintest
                                scalatest
                                spock

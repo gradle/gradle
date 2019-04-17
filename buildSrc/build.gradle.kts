@@ -73,11 +73,11 @@ subprojects {
 
 allprojects {
     repositories {
-        gradlePluginPortal()
         maven {
             name = "Gradle libs"
             url = uri("https://repo.gradle.org/gradle/libs")
         }
+        gradlePluginPortal()
         maven {
             name = "Gradle snapshot libs"
             url = uri("https://repo.gradle.org/gradle/libs-snapshots")

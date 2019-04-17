@@ -113,10 +113,10 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion).collect { results.baseline(it) }
         def maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
-        runVersion(current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
+        runVersion('current', current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
         baselineVersions.each { baselineVersion ->
-            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
+            runVersion(baselineVersion.version, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
         }
 
         results.endTime = clock.getCurrentTime()
@@ -242,11 +242,11 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         best
     }
 
-    private void runVersion(GradleDistribution dist, File workingDir, MeasuredOperationList results) {
+    private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
         def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
-            .displayName(dist.version.version)
+            .displayName(displayName)
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
             .listener(buildExperimentListeners)

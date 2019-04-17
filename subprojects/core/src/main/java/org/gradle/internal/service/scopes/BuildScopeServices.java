@@ -398,7 +398,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultPluginRegistry(pluginInspector, scopeRegistry.getCoreAndPluginsScope());
     }
 
-    protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
+    protected BuildScopeServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
         return new BuildScopeServiceRegistryFactory(services);
     }
 

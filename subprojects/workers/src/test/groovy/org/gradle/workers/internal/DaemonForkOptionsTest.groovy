@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.classloader.ClassLoaderSpec
 import org.gradle.process.JavaForkOptions
 import spock.lang.Specification
 
@@ -147,6 +148,73 @@ class DaemonForkOptionsTest extends Specification {
         !settings1.isCompatibleWith(settings2)
     }
 
+    def "is not compatible with different classloader structures"() {
+        def spec1 = Mock(ClassLoaderSpec)
+        def spec2 = Mock(ClassLoaderSpec)
+        def spec3 = Mock(ClassLoaderSpec)
+        def spec4 = Mock(ClassLoaderSpec)
+        def settings1 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+                .build()
+        def settings2 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec4))
+                .build()
+
+        expect:
+        !settings1.isCompatibleWith(settings2)
+    }
+
+    def "is compatible with the same classloader structure"() {
+        def spec1 = Mock(ClassLoaderSpec)
+        def spec2 = Mock(ClassLoaderSpec)
+        def spec3 = Mock(ClassLoaderSpec)
+        def settings1 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+                .build()
+        def settings2 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+                .build()
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+    }
+
+    def "is compatible when classloader structures are null"() {
+        def settings1 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(null)
+                .build()
+        def settings2 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(null)
+                .build()
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+    }
+
+    def "is not compatible when one classloader structure is null"() {
+        when:
+        def settings1 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(null)
+                .build()
+        def settings2 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(new ClassLoaderStructure(Mock(ClassLoaderSpec)))
+                .build()
+
+        then:
+        !settings1.isCompatibleWith(settings2)
+
+        when:
+        settings1 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(new ClassLoaderStructure(Mock(ClassLoaderSpec)))
+                .build()
+        settings2 = daemonForkOptionsBuilder()
+                .withClassLoaderStrucuture(null)
+                .build()
+
+        then:
+        !settings1.isCompatibleWith(settings2)
+    }
+
     def "unspecified class path and shared packages default to empty list"() {
         when:
         def options = daemonForkOptionsBuilder().build()
@@ -154,6 +222,14 @@ class DaemonForkOptionsTest extends Specification {
         then:
         options.classpath == []
         options.sharedPackages == []
+    }
+
+    def "unspecified classloader structure defaults to null"() {
+        when:
+        def options = daemonForkOptionsBuilder().build()
+
+        then:
+        options.classLoaderStructure == null
     }
 
     def "unspecified keepAlive mode defaults to DAEMON"() {

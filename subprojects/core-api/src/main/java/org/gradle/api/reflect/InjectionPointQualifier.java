@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
 /**
  * The annotated annotation can be used to inject elements of the supported types.
  *
- * <p>If no {@code supportedTypes} are supplied, all types are supported.</p>
+ * <p>If both {@link #supportedTypes()} and {@link #supportedProviderTypes()} are empty, all types are supported.</p>
  *
  * @since 5.3
  */
@@ -36,5 +36,17 @@ import java.lang.annotation.Target;
 @Target({ElementType.ANNOTATION_TYPE})
 @Documented
 public @interface InjectionPointQualifier {
+    /**
+     * The types which are supported for injection.
+     */
     Class<?>[] supportedTypes() default {};
+
+    /**
+     * The types of {@link org.gradle.api.provider.Provider}s supported for injection.
+     * <br>
+     * If e.g. {@link org.gradle.api.file.FileSystemLocation} is in the list, then this annotation can be used for injecting {@link org.gradle.api.provider.Provider}&lt;{@link org.gradle.api.file.FileSystemLocation}&gt;.
+     *
+     * @since 5.5
+     */
+    Class<?>[] supportedProviderTypes() default {};
 }

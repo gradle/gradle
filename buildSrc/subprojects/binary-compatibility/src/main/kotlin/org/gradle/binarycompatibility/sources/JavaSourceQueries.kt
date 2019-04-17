@@ -23,6 +23,7 @@ import japicmp.model.JApiField
 import japicmp.model.JApiMethod
 
 import com.github.javaparser.ast.body.AnnotationDeclaration
+import com.github.javaparser.ast.body.AnnotationMemberDeclaration
 import com.github.javaparser.ast.body.BodyDeclaration
 import com.github.javaparser.ast.body.ConstructorDeclaration
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
@@ -111,6 +112,10 @@ fun isSinceJavaConstructorVisitorFor(constructor: JApiConstructor, classSimpleNa
 private
 fun isSinceJavaMethodVisitorFor(method: JApiMethod, classSimpleName: String, version: String) =
     object : NameAndSinceMatchingVisitor(classSimpleName, version) {
+
+        override fun visit(declaration: AnnotationMemberDeclaration, arg: Unit?): Boolean? =
+            if (declaration.matchesNameAndIsSince(method.name, version)) true
+            else super.visit(declaration, arg)
 
         override fun visit(declaration: MethodDeclaration, arg: Unit?): Boolean? =
             if (declaration.matchesNameAndIsSince(method.name, version)) true

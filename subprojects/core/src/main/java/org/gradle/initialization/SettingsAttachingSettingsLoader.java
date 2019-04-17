@@ -22,10 +22,10 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildState;
 
 class SettingsAttachingSettingsLoader implements SettingsLoader {
-    private final DefaultSettingsLoader delegate;
+    private final SettingsLoader delegate;
     private final ProjectStateRegistry projectRegistry;
 
-    SettingsAttachingSettingsLoader(DefaultSettingsLoader delegate, ProjectStateRegistry projectRegistry) {
+    SettingsAttachingSettingsLoader(SettingsLoader delegate, ProjectStateRegistry projectRegistry) {
         this.delegate = delegate;
         this.projectRegistry = projectRegistry;
     }

@@ -57,10 +57,12 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
             task resolveDependencyArtifacts {
                 doLast {
                     def resolvedArtifacts = configurations.deps.incoming.files.files
-                    assert resolvedArtifacts.size() == 3
+                    assert resolvedArtifacts.size() == 8
                     assert resolvedArtifacts.find { (it.name =~ 'gradle-api-(.*)\\\\.jar').matches() }
                     assert resolvedArtifacts.find { (it.name =~ 'gradle-installation-beacon-(.*)\\\\.jar').matches() }
                     assert resolvedArtifacts.find { (it.name =~ 'groovy-all-(.*)\\\\.jar').matches() }
+                    assert resolvedArtifacts.findAll { (it.name =~ 'kotlin-stdlib-(.*)\\\\.jar').matches() }.size() == 4
+                    assert resolvedArtifacts.find { (it.name =~ 'kotlin-reflect-(.*)\\\\.jar').matches() }
                 }
             }
         """
