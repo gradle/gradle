@@ -16,6 +16,8 @@
 
 import me.lucko.jarrelocator.JarRelocator
 import me.lucko.jarrelocator.Relocation
+import java.util.jar.JarFile
+import java.util.stream.Collectors
 
 buildscript {
     repositories {
@@ -72,7 +74,7 @@ abstract class ClassRelocator : TransformAction<ClassRelocator.Parameters> {
     private fun File.readPackages(): Set<String> {
         return JarFile(this).use { jarFile ->
             return jarFile.stream()
-                .filter(Predicate.not(JarEntry::isDirectory))
+                .filter { !it.isDirectory }
                 .filter { it.name.endsWith(".class") }
                 .map { entry ->
                     entry.name.substringBeforeLast('/').replace('/', '.')

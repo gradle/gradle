@@ -14,101 +14,140 @@
  * limitations under the License.
  */
 
-
-
-import org.gradle.internal.reflect.ClassDetails
-
-import java.nio.file.Files
-import java.util.zip.ZipEntry
-import java.util.zip.ZipException
-import java.util.zip.ZipFile
 import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 
-import org.gradle.api.artifacts.transform.TransformParameters
+plugins {
+    id('java-library')
+}
 
 // tag::artifact-transform-minify[]
 abstract class Minify implements TransformAction<Parameters> { // <1>
-    interface Parameters extends TransformParameters {
+    interface Parameters extends TransformParameters {         // <2>
         @Input
         Map<String, Set<String>> getKeepClassesByArtifact()
+        void setKeepClassesByArtifact(Map<String, Set<String>> keepClasses)
+// end::artifact-transform-minify[]
+        @Input
+        Long getTimestamp()
+        void setTimestamp(Long timestamp)
+// tag::artifact-transform-minify[]
     }
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
-    @InputArtifact                                                          // <2>
+    @InputArtifact
     abstract Provider<FileSystemLocation> getInputArtifact()
 
     @Override
     void transform(TransformOutputs outputs) {
-        for (entry in parameters.keepClassesByArtifact) {
-            def fileName = inputArtifact.get().asFile.name
+        def fileName = inputArtifact.get().asFile.name
+        for (entry in parameters.keepClassesByArtifact) {      // <3>
             if (fileName.startsWith(entry.key)) {
-                def nameWithoutExtension = fileName.substring(0, filename.length - 4)
+                def nameWithoutExtension = fileName.substring(0, fileName.length() - 4)
                 minify(inputArtifact.get().asFile, entry.value, outputs.file("${nameWithoutExtension}-min.jar"))
                 return
             }
         }
-        outputs.file(inputArtifact)
+        println "Nothing to minify - using ${fileName} unchanged"
+        outputs.file(inputArtifact)                            // <4>
     }
 
     private void minify(File artifact, Set<String> keepClasses, File jarFile) {
-        // Implementation
+        println "Minifying ${artifact.name}"
+        // Implementation ...
 // end::artifact-transform-minify[]
-        new JarOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile))).withCloseable { jarOutputStream ->
-            new ZipFile(artifact).withCloseable { zip ->
+        new JarOutputStream (new BufferedOutputStream (new FileOutputStream (jarFile))).withCloseable { jarOutputStream ->
+            new ZipFile (artifact).withCloseable { zip ->
                 for (entry in zip.entries()) {
                     if (entry.directory) {
-                        jarOutputStream.putNextEntry(new ZipEntry(entry.name))
+                        jarOutputStream.putNextEntry(new ZipEntry (entry.name))
                         jarOutputStream.closeEntry()
                     } else if (entry.name.endsWith(".class")) {
-                        def className = entry.name.replace("/", ".").substring(0, entry.name.length - 6)
+                        def className = entry . name . replace ("/", ".").substring(0, entry.name.length()-6)
                         if (keepClasses.contains(className)) {
-                            jarOutputStream.putNextEntry(new ZipEntry(entry.name))
-                            zip.getInputStream(entry).withCloseable { jarOutputStream << it }
-                            jarOutputStream.closeEntry()
+                            addEntry(jarOutputStream, entry, zip)
                         }
                     } else {
-                        jarOutputStream.putNextEntry(new ZipEntry(entry.name))
-                        zip.getInputStream(entry).withCloseable { jarOutputStream << it }
-                        jarOutputStream.closeEntry()
+                        addEntry(jarOutputStream, entry, zip)
                     }
                 }
             }
         }
+    }
+
+    protected void addEntry(JarOutputStream jarOutputStream, ZipEntry entry, ZipFile zip) {
+        jarOutputStream.putNextEntry(new ZipEntry (entry.name))
+        zip.getInputStream(entry).withCloseable { jarOutputStream << it }
+        jarOutputStream.closeEntry()
 // tag::artifact-transform-minify[]
     }
 }
 // end::artifact-transform-minify[]
 
-def usage = Attribute.of('usage', String)
 // tag::artifact-transform-registration[]
+def artifactType = Attribute.of('artifactType', String)
+// tag::artifact-transform-attribute-setup[]
 def minified = Attribute.of('minified', Boolean)
+// end::artifact-transform-attribute-setup[]
 def keepPatterns = [
-    "fastutil": [
-        "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
-        "it.unimi.dsi.fastutil.ints.IntSets"
+    "guava": [
+        "com.google.common.base.Optional",
+        "com.google.common.base.AbstractIterator"
     ] as Set
 ]
 
+// end::artifact-transform-registration[]
+// tag::artifact-transform-attribute-setup[]
 dependencies {
-    registerTransform(Minify) {
-        from.attribute(minified, false)
-        to.attribute(minified, true)
+    attributesSchema {
+        attribute(minified)                      // <1>
+    }
+    artifactTypes.getByName("jar") {
+        attributes.attribute(minified, false)    // <2>
+    }
+}
 
-        parameters {
-            keepClasses = keepPatterns
+configurations.all {
+    afterEvaluate {
+        if (canBeResolved) {
+            attributes.attribute(minified, true) // <3>
         }
     }
 }
+// tag::artifact-transform-registration[]
+
+dependencies {
+    registerTransform(Minify) {
+        from.attribute(minified, false).attribute(artifactType, "jar")
+        to.attribute(minified, true).attribute(artifactType, "jar")
+// end::artifact-transform-attribute-setup[]
+
+        parameters {
+            keepClassesByArtifact = keepPatterns
+// end::artifact-transform-registration[]
+            // Make sure the transform executes each time
+            timestamp = System.nanoTime()
+// tag::artifact-transform-registration[]
+        }
+// tag::artifact-transform-attribute-setup[]
+    }
+}
+// end::artifact-transform-attribute-setup[]
 // end::artifact-transform-registration[]
 
+repositories {
+    mavenCentral()
+}
+// tag::artifact-transform-attribute-setup[]
 
-allprojects {
-    dependencies {
-        attributesSchema {
-            attribute(minified)
-        }
-    }
-    configurations.create("compile") {
-        attributes.attribute usage, 'api'
-    }
+dependencies {                                 // <4>
+    implementation('com.google.guava:guava:27.1-jre')
+    implementation(project(':producer'))
+}
+// end::artifact-transform-attribute-setup[]
+
+tasks.register("resolveRuntimeClasspath", Copy) {
+    from(configurations.runtimeClasspath)
+    into(layout.buildDirectory.dir("runtimeClasspath"))
 }

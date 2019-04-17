@@ -257,6 +257,30 @@ When the configuration is resolved, Gradle needs to download the `guava` JAR and
 Gradle also needs to execute the `producer:jar` task to generate the JAR artifact of the project and then minify it.
 The downloading and the minification of the `guava.jar` happens in parallel to the execution of the `producer:jar` task and the minification of the resulting JAR.
 
+Here is how to setup the `minified` attribute so that the above works.
+You need to register the new attribute in the schema, add it to all JAR artifacts and request it on all resolvable configurations.
+
+.Artifact transform attribute setup
+====
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/minify/groovy",files="build.gradle[tags=artifact-transform-attribute-setup]"]
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/minify/kotlin",files="build.gradle.kts[tags=artifact-transform-attribute-setup]"]
+====
+<1> Add the attribute to the schema
+<2> All JAR files are not minified
+<3> Request `minified=true` on all resolvable configurations
+<4> Add the dependencies which will be transformed
+
+When resolving the `runtimeClasspath` configuration, observe how the transform for the project dependency is executed before the task resolving the configuration starts.
+The transforms for binary dependencies execute as part of the task when resolving the configuration.
+
+.Output when resolving the runtimeClasspath configuration
+----
+> gradle resolveRuntimeClasspath
+
+include::{samplesPath}/userguide/dependencyManagement/artifactTransforms/minify/artifactTransformMinify.out[]
+----
+
+
 === Registering artifact transforms
 
 Similar to tasks, an artifact transform consist of an action and some parameters.
@@ -280,9 +304,8 @@ include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/gro
 include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
 ====
 
-Another example is that you want minify JARs by only including some `class` files from them.
-You need to provide the classes to retain in the minified JARs per JAR which should be minified.
-Note the use of the `parameters {}` block to provide the classes to retain in the minified JARs to the `Minify` transform.
+Another example is that you want minify JARs by only keeping some `class` files from them.
+Note the use of the `parameters {}` block to provide the classes to keep in the minified JARs to the `Minify` transform.
 
 .Artifact transform registration with parameters
 ====
@@ -309,12 +332,13 @@ You can only supply two types of paths to the `dir` or `file` methods:
 
 Gradle uses the absolute path as the location of the output artifact.
 For example, if the input artifact is an exploded WAR, then the transform action can call `TransformOutputs.file()` for all jar files in the `WEB-INF/lib` directory.
+The output of the transform would then be the library JARs of the web application.
 
 For a relative path, the `dir()` or `file()` method returns a workspace to the transform action.
 The implementation of the transform action needs to create the transformed artifact at the location of the provided workspace.
 
 The output artifacts replace the input artifact in the transformed variant in the order they were registered.
-For example, if the configuration consists of the artifacts `lib1.jar`, `lib2.jar`, `lib3.jar`, and the transform action registers a minified output artifact `<artifact-name>-min.jar` for each input artifact, then the transformed configuration consists of the artifacts `lib1-min.jar`, `lib2-min.jar` adn `lib3-min.jar`.
+For example, if the configuration consists of the artifacts `lib1.jar`, `lib2.jar`, `lib3.jar`, and the transform action registers a minified output artifact `<artifact-name>-min.jar` for each input artifact, then the transformed configuration consists of the artifacts `lib1-min.jar`, `lib2-min.jar` and `lib3-min.jar`.
 
 Here is the implementation of an `Unzip` transform which transforms a JAR file into a classes directory by unzipping it.
 The `Unzip` transform does not require any parameters.
@@ -337,6 +361,21 @@ The type needs to implement the marker interface link:{javadocPath}/org/gradle/a
 The properties should be <<lazy_configuration.adoc#sec:lazy_properties,read-only configurable properties>>.
 Use an interface declaring the getters and Gradle will generate the implementation.
 All getters need to have proper input annotations, see the table in the section on <<more_about_tasks.adoc#table:incremental_build_annotations,incremental build>>.
+
+Here is the implementation of a `Minify` transform that makes JARs smaller by only keeping certain classes in them.
+The `Minify` transform requires the classes to keep as parameters.
+Observe how you can obtain the parameters by `TransformAction.getParameters()` in the `transform()` method.
+The implementation of the `transform()` method requests a location for the minified JAR by using `TransformOutputs.file()` and then creates the minified JAR at this location.
+
+.Minify transform implementation
+====
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/minify/groovy",files="build.gradle[tags=artifact-transform-minify]"]
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/minify/kotlin",files="build.gradle.kts[tags=artifact-transform-minify]"]
+====
+<1> Declare the parameter type
+<2> Interface for the transform parameters
+<3> Use the parameters
+<4> Use the unchanged input artifact when not minification is required
 
 Remember that the input artifact is a dependency, which may have its own dependencies.
 If your artifact transform needs access to those transitive dependencies, it can declare an abstract getter returning a `FileCollection` and annotate it with link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifactDependencies.html[@InputArtifactDependencies].
