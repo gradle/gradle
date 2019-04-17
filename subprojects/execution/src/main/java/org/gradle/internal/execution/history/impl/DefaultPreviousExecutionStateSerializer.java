@@ -53,7 +53,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
         // We can't use an immutable list here because some hashes can be null
         int taskActionsCount = decoder.readSmallInt();
-        ImmutableList.Builder<ImplementationSnapshot> taskActionImplementationsBuilder = ImmutableList.builder();
+        ImmutableList.Builder<ImplementationSnapshot> taskActionImplementationsBuilder = ImmutableList.builderWithExpectedSize(taskActionsCount);
         for (int j = 0; j < taskActionsCount; j++) {
             ImplementationSnapshot actionImpl = implementationSnapshotSerializer.read(decoder);
             taskActionImplementationsBuilder.add(actionImpl);

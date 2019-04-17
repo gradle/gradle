@@ -317,13 +317,14 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private List<T> getCandidates(BitSet liveSet) {
-        if (liveSet.cardinality() == 0) {
-            return Collections.emptyList();
+        int cardinality = liveSet.cardinality();
+        if (cardinality == 0) {
+            return ImmutableList.of();
         }
-        if (liveSet.cardinality() == 1) {
-            return Collections.singletonList(this.candidates.get(liveSet.nextSetBit(0)));
+        if (cardinality == 1) {
+            return ImmutableList.of(this.candidates.get(liveSet.nextSetBit(0)));
         }
-        ImmutableList.Builder<T> builder = ImmutableList.builder();
+        ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(cardinality);
         for (int c = liveSet.nextSetBit(0); c >= 0; c = liveSet.nextSetBit(c + 1)) {
             builder.add(this.candidates.get(c));
         }

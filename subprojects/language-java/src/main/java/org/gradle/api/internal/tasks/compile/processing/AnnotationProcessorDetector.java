@@ -193,7 +193,7 @@ public class AnnotationProcessorDetector {
             if (processorNames.isEmpty()) {
                 return Collections.emptyList();
             }
-            ImmutableList.Builder<AnnotationProcessorDeclaration> processors = ImmutableList.builder();
+            ImmutableList.Builder<AnnotationProcessorDeclaration> processors = ImmutableList.builderWithExpectedSize(processorNames.size());
             for (String name : processorNames) {
                 IncrementalAnnotationProcessorType type = processorTypes.get(name);
                 type = type != null ? type : IncrementalAnnotationProcessorType.UNKNOWN;

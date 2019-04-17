@@ -141,7 +141,7 @@ public class BaseSerializerFactory {
     private static class StringMapSerializer extends AbstractSerializer<Map<String, String>> {
         public Map<String, String> read(Decoder decoder) throws Exception {
             int pairs = decoder.readSmallInt();
-            ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+            ImmutableMap.Builder<String, String> builder = ImmutableMap.builderWithExpectedSize(pairs);
             for (int i = 0; i < pairs; ++i) {
                 builder.put(decoder.readString(), decoder.readString());
             }

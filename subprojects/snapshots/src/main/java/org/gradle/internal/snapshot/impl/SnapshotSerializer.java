@@ -87,7 +87,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 return new ListValueSnapshot(listElements);
             case SET_SNAPSHOT:
                 size = decoder.readSmallInt();
-                ImmutableSet.Builder<ValueSnapshot> setBuilder = ImmutableSet.builder();
+                ImmutableSet.Builder<ValueSnapshot> setBuilder = ImmutableSet.builderWithExpectedSize(size);
                 for (int i = 0; i < size; i++) {
                     setBuilder.add(read(decoder));
                 }

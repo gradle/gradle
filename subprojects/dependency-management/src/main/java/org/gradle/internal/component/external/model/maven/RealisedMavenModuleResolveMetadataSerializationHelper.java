@@ -67,7 +67,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
     public ModuleComponentResolveMetadata readMetadata(Decoder decoder, DefaultMavenModuleResolveMetadata resolveMetadata, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
         Map<String, List<GradleDependencyMetadata>> variantToDependencies = readVariantDependencies(decoder);
         ImmutableList<? extends ComponentVariant> variants = resolveMetadata.getVariants();
-        ImmutableList.Builder<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> builder = ImmutableList.builder();
+        ImmutableList.Builder<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> builder = ImmutableList.builderWithExpectedSize(variants.size());
         for (ComponentVariant variant: variants) {
             builder.add(new AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl(resolveMetadata.getId(), variant.getName(), variant.getAttributes().asImmutable(), variant.getDependencies(), variant.getDependencyConstraints(),
                 variant.getFiles(), ImmutableCapabilities.of(variant.getCapabilities().getCapabilities()), variantToDependencies.get(variant.getName())));
@@ -148,11 +148,11 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
     }
 
     private ImmutableList<ModuleDependencyMetadata> readDependencies(Decoder decoder, DefaultMavenModuleResolveMetadata metadata, RealisedConfigurationMetadata configurationMetadata, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
-        ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
         int dependenciesCount = decoder.readSmallInt();
         if (dependenciesCount == 0) {
             return ImmutableList.of();
         }
+        ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builderWithExpectedSize(dependenciesCount);
         for (int j = 0; j < dependenciesCount; j++) {
             byte dependencyType = decoder.readByte();
             boolean force = false;

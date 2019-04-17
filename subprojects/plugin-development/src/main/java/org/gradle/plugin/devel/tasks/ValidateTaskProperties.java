@@ -213,7 +213,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     }
 
     private static List<String> toProblemMessages(Map<String, Boolean> problems) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        ImmutableList.Builder<String> builder = ImmutableList.builderWithExpectedSize(problems.size());
         for (Map.Entry<String, Boolean> entry : problems.entrySet()) {
             String problem = entry.getKey();
             Boolean error = entry.getValue();

@@ -57,11 +57,13 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
 
     public static VariantsMetaData extractFrom(BinarySpec binarySpec, ModelSchema<?> binarySpecSchema) {
         Map<String, Object> variants = Maps.newLinkedHashMap();
-        ImmutableMap.Builder<String, ModelType<?>> dimensionTypesBuilder = ImmutableMap.builder();
+        ImmutableMap<String, ModelType<?>> dimensionTypes;
         if (binarySpecSchema instanceof StructSchema) {
             VariantAspect variantAspect = ((StructSchema<?>) binarySpecSchema).getAspect(VariantAspect.class);
             if (variantAspect != null) {
-                for (ModelProperty<?> property : variantAspect.getDimensions()) {
+                Set<ModelProperty<?>> dimensions = variantAspect.getDimensions();
+                ImmutableMap.Builder<String, ModelType<?>> dimensionTypesBuilder = ImmutableMap.builderWithExpectedSize(dimensions.size());
+                for (ModelProperty<?> property : dimensions) {
                     // note: it's not the role of this class to validate that the annotation is properly used, that
                     // is to say only on a getter returning String or a Named instance, so we trust the result of
                     // the call
@@ -69,9 +71,14 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
                     variants.put(property.getName(), value);
                     dimensionTypesBuilder.put(property.getName(), property.getType());
                 }
+                dimensionTypes = dimensionTypesBuilder.build();
+            } else {
+                dimensionTypes = ImmutableMap.of();
             }
+        } else {
+            dimensionTypes = ImmutableMap.of();
         }
-        return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants), dimensionTypesBuilder.build());
+        return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants), dimensionTypes);
     }
 
     @Override

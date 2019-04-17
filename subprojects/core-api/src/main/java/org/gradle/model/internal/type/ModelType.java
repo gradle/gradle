@@ -18,10 +18,10 @@ package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -136,7 +136,7 @@ public abstract class ModelType<T> {
     public List<ModelType<?>> getTypeVariables() {
         if (isParameterized()) {
             TypeWrapper[] typeArguments = ((ParameterizedTypeWrapper) wrapper).getActualTypeArguments();
-            ImmutableList.Builder<ModelType<?>> builder = ImmutableList.builder();
+            ImmutableList.Builder<ModelType<?>> builder = ImmutableList.builderWithExpectedSize(typeArguments.length);
             for (TypeWrapper typeArgument : typeArguments) {
                 builder.add(Simple.typed(typeArgument));
             }

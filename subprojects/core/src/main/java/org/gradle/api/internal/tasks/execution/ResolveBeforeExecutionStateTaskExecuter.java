@@ -105,7 +105,7 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         if (taskActions.isEmpty()) {
             return ImmutableList.of();
         }
-        ImmutableList.Builder<ImplementationSnapshot> actionImplementations = ImmutableList.builder();
+        ImmutableList.Builder<ImplementationSnapshot> actionImplementations = ImmutableList.builderWithExpectedSize(taskActions.size());
         for (InputChangesAwareTaskAction taskAction : taskActions) {
             actionImplementations.add(taskAction.getActionImplementation(classLoaderHierarchyHasher));
         }

@@ -541,7 +541,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public Set<Task> getFilteredTasks() {
-        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
+        ImmutableSet.Builder<Task> builder = ImmutableSet.builderWithExpectedSize(filteredNodes.size());
         for (Node filteredNode : filteredNodes) {
             if (filteredNode instanceof LocalTaskNode) {
                 builder.add(((LocalTaskNode) filteredNode).getTask());
@@ -661,7 +661,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                                     FileParameterUtils.resolveOutputFilePropertySpecs(task.toString(), propertyName, value, filePropertyType, fileCollectionFactory, new Consumer<OutputFilePropertySpec>() {
                                         @Override
                                         public void accept(OutputFilePropertySpec outputFilePropertySpec) {
-                                            mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()));
+                                            mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles().getFiles()));
                                         }
                                     });
                                 }
@@ -675,7 +675,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                         withDeadlockHandling(taskNode, "a local state property", "local state properties", new Runnable() {
                             @Override
                             public void run() {
-                                mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
+                                mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value).getFiles()));
                             }
                         });
                         mutations.hasLocalState = true;
@@ -686,7 +686,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                         withDeadlockHandling(taskNode, "a destroyable", "destroyables", new Runnable() {
                             @Override
                             public void run() {
-                                mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
+                                mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value).getFiles()));
                             }
                         });
                     }
@@ -753,8 +753,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return !doesDestroyNotYetConsumedOutputOfAnotherNode(node, candidateNodeDestroyables);
     }
 
-    private static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
-        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+    private static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Set<File> files) {
+        ImmutableSet.Builder<String> builder = ImmutableSet.builderWithExpectedSize(files.size());
         for (File file : files) {
             builder.add(canonicalizePath(file, cache));
         }

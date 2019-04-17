@@ -69,7 +69,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         // For source files that do include the precompiled header, we mark them as a "source file for pch"
         // The native compiler then adds the appropriate compiler arguments for those source files that can use PCH
         if (spec.getPreCompiledHeader() != null) {
-            ImmutableList.Builder<File> sourceFiles = ImmutableList.builder();
+            ImmutableList.Builder<File> sourceFiles = ImmutableList.builderWithExpectedSize(spec.getSourceFiles().size());
             for (File sourceFile : spec.getSourceFiles()) {
                 SourceFileState state = incrementalCompilation.getFinalState().getState(sourceFile);
                 final HashCode hash = state.getHash();

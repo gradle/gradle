@@ -301,8 +301,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private ImmutableList<File> loadResultsFile() {
             Path transformerResultsPath = workspace.getResultsFile().toPath();
             try {
-                ImmutableList.Builder<File> builder = ImmutableList.builder();
                 List<String> paths = Files.readAllLines(transformerResultsPath, StandardCharsets.UTF_8);
+                ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(paths.size());
                 for (String path : paths) {
                     if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
                         builder.add(new File(workspace.getOutputDirectory(), path.substring(2)));

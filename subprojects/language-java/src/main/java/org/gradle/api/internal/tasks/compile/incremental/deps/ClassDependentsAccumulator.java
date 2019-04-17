@@ -19,11 +19,9 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -73,9 +71,9 @@ public class ClassDependentsAccumulator {
     @VisibleForTesting
     Map<String, DependentsSet> getDependentsMap() {
         if (dependenciesToAll.isEmpty() && dependents.isEmpty()) {
-            return Collections.emptyMap();
+            return ImmutableMap.of();
         }
-        ImmutableMap.Builder<String, DependentsSet> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, DependentsSet> builder = ImmutableMap.builderWithExpectedSize(dependenciesToAll.size() + dependents.size());
         for (String s : dependenciesToAll) {
             builder.put(s, DependentsSet.dependencyToAll());
         }
@@ -101,13 +99,5 @@ public class ClassDependentsAccumulator {
 
     public ClassSetAnalysisData getAnalysis() {
         return new ClassSetAnalysisData(ImmutableSet.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), fullRebuildCause);
-    }
-
-    private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {
-        ImmutableMap.Builder<K, Set<V>> builder = ImmutableMap.builder();
-        for (K key : multimap.keySet()) {
-            builder.put(key, ImmutableSet.copyOf(multimap.get(key)));
-        }
-        return builder.build();
     }
 }
