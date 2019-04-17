@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot.impl
 
-import com.google.common.collect.ImmutableSet
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -45,7 +45,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    ImmutableSet<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
+    ImmutableList<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
         throw new UnsupportedOperationException()
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -44,7 +44,7 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) files;
-        ImmutableSet<FileSystemSnapshot> roots = fileSystemSnapshotter.snapshot(fileCollection);
+        ImmutableList<FileSystemSnapshot> roots = fileSystemSnapshotter.snapshot(fileCollection);
         return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
     }
 

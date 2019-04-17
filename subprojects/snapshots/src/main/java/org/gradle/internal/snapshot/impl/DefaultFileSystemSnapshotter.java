@@ -17,7 +17,7 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -120,7 +120,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public ImmutableSet<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
+    public ImmutableList<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
         RootVisitingSnapshotBuilder visitor = new RootVisitingSnapshotBuilder();
         fileCollection.visitLeafCollections(visitor);
         return visitor.build();
@@ -232,7 +232,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private class RootVisitingSnapshotBuilder implements FileCollectionLeafVisitor {
-        private final ImmutableSet.Builder<FileSystemSnapshot> roots = ImmutableSet.builder();
+        private final ImmutableList.Builder<FileSystemSnapshot> roots = ImmutableList.builder();
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
@@ -252,7 +252,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             roots.add(snapshotDirectoryTree(root, patterns));
         }
 
-        public ImmutableSet<FileSystemSnapshot> build() {
+        public ImmutableList<FileSystemSnapshot> build() {
             return roots.build();
         }
     }

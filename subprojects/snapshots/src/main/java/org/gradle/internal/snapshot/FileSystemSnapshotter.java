@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.hash.HashCode;
 
@@ -51,5 +51,5 @@ public interface FileSystemSnapshotter {
     /**
      * Returns snapshots of the roots of a file collection.
      */
-    ImmutableSet<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection);
+    ImmutableList<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection);
 }
