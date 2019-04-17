@@ -91,30 +91,31 @@ object KotlinMetadataQueries {
     fun KotlinClassMetadata.isKotlinInternal(jvmSignature: String, isConstructor: Boolean, isField: Boolean, isMethod: Boolean): Boolean {
 
         var isInternal = false
+        var isDoneVisiting = false
 
         val internalFunctionVisitor = object : KmFunctionVisitor() {
             override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? =
-                if (isInternal || type != JvmFunctionExtensionVisitor.TYPE) null
+                if (isDoneVisiting) null
                 else object : JvmFunctionExtensionVisitor() {
                     override fun visit(desc: JvmMethodSignature?) {
                         if (jvmSignature == desc?.asString()) {
                             isInternal = true
+                            isDoneVisiting = true
                         }
                     }
                 }
         }
 
         val internalPropertyVisitorFactory: (Flags, Flags, Flags) -> KmPropertyVisitor? = { flags, getterFlags, setterFlags ->
-            if (isInternal || (!isField && !isMethod)) null
+            if (isDoneVisiting || (!isField && !isMethod)) null
             else {
                 val internalField = Flag.IS_INTERNAL(flags)
                 val internalGetter = Flag.IS_INTERNAL(getterFlags)
                 val internalSetter = Flag.IS_INTERNAL(setterFlags)
                 if (!internalField && !internalGetter && !internalSetter) null
                 else object : KmPropertyVisitor() {
-                    override fun visitExtensions(type: KmExtensionType): KmPropertyExtensionVisitor? {
-                        if (type != JvmPropertyExtensionVisitor.TYPE) return null
-                        return object : JvmPropertyExtensionVisitor() {
+                    override fun visitExtensions(type: KmExtensionType): KmPropertyExtensionVisitor =
+                        object : JvmPropertyExtensionVisitor() {
                             override fun visit(fieldDesc: JvmFieldSignature?, getterDesc: JvmMethodSignature?, setterDesc: JvmMethodSignature?) {
                                 if (
                                     (internalField && jvmSignature == fieldDesc?.asString())
@@ -122,10 +123,10 @@ object KotlinMetadataQueries {
                                     || (internalSetter && jvmSignature == setterDesc?.asString())
                                 ) {
                                     isInternal = true
+                                    isDoneVisiting = true
                                 }
                             }
                         }
-                    }
                 }
             }
         }
@@ -133,14 +134,14 @@ object KotlinMetadataQueries {
         val internalPackageVisitor = object : KmPackageVisitor() {
 
             override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
-                if (isInternal || !isMethod || !Flag.IS_INTERNAL(flags)) null
+                if (isDoneVisiting || !isMethod || !Flag.IS_INTERNAL(flags)) null
                 else internalFunctionVisitor
 
             override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
                 internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
 
             override fun visitExtensions(type: KmExtensionType): KmPackageExtensionVisitor? =
-                if (isInternal || type != JvmPackageExtensionVisitor.TYPE) null
+                if (isDoneVisiting) null
                 else object : JvmPackageExtensionVisitor() {
                     override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
                         internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
@@ -150,34 +151,35 @@ object KotlinMetadataQueries {
         val internalClassVisitor = object : KmClassVisitor() {
 
             override fun visit(flags: Flags, name: ClassName) {
-                if (!isInternal && Flag.IS_INTERNAL(flags)) {
+                if (!isDoneVisiting && Flag.IS_INTERNAL(flags) && jvmSignature == name.replace("/", ".")) {
                     isInternal = true
+                    isDoneVisiting = true
                 }
             }
 
             override fun visitConstructor(flags: Flags): KmConstructorVisitor? =
-                if (isInternal || !isConstructor || !Flag.IS_INTERNAL(flags)) null
+                if (isDoneVisiting || !isConstructor || !Flag.IS_INTERNAL(flags)) null
                 else object : KmConstructorVisitor() {
-                    override fun visitExtensions(type: KmExtensionType): KmConstructorExtensionVisitor? =
-                        if (type != JvmConstructorExtensionVisitor.TYPE) null
-                        else object : JvmConstructorExtensionVisitor() {
+                    override fun visitExtensions(type: KmExtensionType): KmConstructorExtensionVisitor =
+                        object : JvmConstructorExtensionVisitor() {
                             override fun visit(desc: JvmMethodSignature?) {
                                 if (jvmSignature == desc?.asString()) {
                                     isInternal = true
+                                    isDoneVisiting = true
                                 }
                             }
                         }
                 }
 
             override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
-                if (isInternal || !isMethod || !Flag.IS_INTERNAL(flags)) null
+                if (isDoneVisiting || !isMethod || !Flag.IS_INTERNAL(flags)) null
                 else internalFunctionVisitor
 
             override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
                 internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
 
             override fun visitExtensions(type: KmExtensionType): KmClassExtensionVisitor? =
-                if (isInternal || type != JvmClassExtensionVisitor.TYPE) null
+                if (isDoneVisiting) null
                 else object : JvmClassExtensionVisitor() {
                     override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
                         internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
