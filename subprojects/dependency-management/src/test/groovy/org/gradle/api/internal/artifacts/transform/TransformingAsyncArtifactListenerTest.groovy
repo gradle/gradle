@@ -22,14 +22,17 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.internal.Try
 import org.gradle.internal.operations.BuildOperation
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationQueue
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.testing.internal.util.Specification
 
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(Transformation)
     def operationQueue = Mock(BuildOperationQueue)
+    def buildOperationExecutor = Mock(BuildOperationExecutor)
     def transformationNodeRegistry = Mock(TransformationNodeRegistry)
-    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry)
+    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry, buildOperationExecutor)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -53,6 +56,9 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformationNodeRegistry.getIfExecuted(artifactId, transformation) >> Optional.empty()
+        1 * buildOperationExecutor.run(_) >> { RunnableBuildOperation operation ->
+            operation.run(null)
+        }
         1 * transformation.transform({ it.files == [artifactFile] }, _ as ExecutionGraphDependenciesResolver, _)
     }
 

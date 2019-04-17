@@ -19,28 +19,41 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformationNodeRegistry transformationNodeRegistry;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultArtifactTransforms(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
-        TransformationNodeRegistry transformationNodeRegistry
+        TransformationNodeRegistry transformationNodeRegistry,
+        BuildOperationExecutor buildOperationExecutor
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
         this.transformationNodeRegistry = transformationNodeRegistry;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver) {
-        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformationNodeRegistry, consumerAttributes.asImmutable(), allowNoMatchingVariants, dependenciesResolver);
+        return new AttributeMatchingVariantSelector(
+            consumerProvidedVariantFinder,
+            schema,
+            attributesFactory,
+            transformationNodeRegistry,
+            consumerAttributes.asImmutable(),
+            allowNoMatchingVariants,
+            dependenciesResolver,
+            buildOperationExecutor
+        );
     }
 
 }

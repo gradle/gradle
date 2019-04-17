@@ -30,6 +30,7 @@ import org.gradle.internal.component.AmbiguousVariantSelectionException;
 import org.gradle.internal.component.NoMatchingVariantSelectionException;
 import org.gradle.internal.component.VariantSelectionException;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,6 +47,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
     private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -54,7 +56,8 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         TransformationNodeRegistry transformationNodeRegistry,
         AttributeContainerInternal requested,
         boolean ignoreWhenNoMatches,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
+        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver,
+        BuildOperationExecutor buildOperationExecutor
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
@@ -63,6 +66,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.dependenciesResolver = dependenciesResolver;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -109,7 +113,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             Transformation transformation = result.getRight().transformation;
-            return new ConsumerProvidedResolvedVariant(producer.getComponentId(), artifacts, attributes, transformation, dependenciesResolver, transformationNodeRegistry);
+            return new ConsumerProvidedResolvedVariant(producer.getComponentId(), artifacts, attributes, transformation, dependenciesResolver, transformationNodeRegistry, buildOperationExecutor);
         }
 
         if (!candidates.isEmpty()) {

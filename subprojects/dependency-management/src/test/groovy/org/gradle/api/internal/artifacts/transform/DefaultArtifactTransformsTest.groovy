@@ -35,6 +35,7 @@ import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -51,7 +52,8 @@ class DefaultArtifactTransformsTest extends Specification {
     def attributeMatcher = Mock(AttributeMatcher)
     def dependenciesResolver = Stub(ExtraExecutionGraphDependenciesResolverFactory)
     def transformationNodeRegistry = Mock(TransformationNodeRegistry)
-    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformationNodeRegistry)
+    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformationNodeRegistry, buildOperationExecutor)
 
     def "selects producer variant with requested attributes"() {
         def variant1 = resolvedVariant()
@@ -176,6 +178,9 @@ class DefaultArtifactTransformsTest extends Specification {
         _ * transformation.getDisplayName() >> "transform"
         _ * transformation.requiresDependencies() >> false
         _ * transformationNodeRegistry.getIfExecuted(_, _) >> Optional.empty()
+        _ * buildOperationExecutor.run(_) >> { RunnableBuildOperation operation ->
+            operation.run(null)
+        }
 
         1 * transformation.transform({ it.files == [sourceArtifactFile]}, _ as ExecutionGraphDependenciesResolver, _) >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2)))
 

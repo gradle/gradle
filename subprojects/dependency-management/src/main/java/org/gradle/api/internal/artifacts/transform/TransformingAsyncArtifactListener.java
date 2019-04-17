@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -31,6 +32,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     private final Map<File, TransformationResult> fileResults;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private final TransformationNodeRegistry transformationNodeRegistry;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
@@ -42,7 +44,8 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
         Map<File, TransformationResult> fileResults,
         ExecutionGraphDependenciesResolver dependenciesResolver,
-        TransformationNodeRegistry transformationNodeRegistry
+        TransformationNodeRegistry transformationNodeRegistry,
+        BuildOperationExecutor buildOperationExecutor
     ) {
         this.artifactResults = artifactResults;
         this.actions = actions;
@@ -51,6 +54,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         this.fileResults = fileResults;
         this.dependenciesResolver = dependenciesResolver;
         this.transformationNodeRegistry = transformationNodeRegistry;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -74,7 +78,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
             // If it has been downloaded earlier, then there is a high chance that the transformed artifact is already in a Gradle user home workspace and up-to-date.
             // Using the BuildOperationQueue here to only realize that the result of the transformation is up-to-date in the Gradle user home workspace has a performance impact,
             // so we are executing the up-to-date transform operation in place.
-            operation.run(null);
+            buildOperationExecutor.run(operation);
         }
     }
 

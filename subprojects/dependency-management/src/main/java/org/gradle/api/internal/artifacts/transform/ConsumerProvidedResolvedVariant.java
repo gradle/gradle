@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -38,6 +39,7 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final Transformation transformation;
     private final ExtraExecutionGraphDependenciesResolverFactory resolverFactory;
     private final TransformationNodeRegistry transformationNodeRegistry;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public ConsumerProvidedResolvedVariant(
         ComponentIdentifier componentIdentifier,
@@ -45,7 +47,8 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
         AttributeContainerInternal target,
         Transformation transformation,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
-        TransformationNodeRegistry transformationNodeRegistry
+        TransformationNodeRegistry transformationNodeRegistry,
+        BuildOperationExecutor buildOperationExecutor
     ) {
         this.componentIdentifier = componentIdentifier;
         this.delegate = delegate;
@@ -53,13 +56,14 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
         this.transformation = transformation;
         this.resolverFactory = dependenciesResolverFactory;
         this.transformationNodeRegistry = transformationNodeRegistry;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
         Map<File, TransformationResult> fileResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, getDependenciesResolver(), transformationNodeRegistry));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, getDependenciesResolver(), transformationNodeRegistry, buildOperationExecutor));
         return new TransformCompletion(result, attributes, artifactResults, fileResults);
     }
 
