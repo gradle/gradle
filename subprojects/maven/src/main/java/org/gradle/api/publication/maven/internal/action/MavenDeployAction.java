@@ -15,9 +15,12 @@
  */
 package org.gradle.api.publication.maven.internal.action;
 
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.GradleException;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.aether.RepositorySystem;
@@ -30,17 +33,25 @@ import org.sonatype.aether.repository.Proxy;
 import org.sonatype.aether.util.repository.DefaultProxySelector;
 
 import java.io.File;
+import java.net.SocketTimeoutException;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class MavenDeployAction extends AbstractMavenPublishAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
+    private final static String MAX_DEPLOY_ATTEMPTS = "org.gradle.internal.remote.repository.deploy.max.attempts";
+    private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.remote.repository.deploy.initial.backoff";
 
     private RemoteRepository remoteRepository;
     private RemoteRepository remoteSnapshotRepository;
+    private final int maxDeployAttempts;
+    private final int initialBackOff;
 
     public MavenDeployAction(String packaging, MavenProjectIdentity projectIdentity, List<File> wagonJars) {
         super(packaging, projectIdentity, wagonJars);
+        this.maxDeployAttempts = Integer.getInteger(MAX_DEPLOY_ATTEMPTS, 3);
+        this.initialBackOff = Integer.getInteger(INITIAL_BACKOFF_MS, 1000);
     }
 
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {
@@ -49,7 +60,7 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
     }
 
     @Override
-    protected void publishArtifacts(Collection<Artifact> artifacts, RepositorySystem repositorySystem, RepositorySystemSession session) throws DeploymentException {
+    protected void publishArtifacts(Collection<Artifact> artifacts, final RepositorySystem repositorySystem, final RepositorySystemSession session) throws DeploymentException {
         RemoteRepository gradleRepo = remoteRepository;
         if (artifacts.iterator().next().isSnapshot() && remoteSnapshotRepository != null) {
             gradleRepo = remoteSnapshotRepository;
@@ -60,15 +71,46 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
 
         org.sonatype.aether.repository.RemoteRepository aetherRepo = createRepository(gradleRepo);
 
-        DeployRequest request = new DeployRequest();
+        final DeployRequest request = new DeployRequest();
         request.setRepository(aetherRepo);
         for (Artifact artifact : artifacts) {
             request.addArtifact(artifact);
         }
 
         LOGGER.info("Deploying to {}", gradleRepo.getUrl());
-        repositorySystem.deploy(session, request);
+
+        deployWithRetry(() -> { repositorySystem.deploy(session, request); return null; }, maxDeployAttempts, initialBackOff);
     }
+
+    private void deployWithRetry(Callable operation, int maxDeployAttempts, int backoff) throws DeploymentException {
+        int retries = 0;
+        while (retries < maxDeployAttempts) {
+            retries++;
+            Throwable failure;
+            try {
+                operation.call();
+                if (retries > 1) {
+                    LOGGER.info("Successfully deployed resource after {} retries", retries - 1);
+                }
+                break;
+            } catch (Exception throwable) {
+                failure = throwable;
+            }
+            boolean doNotRetry = !isLikelyTransientNetworkingIssue(failure);
+            if (doNotRetry || retries == maxDeployAttempts) {
+                throw new DeploymentException("Could not deploy to remote repository | " + failure.getMessage(), failure);
+            } else {
+                LOGGER.info("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", remoteRepository, backoff, maxDeployAttempts - retries, failure);
+                try {
+                    Thread.sleep(backoff);
+                    backoff *= 2;
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        }
+    }
+
 
     private org.sonatype.aether.repository.RemoteRepository createRepository(RemoteRepository gradleRepo) {
         org.sonatype.aether.repository.RemoteRepository repo = new org.sonatype.aether.repository.RemoteRepository("remote", gradleRepo.getLayout(), gradleRepo.getUrl());
@@ -87,5 +129,20 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
         }
 
         return repo;
+    }
+
+    private static boolean isLikelyTransientNetworkingIssue(Throwable failure) {
+        if (failure instanceof SocketTimeoutException || failure instanceof HttpHostConnectException) {
+            return true;
+        }
+        if (failure instanceof HttpErrorStatusCodeException) {
+            HttpErrorStatusCodeException httpError = (HttpErrorStatusCodeException) failure;
+            return httpError.isServerError();
+        }
+        Throwable cause = failure.getCause();
+        if (cause != null && cause != failure) {
+            return isLikelyTransientNetworkingIssue(cause);
+        }
+        return false;
     }
 }
