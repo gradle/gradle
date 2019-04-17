@@ -16,18 +16,22 @@
 
 package org.gradle.binarycompatibility
 
-import org.gradle.kotlin.dsl.*
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.UnexpectedBuildFailure
+
 import org.hamcrest.CoreMatchers
+
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+
 import java.awt.Desktop
 import java.io.File
+
+import org.gradle.kotlin.dsl.*
 
 
 abstract class AbstractBinaryCompatibilityTest {
