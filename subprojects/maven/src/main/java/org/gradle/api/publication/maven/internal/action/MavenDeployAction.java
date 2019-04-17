@@ -35,9 +35,9 @@ import java.util.List;
 
 public class MavenDeployAction extends AbstractMavenPublishAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
+
     private final static String MAX_DEPLOY_ATTEMPTS = "org.gradle.internal.remote.repository.deploy.max.attempts";
     private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.remote.repository.deploy.initial.backoff";
-
     private RemoteRepository remoteRepository;
     private RemoteRepository remoteSnapshotRepository;
     private final int maxDeployAttempts;
@@ -74,11 +74,11 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
 
         LOGGER.info("Deploying to {}", gradleRepo.getUrl());
 
-        MavenDeployRetrier deployRetrier = new MavenDeployRetrier(
+        DefaultMavenDeployRetrier deployRetrier = new DefaultMavenDeployRetrier(
             () -> { repositorySystem.deploy(session, request); return null; },
+            remoteRepository,
             maxDeployAttempts,
-            initialBackOff,
-            remoteRepository
+            initialBackOff
         );
 
         deployRetrier.deployWithRetry();
