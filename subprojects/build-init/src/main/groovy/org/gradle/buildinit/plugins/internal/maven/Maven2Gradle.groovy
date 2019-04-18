@@ -37,8 +37,8 @@ class Maven2Gradle {
     private final BuildScriptBuilderFactory scriptBuilderFactory
 
     def dependentWars = []
-    def workingDir
-    def effectivePom
+    File workingDir
+    GPathResult effectivePom
 
     Logger logger = Logging.getLogger(getClass())
     private Set<MavenProject> mavenProjects
@@ -93,7 +93,7 @@ class Maven2Gradle {
             modules(allProjects, false).each { module ->
                 def id = module.artifactId.text()
                 def moduleDependencies = dependencies.get(id)
-                boolean warPack = module.packaging.text().equals("war")
+                def warPack = module.packaging.text().equals("war")
                 def moduleScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, projectDir(module).path + "/build")
 
                 if (module.groupId.text() != rootProject.groupId.text()) {
@@ -125,7 +125,7 @@ class Maven2Gradle {
             }
             //TODO deployment
         } else {//simple
-            generateSettings(this.effectivePom.artifactId, null);
+            generateSettings(this.effectivePom.artifactId, null)
 
             scriptBuilder.plugin(null, 'java')
             scriptBuilder.plugin(null, 'maven-publish')
@@ -139,7 +139,7 @@ class Maven2Gradle {
             configurePublishing(scriptBuilder, sourcesJarTaskGenerated, testsJarTaskGenerated, javadocJarGenerated)
 
             scriptBuilder.repositories().mavenLocal(null)
-            Set<String> repoSet = new LinkedHashSet<String>();
+            Set<String> repoSet = new LinkedHashSet<String>()
             getRepositoriesForModule(this.effectivePom, repoSet)
             repoSet.each {
                 scriptBuilder.repositories().maven(null, it)
@@ -154,7 +154,7 @@ class Maven2Gradle {
         scriptBuilder.create().generate()
     }
 
-    def configurePublishing(builder, boolean sourcesJarTaskGenerated = false, boolean testsJarTaskGenerated = false, boolean javadocJarTaskGenerated = false) {
+    def configurePublishing(def builder, boolean sourcesJarTaskGenerated = false, boolean testsJarTaskGenerated = false, boolean javadocJarTaskGenerated = false) {
         def publishing = builder.block(null, "publishing")
         def publications = publishing.block(null, "publications")
         def mavenPublication = publications.block(null, "maven(MavenPublication)")
@@ -236,7 +236,7 @@ class Maven2Gradle {
     private ModuleIdentifier getModuleIdentifier(GPathResult project) {
         def artifactId = project.artifactId.text()
         def groupId = project.groupId ? project.groupId.text() : project.parent.groupId.text()
-        return new DefaultModuleIdentifier(groupId, artifactId)
+        return DefaultModuleIdentifier.newId(groupId, artifactId)
     }
 
     private void coordinatesForProject(project, builder) {
@@ -252,7 +252,7 @@ class Maven2Gradle {
 
     private void repositoriesForProjects(projects, builder) {
         builder.repositories().mavenLocal(null)
-        def repoSet = new LinkedHashSet<String>();
+        def repoSet = new LinkedHashSet<String>()
         projects.each {
             getRepositoriesForModule(it, repoSet)
         }
@@ -387,10 +387,11 @@ class Maven2Gradle {
             }
         }
         if (!sourceSets.empty) {
-            def taskConfigBuilder = builder.taskRegistration(null, "sourcesJar", "Jar")
-            taskConfigBuilder.propertyAssignment(null, "classifier", "sources")
-            sourceSets.each { sourceSet ->
-                taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.${sourceSet}.allJava"))
+            builder.taskRegistration(null, "sourcesJar", "Jar") { task ->
+                task.propertyAssignment(null, "classifier", "sources")
+                sourceSets.each { sourceSet ->
+                    task.methodInvocation(null, "from", builder.propertyExpression("sourceSets.${sourceSet}.allJava"))
+                }
             }
             return true
         }
@@ -400,9 +401,10 @@ class Maven2Gradle {
     boolean packageTests(project, builder) {
         def jarPlugin = plugin('maven-jar-plugin', project)
         if (pluginGoal('test-jar', jarPlugin)) {
-            def taskConfigBuilder = builder.taskRegistration(null, "testsJar", "Jar")
-            taskConfigBuilder.propertyAssignment(null, "classifier", "tests")
-            taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"))
+            builder.taskRegistration(null, "testsJar", "Jar") { task ->
+                task.propertyAssignment(null, "classifier", "tests")
+                task.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"))
+            }
             return true
         }
         return false
@@ -411,9 +413,10 @@ class Maven2Gradle {
     boolean packageJavadocs(project, builder) {
         def jarPlugin = plugin('maven-javadoc-plugin', project)
         if (pluginGoal('jar', jarPlugin)) {
-            def taskConfigBuilder = builder.taskRegistration(null, "javadocJar", "Jar")
-            taskConfigBuilder.propertyAssignment(null, "classifier", "javadoc")
-            taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("javadoc.destinationDir"))
+            builder.taskRegistration(null, "javadocJar", "Jar") { task ->
+                task.propertyAssignment(null, "classifier", "javadoc")
+                task.methodInvocation(null, "from", builder.propertyExpression("javadoc.destinationDir"))
+            }
             return true
         }
         return false
@@ -422,7 +425,7 @@ class Maven2Gradle {
     private boolean duplicateDependency(dependency, project, allProjects) {
         def parentTag = project.parent
         if (allProjects == null || parentTag.isEmpty()) {//simple project or no parent
-            return false;
+            return false
         } else {
             def parent = allProjects.find {
                 it.groupId.equals(parentTag.groupId) && it.artifactId.equals(parentTag.artifactId)
@@ -431,7 +434,7 @@ class Maven2Gradle {
                 it.groupId.equals(dependency.groupId) && it.artifactId.equals(dependency.artifactId)
             }
             if (duplicate) {
-                return true;
+                return true
             } else {
                 duplicateDependency(dependency, parent, allProjects)
             }
@@ -453,7 +456,7 @@ class Maven2Gradle {
 
         def modulePoms = modules(projects, true)
 
-        List<String> moduleNames = new ArrayList<String>();
+        List<String> moduleNames = new ArrayList<String>()
         def artifactIdToDir = [:]
         if (projects) {
             modulePoms.each { project ->

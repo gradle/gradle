@@ -280,28 +280,24 @@ public class BuildScriptBuilder {
     /**
      * Registers a task.
      *
-     * @return The body of the configuration action for the task.
+     * @return An expression that can be used to refer to the task later.
      */
-    public ScriptBlockBuilder taskRegistration(@Nullable String comment, String taskName, String taskType) {
+    public Expression taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
         block.add(registration);
-        return registration.body;
-    }
-
-    /**
-     * Registers a task.
-     */
-    public void taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
-        blockContentsBuilder.execute(taskRegistration(comment, taskName, taskType));
+        blockContentsBuilder.execute(registration.body);
+        return registration;
     }
 
     /**
      * Creates an element in the given container.
      *
+     * @param varName A variable to use to reference the element, if required by the DSL. If {@code null}, then use the element name.
+     *
      * @return An expression that can be used to refer to the element later in the script.
      */
-    public Expression containerElement(@Nullable String comment, String container, String elementName) {
-        ContainerElement containerElement = new ContainerElement(comment, container, elementName);
+    public Expression containerElement(@Nullable String comment, String container, String elementName, @Nullable String varName) {
+        ContainerElement containerElement = new ContainerElement(comment, container, elementName, varName);
         block.add(containerElement);
         return containerElement;
     }
@@ -696,13 +692,16 @@ public class BuildScriptBuilder {
         private final String comment;
         private final String container;
         private final String elementName;
+        @Nullable
+        private final String varName;
         private final ScriptBlockImpl body = new ScriptBlockImpl();
 
-        public ContainerElement(String comment, String container, String elementName) {
+        public ContainerElement(String comment, String container, String elementName, @Nullable String varName) {
             super(null);
             this.comment = comment;
             this.container = container;
             this.elementName = elementName;
+            this.varName = varName;
         }
 
         @Override
@@ -712,13 +711,13 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            Statement statement = printer.syntax.createContainerElement(comment, container, elementName, body.statements);
+            Statement statement = printer.syntax.createContainerElement(comment, container, elementName, varName, body.statements);
             printer.printStatement(statement);
         }
 
         @Override
         public String with(Syntax syntax) {
-            return syntax.referenceCreatedContainerElement(container, elementName);
+            return syntax.referenceCreatedContainerElement(container, elementName, varName);
         }
     }
 
@@ -938,7 +937,7 @@ public class BuildScriptBuilder {
 
         @Override
         public Expression containerElement(@Nullable String comment, String container, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
-            ContainerElement containerElement = new ContainerElement(comment, container, elementName);
+            ContainerElement containerElement = new ContainerElement(comment, container, elementName, null);
             statements.add(containerElement);
             blockContentsBuilder.execute(containerElement.body);
             return containerElement;
@@ -989,10 +988,11 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType) {
+        public Expression taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentBuilder) {
             TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
             add(registration);
-            return registration.body;
+            blockContentBuilder.execute(registration.body);
+            return registration;
         }
 
         @Override
@@ -1056,7 +1056,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class TaskRegistration implements Statement {
+    private static class TaskRegistration implements Statement, ExpressionValue {
         final String taskName;
         final String taskType;
         final String comment;
@@ -1082,6 +1082,16 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             printer.printBlock(printer.syntax.taskRegistration(taskName, taskType), body);
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.referenceRegisteredTask(taskName);
         }
     }
 
@@ -1241,13 +1251,15 @@ public class BuildScriptBuilder {
 
         String taskRegistration(String taskName, String taskType);
 
+        String referenceRegisteredTask(String taskName);
+
         String mapLiteral(Map<String, ExpressionValue> map);
 
         String firstArg(ExpressionValue argument);
 
-        Statement createContainerElement(String comment, String container, String elementName, List<Statement> body);
+        Statement createContainerElement(@Nullable String comment, String container, String elementName, @Nullable String varName, List<Statement> body);
 
-        String referenceCreatedContainerElement(String container, String elementName);
+        String referenceCreatedContainerElement(String container, String elementName, @Nullable String varName);
     }
 
     private static final class KotlinSyntax implements Syntax {
@@ -1341,8 +1353,19 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public Statement createContainerElement(String comment, String container, String elementName, List<Statement> body) {
-            BlockStatement blockStatement = new ScriptBlock(comment, container + ".create(\"" + elementName + "\")");
+        public String referenceRegisteredTask(String taskName) {
+            return taskName;
+        }
+
+        @Override
+        public Statement createContainerElement(String comment, String container, String elementName, String varName, List<Statement> body) {
+            String literal;
+            if (varName == null) {
+                literal = "val " + elementName + " by " + container + ".creating";
+            } else {
+                literal = "val " + varName + " = " + container + ".create(\"" + elementName + "\")";
+            }
+            BlockStatement blockStatement = new ScriptBlock(comment, literal);
             for (Statement statement : body) {
                 blockStatement.add(statement);
             }
@@ -1350,8 +1373,12 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String referenceCreatedContainerElement(String container, String elementName) {
-            return container + ".get(\"" + elementName + "\")";
+        public String referenceCreatedContainerElement(String container, String elementName, String varName) {
+            if (varName == null) {
+                return elementName;
+            } else {
+                return varName;
+            }
         }
     }
 
@@ -1440,7 +1467,12 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public Statement createContainerElement(String comment, String container, String elementName, List<Statement> body) {
+        public String referenceRegisteredTask(String taskName) {
+            return "tasks." + taskName;
+        }
+
+        @Override
+        public Statement createContainerElement(String comment, String container, String elementName, String varName, List<Statement> body) {
             ScriptBlock outerBlock = new ScriptBlock(comment, container);
             ScriptBlock innerBlock = new ScriptBlock(null, elementName);
             outerBlock.add(innerBlock);
@@ -1451,7 +1483,7 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String referenceCreatedContainerElement(String container, String elementName) {
+        public String referenceCreatedContainerElement(String container, String elementName, String varName) {
             return container + "." + elementName;
         }
     }

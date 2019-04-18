@@ -15,24 +15,15 @@
  */
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.internal.file.BaseDirFileResolver
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
-import spock.lang.Specification
+import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class BuildScriptBuilderKotlinTest extends Specification {
+class BuildScriptBuilderKotlinTest extends AbstractBuildScriptBuilderTest {
 
-    @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-
-    def fileResolver = new BaseDirFileResolver(tmpDir.testDirectory, TestFiles.patternSetFactory)
     def builder = new BuildScriptBuilder(KOTLIN, fileResolver, "build")
 
-    def outputFile = tmpDir.file("build.gradle.kts")
+    TestFile outputFile = tmpDir.file("build.gradle.kts")
 
     def "generates basic kotlin build script"() {
         when:
@@ -206,11 +197,12 @@ dependencies {
 """)
     }
 
-    def "can define tasks in allprojects block"() {
+    def "can register tasks in allprojects block"() {
         given:
-        def body = builder.allprojects().taskRegistration("Compile stuff", "compile", "JavaCompile")
-        body.propertyAssignment("Set a property", "foo.bar", "bazar")
-        body.methodInvocation("Call a method", "thing", "value")
+        builder.allprojects().taskRegistration("Compile stuff", "compile", "JavaCompile") { body ->
+            body.propertyAssignment("Set a property", "foo.bar", "bazar")
+            body.methodInvocation("Call a method", "thing", "value")
+        }
 
         when:
         builder.create().generate()
@@ -510,8 +502,8 @@ other {
 
     def "can add elements to top level containers and reference the element later"() {
         given:
-        def e1 = builder.containerElement("Add some thing", "foo.bar", "e1")
-        def e2 = builder.containerElement(null, "foo.bar", "e2")
+        def e1 = builder.containerElement("Add some thing", "foo.bar", "e1", null)
+        def e2 = builder.containerElement(null, "foo.bar", "e2", "someElement")
         builder.propertyAssignment("Set some thing", "prop", e1)
         builder.propertyAssignment(null, "prop2", builder.propertyExpression(e2, "outputDir"))
 
@@ -524,16 +516,16 @@ other {
  */
 
 // Add some thing
-foo.bar.create("e1") {
+val e1 by foo.bar.creating {
 }
 
-foo.bar.create("e2") {
+val someElement = foo.bar.create("e2") {
 }
 
 // Set some thing
-prop = foo.bar.get("e1")
+prop = e1
 
-prop2 = foo.bar.get("e2").outputDir
+prop2 = someElement.outputDir
 """)
     }
 
@@ -560,19 +552,19 @@ prop2 = foo.bar.get("e2").outputDir
 // Add some thing
 foo {
     // Element 1
-    bar.create("one") {
+    val one by bar.creating {
         value = "bazar"
 
-        nested.create("oneNested") {
+        val oneNested by nested.creating {
         }
     }
 
     // Element 2
-    bar.create("two") {
+    val two by bar.creating {
     }
 
     // Use value
-    prop = bar.get("one")
+    prop = one
 }
 """)
     }
@@ -735,10 +727,5 @@ application {
     isMain = true
 }
 """)
-    }
-
-    void assertOutputFile(String contents) {
-        assert outputFile.file
-        assert outputFile.text == toPlatformLineSeparators(contents)
     }
 }
