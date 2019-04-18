@@ -117,6 +117,24 @@ fun KtFile.kotlinDeclarationSatisfies(declaringClass: CtClass, method: CtMethod,
 
 
 private
+fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): List<KtFunction> {
+
+    val paramCount = method.parameterTypes.size
+    val couldBeExtensionFunction = paramCount > 0
+    val paramCountWithReceiver = paramCount - 1
+    val functionFqName = "$qualifiedBaseName.${method.name}"
+
+    return collectDescendantsOfType { ktFunction ->
+        ktFunction.fqName?.asString() == functionFqName && ((
+            couldBeExtensionFunction && ktFunction.receiverTypeReference != null &&
+                method.firstParameterMatches(ktFunction.receiverTypeReference!!) &&
+                ktFunction.valueParameters.size == paramCountWithReceiver)
+            || ktFunction.valueParameters.size == paramCount)
+    }
+}
+
+
+private
 fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): List<KtProperty> {
 
     val hasGetGetterName = method.name.matches(propertyGetterNameRegex)
@@ -126,46 +144,46 @@ fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): 
     val paramCount = method.parameterTypes.size
     val returnsVoid = method.returnType.name == "void"
 
-    val couldBeProperty = (hasGetterName && paramCount == 0 && !returnsVoid) || (hasSetterName && paramCount == 1 && returnsVoid)
-    val couldBeExtensionProperty = (hasGetterName && paramCount == 1 && !returnsVoid) || (hasSetterName && paramCount == 2 && returnsVoid)
+    val couldBeProperty =
+        (hasGetterName && paramCount == 0 && !returnsVoid) || (hasSetterName && paramCount == 1 && returnsVoid)
 
-    return if (couldBeProperty || couldBeExtensionProperty) {
+    val couldBeExtensionProperty =
+        (hasGetterName && paramCount == 1 && !returnsVoid) || (hasSetterName && paramCount == 2 && returnsVoid)
 
-        val propertyJavaType =
-            if (hasGetterName) method.returnType.name
-            else method.parameterTypes.last().name
-        val isBoolean = primitiveTypeStrings[propertyJavaType] == Boolean::class.simpleName
-        val propertyName =
-            if (hasIsGetterName) method.name
-            else method.name.drop(3).decapitalize()
-        val propertyQualifiedNames =
-            if (hasSetterName && isBoolean) listOf("$qualifiedBaseName.is${propertyName.capitalize()}", "$qualifiedBaseName.$propertyName")
-            else listOf("$qualifiedBaseName.$propertyName")
-
-        collectDescendantsOfType { ktProperty ->
-            ktProperty.fqName?.asString() in propertyQualifiedNames && (
-                couldBeExtensionProperty == (ktProperty.receiverTypeReference != null && method.firstParameterMatches(ktProperty.receiverTypeReference!!))
-                    || couldBeProperty == (ktProperty.receiverTypeReference == null)
-                )
-        }
-    } else {
-        emptyList()
+    if (!couldBeProperty && !couldBeExtensionProperty) {
+        return emptyList()
     }
-}
 
+    val propertyJavaType =
+        if (hasGetterName) method.returnType.name
+        else method.parameterTypes.last().name
 
-private
-fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): List<KtFunction> {
+    val isBoolean =
+        primitiveTypeStrings[propertyJavaType] == Boolean::class.simpleName
 
-    val paramCount = method.parameterTypes.size
-    val couldBeExtensionFunction = paramCount > 0
-    val paramCountWithReceiver = paramCount - 1
-    val functionFqName = "$qualifiedBaseName.${method.name}"
+    val propertyNames =
+        if (hasIsGetterName) listOf(method.name)
+        else {
+            val prefixRemoved = method.name.drop(3)
+            if (hasSetterName && isBoolean) listOf("is$prefixRemoved", prefixRemoved.decapitalize())
+            else listOf(prefixRemoved.decapitalize())
+        }
 
-    return collectDescendantsOfType { ktFunction ->
-        ktFunction.fqName?.asString() == functionFqName
-            && ((couldBeExtensionFunction && ktFunction.receiverTypeReference != null && method.firstParameterMatches(ktFunction.receiverTypeReference!!) && ktFunction.valueParameters.size == paramCountWithReceiver)
-            || ktFunction.valueParameters.size == paramCount)
+    val propertyQualifiedNames =
+        propertyNames.map { "$qualifiedBaseName.$it" }
+
+    return collectDescendantsOfType { ktProperty ->
+        when {
+            ktProperty.fqName?.asString() !in propertyQualifiedNames -> false
+            couldBeExtensionProperty -> {
+                ktProperty.receiverTypeReference != null &&
+                    method.firstParameterMatches(ktProperty.receiverTypeReference!!)
+            }
+            couldBeProperty -> {
+                ktProperty.receiverTypeReference == null
+            }
+            else -> false
+        }
     }
 }
 
