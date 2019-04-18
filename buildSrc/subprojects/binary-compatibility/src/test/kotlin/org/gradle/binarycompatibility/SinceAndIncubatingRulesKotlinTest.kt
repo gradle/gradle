@@ -28,7 +28,15 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
         val bar: String = "bar"
 
+        val bool: Boolean = true
+
+        val isBool: Boolean = true
+
         var bazar = "bazar"
+
+        var bazool: Boolean = true
+
+        var isFool: Boolean = true
 
         fun String.fooExt() {}
 
@@ -62,8 +70,34 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
          * @since 2.0
          */
         @get:Incubating
+        val bool: Boolean = true
+
+        /**
+         * @since 2.0
+         */
+        @get:Incubating
+        val isBool: Boolean = true
+
+        /**
+         * @since 2.0
+         */
+        @get:Incubating
         @set:Incubating
         var bazar = "bazar"
+
+        /**
+         * @since 2.0
+         */
+        @get:Incubating
+        @set:Incubating
+        var bazool: Boolean = true
+
+        /**
+         * @since 2.0
+         */
+        @get:Incubating
+        @set:Incubating
+        var isFool: Boolean = true
 
         /**
          * @since 2.0
@@ -121,8 +155,14 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 added("Method", "SourceKt.getBarExt(java.lang.String)"),
                 added("Method", "SourceKt.getBazar()"),
                 added("Method", "SourceKt.getBazarExt(int)"),
+                added("Method", "SourceKt.getBazool()"),
+                added("Method", "SourceKt.getBool()"),
+                added("Method", "SourceKt.isBool()"),
+                added("Method", "SourceKt.isFool()"),
                 added("Method", "SourceKt.setBazar(java.lang.String)"),
-                added("Method", "SourceKt.setBazarExt(int,java.lang.String)")
+                added("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
+                added("Method", "SourceKt.setBazool(boolean)"),
+                added("Method", "SourceKt.setFool(boolean)")
             )
         }
 
@@ -150,8 +190,14 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "SourceKt.getBarExt(java.lang.String)"),
                 newApi("Method", "SourceKt.getBazar()"),
                 newApi("Method", "SourceKt.getBazarExt(int)"),
+                newApi("Method", "SourceKt.getBazool()"),
+                newApi("Method", "SourceKt.getBool()"),
+                newApi("Method", "SourceKt.isBool()"),
+                newApi("Method", "SourceKt.isFool()"),
                 newApi("Method", "SourceKt.setBazar(java.lang.String)"),
-                newApi("Method", "SourceKt.setBazarExt(int,java.lang.String)")
+                newApi("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
+                newApi("Method", "SourceKt.setBazool(boolean)"),
+                newApi("Method", "SourceKt.setFool(boolean)")
             )
         }
     }
@@ -278,8 +324,14 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 added("Method", "Bar.getBarExt(java.lang.String)"),
                 added("Method", "Bar.getBazar()"),
                 added("Method", "Bar.getBazarExt(int)"),
+                added("Method", "Bar.getBazool()"),
+                added("Method", "Bar.getBool()"),
+                added("Method", "Bar.isBool()"),
+                added("Method", "Bar.isFool()"),
                 added("Method", "Bar.setBazar(java.lang.String)"),
                 added("Method", "Bar.setBazarExt(int,java.lang.String)"),
+                added("Method", "Bar.setBazool(boolean)"),
+                added("Method", "Bar.setFool(boolean)"),
                 added("Constructor", "Bar(java.lang.String)"),
                 added("Method", "Foo.foo()")
             )
@@ -325,8 +377,14 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "Bar.getBarExt(java.lang.String)"),
                 newApi("Method", "Bar.getBazar()"),
                 newApi("Method", "Bar.getBazarExt(int)"),
+                newApi("Method", "Bar.getBazool()"),
+                newApi("Method", "Bar.getBool()"),
+                newApi("Method", "Bar.isBool()"),
+                newApi("Method", "Bar.isFool()"),
                 newApi("Method", "Bar.setBazar(java.lang.String)"),
                 newApi("Method", "Bar.setBazarExt(int,java.lang.String)"),
+                newApi("Method", "Bar.setBazool(boolean)"),
+                newApi("Method", "Bar.setFool(boolean)"),
                 newApi("Method", "Foo.foo()")
             )
         }

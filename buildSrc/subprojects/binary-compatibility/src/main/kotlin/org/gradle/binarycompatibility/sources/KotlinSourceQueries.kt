@@ -119,7 +119,9 @@ fun KtFile.kotlinDeclarationSatisfies(declaringClass: CtClass, method: CtMethod,
 private
 fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): List<KtProperty> {
 
-    val hasGetterName = method.name.matches(propertyGetterNameRegex)
+    val hasGetGetterName = method.name.matches(propertyGetterNameRegex)
+    val hasIsGetterName = method.name.matches(propertyIsGetterNameRegex)
+    val hasGetterName = hasGetGetterName || hasIsGetterName
     val hasSetterName = method.name.matches(propertySetterNameRegex)
     val paramCount = method.parameterTypes.size
     val returnsVoid = method.returnType.name == "void"
@@ -129,11 +131,19 @@ fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): 
 
     return if (couldBeProperty || couldBeExtensionProperty) {
 
-        val propertyName = method.name.drop(3).decapitalize()
-        val propertyQualifiedName = "$qualifiedBaseName.$propertyName"
+        val propertyJavaType =
+            if (hasGetterName) method.returnType.name
+            else method.parameterTypes.last().name
+        val isBoolean = primitiveTypeStrings[propertyJavaType] == Boolean::class.simpleName
+        val propertyName =
+            if (hasIsGetterName) method.name
+            else method.name.drop(3).decapitalize()
+        val propertyQualifiedNames =
+            if (hasSetterName && isBoolean) listOf("$qualifiedBaseName.is${propertyName.capitalize()}", "$qualifiedBaseName.$propertyName")
+            else listOf("$qualifiedBaseName.$propertyName")
 
         collectDescendantsOfType { ktProperty ->
-            ktProperty.fqName?.asString() == propertyQualifiedName && (
+            ktProperty.fqName?.asString() in propertyQualifiedNames && (
                 couldBeExtensionProperty == (ktProperty.receiverTypeReference != null && method.firstParameterMatches(ktProperty.receiverTypeReference!!))
                     || couldBeProperty == (ktProperty.receiverTypeReference == null)
                 )
@@ -162,6 +172,10 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
 
 private
 val propertyGetterNameRegex = "^get[A-Z].*$".toRegex()
+
+
+private
+val propertyIsGetterNameRegex = "^is[A-Z].*$".toRegex()
 
 
 private
