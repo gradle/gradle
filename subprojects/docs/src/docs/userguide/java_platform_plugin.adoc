@@ -93,6 +93,8 @@ include::sample[dir="java-platform/multiproject/groovy/platform",files="build.gr
 include::sample[dir="java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=project-constraints]"]
 ====
 
+The project notation will become a classical `group:name:version` notation in the published metadata.
+
 [[sec:java_platform_publishing]]
 == Publishing platforms
 
