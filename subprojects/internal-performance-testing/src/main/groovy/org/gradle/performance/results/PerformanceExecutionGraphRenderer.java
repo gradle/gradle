@@ -43,7 +43,7 @@ public interface PerformanceExecutionGraphRenderer {
 
     default Graph toGraph(PerformanceTestExecution execution, int index) {
         String id = "execution_" + index;
-        String title = "Execution " + index;
+        String title = "Execution " + index + "(ms)";
 
         Line baseline = new Line(execution.getScenarios().stream().filter(this::hasData).findFirst().orElse(new MeasuredOperationList()));
         Line current = new Line(execution.getScenarios().get(execution.getScenarios().size() - 1));
