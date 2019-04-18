@@ -364,7 +364,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     ArtifactTransformListener artifactTransformListener,
                                                     FileCollectionFactory fileCollectionFactory,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                                    ProjectFinder projectFinder
+                                                    ProjectFinder projectFinder,
+                                                    BuildOperationExecutor buildOperationExecutor
         ) {
             return new DefaultTransformerInvoker(
                 workExecutor,
@@ -373,7 +374,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformationWorkspaceProvider,
                 fileCollectionFactory,
                 classLoaderHierarchyHasher,
-                projectFinder
+                projectFinder,
+                buildOperationExecutor
             );
         }
 
