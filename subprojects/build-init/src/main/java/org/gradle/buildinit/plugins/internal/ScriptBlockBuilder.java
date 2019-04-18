@@ -44,16 +44,11 @@ public interface ScriptBlockBuilder {
     void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentsBuilder);
 
     /**
-     * Adds a block that adds an element to the current container.
+     * Adds an element to the given container.
      *
-     * @return The body of the block, to which further statements can be added
+     * @return an expression that can be used to refer to the element. Note: currently this expression can only be used within this current block.
      */
-    ScriptBlockBuilder containerElement(@Nullable String comment, String elementName);
-
-    /**
-     * Adds a block that adds an element to the current container.
-     */
-    void containerElement(@Nullable String comment, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder);
+    BuildScriptBuilder.Expression containerElement(@Nullable String comment, String container, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder);
 
     /**
      * Returns a property expression that can be used as a method argument or property assignment value

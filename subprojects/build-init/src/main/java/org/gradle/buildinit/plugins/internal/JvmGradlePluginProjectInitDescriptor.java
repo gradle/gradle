@@ -42,14 +42,11 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
             .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("custom_plugins"));
         buildScriptBuilder.plugin("Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins", "java-gradle-plugin");
 
-        buildScriptBuilder.block(null, "sourceSets")
-            .containerElement(null, "functionalTest", b -> {
-            });
+        BuildScriptBuilder.Expression functionalTestSourceSet = buildScriptBuilder.containerElement("Add a functional test suite", "sourceSets", "functionalTest");
 
         buildScriptBuilder.block(null, "gradlePlugin", b -> {
-            b.methodInvocation(null, "testSourceSets", buildScriptBuilder.propertyExpression("sourceSets.getByName(\"functionalTest\")"));
-            b.block(null, "plugins")
-            .containerElement("Define the plugin", "greeting", g -> {
+            b.methodInvocation(null, "testSourceSets", functionalTestSourceSet);
+            b.containerElement("Define the plugin", "plugins", "greeting", g -> {
                 g.propertyAssignment(null, "id", pluginId);
                 g.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName));
             });
@@ -57,8 +54,8 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
 
         buildScriptBuilder.methodInvocation(null, "configurations.getByName(\"functionalTestImplementation\").extendsFrom", buildScriptBuilder.propertyExpression("configurations.getByName(\"testImplementation\")"));
         buildScriptBuilder.taskRegistration(null, "functionalTest", "Test", b -> {
-            b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression("sourceSets.getByName(\"functionalTest\").output.classesDirs"));
-            b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression("sourceSets.getByName(\"functionalTest\").runtimeClasspath"));
+            b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"));
+            b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"));
         });
         buildScriptBuilder.taskMethodInvocation(null, "check", "Task", "dependsOn", buildScriptBuilder.propertyExpression("tasks.getByName(\"functionalTest\")"));
 

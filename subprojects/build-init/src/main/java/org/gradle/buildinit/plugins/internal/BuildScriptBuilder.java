@@ -23,9 +23,7 @@ import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.internal.Transformers;
 import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nullable;
@@ -140,10 +138,17 @@ public class BuildScriptBuilder {
     }
 
     /**
-     * Creates a property expression. to use as a method argument or the RHS of a property assignment.
+     * Creates a property expression, to use as a method argument or the RHS of a property assignment.
      */
     public Expression propertyExpression(String value) {
         return new LiteralValue(value);
+    }
+
+    /**
+     * Creates a property expression, to use as a method argument or the RHS of a property assignment.
+     */
+    public Expression propertyExpression(Expression expression, String value) {
+        return new ChainedExpression((ExpressionValue) expression, new LiteralValue(value));
     }
 
     private static List<ExpressionValue> expressionValues(Object... expressions) {
@@ -291,6 +296,17 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Creates an element in the given container.
+     *
+     * @return An expression that can be used to refer to the element later in the script.
+     */
+    public Expression containerElement(@Nullable String comment, String container, String elementName) {
+        ContainerElement containerElement = new ContainerElement(comment, container, elementName);
+        block.add(containerElement);
+        return containerElement;
+    }
+
+    /**
      * Adds a property assignment statement to the configuration of a particular convention.
      */
     public BuildScriptBuilder conventionPropertyAssignment(@Nullable String comment, String conventionName, String propertyName, Object propertyValue) {
@@ -308,7 +324,7 @@ public class BuildScriptBuilder {
                 try {
                     PrintWriter writer = new PrintWriter(new FileWriter(target));
                     try {
-                        PrettyPrinter printer = prettyPrinterFor(dsl, writer);
+                        PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer);
                         printer.printFileHeader(headerLines);
                         block.writeBodyTo(printer);
                     } finally {
@@ -323,10 +339,6 @@ public class BuildScriptBuilder {
 
     private File getTargetFile() {
         return fileResolver.resolve(dsl.fileNameFor(fileNameWithoutExtension));
-    }
-
-    private static PrettyPrinter prettyPrinterFor(BuildInitDsl dsl, PrintWriter writer) {
-        return new PrettyPrinter(syntaxFor(dsl), writer);
     }
 
     private static Syntax syntaxFor(BuildInitDsl dsl) {
@@ -347,6 +359,26 @@ public class BuildScriptBuilder {
         boolean isBooleanType();
 
         String with(Syntax syntax);
+    }
+
+    private static class ChainedExpression implements Expression, ExpressionValue {
+        private final ExpressionValue left;
+        private final ExpressionValue right;
+
+        public ChainedExpression(ExpressionValue left, ExpressionValue right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return left.with(syntax) + "." + right.with(syntax);
+        }
     }
 
     private static class StringValue implements ExpressionValue {
@@ -413,7 +445,7 @@ public class BuildScriptBuilder {
         }
 
         MethodInvocationValue(String methodName) {
-            this(methodName, Collections.<ExpressionValue>emptyList());
+            this(methodName, Collections.emptyList());
         }
 
         @Override
@@ -639,11 +671,6 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void writeCodeTo(PrettyPrinter printer) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public Type type() {
             return Type.Single;
         }
@@ -661,6 +688,37 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             printer.println(invocationExpression.with(printer.syntax));
+        }
+    }
+
+    private static class ContainerElement extends AbstractStatement implements ExpressionValue {
+
+        private final String comment;
+        private final String container;
+        private final String elementName;
+        private final ScriptBlockImpl body = new ScriptBlockImpl();
+
+        public ContainerElement(String comment, String container, String elementName) {
+            super(null);
+            this.comment = comment;
+            this.container = container;
+            this.elementName = elementName;
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            Statement statement = printer.syntax.createContainerElement(comment, container, elementName, body.statements);
+            printer.printStatement(statement);
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.referenceCreatedContainerElement(container, elementName);
         }
     }
 
@@ -714,7 +772,7 @@ public class BuildScriptBuilder {
 
     private static class BlockStatement implements Statement {
         private final String comment;
-        final Transformer<String, Syntax> blockSelector;
+        final String blockSelector;
         final ScriptBlockImpl body = new ScriptBlockImpl();
 
         BlockStatement(String blockSelector) {
@@ -722,11 +780,6 @@ public class BuildScriptBuilder {
         }
 
         BlockStatement(@Nullable String comment, String blockSelector) {
-            this.comment = comment;
-            this.blockSelector = Transformers.constant(blockSelector);
-        }
-
-        BlockStatement(@Nullable String comment, Transformer<String, Syntax> blockSelector) {
             this.comment = comment;
             this.blockSelector = blockSelector;
         }
@@ -748,16 +801,12 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.printBlock(blockSelector.transform(printer.syntax), body);
+            printer.printBlock(blockSelector, body);
         }
     }
 
     private static class ScriptBlock extends BlockStatement {
         ScriptBlock(String comment, String blockSelector) {
-            super(comment, blockSelector);
-        }
-
-        ScriptBlock(String comment, Transformer<String, Syntax> blockSelector) {
             super(comment, blockSelector);
         }
 
@@ -888,15 +937,11 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public ScriptBlockBuilder containerElement(@Nullable String comment, String elementName) {
-            ScriptBlock scriptBlock = new ScriptBlock(comment, syntax -> syntax.containerElement(elementName));
-            statements.add(scriptBlock);
-            return scriptBlock.body;
-        }
-
-        @Override
-        public void containerElement(@Nullable String comment, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
-            blockContentsBuilder.execute(containerElement(comment, elementName));
+        public Expression containerElement(@Nullable String comment, String container, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+            ContainerElement containerElement = new ContainerElement(comment, container, elementName);
+            statements.add(containerElement);
+            blockContentsBuilder.execute(containerElement.body);
+            return containerElement;
         }
 
         @Override
@@ -1200,7 +1245,9 @@ public class BuildScriptBuilder {
 
         String firstArg(ExpressionValue argument);
 
-        String containerElement(String elementName);
+        Statement createContainerElement(String comment, String container, String elementName, List<Statement> body);
+
+        String referenceCreatedContainerElement(String container, String elementName);
     }
 
     private static final class KotlinSyntax implements Syntax {
@@ -1294,8 +1341,17 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String containerElement(String elementName) {
-            return "val " + elementName + " by creating";
+        public Statement createContainerElement(String comment, String container, String elementName, List<Statement> body) {
+            BlockStatement blockStatement = new ScriptBlock(comment, container + ".create(\"" + elementName + "\")");
+            for (Statement statement : body) {
+                blockStatement.add(statement);
+            }
+            return blockStatement;
+        }
+
+        @Override
+        public String referenceCreatedContainerElement(String container, String elementName) {
+            return container + ".get(\"" + elementName + "\")";
         }
     }
 
@@ -1384,8 +1440,19 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String containerElement(String elementName) {
-            return elementName;
+        public Statement createContainerElement(String comment, String container, String elementName, List<Statement> body) {
+            ScriptBlock outerBlock = new ScriptBlock(comment, container);
+            ScriptBlock innerBlock = new ScriptBlock(null, elementName);
+            outerBlock.add(innerBlock);
+            for (Statement statement : body) {
+                innerBlock.add(statement);
+            }
+            return outerBlock;
+        }
+
+        @Override
+        public String referenceCreatedContainerElement(String container, String elementName) {
+            return container + "." + elementName;
         }
     }
 }
