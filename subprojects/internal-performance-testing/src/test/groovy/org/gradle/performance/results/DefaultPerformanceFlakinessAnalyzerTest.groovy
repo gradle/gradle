@@ -25,14 +25,15 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import static org.gradle.ci.github.GitHubIssuesClient.CI_TRACKED_FLAKINESS_LABEL
-import static org.gradle.performance.results.FlakinessIssueReporter.GITHUB_FIX_IT_LABEL
+import static DefaultPerformanceFlakinessAnalyzer.GITHUB_FIX_IT_LABEL
+import static DefaultPerformanceFlakinessAnalyzer.GITHUB_IN_PERFORMANCE_LABEL
 
-class FlakinessIssueReporterTest extends Specification {
+class DefaultPerformanceFlakinessAnalyzerTest extends Specification {
     GitHubIssuesClient issuesClient = Mock(GitHubIssuesClient)
     KnownFlakyTestProvider flakyTestProvider = Mock(KnownFlakyTestProvider)
 
     @Subject
-    FlakinessIssueReporter reporter = new FlakinessIssueReporter(issuesClient, flakyTestProvider)
+    DefaultPerformanceFlakinessAnalyzer reporter = new DefaultPerformanceFlakinessAnalyzer(issuesClient, flakyTestProvider)
 
     ScenarioBuildResultData scenario = new ScenarioBuildResultData(
         scenarioName: 'myScenario',
@@ -91,7 +92,7 @@ TEST_NAME: my.AwesomeClass.myScenario
 
 MESSAGE: we're slower than
 """
-            , [CI_TRACKED_FLAKINESS_LABEL]) >> issue
+            , [CI_TRACKED_FLAKINESS_LABEL, GITHUB_IN_PERFORMANCE_LABEL]) >> issue
         1 * issue.comment("""
 FROM-BOT
 

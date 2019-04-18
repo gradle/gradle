@@ -102,6 +102,30 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    def "creates sample source using junitjupiter instead of junit with #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'java-library', '--test-framework', 'junitjupiter', '--dsl', scriptDsl.id)
+
+        then:
+        targetDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        targetDir.file("src/test/java").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        def dslFixture = dslFixtureFor(scriptDsl)
+        buildFileSeparatesImplementationAndApi(dslFixture, 'org.junit.jupiter')
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.LibraryTest", "testSomeLibraryMethod")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'testng', '--package', 'my.lib', '--dsl', scriptDsl.id)

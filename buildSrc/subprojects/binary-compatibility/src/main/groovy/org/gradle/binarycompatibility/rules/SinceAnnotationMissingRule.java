@@ -18,6 +18,7 @@ package org.gradle.binarycompatibility.rules;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
+import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -68,6 +69,13 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                         return new Object();
                     }
                     return super.visit(annotationDeclaration, arg);
+                }
+                @Override
+                public Object visit(AnnotationMemberDeclaration annotationMemberDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(annotationMemberDeclaration.getName().asString(), method.getName(), annotationMemberDeclaration)) {
+                        return new Object();
+                    }
+                    return super.visit(annotationMemberDeclaration, arg);
                 }
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {

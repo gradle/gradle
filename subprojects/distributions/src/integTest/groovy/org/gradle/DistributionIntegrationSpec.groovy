@@ -44,14 +44,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove a new subproject.
      */
     int getCoreLibJarsCount() {
-        26
+        27
     }
 
     /**
      * Change this if you added or removed dependencies.
      */
     int getThirdPartyLibJarsCount() {
-        177
+        178
     }
 
     int getLibJarsCount() {

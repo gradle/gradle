@@ -20,13 +20,19 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.jvm.GroovyJpmsWorkarounds;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
+import org.gradle.workers.internal.ClassLoaderStructure;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.KeepAliveMode;
@@ -59,7 +65,24 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
         // is compatible with Gradle's current Ant version.
         Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
-        Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
+        Iterable<File> classpath = Iterables.concat(spec.getGroovyClasspath(), antFiles);
+        VisitableURLClassLoader.Spec targetGroovyClasspath = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(classpath).getAsURLs());
+
+        // TODO We should infer a minimal classpath from delegate instead
+        Collection<File> languageGroovyFiles = classPathRegistry.getClassPath("LANGUAGE-GROOVY").getAsFiles();
+        VisitableURLClassLoader.Spec compilerClasspath = new VisitableURLClassLoader.Spec("compiler-loader", DefaultClassPath.of(languageGroovyFiles).getAsURLs());
+
+        FilteringClassLoader.Spec gradleAndUserFilter = getMinimalGradleFilter();
+        for (String sharedPackage : SHARED_PACKAGES) {
+            gradleAndUserFilter.allowPackage(sharedPackage);
+        }
+
+        ClassLoaderStructure classLoaderStructure =
+                new ClassLoaderStructure(getMinimalGradleFilter())
+                        .withChild(targetGroovyClasspath)
+                        .withChild(gradleAndUserFilter)
+                        .withChild(compilerClasspath);
+
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         if (jvmVersionDetector.getJavaVersion(javaForkOptions.getExecutable()).isJava9Compatible()) {
@@ -68,9 +91,25 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
-            .classpath(groovyFiles)
+            .classpath(classpath)
             .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
+            .withClassLoaderStrucuture(classLoaderStructure)
             .build();
+    }
+
+    private static FilteringClassLoader.Spec getMinimalGradleFilter() {
+        // Allow just the basics instead of the entire Gradle API
+        FilteringClassLoader.Spec gradleFilterSpec = new FilteringClassLoader.Spec();
+        // Logging
+        gradleFilterSpec.allowPackage("org.slf4j");
+        gradleFilterSpec.allowClass(Logger.class);
+        gradleFilterSpec.allowClass(LogLevel.class);
+        // Native
+        gradleFilterSpec.allowPackage("org.gradle.internal.nativeintegration");
+        gradleFilterSpec.allowPackage("org.gradle.internal.nativeplatform");
+        gradleFilterSpec.allowPackage("net.rubygrapefruit.platform");
+
+        return gradleFilterSpec;
     }
 }

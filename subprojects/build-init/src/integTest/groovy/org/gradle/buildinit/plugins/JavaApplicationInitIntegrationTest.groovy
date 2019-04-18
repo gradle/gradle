@@ -100,6 +100,28 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    def "creates sample source using junitjupiter instead of junit with #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'java-application', '--test-framework', 'junitjupiter', '--dsl', scriptDsl.id)
+
+        then:
+        targetDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
+        targetDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'testng', '--package', 'my.app', '--dsl', scriptDsl.id)

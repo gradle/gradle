@@ -87,8 +87,8 @@ abstract class Minify : TransformAction<Minify.Parameters> {   // <1>
 // end::artifact-transform-minify[]
 
 // tag::artifact-transform-registration[]
-val artifactType = Attribute.of("artifactType", String::class.java)
 // tag::artifact-transform-attribute-setup[]
+val artifactType = Attribute.of("artifactType", String::class.java)
 val minified = Attribute.of("minified", Boolean::class.javaObjectType)
 // end::artifact-transform-attribute-setup[]
 val keepPatterns = mapOf(

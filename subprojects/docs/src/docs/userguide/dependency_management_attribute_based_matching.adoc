@@ -270,8 +270,9 @@ include::sample[dir="userguide/dependencyManagement/artifactTransforms/minify/ko
 <3> Request `minified=true` on all resolvable configurations
 <4> Add the dependencies which will be transformed
 
-When resolving the `runtimeClasspath` configuration, observe how the transform for the project dependency is executed before the task resolving the configuration starts.
-The transforms for binary dependencies execute as part of the task when resolving the configuration.
+You can now see what happens when we run the `resolveRuntimeClasspath` task which resolves the `runtimeClasspath` configuration.
+Observe that Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.
+Gradle transforms the binary dependencies when it executes the `resolveRuntimeClasspath` task.
 
 .Output when resolving the runtimeClasspath configuration
 ----
@@ -280,38 +281,6 @@ The transforms for binary dependencies execute as part of the task when resolvin
 include::{samplesPath}/userguide/dependencyManagement/artifactTransforms/minify/artifactTransformMinify.out[]
 ----
 
-
-=== Registering artifact transforms
-
-Similar to tasks, an artifact transform consist of an action and some parameters.
-The major difference to custom task types is that the action and the parameters are implemented as two separate classes.
-
-In order to register an artifact transform, you must use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[registerTransform()] within the `dependencies {}` block.
-
-There are a few points to consider when using `registerTransform()`:
-
-- The `from` and `to` attributes are required.
-- The transform action itself can have configuration options. You can configure them with the `parameters {}` block.
-- You must register the transform on the project that has the configuration that will be resolved.
-- You can supply any type implementing link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformAction.html[TransformAction] to the `registerTransform()` method.
-
-For example, imagine you want to unpack some dependencies and put the unpacked directories and files on the classpath.
-You can do so by registering an artifact transform action of type `Unzip`, as shown here:
-
-.Artifact transform registration without parameters
-====
-include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
-include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
-====
-
-Another example is that you want minify JARs by only keeping some `class` files from them.
-Note the use of the `parameters {}` block to provide the classes to keep in the minified JARs to the `Minify` transform.
-
-.Artifact transform registration with parameters
-====
-include::sample[dir="userguide/dependencyManagement/artifactTransforms/minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
-include::sample[dir="userguide/dependencyManagement/artifactTransforms/minify/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
-====
 
 === Implementing artifact transforms
 
@@ -338,7 +307,7 @@ For a relative path, the `dir()` or `file()` method returns a workspace to the t
 The implementation of the transform action needs to create the transformed artifact at the location of the provided workspace.
 
 The output artifacts replace the input artifact in the transformed variant in the order they were registered.
-For example, if the configuration consists of the artifacts `lib1.jar`, `lib2.jar`, `lib3.jar`, and the transform action registers a minified output artifact `<artifact-name>-min.jar` for each input artifact, then the transformed configuration consists of the artifacts `lib1-min.jar`, `lib2-min.jar` and `lib3-min.jar`.
+For example, if the configuration consists of the artifacts `lib1.jar`, `lib2.jar`, `lib3.jar`, and the transform action registers a minified output artifact `<artifact-name>-min.jar` for the input artifact, then the transformed configuration consists of the artifacts `lib1-min.jar`, `lib2-min.jar` and `lib3-min.jar`.
 
 Here is the implementation of an `Unzip` transform which transforms a JAR file into a classes directory by unzipping it.
 The `Unzip` transform does not require any parameters.
@@ -358,7 +327,7 @@ include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/kot
 An artifact transform may require parameters, like a `String` determining some filter, or some file collection which is used for supporting the transformation of the input artifact.
 In order to pass those parameters to the transform action, you need to define a new type with the desired parameters.
 The type needs to implement the marker interface link:{javadocPath}/org/gradle/api/artifacts/transform/TransformParameters.html[TransformParameters].
-The properties should be <<lazy_configuration.adoc#sec:lazy_properties,read-only configurable properties>>.
+The parameters should be <<lazy_configuration.adoc#sec:lazy_properties,read-only configurable properties>>.
 Use an interface declaring the getters and Gradle will generate the implementation.
 All getters need to have proper input annotations, see the table in the section on <<more_about_tasks.adoc#table:incremental_build_annotations,incremental build>>.
 
@@ -388,8 +357,8 @@ For cacheable transforms, you must annotate its link:{javadocPath}/org/gradle/ap
 
 The following example shows a more complicated transforms.
 It moves some selected classes of a JAR to a different package, rewriting the byte code of the moved classes and all classes using the moved classes (class relocation).
-In order to determine the classes which have been relocated, it looks at the packages of the input artifact and the dependencies of the input artifact.
-It also does not relocate packages in JAR files in an external classpath.
+In order to determine the classes to relocate, it looks at the packages of the input artifact and the dependencies of the input artifact.
+It also does not relocate packages contained in JAR files in an external classpath.
 
 .Artifact transform for class relocation
 ====
@@ -402,6 +371,37 @@ include::sample[dir="userguide/dependencyManagement/artifactTransforms/relocate/
 <4> Declare a normalization for the input artifact
 <5> Inject the input artifact dependencies
 <6> Use the parameters
+
+=== Registering artifact transforms
+
+You need to register the artifact transform actions, providing parameters if necessary, so that they can be selected when resolving dependencies.
+
+In order to register an artifact transform, you must use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[registerTransform()] within the `dependencies {}` block.
+
+There are a few points to consider when using `registerTransform()`:
+
+- The `from` and `to` attributes are required.
+- The transform action itself can have configuration options. You can configure them with the `parameters {}` block.
+- You must register the transform on the project that has the configuration that will be resolved.
+- You can supply any type implementing link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformAction.html[TransformAction] to the `registerTransform()` method.
+
+For example, imagine you want to unpack some dependencies and put the unpacked directories and files on the classpath.
+You can do so by registering an artifact transform action of type `Unzip`, as shown here:
+
+.Artifact transform registration without parameters
+====
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+====
+
+Another example is that you want minify JARs by only keeping some `class` files from them.
+Note the use of the `parameters {}` block to provide the classes to keep in the minified JARs to the `Minify` transform.
+
+.Artifact transform registration with parameters
+====
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/minify/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+====
 
 === Implementing incremental artifact transforms
 

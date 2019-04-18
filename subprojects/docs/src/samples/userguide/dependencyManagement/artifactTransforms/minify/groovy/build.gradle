@@ -86,8 +86,8 @@ abstract class Minify implements TransformAction<Parameters> { // <1>
 // end::artifact-transform-minify[]
 
 // tag::artifact-transform-registration[]
-def artifactType = Attribute.of('artifactType', String)
 // tag::artifact-transform-attribute-setup[]
+def artifactType = Attribute.of('artifactType', String)
 def minified = Attribute.of('minified', Boolean)
 // end::artifact-transform-attribute-setup[]
 def keepPatterns = [

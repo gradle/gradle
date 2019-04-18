@@ -150,23 +150,30 @@ If you need to use the old API, have a look at the documentation in the link:htt
 === Implementing an incremental task
 
 For a task to process inputs incrementally, that task must contain an _incremental task action_.
-This is a task action method that contains a single link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] parameter, which indicates to Gradle that the action will process the changed inputs only.
-Moreover, the task needs to declare at least one incremental file input property, by using either `@link:{javadocPath}/org/gradle/work/Incremental.html[Incremental]` or `@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`.
+This is a task action method that has a single link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] parameter.
+That parameter tells Gradle that the action only wants to process the changed inputs.
+In addition, the task needs to declare at least one incremental file input property by using either link:{javadocPath}/org/gradle/work/Incremental.html[@Incremental] or link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[@SkipWhenEmpty].
 
 [IMPORTANT]
 ====
-To query incremental changes for an input file property, the getter of that property always needs to return the same instance.
-The easiest way to accomplish this is to use `link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty]`, `link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]` or `link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection]` as type of the property.
-See also the chapter on <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>, especially the sections about <<lazy_configuration.adoc#sec:lazy_properties,using read-only and configurable properties>> and <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy file properties>>.
+To query incremental changes for an input file property, that property always needs to return the same instance.
+The easiest way to accomplish this is to use one of the following types for such properties: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty] or link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection].
+
+You can learn more about `RegularFileProperty` and `DirectoryProperty` in the <<lazy_configuration#lazy_configuration,Lazy Configuration>> chapter, especially the sections on <<lazy_configuration#sec:lazy_properties,using read-only and configurable properties>> and <<lazy_configuration#sec:working_with_files_in_lazy_properties,lazy file properties>>.
 ====
 
-The incremental task action can then query for file changes for an input file parameter via `link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges]`.
-The method returns an `Iterable` of `link:{javadocPath}/org/gradle/work/FileChange.html[FileChanges]`, which in turn can be queried for
+The incremental task action can use link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] to find out what files have changed for a given file-based input property, be it of type `RegularFileProperty`, `DirectoryProperty` or `ConfigurableFileCollection`.
+The method returns an `Iterable` of type link:{javadocPath}/org/gradle/work/FileChange.html[FileChanges], which in turn can be queried for the following:
 
-* the link:{javadocPath}/org/gradle/work/FileChange.html#getFile--[affected file],
-* the link:{javadocPath}/org/gradle/work/FileChange.html#getChangeType--[change type] (`ADDED`, `REMOVED` or `MODIFIED`),
-* the link:{javadocPath}/org/gradle/work/FileChange.html#getNormalizedPath--[normalized path] of the changed file,
-* the link:{javadocPath}/org/gradle/work/FileChange.html#getFileType--[file type] of the changed file.
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getFile--[affected file]
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getChangeType--[change type] (`ADDED`, `REMOVED` or `MODIFIED`)
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getNormalizedPath--[normalized path] of the changed file
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getFileType--[file type] of the changed file
+
+The following example demonstrates an incremental task that has a directory input.
+It assumes that the directory contains a collection of text files and copies them to an output directory, reversing the text within each file.
+The key things to note are the type of the `inputDir` property, its annotations, and how the action (`execute()`) uses `getFileChanges()` to process the subset of files that have actually changed since the last build.
+You can also see how the action deletes a target file if the corresponding input file has been removed:
 
 [[taskDefinition]]
 .Defining an incremental task action
@@ -177,48 +184,49 @@ include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle
 
 NOTE: The code for this example can be found at **`samples/userguide/tasks/incrementalTask`** in the ‘-all’ distribution of Gradle.
 
-If for some reason the task is executed non-incrementally, e.g. by running with `--rerun-tasks`, all files are reported as `ADDED`, no matter of the previous state.
-Gradle automatically removes the previous outputs, so the incremental task only needs to process the given files.
+If for some reason the task is executed non-incrementally, for example by running with `--rerun-tasks`, all files are reported as `ADDED`, irrespective of the previous state.
+In this case, Gradle automatically removes the previous outputs, so the incremental task only needs to process the given files.
 
-For a simple transformer task like this, the task action simply needs to generate output files for any out-of-date inputs, and delete output files for any removed inputs.
+For a simple transformer task like the above exmaple, the task action simply needs to generate output files for any out-of-date inputs and delete output files for any removed inputs.
 
+[IMPORTANT]
+====
 A task may only contain a single incremental task action.
+====
 
 [[sec:which_inputs_are_considered_out_of_date]]
 === Which inputs are considered out of date?
 
 When there is a previous execution of the task, and the only changes since that execution are to incremental input file properties, then Gradle is able to determine which input files need to be processed (incremental execution).
-In this case, the link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges] method returns details for all input files for the given property that were _added_, _modified_ or _removed_.
+In this case, the link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] method returns details for all input files for the given property that were _added_, _modified_ or _removed_.
 
 However, there are many cases where Gradle is unable to determine which input files need to be processed (non-incremental execution).
 Examples include:
 
 * There is no history available from a previous execution.
 * You are building with a different version of Gradle. Currently, Gradle does not use task history from a different version.
-* An `upToDateWhen` criteria added to the task returns `false`.
+* An link:{javadocApi}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[`upToDateWhen`] criterion added to the task returns `false`.
 * An input property has changed since the previous execution.
 * A non-incremental input file property has changed since the previous execution.
 * One or more output files have changed since the previous execution.
 
-In any of these cases, Gradle will report all input files as `ADDED`.
-The link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges] method will return details for all files for the given input property.
+In all of these cases, Gradle will report all input files as `ADDED` and the `getFileChanges()` method will return details for all the files that comprise the given input property.
 
-You can check if Gradle was able to determine the incremental changes to input files with link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges.html##org.gradle.work.InputChanges:incremental[InputChanges.isIncremental()].
+You can check if the task execution is incremental or not with the link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges.html##org.gradle.work.InputChanges:incremental[InputChanges.isIncremental()] method.
 
 [[sec:an_incremental_task_in_action]]
 === An incremental task in action
 
-Given the incremental task implementation <<#taskDefinition,above>>, we can explore the various change scenarios by example.
-Note that the various mutation tasks ('updateInputs', 'removeInput', etc) are only present for demonstration purposes: these would not normally be part of your build script.
+Given the example incremental task implementation <<#taskDefinition,above>>, let's walk through some scenarios based on it.
 
-First, consider the `IncrementalReverseTask` executed against a set of inputs for the first time.
-In this case, all inputs will be considered added:
+First, consider an instance of `IncrementalReverseTask` that is executed against a set of inputs for the first time.
+In this case, all inputs will be considered added, as shown here:
 
+[[ex:incremental_task_definition]]
 .Running the incremental task for the first time
 ====
 include::sample[dir="userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
 include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
-====
 
 .Build layout
 ----
@@ -235,70 +243,82 @@ include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle
 > gradle -q incrementalReverse
 include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskFirstRun.out[]
 ----
+====
 
-Naturally when the task is executed again with no changes, then the entire task is up to date and no files are reported to the task action:
+Naturally when the task is executed again with no changes, then the entire task is up to date and the task action is not executed:
 
-=== Example: Running the incremental task with unchanged inputs
-
-.Output of **`gradle -q incrementalReverse`**
+.Running the incremental task with unchanged inputs
+====
+.Output of `gradle incrementalReverse`
 ----
-> gradle -q incrementalReverse
+> gradle incrementalReverse
 include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskNoChange.out[]
 ----
+====
 
-When an input file is modified in some way or a new input file is added, then re-executing the task results in those files being returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges]:
+When an input file is modified in some way or a new input file is added, then re-executing the task results in those files being returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()].
+The following example modifies the content of one file and adds another before running the incremental task:
 
 .Running the incremental task with updated input files
 ====
 include::sample[dir="userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
 include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
-====
 
-.Output of **`gradle -q updateInputs incrementalReverse`**
+.Output of `gradle -q updateInputs incrementalReverse`
 ----
 > gradle -q updateInputs incrementalReverse
 include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskUpdatedInputs.out[]
 ----
+====
 
-When an existing input file is removed, then re-executing the task results in that file being returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges] as `REMOVED`:
+NOTE: The various mutation tasks (`updateInputs`, `removeInput`, etc) are only present to demonstrate the behavior of incremental tasks.
+They should not be viewed as the kinds of tasks or task implementations you should have in your own build scripts.
+
+When an existing input file is removed, then re-executing the task results in that file being returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] as `REMOVED`.
+The following example removes one of the existing files before executing the incremental task:
 
 .Running the incremental task with an input file removed
 ====
 include::sample[dir="userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
 include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
-====
 
-.Output of **`gradle -q removeInput incrementalReverse`**
+.Output of `gradle -q removeInput incrementalReverse`
 ----
 > gradle -q removeInput incrementalReverse
 include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskRemovedInput.out[]
 ----
+====
 
-When an output file is deleted (or modified), then Gradle is unable to determine which input files are out of date.
-In this case, details for _all_ input files for the given property are returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges]:
+When an _output_ file is deleted (or modified), then Gradle is unable to determine which input files are out of date.
+In this case, details for _all_ the input files for the given property are returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()].
+The following example removes just one of the output files from the build directory, but notice how all the input files are considered to be `ADDED`:
 
 .Running the incremental task with an output file removed
 ====
 include::sample[dir="userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
 include::sample[dir="userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
-====
 
-.Output of **`gradle -q removeOutput incrementalReverse`**
+.Output of `gradle -q removeOutput incrementalReverse`
 ----
 > gradle -q removeOutput incrementalReverse
 include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskRemovedOutput.out[]
 ----
+====
 
-When a task input property is modified, Gradle is unable to determine how this property impacted the task outputs, so the task is executed non-incrementally.
-So similar to the changed output file example, details for _all_ input files for the given property are returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges]:
+The last scenario we want to cover concerns what happens when a non-file-based input property is modified.
+In such cases, Gradle is unable to determine how the property impacts the task outputs, so the task is executed non-incrementally.
+This means that _all_ input files for the given property are returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] and they are all treated as `ADDED`.
+The following example sets the project property `taskInputProperty` to a new value when running the `incrementalReverse` task and that project property is used to initialize the task's `inputProperty` property, as you can see in the <<ex:incremental_task_definition,first example of this section>>.
+Here's the output you can expect in this case:
 
-=== Example: Running the incremental task with an input property changed
-
-.Output of **`gradle -q -PtaskInputProperty=changed incrementalReverse`**
+.Running the incremental task with an input property changed
+====
+.Output of `gradle -q -PtaskInputProperty=changed incrementalReverse`
 ----
 > gradle -q -PtaskInputProperty=changed incrementalReverse
 include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskChangedProperty.out[]
 ----
+====
 
 [[sec:storing_incremental_task_state]]
 === Storing incremental state for cached tasks
@@ -310,8 +330,8 @@ If such state files are <<build_cache.adoc#sec:task_output_caching_inputs,reloca
 This way when the task's results are loaded from cache, the next execution can already use the analysis data loaded from cache, too.
 
 However, if the state files are non-relocatable, then they can't be shared via the build cache.
-Indeed, when the task is loaded from cache, any such state files must be cleaned up to prevent stale state to confuse the tool during the next execution.
-Gradle can ensure such stale files are removed if they are declared via `task.localState.register()` or a property is marked with the `@LocalState` annotation.
+Indeed, when the task is loaded from cache, any such state files must be cleaned up to prevent stale state from confusing the tool during the next execution.
+Gradle can ensure such stale files are removed if they are declared via link:{javadocPath}/org/gradle/api/tasks/TaskLocalState.html#register-java.lang.Object++...++-[task.localState.register()] or if a property is marked with the link:{javadocPath}/org/gradle/api/tasks/LocalState.html[@LocalState] annotation.
 
 [[sec:declaring_and_using_command_line_options]]
 == Declaring and Using Command Line Options

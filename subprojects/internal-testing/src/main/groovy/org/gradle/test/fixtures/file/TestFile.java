@@ -27,6 +27,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
+import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -474,6 +475,18 @@ public class TestFile extends File {
             throw new UncheckedIOException(e);
         }
         return hashingStream.hash();
+    }
+
+    public String getSha256Hash() {
+        // Sha256 is not part of core-services (i.e. no Hashing.sha256() available), hence we use plain Guava classes here.
+        com.google.common.hash.HashingOutputStream hashingStream =
+            new com.google.common.hash.HashingOutputStream(com.google.common.hash.Hashing.sha256(), NullOutputStream.INSTANCE);
+        try {
+            Files.copy(this.toPath(), hashingStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return hashingStream.hash().toString();
     }
 
     public void createLink(File target) {

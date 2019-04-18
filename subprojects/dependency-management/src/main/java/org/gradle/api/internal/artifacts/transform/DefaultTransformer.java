@@ -263,7 +263,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of the artifact transform parameter %s." : "Some problems were found with the configuration of the artifact transform parameter %s.", getParameterObjectDisplayName(parameterObject)),
-                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList())
+                validationMessages.stream().sorted().map(InvalidUserDataException::new).collect(Collectors.toList())
             );
         }
 

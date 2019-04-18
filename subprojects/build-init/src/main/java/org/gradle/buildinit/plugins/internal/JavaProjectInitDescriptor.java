@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Arrays;
@@ -27,6 +28,7 @@ import java.util.TreeSet;
 import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNITJUPITER;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
@@ -99,6 +101,20 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
                         "Use TestNG for unit tests",
                         "test", "Test", "useTestNG");
                 break;
+            case JUNITJUPITER:
+                buildScriptBuilder
+                    .dependency(
+                        getTestImplementationConfigurationName(),
+                        "Use JUnit Jupiter API for testing.",
+                        "org.junit.jupiter:junit-jupiter-api:" + libraryVersionProvider.getVersion("junitjupiter")
+                    ).dependency(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME,
+                        "Use JUnit Jupiter Engine for testing.",
+                        "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junitjupiter")
+                    ).taskMethodInvocation(
+                        "Use junit platform for unit tests",
+                        "test", "Test", "useJUnitPlatform"
+                    );
+                break;
             default:
                 buildScriptBuilder
                     .dependency(getTestImplementationConfigurationName(), "Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
@@ -124,7 +140,7 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, TESTNG, SPOCK));
+        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, JUNITJUPITER, TESTNG, SPOCK));
     }
 
     protected static class Description {
