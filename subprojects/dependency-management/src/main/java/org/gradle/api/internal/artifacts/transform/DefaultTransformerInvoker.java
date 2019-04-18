@@ -50,7 +50,6 @@ import org.gradle.internal.fingerprint.OutputNormalizer;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -188,8 +187,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             public BuildOperationDescriptor.Builder description() {
                 String displayName = transformer.getDisplayName() + " " + inputArtifact.getName();
                 return BuildOperationDescriptor.displayName(displayName)
-                    .progressDisplayName(displayName)
-                    .operationType(BuildOperationCategory.UNCATEGORIZED);
+                    .progressDisplayName(displayName);
             }
         }));
     }
