@@ -3,6 +3,7 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
+[Erhard Pointl](https://github.com/epeee)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -20,6 +21,18 @@ details of 2
 
 ## n
 -->
+
+## Build init plugin improvements
+
+### Support for JUnit Jupiter
+
+The build init plugin now offers an option to use Junit Jupiter, instead of Junit 4, with Java applications and libraries. See [here](userguide/build_init_plugin.html#sec:java_library)
+
+Contributed by [Erhard Pointl](https://github.com/epeee)
+
+### Generate Gradle plugin builds
+
+The build init plugin can generate the source and tests for simple Gradle plugins. You can use these as a starting point for implementing and testing a Gradle plugin. The plugin offers the option for using Java, Groovy or Kotlin for the plugin implementation.
 
 ## Upgrade Instructions
 
