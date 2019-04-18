@@ -448,7 +448,7 @@ public interface DependencyHandler {
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
     /**
-     * Registers an artifact transform without a parameter object.
+     * Registers an artifact transform.
      *
      * @see TransformAction
      * @since 5.3

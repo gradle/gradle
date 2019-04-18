@@ -822,11 +822,6 @@ public class AvailableToolChains {
                     super.configureExecuter(executer);
                     InstalledXcode.this.configureExecuter(executer);
                 }
-
-                @Override
-                public String getInstanceDisplayName() {
-                    return String.format("%s from Xcode '%s'", super.getInstanceDisplayName(), InstalledXcode.this.version.toString());
-                }
             });
         }
 
@@ -871,11 +866,6 @@ public class AvailableToolChains {
                         return InstalledXcode.this.version.getMajor() < 10;
                     }
                     return super.meets(requirement);
-                }
-
-                @Override
-                public String getInstanceDisplayName() {
-                    return String.format("%s from Xcode '%s'", super.getInstanceDisplayName(), InstalledXcode.this.version.toString());
                 }
             });
         }
