@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
+import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 
 import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
@@ -60,6 +61,7 @@ import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
+import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
 
 import org.jetbrains.kotlin.utils.PathUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
@@ -130,6 +132,7 @@ fun compileKotlinScriptModuleTo(
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
+                addScriptingCompilerComponents()
                 addScriptDefinition(scriptDef)
                 scriptFiles.forEach { addKotlinSourceRoot(it) }
                 classPath.forEach { addJvmClasspathRoot(it) }
@@ -317,6 +320,15 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
 private
 fun CompilerConfiguration.setModuleName(name: String) {
     put(CommonConfigurationKeys.MODULE_NAME, name)
+}
+
+
+private
+fun CompilerConfiguration.addScriptingCompilerComponents() {
+    add(
+        ComponentRegistrar.PLUGIN_COMPONENT_REGISTRARS,
+        ScriptingCompilerConfigurationComponentRegistrar()
+    )
 }
 
 

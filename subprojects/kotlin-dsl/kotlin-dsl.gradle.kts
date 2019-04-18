@@ -39,6 +39,10 @@ dependencies {
     compile(project(":kotlinDslToolingModels"))
 
     compile(project(":kotlinCompilerEmbeddable"))
+    compile(futureKotlin("scripting-compiler-embeddable")) {
+        isTransitive = false
+    }
+
     compile(futureKotlin("stdlib-jdk8"))
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
