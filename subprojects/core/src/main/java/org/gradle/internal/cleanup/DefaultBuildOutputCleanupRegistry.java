@@ -55,7 +55,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
         return false;
     }
 
-    private Set<String> getResolvedPaths() {
+    private synchronized Set<String> getResolvedPaths() {
         if (resolvedPaths == null) {
             doResolvePaths();
         }
