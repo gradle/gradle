@@ -668,6 +668,23 @@
     </section>
 
     <section>
+        <title>Artifact transform types</title>
+        <para>Used to define artifact transforms.</para>
+        <table>
+            <title>Native tool chain types</title>
+            <tr>
+                <td>org.gradle.api.artifacts.transform.TransformAction</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.transform.TransformOutputs</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.transform.TransformSpec</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
         <title>Native tool chains model types</title>
         <para>Used to configure tool chains for building C++ components.</para>
         <table>
