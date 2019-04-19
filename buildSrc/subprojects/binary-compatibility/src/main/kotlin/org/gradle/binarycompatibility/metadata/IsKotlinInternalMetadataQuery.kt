@@ -152,6 +152,7 @@ class IsInternalConstructorKmClassVisitor(
         }
 }
 
+
 private
 class IsInternalMethodKmClassVisitor(
     private val jvmSignature: String
@@ -169,10 +170,7 @@ class IsInternalMethodKmClassVisitor(
     }
 
     private
-    val kmInternalFunctionVisitor = MatchingMethodSignatureKmFunctionVisitor(jvmSignature) {
-        isKotlinInternal = true
-        isDoneVisiting = true
-    }
+    val kmInternalFunctionVisitor = MatchingMethodSignatureKmFunctionVisitor(jvmSignature, onMatch)
 
     override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
         if (isDoneVisiting || !flags.isInternal) null
