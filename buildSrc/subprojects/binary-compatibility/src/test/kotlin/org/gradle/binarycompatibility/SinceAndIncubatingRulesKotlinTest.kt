@@ -54,73 +54,51 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
     private
     val annotatedKotlinMembers = """
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @Incubating
         fun foo() {}
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @get:Incubating
         val bar: String = "bar"
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @get:Incubating
         val bool: Boolean = true
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @get:Incubating
         val isBool: Boolean = true
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @get:Incubating
         @set:Incubating
         var bazar = "bazar"
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @get:Incubating
         @set:Incubating
         var bazool: Boolean = true
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @get:Incubating
         @set:Incubating
         var isFool: Boolean = true
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @Incubating
         fun String.fooExt() {}
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @Incubating
         fun Int.fooExt() {}
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @get:Incubating
         val String.barExt: String
             get() = "bar"
 
-        /**
-         * @since 2.0
-         */
+        /** @since 2.0 */
         @get:Incubating
         @set:Incubating
         var Int.bazarExt: String
@@ -170,9 +148,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
            $annotatedKotlinMembers
 
-            /**
-             * @since 2.0
-             */
+            /** @since 2.0 */
             @field:Incubating
             const val cathedral = "cathedral"
 
@@ -235,27 +211,19 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
         checkBinaryCompatibleKotlin(v2 = """
 
-            /**
-             * @since 2.0
-             */
+            /** @since 2.0 */
             @Incubating
             interface Foo
 
-            /**
-             * @since 2.0
-             */
+            /** @since 2.0 */
             @Incubating
             class Bar
 
-            /**
-             * @since 2.0
-             */
+            /** @since 2.0 */
             @Incubating
             enum class Bazar
 
-            /**
-             * @since 2.0
-             */
+            /** @since 2.0 */
             @Incubating
             object Cathedral
 
@@ -280,31 +248,23 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
         val baseline = """
 
-            /**
-             * @since 1.0
-             */
+            /** @since 1.0 */
             interface Foo
 
-            /**
-             * @since 1.0
-             */
+            /** @since 1.0 */
             class Bar()
 
         """
 
         checkNotBinaryCompatibleKotlin(v1 = baseline, v2 = """
 
-            /**
-             * @since 1.0
-             */
+            /** @since 1.0 */
             interface Foo : AutoCloseable {
                 fun foo()
                 override fun close()
             }
 
-            /**
-             * @since 1.0
-             */
+            /** @since 1.0 */
             class Bar() {
 
                 constructor(bar: String) : this()
@@ -339,26 +299,18 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
         checkBinaryCompatibleKotlin(v1 = baseline, v2 = """
 
-            /**
-             * @since 1.0
-             */
+            /** @since 1.0 */
             interface Foo {
 
-                /**
-                 * @since 2.0
-                 */
+                /** @since 2.0 */
                 @Incubating
                 fun foo()
             }
 
-            /**
-             * @since 1.0
-             */
+            /** @since 1.0 */
             class Bar() {
 
-                /**
-                 * @since 2.0
-                 */
+                /** @since 2.0 */
                 @Incubating
                 constructor(bar: String) : this()
 
