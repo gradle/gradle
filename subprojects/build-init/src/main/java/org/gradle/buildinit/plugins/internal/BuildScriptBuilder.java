@@ -134,7 +134,7 @@ public class BuildScriptBuilder {
      * Creates a method invocation expression, to use as a method argument or the RHS of a property assignment.
      */
     public Expression methodInvocationExpression(String methodName, Object... methodArgs) {
-        return new MethodInvocationValue(methodName, expressionValues(methodArgs));
+        return new MethodInvocationExpression(null, methodName, expressionValues(methodArgs));
     }
 
     /**
@@ -148,7 +148,14 @@ public class BuildScriptBuilder {
      * Creates a property expression, to use as a method argument or the RHS of a property assignment.
      */
     public Expression propertyExpression(Expression expression, String value) {
-        return new ChainedExpression((ExpressionValue) expression, new LiteralValue(value));
+        return new ChainedPropertyExpression((ExpressionValue) expression, new LiteralValue(value));
+    }
+
+    /**
+     * Creates an expression that references an element in a container.
+     */
+    public Expression containerElementExpression(String container, String element) {
+        return new ContainerElementExpression(container, element);
     }
 
     private static List<ExpressionValue> expressionValues(Object... expressions) {
@@ -222,6 +229,16 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Adds a top level method invocation statement.
+     *
+     * @return this
+     */
+    public BuildScriptBuilder methodInvocation(@Nullable String comment, Expression target, String methodName, Object... methodArgs) {
+        block.methodInvocation(comment, target, methodName, methodArgs);
+        return this;
+    }
+
+    /**
      * Adds a top level property assignment statement.
      *
      * @return this
@@ -253,7 +270,7 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs) {
         block.tasks.add(
             new TaskSelector(taskName, taskType),
-            new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
+            new MethodInvocation(comment, new MethodInvocationExpression(null, methodName, expressionValues(methodArgs))));
         return this;
     }
 
@@ -296,7 +313,7 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the element later in the script.
      */
-    public Expression containerElement(@Nullable String comment, String container, String elementName, @Nullable String varName) {
+    public Expression createContainerElement(@Nullable String comment, String container, String elementName, @Nullable String varName) {
         ContainerElement containerElement = new ContainerElement(comment, container, elementName, varName);
         block.add(containerElement);
         return containerElement;
@@ -357,11 +374,11 @@ public class BuildScriptBuilder {
         String with(Syntax syntax);
     }
 
-    private static class ChainedExpression implements Expression, ExpressionValue {
+    private static class ChainedPropertyExpression implements Expression, ExpressionValue {
         private final ExpressionValue left;
         private final ExpressionValue right;
 
-        public ChainedExpression(ExpressionValue left, ExpressionValue right) {
+        public ChainedPropertyExpression(ExpressionValue left, ExpressionValue right) {
             this.left = left;
             this.right = right;
         }
@@ -431,17 +448,20 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class MethodInvocationValue implements ExpressionValue {
+    private static class MethodInvocationExpression implements ExpressionValue {
+        @Nullable
+        private final ExpressionValue target;
         final String methodName;
         final List<ExpressionValue> arguments;
 
-        MethodInvocationValue(String methodName, List<ExpressionValue> arguments) {
+        MethodInvocationExpression(@Nullable ExpressionValue target, String methodName, List<ExpressionValue> arguments) {
+            this.target = target;
             this.methodName = methodName;
             this.arguments = arguments;
         }
 
-        MethodInvocationValue(String methodName) {
-            this(methodName, Collections.emptyList());
+        MethodInvocationExpression(String methodName) {
+            this(null, methodName, Collections.emptyList());
         }
 
         @Override
@@ -452,6 +472,10 @@ public class BuildScriptBuilder {
         @Override
         public String with(Syntax syntax) {
             StringBuilder result = new StringBuilder();
+            if (target != null) {
+                result.append(target.with(syntax));
+                result.append('.');
+            }
             result.append(methodName);
             result.append("(");
             for (int i = 0; i < arguments.size(); i++) {
@@ -465,6 +489,26 @@ public class BuildScriptBuilder {
             }
             result.append(")");
             return result.toString();
+        }
+    }
+
+    private static class ContainerElementExpression implements ExpressionValue {
+        private final String container;
+        private final String element;
+
+        public ContainerElementExpression(String container, String element) {
+            this.container = container;
+            this.element = element;
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.containerElement(container, element);
         }
     }
 
@@ -674,9 +718,9 @@ public class BuildScriptBuilder {
 
     private static class MethodInvocation extends AbstractStatement {
 
-        final MethodInvocationValue invocationExpression;
+        final MethodInvocationExpression invocationExpression;
 
-        private MethodInvocation(String comment, MethodInvocationValue invocationExpression) {
+        private MethodInvocation(String comment, MethodInvocationExpression invocationExpression) {
             super(comment);
             this.invocationExpression = invocationExpression;
         }
@@ -823,12 +867,12 @@ public class BuildScriptBuilder {
 
         @Override
         public void mavenLocal(String comment) {
-            add(new MethodInvocation(comment, new MethodInvocationValue("mavenLocal")));
+            add(new MethodInvocation(comment, new MethodInvocationExpression("mavenLocal")));
         }
 
         @Override
         public void jcenter(@Nullable String comment) {
-            add(new MethodInvocation(comment, new MethodInvocationValue("jcenter")));
+            add(new MethodInvocation(comment, new MethodInvocationExpression("jcenter")));
         }
 
         @Override
@@ -920,7 +964,12 @@ public class BuildScriptBuilder {
 
         @Override
         public void methodInvocation(String comment, String methodName, Object... methodArgs) {
-            statements.add(new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
+            statements.add(new MethodInvocation(comment, new MethodInvocationExpression(null, methodName, expressionValues(methodArgs))));
+        }
+
+        @Override
+        public void methodInvocation(@Nullable String comment, Expression target, String methodName, Object... methodArgs) {
+            statements.add(new MethodInvocation(comment, new MethodInvocationExpression(expressionValue(target), methodName, expressionValues(methodArgs))));
         }
 
         @Override
@@ -984,7 +1033,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs) {
-            tasks.add(new TaskSelector(taskName, taskType), new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
+            tasks.add(new TaskSelector(taskName, taskType), new MethodInvocation(comment, new MethodInvocationExpression(null, methodName, expressionValues(methodArgs))));
         }
 
         @Override
@@ -1260,6 +1309,8 @@ public class BuildScriptBuilder {
         Statement createContainerElement(@Nullable String comment, String container, String elementName, @Nullable String varName, List<Statement> body);
 
         String referenceCreatedContainerElement(String container, String elementName, @Nullable String varName);
+
+        String containerElement(String container, String element);
     }
 
     private static final class KotlinSyntax implements Syntax {
@@ -1363,7 +1414,7 @@ public class BuildScriptBuilder {
             if (varName == null) {
                 literal = "val " + elementName + " by " + container + ".creating";
             } else {
-                literal = "val " + varName + " = " + container + ".create(\"" + elementName + "\")";
+                literal = "val " + varName + " = " + container + ".create(" + string(elementName) + ")";
             }
             BlockStatement blockStatement = new ScriptBlock(comment, literal);
             for (Statement statement : body) {
@@ -1379,6 +1430,11 @@ public class BuildScriptBuilder {
             } else {
                 return varName;
             }
+        }
+
+        @Override
+        public String containerElement(String container, String element) {
+            return container + ".getByName(" + string(element) + ")";
         }
     }
 
@@ -1485,6 +1541,11 @@ public class BuildScriptBuilder {
         @Override
         public String referenceCreatedContainerElement(String container, String elementName, String varName) {
             return container + "." + elementName;
+        }
+
+        @Override
+        public String containerElement(String container, String element) {
+            return container + "." + element;
         }
     }
 }

@@ -49,10 +49,12 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
             });
         });
 
-        BuildScriptBuilder.Expression functionalTestSourceSet = buildScriptBuilder.containerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");
+        BuildScriptBuilder.Expression functionalTestSourceSet = buildScriptBuilder.createContainerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");
         buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets", functionalTestSourceSet);
 
-        buildScriptBuilder.methodInvocation(null, "configurations.getByName(\"functionalTestImplementation\").extendsFrom", buildScriptBuilder.propertyExpression("configurations.getByName(\"testImplementation\")"));
+        BuildScriptBuilder.Expression functionalTestConfiguration = buildScriptBuilder.containerElementExpression("configurations", "functionalTestImplementation");
+        BuildScriptBuilder.Expression testConfiguration = buildScriptBuilder.containerElementExpression("configurations", "testImplementation");
+        buildScriptBuilder.methodInvocation(null, functionalTestConfiguration, "extendsFrom", testConfiguration);
         BuildScriptBuilder.Expression functionalTest = buildScriptBuilder.taskRegistration("Add a task to run the functional tests", "functionalTest", "Test", b -> {
             b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"));
             b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"));

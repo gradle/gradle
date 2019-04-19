@@ -213,7 +213,7 @@ class Maven2Gradle {
         }
     }
 
-    def fqn = { project, allProjects ->
+    private String fqn(project, allProjects) {
         def buffer = new StringBuilder()
         generateFqn(project, allProjects, buffer)
         return buffer.toString()
@@ -457,7 +457,7 @@ class Maven2Gradle {
         def modulePoms = modules(projects, true)
 
         List<String> moduleNames = new ArrayList<String>()
-        def artifactIdToDir = [:]
+        Map<String, String> artifactIdToDir = [:]
         if (projects) {
             modulePoms.each { project ->
                 def fqn = fqn(project, projects)
