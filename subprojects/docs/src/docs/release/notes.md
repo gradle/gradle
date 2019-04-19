@@ -26,13 +26,15 @@ details of 2
 
 ### Support for JUnit Jupiter
 
-The build init plugin now offers an option to use Junit Jupiter, instead of Junit 4, with Java applications and libraries. See [here](userguide/build_init_plugin.html#sec:java_library)
+The `init` task now provides an option to use Junit Jupiter, instead of Junit 4, to test Java applications and libraries. You can select this test framework when you run the `init` task interactively, or use the `--test-framework` command-line option. See the [User manual](userguide/build_init_plugin.html) for more details.
 
 Contributed by [Erhard Pointl](https://github.com/epeee)
 
 ### Generate Gradle plugin builds
 
-The build init plugin can generate the source and tests for simple Gradle plugins. You can use these as a starting point for implementing and testing a Gradle plugin. The plugin offers the option for using Java, Groovy or Kotlin for the plugin implementation.
+The `init` task can now generate simple Gradle plugins. You can use these as a starting point for developing and testing a Gradle plugin. The `init` task provides an option to use either Java, Groovy or Kotlin for the plugin source. You can select a Gradle plugin when you run the `init` task interactively, or use the `--type` command-line option. 
+
+See the [User manual](userguide/build_init_plugin.html) for more details.
 
 ## Upgrade Instructions
 
