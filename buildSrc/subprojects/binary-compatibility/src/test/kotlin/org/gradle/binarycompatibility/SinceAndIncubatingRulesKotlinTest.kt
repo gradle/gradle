@@ -116,7 +116,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
             const val cathedral = "cathedral"
 
-        """).apply {
+        """) {
 
             assertHasNoInformation()
             assertHasNoWarning()
@@ -144,18 +144,22 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             )
         }
 
-        checkNotBinaryCompatibleKotlin(v2 = """
+        // with existing non-incubating file-facade class, new members must be annotated with @Incubating and @since
+        checkBinaryCompatibleKotlin(
+            v1 = """
+                val existing = "file-facade-class"
+            """,
+            v2 = """
+                val existing = "file-facade-class"
 
-           $annotatedKotlinMembers
+                $annotatedKotlinMembers
 
-            /** @since 2.0 */
-            @field:Incubating
-            const val cathedral = "cathedral"
+                /** @since 2.0 */
+                @field:Incubating
+                const val cathedral = "cathedral"
+            """
+        ) {
 
-        """).apply {
-
-            // TODO:kotlin-dsl add @file:Incubating once new wrapper with @Incubating & @Target.TYPE
-            assertHasErrors("Class com.example.SourceKt: Is not annotated with @Incubating.")
             assertHasNoWarning()
             assertHasInformation(
                 newApi("Field", "cathedral"),
@@ -176,6 +180,44 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "SourceKt.setFool(boolean)")
             )
         }
+
+        // new file-facade class can be annotated with @Incubating, members must be annotated with @since
+        checkBinaryCompatible(
+            v2 = {
+                withFile("kotlin/com/example/Source.kt", """
+                    @file:Incubating
+                    package com.example
+
+                    import org.gradle.api.Incubating
+
+                    ${annotatedKotlinMembers.lineSequence().filter { !it.contains("Incubating") }.joinToString("\n")}
+
+                    /** @since 2.0 */
+                    const val cathedral = "cathedral"
+                """)
+            }
+        ) {
+
+            assertHasNoWarning()
+            assertHasInformation(
+                newApi("Class", "SourceKt"),
+                newApi("Field", "cathedral"),
+                newApi("Method", "SourceKt.foo()"),
+                newApi("Method", "SourceKt.fooExt(java.lang.String)"),
+                newApi("Method", "SourceKt.fooExt(int)"),
+                newApi("Method", "SourceKt.getBar()"),
+                newApi("Method", "SourceKt.getBarExt(java.lang.String)"),
+                newApi("Method", "SourceKt.getBazar()"),
+                newApi("Method", "SourceKt.getBazarExt(int)"),
+                newApi("Method", "SourceKt.getBazool()"),
+                newApi("Method", "SourceKt.getBool()"),
+                newApi("Method", "SourceKt.isBool()"),
+                newApi("Method", "SourceKt.isFool()"),
+                newApi("Method", "SourceKt.setBazar(java.lang.String)"),
+                newApi("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
+                newApi("Method", "SourceKt.setBazool(boolean)"),
+                newApi("Method", "SourceKt.setFool(boolean)"))
+        }
     }
 
     @Test
@@ -193,7 +235,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
             object Cathedral
 
-        """).apply {
+        """) {
 
             assertHasNoInformation()
             assertHasNoWarning()
@@ -227,9 +269,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             @Incubating
             object Cathedral
 
-        """).apply {
+        """) {
 
-            assertHasNoError()
             assertHasNoWarning()
             assertHasInformation(
                 newApi("Class", "Bar"),
@@ -272,7 +313,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 $publicKotlinMembers
             }
 
-        """).apply {
+        """) {
 
             assertHasNoInformation()
             assertHasNoWarning()
@@ -317,9 +358,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 $annotatedKotlinMembers
             }
 
-        """).apply {
+        """) {
 
-            assertHasNoError()
             assertHasNoWarning()
             assertHasInformation(
                 newApi("Method", "Bar.foo()"),

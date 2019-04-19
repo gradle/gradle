@@ -71,6 +71,20 @@ abstract class AbstractBinaryCompatibilityTest {
             block()
         }
 
+    internal
+    fun checkBinaryCompatible(v1: File.() -> Unit = {}, v2: File.() -> Unit = {}, block: CheckResult.() -> Unit = {}): CheckResult =
+        runBinaryCompatibilityCheck(v1, v2) {
+            assertBinaryCompatible()
+            block()
+        }
+
+    internal
+    fun checkNotBinaryCompatible(v1: File.() -> Unit = {}, v2: File.() -> Unit = {}, block: CheckResult.() -> Unit = {}): CheckResult =
+        runBinaryCompatibilityCheck(v1, v2) {
+            assertNotBinaryCompatible()
+            block()
+        }
+
     private
     fun CheckResult.assertBinaryCompatible() {
         assertTrue(richReport.toAssertionMessage("Expected to be compatible but the check failed"), isBinaryCompatible)
