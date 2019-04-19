@@ -786,6 +786,62 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    def "can publish java-library with dependencies with version using versionMapping and not adding revConstraints"() {
+        requiresExternalDependencies = true
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                implementation "commons-collections:commons-collections:3.2.2"
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        versionMapping {
+                            usage('java-runtime') {
+                                fromResolutionResult()
+                            }
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        succeeds "publish"
+
+        then:
+        javaLibrary.removeGradleMetadataRedirection()
+        outputDoesNotContain(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputDoesNotContain('commons-collections:commons-collections declared without version')
+        javaLibrary.assertPublished()
+        javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
+        javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@runtime")
+        !javaLibrary.parsedIvy.dependencies["commons-collections:commons-collections:3.2.2"].revisionConstraint
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
+            dependency('commons-collections:commons-collections:3.2.2') {
+                noMoreExcludes()
+            }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) {
+            expectFiles 'commons-collections-3.2.2.jar', 'publishTest-1.9.jar'
+        }
+    }
+
+
     def "can publish java-library with rejected versions"() {
         requiresExternalDependencies = true
 
