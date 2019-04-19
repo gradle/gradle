@@ -17,6 +17,8 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor {
     private final static Description DESCRIPTION = new Description(
@@ -38,6 +40,11 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     }
 
     @Override
+    public ComponentType getComponentType() {
+        return ComponentType.LIBRARY;
+    }
+
+    @Override
     protected TemplateOperation sourceTemplateOperation(InitSettings settings, TemplateFactory templateFactory) {
         return templateFactory.fromSourceTemplate("javalibrary/Library.java.template", "main");
     }
@@ -51,7 +58,7 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
                 return templateFactory.fromSourceTemplate("javalibrary/testng/LibraryTest.java.template", "test");
             case JUNIT:
                 return templateFactory.fromSourceTemplate("javalibrary/LibraryTest.java.template", "test");
-            case JUNITJUPITER:
+            case JUNIT_JUPITER:
                 return templateFactory.fromSourceTemplate("javalibrary/junitjupiter/LibraryTest.java.template", "test");
             default:
                 throw new IllegalArgumentException();

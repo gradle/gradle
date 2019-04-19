@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescriptor {
 
@@ -27,6 +28,11 @@ public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescrip
     @Override
     public String getId() {
         return "groovy-library";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.LIBRARY;
     }
 
     @Override

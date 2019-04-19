@@ -17,6 +17,8 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Set;
 
@@ -25,6 +27,16 @@ import java.util.Set;
  */
 public interface BuildInitializer extends BuildContentGenerator {
     String getId();
+
+    /**
+     * What kind of component does this initializer create?
+     */
+    ComponentType getComponentType();
+
+    /**
+     * Which language does the production source files created by this initializer use?
+     */
+    Language getLanguage();
 
     /**
      * Returns the set of DSLs supported for this type of project.

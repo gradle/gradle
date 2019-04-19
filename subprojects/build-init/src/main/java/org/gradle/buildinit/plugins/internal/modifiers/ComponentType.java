@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.modifiers
+package org.gradle.buildinit.plugins.internal.modifiers;
 
+public enum ComponentType {
+    BASIC,
+    APPLICATION,
+    LIBRARY,
+    GRADLE_PLUGIN() {
+        @Override
+        public String toString() {
+            return "Gradle plugin";
+        }
+    };
 
-import spock.lang.Specification
-
-class BuildInitTestFrameworkTest extends Specification {
-    def "should list all supported test frameworks"() {
-        when:
-        def result = BuildInitTestFramework.listSupported();
-
-        then:
-        result.size() == 6
-        result[0] == "junit"
-        result[1] == "testng"
-        result[2] == "spock"
-        result[3] == "kotlintest"
-        result[4] == "scalatest"
-        result[5] == "junit-jupiter"
+    @Override
+    public String toString() {
+        return Names.displayNameFor(this);
     }
 }

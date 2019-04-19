@@ -17,11 +17,15 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Set;
 
 public interface LanguageSpecificProjectGenerator {
     String getId();
+
+    ComponentType getComponentType();
 
     Language getLanguage();
 

@@ -17,6 +17,8 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescriptor {
     private final TemplateLibraryVersionProvider libraryVersionProvider;
@@ -29,6 +31,11 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
     @Override
     public String getId() {
         return "java-application";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.APPLICATION;
     }
 
     @Override
@@ -59,7 +66,7 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
                 return templateFactory.fromSourceTemplate("javaapp/testng/AppTest.java.template", "test");
             case JUNIT:
                 return templateFactory.fromSourceTemplate("javaapp/AppTest.java.template", "test");
-            case JUNITJUPITER:
+            case JUNIT_JUPITER:
                 return templateFactory.fromSourceTemplate("javaapp/junitjupiter/AppTest.java.template", "test");
             default:
                 throw new IllegalArgumentException();

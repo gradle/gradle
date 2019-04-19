@@ -18,6 +18,8 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Collections;
 import java.util.Set;
@@ -34,6 +36,11 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
     @Override
     public String getId() {
         return "scala-library";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.LIBRARY;
     }
 
     @Override

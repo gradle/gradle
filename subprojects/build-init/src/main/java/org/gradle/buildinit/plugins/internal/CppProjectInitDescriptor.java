@@ -19,6 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import java.util.Set;

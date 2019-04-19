@@ -32,6 +32,8 @@ import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
@@ -128,22 +130,27 @@ public class InitBuild extends DefaultTask {
         UserInputHandler inputHandler = getServices().get(UserInputHandler.class);
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
-        String type = null;
-        if (isNullOrEmpty(this.type)) {
+        BuildInitializer initDescriptor = null;
+        if (isNullOrEmpty(type)) {
             BuildConverter converter = projectLayoutRegistry.getBuildConverter();
             if (converter.canApplyToCurrentDirectory()) {
                 if (inputHandler.askYesNoQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
-                    type = converter.getId();
+                    initDescriptor = converter;
                 }
             }
-            if (type == null) {
-                type = inputHandler.selectOption("Select type of project to generate", projectLayoutRegistry.getBuildGenerators(), projectLayoutRegistry.getDefault().getId());
+            if (initDescriptor == null) {
+                ComponentType componentType = inputHandler.selectOption("Select type of project to generate", projectLayoutRegistry.getComponentTypes(), projectLayoutRegistry.getDefault().getComponentType());
+                List<Language> languages = projectLayoutRegistry.getLanguagesFor(componentType);
+                if (languages.size() == 1) {
+                    initDescriptor = projectLayoutRegistry.get(componentType, languages.get(0));
+                } else {
+                    Language language = inputHandler.selectOption("Select implementation language", languages, null);
+                    initDescriptor = projectLayoutRegistry.get(componentType, language);
+                }
             }
         } else {
-            type = this.type;
+            initDescriptor = projectLayoutRegistry.get(type);
         }
-
-        BuildInitializer initDescriptor = projectLayoutRegistry.get(type);
 
         BuildInitDsl dsl;
         if (isNullOrEmpty(this.dsl)) {
@@ -154,7 +161,7 @@ public class InitBuild extends DefaultTask {
         } else {
             dsl = BuildInitDsl.fromName(getDsl());
             if (!initDescriptor.getDsls().contains(dsl)) {
-                throw new GradleException("The requested DSL '" + dsl + "' is not supported for '" + type + "' setup type");
+                throw new GradleException("The requested DSL '" + getDsl() + "' is not supported for '" + initDescriptor.getId() + "' build type");
             }
         }
 
@@ -173,7 +180,7 @@ public class InitBuild extends DefaultTask {
             }
             if (testFramework == null) {
                 TreeFormatter formatter = new TreeFormatter();
-                formatter.node("The requested test framework '" + getTestFramework() + "' is not supported for '" + type + "' setup type. Supported frameworks");
+                formatter.node("The requested test framework '" + getTestFramework() + "' is not supported for '" + initDescriptor.getId() + "' build type. Supported frameworks");
                 formatter.startChildren();
                 for (BuildInitTestFramework framework : initDescriptor.getTestFrameworks()) {
                     formatter.node("'" + framework.getId() + "'");
@@ -189,7 +196,7 @@ public class InitBuild extends DefaultTask {
                 projectName = inputHandler.askQuestion("Project name", getProjectName());
             }
         } else if (!isNullOrEmpty(projectName)) {
-            throw new GradleException("Project name is not supported for '" + type + "' setup type.");
+            throw new GradleException("Project name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
 
         String packageName = this.packageName;
@@ -198,7 +205,7 @@ public class InitBuild extends DefaultTask {
                 packageName = inputHandler.askQuestion("Source package", toPackageName(projectName));
             }
         } else if (!isNullOrEmpty(packageName)) {
-            throw new GradleException("Package name is not supported for '" + type + "' setup type.");
+            throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
 
         initDescriptor.generate(new InitSettings(projectName, dsl, packageName, testFramework));

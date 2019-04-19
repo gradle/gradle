@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDescriptor {
     public GroovyApplicationProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
@@ -26,6 +27,11 @@ public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDes
     @Override
     public String getId() {
         return "groovy-application";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.APPLICATION;
     }
 
     @Override

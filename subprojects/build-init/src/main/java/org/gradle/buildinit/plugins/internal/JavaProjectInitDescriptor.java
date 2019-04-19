@@ -18,13 +18,14 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNITJUPITER;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT_JUPITER;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
@@ -90,7 +91,7 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
                         "Use TestNG for unit tests",
                         "test", "Test", "useTestNG");
                 break;
-            case JUNITJUPITER:
+            case JUNIT_JUPITER:
                 buildScriptBuilder
                     .testImplementationDependency(
                         "Use JUnit Jupiter API for testing.",
@@ -123,7 +124,7 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, JUNITJUPITER, TESTNG, SPOCK));
+        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK));
     }
 
     protected static class Description {

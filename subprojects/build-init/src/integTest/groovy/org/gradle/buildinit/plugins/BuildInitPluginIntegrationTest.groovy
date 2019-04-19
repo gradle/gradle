@@ -198,7 +198,7 @@ include("child")
         fails('init', '--type', 'some-unknown-library')
 
         then:
-        failure.assertHasCause("""The requested build setup type 'some-unknown-library' is not supported. Supported types:
+        failure.assertHasCause("""The requested build type 'some-unknown-library' is not supported. Supported types:
   - 'basic'
   - 'cpp-application'
   - 'cpp-library'
@@ -230,7 +230,7 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'fake')
 
         then:
-        failure.assertHasCause("""The requested test framework 'fake' is not supported for 'basic' setup type. Supported frameworks:
+        failure.assertHasCause("""The requested test framework 'fake' is not supported for 'basic' build type. Supported frameworks:
   - 'none'""")
     }
 
@@ -239,7 +239,7 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'spock')
 
         then:
-        failure.assertHasCause("""The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks:
+        failure.assertHasCause("""The requested test framework 'spock' is not supported for 'basic' build type. Supported frameworks:
   - 'none'""")
     }
 
@@ -248,7 +248,7 @@ include("child")
         fails('init', '--type', 'pom', '--project-name', 'thing')
 
         then:
-        failure.assertHasCause("Project name is not supported for 'pom' setup type.")
+        failure.assertHasCause("Project name is not supported for 'pom' build type.")
     }
 
     def "gives decent error message when package name option is not supported by specific type"() {
@@ -256,7 +256,7 @@ include("child")
         fails('init', '--type', 'basic', '--package', 'thing')
 
         then:
-        failure.assertHasCause("Package name is not supported for 'basic' setup type.")
+        failure.assertHasCause("Package name is not supported for 'basic' build type.")
     }
 
     def "displays all build types and modifiers in help command output"() {
@@ -277,7 +277,7 @@ include("child")
      --test-framework     Set the test framework to be used.
                           Available values are:
                                junit
-                               junitjupiter
+                               junit-jupiter
                                kotlintest
                                scalatest
                                spock

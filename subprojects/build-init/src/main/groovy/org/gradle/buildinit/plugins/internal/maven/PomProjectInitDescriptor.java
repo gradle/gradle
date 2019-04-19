@@ -23,6 +23,8 @@ import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.SingleMessageLogger;
 
@@ -44,6 +46,16 @@ public class PomProjectInitDescriptor implements BuildConverter {
     @Override
     public String getId() {
         return "pom";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.BASIC;
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.NONE;
     }
 
     @Override

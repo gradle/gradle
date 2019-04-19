@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.util.GUtil;
 
 public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectInitDescriptor {
@@ -25,6 +26,11 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
 
     public JvmGradlePluginProjectInitDescriptor(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.GRADLE_PLUGIN;
     }
 
     @Override

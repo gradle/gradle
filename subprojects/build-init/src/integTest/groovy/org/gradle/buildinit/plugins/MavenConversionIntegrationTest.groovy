@@ -417,7 +417,7 @@ Root project 'webinar-parent'
         fails 'init', '--dsl', 'kotlin'
 
         then:
-        failure.assertHasCause("The requested DSL 'kotlin' is not supported for 'pom' setup type")
+        failure.assertHasCause("The requested DSL 'kotlin' is not supported for 'pom' build type")
     }
 
     void gradleFilesGenerated(TestFile parentFolder = file(".")) {

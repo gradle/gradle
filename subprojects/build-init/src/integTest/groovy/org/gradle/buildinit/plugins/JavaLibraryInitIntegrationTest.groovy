@@ -111,9 +111,9 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    def "creates sample source using junitjupiter instead of junit with #scriptDsl build scripts"() {
+    def "creates sample source using junit-jupiter instead of junit with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'junitjupiter', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--test-framework', 'junit-jupiter', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)

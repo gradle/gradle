@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class CppApplicationProjectInitDescriptor extends CppProjectInitDescriptor {
     public CppApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
@@ -26,6 +27,11 @@ public class CppApplicationProjectInitDescriptor extends CppProjectInitDescripto
     @Override
     public String getId() {
         return "cpp-application";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.APPLICATION;
     }
 
     @Override

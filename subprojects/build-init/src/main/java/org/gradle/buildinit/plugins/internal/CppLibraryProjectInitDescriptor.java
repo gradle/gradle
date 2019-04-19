@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
     public CppLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
@@ -26,6 +27,11 @@ public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
     @Override
     public String getId() {
         return "cpp-library";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.LIBRARY;
     }
 
     @Override
