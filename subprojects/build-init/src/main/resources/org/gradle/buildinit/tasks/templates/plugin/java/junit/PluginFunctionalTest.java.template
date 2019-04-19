@@ -4,6 +4,8 @@
 ${packageDecl.javaStatement}
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.BuildResult;
@@ -15,8 +17,8 @@ public class ${className.javaIdentifier} {
         // Setup the test build
         File projectDir = new File("build/functionalTest");
         Files.createDirectories(projectDir.toPath());
-        Files.writeString(projectDir.toPath().resolve("settings.gradle"), "");
-        Files.writeString(projectDir.toPath().resolve("build.gradle"),
+        writeString(new File(projectDir, "settings.gradle"), "");
+        writeString(new File(projectDir, "build.gradle"),
             "plugins {" +
             "  id('${pluginId.value}')" +
             "}");
@@ -31,5 +33,11 @@ public class ${className.javaIdentifier} {
 
         // Verify the result
         assertTrue(result.getOutput().contains("Hello from plugin '${pluginId.value}'"));
+    }
+
+    private void writeString(File file, String string) throws IOException {
+        try (Writer writer = new FileWriter(file)) {
+            writer.write(string);
+        }
     }
 }
