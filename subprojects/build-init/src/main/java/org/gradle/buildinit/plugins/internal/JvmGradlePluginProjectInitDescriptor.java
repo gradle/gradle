@@ -31,7 +31,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
     public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
         super.generate(settings, buildScriptBuilder, templateFactory);
 
-        String pluginId = settings.getPackageName() + "." + settings.getProjectName();
+        String pluginId = settings.getPackageName() + ".greeting";
         String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";
         String testClassName = pluginClassName + "Test";
         String functionalTestClassName = pluginClassName + "FunctionalTest";
