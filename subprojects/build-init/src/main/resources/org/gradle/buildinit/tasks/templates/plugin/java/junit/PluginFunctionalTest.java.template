@@ -12,6 +12,9 @@ import org.gradle.testkit.runner.BuildResult;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+/**
+ * A simple functional test for the '${pluginId.value}' plugin.
+ */
 public class ${className.javaIdentifier} {
     @Test public void canRunTask() throws IOException {
         // Setup the test build
