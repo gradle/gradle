@@ -29,6 +29,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
 import java.io.File
+import java.nio.file.Files
 
 import org.gradle.kotlin.dsl.*
 
@@ -150,7 +151,7 @@ abstract class AbstractBinaryCompatibilityTest {
     private
     fun runBinaryCompatibilityCheck(v1: File.() -> Unit, v2: File.() -> Unit, block: CheckResult.() -> Unit = {}): CheckResult {
 
-        val inputBuildDir = rootDir.withDirectory("input-build").apply {
+        val inputBuildDir = rootDir.withUniqueDirectory("input-build").apply {
 
             withSettings("""include("v1", "v2", "binaryCompatibility")""")
             withBuildScript("""
@@ -315,23 +316,30 @@ abstract class AbstractBinaryCompatibilityTest {
     }
 
     protected
-    fun File.withDirectory(path: String): File =
-        resolve(path).apply {
-            mkdirs()
-        }
-
-    protected
-    fun File.withSettings(text: String = ""): File =
-        withFile("settings.gradle.kts", text)
-
-    protected
-    fun File.withBuildScript(text: String = ""): File =
-        withFile("build.gradle.kts", text)
-
-    protected
     fun File.withFile(path: String, text: String = ""): File =
         resolve(path).apply {
             parentFile.mkdirs()
             writeText(text.trimIndent())
         }
+
+    private
+    fun File.withUniqueDirectory(prefixPath: String): File =
+        Files.createTempDirectory(
+            withDirectory(prefixPath.substringBeforeLast("/")).toPath(),
+            prefixPath.substringAfterLast("/")
+        ).toFile()
+
+    private
+    fun File.withDirectory(path: String): File =
+        resolve(path).apply {
+            mkdirs()
+        }
+
+    private
+    fun File.withSettings(text: String = ""): File =
+        withFile("settings.gradle.kts", text)
+
+    private
+    fun File.withBuildScript(text: String = ""): File =
+        withFile("build.gradle.kts", text)
 }
