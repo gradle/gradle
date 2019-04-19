@@ -144,7 +144,11 @@ public class InitBuild extends DefaultTask {
                 if (languages.size() == 1) {
                     initDescriptor = projectLayoutRegistry.get(componentType, languages.get(0));
                 } else {
-                    Language language = inputHandler.selectOption("Select implementation language", languages, null);
+                    if (!languages.contains(Language.JAVA)) {
+                        // Not yet implemented
+                        throw new UnsupportedOperationException();
+                    }
+                    Language language = inputHandler.selectOption("Select implementation language", languages, Language.JAVA);
                     initDescriptor = projectLayoutRegistry.get(componentType, language);
                 }
             }
