@@ -91,14 +91,11 @@ public class JvmPackageName {
     private static boolean isValidPackageName(String value) {
         if (UNNAMED_PACKAGE.equals(value)) {
             return true;
-        }
-        if (value == null
-                || value.startsWith(".")
-                || value.endsWith(".")) {
+        } else if (value == null || DELIMITER == value.charAt(0) || DELIMITER == value.charAt(value.length() - 1)) {
             return false;
+        } else {
+            return fragmentsAreValid(value);
         }
-
-        return fragmentsAreValid(value);
     }
 
     private static boolean fragmentsAreValid(String value) {

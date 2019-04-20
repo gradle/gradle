@@ -25,10 +25,10 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Benchmark                                                              Mode  Cnt       Score       Error  Units
- * JvmPackageNameBenchmark.invalid_package_name_creation                 thrpt   20   30766.401 ±  1007.699  ops/s
- * JvmPackageNameBenchmark.package_name_with_lots_of_fragments           thrpt   20  375519.862 ± 10892.600  ops/s
- * JvmPackageNameBenchmark.reserved_java_keywords_package_name_creation  thrpt   20   12830.440 ±   176.311  ops/s
- * JvmPackageNameBenchmark.valid_package_name_creation                   thrpt   20  373973.671 ±  7612.138  ops/s
+ * JvmPackageNameBenchmark.invalid_package_name_creation                 thrpt   20   31665.507 ±   600.959  ops/s
+ * JvmPackageNameBenchmark.package_name_with_lots_of_fragments           thrpt   20  380145.432 ±  6377.326  ops/s
+ * JvmPackageNameBenchmark.reserved_java_keywords_package_name_creation  thrpt   20   13437.031 ±   480.949  ops/s
+ * JvmPackageNameBenchmark.valid_package_name_creation                   thrpt   20  345300.875 ± 30565.989  ops/s
  **/
 @Fork(2)
 @Warmup(iterations = 10, time = 1, timeUnit = SECONDS)
