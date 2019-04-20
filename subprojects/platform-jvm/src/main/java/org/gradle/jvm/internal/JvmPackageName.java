@@ -16,8 +16,9 @@
 
 package org.gradle.jvm.internal;
 
-import java.util.Arrays;
-import java.util.List;
+import com.google.common.collect.Sets;
+
+import java.util.Set;
 
 /**
  * An immutable representation of a valid Java package name.
@@ -35,15 +36,16 @@ import java.util.List;
 public class JvmPackageName {
     private static final char DELIMITER = '.';
 
-    private static final List<String> JAVA_KEYWORDS = Arrays.asList(
+    private static final Set<String> INVALID_PACKAGE_KEYWORDS = Sets.newHashSet(
         "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
         "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if",
         "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private",
         "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this",
-        "throw", "throws", "transient", "try", "void", "volatile", "while", "_"
+        "throw", "throws", "transient", "try", "void", "volatile", "while", "_",
+        "true", "false",
+        "null",
+        ""
     );
-
-    private static final List<String> BOOLEAN_AND_NULL_LITERALS = Arrays.asList("true", "false", "null");
 
     private static final String UNNAMED_PACKAGE = "";
 
@@ -114,20 +116,23 @@ public class JvmPackageName {
     }
 
     private static boolean isIdentifier(String token) {
-        if (token.isEmpty()
-                || JAVA_KEYWORDS.contains(token)
-                || BOOLEAN_AND_NULL_LITERALS.contains(token)
-                || !Character.isJavaIdentifierStart(token.charAt(0))) {
+        return !INVALID_PACKAGE_KEYWORDS.contains(token)
+            && isValidJavaIdentifier(token);
+    }
+
+    private static boolean isValidJavaIdentifier(String token) {
+        if (!Character.isJavaIdentifierStart(token.charAt(0))) {
             return false;
-        }
-        if (token.length() > 1) {
-            for (char c : token.substring(1).toCharArray()) {
-                if (!Character.isJavaIdentifierPart(c)) {
-                    return false;
+        } else {
+            if (token.length() > 1) {
+                for (char c : token.substring(1).toCharArray()) {
+                    if (!Character.isJavaIdentifierPart(c)) {
+                        return false;
+                    }
                 }
             }
+            return true;
         }
-        return true;
     }
 
     @Override
