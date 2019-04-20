@@ -33,7 +33,7 @@ class JvmPackageNameTest extends Specification {
         where:
         value << [
             '', 'c', 'com', 'com.p', 'com.example', 'com.example.p1', 'String.i3.αρετη.MAX_VALUE.isLetterOrDigit',
-            'null_', 'true_', '_false', 'const_', '_public', 'com._private', 'int_.example'
+            'null_', 'true_', '_false', 'const_', '_public', 'com._private', 'int_.example', '$', 'a.$.b'
         ]
     }
 
@@ -49,7 +49,7 @@ class JvmPackageNameTest extends Specification {
         where:
         value << [
             ' ', '.', '..', 'com.', '.com', '1', 'com.1', '1com', 'com.example.p-1', 'com.example.1p', 'com/example/1p',
-            'com.example.p 1', 'com..example.p1', 'null', 'true', 'false', 'const', 'public', 'com.private'
+            'com.example.p 1', 'com..example.p1', 'null', 'true', 'false', 'const', 'public', 'com.private', '_', 'a._.b'
         ]
     }
 
