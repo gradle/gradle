@@ -39,7 +39,7 @@ public class JvmPackageName {
         "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if",
         "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private",
         "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this",
-        "throw", "throws", "transient", "try", "void", "volatile", "while"
+        "throw", "throws", "transient", "try", "void", "volatile", "while", "_"
     );
 
     private static final List<String> BOOLEAN_AND_NULL_LITERALS = Arrays.asList("true", "false", "null");
