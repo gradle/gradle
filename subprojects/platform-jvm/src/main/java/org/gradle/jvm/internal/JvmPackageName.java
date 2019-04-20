@@ -124,11 +124,9 @@ public class JvmPackageName {
         if (!Character.isJavaIdentifierStart(token.charAt(0))) {
             return false;
         } else {
-            if (token.length() > 1) {
-                for (char c : token.substring(1).toCharArray()) {
-                    if (!Character.isJavaIdentifierPart(c)) {
-                        return false;
-                    }
+            for (int i = 1; i < token.length(); i++) {
+                if (!Character.isJavaIdentifierPart(token.charAt(i))) {
+                    return false;
                 }
             }
             return true;

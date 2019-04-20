@@ -24,11 +24,11 @@ import org.openjdk.jmh.infra.Blackhole;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Benchmark                                                              Mode  Cnt        Score       Error  Units
- * JvmPackageNameBenchmark.invalid_package_name_creation                 thrpt   20    33603.198 ±  1169.740  ops/s
- * JvmPackageNameBenchmark.package_name_with_lots_of_fragments           thrpt   20  1451739.754 ± 21663.099  ops/s
- * JvmPackageNameBenchmark.reserved_java_keywords_package_name_creation  thrpt   20    13180.444 ±   309.500  ops/s
- * JvmPackageNameBenchmark.valid_package_name_creation                   thrpt   20   999055.552 ±  5643.646  ops/s
+ * Benchmark                                                              Mode  Cnt        Score        Error  Units
+ * JvmPackageNameBenchmark.invalid_package_name_creation                 thrpt   20    35684.227 ±   1098.363  ops/s
+ * JvmPackageNameBenchmark.package_name_with_lots_of_fragments           thrpt   20  2106646.292 ± 116983.831  ops/s
+ * JvmPackageNameBenchmark.reserved_java_keywords_package_name_creation  thrpt   20    13254.202 ±    615.072  ops/s
+ * JvmPackageNameBenchmark.valid_package_name_creation                   thrpt   20  1529536.526 ±  23929.243  ops/s
  **/
 @Fork(2)
 @Warmup(iterations = 10, time = 1, timeUnit = SECONDS)
