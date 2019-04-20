@@ -33,6 +33,7 @@ import java.util.List;
  * @since 2.10
  */
 public class JvmPackageName {
+    private static final char DELIMITER = '.';
 
     private static final List<String> JAVA_KEYWORDS = Arrays.asList(
         "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
@@ -96,12 +97,23 @@ public class JvmPackageName {
                 || value.endsWith(".")) {
             return false;
         }
-        for (String token : value.split("\\.")) {
+
+        return fragmentsAreValid(value);
+    }
+
+    private static boolean fragmentsAreValid(String value) {
+        int i = -1;
+        for (int j = value.indexOf(DELIMITER);
+             j > i;
+             i = j, j = value.indexOf(DELIMITER, i + 1)
+        ) {
+            String token = value.substring(i + 1, j);
             if (!isIdentifier(token)) {
                 return false;
             }
         }
-        return true;
+        String lastToken = value.substring(i + 1);
+        return isIdentifier(lastToken);
     }
 
     private static boolean isIdentifier(String token) {
