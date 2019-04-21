@@ -93,7 +93,7 @@ public class JvmPackageName {
     private static boolean isValidPackageName(String value) {
         if (UNNAMED_PACKAGE.equals(value)) {
             return true;
-        } else if (value == null || DELIMITER == value.charAt(0) || DELIMITER == value.charAt(value.length() - 1)) {
+        } else if (value == null) {
             return false;
         } else {
             return fragmentsAreValid(value);
