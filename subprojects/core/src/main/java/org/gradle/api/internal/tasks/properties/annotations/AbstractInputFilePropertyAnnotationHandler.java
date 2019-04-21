@@ -36,9 +36,9 @@ import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.INCREMENTAL;
-import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.NORMALIZATION;
-import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.INCREMENTAL;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override

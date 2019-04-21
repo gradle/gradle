@@ -40,6 +40,9 @@ import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.PROCESSED_PROPERTY_TYPE_ANNOTATIONS
+import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS
+
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def visitor = Mock(PropertyVisitor)
@@ -232,7 +235,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
         def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
             [],
-            WorkAnnotationCategory.asMap(),
+            ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS) as Class[]),
             [Object, GroovyObject],
             [Object, GroovyObject],
             Internal,

@@ -29,7 +29,7 @@ import org.gradle.internal.reflect.PropertyMetadata;
 import java.io.File;
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {

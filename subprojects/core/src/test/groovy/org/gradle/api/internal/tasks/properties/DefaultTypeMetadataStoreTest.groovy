@@ -57,25 +57,18 @@ import spock.lang.Unroll
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
-import static WorkAnnotationCategory.NORMALIZATION
-import static WorkAnnotationCategory.TYPE
+import static ModifierAnnotationCategory.NORMALIZATION
+import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.PROCESSED_PROPERTY_TYPE_ANNOTATIONS
+import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS
 
 class DefaultTypeMetadataStoreTest extends Specification {
-
-    private static final List<Class<? extends Annotation>> PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
-        InputFile, InputFiles, InputDirectory, OutputFile, OutputDirectory, OutputFiles, OutputDirectories, Destroys, LocalState
-    ]
-
-    private static final List<Class<? extends Annotation>> UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
-        Console, ReplacedBy
-    ]
 
     @Shared GroovyClassLoader groovyClassLoader
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [CustomCacheable],
-        WorkAnnotationCategory.asMap() + [(SearchPath): TYPE],
+        ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS + [SearchPath]) as Class[]),
         [Object, GroovyObject, DefaultTask],
         [Object, GroovyObject],
         Internal,

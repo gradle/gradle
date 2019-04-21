@@ -26,7 +26,7 @@ import spock.lang.Specification
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 
-import static WorkAnnotationCategory.TYPE
+import static org.gradle.internal.reflect.AnnotationCategory.TYPE
 
 class InspectionSchemeFactoryTest extends Specification {
     def handler1 = handler(Thing1)

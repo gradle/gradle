@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 
 /**
  * Class for easy access to property validation from the validator task.

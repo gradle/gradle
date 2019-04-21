@@ -25,7 +25,7 @@ import org.gradle.internal.reflect.AnnotationCategory;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 
 public class InputArtifactDependenciesAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
     @Override

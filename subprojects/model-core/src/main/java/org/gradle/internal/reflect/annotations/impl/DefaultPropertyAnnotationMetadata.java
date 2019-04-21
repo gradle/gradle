@@ -80,6 +80,6 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
 
     @Override
     public String toString() {
-        return method.getName();
+        return String.format("%s / %s()", propertyName, method.getName());
     }
 }

@@ -46,8 +46,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.NORMALIZATION;
-import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.TYPE;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;

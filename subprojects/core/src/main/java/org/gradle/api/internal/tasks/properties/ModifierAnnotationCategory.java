@@ -18,54 +18,18 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.transform.InputArtifact;
-import org.gradle.api.artifacts.transform.InputArtifactDependencies;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.Console;
-import org.gradle.api.tasks.Destroys;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.LocalState;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectories;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.work.Incremental;
 
-import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
-public enum WorkAnnotationCategory implements AnnotationCategory {
-    TYPE(
-        Console.class,
-        Destroys.class,
-        Inject.class,
-        Input.class,
-        InputArtifact.class,
-        InputArtifactDependencies.class,
-        InputDirectory.class,
-        InputFile.class,
-        InputFiles.class,
-        LocalState.class,
-        Nested.class,
-        OptionValues.class,
-        OutputDirectories.class,
-        OutputDirectory.class,
-        OutputFile.class,
-        OutputFiles.class,
-        ReplacedBy.class
-    ),
+public enum ModifierAnnotationCategory implements AnnotationCategory {
     INCREMENTAL(
         Incremental.class,
         SkipWhenEmpty.class
@@ -81,7 +45,7 @@ public enum WorkAnnotationCategory implements AnnotationCategory {
 
     private final ImmutableSet<Class<? extends Annotation>> annotations;
 
-    WorkAnnotationCategory(Class<? extends Annotation>... annotations) {
+    ModifierAnnotationCategory(Class<? extends Annotation>... annotations) {
         this.annotations = ImmutableSet.copyOf(annotations);
     }
 
@@ -90,9 +54,13 @@ public enum WorkAnnotationCategory implements AnnotationCategory {
         return name().toLowerCase();
     }
 
-    public static Map<Class<? extends Annotation>, WorkAnnotationCategory> asMap() {
-        ImmutableMap.Builder<Class<? extends Annotation>, WorkAnnotationCategory> builder = ImmutableMap.builder();
-        for (WorkAnnotationCategory category : values()) {
+    @SafeVarargs
+    public static Map<Class<? extends Annotation>, AnnotationCategory> asMap(Class<? extends Annotation>... typeAnnotations) {
+        ImmutableMap.Builder<Class<? extends Annotation>, AnnotationCategory> builder = ImmutableMap.builder();
+        for (Class<? extends Annotation> typeAnnotation : typeAnnotations) {
+            builder.put(typeAnnotation, TYPE);
+        }
+        for (ModifierAnnotationCategory category : values()) {
             for (Class<? extends Annotation> annotation : category.annotations) {
                 builder.put(annotation, category);
             }

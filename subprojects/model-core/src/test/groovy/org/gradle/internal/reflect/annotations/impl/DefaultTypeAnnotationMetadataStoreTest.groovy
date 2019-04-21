@@ -30,16 +30,17 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
-import static org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStoreTest.Category.COLOR
-import static org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStoreTest.Category.SIZE
+import static org.gradle.internal.reflect.AnnotationCategory.TYPE
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification {
+    private static final COLOR = { "color" } as AnnotationCategory
+
     def store = new DefaultTypeAnnotationMetadataStore(
         [
             TestType
         ], [
-            (Large): SIZE,
-            (Small): SIZE,
+            (Large): TYPE,
+            (Small): TYPE,
             (Color): COLOR,
         ], [
             Object,
@@ -77,10 +78,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "finds annotated properties"() {
         expect:
         assertProperties TypeWithAnnotatedProperty, [
-            publicProperty: [(SIZE): Large],
-            protectedProperty: [(SIZE): Large],
-            packageProperty: [(SIZE): Small],
-            privateProperty: [(SIZE): Small],
+            publicProperty: [(TYPE): Large],
+            protectedProperty: [(TYPE): Large],
+            packageProperty: [(TYPE): Small],
+            privateProperty: [(TYPE): Small],
         ], [
             "Property 'privateProperty' is private and annotated with @$Small.simpleName"
         ]
@@ -104,7 +105,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "finds annotation on field"() {
         expect:
         assertProperties TypeWithFieldAnnotation, [
-            property: [(SIZE): Large],
+            property: [(TYPE): Large],
         ]
     }
 
@@ -117,23 +118,25 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         }
 
 
-    def "skips ignored properties"() {
+    def "detects ignored properties"() {
         expect:
-        assertProperties TypeWithIgnoredProperty, [:]
+        assertProperties TypeWithIgnoredProperty, [
+            ignoredProperty: [(TYPE): Ignored]
+        ]
     }
 
         @SuppressWarnings("unused")
         interface TypeWithIgnoredProperty {
             @Ignored
-            String getPublicProperty()
+            String getIgnoredProperty()
         }
 
     def "ignores 'is' getter when 'get' getter is also defined"() {
         expect:
         assertProperties TypeWithIsAndGetProperty, [
-            bool: [(SIZE): Small],
+            bool: [(TYPE): Small],
         ], [
-            "Property 'bool' has redundant getters: 'isBool()' and 'getBool()'"
+            "Property 'bool' has redundant getters: 'getBool()' and 'isBool()'"
         ]
     }
 
@@ -150,8 +153,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "superclass properties are present in subclass"() {
         expect:
         assertProperties TypeWithSuperclassProperties, [
-            baseProperty: [(SIZE): Small],
-            subclassProperty: [(SIZE): Large]
+            baseProperty: [(TYPE): Small],
+            subclassProperty: [(TYPE): Large]
         ]
     }
 
@@ -170,8 +173,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "properties are inherited from implemented interface"() {
         expect:
         assertProperties TypeWithInterfaceProperties, [
-            interfaceProperty: [(SIZE): Small],
-            subclassProperty: [(SIZE): Large]
+            interfaceProperty: [(TYPE): Small],
+            subclassProperty: [(TYPE): Large]
         ]
     }
 
@@ -206,11 +209,12 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getOverriddenProperty() { "test" }
         }
 
-    // TODO This shouldn't be up to ordering, but instead conflicts should be called out
-    def "overridden properties inherit interface annotations when same annotation is present in super-class"() {
+    def "overridden properties inherit interface annotations when same annotation is conflicting with super-class"() {
         expect:
         assertProperties TypeWithInheritedPropertyFromSuperClassAndInterface, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "interface" }]
+        ], [
+            "Property 'overriddenProperty' has conflicting color annotations inherited: @Color, @Color; assuming @Color"
         ]
     }
 
@@ -229,11 +233,12 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getOverriddenProperty() { "test" }
         }
 
-    // TODO This should be a conflict, too, unless the annotations match
-    def "implemented properties inherit annotation from first interface"() {
+    def "implemented properties inherit annotation from first conflicting interface"() {
         expect:
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "first-interface" }]
+        ], [
+            "Property 'overriddenProperty' has conflicting color annotations inherited: @Color, @Color; assuming @Color"
         ]
     }
 
@@ -280,7 +285,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "can override annotation with different annotation in same category in subclass"() {
         expect:
         assertProperties CanOverrideOverrideCategoryClass, [
-            overriddenProperty: [(SIZE): Small, (COLOR): Color]
+            overriddenProperty: [(TYPE): Small, (COLOR): Color]
         ]
     }
 
@@ -305,7 +310,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "can ignore supertype property"() {
         expect:
         assertProperties TypeHidingPropertyFromSuperType, [
-            propertyIgnoredInBase: [(SIZE): Small]
+            baseProperty: [(TYPE): Ignored],
+            propertyIgnoredInBase: [(TYPE): Small]
         ]
     }
 
@@ -331,11 +337,11 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "warns about conflicting property types being specified, chooses first declaration"() {
         expect:
         assertProperties TypeWithPropertiesWithMultipleAnnotationsOfSameCategory, [
-            largeThenSmall: [(SIZE): Large],
-            smallThenLarge: [(SIZE): Small]
+            largeThenSmall: [(TYPE): Large],
+            smallThenLarge: [(TYPE): Small]
         ], [
-            "Property 'largeThenSmall' has conflicting size annotations declared: @Large, @Small; assuming @Large",
-            "Property 'smallThenLarge' has conflicting size annotations declared: @Small, @Large; assuming @Small"
+            "Property 'largeThenSmall' has conflicting type annotations declared: @Large, @Small; assuming @Large",
+            "Property 'smallThenLarge' has conflicting type annotations declared: @Small, @Large; assuming @Small"
         ]
     }
 
@@ -392,7 +398,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "warns about annotations on private properties"() {
         expect:
         assertProperties WithAnnotationsOnPrivateProperty, [
-            privateInput: [(SIZE): Large]
+            privateInput: [(TYPE): Large]
         ], [
             "Property 'privateInput' is private and annotated with @${Large.simpleName}"
         ]
@@ -414,7 +420,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "annotation on private field is recognized for is-getter"() {
         expect:
         assertProperties IsGetterType, [
-            feature1: [(SIZE): Large],
+            feature1: [(TYPE): Large],
             feature2: [:]
         ]
     }
@@ -503,19 +509,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
-    }
-
-    enum Category implements AnnotationCategory {
-        SIZE, COLOR;
-
-        @Override
-        String getDisplayName() {
-            return name().toLowerCase()
-        }
-    }
-
-    enum ErrorSeverity {
-        ERROR, STRICT_ERROR
     }
 }
 

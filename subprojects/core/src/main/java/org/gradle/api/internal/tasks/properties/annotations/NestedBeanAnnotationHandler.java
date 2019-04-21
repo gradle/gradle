@@ -32,7 +32,7 @@ import org.gradle.internal.reflect.PropertyMetadata;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 

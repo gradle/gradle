@@ -20,6 +20,8 @@ import groovy.lang.GroovyObject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
+import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -29,9 +31,9 @@ import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
-import org.gradle.api.internal.tasks.properties.WorkAnnotationCategory;
 import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
@@ -77,6 +79,7 @@ import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadat
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.work.Incremental;
 
+import javax.inject.Inject;
 import java.util.List;
 
 public class ExecutionGlobalServices {
@@ -86,7 +89,25 @@ public class ExecutionGlobalServices {
                 CacheableTask.class,
                 CacheableTransform.class
             ),
-            WorkAnnotationCategory.asMap(),
+            ModifierAnnotationCategory.asMap(
+                Console.class,
+                Destroys.class,
+                Inject.class,
+                Input.class,
+                InputArtifact.class,
+                InputArtifactDependencies.class,
+                InputDirectory.class,
+                InputFile.class,
+                InputFiles.class,
+                LocalState.class,
+                Nested.class,
+                OptionValues.class,
+                OutputDirectories.class,
+                OutputDirectory.class,
+                OutputFile.class,
+                OutputFiles.class,
+                ReplacedBy.class
+            ),
             ImmutableSet.of(
                 AbstractTask.class,
                 ConventionTask.class,
