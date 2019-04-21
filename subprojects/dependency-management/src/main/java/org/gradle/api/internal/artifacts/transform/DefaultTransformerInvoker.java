@@ -113,6 +113,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     @Override
     public Try<ImmutableList<File>> invoke(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+        return createInvocation(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry).invoke();
+    }
+
+    @Override
+    public CacheableInvocation<ImmutableList<File>> createInvocation(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactDependenciesNormalizer());
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
         ProjectInternal producerProject = determineProducerProject(subject);
@@ -121,6 +126,36 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactNormalizer());
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         TransformationWorkspaceIdentity identity = getTransformationIdentity(producerProject, inputArtifactSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
+        return new CacheableInvocation<ImmutableList<File>>() {
+            private Try<ImmutableList<File>> cachedResult;
+
+            @Override
+            public Try<ImmutableList<File>> invoke() {
+                return cachedResult != null
+                    ? cachedResult
+                    : doTransform(
+                        workspaceProvider,
+                        identity,
+                    transformer,
+                    subject,
+                    fingerprinterRegistry,
+                        inputArtifactFingerprinter,
+                        inputArtifactSnapshot,
+                        dependenciesFingerprint,
+                    inputArtifact,
+                    dependencies
+                    );
+            }
+
+            @Override
+            public Optional<Try<ImmutableList<File>>> getCachedResult() {
+                cachedResult = workspaceProvider.getCachedResult(identity);
+                return Optional.ofNullable(cachedResult);
+            }
+        };
+    }
+
+    private Try<ImmutableList<File>> doTransform(CachingTransformationWorkspaceProvider workspaceProvider, TransformationWorkspaceIdentity identity, Transformer transformer, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry, FileCollectionFingerprinter inputArtifactFingerprinter, FileSystemLocationSnapshot inputArtifactSnapshot, CurrentFileCollectionFingerprint dependenciesFingerprint, File inputArtifact, ArtifactTransformDependencies dependencies) {
         return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> buildOperationExecutor.call(new CallableBuildOperation<Try<ImmutableList<File>>>() {
             @Override
             public Try<ImmutableList<File>> call(BuildOperationContext context) {

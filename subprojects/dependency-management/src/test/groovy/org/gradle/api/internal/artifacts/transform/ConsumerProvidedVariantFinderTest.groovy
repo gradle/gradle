@@ -189,7 +189,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def result = transformer.transformation.transform(initialSubject("in.txt"), Mock(ExecutionGraphDependenciesResolver), null).get()
+        def result = transformer.transformation.createInvocation(initialSubject("in.txt"), Mock(ExecutionGraphDependenciesResolver), null).invoke().get()
 
         then:
         result.files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
@@ -272,7 +272,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def files = result.matches.first().transformation.transform(initialSubject("a"), Mock(ExecutionGraphDependenciesResolver), null).get().files
+        def files = result.matches.first().transformation.createInvocation(initialSubject("a"), Mock(ExecutionGraphDependenciesResolver), null).invoke().get().files
 
         then:
         files == [new File("d"), new File("e")]
@@ -423,8 +423,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         reg.from >> from
         reg.to >> to
         reg.transformationStep >> Stub(TransformationStep) {
-            _ * transform(_ as TransformationSubject, _ as ExecutionGraphDependenciesResolver, null) >> { TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver, services ->
-                return Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) })))
+            _ * createInvocation(_ as TransformationSubject, _ as ExecutionGraphDependenciesResolver, null) >> { TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver, services ->
+                return CacheableInvocation.cached(Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))))
             }
         }
         reg
