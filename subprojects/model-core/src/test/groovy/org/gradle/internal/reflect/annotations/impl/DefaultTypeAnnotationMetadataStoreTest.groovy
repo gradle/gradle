@@ -269,6 +269,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
+    def "property getter is from overriding class"() {
+        when:
+        def metadata = store.getTypeAnnotationMetadata(TypeWithOverride)
+        then:
+        metadata.propertiesAnnotationMetadata[0].method.declaringClass == TypeWithOverride
+    }
+
         @SuppressWarnings("unused")
         interface BaseTypeWithOverride {
             @Color(declaredBy = "base")

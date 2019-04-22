@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
+import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
@@ -63,7 +64,7 @@ class DefaultTaskInputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [:], [Object, GroovyObject], [Object, GroovyObject], cacheFactory)
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [:], [Object, GroovyObject], [Object, GroovyObject], Internal, cacheFactory)
     def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [], [], typeAnnotationMetadataStore, cacheFactory))
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, fileCollectionFactory)
 
