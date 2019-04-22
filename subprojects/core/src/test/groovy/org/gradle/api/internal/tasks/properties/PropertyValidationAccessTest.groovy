@@ -243,6 +243,6 @@ class PropertyValidationAccessTest extends Specification {
     }
 
     private static Set<String> validationProblems(Class<?> task, List messages) {
-        messages.collect { "Task type '${task.name}': ${it}." }*.toString() as Set
+        messages.collect { "Type '${task.name}': ${it}." }*.toString() as Set
     }
 }

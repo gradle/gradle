@@ -264,13 +264,8 @@ public class PropertyValidationAccess {
             }
 
             private String decorateMessage(String propertyName, String message) {
-                String decoratedMessage;
-                if (Task.class.isAssignableFrom(topLevelBean)) {
-                    decoratedMessage = String.format("Task type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
-                } else {
-                    decoratedMessage = String.format("Type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
-                }
-                return decoratedMessage;
+                return String.format("Type '%s': property '%s' %s.",
+                    topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
             }
 
             @Override
