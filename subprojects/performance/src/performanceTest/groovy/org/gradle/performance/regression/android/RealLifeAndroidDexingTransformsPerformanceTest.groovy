@@ -76,9 +76,11 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
         assertDexingTransformIsFaster(results)
 
         where:
-        testProject         | memory | warmUpRuns | runs | tasksString           | enableCaches
-        'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean assembleDebug' | true
-        'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean assembleDebug' | false
+        testProject         | memory | warmUpRuns | runs | tasksString                    | enableCaches
+        'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean assembleDebug'          | true
+        'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean assembleDebug'          | false
+        'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean phthalic:assembleDebug' | true
+        'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean phthalic:assembleDebug' | false
         withOrWithout = enableCaches ? "with" : "without"
     }
 
@@ -86,7 +88,17 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
         new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                GFileUtils.deleteDirectory(new File(invocationInfo.gradleUserHome, "caches/transforms-1/files-1.1"))
+                def transformsCaches = new File(invocationInfo.gradleUserHome, "caches").listFiles(new FilenameFilter() {
+                    @Override
+                    boolean accept(File dir, String name) {
+                        return name.startsWith("transforms-")
+                    }
+                })
+                if (transformsCaches != null) {
+                    for (transformsCache in transformsCaches) {
+                        GFileUtils.deleteDirectory(transformsCache)
+                    }
+                }
             }
         }
     }
@@ -99,7 +111,7 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
             cleanTasks("clean")
             gradleOpts("-Xms${memory}", "-Xmx${memory}")
             useDaemon()
-            args("-Dorg.gradle.parallel=true", "-Pandroid.enableBuildCache=${options.enableAndroidBuildCache ?: true}", "-Pandroid.enableDexingArtifactTransform=${options.dexingTransforms}", '-Dcom.android.build.gradle.overrideVersionCheck=true')
+            args("-Dorg.gradle.parallel=true", "-Pandroid.enableBuildCache=${options.enableAndroidBuildCache ?: true}", "-Pandroid.enableDexingArtifactTransform=${options.dexingTransforms}", "-Pandroid.enableDexingArtifactTransform.desugaring=${options.dexingTransforms}", '-Dcom.android.build.gradle.overrideVersionCheck=true')
         }
 
     }
