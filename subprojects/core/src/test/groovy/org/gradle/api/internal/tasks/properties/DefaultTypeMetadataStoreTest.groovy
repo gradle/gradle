@@ -328,23 +328,37 @@ class DefaultTypeMetadataStoreTest extends Specification {
         properties.propertyName.sort() == ["destroys", "inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles", "someCache"]
     }
 
-    static class Unannotated extends DefaultTask {
+    static class TypeWithUnannotatedProperties extends DefaultTask {
         String bad1
         File bad2
-        @Console String notUseful1
-        @Input String useful1
+        @Input String useful
     }
 
-    def "ignores properties that are not annotated or that don't do anything"() {
+    def "warns about and ignores properties that are not annotated"() {
         when:
-        def metadata = metadataStore.getTypeMetadata(Unannotated)
+        def metadata = metadataStore.getTypeMetadata(TypeWithUnannotatedProperties)
 
         then:
-        metadata.propertiesMetadata.propertyName == ["useful1"]
+        metadata.propertiesMetadata.propertyName == ["useful"]
         collectProblems(metadata) == [
             "Property 'bad1' is not annotated with an input or output annotation.",
             "Property 'bad2' is not annotated with an input or output annotation."
         ]
+    }
+
+    static class TypeWithNonRelevantProperties extends DefaultTask {
+        @ReplacedBy("notUseful2") String notUseful1
+        @Console String notUseful2
+        @Input String useful
+    }
+
+    def "ignores properties that are not relevant"() {
+        when:
+        def metadata = metadataStore.getTypeMetadata(TypeWithNonRelevantProperties)
+
+        then:
+        metadata.propertiesMetadata.propertyName == ["useful"]
+        collectProblems(metadata) == []
     }
 
     @SuppressWarnings("GroovyUnusedDeclaration")
