@@ -23,12 +23,12 @@ import java.lang.reflect.Method;
 public interface PropertyMetadata {
     String getPropertyName();
 
-    boolean isAnnotationPresent(AnnotationCategory category, Class<? extends Annotation> annotationType);
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
     @Nullable
-    Annotation getAnnotation(AnnotationCategory category);
+    Annotation getAnnotationForCategory(AnnotationCategory category);
 
-    boolean hasAnnotation(AnnotationCategory category);
+    boolean hasAnnotationForCategory(AnnotationCategory category);
 
     Class<? extends Annotation> getPropertyType();
 

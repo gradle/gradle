@@ -28,8 +28,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.internal.reflect.PropertyMetadata
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL
-
 class NestedBeanAnnotationHandlerTest extends Specification {
 
     def value = Mock(PropertyValue)
@@ -48,7 +46,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
 
         then:
         1 * value.call() >> null
-        1 * propertyMetadata.isAnnotationPresent(OPTIONAL, Optional) >> false
+        1 * propertyMetadata.isAnnotationPresent(Optional) >> false
         1 * propertyVisitor.visitInputProperty("name", _, false) >> { arguments ->
             validatingValue = arguments[1]
         }
@@ -70,7 +68,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
 
         then:
         1 * value.call() >> null
-        1 * propertyMetadata.isAnnotationPresent(OPTIONAL, Optional) >> true
+        1 * propertyMetadata.isAnnotationPresent(Optional) >> true
         0 * _
     }
 

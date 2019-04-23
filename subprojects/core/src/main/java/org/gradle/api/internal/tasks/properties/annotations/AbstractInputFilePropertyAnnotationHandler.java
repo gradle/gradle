@@ -36,9 +36,7 @@ import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -53,7 +51,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        Annotation fileNormalization = propertyMetadata.getAnnotation(NORMALIZATION);
+        Annotation fileNormalization = propertyMetadata.getAnnotationForCategory(NORMALIZATION);
         Class<? extends FileNormalizer> fileNormalizer;
         if (fileNormalization == null) {
             fileNormalizer = null;
@@ -69,9 +67,9 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
         }
         visitor.visitInputFileProperty(
             propertyName,
-            propertyMetadata.isAnnotationPresent(OPTIONAL, Optional.class),
-            propertyMetadata.isAnnotationPresent(INCREMENTAL, SkipWhenEmpty.class),
-            propertyMetadata.isAnnotationPresent(INCREMENTAL, Incremental.class),
+            propertyMetadata.isAnnotationPresent(Optional.class),
+            propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
+            propertyMetadata.isAnnotationPresent(Incremental.class),
             fileNormalizer,
             value,
             getFilePropertyType()

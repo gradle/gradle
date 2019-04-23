@@ -112,8 +112,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
         for (PropertyAnnotationMetadata propertyAnnotationMetadata : annotationMetadata.getPropertiesAnnotationMetadata()) {
-            Annotation typeAnnotation = propertyAnnotationMetadata.getAnnotation(TYPE);
-            Annotation normalizationAnnotation = propertyAnnotationMetadata.getAnnotation(NORMALIZATION);
+            Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotations();
+            Annotation typeAnnotation = propertyAnnotations.get(TYPE);
+            Annotation normalizationAnnotation = propertyAnnotations.get(NORMALIZATION);
             Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
             if (propertyType == null) {
                 validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(),
@@ -129,7 +130,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             }
 
             ImmutableSet<? extends AnnotationCategory> allowedModifiersForPropertyType = annotationHandler.getAllowedModifiers();
-            for (Map.Entry<AnnotationCategory, Annotation> entry : propertyAnnotationMetadata.getAnnotations().entrySet()) {
+            for (Map.Entry<AnnotationCategory, Annotation> entry : propertyAnnotations.entrySet()) {
                 AnnotationCategory annotationCategory = entry.getKey();
                 if (annotationCategory == TYPE) {
                     continue;
@@ -265,19 +266,19 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public boolean isAnnotationPresent(AnnotationCategory category, Class<? extends Annotation> annotationType) {
-            return annotationMetadata.hasAnnotation(category, annotationType);
+        public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+            return annotationMetadata.isAnnotationPresent(annotationType);
         }
 
         @Nullable
         @Override
-        public Annotation getAnnotation(AnnotationCategory category) {
-            return annotationMetadata.getAnnotation(category);
+        public Annotation getAnnotationForCategory(AnnotationCategory category) {
+            return annotationMetadata.getAnnotations().get(category);
         }
 
         @Override
-        public boolean hasAnnotation(AnnotationCategory category) {
-            return annotationMetadata.getAnnotation(category) != null;
+        public boolean hasAnnotationForCategory(AnnotationCategory category) {
+            return annotationMetadata.getAnnotations().get(category) != null;
         }
 
         @Override

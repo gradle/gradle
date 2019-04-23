@@ -53,7 +53,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        visitor.visitInputProperty(propertyName, value, propertyMetadata.isAnnotationPresent(OPTIONAL, Optional.class));
+        visitor.visitInputProperty(propertyName, value, propertyMetadata.isAnnotationPresent(Optional.class));
     }
 
     @Override
