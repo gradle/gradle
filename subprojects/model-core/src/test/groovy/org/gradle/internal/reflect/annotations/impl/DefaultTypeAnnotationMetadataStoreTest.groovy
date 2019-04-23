@@ -131,6 +131,24 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getInjectedProperty() { injectedProperty }
         }
 
+    def "warns about annotation on field conflicting with annotation on getter and prefers getter annotation"() {
+        expect:
+        assertProperties TypeWithConflictingFieldAndMethodAnnotation, [
+            property: [(TYPE): Small],
+        ], [
+            "Property 'property' has conflicting type annotations declared: @Small, @Large; assuming @Small"
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        class TypeWithConflictingFieldAndMethodAnnotation {
+            @Large
+            private final String property = "test"
+
+            @Small
+            String getProperty() { property }
+        }
+
     def "warns about annotation on field without getter"() {
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
@@ -147,7 +165,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             @Inject
             private String injectedProperty
         }
-
 
     def "detects ignored properties"() {
         expect:
@@ -569,6 +586,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
+        @SuppressWarnings("GroovyUnusedDeclaration")
         private static class TypeWithAnnotatedNonGetterMethods {
             @Large
             static void doStatic() {}
