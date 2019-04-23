@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
@@ -168,6 +169,22 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         }
     }
 
+    def 'generates failures when module visited with different version'() {
+        given:
+        startWithState([newId(mid, '1.1')])
+        addVisitedNode(newId(mid, '1.0'))
+
+        when:
+        def failures = visitor.collectLockingFailures()
+
+        then:
+        failures.size() == 1
+        failures.each {
+            assert it.problem instanceof LockOutOfDateException
+            assert it.problem.message.contains("Did not resolve 'org:foo:1.1' which has been forced / substituted to a different version: '1.0'")
+        }
+    }
+
     def 'invokes locking provider on complete with visited modules'() {
         given:
         def identifier = newId(mid, '1.1')
@@ -199,9 +216,11 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
     private void addVisitedNode(ModuleComponentIdentifier module) {
         DependencyGraphNode node = Mock()
-        DependencyGraphComponent component = Mock()
-        node.owner >> component
-        component.componentId >> module
+        DependencyGraphComponent owner = Mock()
+        ComponentResolutionState component = Mock()
+        node.owner >> owner
+        node.component >> component
+        owner.componentId >> module
 
         visitor.visitNode(node)
     }

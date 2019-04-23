@@ -47,6 +47,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     private Set<ModuleComponentIdentifier> allResolvedModules;
     private Set<ModuleComponentIdentifier> changingResolvedModules;
     private Set<ModuleComponentIdentifier> extraModules;
+    private Map<ModuleComponentIdentifier, String> forcedModules;
     private Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked;
     private DependencyLockingState dependencyLockingState;
     private boolean lockOutOfDate = false;
@@ -68,6 +69,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
             }
             allResolvedModules = Sets.newHashSetWithExpectedSize(this.modulesToBeLocked.size());
             extraModules = Sets.newHashSet();
+            forcedModules = Maps.newHashMap();
         } else {
             modulesToBeLocked = Collections.emptyMap();
             allResolvedModules = Sets.newHashSet();
@@ -96,11 +98,19 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
                         ModuleComponentIdentifier lockedId = modulesToBeLocked.remove(id.getModuleIdentifier());
                         if (lockedId == null) {
                             extraModules.add(id);
+                        } else if (!lockedId.getVersion().equals(id.getVersion()) && !isNodeRejected(node)) {
+                            // Need to check that versions do match, mismatch indicates a force was used
+                            forcedModules.put(lockedId, id.getVersion());
                         }
                     }
                 }
             }
         }
+    }
+
+    private boolean isNodeRejected(DependencyGraphNode node) {
+        // That is the state a node is in when it was selected but the selection violates a constraint (reject or strictly)
+        return node.getComponent().isRejected();
     }
 
     private void addChangingModule(ModuleComponentIdentifier id) {
@@ -139,15 +149,15 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
      */
     public Set<UnresolvedDependency> collectLockingFailures() {
         if (dependencyLockingState.mustValidateLockState()) {
-            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty()) {
+            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty() || !forcedModules.isEmpty()) {
                 lockOutOfDate = true;
-                return createLockingFailures(modulesToBeLocked, extraModules);
+                return createLockingFailures(modulesToBeLocked, extraModules, forcedModules);
             }
         }
         return Collections.emptySet();
     }
 
-    private static Set<UnresolvedDependency> createLockingFailures(Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules) {
+    private static Set<UnresolvedDependency> createLockingFailures(Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules, Map<ModuleComponentIdentifier, String> forcedModules) {
         Set<UnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(modulesToBeLocked.values().size() + extraModules.size());
         for (ModuleComponentIdentifier presentInLock : modulesToBeLocked.values()) {
             completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(presentInLock.getModuleIdentifier(), presentInLock.getVersion()),
@@ -156,6 +166,11 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
         for (ModuleComponentIdentifier extraModule : extraModules) {
             completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(extraModule.getModuleIdentifier(), extraModule.getVersion()),
                 new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the dependency lock state")));
+        }
+        for (Map.Entry<ModuleComponentIdentifier, String> entry : forcedModules.entrySet()) {
+            ModuleComponentIdentifier forcedModule = entry.getKey();
+            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(forcedModule.getModuleIdentifier(), forcedModule.getVersion()),
+                new LockOutOfDateException("Did not resolve '" + forcedModule.getDisplayName() + "' which has been forced / substituted to a different version: '" + entry.getValue() + "'")));
         }
         return completedFailures;
     }
