@@ -37,6 +37,7 @@ import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -97,6 +98,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
         this.annotationCategories = ImmutableMap.<Class<? extends Annotation>, AnnotationCategory>builder()
             .putAll(annotationCategories)
+            .put(Inject.class, TYPE)
             .put(ignoreMethodAnnotation, TYPE)
             .build();
         this.cache = cacheFactory.newClassCache();
@@ -239,12 +241,14 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .filter(entry -> {
                     String fieldName = entry.getKey();
                     ImmutableMap<Class<? extends Annotation>, Annotation> fieldAnnotations = entry.getValue();
-                    return !fieldAnnotations.isEmpty() && !fieldsSeen.contains(fieldName);
+                    return !fieldAnnotations.isEmpty()
+                        && !fieldsSeen.contains(fieldName)
+                        // @Inject is allowed on fields only
+                        && !fieldAnnotations.containsKey(Inject.class);
                 })
                 .forEach(entry -> {
                     String fieldName = entry.getKey();
                     ImmutableMap<Class<? extends Annotation>, Annotation> fieldAnnotations = entry.getValue();
-                    // TODO Add a test for this
                     errorsBuilder.recordError(String.format("field '%s' without corresponding getter has been annotated with %s",
                         fieldName,
                         simpleAnnotationNames(fieldAnnotations.keySet().stream())));

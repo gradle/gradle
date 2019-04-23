@@ -79,7 +79,6 @@ import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadat
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.work.Incremental;
 
-import javax.inject.Inject;
 import java.util.List;
 
 public class ExecutionGlobalServices {
@@ -92,7 +91,6 @@ public class ExecutionGlobalServices {
             ModifierAnnotationCategory.asMap(
                 Console.class,
                 Destroys.class,
-                Inject.class,
                 Input.class,
                 InputArtifact.class,
                 InputArtifactDependencies.class,

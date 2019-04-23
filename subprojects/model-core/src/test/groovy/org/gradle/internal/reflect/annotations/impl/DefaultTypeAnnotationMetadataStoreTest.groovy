@@ -25,6 +25,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 import javax.annotation.Nullable
+import javax.inject.Inject
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
@@ -82,6 +83,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             protectedProperty: [(TYPE): Large],
             packageProperty: [(TYPE): Small],
             privateProperty: [(TYPE): Small],
+            injectedProperty: [(TYPE): Inject],
         ], [
             "Property 'privateProperty' is private and annotated with @$Small.simpleName"
         ]
@@ -100,21 +102,47 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
 
             @Small
             private String getPrivateProperty() { "private" }
+
+            @Inject
+            String getInjectedProperty() { "injected" }
         }
 
     def "finds annotation on field"() {
         expect:
         assertProperties TypeWithFieldAnnotation, [
-            property: [(TYPE): Large],
+            largeProperty: [(TYPE): Large],
+            injectedProperty: [(TYPE): Inject],
         ]
     }
 
         @SuppressWarnings("unused")
         class TypeWithFieldAnnotation {
             @Large
+            private final String largeProperty = "test"
+
+            String getLargeProperty() { largeProperty }
+
+            @Inject
+            private String injectedProperty
+
+            String getInjectedProperty() { injectedProperty }
+        }
+
+    def "warns about annotation on field without getter"() {
+        expect:
+        assertProperties TypeWithFieldOnlyAnnotation, [:], [
+            "Type '$TypeWithFieldOnlyAnnotation.name': field 'property' without corresponding getter has been annotated with @Large"
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        class TypeWithFieldOnlyAnnotation {
+            @Large
             private final String property = "test"
 
-            String getProperty() { property }
+            // @Inject is allowed on a field only
+            @Inject
+            private String injectedProperty
         }
 
 
