@@ -87,7 +87,6 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     int repeat = 1
 
     @OutputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioList
 
     private RESTClient client
