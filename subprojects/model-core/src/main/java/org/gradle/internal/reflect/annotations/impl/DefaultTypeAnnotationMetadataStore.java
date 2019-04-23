@@ -171,7 +171,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     }
 
     private PropertyAnnotationMetadataBuilder getOrCreateBuilder(String propertyName, Method getter, Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders) {
-        return propertyBuilders.computeIfAbsent(getter.getName(), (methodName) -> new PropertyAnnotationMetadataBuilder(propertyName, getter));
+        return propertyBuilders.computeIfAbsent(getter.getName(), methodName -> new PropertyAnnotationMetadataBuilder(propertyName, getter));
     }
 
     private ImmutableSortedSet<PropertyAnnotationMetadata> extractPropertiesFrom(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, ValidationErrorsBuilder errorsBuilder) {
