@@ -492,6 +492,30 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         @Irrelevant
         interface TypeWithAnnotations {}
 
+    def "warns about annotations on non-getter methods"() {
+        expect:
+        assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
+            "Type '$TypeWithAnnotatedNonGetterMethods.name': non-property method 'doSomething()' should not be annotated with: @Large",
+            "Type '$TypeWithAnnotatedNonGetterMethods.name': setter method 'setSomething()' should not be annotated with: @Large",
+            "Type '$TypeWithAnnotatedNonGetterMethods.name': static method 'doStatic()' should not be annotated with: @Large",
+            "Type '$TypeWithAnnotatedNonGetterMethods.name': static method 'getStatic()' should not be annotated with: @Small",
+        ]
+    }
+
+        private static class TypeWithAnnotatedNonGetterMethods {
+            @Large
+            static void doStatic() {}
+
+            @Small
+            static String getStatic() { "static" }
+
+            @Large
+            void doSomething() {}
+
+            @Large
+            void setSomething(String something) {}
+        }
+
     void assertProperties(Class<?> type, Map<String, Map<AnnotationCategory, ?>> expectedProperties, List<String> expectedErrors = []) {
         def metadata = store.getTypeAnnotationMetadata(type)
         def actualPropertyNames = metadata.propertiesAnnotationMetadata*.propertyName.sort()

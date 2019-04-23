@@ -273,18 +273,15 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         ImmutableMap<Class<? extends Annotation>, Annotation> annotations = collectRelevantAnnotations(method);
 
         if (Modifier.isStatic(method.getModifiers())) {
-            // TODO Add a test for this
             validateNotAnnotated("static", method, annotations.keySet(), errorsBuilder);
             return;
         }
 
         PropertyAccessorType accessorType = PropertyAccessorType.of(method);
         if (accessorType == null) {
-            // TODO Add a test for this
             validateNotAnnotated("non-property", method, annotations.keySet(), errorsBuilder);
             return;
         } else if (accessorType == PropertyAccessorType.SETTER) {
-            // TODO Add a test for this
             validateNotAnnotated("setter", method, annotations.keySet(), errorsBuilder);
             return;
         }
