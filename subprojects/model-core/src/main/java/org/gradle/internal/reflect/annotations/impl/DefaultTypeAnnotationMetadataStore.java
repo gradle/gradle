@@ -83,7 +83,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     };
 
-    private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> annotationCategories;
+    private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
     private final Set<Class<? extends Annotation>> recordedTypeAnnotations;
     private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
     private final Set<String> potentiallyIgnoredMethodNames;
@@ -91,29 +91,40 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private final Class<? extends Annotation> ignoredMethodAnnotation;
     private final Predicate<? super Method> generatedMethodDetector;
 
+    /**
+     * Constructs the store.
+     *
+     * @param recordedTypeAnnotations Annotations on the type itself that should be gathered.
+     * @param propertyAnnotationCategories Annotations on the properties that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoreMethodAnnotation} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
+     * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
+     * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overriden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
+     * @param ignoreMethodAnnotation Annotation to use to explicitly ignore a method/property.
+     * @param generatedMethodDetector Predicate to test if a method was generated (vs. being provided explicitly by the user).
+     * @param cacheFactory A factory to create cross-build in-memory caches.
+     */
     public DefaultTypeAnnotationMetadataStore(
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
-        Map<Class<? extends Annotation>, ? extends AnnotationCategory> annotationCategories,
-        Collection<Class<?>> ignoredSuperClasses,
-        Collection<Class<?>> ignoreMethodsFromClasses,
+        Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
+        Collection<Class<?>> ignoredSuperTypes,
+        Collection<Class<?>> ignoreMethodsFromTypes,
         Class<? extends Annotation> ignoreMethodAnnotation,
         Predicate<? super Method> generatedMethodDetector,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
-        this.annotationCategories = ImmutableMap.<Class<? extends Annotation>, AnnotationCategory>builder()
-            .putAll(annotationCategories)
+        this.propertyAnnotationCategories = ImmutableMap.<Class<? extends Annotation>, AnnotationCategory>builder()
+            .putAll(propertyAnnotationCategories)
             .put(Inject.class, TYPE)
             .put(ignoreMethodAnnotation, TYPE)
             .build();
         this.cache = cacheFactory.newClassCache();
-        for (Class<?> ignoredSuperClass : ignoredSuperClasses) {
+        for (Class<?> ignoredSuperClass : ignoredSuperTypes) {
             cache.put(ignoredSuperClass, EMPTY_TYPE_ANNOTATION_METADATA);
         }
         this.ignoredMethodAnnotation = ignoreMethodAnnotation;
         this.generatedMethodDetector = generatedMethodDetector;
-        this.potentiallyIgnoredMethodNames = allMethodsNamesOf(ignoreMethodsFromClasses);
-        this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromClasses);
+        this.potentiallyIgnoredMethodNames = allMethodsNamesOf(ignoreMethodsFromTypes);
+        this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromTypes);
     }
 
     private ImmutableSet<String> allMethodsNamesOf(Collection<Class<?>> classes) {
@@ -370,7 +381,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         ImmutableMap.Builder<Class<? extends Annotation>, Annotation> relevantAnnotations = ImmutableMap.builderWithExpectedSize(annotations.length);
         for (Annotation annotation : annotations) {
             Class<? extends Annotation> annotationType = annotation.annotationType();
-            if (annotationCategories.containsKey(annotationType)
+            if (propertyAnnotationCategories.containsKey(annotationType)
                 || ignoredMethodAnnotation.equals(annotationType)) {
                 relevantAnnotations.put(annotationType, annotation);
             }
@@ -403,7 +414,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public void declareAnnotation(Annotation annotation) {
-            AnnotationCategory category = annotationCategories.get(annotation.annotationType());
+            AnnotationCategory category = propertyAnnotationCategories.get(annotation.annotationType());
             declaredAnnotations.put(category, annotation);
         }
 
