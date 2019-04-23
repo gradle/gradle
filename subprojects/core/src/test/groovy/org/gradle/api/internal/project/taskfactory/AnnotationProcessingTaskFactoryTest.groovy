@@ -110,6 +110,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         [Object, GroovyObject],
         [Object, GroovyObject],
         Internal,
+        { false },
         cacheFactory
     )
     def propertyWalker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, cacheFactory))

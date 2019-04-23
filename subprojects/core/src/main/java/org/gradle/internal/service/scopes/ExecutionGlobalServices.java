@@ -17,6 +17,7 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.GroovyObject;
+import groovy.transform.Generated;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
@@ -79,7 +80,9 @@ import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadat
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.work.Incremental;
 
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class ExecutionGlobalServices {
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory) {
@@ -125,6 +128,12 @@ public class ExecutionGlobalServices {
                 ScriptOrigin.class
             ),
             Internal.class,
+            new Predicate<Method>() {
+                @Override
+                public boolean test(Method method) {
+                    return method.isAnnotationPresent(Generated.class);
+                }
+            },
             cacheFactory);
     }
 

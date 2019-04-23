@@ -239,6 +239,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
             [Object, GroovyObject],
             [Object, GroovyObject],
             Internal,
+            { false },
             cacheFactory
         )
         def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, cacheFactory)

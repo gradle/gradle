@@ -64,7 +64,7 @@ class DefaultTaskInputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [:], [Object, GroovyObject], [Object, GroovyObject], Internal, cacheFactory)
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [:], [Object, GroovyObject], [Object, GroovyObject], Internal, { false }, cacheFactory)
     def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [], [], typeAnnotationMetadataStore, cacheFactory))
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, fileCollectionFactory)
 

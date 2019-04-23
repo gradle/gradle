@@ -28,7 +28,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import groovy.transform.Generated;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
@@ -55,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
@@ -89,6 +89,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private final Set<String> potentiallyIgnoredMethodNames;
     private final Set<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
     private final Class<? extends Annotation> ignoredMethodAnnotation;
+    private final Predicate<? super Method> generatedMethodDetector;
 
     public DefaultTypeAnnotationMetadataStore(
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
@@ -96,6 +97,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Collection<Class<?>> ignoredSuperClasses,
         Collection<Class<?>> ignoreMethodsFromClasses,
         Class<? extends Annotation> ignoreMethodAnnotation,
+        Predicate<? super Method> generatedMethodDetector,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
@@ -109,6 +111,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             cache.put(ignoredSuperClass, EMPTY_TYPE_ANNOTATION_METADATA);
         }
         this.ignoredMethodAnnotation = ignoreMethodAnnotation;
+        this.generatedMethodDetector = generatedMethodDetector;
         this.potentiallyIgnoredMethodNames = allMethodsNamesOf(ignoreMethodsFromClasses);
         this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromClasses);
     }
@@ -200,8 +203,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             PropertyAnnotationMetadataBuilder previouslySeenBuilder = propertyBuilders.putIfAbsent(propertyName, metadataBuilder);
             // Do we have an 'is'-getter as well as a 'get'-getter?
             if (previouslySeenBuilder != null) {
-                // It is okay to have redundant Groovy-generated 'is'-getters
-                if (metadataBuilder.method.isAnnotationPresent(Generated.class)) {
+                // It is okay to have redundant generated 'is'-getters
+                if (generatedMethodDetector.test(metadataBuilder.method)) {
                     continue;
                 }
                 // The 'is'-getter is ignored, we can skip it in favor of the 'get'-getter

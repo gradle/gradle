@@ -42,6 +42,7 @@ class InspectionSchemeFactoryTest extends Specification {
         [Object, GroovyObject],
         [Object, GroovyObject],
         IgnoredThing,
+        { false },
         cacheFactory
     )
     def factory = new InspectionSchemeFactory([], [handler1, handler2], typeAnnotationMetadataStore, cacheFactory)
