@@ -166,6 +166,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ], [
             "Property 'bool' has redundant getters: 'getBool()' and 'isBool()'"
         ]
+        store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
 
         @SuppressWarnings("unused")
@@ -175,6 +176,54 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             boolean getBool() { true }
 
             @Color
+            boolean isBool() { true }
+        }
+
+    def "can have annotated Groovy boolean field without warnings"() {
+        expect:
+        assertProperties TypeWithGroovyBooleanProperty, [
+            bool: [(TYPE): Small],
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        class TypeWithGroovyBooleanProperty {
+            @Small boolean bool
+        }
+
+    def "can ignore 'is' getter in favor of 'get' getter"() {
+        expect:
+        assertProperties TypeWithIgnoredIsGetterBooleanProperty, [
+            bool: [(TYPE): Small],
+        ]
+        store.getTypeAnnotationMetadata(TypeWithIgnoredIsGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
+    }
+
+        @SuppressWarnings("unused")
+        class TypeWithIgnoredIsGetterBooleanProperty {
+
+            @Small
+            boolean getBool() { true }
+
+            @Ignored
+            boolean isBool() { true }
+        }
+
+    def "can ignore 'get' getter in favor of 'is' getter"() {
+        expect:
+        assertProperties TypeWithIgnoredGetGetterBooleanProperty, [
+            bool: [(TYPE): Small],
+        ]
+        store.getTypeAnnotationMetadata(TypeWithIgnoredGetGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "isBool"
+    }
+
+        @SuppressWarnings("unused")
+        class TypeWithIgnoredGetGetterBooleanProperty {
+
+            @Ignored
+            boolean getBool() { true }
+
+            @Small
             boolean isBool() { true }
         }
 

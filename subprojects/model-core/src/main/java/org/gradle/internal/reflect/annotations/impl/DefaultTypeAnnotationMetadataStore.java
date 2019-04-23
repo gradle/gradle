@@ -23,10 +23,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
+import groovy.transform.Generated;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
@@ -48,6 +50,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -187,23 +190,35 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return mergePropertiesAndFieldMetadata(propertyBuilders, fieldAnnotationsByPropertyName, errorsBuilder);
     }
 
-    private static ImmutableList<PropertyAnnotationMetadataBuilder> convertMethodToPropertyBuilders(Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
-        Map<String, PropertyAnnotationMetadataBuilder> propertiesSeen = new HashMap<>();
-        ImmutableList.Builder<PropertyAnnotationMetadataBuilder> propertyBuilders = ImmutableList.builder();
+    private ImmutableList<PropertyAnnotationMetadataBuilder> convertMethodToPropertyBuilders(Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
+        Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders = new LinkedHashMap<>();
         List<PropertyAnnotationMetadataBuilder> metadataBuilders = Ordering.<PropertyAnnotationMetadataBuilder>from(
             Comparator.comparing(metadataBuilder -> metadataBuilder.getMethod().getName()))
             .sortedCopy(methodBuilders.values());
         for (PropertyAnnotationMetadataBuilder metadataBuilder : metadataBuilders) {
-            PropertyAnnotationMetadataBuilder previouslySeenBuilder = propertiesSeen.putIfAbsent(metadataBuilder.getPropertyName(), metadataBuilder);
+            String propertyName = metadataBuilder.getPropertyName();
+            PropertyAnnotationMetadataBuilder previouslySeenBuilder = propertyBuilders.putIfAbsent(propertyName, metadataBuilder);
+            // Do we have an 'is'-getter as well as a 'get'-getter?
             if (previouslySeenBuilder != null) {
+                // It is okay to have redundant Groovy-generated 'is'-getters
+                if (metadataBuilder.method.isAnnotationPresent(Generated.class)) {
+                    continue;
+                }
+                // The 'is'-getter is ignored, we can skip it in favor of the 'get'-getter
+                if (metadataBuilder.hasAnnotation(ignoredMethodAnnotation)) {
+                    continue;
+                }
+                // The 'get'-getter was ignored, we can override it with the 'is'`-getter
+                if (previouslySeenBuilder.hasAnnotation(ignoredMethodAnnotation)) {
+                    propertyBuilders.put(propertyName, metadataBuilder);
+                    continue;
+                }
                 previouslySeenBuilder.recordError(String.format("has redundant getters: '%s()' and '%s()'",
                     previouslySeenBuilder.method.getName(),
                     metadataBuilder.method.getName()));
-                continue;
             }
-            propertyBuilders.add(metadataBuilder);
         }
-        return propertyBuilders.build();
+        return ImmutableList.copyOf(propertyBuilders.values());
     }
 
     private ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> collectFieldAnnotations(Class<?> type) {
@@ -360,7 +375,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return relevantAnnotations.build();
     }
 
-    private class PropertyAnnotationMetadataBuilder {
+    private class PropertyAnnotationMetadataBuilder implements Comparable<PropertyAnnotationMetadataBuilder> {
         private final String propertyName;
         private Method method;
         private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = ArrayListMultimap.create();
@@ -437,6 +452,20 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 ));
             }
             return declaredAnnotationForCategory;
+        }
+
+        public boolean hasAnnotation(Class<? extends Annotation> annotationType) {
+            for (Annotation annotation : Iterables.concat(declaredAnnotations.values(), inheritedAnnotations.values())) {
+                if (annotation.annotationType().equals(annotationType)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public int compareTo(PropertyAnnotationMetadataBuilder o) {
+            return propertyName.compareTo(o.propertyName);
         }
     }
 
