@@ -19,8 +19,9 @@ import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.BinaryCompatibilityHelper
 import org.gradle.binarycompatibility.CleanAcceptedApiChanges
-import org.gradle.binarycompatibility.filters.KotlinInternalFilter
-import org.gradle.binarycompatibility.transforms.*
+import org.gradle.binarycompatibility.transforms.ExplodeZipAndFindJars
+import org.gradle.binarycompatibility.transforms.FindGradleClasspath
+import org.gradle.binarycompatibility.transforms.FindGradleJar
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
 

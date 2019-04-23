@@ -16,7 +16,6 @@ import org.gradle.binarycompatibility.rules.NewIncubatingAPIRule
 import org.gradle.binarycompatibility.rules.SinceAnnotationMissingRule
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestName
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -29,9 +28,6 @@ class PublicAPIRulesTest extends Specification {
     @Rule
     TemporaryFolder tmp = new TemporaryFolder()
     File sourceFile
-
-    @Rule
-    TestName testName = new TestName()
 
     BinaryCompatibilityRepository repository
 
@@ -62,8 +58,6 @@ class PublicAPIRulesTest extends Specification {
         injectAnnotation.fullyQualifiedName >> Inject.name
 
         repository = BinaryCompatibilityRepository.openRepositoryFor([new File(tmp.root.absolutePath)], [])
-
-        println(">> ${testName.methodName}")
     }
 
     def cleanup() {

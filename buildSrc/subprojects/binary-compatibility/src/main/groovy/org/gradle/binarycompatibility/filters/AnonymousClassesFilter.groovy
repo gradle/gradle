@@ -32,8 +32,6 @@ class AnonymousClassesFilter implements ClassFilter {
 
     @Override
     boolean matches(CtClass ctClass) {
-        return ctClass.name.matches(PATTERN).tap {
-            println("AnonymousClassesFilter $ctClass.name -> $it")
-        }
+        return ctClass.name.matches(PATTERN)
     }
 }
