@@ -29,7 +29,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -444,7 +444,7 @@ public class ModuleExclusions {
         }
     }
 
-    private static final class MergeSet extends HashSet<AbstractModuleExclusion> {
+    private static final class MergeSet extends LinkedHashSet<AbstractModuleExclusion> {
         private final BitSet remaining;
         private int idx;
         private AbstractModuleExclusion current;
