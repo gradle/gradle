@@ -242,6 +242,20 @@ class PropertyValidationAccessTest extends Specification {
         @Nested BeanWithNonAnnotatedType nestedBean
     }
 
+    def "warns about primitive @Input being @Optional"() {
+        expect:
+        assertHasValidationProblems(TaskWithOptionalPrimitiveInputs, [
+            "property 'booleanInput' @Input properties with primitive type 'boolean' cannot be @Optional",
+            "property 'intInput' @Input properties with primitive type 'int' cannot be @Optional",
+        ])
+    }
+
+    static class TaskWithOptionalPrimitiveInputs extends DefaultTask {
+        @Optional @Input boolean booleanInput
+        @Optional @Input int intInput
+        @Optional @Input String nonPrimitiveInput
+    }
+
     private static Set<String> validationProblems(Class<?> task, List messages) {
         messages.collect { "Type '${task.name}': ${it}." }*.toString() as Set
     }
