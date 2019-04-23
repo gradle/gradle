@@ -47,7 +47,6 @@ import javax.inject.Inject
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.ZipInputStream
-
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
  *
@@ -266,7 +265,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private String findLastChangeIdInJson(Map responseJson) {
+    private static String findLastChangeIdInJson(Map responseJson) {
         responseJson?.lastChanges?.change?.get(0)?.id
     }
 
@@ -353,7 +352,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         }
     }
 
-    private void rethrowIfNonRecoverable(HttpResponseException e) {
+    private static void rethrowIfNonRecoverable(HttpResponseException e) {
         if (e.statusCode != 404) {
             throw e
         }
@@ -406,7 +405,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         return testSuite
     }
 
-    JUnitTestSuite parseXmlsInZip(InputStream inputStream) {
+    private static JUnitTestSuite parseXmlsInZip(InputStream inputStream) {
         List<JUnitTestSuite> parsedXmls = []
         new ZipInputStream(inputStream).withStream { zipInput ->
             def entry
@@ -431,8 +430,8 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     private RESTClient createClient() {
         client = new RESTClient("$teamCityUrl/httpAuth/app/rest/9.1")
         client.auth.basic(teamCityUsername, teamCityPassword)
-        client.headers['Origin'] = teamCityUrl
-        client.headers['Accept'] = ContentType.JSON.toString()
+        client.headers.putAt('Origin', teamCityUrl)
+        client.headers.putAt('Accept', ContentType.JSON.toString())
         client
     }
 
