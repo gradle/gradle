@@ -143,7 +143,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             }
         }
 
-
         Map<String, PropertyAnnotationMetadataBuilder> methodBuilders = new HashMap<>();
 
         inheritMethods(type, methodBuilders);
