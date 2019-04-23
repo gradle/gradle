@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.StaticLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.util.VersionNumber
 
 import static org.junit.Assume.assumeTrue
 
@@ -57,6 +58,22 @@ class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec 
             }
         }
         """
+
+        // Starting on Swift 4.1 and above, executable on Linux are linked using `-pie` flag, this means C++ codes need to be compiled using `-fPIC`
+        if (OperatingSystem.current().isLinux() && swiftToolChain.version.compareTo(VersionNumber.parse("4.1")) >= 0) {
+            initScript << """
+                allprojects { p ->
+                    p.plugins.withId("cpp-library") {
+                        p.library.binaries.configureEach(CppStaticLibrary) {
+                            compileTask.get().configure {
+                                compilerArgs.add("-fPIC")
+                            }
+                        }
+                    }
+                }
+            """
+        }
+
         executer.beforeExecute({
             usingInitScript(initScript)
         })
