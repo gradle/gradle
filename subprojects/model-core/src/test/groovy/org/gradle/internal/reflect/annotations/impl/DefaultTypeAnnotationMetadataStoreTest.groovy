@@ -178,6 +178,21 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             boolean isBool() { true }
         }
 
+    def "warns when ignored property has other annotations"() {
+        expect:
+        assertProperties TypeWithIgnoredPropertyWithOtherAnnotations, [
+            ignoredProperty: [(TYPE): Ignored]
+        ], [
+            "Property 'ignoredProperty' getter 'getIgnoredProperty()' annotated with @Ignored should not be also annotated with @Color"
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        interface TypeWithIgnoredPropertyWithOtherAnnotations {
+            @Ignored @Color
+            String getIgnoredProperty()
+        }
+
     def "superclass properties are present in subclass"() {
         expect:
         assertProperties TypeWithSuperclassProperties, [

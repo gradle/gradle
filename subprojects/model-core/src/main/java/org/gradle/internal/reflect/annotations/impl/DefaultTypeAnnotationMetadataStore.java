@@ -307,7 +307,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Annotation ignoredAnnotation = annotations.get(ignoredMethodAnnotation);
         if (ignoredAnnotation != null) {
             if (annotations.size() != 1) {
-                // TODO Add a test for this
                 metadataBuilder.recordError(String.format("getter '%s()' annotated with @%s should not be also annotated with %s",
                     method.getName(),
                     ignoredMethodAnnotation.getSimpleName(),
