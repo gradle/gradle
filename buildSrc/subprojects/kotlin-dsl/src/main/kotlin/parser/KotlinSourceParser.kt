@@ -28,16 +28,15 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
-import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.JvmTarget
-import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.utils.Jsr305State
 import org.jetbrains.kotlin.utils.PathUtil
 
 import java.io.File
@@ -88,18 +87,13 @@ class KotlinSourceParser {
             put(JVMConfigurationKeys.DISABLE_OPTIMIZATION, true)
             put(CommonConfigurationKeys.MODULE_NAME, "parser")
 
-            // TODO:kotlin-dsl dedupe
-            put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8)
+            // This is the same as in the `kotlin-library` plugin in this build
+            put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
+            put(JVMConfigurationKeys.SKIP_RUNTIME_VERSION_CHECK, true)
             put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, LanguageVersionSettingsImpl(
                 languageVersion = LanguageVersion.KOTLIN_1_3,
                 apiVersion = ApiVersion.KOTLIN_1_3,
-                specificFeatures = mapOf(
-                    LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
-                    LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
-                ),
-                analysisFlags = mapOf(
-                    AnalysisFlags.skipMetadataVersionCheck to true
-                )
+                analysisFlags = mapOf(JvmAnalysisFlags.jsr305 to Jsr305State.STRICT)
             ))
 
             addJvmClasspathRoots(PathUtil.getJdkClassesRoots(Jvm.current().javaHome))
