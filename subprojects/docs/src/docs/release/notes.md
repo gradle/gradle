@@ -23,6 +23,8 @@ Switch your build to use Gradle @version@ by updating your wrapper properties:
 
 `./gradlew wrapper --gradle-version=@version@`
 
+Gradle 5.4 has had _one_ patch release. Please use the latest patch release (@version@).
+
 <a name="jdk12-support"/>
 
 ## Support for JDK12

@@ -1,38 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.language.rc.tasks.WindowsResourceCompile",
-            "member": "Method org.gradle.language.rc.tasks.WindowsResourceCompile.compile(org.gradle.work.InputChanges)",
-            "acceptation": "Migrated to the new incremental tasks API",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
-            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.compile(org.gradle.work.InputChanges)",
-            "acceptation": "Migrated to the new incremental tasks API",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask",
-            "member": "Class org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask",
-            "acceptation": "Migrated to the new incremental tasks API",
-            "changes": [
-                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.compile(org.gradle.api.tasks.incremental.IncrementalTaskInputs)"
-            ]
-        },
-        {
-            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask",
-            "member": "Class org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask",
-            "acceptation": "Migrated to the new incremental tasks API",
-            "changes": [
-                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.compile(org.gradle.api.tasks.incremental.IncrementalTaskInputs)"
-            ]
-        },
-        {
-            "type": "org.gradle.language.swift.tasks.UnexportMainSymbol",
-            "member": "Method org.gradle.language.swift.tasks.UnexportMainSymbol.unexport(org.gradle.work.InputChanges)",
-            "acceptation": "Migrated to the new incremental tasks API",
-            "changes": []
-        }
-    ]
+    "acceptedApiChanges": []
 }
