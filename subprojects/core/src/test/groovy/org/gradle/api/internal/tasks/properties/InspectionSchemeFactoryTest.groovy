@@ -23,6 +23,7 @@ import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import spock.lang.Specification
 
+import javax.inject.Inject
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 
@@ -37,7 +38,6 @@ class InspectionSchemeFactoryTest extends Specification {
         [
             (Thing1): TYPE,
             (Thing2): TYPE,
-            (InjectThing): TYPE
         ],
         [Object, GroovyObject],
         [Object, GroovyObject],
@@ -49,7 +49,7 @@ class InspectionSchemeFactoryTest extends Specification {
 
     def "creates inspection scheme that understands given property annotations and injection annotations"() {
         def instantiationScheme = Stub(InstantiationScheme)
-        instantiationScheme.injectionAnnotations >> [InjectThing]
+        instantiationScheme.injectionAnnotations >> [Inject]
         def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
 
         expect:
@@ -66,7 +66,7 @@ class InspectionSchemeFactoryTest extends Specification {
 
     def "annotation can be used for property annotation and injection annotations"() {
         def instantiationScheme = Stub(InstantiationScheme)
-        instantiationScheme.injectionAnnotations >> [Thing2, InjectThing]
+        instantiationScheme.injectionAnnotations >> [Thing2, Inject]
         def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
 
         expect:
@@ -96,7 +96,7 @@ class AnnotatedBean {
     @Thing2
     String prop2
 
-    @InjectThing
+    @Inject
     String prop3
 }
 
@@ -106,10 +106,6 @@ class AnnotatedBean {
 
 @Retention(RetentionPolicy.RUNTIME)
 @interface Thing2 {
-}
-
-@Retention(RetentionPolicy.RUNTIME)
-@interface InjectThing {
 }
 
 @Retention(RetentionPolicy.RUNTIME)
