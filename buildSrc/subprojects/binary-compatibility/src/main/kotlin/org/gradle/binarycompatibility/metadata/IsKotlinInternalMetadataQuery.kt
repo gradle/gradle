@@ -90,8 +90,8 @@ class IsInternalTypeKmClassVisitor(
     var isDoneVisiting = false
 
     override fun visit(flags: Flags, name: ClassName) {
-        if (!isDoneVisiting && flags.isInternal && jvmSignature == name.replace("/", ".")) {
-            isKotlinInternal = true
+        if (!isDoneVisiting && jvmSignature == name.replace("/", ".")) {
+            isKotlinInternal = flags.isInternal
             isDoneVisiting = true
         }
     }
@@ -109,8 +109,8 @@ class IsInternalFieldKmClassVisitor(
     var isDoneVisiting = false
 
     private
-    val onMatch = {
-        isKotlinInternal = true
+    val onMatch = { isInternal: Boolean ->
+        isKotlinInternal = isInternal
         isDoneVisiting = true
     }
 
@@ -138,13 +138,13 @@ class IsInternalConstructorKmClassVisitor(
     var isDoneVisiting = false
 
     override fun visitConstructor(flags: Flags): KmConstructorVisitor? =
-        if (isDoneVisiting || !flags.isInternal) null
+        if (isDoneVisiting) null
         else object : KmConstructorVisitor() {
             override fun visitExtensions(type: KmExtensionType): KmConstructorExtensionVisitor =
                 object : JvmConstructorExtensionVisitor() {
                     override fun visit(desc: JvmMethodSignature?) {
                         if (jvmSignature == desc?.asString()) {
-                            isKotlinInternal = true
+                            isKotlinInternal = flags.isInternal
                             isDoneVisiting = true
                         }
                     }
@@ -164,17 +164,14 @@ class IsInternalMethodKmClassVisitor(
     var isDoneVisiting = false
 
     private
-    val onMatch = {
-        isKotlinInternal = true
+    val onMatch = { isInternal: Boolean ->
+        isKotlinInternal = isInternal
         isDoneVisiting = true
     }
 
-    private
-    val kmInternalFunctionVisitor = MatchingMethodSignatureKmFunctionVisitor(jvmSignature, onMatch)
-
     override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
-        if (isDoneVisiting || !flags.isInternal) null
-        else kmInternalFunctionVisitor
+        if (isDoneVisiting) null
+        else IsInternalMethodKmFunctionVisitor(jvmSignature, flags, onMatch)
 
     override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
         if (isDoneVisiting) null
@@ -200,8 +197,8 @@ class IsInternalFieldKmPackageVisitor(
     var isDoneVisiting = false
 
     private
-    val onMatch = {
-        isKotlinInternal = true
+    val onMatch = { isInternal: Boolean ->
+        isKotlinInternal = isInternal
         isDoneVisiting = true
     }
 
@@ -229,18 +226,14 @@ class IsInternalMethodKmPackageVisitor(
     var isDoneVisiting = false
 
     private
-    val onMatch = {
-        isKotlinInternal = true
+    val onMatch = { isInternal: Boolean ->
+        isKotlinInternal = isInternal
         isDoneVisiting = true
     }
 
-    private
-    val internalMethodKmFunctionVisitor =
-        MatchingMethodSignatureKmFunctionVisitor(jvmSignature, onMatch)
-
     override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
-        if (isDoneVisiting || !flags.isInternal) null
-        else internalMethodKmFunctionVisitor
+        if (isDoneVisiting) null
+        else IsInternalMethodKmFunctionVisitor(jvmSignature, flags, onMatch)
 
     override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
         if (isDoneVisiting) null
@@ -267,18 +260,16 @@ class IsInternalMemberKmPropertyExtensionVisitor(
     private val fieldFlags: Flags,
     private val getterFlags: Flags,
     private val setterFlags: Flags,
-    private val onMatch: () -> Unit
+    private val onMatch: (Boolean) -> Unit
 ) : KmPropertyVisitor() {
 
     private
     val kmPropertyExtensionVisitor = object : JvmPropertyExtensionVisitor() {
         override fun visit(fieldDesc: JvmFieldSignature?, getterDesc: JvmMethodSignature?, setterDesc: JvmMethodSignature?) {
-            if (
-                (fieldFlags.isInternal && jvmSignature == fieldDesc?.asString())
-                || (getterFlags.isInternal && jvmSignature == getterDesc?.asString())
-                || (setterFlags.isInternal && jvmSignature == setterDesc?.asString())
-            ) {
-                onMatch()
+            when (jvmSignature) {
+                fieldDesc?.asString() -> onMatch(fieldFlags.isInternal)
+                getterDesc?.asString() -> onMatch(getterFlags.isInternal)
+                setterDesc?.asString() -> onMatch(setterFlags.isInternal)
             }
         }
     }
@@ -289,16 +280,17 @@ class IsInternalMemberKmPropertyExtensionVisitor(
 
 
 private
-class MatchingMethodSignatureKmFunctionVisitor(
+class IsInternalMethodKmFunctionVisitor(
     private val jvmSignature: String,
-    private val onMatch: () -> Unit
+    private val functionFlags: Flags,
+    private val onMatch: (Boolean) -> Unit
 ) : KmFunctionVisitor() {
 
     private
     val kmFunctionExtensionVisitor = object : JvmFunctionExtensionVisitor() {
         override fun visit(desc: JvmMethodSignature?) {
             if (jvmSignature == desc?.asString()) {
-                onMatch()
+                onMatch(functionFlags.isInternal)
             }
         }
     }
