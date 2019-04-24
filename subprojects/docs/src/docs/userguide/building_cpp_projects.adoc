@@ -29,7 +29,6 @@ The C++ plugins covered in this chapter were https://blog.gradle.org/introducing
 
 The simplest build script for a C\++ project applies the C++ application plugin or the C++ library plugin and optionally sets the project version:
 
-
 .Applying the C++ Plugin
 ====
 include::sample[dir="userguide/cpp/basic/groovy",files="build.gradle[tags=apply-cpp-plugin]"]
@@ -52,10 +51,20 @@ The C++ plugins also integrate the above tasks into the standard Lifecycle Base 
 
 The rest of the chapter explains the different avenues for customizing the build to your requirements. You will also see later how to adjust the build specifically for libraries and applications.
 
-== Build variants
-Gradle is able to build a number of different native binary variants.
-They can be differentiated on build type footnote:[For example, debug or release], platform footnote:[For example, Windows x86 or macOS x86-64] and linkage footnote:[For example, shared or static linkage] (library-only).
-For each of these 'variant dimensions', tasks, binaries and configuration are created.
+== Introducing build variants
+
+Native projects can typically produce several different binaries, such as debug or release ones, or ones that target particular platforms and processor architectures.
+Gradle manages this through the concepts of _dimensions_ and _variants_.
+
+A dimension is simply a category, where each dimension is orthogonal to the rest.
+For example, the "build type" dimension is a category that includes debug and release builds.
+The "architecture" dimension covers processor architectures like x86_64 and PowerPC.
+
+A variant is a combination of values for these dimensions, consisting of exactly one value for each dimension.
+So based on the dimensions just mentioned, you might have a "debug x86_64" or a "release PowerPC" variant.
+
+Gradle has built-in support for several dimensions and several values within each dimension.
+You can find a list of them in the <<plugin_reference.adoc#native_languages,native plugin reference chapter>>.
 
 [[sec:cpp_source_sets]]
 == Declaring your source files
