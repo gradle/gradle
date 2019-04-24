@@ -26,10 +26,10 @@ import java.util.List;
  * A filter that only excludes artifacts and modules that are excluded by _all_ of the supplied exclude rules.
  * As such, this is a union of the separate exclude rule filters.
  */
-class UnionExclusion extends AbstractCompositeExclusion {
+class AllExclusion extends AbstractCompositeExclusion {
     private final List<AbstractModuleExclusion> filters;
 
-    public UnionExclusion(List<AbstractModuleExclusion> filters) {
+    public AllExclusion(List<AbstractModuleExclusion> filters) {
         this.filters = filters;
     }
 
@@ -41,7 +41,7 @@ class UnionExclusion extends AbstractCompositeExclusion {
      * Can unpack into constituents when creating a larger union.
      */
     @Override
-    protected void unpackUnion(Collection<AbstractModuleExclusion> specs) {
+    protected void unpackAll(Collection<AbstractModuleExclusion> specs) {
         specs.addAll(this.filters);
     }
 
