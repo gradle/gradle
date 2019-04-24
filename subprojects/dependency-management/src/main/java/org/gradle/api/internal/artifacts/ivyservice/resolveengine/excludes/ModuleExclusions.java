@@ -59,7 +59,7 @@ public class ModuleExclusions {
 
     private final Map<MergeOperation, AbstractModuleExclusion> mergeCache = Maps.newConcurrentMap();
     private final Map<ImmutableList<ExcludeMetadata>, AbstractModuleExclusion> excludeAnyCache = Maps.newConcurrentMap();
-    private final Map<ImmutableSet<AbstractModuleExclusion>, IntersectionExclusion> intersectionCache = Maps.newConcurrentMap();
+    private final Map<ImmutableSet<AbstractModuleExclusion>, EitherExclusion> eitherCache = Maps.newConcurrentMap();
     private final Map<AbstractModuleExclusion[], Map<AbstractModuleExclusion[], MergeOperation>> mergeOperationCache = Maps.newIdentityHashMap();
     private final Map<ModuleIdentifier, ModuleIdExcludeSpec> moduleIdSpecs = Maps.newConcurrentMap();
     private final Map<String, ModuleNameExcludeSpec> moduleNameSpecs = Maps.newConcurrentMap();
@@ -103,7 +103,7 @@ public class ModuleExclusions {
         for (ExcludeMetadata exclude : excludes) {
             exclusions.add(forExclude(exclude));
         }
-        exclusion = asIntersection(exclusions.build());
+        exclusion = asEither(exclusions.build());
         excludeAnyCache.put(excludes, exclusion);
         return exclusion;
     }
@@ -165,7 +165,7 @@ public class ModuleExclusions {
     /**
      * Returns a spec that excludes those modules and artifacts that are excluded by _either_ of the given exclude rules.
      */
-    public ModuleExclusion intersect(ModuleExclusion one, ModuleExclusion two) {
+    public ModuleExclusion either(ModuleExclusion one, ModuleExclusion two) {
         if (one == two) {
             return one;
         }
@@ -179,9 +179,9 @@ public class ModuleExclusions {
             return one;
         }
 
-        if (one instanceof IntersectionExclusion && ((IntersectionExclusion) one).getFilters().contains(two)) {
+        if (one instanceof EitherExclusion && ((EitherExclusion) one).getFilters().contains(two)) {
             return one;
-        } else if (two instanceof IntersectionExclusion && ((IntersectionExclusion) two).getFilters().contains(one)) {
+        } else if (two instanceof EitherExclusion && ((EitherExclusion) two).getFilters().contains(one)) {
             return two;
         }
 
@@ -190,10 +190,10 @@ public class ModuleExclusions {
 
         List<AbstractModuleExclusion> builder = Lists.newArrayListWithExpectedSize(estimateSize(aOne) + estimateSize(aTwo));
 
-        aOne.unpackIntersection(builder);
-        aTwo.unpackIntersection(builder);
+        aOne.unpackEither(builder);
+        aTwo.unpackEither(builder);
 
-        return asIntersection(ImmutableSet.copyOf(builder));
+        return asEither(ImmutableSet.copyOf(builder));
     }
 
     private static int estimateSize(AbstractModuleExclusion ex) {
@@ -206,7 +206,7 @@ public class ModuleExclusions {
     /**
      * Returns a spec that excludes only those modules and artifacts that are excluded by _both_ of the supplied exclude rules.
      */
-    public ModuleExclusion union(ModuleExclusion one, ModuleExclusion two) {
+    public ModuleExclusion both(ModuleExclusion one, ModuleExclusion two) {
         if (one == two) {
             return one;
         }
@@ -218,15 +218,15 @@ public class ModuleExclusions {
         }
 
         List<AbstractModuleExclusion> specs = new ArrayList<AbstractModuleExclusion>();
-        ((AbstractModuleExclusion) one).unpackUnion(specs);
-        ((AbstractModuleExclusion) two).unpackUnion(specs);
+        ((AbstractModuleExclusion) one).unpackAll(specs);
+        ((AbstractModuleExclusion) two).unpackAll(specs);
         for (int i = 0; i < specs.size();) {
             AbstractModuleExclusion spec = specs.get(i);
             AbstractModuleExclusion merged = null;
             // See if we can merge any of the following specs into one
             for (int j = i + 1; j < specs.size(); j++) {
                 AbstractModuleExclusion other = specs.get(j);
-                merged = maybeMergeIntoUnion(spec, other);
+                merged = maybeMergeIntoAll(spec, other);
                 if (merged != null) {
                     specs.remove(j);
                     break;
@@ -241,24 +241,24 @@ public class ModuleExclusions {
         if (specs.size() == 1) {
             return specs.get(0);
         }
-        return new UnionExclusion(specs);
+        return new AllExclusion(specs);
     }
 
     /**
      * Attempt to merge 2 exclusions into a single filter that is the union of both.
      * Currently this is only implemented when both exclusions are `IntersectionExclusion`s.
      */
-    private AbstractModuleExclusion maybeMergeIntoUnion(AbstractModuleExclusion one, AbstractModuleExclusion two) {
+    private AbstractModuleExclusion maybeMergeIntoAll(AbstractModuleExclusion one, AbstractModuleExclusion two) {
         if (one.equals(two)) {
             return one;
         }
-        if (one instanceof IntersectionExclusion && two instanceof IntersectionExclusion) {
-            return maybeMergeIntoUnion((IntersectionExclusion) one, (IntersectionExclusion) two);
+        if (one instanceof EitherExclusion && two instanceof EitherExclusion) {
+            return maybeMergeIntoAll((EitherExclusion) one, (EitherExclusion) two);
         }
         return null;
     }
 
-    private AbstractModuleExclusion maybeMergeIntoUnion(IntersectionExclusion one, IntersectionExclusion other) {
+    private AbstractModuleExclusion maybeMergeIntoAll(EitherExclusion one, EitherExclusion other) {
         if (one.equals(other)) {
             return one;
         }
@@ -315,17 +315,17 @@ public class ModuleExclusions {
         if (merged.isEmpty()) {
             exclusion = ModuleExclusions.EXCLUDE_NONE;
         } else {
-            exclusion = asIntersection(ImmutableSet.copyOf(merged));
+            exclusion = asEither(ImmutableSet.copyOf(merged));
         }
         mergeCache.put(merge, exclusion);
         return exclusion;
     }
 
-    private IntersectionExclusion asIntersection(ImmutableSet<AbstractModuleExclusion> excludes) {
-        IntersectionExclusion cached = intersectionCache.get(excludes);
+    private EitherExclusion asEither(ImmutableSet<AbstractModuleExclusion> excludes) {
+        EitherExclusion cached = eitherCache.get(excludes);
         if (cached == null) {
-            cached = new IntersectionExclusion(new ImmutableModuleExclusionSet(excludes));
-            intersectionCache.put(excludes, cached);
+            cached = new EitherExclusion(new ImmutableModuleExclusionSet(excludes));
+            eitherCache.put(excludes, cached);
         }
         return cached;
     }
