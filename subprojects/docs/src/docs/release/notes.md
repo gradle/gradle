@@ -8,7 +8,8 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 [Ben Asher](https://github.com/benasher44),
-[Mike Kobit](https://github.com/mkobit)
+[Mike Kobit](https://github.com/mkobit),
+[Erhard Pointl](https://github.com/epeee)
 
 <!-- 
 ## 1
@@ -27,6 +28,12 @@ details of 2
 Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
+
+## Build Init Improvements
+
+### Junit Jupiter
+
+TBD
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
