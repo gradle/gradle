@@ -130,7 +130,7 @@ test {
 [.multi-language-text.lang-kotlin]
 ----
 tasks.getByName<Test>("test") {
-    extensions.configure<JacocoTaskExtension::class) {
+    extensions.configure(JacocoTaskExtension::class) {
         isEnabled = true
         destinationFile = file("$buildDir/jacoco/$name.exec")
         includes = listOf()
