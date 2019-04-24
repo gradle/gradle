@@ -191,6 +191,7 @@ let package = Package(
 
     // See https://github.com/gradle/gradle-native/issues/1007
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4_OR_OLDER)
+    @spock.lang.Ignore 
     def "produces manifest for Swift component with declared Swift language version"() {
         given:
         buildFile << """
