@@ -9,7 +9,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 [Ben Asher](https://github.com/benasher44),
 [Mike Kobit](https://github.com/mkobit),
-[Erhard Pointl](https://github.com/epeee)
+[Erhard Pointl](https://github.com/epeee),
+[Sebastian Schuberth](https://github.com/sschuberth)
 
 <!-- 
 ## 1
