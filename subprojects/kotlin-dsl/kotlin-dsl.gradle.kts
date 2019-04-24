@@ -39,6 +39,10 @@ dependencies {
     compile(project(":kotlinDslToolingModels"))
 
     compile(project(":kotlinCompilerEmbeddable"))
+    compile(futureKotlin("scripting-compiler-embeddable")) {
+        isTransitive = false
+    }
+
     compile(futureKotlin("stdlib-jdk8"))
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
@@ -71,7 +75,7 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.2.6" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.2.7" // TODO:kotlin-dsl
 
 tasks {
 

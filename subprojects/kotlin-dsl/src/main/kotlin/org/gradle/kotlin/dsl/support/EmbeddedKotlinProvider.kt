@@ -164,14 +164,17 @@ val embeddedModules: List<EmbeddedModule> by lazy {
         listOf(stdlib, reflect, scriptRuntime, trove4j),
         "kotlin-compiler-embeddable-$embeddedKotlinVersion-patched-for-gradle"
     )
+    val scriptingCompilerEmbeddable = embeddedKotlin("scripting-compiler-embeddable")
     val samWithReceiverCompilerPlugin = embeddedKotlin("sam-with-receiver-compiler-plugin")
     listOf(
         annotations, trove4j,
         stdlib, stdlibJdk7, stdlibJdk8,
         reflect,
         compilerEmbeddable,
+        scriptingCompilerEmbeddable,
         scriptRuntime,
-        samWithReceiverCompilerPlugin)
+        samWithReceiverCompilerPlugin
+    )
 }
 
 
