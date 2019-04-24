@@ -49,8 +49,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     private final File daemonWorkingDir;
     private final JvmVersionDetector jvmVersionDetector;
 
-    public DaemonGroovyCompiler(File daemonWorkingDir, Compiler<GroovyJavaJointCompileSpec> delegate, ClassPathRegistry classPathRegistry, WorkerFactory workerFactory, JavaForkOptionsFactory forkOptionsFactory, JvmVersionDetector jvmVersionDetector) {
-        super(delegate, workerFactory);
+    public DaemonGroovyCompiler(File daemonWorkingDir, Class<? extends Compiler<GroovyJavaJointCompileSpec>> delegateClass, ClassPathRegistry classPathRegistry, WorkerFactory workerFactory, JavaForkOptionsFactory forkOptionsFactory, JvmVersionDetector jvmVersionDetector) {
+        super(delegateClass, new Object[] {}, workerFactory);
         this.classPathRegistry = classPathRegistry;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;

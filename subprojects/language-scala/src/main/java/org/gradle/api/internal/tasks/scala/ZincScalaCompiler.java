@@ -29,29 +29,26 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.compile.RequiresServices;
 import org.gradle.util.GFileUtils;
 import scala.Option;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, RequiresServices, Serializable {
+public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
     private final Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
     private final File gradleUserHome;
-    private ServiceRegistry serviceRegistry;
+    private final ServiceRegistry serviceRegistry;
 
-    public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome) {
+    @Inject
+    public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome, ServiceRegistry serviceRegistry) {
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
         this.gradleUserHome = gradleUserHome;
-    }
-
-    @Override
-    public void setServiceRegistry(ServiceRegistry serviceRegistry) {
         this.serviceRegistry = serviceRegistry;
     }
 

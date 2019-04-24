@@ -28,8 +28,8 @@ import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
-import org.gradle.play.internal.routes.RoutesCompilerFactory;
-import org.gradle.play.internal.twirl.TwirlCompilerFactory;
+import org.gradle.play.internal.routes.RoutesCompilerAdapterFactory;
+import org.gradle.play.internal.twirl.TwirlCompilerAdapterFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -73,8 +73,8 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     @Override
     public PlayToolProvider select(PlayPlatform targetPlatform) {
         try {
-            Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation().toArray()).resolve();
-            Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
+            Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerAdapterFactory.createAdapter(targetPlatform).getDependencyNotation().toArray()).resolve();
+            Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerAdapterFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
             return new DefaultPlayToolProvider(forkOptionsFactory, workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter);
         } catch (ResolveException e) {

@@ -54,8 +54,8 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory) {
-        super(delegate, workerDaemonFactory);
+    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> delegateClass, Object[] delegateParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory) {
+        super(delegateClass, delegateParameters, workerDaemonFactory);
         this.zincClasspath = zincClasspath;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
