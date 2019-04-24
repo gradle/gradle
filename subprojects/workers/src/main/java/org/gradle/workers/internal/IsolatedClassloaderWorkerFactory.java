@@ -169,7 +169,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     /**
      * This is serialized across into the worker ClassLoader and then executed.
      */
-    private static class WorkerCallable implements Callable<Object>, Serializable {
+    public static class WorkerCallable implements Callable<Object>, Serializable {
         private final ActionExecutionSpec spec;
         private ServiceRegistry serviceRegistry;
 
