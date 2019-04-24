@@ -143,7 +143,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
         public MavenFieldValidator validMavenIdentifier() {
             notEmpty();
             if (!value.matches(ID_REGEX)) {
-                throw failure(String.format("%s is not a valid Maven identifier (%s).", name, ID_REGEX));
+                throw failure(String.format("%s (%s) is not a valid Maven identifier (%s).", name, value, ID_REGEX));
             }
             return this;
         }
