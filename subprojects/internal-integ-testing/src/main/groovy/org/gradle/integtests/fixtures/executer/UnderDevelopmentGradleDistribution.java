@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestFile;
 
 public class UnderDevelopmentGradleDistribution extends DefaultGradleDistribution {
 
@@ -25,9 +26,13 @@ public class UnderDevelopmentGradleDistribution extends DefaultGradleDistributio
     }
 
     public UnderDevelopmentGradleDistribution(IntegrationTestBuildContext buildContext) {
+        this(buildContext, buildContext.getGradleHomeDir());
+    }
+
+    public UnderDevelopmentGradleDistribution(IntegrationTestBuildContext buildContext, TestFile gradleHomeDir) {
         super(
             buildContext.getVersion(),
-            buildContext.getGradleHomeDir(),
+            gradleHomeDir,
             buildContext.getDistributionsDir().file(String.format("gradle-%s-bin.zip", buildContext.getVersion().getBaseVersion().getVersion()))
         );
     }

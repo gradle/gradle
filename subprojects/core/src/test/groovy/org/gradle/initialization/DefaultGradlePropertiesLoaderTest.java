@@ -15,8 +15,8 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.SetSystemProperties;
@@ -37,9 +37,10 @@ public class DefaultGradlePropertiesLoaderTest {
     private DefaultGradlePropertiesLoader gradlePropertiesLoader;
     private File gradleUserHomeDir;
     private File settingsDir;
+    private File gradleInstallationHomeDir;
     private Map<String, String> systemProperties = new HashMap<String, String>();
     private Map<String, String> envProperties = new HashMap<String, String>();
-    private StartParameter startParameter = new StartParameter();
+    private StartParameterInternal startParameter = new StartParameterInternal();
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     @Rule
@@ -49,14 +50,26 @@ public class DefaultGradlePropertiesLoaderTest {
     public void setUp() {
         gradleUserHomeDir = tmpDir.createDir("gradleUserHome");
         settingsDir = tmpDir.createDir("settingsDir");
+        gradleInstallationHomeDir = tmpDir.createDir("gradleInstallationHome");
         gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter);
         startParameter.setGradleUserHomeDir(gradleUserHomeDir);
+        startParameter.setGradleHomeDir(gradleInstallationHomeDir);
     }
 
     private void writePropertyFile(File location, Map<String, String> propertiesMap) {
         Properties properties = new Properties();
         properties.putAll(propertiesMap);
         GUtil.saveProperties(properties, new File(location, Project.GRADLE_PROPERTIES));
+    }
+
+    @Test
+    public void mergeAddsPropertiesFromInstallationPropertiesFile() {
+        writePropertyFile(gradleInstallationHomeDir, GUtil.map("settingsProp", "settings value"));
+
+        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+
+        assertEquals("settings value", properties.get("settingsProp"));
     }
 
     @Test
@@ -111,6 +124,17 @@ public class DefaultGradlePropertiesLoaderTest {
         Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
 
         assertEquals("param value", properties.get("paramProp"));
+    }
+
+    @Test
+    public void projectPropertiesHavePrecedenceOverInstallationPropertiesFile() {
+        writePropertyFile(gradleInstallationHomeDir, GUtil.map("prop", "settings value"));
+        Map<String, String> projectProperties = GUtil.map("prop", "project value");
+
+        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(projectProperties);
+
+        assertEquals("project value", properties.get("prop"));
     }
 
     @Test
@@ -205,8 +229,14 @@ public class DefaultGradlePropertiesLoaderTest {
     }
 
     @Test
-    public void loadPropertiesWithNoExceptionForNonexistentUserHomeAndSettingsDir() {
+    public void loadPropertiesWithNoExceptionForNonexistentGradleInstallationHomeAndUserHomeAndSettingsDir() {
         tmpDir.getTestDirectory().deleteDir();
+        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+    }
+
+    @Test
+    public void loadPropertiesWithNoExceptionIfGradleInstallationHomeIsNotKnown() {
+        gradleInstallationHomeDir = null;
         gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
     }
 

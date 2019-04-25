@@ -34,6 +34,7 @@ Gradle provides several options that make it easy to configure the Java process 
 
 Setting up a consistent environment for your build is as simple as placing these settings into a `gradle.properties` file. The configuration is applied in following order (if an option is configured in multiple locations the _last one wins_):
 
+* `gradle.properties` in Gradle installation directory.
 * `gradle.properties` in project root directory.
 * `gradle.properties` in `GRADLE_USER_HOME` directory.
 * system properties, e.g. when `-Dgradle.user.home` is set on the command line.

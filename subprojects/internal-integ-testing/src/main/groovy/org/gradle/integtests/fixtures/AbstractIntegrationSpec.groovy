@@ -203,6 +203,20 @@ class AbstractIntegrationSpec extends Specification {
         executer
     }
 
+    /**
+     * This is expensive as it creates a complete copy of the distribution inside the test directory.
+     * Only use this for testing custom modifications of a distribution.
+     */
+    protected GradleExecuter requireIsolatedGradleDistribution() {
+        def isolatedGradleHomeDir = getTestDirectory().file("gradle-home")
+        getBuildContext().gradleHomeDir.copyTo(isolatedGradleHomeDir)
+        distribution = new UnderDevelopmentGradleDistribution(getBuildContext(), isolatedGradleHomeDir)
+        executer = createExecuter()
+        executer.requireGradleDistribution()
+        executer.requireIsolatedDaemons() //otherwise we might connect to a running daemon from the original installation location
+        executer
+    }
+
     AbstractIntegrationSpec withBuildCache() {
         executer.withBuildCacheEnabled()
         this
