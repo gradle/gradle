@@ -22,7 +22,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CallableBuildOperation;
 
-public abstract class AbstractWorker implements Worker {
+public abstract class AbstractWorker implements BuildOperationAwareWorker {
 
     public static final Result RESULT = new Result();
 

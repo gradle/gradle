@@ -34,7 +34,7 @@ class WorkerDaemonClientTest extends Specification {
         client = client(workerDaemonProcess)
 
         when:
-        client.execute(Stub(ActionExecutionSpec), buildOperation)
+        client.execute(spec(), buildOperation)
 
         then:
         1 * workerDaemonProcess.execute(_)
@@ -46,7 +46,7 @@ class WorkerDaemonClientTest extends Specification {
         assert client.uses == 0
 
         when:
-        5.times { client.execute(Stub(ActionExecutionSpec), buildOperation) }
+        5.times { client.execute(spec(), buildOperation) }
 
         then:
         client.uses == 5
@@ -60,5 +60,9 @@ class WorkerDaemonClientTest extends Specification {
         def daemonForkOptions = Mock(DaemonForkOptions)
         def workerProcess = workerDaemonProcess.start()
         return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, LogLevel.INFO)
+    }
+
+    def spec() {
+        return new SimpleActionExecutionSpec(Runnable.class, "test", [])
     }
 }

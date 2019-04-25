@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClasspathUtil;
-import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -85,7 +84,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
         try {
-            spec = new SerializingActionExecutionSpec(actionClass, description, configuration.getParams());
+            spec = new SimpleActionExecutionSpec(actionClass, description, configuration.getParams());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
@@ -101,7 +100,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkerFactory workerFactory = getWorkerFactory(isolationMode);
-                    Worker worker = workerFactory.getWorker(daemonForkOptions);
+                    BuildOperationAwareWorker worker = workerFactory.getWorker(daemonForkOptions);
                     return worker.execute(spec, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);
@@ -216,10 +215,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             classpathBuilder.addAll(classpath);
         }
 
-        addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder, true);
+        addVisibilityFor(actionClass, classpathBuilder);
 
         for (Class<?> paramClass : paramClasses) {
-            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder, false);
+            addVisibilityFor(paramClass, classpathBuilder);
         }
 
         Iterable<File> daemonClasspath = classpathBuilder.build();
@@ -237,21 +236,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             .build();
     }
 
-    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder, boolean addToSharedPackages) {
+    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder) {
         if (visibleClass.getClassLoader() != null) {
             classpathBuilder.addAll(ClasspathUtil.getClasspath(visibleClass.getClassLoader()).getAsFiles());
-        }
-
-        if (addToSharedPackages) {
-            addVisiblePackage(visibleClass, sharedPackagesBuilder);
-        }
-    }
-
-    private static void addVisiblePackage(Class<?> visibleClass, ImmutableSet.Builder<String> sharedPackagesBuilder) {
-        if (visibleClass.getPackage() == null || "".equals(visibleClass.getPackage().getName())) {
-            sharedPackagesBuilder.add(FilteringClassLoader.DEFAULT_PACKAGE);
-        } else {
-            sharedPackagesBuilder.add(visibleClass.getPackage().getName());
         }
     }
 

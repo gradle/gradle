@@ -16,24 +16,22 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final AsyncWorkTracker workTracker;
     private final ServiceRegistry parent;
     private DefaultServiceRegistry serviceRegistry;
     private WorkerExecutor workerExecutor;
 
-    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker workTracker, ServiceRegistry parent) {
+    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry parent) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.workTracker = workTracker;
         this.parent = parent;
     }
 
@@ -45,7 +43,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public Worker getWorker(final DaemonForkOptions forkOptions) {
+    public BuildOperationAwareWorker getWorker(final DaemonForkOptions forkOptions) {
         final WorkerExecutor workerExecutor = this.workerExecutor;
         return new AbstractWorker(buildOperationExecutor) {
             @Override
@@ -55,8 +53,11 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         DefaultWorkResult result;
                         try {
+                            // TODO This should use the isolation framework to isolate the parameters instead of wrapping/unwrapping the spec
+                            ClassLoader specAndWorkerClassLoader = new MultiParentClassLoader(ActionExecutionSpec.class.getClassLoader(), spec.getImplementationClass().getClassLoader());
+                            ActionExecutionSpec effectiveSpec = new WrappedActionExecutionSpec(spec, null).unwrap(specAndWorkerClassLoader);
                             WorkerProtocol workerServer = new DefaultWorkerServer(serviceRegistry);
-                            result = workerServer.execute(spec);
+                            result = workerServer.execute(effectiveSpec);
                         } finally {
                             //TODO the async work tracker should wait for children of an operation to finish first.
                             //It should not be necessary to call it here.

@@ -19,7 +19,9 @@ package org.gradle.workers.internal;
 import com.google.common.base.Objects;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 
-public class ClassLoaderStructure {
+import java.io.Serializable;
+
+public class ClassLoaderStructure implements Serializable {
     private final ClassLoaderSpec self;
     private final ClassLoaderStructure parent;
 

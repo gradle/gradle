@@ -38,7 +38,7 @@ public class SimpleActionExecutionSpec implements ActionExecutionSpec {
     }
 
     @Override
-    public Object[] getParams(ClassLoader classLoader) {
+    public Object[] getParams() {
         return params;
     }
 }

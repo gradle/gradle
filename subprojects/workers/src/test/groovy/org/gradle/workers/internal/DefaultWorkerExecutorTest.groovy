@@ -50,7 +50,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def runnable = Mock(Runnable)
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
-    def worker = Mock(Worker)
+    def worker = Mock(BuildOperationAwareWorker)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
@@ -126,7 +126,7 @@ class DefaultWorkerExecutorTest extends Specification {
         DaemonForkOptions daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration)
 
         then:
-        daemonForkOptions.classpath.contains(foo)
+        daemonForkOptions.classLoaderStructure.spec.classpath.contains(foo.toURI().toURL())
     }
 
     def "executor executes a given runnable in a daemon"() {

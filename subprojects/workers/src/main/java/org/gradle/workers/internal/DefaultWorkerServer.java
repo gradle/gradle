@@ -36,7 +36,7 @@ public class DefaultWorkerServer implements WorkerProtocol {
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
             Class<?> implementationClass = spec.getImplementationClass();
-            Object action = instantiator.newInstance(implementationClass, spec.getParams(implementationClass.getClassLoader()));
+            Object action = instantiator.newInstance(implementationClass, spec.getParams());
             if (action instanceof Runnable) {
                 ((Runnable) action).run();
                 return new DefaultWorkResult(true, null);

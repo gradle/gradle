@@ -17,6 +17,7 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -27,14 +28,18 @@ import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
+import java.util.Collections;
+
 public class WorkerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(WorkerDaemonStarter.class);
     private final WorkerProcessFactory workerDaemonProcessFactory;
     private final LoggingManager loggingManager;
+    private final ClassPathRegistry classPathRegistry;
 
-    public WorkerDaemonStarter(WorkerProcessFactory workerDaemonProcessFactory, LoggingManager loggingManager) {
+    public WorkerDaemonStarter(WorkerProcessFactory workerDaemonProcessFactory, LoggingManager loggingManager, ClassPathRegistry classPathRegistry) {
         this.workerDaemonProcessFactory = workerDaemonProcessFactory;
         this.loggingManager = loggingManager;
+        this.classPathRegistry = classPathRegistry;
     }
 
     public WorkerDaemonClient startDaemon(Class<? extends WorkerProtocol> workerProtocolImplementationClass, DaemonForkOptions forkOptions, Action<WorkerProcess> cleanupAction) {
@@ -43,8 +48,8 @@ public class WorkerDaemonStarter {
         MultiRequestWorkerProcessBuilder<WorkerDaemonProcess> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonProcess.class, WorkerProtocol.class, workerProtocolImplementationClass);
         builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
-        builder.applicationClasspath(forkOptions.getClasspath());
-        builder.sharedPackages(forkOptions.getSharedPackages());
+        builder.applicationClasspath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
+        builder.sharedPackages(Collections.singleton("org.gradle.workers"));
         builder.onProcessFailure(cleanupAction);
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         forkOptions.getJavaForkOptions().copyTo(javaCommand);

@@ -64,18 +64,6 @@ class DaemonForkOptionsTest extends Specification {
         settings1.isCompatibleWith(settings2)
     }
 
-    def "is compatible with subset of class path"() {
-        def settings1 = daemonForkOptionsBuilder()
-            .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
-            .build()
-        def settings2 = daemonForkOptionsBuilder()
-            .classpath([new File("lib/lib1.jar")])
-            .build()
-
-        expect:
-        settings1.isCompatibleWith(settings2)
-    }
-
     def "is not compatible with different class path"() {
         def settings1 = daemonForkOptionsBuilder()
             .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
@@ -215,21 +203,20 @@ class DaemonForkOptionsTest extends Specification {
         !settings1.isCompatibleWith(settings2)
     }
 
-    def "unspecified class path and shared packages default to empty list"() {
+    def "unspecified shared packages default to empty list"() {
         when:
         def options = daemonForkOptionsBuilder().build()
 
         then:
-        options.classpath == []
         options.sharedPackages == []
     }
 
-    def "unspecified classloader structure defaults to null"() {
+    def "unspecified classloader structure uses default structure with empty classpath"() {
         when:
         def options = daemonForkOptionsBuilder().build()
 
         then:
-        options.classLoaderStructure == null
+        options.classLoaderStructure == IsolatedClassLoaderUtil.getDefaultClassLoaderStructure([])
     }
 
     def "unspecified keepAlive mode defaults to DAEMON"() {
