@@ -45,6 +45,7 @@ The C++ plugins also integrates the above tasks into the standard <<base_plugin#
 
 The rest of the chapter explains the different ways to customize the build to your requirements when building libraries and applications.
 
+[[sec:introducing_build_variants]]
 == Introducing build variants
 
 Native projects can typically produce several different binaries, such as debug or release ones, or ones that target particular platforms and processor architectures.
@@ -73,8 +74,7 @@ You can also configure sources for each binary build for those cases where sourc
 .Sources and C++ compilation
 image::cpp-sourcesets-compilation.png[]
 
-// TODO: Add link to Testing C++ projects
-Test sources are configured on each test suite script block. See Testing C++ projects chapter.
+Test sources are configured on each test suite script block. See <<cpp_testing.adoc,Testing C++ projects>> chapter.
 
 [[sec:cpp_dependency_management_overview]]
 == Managing your dependencies
@@ -117,8 +117,7 @@ As far as configurations go, the main ones of interest are:
 
 You can learn more about these and how they relate to one another in the native plugin reference chapter.
 
-// TODO: Link to C++ Library Plugin reference chapter
-Be aware that the C++ Library Plugin creates an additional configuration - `api` - for dependencies that are required for compiling and linking both the module and any modules that depend on it.
+Be aware that the <<cpp_library_plugin.adoc,C++ Library Plugin>> creates an additional configuration - `api` - for dependencies that are required for compiling and linking both the module and any modules that depend on it.
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you’re comfortable with the basics of building C++ projects with Gradle.
 
@@ -258,14 +257,12 @@ The unique aspect of library projects is that they are used (or "consumed") by o
 That means the dependency metadata published with the binaries and headers - in the form of a Gradle Metadata - is crucial.
 In particular, consumers of your library should be able to distinguish between two different types of dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
 
-// TODO: Link to C++ library plugin reference chapter
-Gradle manages this distinction via the C++ Library Plugin, which introduces an _api_ configuration in addition to the _implementation_ once covered in this chapter.
+Gradle manages this distinction via the <<cpp_library_plugin.adoc,C++ Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ once covered in this chapter.
 If the types from a dependency appear as unresolved symbols of the static library or within the public headers then that dependency is exposed via your library’s public API and should, therefore, be added to the _api_ configuration.
 Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
-// TODO: link to C++ library plugin reference chapter
 // FIXME: Ensure the difference between API and implementation is explained
-If you’re unsure of the difference between an API and implementation dependency, the C\++ Library Plugin chapter has a detailed explanation.
+If you’re unsure of the difference between an API and implementation dependency, the <<cpp_library_plugin.adoc,C\++ Library Plugin>> chapter has a detailed explanation.
 In addition, you can see a basic, practical example of building a C++ library in the corresponding link:{guidesUrl}/building-cpp-libraries[guide].
 
 [[sec:building_cpp_applications]]
