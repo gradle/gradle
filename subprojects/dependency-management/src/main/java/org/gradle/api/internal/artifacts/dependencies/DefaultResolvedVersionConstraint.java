@@ -87,6 +87,17 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
         return rejectAll;
     }
 
+    @Override
+    public boolean isDynamic() {
+        if (requiredVersionSelector != null) {
+            return requiredVersionSelector.isDynamic();
+        }
+        if (preferredVersionSelector != null) {
+            return preferredVersionSelector.isDynamic();
+        }
+        return false;
+    }
+
     private static boolean isRejectAll(String preferredVersion, List<String> rejectedVersions) {
         return "".equals(preferredVersion)
             && hasMatchAllSelector(rejectedVersions);

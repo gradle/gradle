@@ -246,7 +246,7 @@ class SelectorStateResolverTest extends Specification {
 
     ModuleSelectors moduleSelectors(List<? extends ResolvableSelectorState> selectors) {
         def moduleSelectors = new ModuleSelectors<ResolvableSelectorState>()
-        selectors.forEach {moduleSelectors.add(it) }
+        selectors.forEach { moduleSelectors.add(it) }
         return moduleSelectors
     }
 

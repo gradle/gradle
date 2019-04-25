@@ -2761,8 +2761,8 @@ org:foo:1.0
          org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
    Selection reasons:
-      - Was requested : rejected versions 1.2, 1.1
       - By constraint
+      - Was requested : rejected versions 1.2, 1.1
 
 org:foo:{reject 1.2} -> 1.0
 \\--- compileClasspath

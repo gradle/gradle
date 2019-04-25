@@ -493,11 +493,12 @@ task resolve {
 
     @ToBeImplemented
     def "avoids HTTP requests for dynamic version when lock exists"() {
-        def module1 = mavenHttpRepo.module('org', 'foo', '1.0').publish()
-        mavenHttpRepo.module('org', 'foo', '1.1').publish()
+        def foo10 = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+        def foo11 = mavenHttpRepo.module('org', 'foo', '1.1').publish()
         mavenHttpRepo.module('org', 'foo', '2.0').publish()
+        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.0,2.0)').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
 
         buildFile << """
 dependencyLocking {
@@ -515,13 +516,15 @@ configurations {
 }
 
 dependencies {
-    lockedConf 'org:foo:[1.0,2.0)'
+    lockedConf 'org:bar:[1.0,2.0)'
 }
 """
         when:
         // TODO Should not need to load the maven-metadata to get the version list
-        module1.rootMetaData.expectGet()
-        module1.pom.expectGet()
+        foo10.rootMetaData.expectGet()
+        foo11.pom.expectGet()
+        foo10.pom.expectGet()
+        bar10.pom.expectGet()
 
         then:
         succeeds 'dependencies'
