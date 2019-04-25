@@ -3,7 +3,7 @@ plugins {
     `cpp-application` // or `cpp-library`
 }
 
-version = '1.2.1'
+version = "1.2.1"
 // end::apply-cpp-plugin[]
 
 // tag::cpp-dependency-mgmt[]
@@ -15,7 +15,7 @@ application {
 // end::cpp-dependency-mgmt[]
 
 // tag::cpp-compiler-options-all-variants[]
-tasks.withType(CppCompile).configureEach {
+tasks.withType(CppCompile::class.java).configureEach {
     // Define a preprocessor macro for every binary
     macros.put("NDEBUG", null)
 
@@ -24,19 +24,18 @@ tasks.withType(CppCompile).configureEach {
 
     // Define toolchain-specific compiler options
     compilerArgs.addAll(toolChain.map { toolChain ->
-        if (toolChain in Gcc) {
-            return listOf("-O2", "-fno-access-control")
-        } else if (toolChain in VisualCpp) {
-            return listOf("/Zi")
+        when (toolChain) {
+            is Gcc, is Clang -> listOf("-O2", "-fno-access-control")
+            is VisualCpp -> listOf("/Zi")
+            else -> listOf()
         }
-        return listOf()
     })
 }
 // end::cpp-compiler-options-all-variants[]
 
 // tag::cpp-compiler-options-per-variants[]
 application {
-    binaries.withType(CppStaticLibrary).configureEach {
+    binaries.configureEach(CppStaticLibrary::class.java) {
         // Define a preprocessor macro for every binary
         compileTask.get().macros.put("NDEBUG", null)
 
@@ -44,10 +43,9 @@ application {
         compileTask.get().compilerArgs.add("-W3")
 
         // Define toolchain-specific compiler options
-        if (toolChain in Gcc) {
-            compileTask.get().compilerArgs.addAll(listOf("-O2", "-fno-access-control"))
-        } else if (toolChain in VisualCpp) {
-            compileTask.get().compilerArgs.add("/Zi")
+        when (toolChain) {
+            is Gcc, is Clang -> compileTask.get().compilerArgs.addAll(listOf("-O2", "-fno-access-control"))
+            is VisualCpp -> compileTask.get().compilerArgs.add("/Zi")
         }
     }
 }
@@ -60,12 +58,10 @@ application {
 // end::cpp-select-target-machines[]
 
 project(":common") {
-    plugins {
-        `cpp-library`
-    }
-
+    apply(plugin = "cpp-library")
+    
     // tag::cpp-source-set[]
-    library {
+    extensions.configure<CppLibrary> {
         source.from(file("src"))
         privateHeaders.from(file("src"))
         publicHeaders.from(file("include"))

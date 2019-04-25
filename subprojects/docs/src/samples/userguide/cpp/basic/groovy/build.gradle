@@ -40,7 +40,7 @@ tasks.withType(CppCompile).configureEach {
 
     // Define toolchain-specific compiler options
     compilerArgs.addAll toolChain.map { toolChain ->
-        if (toolChain in Gcc) {
+        if (toolChain in [ Gcc, Clang ]) {
             return ['-O2', '-fno-access-control']
         } else if (toolChain in VisualCpp) {
             return ['/Zi']
@@ -52,7 +52,7 @@ tasks.withType(CppCompile).configureEach {
 
 // tag::cpp-compiler-options-per-variants[]
 application {
-    binaries.withType(CppStaticLibrary).configureEach {
+    binaries.configureEach(CppStaticLibrary) {
         // Define a preprocessor macro for every binary
         compileTask.get().macros.put("NDEBUG", null)
 
@@ -60,7 +60,7 @@ application {
         compileTask.get().compilerArgs.add '-W3'
 
         // Define toolchain-specific compiler options
-        if (toolChain in Gcc) {
+        if (toolChain in [ Gcc, Clang ]) {
             compileTask.get().compilerArgs.addAll(['-O2', '-fno-access-control'])
         } else if (toolChain in VisualCpp) {
             compileTask.get().compilerArgs.add('/Zi')
@@ -76,15 +76,13 @@ application {
 // end::cpp-select-target-machines[]
 
 project(':common') {
-    plugins {
-        id 'cpp-library'
-    }
+    apply plugin: 'cpp-library'
 
-// tag::cpp-source-set[]
-library {
-    source.from file('src')
-    privateHeaders.from file('src')
-    publicHeaders.from file('include')
-}
-// end::cpp-source-set[]
+    // tag::cpp-source-set[]
+    library {
+        source.from file('src')
+        privateHeaders.from file('src')
+        publicHeaders.from file('include')
+    }
+    // end::cpp-source-set[]
 }
