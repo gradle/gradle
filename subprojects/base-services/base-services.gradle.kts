@@ -6,7 +6,6 @@
  */
 
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import java.util.concurrent.Callable
 
 plugins {
     `java-library`
@@ -42,8 +41,13 @@ testFixtures {
 
 jmh {
     withGroovyBuilder {
-        setProperty("include", listOf("HashingAlgorithmsBenchmark"))
+        setProperty("include", listOf("HashingBenchmark"/*, "HashingAlgorithmsBenchmark", "MessageDigestHasherBenchmark", "MessageDigestThreadingBenchmark" */))
     }
+    profilers = listOf("hs_gc"/*, "stack"*/)
+    // jvmArgs = listOf("-Xmx4G", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseEpsilonGC")
+    // forceGC = true // no-op for epsilon
+    failOnError = true
+    resultFormat = "JSON"
 }
 
 val buildReceiptPackage: String by rootProject.extra
