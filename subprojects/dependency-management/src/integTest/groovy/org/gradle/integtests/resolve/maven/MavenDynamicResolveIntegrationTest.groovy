@@ -434,21 +434,4 @@ Searched in the following locations:
         then:
         file('libs').assertHasDescendants('projectA-1.5.jar')
     }
-
-    static String createBuildFile(URI... repoUris) {
-        """
-         repositories {
-             ${repoUris.collect { "maven { url '${it.toString()}' }" }.join("\n")}
-         }
-         configurations { compile }
-         dependencies {
-             compile 'group:projectA:1.+'
-         }
- 
-        task retrieve(type: Sync) {
-            into 'libs'
-             from configurations.compile
-         }
-         """
-    }
 }

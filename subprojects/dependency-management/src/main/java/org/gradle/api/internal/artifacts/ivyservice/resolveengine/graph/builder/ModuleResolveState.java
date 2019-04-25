@@ -267,7 +267,6 @@ class ModuleResolveState implements CandidateModule {
     }
 
     void addSelector(SelectorState selector) {
-        assert !selectors.contains(selector) : "Inconsistent call to addSelector: should only be done if the selector isn't in use";
         selectors.add(selector);
         mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selector);
         if (overriddenSelection) {

@@ -22,4 +22,5 @@ public interface ResolvedVersionConstraint {
     VersionSelector getRequiredSelector();
     VersionSelector getRejectedSelector();
     boolean isRejectAll();
+    boolean isDynamic();
 }
