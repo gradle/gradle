@@ -45,7 +45,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder
             .fileComment("This generated file contains a sample C++ project to get you started.")
             .fileComment("For more details take a look at the Building C++ applications and libraries chapter in the Gradle")
-            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("cpp_plugin"));
+            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_cpp_projects"));
         configureBuildScript(settings, buildScriptBuilder);
 
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
