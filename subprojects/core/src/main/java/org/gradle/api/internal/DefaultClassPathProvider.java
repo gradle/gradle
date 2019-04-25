@@ -39,6 +39,11 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getExternalModule("asm").getClasspath());
             return classpath;
         }
+        if (name.equals("SCALA-COMPILER")) {
+            ClassPath classpath = ClassPath.EMPTY;
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-language-scala").getImplementationClasspath());
+            return classpath;
+        }
         if (name.equals("ANT")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getExternalModule("ant").getClasspath());

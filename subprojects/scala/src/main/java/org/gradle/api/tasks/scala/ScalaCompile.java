@@ -17,6 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.CacheableTask;
@@ -87,9 +88,10 @@ public class ScalaCompile extends AbstractScalaCompile {
         if (compiler == null) {
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
             JavaForkOptionsFactory forkOptionsFactory = getServices().get(JavaForkOptionsFactory.class);
+            ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
                 getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), workerDaemonFactory, getScalaClasspath(),
-                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), forkOptionsFactory);
+                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), forkOptionsFactory, classPathRegistry);
             compiler = scalaCompilerFactory.newCompiler(spec);
         }
         return compiler;

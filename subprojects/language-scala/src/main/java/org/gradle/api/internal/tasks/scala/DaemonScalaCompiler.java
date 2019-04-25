@@ -32,33 +32,40 @@ package org.gradle.api.internal.tasks.scala;
  * limitations under the License.
  */
 
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
+import org.gradle.initialization.GradleApiUtil;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
+import org.gradle.workers.internal.ClassLoaderStructure;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
-import java.util.Arrays;
 
 public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
-    private static final Iterable<String> SHARED_PACKAGES =
-            Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac", "sbt");
     private final Iterable<File> zincClasspath;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
+    private final ClassPathRegistry classPathRegistry;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> delegateClass, Object[] delegateParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory) {
+    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> delegateClass, Object[] delegateParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry) {
         super(delegateClass, delegateParameters, workerDaemonFactory);
         this.zincClasspath = zincClasspath;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
+        this.classPathRegistry = classPathRegistry;
     }
 
     @Override
@@ -68,12 +75,28 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, scalaOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
 
+        ClassPath compilerClasspath = classPathRegistry.getClassPath("SCALA-COMPILER").plus(DefaultClassPath.of(zincClasspath));
+
+        ClassLoaderStructure classLoaderStructure = new ClassLoaderStructure(getScalaFilterSpec())
+                .withChild(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
+
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
-            .classpath(zincClasspath)
-            .sharedPackages(SHARED_PACKAGES)
+            .withClassLoaderStrucuture(classLoaderStructure)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
+    }
+
+    private static FilteringClassLoader.Spec getScalaFilterSpec() {
+        FilteringClassLoader.Spec gradleApiAndScalaSpec = GradleApiUtil.apiSpecFor(DaemonScalaCompiler.class.getClassLoader(), DirectInstantiator.INSTANCE);
+
+        // These should come from the compiler classloader
+        gradleApiAndScalaSpec.disallowPackage("org.gradle.api.internal.tasks.scala");
+
+        // Guava
+        gradleApiAndScalaSpec.allowPackage("com.google");
+
+        return gradleApiAndScalaSpec;
     }
 }
 
