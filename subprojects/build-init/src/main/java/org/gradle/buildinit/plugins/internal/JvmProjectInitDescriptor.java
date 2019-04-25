@@ -16,15 +16,14 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileResolver;
-
 public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-    public JvmProjectInitDescriptor(String language, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
-        super(language, scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    @Override
+    public boolean supportsPackage() {
+        return true;
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        buildScriptBuilder.repositories().jcenter("Use jcenter for resolving your dependencies.\nYou can declare any Maven/Ivy/file repository here.");
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        buildScriptBuilder.repositories().jcenter("Use jcenter for resolving dependencies.\nYou can declare any Maven/Ivy/file repository here.");
     }
 }

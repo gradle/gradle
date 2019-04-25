@@ -19,15 +19,15 @@ package org.gradle.buildinit.plugins.internal.modifiers;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum BuildInitTestFramework {
+public enum BuildInitTestFramework implements WithIdentifier {
 
-    NONE,
-    JUNIT,
-    TESTNG,
-    SPOCK,
-    KOTLINTEST,
-    SCALATEST,
-    JUNITJUPITER;
+    NONE("none"),
+    JUNIT("JUnit 4"),
+    TESTNG("TestNG"),
+    SPOCK("Spock"),
+    KOTLINTEST("kotlin.test"),
+    SCALATEST("ScalaTest"),
+    JUNIT_JUPITER("JUnit Jupiter");
 
     public static List<String> listSupported() {
         List<String> result = new ArrayList<String>();
@@ -39,12 +39,18 @@ public enum BuildInitTestFramework {
         return result;
     }
 
+    private final String displayName;
+
+    BuildInitTestFramework(String displayName) {
+        this.displayName = displayName;
+    }
+
     public String getId() {
-        return name().toLowerCase();
+        return Names.idFor(this);
     }
 
     @Override
     public String toString() {
-        return getId();
+        return displayName;
     }
 }

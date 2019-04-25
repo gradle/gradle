@@ -39,6 +39,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectTypePrompt)
             assert handle.standardOutput.contains(basicType)
+            assert handle.standardOutput.contains("2: application")
+            assert handle.standardOutput.contains("3: library")
+            assert handle.standardOutput.contains("4: Gradle plugin")
             assert !handle.standardOutput.contains("pom")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
@@ -46,6 +49,8 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         // Select 'kotlin'
         ConcurrentTestUtil.poll {
             assert handle.standardOutput.contains(dslPrompt)
+            assert handle.standardOutput.contains("1: Groovy")
+            assert handle.standardOutput.contains("2: Kotlin")
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
@@ -54,6 +59,62 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
+    }
+
+    def "user can provide details for JVM based build"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Select 'library'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectTypePrompt)
+        }
+        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'java'
+        ConcurrentTestUtil.poll {
+            assert handle.standardOutput.contains("Select implementation language:")
+            assert handle.standardOutput.contains("1: C++")
+            assert handle.standardOutput.contains("2: Groovy")
+            assert handle.standardOutput.contains("3: Java")
+            assert handle.standardOutput.contains("4: Kotlin")
+            assert handle.standardOutput.contains("5: Scala")
+        }
+        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'kotlin' DSL
+        ConcurrentTestUtil.poll {
+            assert handle.standardOutput.contains(dslPrompt)
+        }
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'junit'
+        ConcurrentTestUtil.poll {
+            assert handle.standardOutput.contains("Select test framework:")
+            assert handle.standardOutput.contains("1: JUnit 4")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+
+        // Select default project name
+        ConcurrentTestUtil.poll {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Enter a package name
+        ConcurrentTestUtil.poll {
+            assert handle.standardOutput.contains("Source package (default: some.thing)")
+        }
+        handle.stdinPipe.write(("org.gradle.test" + TextUtil.platformLineSeparator).bytes)
+
         handle.stdinPipe.close()
         handle.waitForFinish()
 

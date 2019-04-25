@@ -18,6 +18,8 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Collections;
 import java.util.Set;
@@ -41,6 +43,16 @@ public class BasicProjectGenerator implements ProjectGenerator {
                 + "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")
             .create()
             .generate();
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.BASIC;
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.NONE;
     }
 
     @Override
