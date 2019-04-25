@@ -15,20 +15,13 @@
 [[cpp_testing]]
 = Testing in C++ projects
 
-////
-To run integration tests:
+Testing in the native ecosystem takes many forms.
 
-   ./gradlew :integTest:intTestImage :docs:extractSamples :integTest:integTest --tests "*SamplesCppTestingIntegrationTest"
-////
-
-Testing in the native ecosystem is a rich subject matter.
-There are many different testing libraries and frameworks, as well as many different types of test.
+There are different testing libraries and frameworks, as well as many different types of test.
 All need to be part of the build, whether they are executed frequently or infrequently.
-This chapter is dedicated to explaining how Gradle handles differing requirements between and within builds, with significant coverage of how it integrates with the executable-based testing frameworks, such as https://github.com/google/googletest[Google Test] and http://cunit.sourceforge.net/[CUnit].
+This chapter is dedicated to explaining how Gradle handles differing requirements between and within builds, with significant coverage of how it integrates with the executable-based testing frameworks, such as https://github.com/google/googletest[Google Test].
 
-It explains:
-
- * Ways to control how the tests are run (<<#sec:cpp_test_execution,Test execution>>)
+Testing C++ projects in Gradle is fairly limited when compared to <<java_testing.adoc#java_testing>>. In this chapter, we explain the ways to control how tests are run (<<#sec:cpp_test_execution,Test execution>>).
 
 But first, we look at the basics of native testing in Gradle.
 
@@ -36,7 +29,7 @@ But first, we look at the basics of native testing in Gradle.
 == The basics
 
 All C++ testing revolves around a single task type: link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html[RunTestExecutable].
-This runs a single test executable built with any testing framework and asserts the execution was successful using the return code.
+This runs a single test executable built with any testing framework and asserts the execution was successful using the exit code of the executable.
 The test case results aren’t collected and no reports are generated.
 
 In order to operate, the link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html[RunTestExecutable] task type requires just one piece of information:
