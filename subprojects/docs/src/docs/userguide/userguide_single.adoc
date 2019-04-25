@@ -150,7 +150,7 @@ include::dependency_management_for_java_projects.adoc[leveloffset=+2]
 [[part:native_projects]]
 == C++ Projects
 
-include::cpp_plugins.adoc[leveloffset=+2]
+include::building_cpp_projects.adoc[leveloffset=+2]
 
 [[part:native_projects]]
 == Native Projects using the Software Model
