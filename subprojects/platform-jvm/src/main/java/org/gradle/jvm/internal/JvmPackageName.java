@@ -16,7 +16,8 @@
 
 package org.gradle.jvm.internal;
 
-import com.google.common.collect.Sets;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
 
@@ -35,8 +36,10 @@ import java.util.Set;
  */
 public class JvmPackageName {
     private static final char DELIMITER = '.';
+    private static Splitter packageFragmentSplitter = Splitter.on(DELIMITER);
 
-    private static final Set<String> INVALID_PACKAGE_KEYWORDS = Sets.newHashSet(
+
+    private static final Set<String> INVALID_PACKAGE_KEYWORDS = ImmutableSet.of(
         "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
         "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if",
         "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private",
@@ -101,18 +104,12 @@ public class JvmPackageName {
     }
 
     private static boolean fragmentsAreValid(String value) {
-        int i = -1;
-        for (int j = value.indexOf(DELIMITER);
-             j > i;
-             i = j, j = value.indexOf(DELIMITER, i + 1)
-        ) {
-            String token = value.substring(i + 1, j);
-            if (!isIdentifier(token)) {
+        for (String packageFragment : packageFragmentSplitter.split(value)) {
+            if (!isIdentifier(packageFragment)) {
                 return false;
             }
         }
-        String lastToken = value.substring(i + 1);
-        return isIdentifier(lastToken);
+        return true;
     }
 
     private static boolean isIdentifier(String token) {
