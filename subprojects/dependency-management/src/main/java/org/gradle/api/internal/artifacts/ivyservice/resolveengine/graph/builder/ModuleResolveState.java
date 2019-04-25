@@ -56,7 +56,7 @@ class ModuleResolveState implements CandidateModule {
     private final ModuleIdentifier id;
     private final List<EdgeState> unattachedDependencies = new LinkedList<EdgeState>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
-    private final List<SelectorState> selectors = Lists.newArrayListWithExpectedSize(4);
+    private final ModuleSelectors<SelectorState> selectors = new ModuleSelectors<>();
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
@@ -284,7 +284,7 @@ class ModuleResolveState implements CandidateModule {
         }
     }
 
-    public List<SelectorState> getSelectors() {
+    public Iterable<SelectorState> getSelectors() {
         return selectors;
     }
 
@@ -366,7 +366,7 @@ class ModuleResolveState implements CandidateModule {
 
 
     public boolean maybeUpdateSelection() {
-        ComponentState newSelected = selectorStateResolver.selectBest(getId(), getSelectors());
+        ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
         if (selected == null) {
             select(newSelected);
             return true;
