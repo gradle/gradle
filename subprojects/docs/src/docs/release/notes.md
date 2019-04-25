@@ -3,7 +3,6 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
-[Erhard Pointl](https://github.com/epeee)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -25,6 +24,12 @@ details of 2
 ## n
 -->
 
+## Upgrade Instructions
+
+Switch your build to use Gradle @version@ by updating your wrapper:
+
+`./gradlew wrapper --gradle-version=@version@`
+
 ## Build init plugin improvements
 
 ### Support for JUnit Jupiter
@@ -38,18 +43,6 @@ Contributed by [Erhard Pointl](https://github.com/epeee)
 The `init` task can now generate simple Gradle plugins. You can use these as a starting point for developing and testing a Gradle plugin. The `init` task provides an option to use either Java, Groovy or Kotlin for the plugin source. You can select a Gradle plugin when you run the `init` task interactively, or use the `--type` command-line option. 
 
 See the [User manual](userguide/build_init_plugin.html) for more details.
-
-## Upgrade Instructions
-
-Switch your build to use Gradle @version@ by updating your wrapper:
-
-`./gradlew wrapper --gradle-version=@version@`
-
-## Build Init Improvements
-
-### Junit Jupiter
-
-TBD
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
