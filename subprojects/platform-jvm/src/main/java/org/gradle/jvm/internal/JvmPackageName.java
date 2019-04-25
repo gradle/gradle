@@ -21,23 +21,10 @@ import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
 
-/**
- * An immutable representation of a valid Java package name.
- *
- * <p>While {@code JvmPackageName} values are guaranteed to be valid per JLS package
- * naming rules, no validation is performed to ensure that the named package actually
- * exists.</p>
- *
- * <p>Note that due to vagaries inherent in Java naming, a valid package name is also
- * always a valid type name.</p>
- *
- * @see #of(String)
- * @since 2.10
- */
 public class JvmPackageName {
     private static final char DELIMITER = '.';
-    private static Splitter packageFragmentSplitter = Splitter.on(DELIMITER);
-
+    private static final Splitter PACKAGE_FRAGMENT_SPLITTER = Splitter.on(DELIMITER);
+    private static final String UNNAMED_PACKAGE = "";
 
     private static final Set<String> INVALID_PACKAGE_KEYWORDS = ImmutableSet.of(
         "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
@@ -50,50 +37,23 @@ public class JvmPackageName {
         ""
     );
 
-    private static final String UNNAMED_PACKAGE = "";
-
-    private final String value;
-
-    private JvmPackageName(String value) {
-        this.value = value;
+    private JvmPackageName() {
     }
 
     /**
-     * The underlying package name value, e.g. "com.example.p1".
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     * Validate, create and return a new {@code PackageName} instance from the given
-     * package name.
+     * Validate a given package name.
      *
      * <p>See JLS sections:
      * <ul>
-     *   <li><em><a href="https://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">
-     *     3.8. Identifiers</a></em></li>
-     *   <li><em><a href="https://docs.oracle.com/javase/specs/jls/se7/html/jls-6.html#jls-6.2">
-     *     6.2. Names and Identifiers</a></em></li>
-     *   <li><em><a href="https://docs.oracle.com/javase/specs/jls/se7/html/jls-7.html#jls-7.4">
-     *     7.4. Package Declarations</a></em></li>
+     * <li><em><a href="https://docs.oracle.com/javase/specs/jls/se12/html/jls-3.html#jls-3.8"> 3.8. Identifiers</a></em></li>
+     * <li><em><a href="https://docs.oracle.com/javase/specs/jls/se12/html/jls-6.html#jls-6.2"> 6.2. Names and Identifiers</a></em></li>
+     * <li><em><a href="https://docs.oracle.com/javase/specs/jls/se12/html/jls-7.html#jls-7.4"> 7.4. Package Declarations</a></em></li>
      * </ul>
      * </p>
      *
-     * @param value the candidate package name, e.g.: {@code com.example.p1} or an empty
-     * string indicating an <em>unnamed package</em>
-     * @return the validated package name instance, never null
-     * @throws IllegalArgumentException if value is null or does not conform to valid
-     * package naming per the JLS
+     * @return whether value is null or does not conform to valid package naming per the JLS
      */
-    public static JvmPackageName of(String value) {
-        if (!isValidPackageName(value)) {
-            throw new IllegalArgumentException(String.format("'%s' is not a valid package name", value));
-        }
-        return new JvmPackageName(value);
-    }
-
-    private static boolean isValidPackageName(String value) {
+    public static boolean isValid(String value) {
         if (UNNAMED_PACKAGE.equals(value)) {
             return true;
         } else if (value == null) {
@@ -104,7 +64,7 @@ public class JvmPackageName {
     }
 
     private static boolean fragmentsAreValid(String value) {
-        for (String packageFragment : packageFragmentSplitter.split(value)) {
+        for (String packageFragment : PACKAGE_FRAGMENT_SPLITTER.split(value)) {
             if (!isIdentifier(packageFragment)) {
                 return false;
             }
@@ -128,27 +88,5 @@ public class JvmPackageName {
             }
             return true;
         }
-    }
-
-    @Override
-    public String toString() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        JvmPackageName that = (JvmPackageName) o;
-        return value.equals(that.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
     }
 }

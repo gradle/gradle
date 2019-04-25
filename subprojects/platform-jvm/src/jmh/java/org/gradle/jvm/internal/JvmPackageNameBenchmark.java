@@ -24,11 +24,11 @@ import org.openjdk.jmh.infra.Blackhole;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Benchmark                                                              Mode  Cnt        Score        Error  Units
- * JvmPackageNameBenchmark.invalid_package_name_creation                 thrpt   20    35684.227 ±   1098.363  ops/s
- * JvmPackageNameBenchmark.package_name_with_lots_of_fragments           thrpt   20  2106646.292 ± 116983.831  ops/s
- * JvmPackageNameBenchmark.reserved_java_keywords_package_name_creation  thrpt   20    13254.202 ±    615.072  ops/s
- * JvmPackageNameBenchmark.valid_package_name_creation                   thrpt   20  1529536.526 ±  23929.243  ops/s
+ * Benchmark                                                              Mode  Cnt        Score       Error  Units
+ * JvmPackageNameBenchmark.invalid_package_name_creation                 thrpt   20   864371.691 ± 65456.038  ops/s
+ * JvmPackageNameBenchmark.package_name_with_lots_of_fragments           thrpt   20  1124642.130 ± 32982.479  ops/s
+ * JvmPackageNameBenchmark.reserved_java_keywords_package_name_creation  thrpt   20   687804.950 ± 16936.767  ops/s
+ * JvmPackageNameBenchmark.valid_package_name_creation                   thrpt   20   818511.320 ± 99481.866  ops/s
  **/
 @Fork(2)
 @Warmup(iterations = 10, time = 1, timeUnit = SECONDS)
@@ -52,37 +52,29 @@ public class JvmPackageNameBenchmark {
     @Benchmark
     public void valid_package_name_creation(Blackhole bh) {
         for (String p : VALID_PACKAGES) {
-            JvmPackageName packageName = JvmPackageName.of(p);
-            bh.consume(packageName);
+            boolean isValid = JvmPackageName.isValid(p);
+            bh.consume(isValid);
         }
     }
 
     @Benchmark
     public void invalid_package_name_creation(Blackhole bh) {
         for (String p : INVALID_PACKAGES) {
-            try {
-                bh.consume(JvmPackageName.of(p));
-                throw new IllegalStateException("Should be invalid!");
-            } catch (IllegalArgumentException e) {
-                bh.consume(e);
-            }
+            boolean isValid = JvmPackageName.isValid(p);
+            bh.consume(isValid);
         }
     }
 
     @Benchmark
     public void reserved_java_keywords_package_name_creation(Blackhole bh) {
         for (String p : RESERVED_JAVA_KEYWORDS) {
-            try {
-                bh.consume(JvmPackageName.of(p));
-                throw new IllegalStateException("Should be invalid!");
-            } catch (IllegalArgumentException e) {
-                bh.consume(e);
-            }
+            boolean isValid = JvmPackageName.isValid(p);
+            bh.consume(isValid);
         }
     }
 
     @Benchmark
     public Object package_name_with_lots_of_fragments() {
-        return JvmPackageName.of("AaBb.CcDd.EeFf.GgHh.IiJj.KkLl.MmNn.OoPp.QqRr.SsTt.UuVv.WwXx.YyZz.AaBb.CcDd.EeFf.GgHh.IiJj.KkLl.MmNn.OoPp.QqRr.SsTt.UuVv.WwXx.YyZz");
+        return JvmPackageName.isValid("AaBb.CcDd.EeFf.GgHh.IiJj.KkLl.MmNn.OoPp.QqRr.SsTt.UuVv.WwXx.YyZz.AaBb.CcDd.EeFf.GgHh.IiJj.KkLl.MmNn.OoPp.QqRr.SsTt.UuVv.WwXx.YyZz");
     }
 }
