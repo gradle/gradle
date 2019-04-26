@@ -85,8 +85,7 @@ class BinaryCompatibilityRepository internal constructor(
 
     private
     val JApiClass.sourceFilePath: String
-        get() = if (isKotlin) kotlinSourceFilePath
-        else javaSourceFilePath
+        get() = if (isKotlin) kotlinSourceFilePath else javaSourceFilePath
 
     private
     val JApiClass.javaSourceFilePath: String

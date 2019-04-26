@@ -224,17 +224,20 @@ class NullabilityChangesTest : AbstractBinaryCompatibilityTest() {
                 class Source(some: String) {
                     fun foo(bar: String) {}
                 }
+                operator fun Source.invoke(arg: String) {}
             """,
             v2 = """
                 class Source(some: String?) {
                     fun foo(bar: String?) {}
                 }
+                operator fun Source.invoke(arg: String?) {}
             """
         ) {
             assertHasNoError()
             assertHasWarnings(
                 "Method com.example.Source.foo(java.lang.String): Parameter 0 nullability changed from non-nullable to nullable",
-                "Constructor com.example.Source(java.lang.String): Parameter 0 nullability changed from non-nullable to nullable"
+                "Constructor com.example.Source(java.lang.String): Parameter 0 nullability changed from non-nullable to nullable",
+                "Method com.example.SourceKt.invoke(com.example.Source,java.lang.String): Parameter 1 nullability changed from non-nullable to nullable"
             )
             assertHasNoInformation()
         }
