@@ -48,7 +48,7 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
     @Override
     Violation maybeViolation(JApiCompatibility member) {
 
-        if (isSkipViolationCheck(member)) {
+        if (isNewOrRemoved(member)) {
             return null
         }
 
@@ -123,8 +123,14 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
         return null
     }
 
-    private static boolean isSkipViolationCheck(JApiCompatibility member) {
-        return !(member instanceof JApiHasChangeStatus) || ((JApiHasChangeStatus) member).changeStatus in [JApiChangeStatus.NEW, JApiChangeStatus.REMOVED]
+    private static boolean isNewOrRemoved(JApiCompatibility member) {
+        if (member instanceof JApiHasChangeStatus) {
+            return ((JApiHasChangeStatus) member).changeStatus in [
+                JApiChangeStatus.NEW,
+                JApiChangeStatus.REMOVED
+            ]
+        }
+        return true
     }
 
     private static List<Boolean> parametersNullabilityOf(CtBehavior behavior) {
