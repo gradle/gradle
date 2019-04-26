@@ -16,13 +16,14 @@
 package org.gradle.buildinit.plugins.internal.modifiers;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-public enum BuildInitDsl {
+public enum BuildInitDsl implements WithIdentifier {
 
     GROOVY(".gradle"),
     KOTLIN(".gradle.kts");
@@ -61,7 +62,7 @@ public enum BuildInitDsl {
     }
 
     public String getId() {
-        return name().toLowerCase();
+        return Names.idFor(this);
     }
 
     public String fileNameFor(String fileNameWithoutExtension) {
@@ -70,6 +71,6 @@ public enum BuildInitDsl {
 
     @Override
     public String toString() {
-        return getId();
+        return StringUtils.capitalize(name().toLowerCase());
     }
 }

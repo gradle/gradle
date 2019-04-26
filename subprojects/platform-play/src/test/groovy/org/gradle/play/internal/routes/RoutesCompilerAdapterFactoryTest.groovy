@@ -21,12 +21,12 @@ import org.gradle.play.internal.PlayPlatformResolver
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class RoutesCompilerFactoryTest extends Specification {
+class RoutesCompilerAdapterFactoryTest extends Specification {
 
     @Unroll
     def "route compiler for play #playVersion uses #scalaVersion"() {
         when:
-        def routesCompilerAdapter = RoutesCompilerFactory.createAdapter(new PlayPlatformResolver().resolve(new PlayPlatformRequirement(playVersion, scalaVersion, null)))
+        def routesCompilerAdapter = RoutesCompilerAdapterFactory.createAdapter(new PlayPlatformResolver().resolve(new PlayPlatformRequirement(playVersion, scalaVersion, null)))
 
         then:
         routesCompilerAdapter.dependencyNotation.contains("_${scalaVersion}")

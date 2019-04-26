@@ -36,8 +36,8 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
 
-    public DaemonPlayCompiler(File daemonWorkingDir, Compiler<T> compiler, WorkerDaemonFactory workerDaemonFactory, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages, JavaForkOptionsFactory forkOptionsFactory) {
-        super(compiler, workerDaemonFactory);
+    public DaemonPlayCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compiler, Object[] compilerParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages, JavaForkOptionsFactory forkOptionsFactory) {
+        super(compiler, compilerParameters, workerDaemonFactory);
         this.compilerClasspath = compilerClasspath;
         this.classLoaderPackages = classLoaderPackages;
         this.forkOptionsFactory = forkOptionsFactory;

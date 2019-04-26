@@ -19,11 +19,7 @@ package org.gradle.play.internal.twirl;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 
-public class TwirlCompilerFactory {
-
-    public static TwirlCompiler create(PlayPlatform playPlatform) {
-        return new TwirlCompiler(createAdapter(playPlatform));
-    }
+public class TwirlCompilerAdapterFactory {
 
     public static VersionedTwirlCompilerAdapter createAdapter(PlayPlatform playPlatform) {
         String playVersion = playPlatform.getPlayVersion();

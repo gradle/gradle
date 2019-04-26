@@ -31,6 +31,6 @@ class BuildInitTestFrameworkTest extends Specification {
         result[2] == "spock"
         result[3] == "kotlintest"
         result[4] == "scalatest"
-        result[5] == "junitjupiter"
+        result[5] == "junit-jupiter"
     }
 }

@@ -137,7 +137,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
             new MultiChoiceAddressSerializer().write(encoder, (MultiChoiceAddress) serverAddress);
 
             // Serialize the worker, this is consumed by SystemApplicationClassLoaderWorker
-            ActionExecutionWorker worker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, gradleUserHomeDir);
+            ActionExecutionWorker worker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName);
             byte[] serializedWorker = GUtil.serialize(worker);
             encoder.writeBinary(serializedWorker);
 

@@ -469,7 +469,7 @@ public class NodeState implements DependencyGraphNode {
         if (two == null) {
             return one;
         }
-        return resolveState.getModuleExclusions().union(one, two);
+        return resolveState.getModuleExclusions().both(one, two);
     }
 
     private ModuleExclusion excludedByEither(ModuleExclusion one, ModuleExclusion two) {
@@ -479,7 +479,7 @@ public class NodeState implements DependencyGraphNode {
         if (two == null) {
             return one;
         }
-        return resolveState.getModuleExclusions().intersect(one, two);
+        return resolveState.getModuleExclusions().either(one, two);
     }
 
     private void removeOutgoingEdges() {

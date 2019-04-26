@@ -49,8 +49,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     private final File daemonWorkingDir;
     private final JvmVersionDetector jvmVersionDetector;
 
-    public DaemonGroovyCompiler(File daemonWorkingDir, Compiler<GroovyJavaJointCompileSpec> delegate, ClassPathRegistry classPathRegistry, WorkerFactory workerFactory, JavaForkOptionsFactory forkOptionsFactory, JvmVersionDetector jvmVersionDetector) {
-        super(delegate, workerFactory);
+    public DaemonGroovyCompiler(File daemonWorkingDir, Class<? extends Compiler<GroovyJavaJointCompileSpec>> delegateClass, ClassPathRegistry classPathRegistry, WorkerFactory workerFactory, JavaForkOptionsFactory forkOptionsFactory, JvmVersionDetector jvmVersionDetector) {
+        super(delegateClass, new Object[0], workerFactory);
         this.classPathRegistry = classPathRegistry;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
@@ -109,6 +109,13 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         gradleFilterSpec.allowPackage("org.gradle.internal.nativeintegration");
         gradleFilterSpec.allowPackage("org.gradle.internal.nativeplatform");
         gradleFilterSpec.allowPackage("net.rubygrapefruit.platform");
+        // Service Registry
+        gradleFilterSpec.allowPackage("org.gradle.internal.service");
+        // Instantiation
+        gradleFilterSpec.allowPackage("org.gradle.internal.instantiation");
+        gradleFilterSpec.allowPackage("org.gradle.internal.reflect");
+        // Inject
+        gradleFilterSpec.allowPackage("javax.inject");
 
         return gradleFilterSpec;
     }

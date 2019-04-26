@@ -59,7 +59,7 @@ include::{samplesPath}/userguide/buildlifecycle/basic/buildlifecycle.kotlin.out[
 
 For a build script, the property access and method calls are delegated to a project object. Similarly property access and method calls within the settings file is delegated to a settings object. Look at the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] class in the API documentation for more information.
 
-[[sec:multi_project_builds]]
+[[sec:lifecycle_multi_project_builds]]
 == Multi-project builds
 
 A multi-project build is a build where you build more than one project during a single execution of Gradle. You have to declare the projects taking part in the multi-project build in the settings file. There is much more to say about multi-project builds in the chapter dedicated to this topic (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>).

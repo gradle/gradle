@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.Action;
+
 import javax.annotation.Nullable;
 
 public interface CrossConfigurationScriptBlockBuilder extends ScriptBlockBuilder {
@@ -49,7 +51,7 @@ public interface CrossConfigurationScriptBlockBuilder extends ScriptBlockBuilder
     /**
      * Creates a task in the target of this block.
      *
-     * @return the configuration block for the task.
+     * @return an expression that can be used to refer to the task
      */
-    ScriptBlockBuilder taskRegistration(@Nullable String comment, String taskName, String taskType);
+    BuildScriptBuilder.Expression taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentBuilder);
 }

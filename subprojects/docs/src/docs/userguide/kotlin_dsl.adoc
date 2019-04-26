@@ -15,7 +15,6 @@
 :kotlin-reference: https://kotlinlang.org/docs/reference/
 :kotlin-tutorials: https://kotlinlang.org/tutorials/
 :kotlin-dsl-samples: https://github.com/gradle/kotlin-dsl/tree/master/samples/
-:kotlin-dsl-issues: https://github.com/gradle/kotlin-dsl/issues/
 :gradle-issues: https://github.com/gradle/gradle/issues/
 :plugin-portal: https://plugins.gradle.org/
 
@@ -130,7 +129,7 @@ If the above doesn't work and you suspect an issue with the Kotlin DSL script ed
 ** `$HOME/Library/Logs/gradle-kotlin-dsl` on Mac OS X
 ** `$HOME/.gradle-kotlin-dsl/logs` on Linux
 ** `$HOME/AppData/Local/gradle-kotlin-dsl/log` on Windows
-* Open an issue on the link:{kotlin-dsl-issues}[Kotlin DSL issue tracker], including as much detail as you can.
+* Open an issue on the link:{gradle-issues}[Gradle issue tracker], including as much detail as you can.
 
 From version 5.1 onwards, the log directory is cleaned up automatically.
 It is checked periodically (at most every 24 hours) and log files are deleted if they haven’t been used for 7 days.
@@ -140,10 +139,7 @@ For IDE problems outside of the Kotlin DSL script editor, please open issues in 
 * link:[JetBrains's IDEA issue tracker],
 * link:[Google's Android Studio issue tracker].
 
-Lastly, if you face problems with Gradle itself or with the Kotlin DSL, please open issues on the corresponding issue tracker:
-
-* link:{gradle-issues}[Gradle build tool issue tracker],
-* link:{kotlin-dsl-issues}[Kotlin DSL issue tracker].
+Lastly, if you face problems with Gradle itself or with the Kotlin DSL, please open issues on the link:{gradle-issues}[Gradle issue tracker].
 
 
 [[sec:scripts]]
@@ -279,7 +275,7 @@ Type-safe accessors are unavailable for model elements contributed by the follow
  * Plugins applied via the `apply(plugin = "id")` method
  * The project build script
  * Script plugins, via `apply(from = "script-plugin.gradle.kts")`
- * Plugins applied via <<sec:cross_project_configuration,cross-project configuration>>
+ * Plugins applied via <<sec:kotlin_cross_project_configuration,cross-project configuration>>
 
 You also can not use type-safe accessors in Binary Gradle plugins implemented in Kotlin.
 
@@ -429,7 +425,7 @@ The main difference is that the subprojects' build scripts in the above sample d
 
 Note that you can't use this technique if you want to apply such a plugin either to the root project build script of a multi-project build (rather than solely to its subprojects) or to a single-project build. You'll need to use a different approach in those cases that we detail in <<kotlin_dsl#sec:plugins_resolution_strategy,another section>>.
 
-[[sec:cross_project_configuration]]
+[[sec:kotlin_cross_project_configuration]]
 === Cross-configuring projects
 
 <<multi_project_builds#sec:cross_project_configuration,Cross project configuration>> is a mechanism by which you can configure a project from another project's build script. A common example is when you configure subprojects in the root project build script.
@@ -719,6 +715,12 @@ The plugin achieves this by doing the following:
 All three libraries and their dependencies are bundled with Gradle, so these dependencies will not result in any downloads.
  * Configures the Kotlin compiler with the same settings that are used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts.
  * Enables support for <<kotdsl:precompiled_plugins,precompiled script plugins>>.
+
+[CAUTION]
+.Avoid specifying a version for the `kotlin-dsl` plugin
+====
+Each Gradle release is meant to be used with a specific version of the `kotlin-dsl` plugin and compatibility between arbitrary Gradle releases and `kotlin-dsl` plugin versions is not guaranteed. Using an unexpected version of the `kotlin-dsl` plugin in a build will emit a warning and can cause hard to diagnose problems.
+====
 
 This is the basic configuration you need to use the plugin:
 
@@ -1021,7 +1023,7 @@ native {                                                    <3>
 [[kotdsl:limitations]]
 == Limitations
 
-* The Kotlin DSL is link:{kotlin-dsl-issues}902[known to be slower than the Groovy DSL] on first use, for example with clean checkouts or on ephemeral continuous integration agents.
+* The Kotlin DSL is link:https://github.com/gradle/kotlin-dsl/issues/902[known to be slower than the Groovy DSL] on first use, for example with clean checkouts or on ephemeral continuous integration agents.
 Changing something in the _buildSrc_ directory also has an impact as it invalidates build-script caching.
 The main reason for this is the slower script compilation for Kotlin DSL.
 * In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] in order to get content assist and refactoring support for your Kotlin DSL build scripts.
@@ -1029,5 +1031,5 @@ The main reason for this is the slower script compilation for Kotlin DSL.
 However, you _can_ apply model rules from scripts — see the link:{kotlin-dsl-samples}model-rules[model rules] sample for more information.
 * We recommend against enabling the incubating <<multi_project_builds#sec:configuration_on_demand,configuration on demand>> feature as it can lead to very hard-to-diagnose problems.
 
-If you run into trouble or discover a suspected bug, please report the issue in the Kotlin DSL link:{kotlin-dsl-issues}[issue tracker].
+If you run into trouble or discover a suspected bug, please report the issue in the link:{gradle-issues}[Gradle issue tracker].
 

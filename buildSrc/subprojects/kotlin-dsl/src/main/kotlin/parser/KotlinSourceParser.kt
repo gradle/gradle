@@ -36,8 +36,24 @@ import org.jetbrains.kotlin.utils.PathUtil
 
 import java.io.File
 
+import build.configureKotlinCompilerForGradleBuild
+
 
 class KotlinSourceParser {
+
+    data class ParsedKotlinFiles(
+
+        val ktFiles: List<KtFile>,
+
+        private
+        val disposable: Disposable
+
+    ) : AutoCloseable {
+
+        override fun close() {
+            Disposer.dispose(disposable)
+        }
+    }
 
     private
     val messageCollector: MessageCollector
@@ -48,30 +64,42 @@ class KotlinSourceParser {
             ktFiles.map(block)
         }
 
-    private
-    fun <T : Any> withParsedKotlinSource(sourceRoots: List<File>, block: (List<KtFile>) -> T) = withRootDisposable {
+    fun parseSourceRoots(sourceRoots: List<File>, compilationClasspath: List<File>): ParsedKotlinFiles =
+        Disposer.newDisposable().let { disposable ->
+            ParsedKotlinFiles(disposable.parseKotlinFiles(sourceRoots, compilationClasspath), disposable)
+        }
 
+    private
+    fun <T : Any?> withParsedKotlinSource(sourceRoots: List<File>, block: (List<KtFile>) -> T) =
+        Disposer.newDisposable().use {
+            parseKotlinFiles(sourceRoots, emptyList()).let(block)
+        }
+
+    private
+    fun Disposable.parseKotlinFiles(sourceRoots: List<File>, compilationClasspath: List<File>): List<KtFile> {
         val configuration = CompilerConfiguration().apply {
 
             put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
             put(JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY, false)
+            put(JVMConfigurationKeys.DISABLE_OPTIMIZATION, true)
             put(CommonConfigurationKeys.MODULE_NAME, "parser")
 
+            configureKotlinCompilerForGradleBuild()
+
             addJvmClasspathRoots(PathUtil.getJdkClassesRoots(Jvm.current().javaHome))
+            addJvmClasspathRoots(compilationClasspath)
             addKotlinSourceRoots(sourceRoots.map { it.canonicalPath })
         }
         val environment = KotlinCoreEnvironment.createForProduction(this, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
-        environment.getSourceFiles().let(block)
+        return environment.getSourceFiles()
     }
 }
 
 
-internal
-inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
-    val rootDisposable = Disposer.newDisposable()
+private
+inline fun <T : Any?> Disposable.use(action: Disposable.() -> T) =
     try {
-        return action(rootDisposable)
+        action(this)
     } finally {
-        Disposer.dispose(rootDisposable)
+        Disposer.dispose(this)
     }
-}
