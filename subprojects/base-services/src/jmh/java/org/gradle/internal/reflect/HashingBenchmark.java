@@ -36,22 +36,22 @@ import org.openjdk.jmh.infra.Blackhole;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Benchmark                                             (hashSize)   Mode  Cnt           Score             Error  Units
- * HashingBenchmark.md5                                          10  thrpt    5     3209491.988 ±     611068.193  ops/s
- * HashingBenchmark.md5:·sun.gc.collector.0.invocations          10  thrpt    5           8.400 ±          2.109      ?
- * HashingBenchmark.md5                                        1024  thrpt    5     1191001.690 ±       57112.884  ops/s
- * HashingBenchmark.md5:·sun.gc.collector.0.invocations        1024  thrpt    5           5.200 ±           1.722
- * HashingBenchmark.md5                                       65536  thrpt    5       29156.429 ±         601.009  ops/s
- * HashingBenchmark.md5:·sun.gc.collector.0.invocations       65536  thrpt    5           0.200 ±           1.722
- * HashingBenchmark.md5                                    67108864  thrpt    5          30.158 ±           1.137  ops/s
+ * Benchmark                                             (hashSize)   Mode  Cnt           Score           Error  Units
+ * HashingBenchmark.md5                                          10  thrpt    5     3220072.840 ±    153467.463  ops/s
+ * HashingBenchmark.md5:·sun.gc.collector.0.invocations          10  thrpt    5           7.800 ±         1.722
+ * HashingBenchmark.md5                                        1024  thrpt    5     1126665.490 ±     53890.024  ops/s
+ * HashingBenchmark.md5:·sun.gc.collector.0.invocations        1024  thrpt    5           2.600 ±         2.109
+ * HashingBenchmark.md5                                       65536  thrpt    5       28483.327 ±      1419.431  ops/s
+ * HashingBenchmark.md5:·sun.gc.collector.0.invocations       65536  thrpt    5             ≈ 0
+ * HashingBenchmark.md5                                    67108864  thrpt    5          30.371 ±         0.497  ops/s
  * HashingBenchmark.md5:·sun.gc.collector.0.invocations    67108864  thrpt    5             ≈ 0
- * HashingBenchmark.sha1                                         10  thrpt    5     2555776.330 ±     280579.732  ops/s
- * HashingBenchmark.sha1:·sun.gc.collector.0.invocations         10  thrpt    5          10.600 ±          2.109      ?
- * HashingBenchmark.sha1                                       1024  thrpt    5      839273.401 ±       27667.597  ops/s
- * HashingBenchmark.sha1:·sun.gc.collector.0.invocations       1024  thrpt    5           6.000 ±           0.001
- * HashingBenchmark.sha1                                      65536  thrpt    5       19024.530 ±        2316.586  ops/s
- * HashingBenchmark.sha1:·sun.gc.collector.0.invocations      65536  thrpt    5           0.200 ±           1.722
- * HashingBenchmark.sha1                                   67108864  thrpt    5          19.661 ±           0.196  ops/s
+ * HashingBenchmark.sha1                                         10  thrpt    5     2695525.955 ±    131374.572  ops/s
+ * HashingBenchmark.sha1:·sun.gc.collector.0.invocations         10  thrpt    5           6.600 ±         2.109
+ * HashingBenchmark.sha1                                       1024  thrpt    5      847143.033 ±     39044.031  ops/s
+ * HashingBenchmark.sha1:·sun.gc.collector.0.invocations       1024  thrpt    5           2.200 ±         1.722
+ * HashingBenchmark.sha1                                      65536  thrpt    5       19323.252 ±       694.755  ops/s
+ * HashingBenchmark.sha1:·sun.gc.collector.0.invocations      65536  thrpt    5             ≈ 0
+ * HashingBenchmark.sha1                                   67108864  thrpt    5          20.130 ±         2.504  ops/s
  * HashingBenchmark.sha1:·sun.gc.collector.0.invocations   67108864  thrpt    5             ≈ 0
  **/
 @Fork(1)

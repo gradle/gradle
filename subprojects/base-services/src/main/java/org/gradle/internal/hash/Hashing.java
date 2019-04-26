@@ -18,6 +18,8 @@ package org.gradle.internal.hash;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import org.gradle.internal.io.NullOutputStream;
 
 import java.io.OutputStream;
@@ -193,30 +195,13 @@ public class Hashing {
 
         @Override
         public void putInt(int value) {
-            byte[] bytes = new byte[]{
-                (byte) value,
-                (byte) (value >> 8),
-                (byte) (value >> 16),
-                (byte) (value >> 24)
-            };
-            // TODO change to bigendian Ints.toByteArray(value);
-            // TODO: apply to org.gradle.internal.hash.HashCode.fromInt, too
+            byte[] bytes = Ints.toByteArray(value);
             putBytes(bytes);
         }
 
         @Override
         public void putLong(long value) {
-            byte[] bytes = new byte[]{
-                (byte) value,
-                (byte) (value >> 8),
-                (byte) (value >> 16),
-                (byte) (value >> 24),
-                (byte) (value >> 32),
-                (byte) (value >> 40),
-                (byte) (value >> 48),
-                (byte) (value >> 56)
-            };
-            // TODO change to bigendian Longs.toByteArray(value);
+            byte[] bytes = Longs.toByteArray(value);
             putBytes(bytes);
         }
 

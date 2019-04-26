@@ -33,12 +33,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Benchmark                               Mode  Cnt          Score          Error  Units
- * MessageDigestHasherBenchmark.md5_int   thrpt    5   17463088.108 ±   422892.544  ops/s
- * MessageDigestHasherBenchmark.md5_long  thrpt    5   17456480.070 ±   137585.599  ops/s
- * MessageDigestHasherBenchmark.md5_null  thrpt    5   16795469.708 ±  1165065.339  ops/s
- * MessageDigestHasherBenchmark.sha1_int  thrpt    5   12422861.152 ±   270839.818  ops/s
- * MessageDigestHasherBenchmark.sha1_long thrpt    5   12110906.032 ±    79880.942  ops/s
- * MessageDigestHasherBenchmark.sha1_null thrpt    5   12403574.931 ±   215304.201  ops/s
+ * MessageDigestHasherBenchmark.md5_int   thrpt    5   17072888.496 ±   302858.912  ops/s
+ * MessageDigestHasherBenchmark.md5_long  thrpt    5   17727372.147 ±   151062.619  ops/s
+ * MessageDigestHasherBenchmark.md5_null  thrpt    5   18030982.386 ±   103535.132  ops/s
+ * MessageDigestHasherBenchmark.sha1_int  thrpt    5   13559438.368 ±   149806.651  ops/s
+ * MessageDigestHasherBenchmark.sha1_long thrpt    5   11535723.755 ±   155336.223  ops/s
+ * MessageDigestHasherBenchmark.sha1_null thrpt    5   13357694.157 ±    50179.359  ops/s
  **/
 @Fork(1)
 @Threads(4)

@@ -58,7 +58,7 @@ class HashingTest extends Specification {
             sharedHasher.putBytes(input)
 
             MessageDigest newHasher = MessageDigest.getInstance("MD5")
-            newHasher.update([input.length, (input.length >> 8), (input.length >> 16), (input.length >> 24)] as byte[])
+            newHasher.update([(input.length >> 24), (input.length >> 16), (input.length >> 8), input.length] as byte[])
             newHasher.update(input)
 
             assert sharedHasher.hash().toByteArray() == newHasher.digest()
