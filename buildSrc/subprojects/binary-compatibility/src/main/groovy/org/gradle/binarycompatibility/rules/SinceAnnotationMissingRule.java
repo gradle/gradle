@@ -39,24 +39,23 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
     @Override
     public Violation maybeViolation(final JApiCompatibility member) {
 
-        if (isSkipViolationCheck(member) || getRepository().isSince(getCurrentVersion(), member)) {
+        if (shouldSkipViolationCheckFor(member) || getRepository().isSince(getCurrentVersion(), member)) {
             return null;
         }
 
         return acceptOrReject(member, Violation.error(member, "Is not annotated with @since " + getCurrentVersion()));
     }
 
-    private boolean isSkipViolationCheck(JApiCompatibility member) {
-        return (
-            !(member instanceof JApiClass) &&
-                !(member instanceof JApiField) &&
-                !(member instanceof JApiConstructor) &&
-                !(member instanceof JApiMethod)
-        ) ||
+    private boolean shouldSkipViolationCheckFor(JApiCompatibility member) {
+        return !isClassFieldConstructorOrMethod(member) ||
             isDeprecated(member) ||
             isInjectConstructor(member) ||
             isOverrideMethod(member) ||
             isKotlinFileFacadeClass(member);
+    }
+
+    private boolean isClassFieldConstructorOrMethod(JApiCompatibility member) {
+        return member instanceof JApiClass || member instanceof JApiField || member instanceof JApiConstructor || member instanceof JApiMethod;
     }
 
     private boolean isInjectConstructor(JApiCompatibility member) {
