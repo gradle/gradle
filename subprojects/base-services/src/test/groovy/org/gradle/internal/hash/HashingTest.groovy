@@ -16,9 +16,71 @@
 
 package org.gradle.internal.hash
 
+import org.apache.commons.lang.RandomStringUtils
 import spock.lang.Specification
 
+import java.security.MessageDigest
+
+import static java.lang.Thread.currentThread
+import static java.util.concurrent.CompletableFuture.supplyAsync
+import static java.util.concurrent.Executors.newFixedThreadPool
+
 class HashingTest extends Specification {
+
+    def 'hasher can be reused'() {
+        given:
+        def values = 'a'..'z'
+        def hasher = Hashing.newHasher()
+
+        when:
+        values.each { hasher.putString(it) }
+        def hash = hasher.hash()
+
+        then:
+        hasher.putString(values.join())
+        def differentHash = hasher.hash()
+        hash != differentHash
+
+        then:
+        values.each { hasher.putString(it) }
+        def reusedHasher = hasher.hash()
+        hash == reusedHasher
+    }
+
+    def "reused hashes should return the same values as new ones"() {
+        given:
+        def sharedHasher = Hashing.md5().defaultHasher()
+        def range = 0..10_000
+        def inputs = range.collect { RandomStringUtils.random(it).getBytes() }
+
+        expect:
+        inputs.forEach { input ->
+            sharedHasher.putBytes(input)
+
+            MessageDigest newHasher = MessageDigest.getInstance("MD5")
+            newHasher.update([input.length, (input.length >> 8), (input.length >> 16), (input.length >> 24)] as byte[])
+            newHasher.update(input)
+
+            assert sharedHasher.hash().toByteArray() == newHasher.digest()
+        }
+    }
+
+    def 'hasher can be used from multiple threads'() {
+        given:
+        def threadRange = 1..100
+        def hasher = Hashing.newHasher()
+
+        when:
+        def hashes = threadRange.collect {
+            supplyAsync({
+                hasher.putString(currentThread().name)
+                hasher.hash().toString()
+            }, newFixedThreadPool(threadRange.size()))
+        }*.join().toSet()
+
+        then:
+        hashes.size() == threadRange.size()
+    }
 
     def 'null does not collide with other values'() {
         expect:
