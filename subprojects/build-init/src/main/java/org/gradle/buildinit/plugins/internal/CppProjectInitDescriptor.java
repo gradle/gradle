@@ -22,6 +22,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.buildinit.plugins.internal.NamespaceBuilder.toNamespace;
@@ -62,6 +63,11 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {
         return null;
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getDocumentationFor("building_cpp_projects"));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);

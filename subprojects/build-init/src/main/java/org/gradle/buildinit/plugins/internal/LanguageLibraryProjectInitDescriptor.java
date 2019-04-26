@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import java.util.Optional;
+
 public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSpecificProjectGenerator {
     protected String withPackage(InitSettings settings, String className) {
         if (settings.getPackageName().isEmpty()) {
@@ -23,5 +25,10 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         } else {
             return settings.getPackageName() + "." + className;
         }
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.empty();
     }
 }
