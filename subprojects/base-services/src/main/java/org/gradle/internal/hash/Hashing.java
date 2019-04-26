@@ -18,12 +18,9 @@ package org.gradle.internal.hash;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
-import org.gradle.internal.io.BufferCaster;
 import org.gradle.internal.io.NullOutputStream;
 
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -200,7 +197,6 @@ public class Hashing {
 
     private static class MessageDigestHasher implements PrimitiveHasher {
         private final MessageDigest digest;
-        private final ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
         private boolean done;
 
         public MessageDigestHasher(MessageDigest digest) {
@@ -238,22 +234,33 @@ public class Hashing {
             return HashCode.fromBytesNoCopy(bytes);
         }
 
-        private void update(int length) {
-            checkNotDone();
-            digest.update(buffer.array(), 0, length);
-            BufferCaster.cast(buffer).clear();
-        }
-
         @Override
         public void putInt(int value) {
-            buffer.putInt(value);
-            update(4);
+            byte[] bytes = new byte[]{
+                (byte) value,
+                (byte) (value >> 8),
+                (byte) (value >> 16),
+                (byte) (value >> 24)
+            };
+            // TODO change to bigendian Ints.toByteArray(value);
+            // TODO: apply to org.gradle.internal.hash.HashCode.fromInt, too
+            putBytes(bytes);
         }
 
         @Override
         public void putLong(long value) {
-            buffer.putLong(value);
-            update(8);
+            byte[] bytes = new byte[]{
+                (byte) value,
+                (byte) (value >> 8),
+                (byte) (value >> 16),
+                (byte) (value >> 24),
+                (byte) (value >> 32),
+                (byte) (value >> 40),
+                (byte) (value >> 48),
+                (byte) (value >> 56)
+            };
+            // TODO change to bigendian Longs.toByteArray(value);
+            putBytes(bytes);
         }
 
         @Override
