@@ -18,6 +18,8 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,6 +38,16 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
     @Override
     public String getId() {
         return descriptor.getId();
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return descriptor.getComponentType();
+    }
+
+    @Override
+    public Language getLanguage() {
+        return descriptor.getLanguage();
     }
 
     @Override

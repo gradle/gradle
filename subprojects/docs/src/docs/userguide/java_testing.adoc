@@ -15,12 +15,6 @@
 [[java_testing]]
 = Testing in Java & JVM projects
 
-////
-To run integration tests:
-
-   ./gradlew :integTest:intTestImage :docs:extractSamples :integTest:integTest --tests "*SamplesJavaTestingIntegrationTest"
-////
-
 Testing on the JVM is a rich subject matter. There are many different testing libraries and frameworks, as well as many different types of test. All need to be part of the build, whether they are executed frequently or infrequently. This chapter is dedicated to explaining how Gradle handles differing requirements between and within builds, with significant coverage of how it integrates with the two most common testing frameworks: https://junit.org/[JUnit] and https://testng.org/[TestNG].
 
 It explains:

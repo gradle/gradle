@@ -28,13 +28,13 @@ import org.gradle.internal.HasInternalProtocol;
  * sourceControl {
  *   vcsMappings {
  *     withModule("org.gradle:gradle") {
- *       from vcs(GitVersionControlSpec) {
+ *       from(GitVersionControlSpec) {
  *         url = uri("https://github.com/gradle/gradle")
  *       }
  *     }
  *     all { details -&gt;
  *       if (details.requested.group == "org.gradle") {
- *         from vcs(GitVersionControlSpec) {
+ *         from(GitVersionControlSpec) {
  *           url = uri("https://github.com/gradle/${details.requested.module}")
  *         }
  *       }

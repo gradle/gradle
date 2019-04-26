@@ -26,6 +26,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
@@ -35,8 +36,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.Time;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DisabledOsMemoryInfo;
@@ -83,7 +83,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         // Read logging config and setup logging
         int logLevel = decoder.readSmallInt();
-        LoggingManagerInternal loggingManager = createLoggingManager();
+        LoggingServiceRegistry loggingServiceRegistry = LoggingServiceRegistry.newEmbeddableLogging();
+        LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry);
         loggingManager.setLevelInternal(LogLevel.values()[logLevel]).start();
 
         // Read whether process info should be published
@@ -95,8 +96,14 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         // Read server address and start connecting
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
+        NativeServices.initialize(gradleUserHomeDir, false);
         MessagingServices messagingServices = new MessagingServices();
-        final WorkerServices workerServices = new WorkerServices(messagingServices, gradleUserHomeDir);
+        ServiceRegistry basicWorkerServices = ServiceRegistryBuilder.builder()
+                .parent(NativeServices.getInstance())
+                .parent(loggingServiceRegistry)
+                .parent(messagingServices)
+                .build();
+        final WorkerServices workerServices = new WorkerServices(basicWorkerServices, gradleUserHomeDir);
 
         ObjectConnection connection = null;
         WorkerLogEventListener workerLogEventListener = null;
@@ -203,8 +210,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         });
     }
 
-    LoggingManagerInternal createLoggingManager() {
-        LoggingManagerInternal loggingManagerInternal = LoggingServiceRegistry.newEmbeddableLogging().newInstance(LoggingManagerInternal.class);
+    LoggingManagerInternal createLoggingManager(LoggingServiceRegistry loggingServiceRegistry) {
+        LoggingManagerInternal loggingManagerInternal = loggingServiceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManagerInternal.captureSystemSources();
         return loggingManagerInternal;
     }
@@ -222,10 +229,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                     };
                 }
             });
-        }
-
-        Clock createClock() {
-            return Time.clock();
         }
 
         ListenerManager createListenerManager() {
@@ -246,6 +249,10 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
+        }
+
+        WorkerServices createWorkerServices() {
+            return this;
         }
     }
 }

@@ -65,6 +65,7 @@ tasks {
             findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:latest.release", versionProperties)
             findLatest("groovy", "org.codehaus.groovy:groovy:(2.5,)", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
+            findLatest("junit-jupiter", "org.junit.jupiter:junit-jupiter-api:(5,)", versionProperties)
             findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
 
@@ -112,6 +113,7 @@ val devSuffixes = arrayOf(
     "-beta-?\\d+",
     "-dev-?\\d+",
     "-rc-?\\d+",
+    "-RC-?\\d+",
     "-M\\d+",
     "-eap-?\\d+"
 )

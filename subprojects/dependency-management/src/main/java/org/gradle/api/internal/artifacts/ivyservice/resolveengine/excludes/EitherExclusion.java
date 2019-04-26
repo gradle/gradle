@@ -25,13 +25,13 @@ import java.util.Collection;
  * A spec that excludes modules or artifacts that are excluded by _any_ of the supplied exclusions.
  * As such, this is an intersection of the separate exclude rule filters.
  */
-class IntersectionExclusion extends AbstractCompositeExclusion {
+class EitherExclusion extends AbstractCompositeExclusion {
     private final ImmutableModuleExclusionSet excludeSpecs;
     private final boolean mergeable;
 
     private Boolean excludesNoModules;
 
-    public IntersectionExclusion(ImmutableModuleExclusionSet specs) {
+    public EitherExclusion(ImmutableModuleExclusionSet specs) {
         this.excludeSpecs = specs;
         boolean canMerge = true;
         for (AbstractModuleExclusion spec : specs) {
@@ -92,7 +92,7 @@ class IntersectionExclusion extends AbstractCompositeExclusion {
      * @param specs
      */
     @Override
-    protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
+    protected void unpackEither(Collection<AbstractModuleExclusion> specs) {
         specs.addAll(excludeSpecs);
     }
 

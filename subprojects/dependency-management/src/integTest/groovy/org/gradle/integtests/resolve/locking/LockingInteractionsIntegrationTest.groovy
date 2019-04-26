@@ -314,6 +314,183 @@ task copyFiles(type: Copy) {
 
     }
 
+    def "fails when a force overwrites a locked version"() {
+        given:
+        mavenRepo.module('org', 'test', '1.0').publish()
+        mavenRepo.module('org', 'test', '1.1').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:test:1.1'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf {
+        resolutionStrategy {
+            force 'org:test:1.0'
+        }
+    }
+}
+
+dependencies {
+    lockedConf 'org:test:[1.0,2.0)'
+}
+
+task resolve {
+    doLast {
+        println configurations.lockedConf.files
+    }
+}
+"""
+
+        when:
+        fails 'resolve'
+
+        then:
+        failureHasCause("Did not resolve 'org:test:1.1' which has been forced / substituted to a different version: '1.0'")
+    }
+
+    def "fails when a substitute overwrites a locked version"() {
+        given:
+        mavenRepo.module('org', 'test', '1.0').publish()
+        mavenRepo.module('org', 'test', '1.1').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:test:1.1'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf {
+        resolutionStrategy.dependencySubstitution {
+            substitute module('org:test') with module('org:test:1.0')
+        }
+    }
+}
+
+dependencies {
+    lockedConf 'org:test:[1.0,2.0)'
+}
+
+task resolve {
+    doLast {
+        println configurations.lockedConf.files
+    }
+}
+"""
+
+        when:
+        fails 'resolve'
+
+        then:
+        failureHasCause("Did not resolve 'org:test:1.1' which has been forced / substituted to a different version: '1.0'")
+    }
+
+    def "fails when a useTarget overwrites a locked version"() {
+        given:
+        mavenRepo.module('org', 'test', '1.0').publish()
+        mavenRepo.module('org', 'test', '1.1').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:test:1.1'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org' && details.requested.name == 'test') {
+                details.useVersion '1.0'
+            }
+        }
+    }
+}
+
+dependencies {
+    lockedConf 'org:test:[1.0,2.0)'
+}
+
+task resolve {
+    doLast {
+        println configurations.lockedConf.files
+    }
+}
+"""
+
+        when:
+        fails 'resolve'
+
+        then:
+        failureHasCause("Did not resolve 'org:test:1.1' which has been forced / substituted to a different version: '1.0'")
+    }
+
+    def "ignores the lock entry that matches a composite"() {
+        given:
+        lockfileFixture.createLockfile('lockedConf', ['org:composite:1.1'])
+
+        file("composite/settings.gradle") << """
+rootProject.name = 'composite'
+"""
+        file("composite/build.gradle") << """
+apply plugin: 'java'
+group = 'org'
+version = '1.1'
+"""
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:composite:1.1'
+}
+
+task resolve {
+    doLast {
+        println configurations.lockedConf.files
+    }
+}
+"""
+        expect:
+        succeeds 'resolve', '--include-build', 'composite'
+    }
+
     @ToBeImplemented
     def "avoids HTTP requests for dynamic version when lock exists"() {
         def module1 = mavenHttpRepo.module('org', 'foo', '1.0').publish()

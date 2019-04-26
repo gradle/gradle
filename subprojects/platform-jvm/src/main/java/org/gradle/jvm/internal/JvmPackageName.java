@@ -16,88 +16,56 @@
 
 package org.gradle.jvm.internal;
 
-import java.util.Arrays;
-import java.util.List;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 
-/**
- * An immutable representation of a valid Java package name.
- *
- * <p>While {@code JvmPackageName} values are guaranteed to be valid per JLS package
- * naming rules, no validation is performed to ensure that the named package actually
- * exists.</p>
- *
- * <p>Note that due to vagaries inherent in Java naming, a valid package name is also
- * always a valid type name.</p>
- *
- * @see #of(String)
- * @since 2.10
- */
+import java.util.Set;
+
 public class JvmPackageName {
+    private static final char DELIMITER = '.';
+    private static final Splitter PACKAGE_FRAGMENT_SPLITTER = Splitter.on(DELIMITER);
+    private static final String UNNAMED_PACKAGE = "";
 
-    private static final List<String> JAVA_KEYWORDS = Arrays.asList(
+    private static final Set<String> INVALID_PACKAGE_KEYWORDS = ImmutableSet.of(
         "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
         "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if",
         "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private",
         "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this",
-        "throw", "throws", "transient", "try", "void", "volatile", "while"
+        "throw", "throws", "transient", "try", "void", "volatile", "while", "_",
+        "true", "false",
+        "null",
+        ""
     );
 
-    private static final List<String> BOOLEAN_AND_NULL_LITERALS = Arrays.asList("true", "false", "null");
-
-    private static final String UNNAMED_PACKAGE = "";
-
-    private final String value;
-
-    private JvmPackageName(String value) {
-        this.value = value;
+    private JvmPackageName() {
     }
 
     /**
-     * The underlying package name value, e.g. "com.example.p1".
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     * Validate, create and return a new {@code PackageName} instance from the given
-     * package name.
+     * Validate a given package name.
      *
      * <p>See JLS sections:
      * <ul>
-     *   <li><em><a href="https://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">
-     *     3.8. Identifiers</a></em></li>
-     *   <li><em><a href="https://docs.oracle.com/javase/specs/jls/se7/html/jls-6.html#jls-6.2">
-     *     6.2. Names and Identifiers</a></em></li>
-     *   <li><em><a href="https://docs.oracle.com/javase/specs/jls/se7/html/jls-7.html#jls-7.4">
-     *     7.4. Package Declarations</a></em></li>
+     * <li><em><a href="https://docs.oracle.com/javase/specs/jls/se12/html/jls-3.html#jls-3.8"> 3.8. Identifiers</a></em></li>
+     * <li><em><a href="https://docs.oracle.com/javase/specs/jls/se12/html/jls-6.html#jls-6.2"> 6.2. Names and Identifiers</a></em></li>
+     * <li><em><a href="https://docs.oracle.com/javase/specs/jls/se12/html/jls-7.html#jls-7.4"> 7.4. Package Declarations</a></em></li>
      * </ul>
      * </p>
      *
-     * @param value the candidate package name, e.g.: {@code com.example.p1} or an empty
-     * string indicating an <em>unnamed package</em>
-     * @return the validated package name instance, never null
-     * @throws IllegalArgumentException if value is null or does not conform to valid
-     * package naming per the JLS
+     * @return whether value is null or does not conform to valid package naming per the JLS
      */
-    public static JvmPackageName of(String value) {
-        if (!isValidPackageName(value)) {
-            throw new IllegalArgumentException(String.format("'%s' is not a valid package name", value));
-        }
-        return new JvmPackageName(value);
-    }
-
-    private static boolean isValidPackageName(String value) {
+    public static boolean isValid(String value) {
         if (UNNAMED_PACKAGE.equals(value)) {
             return true;
-        }
-        if (value == null
-                || value.startsWith(".")
-                || value.endsWith(".")) {
+        } else if (value == null) {
             return false;
+        } else {
+            return fragmentsAreValid(value);
         }
-        for (String token : value.split("\\.")) {
-            if (!isIdentifier(token)) {
+    }
+
+    private static boolean fragmentsAreValid(String value) {
+        for (String packageFragment : PACKAGE_FRAGMENT_SPLITTER.split(value)) {
+            if (!isIdentifier(packageFragment)) {
                 return false;
             }
         }
@@ -105,41 +73,20 @@ public class JvmPackageName {
     }
 
     private static boolean isIdentifier(String token) {
-        if (token.isEmpty()
-                || JAVA_KEYWORDS.contains(token)
-                || BOOLEAN_AND_NULL_LITERALS.contains(token)
-                || !Character.isJavaIdentifierStart(token.charAt(0))) {
+        return !INVALID_PACKAGE_KEYWORDS.contains(token)
+            && isValidJavaIdentifier(token);
+    }
+
+    private static boolean isValidJavaIdentifier(String token) {
+        if (!Character.isJavaIdentifierStart(token.charAt(0))) {
             return false;
-        }
-        if (token.length() > 1) {
-            for (char c : token.substring(1).toCharArray()) {
-                if (!Character.isJavaIdentifierPart(c)) {
+        } else {
+            for (int i = 1; i < token.length(); i++) {
+                if (!Character.isJavaIdentifierPart(token.charAt(i))) {
                     return false;
                 }
             }
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        JvmPackageName that = (JvmPackageName) o;
-        return value.equals(that.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
     }
 }

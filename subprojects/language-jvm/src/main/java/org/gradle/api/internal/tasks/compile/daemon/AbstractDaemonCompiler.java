@@ -19,8 +19,10 @@ import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.RequiresServices;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
 import org.gradle.workers.internal.SimpleActionExecutionSpec;
@@ -74,15 +76,21 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     private static class CompilerCallable<T extends CompileSpec> implements Callable<WorkResult> {
         private final Compiler<T> compiler;
         private final T compileSpec;
+        private final ServiceRegistry serviceRegistry;
 
         @Inject
-        public CompilerCallable(Compiler<T> compiler, T compileSpec) {
+        public CompilerCallable(Compiler<T> compiler, T compileSpec, ServiceRegistry serviceRegistry) {
             this.compiler = compiler;
             this.compileSpec = compileSpec;
+            this.serviceRegistry = serviceRegistry;
         }
 
         @Override
         public WorkResult call() throws Exception {
+            // TODO Pass the compiler as a class and instantiate it rather than this hack
+            if (compiler instanceof RequiresServices) {
+                ((RequiresServices) compiler).setServiceRegistry(serviceRegistry);
+            }
             return compiler.execute(compileSpec);
         }
     }

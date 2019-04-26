@@ -213,6 +213,11 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         baseInvocation.addPath(toolSearchPath.getPath());
         baseInvocation.addEnvironmentVar("CYGWIN", "nodosfilewarning");
         baseInvocation.setArgAction(toolConfiguration.getArgAction());
+
+        String developerDir = System.getenv("DEVELOPER_DIR");
+        if (developerDir != null) {
+            baseInvocation.addEnvironmentVar("DEVELOPER_DIR", developerDir);
+        }
         return baseInvocation;
     }
 
@@ -228,6 +233,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         CommandLineToolSearchResult searchResult = toolSearchPath.locate(compiler.getToolType(), compiler.getExecutable());
         String language = LANGUAGE_FOR_COMPILER.get(compilerType);
         List<String> languageArgs = language == null ? Collections.<String>emptyList() : ImmutableList.of("-x", language);
+
         return metadataProvider.getCompilerMetaData(toolSearchPath.getPath(), spec -> spec.executable(searchResult.getTool()).args(languageArgs));
     }
 
