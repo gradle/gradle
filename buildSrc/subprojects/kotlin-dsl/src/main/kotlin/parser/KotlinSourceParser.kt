@@ -28,18 +28,15 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
-import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.JvmAnalysisFlags
-import org.jetbrains.kotlin.config.LanguageVersion
-import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.utils.Jsr305State
 import org.jetbrains.kotlin.utils.PathUtil
 
 import java.io.File
+
+import build.configureKotlinCompilerForGradleBuild
 
 
 class KotlinSourceParser {
@@ -87,14 +84,7 @@ class KotlinSourceParser {
             put(JVMConfigurationKeys.DISABLE_OPTIMIZATION, true)
             put(CommonConfigurationKeys.MODULE_NAME, "parser")
 
-            // This is the same as in the `kotlin-library` plugin in this build
-            put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
-            put(JVMConfigurationKeys.SKIP_RUNTIME_VERSION_CHECK, true)
-            put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, LanguageVersionSettingsImpl(
-                languageVersion = LanguageVersion.KOTLIN_1_3,
-                apiVersion = ApiVersion.KOTLIN_1_3,
-                analysisFlags = mapOf(JvmAnalysisFlags.jsr305 to Jsr305State.STRICT)
-            ))
+            configureKotlinCompilerForGradleBuild()
 
             addJvmClasspathRoots(PathUtil.getJdkClassesRoots(Jvm.current().javaHome))
             addJvmClasspathRoots(compilationClasspath)
