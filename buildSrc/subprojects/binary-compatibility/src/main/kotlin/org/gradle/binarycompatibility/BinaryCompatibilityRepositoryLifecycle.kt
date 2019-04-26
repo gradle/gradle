@@ -34,14 +34,14 @@ class BinaryCompatibilityRepositorySetupRule(private val params: Map<String, Any
      * Each param is a `Set<String>`.
      */
     object Params {
-        val currentSourceRoots = "currentSourceRoots"
-        val currentClasspath = "currentClasspath"
+        const val sourceRoots = "sourceRoots"
+        const val sourceCompilationClasspath = "sourceCompilationClasspath"
     }
 
     override fun execute(context: ViolationCheckContext) {
         (context.userData as MutableMap<String, Any?>)[REPOSITORY_CONTEXT_KEY] = BinaryCompatibilityRepository.openRepositoryFor(
-            param(Params.currentSourceRoots),
-            param(Params.currentClasspath)
+            param(Params.sourceRoots),
+            param(Params.sourceCompilationClasspath)
         )
     }
 

@@ -37,7 +37,7 @@ class BinaryCompatibilityHelper {
     static setupJApiCmpRichReportRules(
         JapicmpTask japicmpTask,
         AcceptedApiChanges acceptedViolations,
-        Set<File> currentSourceRoots,
+        Set<File> sourceRoots,
         String currentVersion
     ) {
         japicmpTask.tap {
@@ -71,8 +71,8 @@ class BinaryCompatibilityHelper {
             doFirst {
                 richReport.tap {
                     addSetupRule(BinaryCompatibilityRepositorySetupRule, [
-                        (BinaryCompatibilityRepositorySetupRule.Params.currentSourceRoots): currentSourceRoots.collect { it.absolutePath } as Set,
-                        (BinaryCompatibilityRepositorySetupRule.Params.currentClasspath): newClasspath.collect { it.absolutePath } as Set
+                        (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set,
+                        (BinaryCompatibilityRepositorySetupRule.Params.sourceCompilationClasspath): newClasspath.collect { it.absolutePath } as Set
                     ])
                     addPostProcessRule(BinaryCompatibilityRepositoryPostProcessRule)
                 }
