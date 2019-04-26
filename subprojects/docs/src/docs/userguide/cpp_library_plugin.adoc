@@ -103,7 +103,7 @@ Aggregates tasks that assemble the specific variant of this library.
 
 === Lifecycle Tasks
 
-The C++ Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the Base Plugin chapter - which the C++ Library Plugin applies automatically:
+The C\++ Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the Base Plugin chapter - which the C++ Library Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Depends on: `linkDebug` when linkage includes `shared` or `createDebug` otherwise.
@@ -139,8 +139,8 @@ The following graph describes the configurations added by the C++ Library Plugin
 image::cpp-library-configurations.png[]
 
 * The configurations in white are the ones a user should use to declare dependencies
-* The configurations in pink, also known as consumable denoted by (C), are the ones used when a component compiles, links, or runs against the library.
-* The configurations in blue, also known as resolvable denoted by (R), are internal to the component, for its own use
+* The configurations in pink, also known as consumable denoted by \(C), are the ones used when a component compiles, links, or runs against the library.
+* The configurations in blue, also known as resolvable denoted by \(R), are internal to the component, for its own use
 
 The following configurations are used to declare dependencies:
 
@@ -172,7 +172,7 @@ Used for executing this library.
 This configuration is meant to be used by consumers, to retrieve all the elements necessary to run against this library.
 
 The following configurations are used by the library itself:
-`cppCompileVariant` (e.g. `cppCompileDebug` and `cppCompileRelease`)::
+`cppCompile__Variant__` (e.g. `cppCompileDebug` and `cppCompileRelease`)::
 Used for compiling this library.
 This configuration contains the compile include roots of this library and is therefore used when invoking the C++ compiler to compile it.
 
@@ -223,7 +223,7 @@ Private headers - headers needed to compile the library and not needed by the co
 `src/main/public`::
 Public headers - headers needed to compile the library and required by the consumers
 
-You <<building_cpp_projects.adoc#sec:custom_cpp_source_set_paths,configure the project layout> by configuring the `source`, `privateHeaders` and `publicHeaders` respectively on the `library` script block.
+You <<building_cpp_projects.adoc#sec:custom_cpp_source_set_paths,configure the project layout>> by configuring the `source`, `privateHeaders` and `publicHeaders` respectively on the `library` script block.
 
 === `compile__Variant__Cpp` Task
 
