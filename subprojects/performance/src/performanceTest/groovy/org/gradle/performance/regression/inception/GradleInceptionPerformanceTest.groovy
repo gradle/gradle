@@ -42,6 +42,7 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC
  *   - e.g. change in Gradle that breaks the Gradle build
  */
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
+@spock.lang.Ignore
 class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     static List<String> extraGradleBuildArguments() {
