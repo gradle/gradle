@@ -42,13 +42,13 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC
  *   - e.g. change in Gradle that breaks the Gradle build
  */
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
-@spock.lang.Ignore
 class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     static List<String> extraGradleBuildArguments() {
         ["-Djava9Home=${System.getProperty('java9Home')}",
          "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}",
          "-Dorg.gradle.ignoreBuildJavaVersionCheck=true",
+         "-PbuildSrcCheck=false",
          "-I", createMirrorInitScript().absolutePath]
     }
 
@@ -83,7 +83,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.runs = runs
-        runner.args = extraGradleBuildArguments() + ["-PbuildSrcCheck=false"]
+        runner.args = extraGradleBuildArguments()
 
         and:
         def changingClassFilePath = "buildSrc/${buildSrcProjectDir}src/main/groovy/ChangingClass.groovy"
