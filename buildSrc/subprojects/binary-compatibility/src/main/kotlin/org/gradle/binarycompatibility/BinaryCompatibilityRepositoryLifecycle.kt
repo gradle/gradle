@@ -52,8 +52,11 @@ class BinaryCompatibilityRepositorySetupRule(private val params: Map<String, Any
 
 
 class BinaryCompatibilityRepositoryPostProcessRule : PostProcessViolationsRule {
+    @Suppress("unchecked_cast")
     override fun execute(context: ViolationCheckContextWithViolations) {
-        (context.userData[BinaryCompatibilityRepositorySetupRule.REPOSITORY_CONTEXT_KEY] as BinaryCompatibilityRepository).close()
-        (context.userData as MutableMap<String, Any?>)[BinaryCompatibilityRepositorySetupRule.REPOSITORY_CONTEXT_KEY] = null
+        val userData = context.userData as MutableMap<String, Any?>
+        val key = BinaryCompatibilityRepositorySetupRule.REPOSITORY_CONTEXT_KEY
+        (userData[key] as BinaryCompatibilityRepository).close()
+        userData[key] = null
     }
 }
