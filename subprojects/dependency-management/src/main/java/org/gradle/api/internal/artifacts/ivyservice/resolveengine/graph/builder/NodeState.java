@@ -275,8 +275,9 @@ public class NodeState implements DependencyGraphNode {
                     continue;
                 }
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
-                if (!pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState)) {
-                    createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter);
+                PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
+                if (!pendingState.isPending()) {
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING);
                 }
             }
             previousTraversalExclusions = resolutionFilter;
@@ -288,11 +289,11 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ModuleExclusion resolutionFilter) {
+    private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ModuleExclusion resolutionFilter, boolean deferSelection) {
         EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
         outgoingEdges.add(dependencyEdge);
         discoveredEdges.add(dependencyEdge);
-        dependencyEdge.getSelector().use();
+        dependencyEdge.getSelector().use(deferSelection);
     }
 
     /**
@@ -306,7 +307,7 @@ public class NodeState implements DependencyGraphNode {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
                 if (upcomingNoLongerPendingConstraints.contains(dependencyState.getModuleIdentifier())) {
                     dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
-                    createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions);
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false);
                 }
             }
         }
@@ -359,7 +360,7 @@ public class NodeState implements DependencyGraphNode {
         EdgeState edge = potentialEdge.edge;
         virtualEdges.add(edge);
         discoveredEdges.add(edge);
-        edge.getSelector().use();
+        edge.getSelector().use(false);
     }
 
 

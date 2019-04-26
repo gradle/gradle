@@ -98,10 +98,10 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.versionConstraint = resolveVersionConstraint(firstSeenDependency.getSelector());
     }
 
-    public void use() {
+    public void use(boolean deferSelection) {
         outgoingEdgeCount++;
         if (outgoingEdgeCount == 1) {
-            targetModule.addSelector(this);
+            targetModule.addSelector(this, deferSelection);
         }
     }
 

@@ -982,8 +982,8 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
             }
             'org.test:moduleC'() {
                 '1.0' {
-                    expectGetMetadata()
                     if (constraintsUnsupported) {
+                        expectGetMetadata()
                         expectGetArtifact()
                     }
                 }

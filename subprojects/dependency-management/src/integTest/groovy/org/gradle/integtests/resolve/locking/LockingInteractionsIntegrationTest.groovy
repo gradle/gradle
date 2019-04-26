@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -491,10 +490,9 @@ task resolve {
         succeeds 'resolve', '--include-build', 'composite'
     }
 
-    @ToBeImplemented
     def "avoids HTTP requests for dynamic version when lock exists"() {
         def foo10 = mavenHttpRepo.module('org', 'foo', '1.0').publish()
-        def foo11 = mavenHttpRepo.module('org', 'foo', '1.1').publish()
+        mavenHttpRepo.module('org', 'foo', '1.1').publish()
         mavenHttpRepo.module('org', 'foo', '2.0').publish()
         def bar10 = mavenHttpRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.0,2.0)').publish()
 
@@ -520,9 +518,6 @@ dependencies {
 }
 """
         when:
-        // TODO Should not need to load the maven-metadata to get the version list
-        foo10.rootMetaData.expectGet()
-        foo11.pom.expectGet()
         foo10.pom.expectGet()
         bar10.pom.expectGet()
 

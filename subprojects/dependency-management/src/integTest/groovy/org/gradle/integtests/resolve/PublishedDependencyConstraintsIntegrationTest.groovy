@@ -185,8 +185,8 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:foo:1.0' {
-                expectGetMetadata()
                 if (!available) {
+                    expectGetMetadata()
                     expectGetArtifact()
                 }
             }

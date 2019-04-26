@@ -26,17 +26,27 @@ import java.util.NoSuchElementException;
 
 public class ModuleSelectors<T extends ResolvableSelectorState> implements Iterable<T> {
 
-    private final Iterator<T> emptyIterator = new EmptyIterator<>();
+    private static final Iterator EMPTY_ITERATOR = new EmptyIterator();
 
     private int selectorsCount = 0;
     private T singleSelector;
     private List<T> selectors;
     private List<T> dynamicSelectors;
+    private boolean deferSelection;
 
+    public boolean checkDeferSelection() {
+        if (deferSelection) {
+            deferSelection = false;
+            return true;
+        }
+        return false;
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     public Iterator<T> iterator() {
         if (selectorsCount == 0) {
-            return emptyIterator;
+            return EMPTY_ITERATOR;
         } else if (selectorsCount == 1) {
             return Iterators.singletonIterator(singleSelector);
         } else {
@@ -50,13 +60,15 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         }
     }
 
-    public void add(T selector) {
+    public void add(T selector, boolean deferSelection) {
         assert !contains(selector) : "Inconsistent call to add: should only be done if the selector isn't in use";
         if (selectorsCount == 0) {
             singleSelector = selector;
+            this.deferSelection = deferSelection;
         } else if (selectorsCount == 1) {
             addSelector(singleSelector);
             addSelector(selector);
+            singleSelector = null;
         } else {
             addSelector(selector);
         }
@@ -164,7 +176,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         }
     }
 
-    private static class EmptyIterator<U> implements Iterator<U> {
+    private static class EmptyIterator implements Iterator<Object> {
 
         @Override
         public boolean hasNext() {
@@ -172,7 +184,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         }
 
         @Override
-        public U next() {
+        public Object next() {
             throw new NoSuchElementException("Empty iterator has no elements");
         }
     }
