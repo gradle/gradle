@@ -22,12 +22,8 @@ import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.VersionNumber;
 
-public class RoutesCompilerFactory {
-    private static final Logger LOGGER = Logging.getLogger(RoutesCompilerFactory.class);
-
-    public static RoutesCompiler create(PlayPlatform playPlatform) {
-        return new RoutesCompiler(createAdapter(playPlatform));
-    }
+public class RoutesCompilerAdapterFactory {
+    private static final Logger LOGGER = Logging.getLogger(RoutesCompilerAdapterFactory.class);
 
     public static VersionedRoutesCompilerAdapter createAdapter(PlayPlatform playPlatform) {
         String playVersion = playPlatform.getPlayVersion();
