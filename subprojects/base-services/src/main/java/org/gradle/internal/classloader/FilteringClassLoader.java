@@ -162,13 +162,19 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
     }
 
     private boolean classAllowed(String className) {
-        if (disallowedClassNames.contains(className)
-            || disallowedPackagePrefixes.find(className)) {
+        if (disallowedClassNames.contains(className)) {
             return false;
         }
 
-        return classNames.contains(className)
-            || packagePrefixes.find(className)
+        if (classNames.contains(className)) {
+            return true;
+        }
+
+        if (disallowedPackagePrefixes.find(className)) {
+            return false;
+        }
+
+        return packagePrefixes.find(className)
             || (packagePrefixes.contains(DEFAULT_PACKAGE + ".") && isInDefaultPackage(className));
     }
 

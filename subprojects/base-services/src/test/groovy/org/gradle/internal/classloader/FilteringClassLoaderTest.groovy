@@ -238,6 +238,18 @@ class FilteringClassLoaderTest extends Specification {
         cannotLoadClass(Test)
     }
 
+    void "allow class wins over disallow package"() {
+        given:
+        withSpec { FilteringClassLoader.Spec spec ->
+            spec.disallowPackage("org.junit")
+            spec.allowClass(Test)
+        }
+
+        expect:
+        canLoadClass(Test)
+        cannotLoadClass(Before)
+    }
+
     void "visits self and parent"() {
         def visitor = Mock(ClassLoaderVisitor)
         given:

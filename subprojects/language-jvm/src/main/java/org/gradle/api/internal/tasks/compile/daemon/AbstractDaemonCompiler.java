@@ -76,7 +76,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         return merged;
     }
 
-    private static class CompilerCallable<T extends CompileSpec> implements Callable<WorkResult> {
+    public static class CompilerCallable<T extends CompileSpec> implements Callable<WorkResult> {
         private final Class<? extends Compiler<T>> compilerClass;
         private final Object[] compilerParameters;
         private final T compileSpec;
