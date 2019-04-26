@@ -24,6 +24,13 @@ details of 2
 ## n
 -->
 
+## Improved Eclipse project name deduplication in Buildship
+
+Gradle can now be informed about the current eclipse workpace state using the Tooling API. This allows gradle to include non gradle projects when
+deduplicating project names and reduce the chance of conflicts when non-gradle projects have the same name as gradle (sub-)projects.
+ 
+To benefit from this change a recent Buildship version is required.
+
 ## Upgrade Instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -77,7 +84,15 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Breaking changes
+## Potential breaking changes
+
+### User supplied Eclipse project names may be ignored on conflict
+
+Project names configured in the build script via [`EclipseProject.setName(...)`](javadoc/org/gradle/plugins/ide/eclipse/model/EclipseProject.html) where previously honored by gradle
+and Buildship even if they caused conflicts and import and synchronization errors. Gradle now will now deduplicate these names if they would conflict with other project names
+in the eclipse workspace. This change can lead to different eclipse project names for projects with user-specified names.
+
+## Breaking changes
 
 <!-- summary and links -->
 
