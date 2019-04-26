@@ -21,52 +21,7 @@ package org.gradle.internal.hash;
  *
  * In order to avoid collisions we prepend the length of the next bytes to the underlying hasher (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange).
  */
-public interface Hasher {
-    /**
-     * Feed a bunch of bytes into the hasher.
-     */
-    void putBytes(byte[] bytes);
-
-    /**
-     * Feed a given number of bytes into the hasher from the given offset.
-     */
-    void putBytes(byte[] bytes, int off, int len);
-
-    /**
-     * Feed a single byte into the hasher.
-     */
-    void putByte(byte value);
-
-    /**
-     * Feed an integer byte into the hasher.
-     */
-    void putInt(int value);
-
-    /**
-     * Feed a long value byte into the hasher.
-     */
-    void putLong(long value);
-
-    /**
-     * Feed a double value into the hasher.
-     */
-    void putDouble(double value);
-
-    /**
-     * Feed a boolean value into the hasher.
-     */
-    void putBoolean(boolean value);
-
-    /**
-     * Feed a string into the hasher.
-     */
-    void putString(CharSequence value);
-
-    /**
-     * Feed a hash code into the hasher.
-     */
-    void putHash(HashCode hashCode);
-
+public interface Hasher extends PrimitiveHasher {
     /**
      * Feed a {@code null} value into the hasher.
      */
@@ -87,13 +42,4 @@ public interface Hasher {
      * Reason why the hash is not valid.
      */
     String getInvalidReason();
-
-    /**
-     * Returns the combined hash.
-     *
-     * If the build cache hash is invalid, an exception is thrown.
-     *
-     * @throws IllegalStateException if the hasher state is invalid.
-     */
-    HashCode hash();
 }

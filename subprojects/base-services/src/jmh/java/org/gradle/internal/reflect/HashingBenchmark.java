@@ -94,16 +94,7 @@ public class HashingBenchmark {
     }
 
     private Hasher putStuff(Hasher hasher) {
-        hasher.putBoolean(true);
-        hasher.putDouble(1D);
-        hasher.putInt(1);
-        hasher.putInt(Integer.MAX_VALUE);
-        hasher.putLong(1L);
-        hasher.putLong(Long.MAX_VALUE);
-        hasher.putByte((byte) 1);
-        hasher.putBytes(DUMMY_BYTES);
-        hasher.putHash(DUMMY_HASH);
-        hasher.putString(DUMMY_STRING);
+        putStuff((PrimitiveHasher) hasher);
         hasher.putNull();
         return hasher;
     }
