@@ -46,8 +46,7 @@ object JavaSourceQueries {
             false,
             object : GenericVisitorAdapter<Boolean, Unit?>() {
                 override fun visit(declaration: MethodDeclaration, arg: Unit?): Boolean? {
-                    if (declaration.name?.asString() == method.name
-                        && declaration.annotations?.any { it.name.asString() == Override::class.simpleName } == true) {
+                    if (declaration.name?.asString() == method.name && declaration.hasOverrideAnnotation) {
                         return true
                     }
                     return null
@@ -69,6 +68,11 @@ object JavaSourceQueries {
             )
         }
 }
+
+
+private
+val MethodDeclaration.hasOverrideAnnotation: Boolean
+    get() = annotations?.any { it.name.asString() == Override::class.simpleName } == true
 
 
 private
