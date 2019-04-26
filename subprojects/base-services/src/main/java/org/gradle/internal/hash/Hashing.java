@@ -44,14 +44,14 @@ public class Hashing {
      * Returns a new {@link Hasher} based on the default hashing implementation.
      */
     public static Hasher newHasher() {
-        return DEFAULT.newHasher();
+        return DEFAULT.defaultHasher();
     }
 
     /**
      * Returns a new {@link PrimitiveHasher} based on the default hashing implementation.
      */
     public static PrimitiveHasher newPrimitiveHasher() {
-        return DEFAULT.newPrimitiveHasher();
+        return DEFAULT.primitiveHasher();
     }
 
     /**
@@ -65,7 +65,7 @@ public class Hashing {
      * Returns a hash code to use as a signature for a given thing.
      */
     public static HashCode signature(String thing) {
-        Hasher hasher = DEFAULT.newHasher();
+        Hasher hasher = DEFAULT.defaultHasher();
         hasher.putString("SIGNATURE");
         hasher.putString(thing);
         return hasher.hash();
@@ -137,26 +137,26 @@ public class Hashing {
         }
 
         @Override
-        public PrimitiveHasher newPrimitiveHasher() {
+        public PrimitiveHasher primitiveHasher() {
             MessageDigest digest = createDigest();
             return new MessageDigestHasher(digest);
         }
 
         @Override
-        public Hasher newHasher() {
-            return new DefaultHasher(newPrimitiveHasher());
+        public Hasher defaultHasher() {
+            return new DefaultHasher(primitiveHasher());
         }
 
         @Override
         public HashCode hashBytes(byte[] bytes) {
-            PrimitiveHasher hasher = newPrimitiveHasher();
+            PrimitiveHasher hasher = primitiveHasher();
             hasher.putBytes(bytes);
             return hasher.hash();
         }
 
         @Override
         public HashCode hashString(CharSequence string) {
-            PrimitiveHasher hasher = newPrimitiveHasher();
+            PrimitiveHasher hasher = primitiveHasher();
             hasher.putString(string);
             return hasher.hash();
         }

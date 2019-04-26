@@ -147,7 +147,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + string + file)
 
         then:
-        1 * hashFunction.newHasher() >> hasher
+        1 * hashFunction.defaultHasher() >> hasher
         1 * hashFunction.hashString(string) >> stringHash
         1 * fileHasher.hash(file) >> fileHash
         1 * hasher.putHash(stringHash)

@@ -31,7 +31,7 @@ public final class HashingOutputStream extends FilterOutputStream {
 
     public HashingOutputStream(HashFunction hashFunction, OutputStream out) {
         super(checkNotNull(out));
-        this.hasher = checkNotNull(hashFunction.newPrimitiveHasher());
+        this.hasher = checkNotNull(hashFunction.primitiveHasher());
     }
 
     @Override

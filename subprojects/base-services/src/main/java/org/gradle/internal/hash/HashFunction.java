@@ -24,12 +24,12 @@ public interface HashFunction {
     /**
      * Returns a primitive hasher using the hash function.
      */
-    PrimitiveHasher newPrimitiveHasher();
+    PrimitiveHasher primitiveHasher();
 
     /**
      * Returns a prefixing hasher using the hash function.
      */
-    Hasher newHasher();
+    Hasher defaultHasher();
 
     /**
      * Hash the given bytes using the hash function.
