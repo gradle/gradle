@@ -17,9 +17,11 @@
 import japicmp.model.JApiChangeStatus
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.binarycompatibility.AcceptedApiChanges
+import org.gradle.binarycompatibility.BinaryCompatibilityHelper
 import org.gradle.binarycompatibility.CleanAcceptedApiChanges
-import org.gradle.binarycompatibility.rules.*
-import org.gradle.binarycompatibility.transforms.*
+import org.gradle.binarycompatibility.transforms.ExplodeZipAndFindJars
+import org.gradle.binarycompatibility.transforms.FindGradleClasspath
+import org.gradle.binarycompatibility.transforms.FindGradleJar
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
 
@@ -43,7 +45,6 @@ ext {
     apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
     acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
     compatibilityBaselineVersion = Versioning_extensionsKt.getReleasedVersions(project).mostRecentRelease
-    foldersWithAPISources = ProjectGroups.INSTANCE.getPublicJavaProjects(project).sourceSets.main.allJava.srcDirs.flatten()
 }
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -111,10 +112,14 @@ dependencies {
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
     dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
 
+    Set<File> apiSourceFolders = ProjectGroups.INSTANCE.getPublicJavaProjects(project).collectMany { Project p ->
+        p.sourceSets.main.allJava.srcDirs + (p.plugins.hasPlugin("kotlin") ? p.sourceSets.main.kotlin.srcDirs : [])
+    }
+
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
-    inputs.files("foldersWithAPISources", foldersWithAPISources)
+    inputs.files("apiSourceFolders", apiSourceFolders)
 
     oldClasspath = configurations.baselineClasspath
     newClasspath = configurations.currentClasspath
@@ -122,27 +127,19 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     newArchives = files(ProjectGroups.INSTANCE.getPublicProjects(project).jar)
 
     // binary breaking change checking setup
-    onlyModified = true
+    onlyModified = false
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
     richReport {
-        includedClasses = toPatterns(PublicApi.includes)
-        excludedClasses = toPatterns(PublicApi.excludes)
+        includedClasses = toPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
+        excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
 
         title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
         reportName = "report.html"
-        addRule(IncubatingInternalInterfaceAddedRule, [acceptedApiChanges: acceptedViolations.toAcceptedChangesMap(), publicApiPatterns: includedClasses])
-        addRule(MethodsRemovedInInternalSuperClassRule, [acceptedApiChanges: acceptedViolations.toAcceptedChangesMap(), publicApiPatterns: includedClasses])
-        addRule(BinaryBreakingChangesRule, acceptedViolations.toAcceptedChangesMap())
-        addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedViolations.toAcceptedChangesMap())
-        addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedViolations.toAcceptedChangesMap())
-        addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedViolations.toAcceptedChangesMap())
-        addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations.toAcceptedChangesMap())
-        addSetupRule(SinceAnnotationMissingRuleAPISourceFoldersSetup, foldersWithAPISources.collectEntries { [(it): it] })
-        addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: baseVersion])
-        addPostProcessRule(AcceptedRegressionsRulePostProcess)
     }
+
+    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion)
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 
@@ -152,26 +149,11 @@ tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
 }
 
 static List<String> toPatterns(List<String> packages) {
-    def patterns = packages.collect {
+    packages.collect {
         it.replaceAll('\\*\\*', '###')
             .replaceAll('/\\*', '/[A-Z][a-z_A-Z0-9]+')
+            .replaceAll('$', '\\$')
             .replaceAll('/', '[.]')
             .replaceAll('###', '.*?')
     }
-    patterns
 }
-
-static Map<String, String> loadBreakingChanges(File file) {
-    def map = [:]
-    if (file.exists()) {
-        file.eachLine { line ->
-            line = line.trim()
-            if (line) {
-                def (lookup, reason) = line.split(';')
-                map[lookup] = reason
-            }
-        }
-    }
-    map
-}
-

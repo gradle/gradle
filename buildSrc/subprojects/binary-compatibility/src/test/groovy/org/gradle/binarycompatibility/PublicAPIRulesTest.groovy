@@ -29,6 +29,8 @@ class PublicAPIRulesTest extends Specification {
     TemporaryFolder tmp = new TemporaryFolder()
     File sourceFile
 
+    BinaryCompatibilityRepository repository
+
     def jApiClassifier = Stub(JApiClass) //represents interfaces, enums and annotations
     def jApiMethod = Stub(JApiMethod)
     def jApiField = Stub(JApiField) //represents fields and enum literals
@@ -54,6 +56,12 @@ class PublicAPIRulesTest extends Specification {
         deprecatedAnnotation.fullyQualifiedName >> Deprecated.name
         overrideAnnotation.fullyQualifiedName >> Override.name
         injectAnnotation.fullyQualifiedName >> Inject.name
+
+        repository = BinaryCompatibilityRepository.openRepositoryFor([new File(tmp.root.absolutePath)], [])
+    }
+
+    def cleanup() {
+        repository?.close()
     }
 
     @Unroll
@@ -140,6 +148,7 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiType).humanExplanation =~ 'Is not annotated with @since 11.38'
 
         when:
+        repository.emptyCaches()
         sourceFile.text = apiElement == 'enum' ? """
             /**
              * @since 11.38
@@ -249,7 +258,7 @@ class PublicAPIRulesTest extends Specification {
                 void method() { }
             }
         """
-        : apiElement == 'constructor' ? """
+            : apiElement == 'constructor' ? """
             /**
              * @since 11.38
              */
@@ -257,7 +266,7 @@ class PublicAPIRulesTest extends Specification {
                 public ApiTest() { }
             }
         """
-        : """
+            : """
             /**
              * @since 11.38
              */
@@ -290,7 +299,7 @@ class PublicAPIRulesTest extends Specification {
 
         when:
         jApiType.annotations >> [deprecatedAnnotation]
-        sourceFile.text =  """
+        sourceFile.text = """
             @Deprecated
             public interface $TEST_INTERFACE_SIMPLE_NAME {
                 @Deprecated
@@ -319,7 +328,7 @@ class PublicAPIRulesTest extends Specification {
         def sinceMissingRule = withContext(new SinceAnnotationMissingRule([:]))
 
         when:
-        sourceFile.text =  """
+        sourceFile.text = """
             public class $TEST_INTERFACE_SIMPLE_NAME {
                 @Override
                 void method() { }
@@ -331,9 +340,9 @@ class PublicAPIRulesTest extends Specification {
         sinceMissingRule.maybeViolation(jApiType) == null
 
         where:
-        apiElement  | jApiTypeName
-        'method'    | 'jApiMethod'
-        'field'     | 'jApiField'
+        apiElement | jApiTypeName
+        'method'   | 'jApiMethod'
+        'field'    | 'jApiField'
     }
 
     def "new incubating API does not fail the check but is reported"() {
@@ -360,7 +369,7 @@ class PublicAPIRulesTest extends Specification {
         annotations.clear()
 
         then:
-        rule.maybeViolation(jApiConstructor).humanExplanation  =~ error
+        rule.maybeViolation(jApiConstructor).humanExplanation =~ error
 
         when:
         annotations.add(injectAnnotation)
@@ -399,10 +408,27 @@ class PublicAPIRulesTest extends Specification {
 
     AbstractContextAwareViolationRule withContext(AbstractContextAwareViolationRule rule) {
         rule.context = new ViolationCheckContext() {
+
+            @Override
             String getClassName() { TEST_INTERFACE_NAME }
-            Map<String, ?> getUserData() {[
-                    apiSourceFolders : [ tmp.root.absolutePath ], currentVersion: '11.38'
-            ]}
+
+            @Override
+            Map<String, ?> getUserData() {
+                [
+                    currentVersion: '11.38',
+                    (BinaryCompatibilityRepositorySetupRule.REPOSITORY_CONTEXT_KEY): repository
+                ]
+            }
+
+            @Override
+            <T> T getUserData(String key) {
+                getUserData()[key]
+            }
+
+            @Override
+            <T> void putUserData(String key, T value) {
+                getUserData().put(key, value)
+            }
         }
         rule
     }
