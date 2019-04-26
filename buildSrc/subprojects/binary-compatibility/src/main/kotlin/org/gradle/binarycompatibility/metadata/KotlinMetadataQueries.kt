@@ -25,6 +25,7 @@ import javassist.Modifier
 import javassist.bytecode.annotation.Annotation
 import javassist.bytecode.annotation.AnnotationImpl
 
+import kotlinx.metadata.Flag
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 
@@ -49,14 +50,28 @@ object KotlinMetadataQueries {
 
     fun isKotlinInternal(ctClass: CtClass): Boolean =
         if (Modifier.isPrivate(ctClass.modifiers)) false
-        else queryKotlinMetadata(ctClass, false) { metadata ->
-            metadata.isKotlinInternal(MemberType.TYPE, ctClass.name)
-        }
+        else hasKotlinFlag(ctClass, Flag.IS_INTERNAL)
 
     fun isKotlinInternal(ctMember: CtMember): Boolean =
         if (Modifier.isPrivate(ctMember.modifiers)) false
-        else queryKotlinMetadata(ctMember.declaringClass, false) { metadata ->
-            metadata.isKotlinInternal(memberTypeFor(ctMember), ctMember.jvmSignature)
+        else hasKotlinFlag(ctMember, Flag.IS_INTERNAL)
+
+    fun isKotlinOperatorFunction(ctMethod: CtMethod): Boolean =
+        hasKotlinFlag(ctMethod, Flag.Function.IS_OPERATOR)
+
+    fun isKotlinInfixFunction(ctMethod: CtMethod): Boolean =
+        hasKotlinFlag(ctMethod, Flag.Function.IS_INFIX)
+
+    private
+    fun hasKotlinFlag(ctClass: CtClass, flag: Flag): Boolean =
+        queryKotlinMetadata(ctClass, false) { metadata ->
+            metadata.hasKotlinFlag(MemberType.TYPE, ctClass.name, flag)
+        }
+
+    private
+    fun hasKotlinFlag(ctMember: CtMember, flag: Flag): Boolean =
+        queryKotlinMetadata(ctMember.declaringClass, false) { metadata ->
+            metadata.hasKotlinFlag(memberTypeFor(ctMember), ctMember.jvmSignature, flag)
         }
 
     private

@@ -18,11 +18,9 @@ package org.gradle.binarycompatibility.rules
 
 import groovy.transform.CompileStatic
 
-import japicmp.model.JApiChangeStatus
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
-import japicmp.model.JApiHasChangeStatus
 import japicmp.model.JApiMethod
 
 import javassist.CtBehavior
@@ -121,16 +119,6 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
             return Violation.warning(member, warnings.join(" "))
         }
         return null
-    }
-
-    private static boolean isNewOrRemoved(JApiCompatibility member) {
-        if (member instanceof JApiHasChangeStatus) {
-            return ((JApiHasChangeStatus) member).changeStatus in [
-                JApiChangeStatus.NEW,
-                JApiChangeStatus.REMOVED
-            ]
-        }
-        return true
     }
 
     private static List<Boolean> parametersNullabilityOf(CtBehavior behavior) {

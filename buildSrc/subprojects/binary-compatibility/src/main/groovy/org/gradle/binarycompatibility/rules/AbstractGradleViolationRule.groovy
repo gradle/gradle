@@ -25,6 +25,7 @@ import japicmp.model.JApiCompatibility
 import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
 import japicmp.model.JApiHasAnnotations
+import japicmp.model.JApiHasChangeStatus
 import japicmp.model.JApiMethod
 import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Violation
@@ -48,6 +49,16 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
 
     protected BinaryCompatibilityRepository getRepository() {
         return context.userData[BinaryCompatibilityRepositorySetupRule.REPOSITORY_CONTEXT_KEY] as BinaryCompatibilityRepository
+    }
+
+    protected static boolean isNewOrRemoved(JApiCompatibility member) {
+        if (member instanceof JApiHasChangeStatus) {
+            return ((JApiHasChangeStatus) member).changeStatus in [
+                JApiChangeStatus.NEW,
+                JApiChangeStatus.REMOVED
+            ]
+        }
+        return true
     }
 
     private static boolean isAnnotatedWithIncubating(JApiHasAnnotations member) {

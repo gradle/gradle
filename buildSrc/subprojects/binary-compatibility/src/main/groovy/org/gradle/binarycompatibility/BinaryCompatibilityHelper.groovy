@@ -25,6 +25,7 @@ import org.gradle.binarycompatibility.rules.AcceptedRegressionsRuleSetup
 import org.gradle.binarycompatibility.rules.BinaryBreakingChangesRule
 import org.gradle.binarycompatibility.rules.IncubatingInternalInterfaceAddedRule
 import org.gradle.binarycompatibility.rules.IncubatingMissingRule
+import org.gradle.binarycompatibility.rules.KotlinModifiersBreakingChangeRule
 import org.gradle.binarycompatibility.rules.MethodsRemovedInInternalSuperClassRule
 import org.gradle.binarycompatibility.rules.NewIncubatingAPIRule
 import org.gradle.binarycompatibility.rules.NullabilityBreakingChangesRule
@@ -58,6 +59,7 @@ class BinaryCompatibilityHelper {
                 ])
                 addRule(BinaryBreakingChangesRule, acceptedChangesMap)
                 addRule(NullabilityBreakingChangesRule, acceptedChangesMap)
+                addRule(KotlinModifiersBreakingChangeRule, acceptedChangesMap)
                 addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedChangesMap)
                 addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedChangesMap)
                 addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedChangesMap)

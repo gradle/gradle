@@ -17,6 +17,7 @@
 package org.gradle.binarycompatibility.metadata
 
 import kotlinx.metadata.ClassName
+import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
 import kotlinx.metadata.KmClassExtensionVisitor
 import kotlinx.metadata.KmClassVisitor
@@ -40,11 +41,18 @@ import kotlinx.metadata.jvm.KotlinClassMetadata
 
 
 internal
-fun KotlinClassMetadata.isKotlinInternal(memberType: MemberType, jvmSignature: String): Boolean =
+fun KotlinClassMetadata.hasKotlinFlag(memberType: MemberType, jvmSignature: String, flag: Flag): Boolean =
+    hasKotlinFlags(memberType, jvmSignature) { flags ->
+        flag(flags)
+    }
+
+
+private
+fun KotlinClassMetadata.hasKotlinFlags(memberType: MemberType, jvmSignature: String, predicate: (Flags) -> Boolean): Boolean =
     when (this) {
-        is KotlinClassMetadata.Class -> classVisitorFor(memberType, jvmSignature).apply(::accept).isKotlinInternal
-        is KotlinClassMetadata.FileFacade -> packageVisitorFor(memberType, jvmSignature).apply(::accept).isKotlinInternal
-        is KotlinClassMetadata.MultiFileClassPart -> packageVisitorFor(memberType, jvmSignature).apply(::accept).isKotlinInternal
+        is KotlinClassMetadata.Class -> classVisitorFor(memberType, jvmSignature, predicate).apply(::accept).isSatisfied
+        is KotlinClassMetadata.FileFacade -> packageVisitorFor(memberType, jvmSignature, predicate).apply(::accept).isSatisfied
+        is KotlinClassMetadata.MultiFileClassPart -> packageVisitorFor(memberType, jvmSignature, predicate).apply(::accept).isSatisfied
         is KotlinClassMetadata.MultiFileClassFacade -> false
         is KotlinClassMetadata.SyntheticClass -> false
         is KotlinClassMetadata.Unknown -> false
@@ -52,46 +60,51 @@ fun KotlinClassMetadata.isKotlinInternal(memberType: MemberType, jvmSignature: S
     }
 
 
-@Suppress("unchecked_cast")
 private
-fun <T> classVisitorFor(memberType: MemberType, jvmSignature: String): T where T : KmClassVisitor, T : IsKotlinInternal =
-    when (memberType) {
-        MemberType.TYPE -> IsInternalTypeKmClassVisitor(jvmSignature)
-        MemberType.FIELD -> IsInternalFieldKmClassVisitor(jvmSignature)
-        MemberType.CONSTRUCTOR -> IsInternalConstructorKmClassVisitor(jvmSignature)
-        MemberType.METHOD -> IsInternalMethodKmClassVisitor(jvmSignature)
-    } as T
-
-
-@Suppress("unchecked_cast")
-private
-fun <T> packageVisitorFor(memberType: MemberType, jvmSignature: String): T where T : KmPackageVisitor, T : IsKotlinInternal =
-    when (memberType) {
-        MemberType.FIELD -> IsInternalFieldKmPackageVisitor(jvmSignature)
-        MemberType.METHOD -> IsInternalMethodKmPackageVisitor(jvmSignature)
-        else -> IsInternalNoopKmPackageVisitor
-    } as T
+typealias FlagsPredicate = (Flags) -> Boolean
 
 
 private
-interface IsKotlinInternal {
-    var isKotlinInternal: Boolean
+interface CanBeSatisfied {
+    var isSatisfied: Boolean
 }
 
 
+@Suppress("unchecked_cast")
 private
-class IsInternalTypeKmClassVisitor(
-    private val jvmSignature: String
-) : KmClassVisitor(), IsKotlinInternal {
+fun <T> classVisitorFor(memberType: MemberType, jvmSignature: String, predicate: FlagsPredicate): T where T : KmClassVisitor, T : CanBeSatisfied =
+    when (memberType) {
+        MemberType.TYPE -> TypeFlagsKmClassVisitor(jvmSignature, predicate)
+        MemberType.FIELD -> FieldFlagsKmClassVisitor(jvmSignature, predicate)
+        MemberType.CONSTRUCTOR -> ConstructorFlagsKmClassVisitor(jvmSignature, predicate)
+        MemberType.METHOD -> MethodFlagsKmClassVisitor(jvmSignature, predicate)
+    } as T
 
-    override var isKotlinInternal = false
+
+@Suppress("unchecked_cast")
+private
+fun <T> packageVisitorFor(memberType: MemberType, jvmSignature: String, predicate: FlagsPredicate): T where T : KmPackageVisitor, T : CanBeSatisfied =
+    when (memberType) {
+        MemberType.FIELD -> FieldFlagsKmPackageVisitor(jvmSignature, predicate)
+        MemberType.METHOD -> MethodFlagsKmPackageVisitor(jvmSignature, predicate)
+        else -> NoopFlagsKmPackageVisitor
+    } as T
+
+
+private
+class TypeFlagsKmClassVisitor(
+    private val jvmSignature: String,
+    private val predicate: FlagsPredicate
+) : KmClassVisitor(), CanBeSatisfied {
+
+    override var isSatisfied = false
 
     private
     var isDoneVisiting = false
 
     override fun visit(flags: Flags, name: ClassName) {
         if (!isDoneVisiting && jvmSignature == name.replace("/", ".")) {
-            isKotlinInternal = flags.isInternal
+            isSatisfied = predicate(flags)
             isDoneVisiting = true
         }
     }
@@ -99,40 +112,42 @@ class IsInternalTypeKmClassVisitor(
 
 
 private
-class IsInternalFieldKmClassVisitor(
-    private val jvmSignature: String
-) : KmClassVisitor(), IsKotlinInternal {
+class FieldFlagsKmClassVisitor(
+    private val jvmSignature: String,
+    private val predicate: FlagsPredicate
+) : KmClassVisitor(), CanBeSatisfied {
 
-    override var isKotlinInternal = false
+    override var isSatisfied = false
 
     private
     var isDoneVisiting = false
 
     private
-    val onMatch = { isInternal: Boolean ->
-        isKotlinInternal = isInternal
+    val onMatch = { satisfaction: Boolean ->
+        isSatisfied = satisfaction
         isDoneVisiting = true
     }
 
     override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
         if (isDoneVisiting) null
-        else IsInternalMemberKmPropertyExtensionVisitor(jvmSignature, flags, getterFlags, setterFlags, onMatch)
+        else MemberFlagsKmPropertyExtensionVisitor(jvmSignature, predicate, flags, getterFlags, setterFlags, onMatch)
 
     override fun visitExtensions(type: KmExtensionType): KmClassExtensionVisitor? =
         if (isDoneVisiting) null
         else object : JvmClassExtensionVisitor() {
             override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
-                IsInternalMemberKmPropertyExtensionVisitor(jvmSignature, flags, getterFlags, setterFlags, onMatch)
+                MemberFlagsKmPropertyExtensionVisitor(jvmSignature, predicate, flags, getterFlags, setterFlags, onMatch)
         }
 }
 
 
 private
-class IsInternalConstructorKmClassVisitor(
-    private val jvmSignature: String
-) : KmClassVisitor(), IsKotlinInternal {
+class ConstructorFlagsKmClassVisitor(
+    private val jvmSignature: String,
+    private val predicate: FlagsPredicate
+) : KmClassVisitor(), CanBeSatisfied {
 
-    override var isKotlinInternal = false
+    override var isSatisfied = false
 
     private
     var isDoneVisiting = false
@@ -144,7 +159,7 @@ class IsInternalConstructorKmClassVisitor(
                 object : JvmConstructorExtensionVisitor() {
                     override fun visit(desc: JvmMethodSignature?) {
                         if (jvmSignature == desc?.asString()) {
-                            isKotlinInternal = flags.isInternal
+                            isSatisfied = predicate(flags)
                             isDoneVisiting = true
                         }
                     }
@@ -154,109 +169,113 @@ class IsInternalConstructorKmClassVisitor(
 
 
 private
-class IsInternalMethodKmClassVisitor(
-    private val jvmSignature: String
-) : KmClassVisitor(), IsKotlinInternal {
+class MethodFlagsKmClassVisitor(
+    private val jvmSignature: String,
+    private val predicate: FlagsPredicate
+) : KmClassVisitor(), CanBeSatisfied {
 
-    override var isKotlinInternal = false
+    override var isSatisfied = false
 
     private
     var isDoneVisiting = false
 
     private
-    val onMatch = { isInternal: Boolean ->
-        isKotlinInternal = isInternal
+    val onMatch = { satisfaction: Boolean ->
+        isSatisfied = satisfaction
         isDoneVisiting = true
     }
 
     override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
         if (isDoneVisiting) null
-        else IsInternalMethodKmFunctionVisitor(jvmSignature, flags, onMatch)
+        else MethodFlagsKmFunctionVisitor(jvmSignature, predicate, flags, onMatch)
 
     override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
         if (isDoneVisiting) null
-        else IsInternalMemberKmPropertyExtensionVisitor(jvmSignature, flags, getterFlags, setterFlags, onMatch)
+        else MemberFlagsKmPropertyExtensionVisitor(jvmSignature, predicate, flags, getterFlags, setterFlags, onMatch)
 
     override fun visitExtensions(type: KmExtensionType): KmClassExtensionVisitor? =
         if (isDoneVisiting) null
         else object : JvmClassExtensionVisitor() {
             override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor =
-                IsInternalMemberKmPropertyExtensionVisitor(jvmSignature, flags, getterFlags, setterFlags, onMatch)
+                MemberFlagsKmPropertyExtensionVisitor(jvmSignature, predicate, flags, getterFlags, setterFlags, onMatch)
         }
 }
 
 
 private
-class IsInternalFieldKmPackageVisitor(
-    private val jvmSignature: String
-) : KmPackageVisitor(), IsKotlinInternal {
+class FieldFlagsKmPackageVisitor(
+    private val jvmSignature: String,
+    private val predicate: FlagsPredicate
+) : KmPackageVisitor(), CanBeSatisfied {
 
-    override var isKotlinInternal = false
+    override var isSatisfied = false
 
     private
     var isDoneVisiting = false
 
     private
-    val onMatch = { isInternal: Boolean ->
-        isKotlinInternal = isInternal
+    val onMatch = { satisfaction: Boolean ->
+        isSatisfied = satisfaction
         isDoneVisiting = true
     }
 
     override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
         if (isDoneVisiting) null
-        else IsInternalMemberKmPropertyExtensionVisitor(jvmSignature, flags, getterFlags, setterFlags, onMatch)
+        else MemberFlagsKmPropertyExtensionVisitor(jvmSignature, predicate, flags, getterFlags, setterFlags, onMatch)
 
     override fun visitExtensions(type: KmExtensionType): KmPackageExtensionVisitor? =
         if (isDoneVisiting) null
         else object : JvmPackageExtensionVisitor() {
             override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor =
-                IsInternalMemberKmPropertyExtensionVisitor(jvmSignature, flags, getterFlags, setterFlags, onMatch)
+                MemberFlagsKmPropertyExtensionVisitor(jvmSignature, predicate, flags, getterFlags, setterFlags, onMatch)
         }
 }
 
 
 private
-class IsInternalMethodKmPackageVisitor(
-    private val jvmSignature: String
-) : KmPackageVisitor(), IsKotlinInternal {
+class MethodFlagsKmPackageVisitor(
+    private val jvmSignature: String,
+    private val predicate: FlagsPredicate
+) : KmPackageVisitor(), CanBeSatisfied {
 
-    override var isKotlinInternal = false
+    override var isSatisfied = false
 
     private
     var isDoneVisiting = false
 
     private
-    val onMatch = { isInternal: Boolean ->
-        isKotlinInternal = isInternal
+    val onMatch = { satisfaction: Boolean ->
+        isSatisfied = satisfaction
         isDoneVisiting = true
     }
 
     override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
         if (isDoneVisiting) null
-        else IsInternalMethodKmFunctionVisitor(jvmSignature, flags, onMatch)
+        else MethodFlagsKmFunctionVisitor(jvmSignature, predicate, flags, onMatch)
 
     override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
         if (isDoneVisiting) null
-        else IsInternalMemberKmPropertyExtensionVisitor(jvmSignature, flags, getterFlags, setterFlags, onMatch)
+        else MemberFlagsKmPropertyExtensionVisitor(jvmSignature, predicate, flags, getterFlags, setterFlags, onMatch)
 
     override fun visitExtensions(type: KmExtensionType): KmPackageExtensionVisitor? =
         if (isDoneVisiting) null
         else object : JvmPackageExtensionVisitor() {
             override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor =
-                IsInternalMemberKmPropertyExtensionVisitor(jvmSignature, flags, getterFlags, setterFlags, onMatch)
+                MemberFlagsKmPropertyExtensionVisitor(jvmSignature, predicate, flags, getterFlags, setterFlags, onMatch)
         }
 }
 
 
 private
-object IsInternalNoopKmPackageVisitor : KmPackageVisitor(), IsKotlinInternal {
-    override var isKotlinInternal = false
+object NoopFlagsKmPackageVisitor : KmPackageVisitor(), CanBeSatisfied {
+    override var isSatisfied = false
 }
 
 
 private
-class IsInternalMemberKmPropertyExtensionVisitor(
+class MemberFlagsKmPropertyExtensionVisitor(
     private val jvmSignature: String,
+    private val predicate: FlagsPredicate,
     private val fieldFlags: Flags,
     private val getterFlags: Flags,
     private val setterFlags: Flags,
@@ -267,9 +286,9 @@ class IsInternalMemberKmPropertyExtensionVisitor(
     val kmPropertyExtensionVisitor = object : JvmPropertyExtensionVisitor() {
         override fun visit(fieldDesc: JvmFieldSignature?, getterDesc: JvmMethodSignature?, setterDesc: JvmMethodSignature?) {
             when (jvmSignature) {
-                fieldDesc?.asString() -> onMatch(fieldFlags.isInternal)
-                getterDesc?.asString() -> onMatch(getterFlags.isInternal)
-                setterDesc?.asString() -> onMatch(setterFlags.isInternal)
+                fieldDesc?.asString() -> onMatch(predicate(fieldFlags))
+                getterDesc?.asString() -> onMatch(predicate(getterFlags))
+                setterDesc?.asString() -> onMatch(predicate(setterFlags))
             }
         }
     }
@@ -280,8 +299,9 @@ class IsInternalMemberKmPropertyExtensionVisitor(
 
 
 private
-class IsInternalMethodKmFunctionVisitor(
+class MethodFlagsKmFunctionVisitor(
     private val jvmSignature: String,
+    private val predicate: FlagsPredicate,
     private val functionFlags: Flags,
     private val onMatch: (Boolean) -> Unit
 ) : KmFunctionVisitor() {
@@ -290,7 +310,7 @@ class IsInternalMethodKmFunctionVisitor(
     val kmFunctionExtensionVisitor = object : JvmFunctionExtensionVisitor() {
         override fun visit(desc: JvmMethodSignature?) {
             if (jvmSignature == desc?.asString()) {
-                onMatch(functionFlags.isInternal)
+                onMatch(predicate(functionFlags))
             }
         }
     }
@@ -298,8 +318,3 @@ class IsInternalMethodKmFunctionVisitor(
     override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? =
         kmFunctionExtensionVisitor
 }
-
-
-private
-val Flags.isInternal: Boolean
-    get() = kotlinx.metadata.Flag.IS_INTERNAL(this)
