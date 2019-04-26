@@ -16,16 +16,18 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescriptor {
-    public KotlinApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
-        super("kotlin", scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
+
+    public KotlinApplicationProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider) {
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -34,8 +36,13 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
     }
 
     @Override
-    public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.KOTLIN;
+    public ComponentType getComponentType() {
+        return ComponentType.APPLICATION;
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.KOTLIN;
     }
 
     @Override
@@ -49,8 +56,8 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
 
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
         buildScriptBuilder
@@ -60,12 +67,12 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
             .implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8")
             .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
             .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit")
-            .conventionPropertyAssignment(
-                "Define the main class for the application.",
-                "application", "mainClassName", withPackage(settings, "AppKt"));
+            .block(null, "application", b -> {
+                b.propertyAssignment("Define the main class for the application", "mainClassName", withPackage(settings, "AppKt"));
+            });
 
-        TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinapp/App.kt.template", settings, "main");
-        TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinapp/AppTest.kt.template", settings, "test");
-        whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
+        TemplateOperation kotlinSourceTemplate = templateFactory.fromSourceTemplate("kotlinapp/App.kt.template", "main");
+        TemplateOperation kotlinTestTemplate = templateFactory.fromSourceTemplate("kotlinapp/AppTest.kt.template", "test");
+        templateFactory.whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
     }
 }

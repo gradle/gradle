@@ -16,16 +16,22 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class CppApplicationProjectInitDescriptor extends CppProjectInitDescriptor {
-    public CppApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public CppApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
+        super(templateOperationFactory, documentationRegistry);
     }
 
     @Override
     public String getId() {
         return "cpp-application";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.APPLICATION;
     }
 
     @Override
@@ -47,11 +53,12 @@ public class CppApplicationProjectInitDescriptor extends CppProjectInitDescripto
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .plugin(
-                "Apply the cpp-application plugin to add support for building CPP executables",
+                "Apply the cpp-application plugin to add support for building C++ executables",
                 "cpp-application")
-            .plugin("Apply the cpp-unit-test plugin to add support for building and running CPP test executables",
+            .plugin("Apply the cpp-unit-test plugin to add support for building and running C++ test executables",
                 "cpp-unit-test")
-            .block("Set the target operating system and architecture for this application", "application")
-            .methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
+            .block("Set the target operating system and architecture for this application", "application", b -> {
+                b.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
+            });
     }
 }

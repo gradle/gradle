@@ -30,11 +30,19 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-## Build Init Improvements
+## Build init plugin improvements
 
-### Junit Jupiter
+### Support for JUnit Jupiter
 
-TBD
+The `init` task now provides an option to use Junit Jupiter, instead of Junit 4, to test Java applications and libraries. You can select this test framework when you run the `init` task interactively, or use the `--test-framework` command-line option. See the [User manual](userguide/build_init_plugin.html) for more details.
+
+Contributed by [Erhard Pointl](https://github.com/epeee)
+
+### Generate Gradle plugin builds
+
+The `init` task can now generate simple Gradle plugins. You can use these as a starting point for developing and testing a Gradle plugin. The `init` task provides an option to use either Java, Groovy or Kotlin for the plugin source. You can select a Gradle plugin when you run the `init` task interactively, or use the `--type` command-line option. 
+
+See the [User manual](userguide/build_init_plugin.html) for more details.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
