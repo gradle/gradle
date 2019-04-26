@@ -23,6 +23,7 @@ import org.gradle.internal.io.NullOutputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.function.Supplier;
 
 /**
  * Some popular hash functions. Replacement for Guava's hashing utilities.
@@ -117,109 +118,76 @@ public class Hashing {
         return SHA1;
     }
 
-    private static abstract class MessageDigestHashFunction implements HashFunction {
-        public static MessageDigestHashFunction of(String algorithm) {
-            MessageDigest prototype;
-            try {
-                prototype = MessageDigest.getInstance(algorithm);
-            } catch (NoSuchAlgorithmException e) {
-                throw new IllegalArgumentException("Cannot instantiate digest algorithm: " + algorithm);
-            }
-            try {
-                prototype.clone();
-                return new CloningMessageDigestHashFunction(prototype);
-            } catch (CloneNotSupportedException e) {
-                return new RegularMessageDigestHashFunction(algorithm);
-            }
+    private static class MessageDigestHashFunction implements HashFunction {
+        public static MessageDigestHashFunction of(final String algorithm) {
+            ThreadLocal<MessageDigest> messageDigestThreadLocal = ThreadLocal.withInitial(new Supplier<MessageDigest>() {
+                public MessageDigest get() {
+                    try {
+                        return MessageDigest.getInstance(algorithm);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new IllegalArgumentException("Cannot instantiate digest algorithm: " + algorithm);
+                    }
+                }
+            });
+            return new MessageDigestHashFunction(messageDigestThreadLocal);
+        }
+
+        private final DefaultHasher defaultHasher;
+        private final MessageDigestHasher messageDigestHasher;
+
+        public MessageDigestHashFunction(ThreadLocal<MessageDigest> messageDigestThreadLocal) {
+            this.messageDigestHasher = new MessageDigestHasher(messageDigestThreadLocal);
+            this.defaultHasher = new DefaultHasher(messageDigestHasher);
         }
 
         @Override
         public PrimitiveHasher primitiveHasher() {
-            MessageDigest digest = createDigest();
-            return new MessageDigestHasher(digest);
+            return messageDigestHasher;
         }
 
         @Override
         public Hasher defaultHasher() {
-            return new DefaultHasher(primitiveHasher());
+            return defaultHasher;
         }
 
         @Override
         public HashCode hashBytes(byte[] bytes) {
-            PrimitiveHasher hasher = primitiveHasher();
-            hasher.putBytes(bytes);
-            return hasher.hash();
+            messageDigestHasher.putBytes(bytes);
+            return messageDigestHasher.hash();
         }
 
         @Override
         public HashCode hashString(CharSequence string) {
-            PrimitiveHasher hasher = primitiveHasher();
-            hasher.putString(string);
-            return hasher.hash();
-        }
-
-        protected abstract MessageDigest createDigest();
-    }
-
-    private static class CloningMessageDigestHashFunction extends MessageDigestHashFunction {
-        private final MessageDigest prototype;
-
-        public CloningMessageDigestHashFunction(MessageDigest prototype) {
-            this.prototype = prototype;
-        }
-
-        @Override
-        protected MessageDigest createDigest() {
-            try {
-                return (MessageDigest) prototype.clone();
-            } catch (CloneNotSupportedException e) {
-                throw new AssertionError(e);
-            }
-        }
-    }
-
-    private static class RegularMessageDigestHashFunction extends MessageDigestHashFunction {
-        private final String algorithm;
-
-        public RegularMessageDigestHashFunction(String algorithm) {
-            this.algorithm = algorithm;
-        }
-
-        @Override
-        protected MessageDigest createDigest() {
-            try {
-                return MessageDigest.getInstance(algorithm);
-            } catch (NoSuchAlgorithmException e) {
-                throw new AssertionError(e);
-            }
+            messageDigestHasher.putString(string);
+            return messageDigestHasher.hash();
         }
     }
 
     private static class MessageDigestHasher implements PrimitiveHasher {
-        private final MessageDigest digest;
+        private final ThreadLocal<MessageDigest> digest;
 
-        public MessageDigestHasher(MessageDigest digest) {
+        public MessageDigestHasher(ThreadLocal<MessageDigest> digest) {
             this.digest = digest;
         }
 
         @Override
         public void putByte(byte b) {
-            digest.update(b);
+            digest.get().update(b);
         }
 
         @Override
         public void putBytes(byte[] bytes) {
-            digest.update(bytes);
+            digest.get().update(bytes);
         }
 
         @Override
         public void putBytes(byte[] bytes, int off, int len) {
-            digest.update(bytes, off, len);
+            digest.get().update(bytes, off, len);
         }
 
         @Override
         public HashCode hash() {
-            byte[] bytes = digest.digest();
+            byte[] bytes = digest.get().digest();
             return HashCode.fromBytesNoCopy(bytes);
         }
 
