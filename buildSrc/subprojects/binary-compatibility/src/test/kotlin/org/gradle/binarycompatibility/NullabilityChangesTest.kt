@@ -224,13 +224,13 @@ class NullabilityChangesTest : AbstractBinaryCompatibilityTest() {
                 class Source(some: String) {
                     fun foo(bar: String) {}
                 }
-                fun Source.invoke(arg: String) {}
+                operator fun Source.invoke(arg: String) {}
             """,
             v2 = """
                 class Source(some: String?) {
                     fun foo(bar: String?) {}
                 }
-                fun Source.invoke(arg: String?) {}
+                operator fun Source.invoke(arg: String?) {}
             """
         ) {
             assertHasNoError()
