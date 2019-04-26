@@ -75,7 +75,7 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.2.7" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.2.8" // TODO:kotlin-dsl
 
 tasks {
 
