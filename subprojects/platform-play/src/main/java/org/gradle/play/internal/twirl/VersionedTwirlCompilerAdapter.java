@@ -33,8 +33,6 @@ public abstract class VersionedTwirlCompilerAdapter implements Serializable {
 
     public abstract Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat, List<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 
-    public abstract Iterable<String> getClassLoaderPackages();
-
     public abstract Collection<TwirlTemplateFormat> getDefaultTemplateFormats();
 
     protected String getImportsFor(TwirlTemplateFormat templateFormat, Collection<String> defaultImports, Collection<String> additionalImports) {
