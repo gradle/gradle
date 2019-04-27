@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -82,6 +83,7 @@ public class NodeState implements DependencyGraphNode {
     private boolean evicted;
     private Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
     private boolean virtualPlatformNeedsRefresh;
+    private HashSet<EdgeState> edgesToRecompute;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -194,6 +196,19 @@ public class NodeState implements DependencyGraphNode {
 
         if (!component.isSelected()) {
             LOGGER.debug("version for {} is not selected. ignoring.", this);
+            if (upcomingNoLongerPendingConstraints != null) {
+                for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
+                    ModuleResolveState module = resolveState.getModule(identifier);
+                    for (EdgeState unattachedDependency : module.getUnattachedDependencies()) {
+                        if (!unattachedDependency.getSelector().isResolved()) {
+                            // Unresolved - we have a selector that was deferred but the constraint has been removed in between
+                            NodeState from = unattachedDependency.getFrom();
+                            from.prepareToRecomputeEdge(unattachedDependency);
+                        }
+                    }
+                }
+                upcomingNoLongerPendingConstraints = null;
+            }
             return;
         }
 
@@ -213,10 +228,9 @@ public class NodeState implements DependencyGraphNode {
         if (!isVirtualPlatformNeedsRefresh()) {
             // Check if node was previously traversed with the same net exclusion when not a virtual platform
             if (previousTraversalExclusions != null && previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
-                if (hasNewConstraints()) {
-                    // Previously traversed but new constraints no longer pending, so partial traversing
-                    visitAdditionalConstraints(discoveredEdges);
-                } else {
+                boolean newConstraints = handleNewConstraints(discoveredEdges);
+                boolean edgesToRecompute = handleEdgesToRecompute(discoveredEdges);
+                if (!newConstraints && !edgesToRecompute) {
                     // Was previously traversed, and no change to the set of modules that are linked by outgoing edges.
                     // Don't need to traverse again, but hang on to the new filter since it may change the set of excluded artifacts.
                     LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
@@ -229,14 +243,38 @@ public class NodeState implements DependencyGraphNode {
         // Clear previous traversal state, if any
         if (previousTraversalExclusions != null) {
             removeOutgoingEdges();
+            upcomingNoLongerPendingConstraints = null;
+            edgesToRecompute = null;
         }
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
     }
 
-    private boolean hasNewConstraints() {
-        return upcomingNoLongerPendingConstraints != null;
+    private void prepareToRecomputeEdge(EdgeState edgeToRecompute) {
+        if (edgesToRecompute == null) {
+            edgesToRecompute = new HashSet<>();
+        }
+        edgesToRecompute.add(edgeToRecompute);
+        resolveState.onMoreSelected(this);
+    }
+
+    private boolean handleEdgesToRecompute(Collection<EdgeState> discoveredEdges) {
+        if (edgesToRecompute != null) {
+            discoveredEdges.addAll(edgesToRecompute);
+            edgesToRecompute = null;
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleNewConstraints(Collection<EdgeState> discoveredEdges) {
+        if (upcomingNoLongerPendingConstraints != null) {
+            // Previously traversed but new constraints no longer pending, so partial traversing
+            visitAdditionalConstraints(discoveredEdges);
+            return true;
+        }
+        return false;
     }
 
     private boolean isVirtualPlatformNeedsRefresh() {
@@ -500,7 +538,6 @@ public class NodeState implements DependencyGraphNode {
         }
         virtualEdges = null;
         previousTraversalExclusions = null;
-        upcomingNoLongerPendingConstraints = null;
         virtualPlatformNeedsRefresh = false;
     }
 
