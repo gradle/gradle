@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-class ExcludeNone extends AbstractModuleExclusion {
-    @Override
-    public String toString() {
-        return "{exclude-none}";
-    }
-
-    @Override
-    protected boolean doEquals(Object o) {
-        return true;
-    }
-
-    @Override
-    protected int doHashCode() {
-        return 0;
-    }
-
-    @Override
-    public boolean excludeModule(ModuleIdentifier module) {
-        return false;
-    }
-
-    @Override
-    protected boolean excludesNoModules() {
-        return true;
-    }
+public interface ModuleIdExclude extends ExcludeSpec {
+    ModuleIdentifier getModuleId();
 }

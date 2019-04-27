@@ -92,7 +92,7 @@ class DependencyGraphBuilderTest extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def moduleExclusions = new ModuleExclusions(moduleIdentifierFactory)
+    def moduleExclusions = new ModuleExclusions()
     def buildOperationProcessor = Mock(BuildOperationExecutor) {
         def queue = Mock(BuildOperationQueue) {
             add(_) >> { args ->

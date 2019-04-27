@@ -24,7 +24,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -54,7 +55,7 @@ class EdgeState implements DependencyGraphEdge {
     private final NodeState from;
     private final SelectorState selector;
     private final ResolveState resolveState;
-    private final ModuleExclusion transitiveExclusions;
+    private final ExcludeSpec transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
     private final boolean isTransitive;
     private final boolean isConstraint;
@@ -62,7 +63,7 @@ class EdgeState implements DependencyGraphEdge {
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
 
-    EdgeState(NodeState from, DependencyState dependencyState, ModuleExclusion transitiveExclusions, ResolveState resolveState) {
+    EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
         this.from = from;
         this.dependencyState = dependencyState;
         this.dependencyMetadata = dependencyState.getDependency();
@@ -243,16 +244,17 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public ModuleExclusion getExclusions() {
+    public ExcludeSpec getExclusions() {
         List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
         if (excludes.isEmpty()) {
             return transitiveExclusions;
         }
-        ModuleExclusion edgeExclusions = resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
-        return resolveState.getModuleExclusions().either(edgeExclusions, transitiveExclusions);
+        ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
+        ExcludeSpec edgeExclusions = moduleExclusions.excludeAny(ImmutableList.copyOf(excludes));
+        return moduleExclusions.excludeAny(edgeExclusions, transitiveExclusions);
     }
 
-    public ModuleExclusion getEdgeExclusions() {
+    ExcludeSpec getEdgeExclusions() {
         List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
         if (excludes.isEmpty()) {
             return null;
