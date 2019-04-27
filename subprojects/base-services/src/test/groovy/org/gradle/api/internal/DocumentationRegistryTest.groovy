@@ -40,4 +40,14 @@ class DocumentationRegistryTest extends Specification {
         expect:
         registry.getDslRefForProperty(org.gradle.api.Project, 'name') == "https://docs.gradle.org/${gradleVersion.version}/dsl/org.gradle.api.Project.html#org.gradle.api.Project:name"
     }
+
+    def "points users at the gradle guides"() {
+        expect:
+        registry.getGuideFor("creating-new-gradle-builds") == "https://guides.gradle.org/creating-new-gradle-builds"
+    }
+
+    def "points users at the gradle guides for topic"() {
+        expect:
+        registry.getTopicGuidesFor("Native") == "https://guides.gradle.org?q=Native"
+    }
 }

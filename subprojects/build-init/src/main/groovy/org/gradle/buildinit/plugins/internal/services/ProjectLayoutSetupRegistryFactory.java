@@ -72,8 +72,8 @@ public class ProjectLayoutSetupRegistryFactory {
         BuildContentGenerator gitIgnoreGenerator = new GitIgnoreGenerator(fileResolver);
         List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, resourcesGenerator);
         List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator);
-        BuildInitializer basicType = of(new BasicProjectGenerator(scriptBuilderFactory), commonGenerators);
-        PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider, scriptBuilderFactory);
+        BuildInitializer basicType = of(new BasicProjectGenerator(scriptBuilderFactory, documentationRegistry), commonGenerators);
+        PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider, scriptBuilderFactory, documentationRegistry);
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter);
         registry.add(of(new JavaLibraryProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new JavaApplicationProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));

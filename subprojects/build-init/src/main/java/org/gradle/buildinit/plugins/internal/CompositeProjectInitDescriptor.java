@@ -23,6 +23,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -86,5 +87,10 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
             generator.generate(settings);
         }
         descriptor.generate(settings);
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return descriptor.getFurtherReading();
     }
 }

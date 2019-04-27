@@ -56,6 +56,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
             allOf(
                 containsString("This is a general purpose Gradle build"),
                 containsString("Learn how to create Gradle builds at")))
+        outputContains("Get more help with your project: ")
 
         expect:
         succeeds 'tasks'

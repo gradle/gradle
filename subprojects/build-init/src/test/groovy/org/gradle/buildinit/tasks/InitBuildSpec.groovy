@@ -67,6 +67,7 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.defaultDsl >> GROOVY
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.defaultTestFramework >> NONE
+        projectSetupDescriptor.furtherReading >> Optional.empty()
 
         when:
         init.setupProjectLayout()
@@ -80,6 +81,7 @@ class InitBuildSpec extends Specification {
         projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
         projectSetupDescriptor.testFrameworks >> [SPOCK]
         projectSetupDescriptor.dsls >> [GROOVY, KOTLIN]
+        projectSetupDescriptor.furtherReading >> Optional.empty()
         init.type = "java-library"
         init.dsl = "kotlin"
         init.testFramework = "spock"

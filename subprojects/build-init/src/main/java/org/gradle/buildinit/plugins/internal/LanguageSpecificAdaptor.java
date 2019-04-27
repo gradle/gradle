@@ -22,6 +22,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
+import java.util.Optional;
 import java.util.Set;
 
 public class LanguageSpecificAdaptor implements ProjectGenerator {
@@ -50,6 +51,11 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     @Override
     public Language getLanguage() {
         return descriptor.getLanguage();
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return descriptor.getFurtherReading();
     }
 
     @Override

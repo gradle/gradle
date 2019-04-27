@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
@@ -57,6 +58,11 @@ public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescript
         TemplateOperation sourceTemplate = sourceTemplateOperation(templateFactory);
         TemplateOperation testSourceTemplate = testTemplateOperation(templateFactory);
         templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getDocumentationFor("tutorial_groovy_projects"));
     }
 
     @Override

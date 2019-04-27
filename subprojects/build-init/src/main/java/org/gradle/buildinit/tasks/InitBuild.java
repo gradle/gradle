@@ -213,6 +213,8 @@ public class InitBuild extends DefaultTask {
         }
 
         initDescriptor.generate(new InitSettings(projectName, dsl, packageName, testFramework));
+
+        initDescriptor.getFurtherReading().ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
     }
 
     @Option(option = "type", description = "Set the type of project to generate.")
