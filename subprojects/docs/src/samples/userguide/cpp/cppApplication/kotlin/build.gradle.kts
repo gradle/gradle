@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-// tag::cpp-plugin[]
+// tag::apply-plugin[]
 plugins {
     `cpp-application`
 }
-// end::cpp-plugin[]
+// end::apply-plugin[]
 
 // tag::configure-target-machines[]
 application {

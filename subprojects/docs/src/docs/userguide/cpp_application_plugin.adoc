@@ -27,7 +27,7 @@ include::sample[dir="userguide/cpp/cppApplication/kotlin",files="build.gradle.kt
 
 == Build variants
 
-The {cpp} Application Plugin understand the following dimensions which participate in the variant configuration.
+The {cpp} Application Plugin understands the following dimensions which participate in the variant configuration.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 
 Build types - always set to _debug_ and _release_::
@@ -63,12 +63,12 @@ The following diagrams show the relationship between variant-dependent tasks.
 .{cpp} Application Plugin variant-dependent task graph
 image::cpp-application-variant-task-graph.png[]
 
-`compile__Variant__Cpp` (e.g. `compileDebugCpp` and `compileReleaseCpp`)  - CppCompile::
+`compile__Variant__Cpp` (e.g. `compileDebugCpp` and `compileReleaseCpp`)  - link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[CppCompile]::
 Depends on: All tasks that contribute source files to the compilation
 ::
 Compiles {cpp} source files using the selected compiler.
 
-`link__Variant__` (e.g. `linkDebug` and `linkRelease`) - LinkExecutable::
+`link__Variant__` (e.g. `linkDebug` and `linkRelease`) - link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html[LinkExecutable]::
 Depends on: All tasks which contribute to the link executable, including `link__Variant__` and `create__Variant__` tasks from projects that are resolved via project dependencies
 ::
 Links executable from compiled object files using the selected linker
@@ -133,21 +133,21 @@ This is where you should declare dependencies of the specific variant.
 The following configurations are used by consumers:
 
 `__variant__RuntimeElements` (e.g. `debugRuntimeElements` and `releaseRuntimeElements)::
-Used for executing this application.
-This configuration is meant to be used by consumers, to retrieve all the elements necessary to run this application.
+Used for executing the application.
+This configuration is meant to be used by consumers, to retrieve all the elements necessary to run the application.
 
 The following configurations are used by the application itself:
 
 `cppCompile__Variant__` (e.g. `cppCompileDebug` and `cppCompileRelease`)::
-Used for compiling this application.
+Used for compiling the application.
 This configuration contains the compile include roots of the application and is therefore used when invoking the {cpp} compiler to compile it.
 
 `nativeLink__Variant__` (e.g. `nativeLinkDebug` and `nativeLinkRelease`)::
-Used for linking this application.
+Used for linking the application.
 This configuration contains the libraries of the application and is therefore used when invoking the {cpp} linker to link it.
 
 `nativeRuntime__Variant__` (e.g. `nativeRuntimeDebug` and `nativeRuntimeRelease`)::
-Used for executing this application.
+Used for executing the application.
 This configuration contains the runtime libraries of the application.
 
 == Conventions
@@ -208,7 +208,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:libs[libs]:: `configurations.nativeLink__Variant__`
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkedFile[linkedFile]:: `$buildDir/lib/main/__variant__/libBaseName[.so|dylib]` (*nix) or `$buildDir\lib\main\__variant__\baseName.dll` (Windows)
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkedFile[linkedFile]:: `$buildDir/lib/main/__variant__/baseName` (*nix) or `$buildDir\lib\main{backslash}__variant__\baseName.exe` (Windows)
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:linkerArgs[linkerArgs]:: []
 
