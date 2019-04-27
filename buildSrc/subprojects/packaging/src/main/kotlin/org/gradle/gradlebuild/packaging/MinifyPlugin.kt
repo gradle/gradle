@@ -38,6 +38,7 @@ open class MinifyPlugin : Plugin<Project> {
         val keepPatterns = mapOf(
             "fastutil" to setOf(
                 "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
+                "it.unimi.dsi.fastutil.ints.IntRBTreeSet",
                 "it.unimi.dsi.fastutil.ints.IntSets"
             )
         )

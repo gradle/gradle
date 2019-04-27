@@ -169,8 +169,8 @@ class DependencyManagementBuildScopeServices {
         return new BuildCommencedTimeProvider();
     }
 
-    ModuleExclusions createModuleExclusions(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return new ModuleExclusions(moduleIdentifierFactory);
+    ModuleExclusions createModuleExclusions() {
+        return new ModuleExclusions();
     }
 
     MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,

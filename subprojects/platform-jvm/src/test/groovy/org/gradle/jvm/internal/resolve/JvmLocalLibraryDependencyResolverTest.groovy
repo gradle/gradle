@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.ArtifactType
@@ -67,6 +68,8 @@ import spock.lang.Unroll
 import static org.gradle.util.WrapUtil.toDomainObjectSet
 
 class JvmLocalLibraryDependencyResolverTest extends Specification {
+
+    public static final ExcludeSpec NOTHING = new ModuleExclusions().nothing()
 
     Map<String, Project> projects
     ProjectRegistry<ProjectInternal> projectRegistry
@@ -210,7 +213,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         result.hasResult()
 
         when:
-        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone(), ImmutableAttributes.EMPTY)
+        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), NOTHING, ImmutableAttributes.EMPTY)
 
         then:
         artifacts != null
@@ -230,7 +233,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         !result.hasResult()
 
         when:
-        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone(), ImmutableAttributes.EMPTY)
+        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), NOTHING, ImmutableAttributes.EMPTY)
 
         then:
         artifacts == null

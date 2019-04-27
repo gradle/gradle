@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
@@ -96,7 +96,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
         ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
-            ModuleExclusion exclusions = dependency.getExclusions();
+            ExcludeSpec exclusions = dependency.getExclusions();
             ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions, overriddenAttributes);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
