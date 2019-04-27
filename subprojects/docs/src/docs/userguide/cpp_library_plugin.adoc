@@ -13,15 +13,15 @@
 // limitations under the License.
 
 [[cpp_library_plugin]]
-= C++ Library
+= {cpp} Library
 
-The C\++ Library Plugin provides the tasks and conventions for building C++ libraries.
-In particular, a C\++ library exposes an API to consumers (i.e., other projects using C++ Library or C++ Application Plugin).
+The {cpp} Library Plugin provides the tasks and conventions for building {cpp} libraries.
+In particular, a {cpp} library exposes an API to consumers (i.e., other projects using {cpp} Library or {cpp} Application Plugin).
 // TODO: Link to C++ application plugin chapter
 
 == Usage
 
-.Applying the C++ Library Plugin
+.Applying the {cpp} Library Plugin
 ====
 include::sample[dir="userguide/cpp/cppLibrary/groovy",files="build.gradle[tags=apply-cpp-library-plugin]"]
 include::sample[dir="userguide/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=apply-cpp-library-plugin]"]
@@ -29,7 +29,7 @@ include::sample[dir="userguide/cpp/cppLibrary/kotlin",files="build.gradle.kts[ta
 
 == Build variants
 
-The C++ Library Plugin manages the following dimensions, in order, which participate in the variant configuration.
+The {cpp} Library Plugin manages the following dimensions, in order, which participate in the variant configuration.
 For more information, read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction section on build variants>>.
 
 Build types - always set to _debug_ and _release_::
@@ -62,30 +62,30 @@ include::sample[dir="userguide/cpp/cppLibrary/kotlin",files="build.gradle.kts[ta
 == Tasks
 
 The following diagram shows the relationships between tasks added by this plugin.
-Note the default linkage of a C++ library is shared linkage and is shown on the diagram.
+Note the default linkage of a {cpp} library is shared linkage and is shown on the diagram.
 
-.C++ Library Plugin default task graph
+.{cpp} Library Plugin default task graph
 image::cpp-shared-library-task-graph.png[]
 
 Changing the linkage to static linkage, the diagram looks like the following:
 
-.C++ Library Plugin static library only task graph
+.{cpp} Library Plugin static library only task graph
 image::cpp-static-library-task-graph.png[]
 
 === Variant-dependent Tasks
 
-The C++ Library Plugin creates tasks based on variants of the library component.
+The {cpp} Library Plugin creates tasks based on variants of the library component.
 The following diagrams show the relationship between variant-dependent tasks.
 The dimensions with a single value don’t influence the task name, thus _variant_ will take the value of _Debug_ and _Release_.
 
-.C++ Library Plugin variant-dependent task graph
+.{cpp} Library Plugin variant-dependent task graph
 image::cpp-library-variant-task-graph.png[]
 NOTE: Depending on the linkage property
 
 `compile__Variant__Cpp` (e.g. `compileDebugCpp` and `compileReleaseCpp`)  - CppCompile::
 Depends on: All tasks that contribute source files to the compilation
 ::
-Compiles C++ source files using the selected compiler.
+Compiles {cpp} source files using the selected compiler.
 
 `link__Variant__` (e.g. `linkDebug` and `linkRelease`) - LinkSharedLibrary (shared linkage)::
 Depends on: All tasks which contribute to the link libraries, including `linkVariant` and `createVariant` tasks from projects that are resolved via project dependencies
@@ -103,7 +103,7 @@ Aggregates tasks that assemble the specific variant of this library.
 
 === Lifecycle Tasks
 
-The C\++ Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the Base Plugin chapter - which the C++ Library Plugin applies automatically:
+The {cpp} Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the Base Plugin chapter - which the {cpp} Library Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Depends on: `linkDebug` when linkage includes `shared` or `createDebug` otherwise.
@@ -114,7 +114,7 @@ This task is added by the Lifecycle Base Plugin.
 `check` - Task (lifecycle)::
 Aggregate task that performs verification tasks, such as running the tests.
 Some plugins add their own verification task to `check`.
-For example, the C++ Unit Test Plugin attach his test task to this lifecycle task.
+For example, the {cpp} Unit Test Plugin attach his test task to this lifecycle task.
 This task is added by the Lifecycle Base Plugin.
 
 `build` - Task (lifecycle)::
@@ -128,14 +128,14 @@ Deletes the build directory and everything in it, i.e. the path specified by the
 
 == Dependency management
 
-Just like the tasks created by the C\++ Library Plugin, the configurations are created based on the variant of the library component.
+Just like the tasks created by the {cpp} Library Plugin, the configurations are created based on the variant of the library component.
 The dimension participating in the variant are build type, linkage and target machines.
 The build type is always set to _debug_ and _release_.
 By default, the linkage is set to _shared_ and the target machine is set to the build host.
 Dimensions with a single value don’t influence the configuration name, thus _variant_ will take the value of _Debug_ and _Release_ (or _debug_ and _release_ when the variant is value is used at the beginning of the name).
-The following graph describes the configurations added by the C++ Library Plugin:
+The following graph describes the configurations added by the {cpp} Library Plugin:
 
-.C++ Library Plugin configurations
+.{cpp} Library Plugin configurations
 image::cpp-library-configurations.png[]
 
 * The configurations in white are the ones a user should use to declare dependencies
@@ -174,11 +174,11 @@ This configuration is meant to be used by consumers, to retrieve all the element
 The following configurations are used by the library itself:
 `cppCompile__Variant__` (e.g. `cppCompileDebug` and `cppCompileRelease`)::
 Used for compiling this library.
-This configuration contains the compile include roots of this library and is therefore used when invoking the C++ compiler to compile it.
+This configuration contains the compile include roots of this library and is therefore used when invoking the {cpp} compiler to compile it.
 
 `nativeLink__Variant__` (e.g. `nativeLinkDebug` and `nativeLinkRelease`)::
 Used for linking this library the shared library only.
-This configuration contains the libaries of this library and is therefore used when invoking the C++ linker to link it.
+This configuration contains the libaries of this library and is therefore used when invoking the {cpp} linker to link it.
 
 `nativeRuntime__Variant__` (e.g. `nativeRuntimeDebug` and `nativeRuntimeRelease`)::
 Used for executing this library.
@@ -206,16 +206,16 @@ This comes with several benefits:
 
 == Conventions
 
-The C++ Library Plugin adds conventions for sources and tasks, shown below.
+The {cpp} Library Plugin adds conventions for sources and tasks, shown below.
 
 === Project layout
 
-The C\++ Library Plugin assumes the project layout shown below.
+The {cpp} Library Plugin assumes the project layout shown below.
 None of these directories needs to exist or have anything in them.
-The C++ Library Plugin will compile whatever it finds, and handles anything which is missing.
+The {cpp} Library Plugin will compile whatever it finds, and handles anything which is missing.
 
 `src/main/cpp`::
-C\++ source with extension of `.cpp`, `.c++` or `.cc`
+{cpp} source with extension of `.cpp`, `.{cpp}` or `.cc`
 
 `src/main/headers`::
 Private headers - headers needed to compile the library and not needed by the consumers
@@ -227,7 +227,7 @@ You <<building_cpp_projects.adoc#sec:custom_cpp_source_set_paths,configure the p
 
 === `compile__Variant__Cpp` Task
 
-The C++ Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[CppCompile] instance for each variant of the library component to build (e.g. `compileDebugCpp` and `compileReleaseCpp`).
+The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[CppCompile] instance for each variant of the library component to build (e.g. `compileDebugCpp` and `compileReleaseCpp`).
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -255,7 +255,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 === `link__Variant__` Task
 
-The C++ Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.LinkSharedLibrary.html[LinkSharedLibrary] instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
+The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.LinkSharedLibrary.html[LinkSharedLibrary] instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -275,7 +275,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.
 
 === `create__Variant__` Task
 
-The C++ Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CreateStaticLibrary.html[CreateStaticLibrary] instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
+The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CreateStaticLibrary.html[CreateStaticLibrary] instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
 Some of the most common configuration options are shown below.
 
 [horizontal]
