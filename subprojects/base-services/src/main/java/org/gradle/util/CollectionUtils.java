@@ -24,7 +24,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.Transformers;
@@ -50,6 +49,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.cast;
+import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public abstract class CollectionUtils {
 
@@ -80,7 +81,7 @@ public abstract class CollectionUtils {
         for (Object o : input) {
             cast(type, o);
         }
-        return Cast.uncheckedCast(input);
+        return uncheckedCast(input);
     }
 
     @Nullable
@@ -184,10 +185,6 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <R, I> List<R> collect(List<? extends I> list, Transformer<? extends R, ? super I> transformer) {
-        return collect(list, new ArrayList<R>(list.size()), transformer);
-    }
-
     public static <R, I> List<R> collect(I[] list, Transformer<? extends R, ? super I> transformer) {
         return collect(Arrays.asList(list), transformer);
     }
@@ -197,7 +194,12 @@ public abstract class CollectionUtils {
     }
 
     public static <R, I> List<R> collect(Iterable<? extends I> source, Transformer<? extends R, ? super I> transformer) {
-        return collect(source, new LinkedList<R>(), transformer);
+        if (source instanceof Collection<?>) {
+            Collection<? extends I> collection = uncheckedNonnullCast(source);
+            return collect(source, new ArrayList<R>(collection.size()), transformer);
+        } else {
+            return collect(source, new LinkedList<R>(), transformer);
+        }
     }
 
     public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<? extends R, ? super I> transformer) {
