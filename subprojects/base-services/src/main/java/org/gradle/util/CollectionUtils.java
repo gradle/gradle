@@ -193,7 +193,7 @@ public abstract class CollectionUtils {
     }
 
     public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<? extends R, ? super I> transformer) {
-        return collect(set, new HashSet<R>(), transformer);
+        return collect(set, new HashSet<R>(set.size()), transformer);
     }
 
     public static <R, I> List<R> collect(Iterable<? extends I> source, Transformer<? extends R, ? super I> transformer) {
