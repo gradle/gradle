@@ -24,7 +24,7 @@ final class DefaultModuleExclude implements ModuleExclude {
     private final String module;
     private final int hashCode;
 
-    public static ExcludeSpec of(String module) {
+    public static ModuleExclude of(String module) {
         return new DefaultModuleExclude(module);
     }
 

@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 final class DefaultExcludeEverything implements ExcludeEverything {
     private static final ExcludeEverything INSTANCE = new DefaultExcludeEverything();
 
-    public static ExcludeSpec get() {
+    public static ExcludeEverything get() {
         return INSTANCE;
     }
 

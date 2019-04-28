@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.CompositeExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAllOf;
@@ -25,15 +24,22 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
+import org.gradle.internal.Cast;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * This factory performs normalization of exclude rules. This is the smartest
@@ -66,56 +72,75 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     private ExcludeSpec doUnion(List<ExcludeSpec> specs) {
-        Set<ModuleIdExclude> simpleExcludes = null;
-        List<ModuleSetExclude> moduleSets = null;
         Set<ExcludeSpec> flattened = flatten(ExcludeAnyOf.class, specs, ExcludeEverything.class::isInstance, ExcludeNothing.class::isInstance);
         if (flattened == null) {
             return everything();
         }
-        for (Iterator<ExcludeSpec> it = flattened.iterator(); it.hasNext(); ) {
-            ExcludeSpec spec = it.next();
-            if (spec instanceof ModuleIdExclude) {
-                if (simpleExcludes == null) {
-                    simpleExcludes = Sets.newHashSetWithExpectedSize(specs.size());
-                }
-                simpleExcludes.add((ModuleIdExclude) spec);
-                it.remove();
-            }
-            // will allow merging module sets into a single one
-            if (spec instanceof ModuleSetExclude) {
-                if (moduleSets == null) {
-                    moduleSets = Lists.newArrayList();
-                }
-                moduleSets.add((ModuleSetExclude) spec);
-                it.remove();
-
-            }
-        }
-        // merge all single module id into an id set
-        if (simpleExcludes != null) {
-            if (simpleExcludes.size() > 1 || moduleSets != null) {
-                ModuleSetExclude e = (ModuleSetExclude) delegate.moduleSet(simpleExcludes.stream().map(ModuleIdExclude::getModuleId).collect(Collectors.toSet()));
-                if (moduleSets != null) {
-                    moduleSets.add(e);
-                } else {
-                    flattened.add(e);
-                }
-            } else {
-                flattened.add(simpleExcludes.iterator().next());
-            }
-        }
-        if (moduleSets != null) {
-            if (moduleSets.size() == 1) {
-                flattened.add(moduleSets.get(0));
-            } else {
-                // merge all module sets
-                flattened.add(delegate.moduleSet(moduleSets.stream().flatMap(e -> e.getModuleIds().stream()).collect(Collectors.toSet())));
-            }
-        }
         if (flattened.isEmpty()) {
             return nothing();
         }
-        return Optimizations.optimizeList(this, ImmutableList.copyOf(flattened), delegate::anyOf);
+        Map<UnionOf, List<ExcludeSpec>> byType = flattened.stream().collect(Collectors.groupingBy(UnionOf::typeOf));
+        List<ModuleIdExclude> moduleIdExcludes = UnionOf.MODULEID.fromMap(byType);
+        List<ModuleIdSetExclude> moduleIdSetsExcludes = UnionOf.MODULEID_SET.fromMap(byType);
+        List<GroupExclude> groupExcludes = UnionOf.GROUP.fromMap(byType);
+        List<GroupSetExclude> groupSetExcludes = UnionOf.GROUP_SET.fromMap(byType);
+        List<ModuleExclude> moduleExcludes = UnionOf.MODULE.fromMap(byType);
+        List<ModuleSetExclude> moduleSetExcludes = UnionOf.MODULE_SET.fromMap(byType);
+        List<ExcludeSpec> other = UnionOf.NOT_JOINABLE.fromMap(byType);
+        if (!moduleIdExcludes.isEmpty()) {
+            if (moduleIdExcludes.size() > 1 || !moduleIdSetsExcludes.isEmpty()) {
+                ModuleIdSetExclude excludeSpec = delegate.moduleIdSet(moduleIdExcludes.stream().map(ModuleIdExclude::getModuleId).collect(toSet()));
+                if (moduleIdSetsExcludes.isEmpty()) {
+                    moduleIdSetsExcludes = ImmutableList.of(excludeSpec);
+                } else {
+                    moduleIdSetsExcludes.add(excludeSpec);
+                }
+                moduleIdExcludes = Collections.emptyList();
+            }
+        }
+        if (!groupExcludes.isEmpty()) {
+            if (groupExcludes.size() > 1 || !groupSetExcludes.isEmpty()) {
+                GroupSetExclude excludeSpec = delegate.groupSet(groupExcludes.stream().map(GroupExclude::getGroup).collect(toSet()));
+                if (groupSetExcludes.isEmpty()) {
+                    groupSetExcludes = ImmutableList.of(excludeSpec);
+                } else {
+                    groupSetExcludes.add(excludeSpec);
+                }
+                groupExcludes = Collections.emptyList();
+            }
+        }
+        if (!moduleExcludes.isEmpty()) {
+            if (moduleExcludes.size() > 1 || !moduleSetExcludes.isEmpty()) {
+                ModuleSetExclude excludeSpec = delegate.moduleSet(moduleExcludes.stream().map(ModuleExclude::getModule).collect(toSet()));
+                if (moduleSetExcludes.isEmpty()) {
+                    moduleSetExcludes = ImmutableList.of(excludeSpec);
+                } else {
+                    moduleSetExcludes.add(excludeSpec);
+                }
+                moduleExcludes = Collections.emptyList();
+            }
+        }
+        if (moduleIdSetsExcludes.size() > 1) {
+            moduleIdSetsExcludes = ImmutableList.of(delegate.moduleIdSet(moduleIdSetsExcludes.stream().flatMap(e -> e.getModuleIds().stream()).collect(toSet())));
+        }
+        if (groupSetExcludes.size() > 1) {
+            groupSetExcludes = ImmutableList.of(delegate.groupSet(groupSetExcludes.stream().flatMap(e -> e.getGroups().stream()).collect(toSet())));
+        }
+        if (moduleSetExcludes.size() > 1) {
+            moduleSetExcludes = ImmutableList.of(delegate.moduleSet(moduleSetExcludes.stream().flatMap(e -> e.getModules().stream()).collect(toSet())));
+        }
+        ImmutableList.Builder<ExcludeSpec> builder = ImmutableList.builderWithExpectedSize(
+            moduleIdExcludes.size() + groupExcludes.size() + moduleExcludes.size() +
+                moduleIdSetsExcludes.size() + groupSetExcludes.size() + moduleSetExcludes.size() + other.size()
+        );
+        builder.addAll(moduleIdExcludes);
+        builder.addAll(groupExcludes);
+        builder.addAll(moduleExcludes);
+        builder.addAll(moduleIdSetsExcludes);
+        builder.addAll(groupSetExcludes);
+        builder.addAll(moduleSetExcludes);
+        builder.addAll(other);
+        return Optimizations.optimizeList(this, builder.build(), delegate::anyOf);
     }
 
     /**
@@ -154,5 +179,34 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             return everything();
         }
         return Optimizations.optimizeList(this, ImmutableList.copyOf(relevant), delegate::allOf);
+    }
+
+    private enum UnionOf {
+        MODULEID(ModuleIdExclude.class),
+        GROUP(GroupExclude.class),
+        MODULE(ModuleExclude.class),
+        MODULEID_SET(ModuleIdSetExclude.class),
+        GROUP_SET(GroupSetExclude.class),
+        MODULE_SET(ModuleSetExclude.class),
+        NOT_JOINABLE(ExcludeSpec.class);
+
+        private final Class<? extends ExcludeSpec> excludeClass;
+
+        UnionOf(Class<? extends ExcludeSpec> excludeClass) {
+            this.excludeClass = excludeClass;
+        }
+
+        public <T extends ExcludeSpec> List<T> fromMap(Map<UnionOf, List<ExcludeSpec>> from) {
+            return Cast.uncheckedCast(from.getOrDefault(this, Collections.emptyList()));
+        }
+
+        public static UnionOf typeOf(ExcludeSpec spec) {
+            for (UnionOf unionOf : UnionOf.values()) {
+                if (unionOf.excludeClass.isInstance(spec)) {
+                    return unionOf;
+                }
+            }
+            return null;
+        }
     }
 }

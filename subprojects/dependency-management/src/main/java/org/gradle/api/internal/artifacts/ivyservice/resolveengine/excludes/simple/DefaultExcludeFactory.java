@@ -18,8 +18,17 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.Optimizations;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
@@ -27,32 +36,32 @@ import java.util.Set;
 
 public class DefaultExcludeFactory implements ExcludeFactory {
     @Override
-    public ExcludeSpec nothing() {
+    public ExcludeNothing nothing() {
         return DefaultExcludeNothing.get();
     }
 
     @Override
-    public ExcludeSpec everything() {
+    public ExcludeEverything everything() {
         return DefaultExcludeEverything.get();
     }
 
     @Override
-    public ExcludeSpec group(String group) {
+    public GroupExclude group(String group) {
         return DefaultGroupExclude.of(group);
     }
 
     @Override
-    public ExcludeSpec module(String module) {
+    public ModuleExclude module(String module) {
         return DefaultModuleExclude.of(module);
     }
 
     @Override
-    public ExcludeSpec moduleId(ModuleIdentifier id) {
+    public ModuleIdExclude moduleId(ModuleIdentifier id) {
         return DefaultModuleIdExclude.of(id);
     }
 
     @Override
-    public ExcludeSpec artifact(ModuleIdentifier id, IvyArtifactName artifact) {
+    public ArtifactExclude artifact(ModuleIdentifier id, IvyArtifactName artifact) {
         return DefaultModuleArtifactExclude.of(id, artifact);
     }
 
@@ -82,7 +91,17 @@ public class DefaultExcludeFactory implements ExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec moduleSet(Set<ModuleIdentifier> modules) {
-        return DefaultModuleSetExclude.of(modules);
+    public ModuleIdSetExclude moduleIdSet(Set<ModuleIdentifier> modules) {
+        return DefaultModuleIdSetExclude.of(modules);
+    }
+
+    @Override
+    public GroupSetExclude groupSet(Set<String> groups) {
+        return new DefaultGroupSetExclude(groups);
+    }
+
+    @Override
+    public ModuleSetExclude moduleSet(Set<String> modules) {
+        return new DefaultModuleSetExclude(modules);
     }
 }

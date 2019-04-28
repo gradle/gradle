@@ -16,8 +16,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
@@ -31,32 +40,32 @@ public abstract class DelegatingExcludeFactory implements ExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec nothing() {
+    public ExcludeNothing nothing() {
         return delegate.nothing();
     }
 
     @Override
-    public ExcludeSpec everything() {
+    public ExcludeEverything everything() {
         return delegate.everything();
     }
 
     @Override
-    public ExcludeSpec group(String group) {
+    public GroupExclude group(String group) {
         return delegate.group(group);
     }
 
     @Override
-    public ExcludeSpec module(String module) {
+    public ModuleExclude module(String module) {
         return delegate.module(module);
     }
 
     @Override
-    public ExcludeSpec moduleId(ModuleIdentifier id) {
+    public ModuleIdExclude moduleId(ModuleIdentifier id) {
         return delegate.moduleId(id);
     }
 
     @Override
-    public ExcludeSpec artifact(ModuleIdentifier id, IvyArtifactName artifact) {
+    public ArtifactExclude artifact(ModuleIdentifier id, IvyArtifactName artifact) {
         return delegate.artifact(id, artifact);
     }
 
@@ -86,7 +95,17 @@ public abstract class DelegatingExcludeFactory implements ExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec moduleSet(Set<ModuleIdentifier> modules) {
+    public ModuleIdSetExclude moduleIdSet(Set<ModuleIdentifier> modules) {
+        return delegate.moduleIdSet(modules);
+    }
+
+    @Override
+    public GroupSetExclude groupSet(Set<String> groups) {
+        return delegate.groupSet(groups);
+    }
+
+    @Override
+    public ModuleSetExclude moduleSet(Set<String> modules) {
         return delegate.moduleSet(modules);
     }
 }

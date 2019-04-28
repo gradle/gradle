@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
@@ -24,26 +23,42 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.Set;
 
 final class DefaultModuleSetExclude implements ModuleSetExclude {
-    private final Set<ModuleIdentifier> moduleIds;
-    private final int hashCode;
+    private final Set<String> modules;
+    private int hashCode;
 
-    static ModuleSetExclude of(Set<ModuleIdentifier> ids) {
-        return new DefaultModuleSetExclude(ImmutableSet.copyOf(ids));
-    }
-
-    private DefaultModuleSetExclude(ImmutableSet<ModuleIdentifier> moduleIds) {
-        this.moduleIds = moduleIds;
-        this.hashCode = moduleIds.hashCode();
+    DefaultModuleSetExclude(Set<String> modules) {
+        this.modules = modules;
+        this.hashCode = modules.hashCode();
     }
 
     @Override
-    public Set<ModuleIdentifier> getModuleIds() {
-        return moduleIds;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultModuleSetExclude that = (DefaultModuleSetExclude) o;
+
+        return modules.equals(that.modules);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
+
+    @Override
+    public Set<String> getModules() {
+        return modules;
     }
 
     @Override
     public boolean excludes(ModuleIdentifier module) {
-        return moduleIds.contains(module);
+        return modules.contains(module.getName());
     }
 
     @Override
@@ -62,22 +77,7 @@ final class DefaultModuleSetExclude implements ModuleSetExclude {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultModuleSetExclude that = (DefaultModuleSetExclude) o;
-
-        return moduleIds.equals(that.moduleIds);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
+    public String toString() {
+        return "{ module names = " + modules + '}';
     }
 }
