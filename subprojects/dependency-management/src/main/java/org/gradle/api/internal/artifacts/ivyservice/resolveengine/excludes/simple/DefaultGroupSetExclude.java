@@ -17,30 +17,48 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-final class DefaultGroupExclude implements GroupExclude {
-    private final String group;
-    private final int hashCode;
+import java.util.Set;
 
-    private DefaultGroupExclude(String group) {
-        this.group = group;
-        this.hashCode = group.hashCode();
-    }
+final class DefaultGroupSetExclude implements GroupSetExclude {
+    private final Set<String> groups;
+    private int hashCode;
 
-    static GroupExclude of(String group) {
-        return new DefaultGroupExclude(group);
+    DefaultGroupSetExclude(Set<String> groups) {
+        this.groups = groups;
+        this.hashCode = groups.hashCode();
     }
 
     @Override
-    public String getGroup() {
-        return group;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultGroupSetExclude that = (DefaultGroupSetExclude) o;
+
+        return groups.equals(that.groups);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
+
+    @Override
+    public Set<String> getGroups() {
+        return groups;
     }
 
     @Override
     public boolean excludes(ModuleIdentifier module) {
-        return group.equals(module.getGroup());
+        return groups.contains(module.getGroup());
     }
 
     @Override
@@ -59,30 +77,7 @@ final class DefaultGroupExclude implements GroupExclude {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultGroupExclude that = (DefaultGroupExclude) o;
-
-        if (hashCode != that.hashCode) {
-            return false;
-        }
-        return group.equals(that.group);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return group.hashCode();
-    }
-
-    @Override
     public String toString() {
-        return "{exclude group = '" + group + "'}";
+        return "{ groups = " + groups + '}';
     }
 }

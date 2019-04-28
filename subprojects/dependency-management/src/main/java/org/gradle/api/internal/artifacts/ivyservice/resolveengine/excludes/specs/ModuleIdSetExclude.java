@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
+
 import java.util.Set;
 
-public interface ModuleSetExclude extends ExcludeSpec {
-    Set<String> getModules();
+public interface ModuleIdSetExclude extends ExcludeSpec {
+    Set<ModuleIdentifier> getModuleIds();
 }

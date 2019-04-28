@@ -22,17 +22,17 @@ import java.util.List;
 import java.util.Set;
 
 public interface ExcludeFactory {
-    ExcludeSpec nothing();
+    ExcludeNothing nothing();
 
-    ExcludeSpec everything();
+    ExcludeEverything everything();
 
-    ExcludeSpec group(String group);
+    GroupExclude group(String group);
 
-    ExcludeSpec module(String module);
+    ModuleExclude module(String module);
 
-    ExcludeSpec moduleId(ModuleIdentifier id);
+    ModuleIdExclude moduleId(ModuleIdentifier id);
 
-    ExcludeSpec artifact(ModuleIdentifier id, IvyArtifactName artifact);
+    ArtifactExclude artifact(ModuleIdentifier id, IvyArtifactName artifact);
 
     ExcludeSpec anyOf(ExcludeSpec one, ExcludeSpec two);
 
@@ -44,5 +44,9 @@ public interface ExcludeFactory {
 
     ExcludeSpec ivyPatternExclude(ModuleIdentifier moduleId, IvyArtifactName artifact, String matcher);
 
-    ExcludeSpec moduleSet(Set<ModuleIdentifier> modules);
+    ModuleIdSetExclude moduleIdSet(Set<ModuleIdentifier> modules);
+
+    GroupSetExclude groupSet(Set<String> groups);
+
+    ModuleSetExclude moduleSet(Set<String> modules);
 }

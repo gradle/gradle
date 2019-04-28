@@ -15,32 +15,35 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-final class DefaultGroupExclude implements GroupExclude {
-    private final String group;
+import java.util.Set;
+
+final class DefaultModuleIdSetExclude implements ModuleIdSetExclude {
+    private final Set<ModuleIdentifier> moduleIds;
     private final int hashCode;
 
-    private DefaultGroupExclude(String group) {
-        this.group = group;
-        this.hashCode = group.hashCode();
+    static ModuleIdSetExclude of(Set<ModuleIdentifier> ids) {
+        return new DefaultModuleIdSetExclude(ImmutableSet.copyOf(ids));
     }
 
-    static GroupExclude of(String group) {
-        return new DefaultGroupExclude(group);
+    private DefaultModuleIdSetExclude(ImmutableSet<ModuleIdentifier> moduleIds) {
+        this.moduleIds = moduleIds;
+        this.hashCode = moduleIds.hashCode();
     }
 
     @Override
-    public String getGroup() {
-        return group;
+    public Set<ModuleIdentifier> getModuleIds() {
+        return moduleIds;
     }
 
     @Override
     public boolean excludes(ModuleIdentifier module) {
-        return group.equals(module.getGroup());
+        return moduleIds.contains(module);
     }
 
     @Override
@@ -67,22 +70,19 @@ final class DefaultGroupExclude implements GroupExclude {
             return false;
         }
 
-        DefaultGroupExclude that = (DefaultGroupExclude) o;
+        DefaultModuleIdSetExclude that = (DefaultModuleIdSetExclude) o;
 
-        if (hashCode != that.hashCode) {
-            return false;
-        }
-        return group.equals(that.group);
+        return moduleIds.equals(that.moduleIds);
 
     }
 
     @Override
     public int hashCode() {
-        return group.hashCode();
+        return hashCode;
     }
 
     @Override
     public String toString() {
-        return "{exclude group = '" + group + "'}";
+        return "{ module ids = " + moduleIds + '}';
     }
 }
