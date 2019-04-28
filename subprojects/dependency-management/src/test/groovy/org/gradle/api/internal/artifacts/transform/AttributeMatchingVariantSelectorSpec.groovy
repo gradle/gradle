@@ -88,11 +88,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 assert failure instanceof AmbiguousVariantSelectionException
             }
@@ -120,11 +115,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             @Override
             void add(Object dependency) {
                 assert dependency instanceof DefaultTransformationDependency
-            }
-
-            @Override
-            void maybeAdd(Object dependency) {
-
             }
 
             @Override
@@ -167,11 +157,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             void add(Object dependency) {
                 assert dependency instanceof DefaultTransformationDependency
                 assert dependency.transformation == transform1
-            }
-
-            @Override
-            void maybeAdd(Object dependency) {
-
             }
 
             @Override
@@ -222,11 +207,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 throw failure
             }
@@ -271,11 +251,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             void add(Object dependency) {
                 assert dependency instanceof DefaultTransformationDependency
                 assert dependency.transformation == transform1
-            }
-
-            @Override
-            void maybeAdd(Object dependency) {
-
             }
 
             @Override
@@ -328,11 +303,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             void add(Object dependency) {
                 assert dependency instanceof DefaultTransformationDependency
                 assert dependency.transformation == transform3
-            }
-
-            @Override
-            void maybeAdd(Object dependency) {
-
             }
 
             @Override
@@ -392,11 +362,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 throw failure
             }
@@ -449,11 +414,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             @Override
             void add(Object dependency) {
                 throw new AssertionError("Expected an exception")
-            }
-
-            @Override
-            void maybeAdd(Object dependency) {
-
             }
 
             @Override

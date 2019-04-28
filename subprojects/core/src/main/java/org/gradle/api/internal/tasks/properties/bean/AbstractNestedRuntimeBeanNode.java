@@ -18,10 +18,12 @@ package org.gradle.api.internal.tasks.properties.bean;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -91,11 +93,26 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         }
 
         @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            if (isProvider()) {
+                return (TaskDependencyContainer) valueSupplier.get();
+            } else if (isBuildable()) {
+                return new TaskDependencyContainer() {
+                    @Override
+                    public void visitDependencies(TaskDependencyResolveContext context) {
+                        context.add(valueSupplier.get());
+                    }
+                };
+            }
+            return TaskDependencyContainer.EMPTY;
+        }
+
+        @Override
         public void attachProducer(Task producer) {
             if (isProvider()) {
                 Object value = valueSupplier.get();
-                if (value instanceof ProducerAwareProperty) {
-                    ((ProducerAwareProperty) value).attachProducer(producer);
+                if (value instanceof PropertyInternal) {
+                    ((PropertyInternal) value).attachProducer(producer);
                 }
             }
         }
@@ -112,6 +129,10 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         private boolean isProvider() {
             return Provider.class.isAssignableFrom(method.getReturnType());
+        }
+
+        private boolean isBuildable() {
+            return Buildable.class.isAssignableFrom(method.getReturnType());
         }
 
         @Nullable
