@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -99,9 +100,12 @@ public class EclipseDependenciesCreator {
         @Override
         public void visitProjectDependency(ResolvedArtifactResult artifact) {
             ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
-            if (!componentIdentifier.equals(currentProjectId)) {
-                projects.add(projectDependencyBuilder.build(componentIdentifier));
+            if (componentIdentifier.equals(currentProjectId)) {
+                return;
             }
+            ComponentArtifactMetadata artifactId = (ComponentArtifactMetadata) artifact.getId();
+            File binary = artifact.getFile();
+            projects.add(projectDependencyBuilder.build(componentIdentifier, binary, artifactId.getBuildDependencies(), pathToSourceSets.get(binary.getAbsolutePath())));
         }
 
         @Override

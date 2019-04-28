@@ -13,32 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.tooling.r55;
+package org.gradle.plugins.ide.internal.tooling.eclipse;
 
+import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
-public class DefaultEclipseWorkspaceProject implements EclipseWorkspaceProject, Serializable {
+public class DefaultEclipseWorkspace implements EclipseWorkspace, Serializable {
 
-    private final String name;
     private final File location;
-    private final boolean isOpen;
+    private final List<EclipseWorkspaceProject> workspaceProjects;
 
-    public DefaultEclipseWorkspaceProject(String name, File location, boolean isOpen) {
-        this.name = name;
+    public DefaultEclipseWorkspace(File location, List<EclipseWorkspaceProject> workspaceProjects) {
         this.location = location;
-        this.isOpen = isOpen;
-    }
-
-    public DefaultEclipseWorkspaceProject(String name, File location) {
-        this(name, location, true);
-    }
-
-    @Override
-    public String getName() {
-        return name;
+        this.workspaceProjects = workspaceProjects;
     }
 
     @Override
@@ -47,7 +38,7 @@ public class DefaultEclipseWorkspaceProject implements EclipseWorkspaceProject, 
     }
 
     @Override
-    public boolean isOpen() {
-        return isOpen;
+    public List<EclipseWorkspaceProject> getProjects() {
+        return workspaceProjects;
     }
 }

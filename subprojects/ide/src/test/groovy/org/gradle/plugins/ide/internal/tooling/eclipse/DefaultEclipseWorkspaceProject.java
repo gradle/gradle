@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.tooling.r55;
+package org.gradle.plugins.ide.internal.tooling.eclipse;
+
 
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
 
@@ -30,10 +31,6 @@ public class DefaultEclipseWorkspaceProject implements EclipseWorkspaceProject, 
         this.name = name;
         this.location = location;
         this.isOpen = isOpen;
-    }
-
-    public DefaultEclipseWorkspaceProject(String name, File location) {
-        this(name, location, true);
     }
 
     @Override

@@ -18,36 +18,18 @@ package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Incubating;
 
-import java.io.File;
-
 /**
- * Information about a project in the eclipse workspace.
+ * A tooling model that instructs Gradle to run tasks to build artifacts for closed projects.
  *
- * @since 5.5
+ * Similarly to {@link RunEclipseSynchronizationTasks}, this is a special tooling model as it does
+ * not provide any information. However, when requested, Gradle will build the artifacts required
+ * to substitute the closed gradle projects in the eclipse workspace.
+ *
+ * This is a parameterized model and requires an {@link EclipseRuntime} parameter to calculate the
+ * closed projects.
+ *
+ * @since 5.6
  */
 @Incubating
-public interface EclipseWorkspaceProject {
-    /**
-     * The name of the eclipse project
-     *
-     * @return the name of the project, never null
-     */
-    @Incubating
-    String getName();
-
-    /**
-     * The filesystem location of the eclipse project
-     *
-     * @return the location of the eclipse project, may be null in case of remote projects
-     */
-    @Incubating
-    File getLocation();
-
-    /**
-     * The status of the eclipse project.
-     *
-     * @since 5.6
-     */
-    @Incubating
-    boolean isOpen();
+public interface RunClosedProjectBuildDependencies {
 }

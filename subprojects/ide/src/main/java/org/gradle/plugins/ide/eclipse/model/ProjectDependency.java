@@ -18,11 +18,18 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
+import org.gradle.api.tasks.TaskDependency;
+
+import java.io.File;
+import java.util.Objects;
 
 /**
  * A classpath entry representing a project dependency.
  */
 public class ProjectDependency extends AbstractClasspathEntry {
+
+    private File publication;
+    private TaskDependency buildDependencies;
 
     public ProjectDependency(Node node) {
         super(node);
@@ -38,8 +45,44 @@ public class ProjectDependency extends AbstractClasspathEntry {
         assertPathIsValid();
     }
 
+    public File getPublication() {
+        return publication;
+    }
+
+    public void setPublication(File publication) {
+        this.publication = publication;
+    }
+
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
+    }
+
+    public void setBuildDependencies(TaskDependency buildDependencies) {
+        this.buildDependencies = buildDependencies;
+    }
+
     private void assertPathIsValid() {
         Preconditions.checkArgument(path.startsWith("/"));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        ProjectDependency that = (ProjectDependency) o;
+        return Objects.equals(publication, that.publication);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), publication);
     }
 
     @Override
@@ -49,6 +92,12 @@ public class ProjectDependency extends AbstractClasspathEntry {
 
     @Override
     public String toString() {
-        return "ProjectDependency" + super.toString();
+        return "ProjectDependency{" +
+            "publication=" + publication +
+            ", path='" + path + '\'' +
+            ", exported=" + exported +
+            ", accessRules=" + accessRules +
+            ", entryAttributes=" + entryAttributes +
+            '}';
     }
 }

@@ -16,10 +16,16 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+
+import java.io.File;
+import java.util.Collection;
 
 public class ProjectDependencyBuilder {
     private final IdeArtifactRegistry ideArtifactRegistry;
@@ -28,8 +34,14 @@ public class ProjectDependencyBuilder {
         this.ideArtifactRegistry = ideArtifactRegistry;
     }
 
-    public ProjectDependency build(ProjectComponentIdentifier id) {
-        return buildProjectDependency(determineTargetProjectPath(id));
+    public ProjectDependency build(ProjectComponentIdentifier componentIdentifier, File publication, TaskDependency buildDependencies, Collection<String> sourceSets) {
+        ProjectDependency dependency = buildProjectDependency(determineTargetProjectPath(componentIdentifier));
+        dependency.setPublication(publication);
+        dependency.setBuildDependencies(buildDependencies);
+        if (sourceSets != null) {
+            dependency.getEntryAttributes().put(EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME, Joiner.on(',').join(sourceSets));
+        }
+        return dependency;
     }
 
     private String determineTargetProjectPath(ProjectComponentIdentifier id) {
