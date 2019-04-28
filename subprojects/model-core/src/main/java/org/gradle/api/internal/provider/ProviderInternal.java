@@ -34,7 +34,7 @@ public interface ProviderInternal<T> extends Provider<T>, TaskDependencyContaine
 
     /**
      * Visits the build dependencies of this provider, if possible.
-     * @return true if the dependencies added (possibly none), false if the build dependencies are unknown.
+     * @return true if the dependencies have been added (possibly none), false if the build dependencies are unknown.
      */
     boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
 

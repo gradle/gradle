@@ -39,6 +39,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.transform.UnzipTransform;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
@@ -269,7 +270,17 @@ public class NativeBasePlugin implements Plugin<Project> {
                 // TODO: We should set this for macOS, but this currently breaks XCTest support for Swift
                 // when Swift depends on C++ libraries built by Gradle.
                 if (!targetPlatform.getOperatingSystem().isMacOsX()) {
-                    task.getInstallName().set(task.getLinkedFile().map(linkedFile -> linkedFile.getAsFile().getName()));
+                    Provider<String> outputFileName = task.getLinkedFile().map(linkedFile -> linkedFile.getAsFile().getName());
+                    // This provider is here to discard the task dependency from mapping an output of the task and wiring back in as an input to the task
+                    // It's actually the _location_ rather than the _content_ that is used as an input
+                    // TODO - simplify this
+                    Provider<String> installName = new DefaultProvider<>(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return outputFileName.get();
+                        }
+                    });
+                    task.getInstallName().set(installName);
                 }
                 task.getTargetPlatform().set(targetPlatform);
                 task.getToolChain().set(toolChain);

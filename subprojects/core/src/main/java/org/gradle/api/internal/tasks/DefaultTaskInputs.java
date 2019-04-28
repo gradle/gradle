@@ -213,6 +213,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         public void visitContents(final FileCollectionResolveContext context) {
             TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
                 @Override
+                public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
+                    if (!skipWhenEmptyOnly) {
+                        context.add(value.getTaskDependencies());
+                    }
+                }
+
+                @Override
                 public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                     if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || skipWhenEmpty) {
                         FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);

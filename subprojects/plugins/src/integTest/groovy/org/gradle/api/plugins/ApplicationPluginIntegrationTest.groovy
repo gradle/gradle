@@ -295,11 +295,11 @@ executableDir = 'foo/bar'
 
         given:
         buildFile << """
-        allprojects {
-            repositories {
-                maven { url '$mavenRepo.uri' }
+            allprojects {
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
             }
-        }
         """
 
         file('settings.gradle') << "include 'utils', 'core'"
@@ -319,11 +319,11 @@ executableDir = 'foo/bar'
             }
         '''
         file('core/build.gradle') << '''
-apply plugin: 'java-library'
+            apply plugin: 'java-library'
 
-dependencies {
-    implementation 'org.gradle.test:implementation:1.0'
-}
+            dependencies {
+                implementation 'org.gradle.test:implementation:1.0'
+            }
         '''
 
         when:

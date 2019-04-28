@@ -20,7 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.DeprecationLogger;
 
-public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T>, ProducerAwareProperty {
+public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private enum State {
         InitialValue, Convention, Mutable, FinalLenient, FinalStrict
     }
