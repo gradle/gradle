@@ -207,9 +207,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> classpath) {
         ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
-        ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
-
-        sharedPackagesBuilder.add("javax.inject");
 
         if (classpath != null) {
             classpathBuilder.addAll(classpath);
@@ -222,7 +219,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
 
         Iterable<File> daemonClasspath = classpathBuilder.build();
-        Iterable<String> daemonSharedPackages = sharedPackagesBuilder.build();
 
         JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         userForkOptions.copyTo(forkOptions);
@@ -231,7 +227,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(forkOptions)
             .classpath(daemonClasspath)
-            .sharedPackages(daemonSharedPackages)
             .keepAliveMode(KeepAliveMode.DAEMON)
             .build();
     }

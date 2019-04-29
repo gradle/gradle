@@ -26,21 +26,15 @@ import java.util.Set;
 
 public class DaemonForkOptions {
     private final JavaForkOptionsInternal forkOptions;
-    private final Iterable<String> sharedPackages;
     private final KeepAliveMode keepAliveMode;
     private final ClassLoaderStructure classLoaderStructure;
 
     DaemonForkOptions(JavaForkOptionsInternal forkOptions,
-                      Iterable<String> sharedPackages, KeepAliveMode keepAliveMode,
+                      KeepAliveMode keepAliveMode,
                       ClassLoaderStructure classLoaderStructure) {
         this.forkOptions = forkOptions;
-        this.sharedPackages = sharedPackages;
         this.keepAliveMode = keepAliveMode;
         this.classLoaderStructure = classLoaderStructure;
-    }
-
-    public Iterable<String> getSharedPackages() {
-        return sharedPackages;
     }
 
     public KeepAliveMode getKeepAliveMode() {
@@ -57,13 +51,8 @@ public class DaemonForkOptions {
 
     public boolean isCompatibleWith(DaemonForkOptions other) {
         return forkOptions.isCompatibleWith(other.forkOptions)
-                && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages))
                 && keepAliveMode == other.getKeepAliveMode()
                 && Objects.equal(classLoaderStructure, other.getClassLoaderStructure());
-    }
-
-    private Set<String> getNormalizedSharedPackages(Iterable<String> allowedPackages) {
-        return Sets.newLinkedHashSet(allowedPackages);
     }
 
     public String toString() {

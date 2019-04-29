@@ -26,7 +26,6 @@ import java.util.Collections;
 public class DaemonForkOptionsBuilder {
     private final JavaForkOptionsInternal javaForkOptions;
     private final JavaForkOptionsFactory forkOptionsFactory;
-    private Iterable<String> sharedPackages = Collections.emptyList();
     private KeepAliveMode keepAliveMode = KeepAliveMode.DAEMON;
     private ClassLoaderStructure classLoaderStructure = IsolatedClassLoaderUtil.getDefaultClassLoaderStructure(Collections.<File>emptyList());
 
@@ -37,11 +36,6 @@ public class DaemonForkOptionsBuilder {
 
     public DaemonForkOptionsBuilder classpath(Iterable<File> classpath) {
         this.classLoaderStructure = IsolatedClassLoaderUtil.getDefaultClassLoaderStructure(classpath);
-        return this;
-    }
-
-    public DaemonForkOptionsBuilder sharedPackages(Iterable<String> sharedPackages) {
-        this.sharedPackages = sharedPackages;
         return this;
     }
 
@@ -61,7 +55,7 @@ public class DaemonForkOptionsBuilder {
     }
 
     public DaemonForkOptions build() {
-        return new DaemonForkOptions(buildJavaForkOptions(), sharedPackages, keepAliveMode, classLoaderStructure);
+        return new DaemonForkOptions(buildJavaForkOptions(), keepAliveMode, classLoaderStructure);
     }
 
     private JavaForkOptionsInternal buildJavaForkOptions() {

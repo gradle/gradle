@@ -28,7 +28,6 @@ class DaemonForkOptionsTest extends Specification {
     def "is compatible with itself"() {
         def settings = daemonForkOptionsBuilder()
             .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
-            .sharedPackages(["foo.bar", "foo.baz"])
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()
 
@@ -39,12 +38,10 @@ class DaemonForkOptionsTest extends Specification {
     def "is compatible with same settings"() {
         def settings1 = daemonForkOptionsBuilder()
             .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
-            .sharedPackages(["foo.bar", "foo.baz"])
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()
         def settings2 = daemonForkOptionsBuilder()
             .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
-            .sharedPackages(["foo.bar", "foo.baz"])
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()
 
@@ -70,42 +67,6 @@ class DaemonForkOptionsTest extends Specification {
             .build()
         def settings2 = daemonForkOptionsBuilder()
             .classpath([new File("lib/lib1.jar"), new File("lib/lib3.jar")])
-            .build()
-
-        expect:
-        !settings1.isCompatibleWith(settings2)
-    }
-
-    def "is compatible with same set of shared packages"() {
-        def settings1 = daemonForkOptionsBuilder()
-            .sharedPackages(["foo.bar", "foo.baz"])
-            .build()
-        def settings2 = daemonForkOptionsBuilder()
-            .sharedPackages(["foo.bar", "foo.baz"])
-            .build()
-
-        expect:
-        settings1.isCompatibleWith(settings2)
-    }
-
-    def "is compatible with subset of shared packages"() {
-        def settings1 = daemonForkOptionsBuilder()
-            .sharedPackages(["foo.bar", "foo.baz"])
-            .build()
-        def settings2 = daemonForkOptionsBuilder()
-            .sharedPackages(["foo.bar"])
-            .build()
-
-        expect:
-        settings1.isCompatibleWith(settings2)
-    }
-
-    def "is not compatible with different set of shared packages"() {
-        def settings1 = daemonForkOptionsBuilder()
-            .sharedPackages(["foo.bar", "foo.baz"])
-            .build()
-        def settings2 = daemonForkOptionsBuilder()
-            .sharedPackages(["bar.foo", "foo.baz"])
             .build()
 
         expect:
@@ -201,14 +162,6 @@ class DaemonForkOptionsTest extends Specification {
 
         then:
         !settings1.isCompatibleWith(settings2)
-    }
-
-    def "unspecified shared packages default to empty list"() {
-        when:
-        def options = daemonForkOptionsBuilder().build()
-
-        then:
-        options.sharedPackages == []
     }
 
     def "unspecified classloader structure uses default structure with empty classpath"() {
