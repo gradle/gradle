@@ -45,6 +45,9 @@ Provides support for generating parsers using http://www.antlr.org/[ANTLR].
 <<cpp_plugins.adoc#,C++>>::
 Provides support for building C++ libraries and applications on Windows, Linux, and macOS.
 
+<<cpp_unit_test_plugin.adoc#,C++ Unit Test>>::
+Provides support for building C++ executable-based tests on Windows, Linux, and macOS.
+
 == Packaging and distribution
 
 <<application_plugin.adoc#,Application>>::
