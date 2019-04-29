@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 
 /**
  * This factory is responsible for caching merging queries. It delegates computations
@@ -28,13 +30,11 @@ import java.util.Map;
  * queries, caching will be faster.
  */
 public class CachingExcludeFactory extends DelegatingExcludeFactory {
-    private final Map<ExcludePair, ExcludeSpec> allOfPairCache = Maps.newConcurrentMap();
-    private final Map<ExcludePair, ExcludeSpec> anyOfPairCache = Maps.newConcurrentMap();
-    private final Map<ExcludeList, ExcludeSpec> allOfListCache = Maps.newConcurrentMap();
-    private final Map<ExcludeList, ExcludeSpec> anyOfListCache = Maps.newConcurrentMap();
+    private final MergeCaches caches;
 
-    public CachingExcludeFactory(ExcludeFactory delegate) {
+    public CachingExcludeFactory(ExcludeFactory delegate, MergeCaches caches) {
         super(delegate);
+        this.caches = caches;
     }
 
     @Override
@@ -43,26 +43,22 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     private ExcludeSpec cachedAnyPair(ExcludeSpec left, ExcludeSpec right) {
-        return anyOfPairCache.computeIfAbsent(new ExcludePair(left, right), key -> delegate.anyOf(key.left, key.right));
+        return caches.getAnyPair(ExcludePair.of(left, right), key -> delegate.anyOf(key.left, key.right));
     }
 
     @Override
     public ExcludeSpec allOf(ExcludeSpec one, ExcludeSpec two) {
-        return cachedAllPair(one, two);
-    }
-
-    private ExcludeSpec cachedAllPair(ExcludeSpec left, ExcludeSpec right) {
-        return allOfPairCache.computeIfAbsent(new ExcludePair(left, right), key -> delegate.allOf(key.left, key.right));
+        return caches.getAllPair(ExcludePair.of(one, two), key -> delegate.allOf(key.left, key.right));
     }
 
     @Override
     public ExcludeSpec anyOf(List<ExcludeSpec> specs) {
-        return anyOfListCache.computeIfAbsent(new ExcludeList(specs), key -> delegate.anyOf(key.specs));
+        return caches.getAnyOf(new ExcludeList(specs), key -> delegate.anyOf(key.specs));
     }
 
     @Override
     public ExcludeSpec allOf(List<ExcludeSpec> specs) {
-        return allOfListCache.computeIfAbsent(new ExcludeList(specs), key -> delegate.allOf(key.specs));
+        return caches.getAllOf(new ExcludeList(specs), key -> delegate.allOf(key.specs));
     }
 
     /**
@@ -74,14 +70,19 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
         private final ExcludeSpec right;
         private final int hashCode;
 
+        // Optimizes comparisons by making sure that the 2 elements of
+        // the pair are "sorted" by hashcode ascending
+        private static ExcludePair of(ExcludeSpec left, ExcludeSpec right) {
+            if (left.hashCode() > right.hashCode()) {
+                return new ExcludePair(right, left);
+            }
+            return new ExcludePair(left, right);
+        }
+
         private ExcludePair(ExcludeSpec left, ExcludeSpec right) {
-            int lhc = left.hashCode();
-            int rhc = right.hashCode();
-            this.hashCode = lhc ^ rhc; // must be symmetrical
-            // Optimizes comparisons by making sure that the 2 elements of
-            // the pair are "sorted" by hashcode ascending
-            this.left = lhc<rhc ? left : right;
-            this.right = lhc<rhc ? right : left;
+            this.left = left;
+            this.right = right;
+            this.hashCode = left.hashCode() ^ right.hashCode(); // must be symmetrical
         }
 
         @Override
@@ -146,6 +147,64 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
         @Override
         public int hashCode() {
             return hashCode;
+        }
+    }
+
+    /**
+     * A shareable backing cache for different caching exclude factories.
+     * Synchronization is ad-hoc, since `computeIfAbsent` on a concurrent hash map
+     * will not allow for recursion, which is the case for us whenever a cache is
+     * found at different levels.
+     */
+    public static class MergeCaches {
+        private final ConcurrentCache<ExcludePair, ExcludeSpec> allOfPairCache = ConcurrentCache.of();
+        private final ConcurrentCache<ExcludePair, ExcludeSpec> anyOfPairCache = ConcurrentCache.of();
+        private final ConcurrentCache<ExcludeList, ExcludeSpec> allOfListCache = ConcurrentCache.of();
+        private final ConcurrentCache<ExcludeList, ExcludeSpec> anyOfListCache = ConcurrentCache.of();
+
+        ExcludeSpec getAnyPair(ExcludePair pair, Function<ExcludePair, ExcludeSpec> onMiss) {
+            return anyOfPairCache.computeIfAbsent(pair, onMiss);
+        }
+
+        ExcludeSpec getAllPair(ExcludePair pair, Function<ExcludePair, ExcludeSpec> onMiss) {
+            return allOfPairCache.computeIfAbsent(pair, onMiss);
+        }
+
+        ExcludeSpec getAnyOf(ExcludeList list, Function<ExcludeList, ExcludeSpec> onMiss) {
+            return anyOfListCache.computeIfAbsent(list, onMiss);
+        }
+
+        ExcludeSpec getAllOf(ExcludeList list, Function<ExcludeList, ExcludeSpec> onMiss) {
+            return allOfListCache.computeIfAbsent(list, onMiss);
+        }
+    }
+
+    private static class ConcurrentCache<K, V> {
+        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+        private final Map<K, V> backingMap = Maps.newHashMap();
+
+        static <K, V> ConcurrentCache<K,V> of() {
+            return new ConcurrentCache<>();
+        }
+
+        V computeIfAbsent(K key, Function<K, V> producer) {
+            lock.readLock().lock();
+            try {
+                V value = backingMap.get(key);
+                if (value != null) {
+                    return value;
+                }
+            } finally {
+                lock.readLock().unlock();
+            }
+            lock.writeLock().lock();
+            try {
+                V value = producer.apply(key);
+                backingMap.put(key, value);
+                return value;
+            } finally {
+                lock.writeLock().unlock();
+            }
         }
     }
 }
