@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.Optimizations;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
@@ -66,12 +65,12 @@ public class DefaultExcludeFactory implements ExcludeFactory {
 
     @Override
     public ExcludeSpec anyOf(ExcludeSpec one, ExcludeSpec two) {
-        return Optimizations.optimizeAnyOf(one, two, (a, b) -> DefaultExcludeAnyOf.of(ImmutableSet.of(a, b)));
+        return DefaultExcludeAnyOf.of(ImmutableSet.of(one, two));
     }
 
     @Override
     public ExcludeSpec allOf(ExcludeSpec one, ExcludeSpec two) {
-        return Optimizations.optimizeAllOf(this, one, two, (a, b) -> DefaultExcludeAllOf.of(ImmutableSet.of(a, b)));
+        return DefaultExcludeAllOf.of(ImmutableSet.of(one, two));
     }
 
     @Override
