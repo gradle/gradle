@@ -1,1 +1,2 @@
  - Kickstart Gradle plugin development with gradle init
+ - Distribute organization-wide Gradle properties in custom Gradle distributions

@@ -44,12 +44,11 @@ The `init` task can now generate simple Gradle plugins. You can use these as a s
 
 See the [User manual](userguide/build_init_plugin.html) for more details.
 
-## gradle.properties in installation directory
+## Define organization-wide properties with a custom Gradle Distribution
 
-Gradle now also looks for a `gradle.properties` file in the installation directory.
-This allows organisations that package their own Gradle distributions to add default properties to such a distribution.
-This can be used, for example, to configure daemon memory defaults through `org.gradle.jvmargs`.
-(Properties defined in other locations override properties defined in the installation.)
+Gradle now looks for a `gradle.properties` file in the Gradle distribution used by the build.  This file has the [lowest precedence of any `gradle.properties`](userguide/build_environment.html#sec:gradle_configuration_properties) and properties defined in other locations will override values defined here.
+
+By placing a `gradle.properties` file in a [custom Gradle distribution](userguide/organizing_gradle_projects.html#sec:custom_gradle_distribution), an organization can add default properties for the entire organization or tweak the default Gradle daemon memory parameters with `org.gradle.jvmargs`.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
