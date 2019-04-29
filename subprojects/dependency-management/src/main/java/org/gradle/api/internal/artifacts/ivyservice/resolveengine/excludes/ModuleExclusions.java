@@ -31,12 +31,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ModuleExclusions {
+    private final CachingExcludeFactory.MergeCaches mergeCaches = new CachingExcludeFactory.MergeCaches();
     // please keep the formatting below as it helps enabling or disabling stages
     private final ExcludeFactory factory = new OptimizingExcludeFactory(// optimizes for nulls, 2-params, ... mandatory
-        new CachingExcludeFactory(// caches the result of operations
+        new CachingExcludeFactory(// caches the result of TL operations
             new NormalizingExcludeFactory(// performs algebra
-                new DefaultExcludeFactory()// the end of the chain, mandatory
-            )
+                new CachingExcludeFactory(// caches the result of optimization operations
+                    new DefaultExcludeFactory(),// the end of the chain, mandatory
+                    mergeCaches // shares the same caches as the top level one as after reducing we can find already cached merge operations
+                )
+            ),
+            mergeCaches
         )
     );
     private final Map<ExcludeMetadata, ExcludeSpec> metadataToExcludeCache = Maps.newConcurrentMap();
