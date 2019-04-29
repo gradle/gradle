@@ -98,7 +98,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      * @param propertyAnnotationCategories Annotations on the properties that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoreMethodAnnotation} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
      * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overriden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
-     * @param ignoreMethodAnnotation Annotation to use to explicitly ignore a method/property.
+     * @param ignoredMethodAnnotation Annotation to use to explicitly ignore a method/property.
      * @param generatedMethodDetector Predicate to test if a method was generated (vs. being provided explicitly by the user).
      * @param cacheFactory A factory to create cross-build in-memory caches.
      */
@@ -107,7 +107,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
         Collection<Class<?>> ignoredSuperTypes,
         Collection<Class<?>> ignoreMethodsFromTypes,
-        Class<? extends Annotation> ignoreMethodAnnotation,
+        Class<? extends Annotation> ignoredMethodAnnotation,
         Predicate<? super Method> generatedMethodDetector,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
@@ -115,19 +115,19 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         this.propertyAnnotationCategories = ImmutableMap.<Class<? extends Annotation>, AnnotationCategory>builder()
             .putAll(propertyAnnotationCategories)
             .put(Inject.class, TYPE)
-            .put(ignoreMethodAnnotation, TYPE)
+            .put(ignoredMethodAnnotation, TYPE)
             .build();
         this.cache = cacheFactory.newClassCache();
-        for (Class<?> ignoredSuperClass : ignoredSuperTypes) {
-            cache.put(ignoredSuperClass, EMPTY_TYPE_ANNOTATION_METADATA);
+        for (Class<?> ignoredSuperType : ignoredSuperTypes) {
+            cache.put(ignoredSuperType, EMPTY_TYPE_ANNOTATION_METADATA);
         }
-        this.ignoredMethodAnnotation = ignoreMethodAnnotation;
+        this.ignoredMethodAnnotation = ignoredMethodAnnotation;
         this.generatedMethodDetector = generatedMethodDetector;
-        this.potentiallyIgnoredMethodNames = allMethodsNamesOf(ignoreMethodsFromTypes);
+        this.potentiallyIgnoredMethodNames = allMethodNamesOf(ignoreMethodsFromTypes);
         this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromTypes);
     }
 
-    private ImmutableSet<String> allMethodsNamesOf(Collection<Class<?>> classes) {
+    private static ImmutableSet<String> allMethodNamesOf(Iterable<Class<?>> classes) {
         ImmutableSet.Builder<String> methods = ImmutableSet.builder();
         for (Class<?> clazz : classes) {
             for (Method method : clazz.getMethods()) {
