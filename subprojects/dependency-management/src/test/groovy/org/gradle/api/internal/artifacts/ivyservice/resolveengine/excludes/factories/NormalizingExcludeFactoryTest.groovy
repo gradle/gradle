@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories
 
-import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
@@ -64,7 +63,7 @@ class NormalizingExcludeFactoryTest extends Specification {
     def "union of three elements"() {
         expect:
         [one, two, three].combinations().each { list ->
-            assert factory.anyOf(list) == expected
+            assert factory.anyOf(list as Set) == expected
         }
 
         where:
@@ -116,11 +115,11 @@ class NormalizingExcludeFactoryTest extends Specification {
     }
 
     private ExcludeSpec anyOf(ExcludeSpec... specs) {
-        delegate.anyOf(ImmutableList.copyOf(specs))
+        delegate.anyOf(ImmutableSet.copyOf(specs))
     }
 
     private ExcludeSpec allOf(ExcludeSpec... specs) {
-        delegate.allOf(ImmutableList.copyOf(specs))
+        delegate.allOf(ImmutableSet.copyOf(specs))
     }
 
     private ExcludeSpec ivy(String group, String module, IvyArtifactName artifact, String matcher) {

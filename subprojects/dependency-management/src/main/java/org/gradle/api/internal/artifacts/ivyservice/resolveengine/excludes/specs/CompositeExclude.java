@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
-import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public interface CompositeExclude extends ExcludeSpec {
@@ -24,9 +24,11 @@ public interface CompositeExclude extends ExcludeSpec {
 
     Stream<ExcludeSpec> components();
 
-    Collection<ExcludeSpec> getComponents();
+    Set<ExcludeSpec> getComponents();
 
     default boolean contains(ExcludeSpec spec) {
         return components().anyMatch(spec::equals);
     }
+
+    int size();
 }

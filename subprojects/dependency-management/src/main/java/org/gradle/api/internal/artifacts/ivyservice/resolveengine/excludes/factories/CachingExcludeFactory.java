@@ -16,11 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
@@ -52,13 +51,13 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec anyOf(List<ExcludeSpec> specs) {
-        return caches.getAnyOf(new ExcludeList(specs), key -> delegate.anyOf(key.specs));
+    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
+        return caches.getAnyOf(new ExcludesKey(specs), key -> delegate.anyOf(key.specs));
     }
 
     @Override
-    public ExcludeSpec allOf(List<ExcludeSpec> specs) {
-        return caches.getAllOf(new ExcludeList(specs), key -> delegate.allOf(key.specs));
+    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
+        return caches.getAllOf(new ExcludesKey(specs), key -> delegate.allOf(key.specs));
     }
 
     /**
@@ -109,12 +108,12 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
      * A special exclude spec list key which recognizes
      * that union and intersection are commutative.
      */
-    private static class ExcludeList {
-        private final List<ExcludeSpec> specs;
+    private static class ExcludesKey {
+        private final Set<ExcludeSpec> specs;
         private final int size;
         private final int hashCode;
 
-        private ExcludeList(List<ExcludeSpec> specs) {
+        private ExcludesKey(Set<ExcludeSpec> specs) {
             this.specs = specs;
             this.size = specs.size();
             this.hashCode = computeHashCode();
@@ -137,11 +136,11 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
                 return false;
             }
 
-            ExcludeList that = (ExcludeList) o;
+            ExcludesKey that = (ExcludesKey) o;
             if (size != that.size) {
                 return false;
             }
-            return specs.containsAll(that.specs);
+            return specs.equals(that.specs);
         }
 
         @Override
@@ -159,8 +158,8 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
     public static class MergeCaches {
         private final ConcurrentCache<ExcludePair, ExcludeSpec> allOfPairCache = ConcurrentCache.of();
         private final ConcurrentCache<ExcludePair, ExcludeSpec> anyOfPairCache = ConcurrentCache.of();
-        private final ConcurrentCache<ExcludeList, ExcludeSpec> allOfListCache = ConcurrentCache.of();
-        private final ConcurrentCache<ExcludeList, ExcludeSpec> anyOfListCache = ConcurrentCache.of();
+        private final ConcurrentCache<ExcludesKey, ExcludeSpec> allOfListCache = ConcurrentCache.of();
+        private final ConcurrentCache<ExcludesKey, ExcludeSpec> anyOfListCache = ConcurrentCache.of();
 
         ExcludeSpec getAnyPair(ExcludePair pair, Function<ExcludePair, ExcludeSpec> onMiss) {
             return anyOfPairCache.computeIfAbsent(pair, onMiss);
@@ -170,11 +169,11 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
             return allOfPairCache.computeIfAbsent(pair, onMiss);
         }
 
-        ExcludeSpec getAnyOf(ExcludeList list, Function<ExcludeList, ExcludeSpec> onMiss) {
+        ExcludeSpec getAnyOf(ExcludesKey list, Function<ExcludesKey, ExcludeSpec> onMiss) {
             return anyOfListCache.computeIfAbsent(list, onMiss);
         }
 
-        ExcludeSpec getAllOf(ExcludeList list, Function<ExcludeList, ExcludeSpec> onMiss) {
+        ExcludeSpec getAllOf(ExcludesKey list, Function<ExcludesKey, ExcludeSpec> onMiss) {
             return allOfListCache.computeIfAbsent(list, onMiss);
         }
     }
