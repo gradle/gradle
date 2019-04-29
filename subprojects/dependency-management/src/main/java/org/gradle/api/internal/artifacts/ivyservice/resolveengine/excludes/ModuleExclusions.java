@@ -37,7 +37,7 @@ public class ModuleExclusions {
         new CachingExcludeFactory(// caches the result of TL operations
             new NormalizingExcludeFactory(// performs algebra
                 new CachingExcludeFactory(// caches the result of optimization operations
-                    new DefaultExcludeFactory(),// the end of the chain, mandatory
+                    new DefaultExcludeFactory(), // the end of the chain, mandatory
                     mergeCaches // shares the same caches as the top level one as after reducing we can find already cached merge operations
                 )
             ),
