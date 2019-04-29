@@ -22,7 +22,7 @@ import org.gradle.util.GUtil;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 
-public class WrappedActionExecutionSpec implements ActionExecutionSpec {
+public class WrappedActionExecutionSpec implements IsolatedClassloaderActionExecutionSpec {
     private final String displayName;
     private final byte[] delegateBytes;
     private final ClassLoaderStructure classLoaderStructure;
@@ -48,6 +48,7 @@ public class WrappedActionExecutionSpec implements ActionExecutionSpec {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public ClassLoaderStructure getClassLoaderStructure() {
         return classLoaderStructure;
     }

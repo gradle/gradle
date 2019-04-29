@@ -26,7 +26,6 @@ import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
-import java.util.Collections;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private final JavaForkOptionsFactory forkOptionsFactory;

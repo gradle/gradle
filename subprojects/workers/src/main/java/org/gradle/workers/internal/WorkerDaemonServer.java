@@ -49,9 +49,9 @@ public class WorkerDaemonServer implements WorkerProtocol {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            WrappedActionExecutionSpec wrappedActionExecutionSpec = (WrappedActionExecutionSpec) spec;
-            Worker worker = getIsolatedClassloaderWorker(wrappedActionExecutionSpec.getClassLoaderStructure());
-            return worker.execute(wrappedActionExecutionSpec);
+            IsolatedClassloaderActionExecutionSpec classloaderActionExecutionSpec = (IsolatedClassloaderActionExecutionSpec) spec;
+            Worker worker = getIsolatedClassloaderWorker(classloaderActionExecutionSpec.getClassLoaderStructure());
+            return worker.execute(classloaderActionExecutionSpec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }

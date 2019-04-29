@@ -18,11 +18,8 @@ package org.gradle.workers.internal;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsInternal;
-
-import java.util.Set;
 
 public class DaemonForkOptions {
     private final JavaForkOptionsInternal forkOptions;
