@@ -22,11 +22,16 @@ digraph cppSharedLibraryTaskGraph {
   rankdir=LR
 
   compileDebugCpp -> linkDebug -> assembleDebug -> assemble -> build [dir=back]
-  build -> check
+  check -> build [dir=back]
   compileReleaseCpp -> linkRelease -> assembleRelease [dir=back]
   clean
 
   // Ensure ordering
   compileDebugCpp -> compileReleaseCpp -> clean [style=invis]
   {rank=same compileDebugCpp compileReleaseCpp clean}
+
+  assemble -> empty1 -> empty2 -> check [style=invis]
+  {rank=same assemble check empty1 empty2}
+  empty1[shape=plain, label=""]
+  empty2[shape=plain, label=""]
 }

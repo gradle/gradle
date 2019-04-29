@@ -90,7 +90,7 @@ Compiles {cpp} source files using the selected compiler.
 `link__Variant__` (e.g. `linkDebug` and `linkRelease`) - link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html[LinkSharedLibrary] (shared linkage)::
 Depends on: All tasks which contribute to the link libraries, including `link__Variant__` and `create__Variant__` tasks from projects that are resolved via project dependencies
 ::
-Links shared library from compiled object files using the selected linker
+Links shared library from compiled object files using the selected linker.
 
 `create__Variant__` (e.g. `createDebug` and `createRelease`) - link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html[CreateStaticLibrary] (static linkage)::
 Creates static library from compiled object files using selected archiver
@@ -138,7 +138,7 @@ The following graph describes the configurations added by the {cpp} Library Plug
 image::cpp-library-configurations.png[]
 
 * The configurations in white are the ones a user should use to declare dependencies
-* The configurations in pink, also known as consumable denoted by \(C), are the ones used when a component compiles, links, or runs against the library.
+* The configurations in pink, also known as consumable denoted by \(C), are the ones used when a component compiles, links, or runs against the library
 * The configurations in blue, also known as resolvable denoted by \(R), are internal to the component, for its own use
 
 The following configurations are used to declare dependencies:
@@ -147,40 +147,40 @@ The following configurations are used to declare dependencies:
 Used for declaring API dependencies (see <<sec:api_vs_implementation,API vs implementation section>>).
 This is where you should declare dependencies which are transitively exported to consumers, for compile and link.
 
-`implementation`::
+`implementation` extends `api`::
 Used for declaring implementation dependencies for all variants of the main component (see <<sec:api_vs_implementation,API vs implementation section>>).
 This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers of any variants.
 
-`main__Variant__Implementation` (e.g. `mainDebugImplementation` and `mainReleaseImplementation`)::
+`main__Variant__Implementation` (e.g. `mainDebugImplementation` and `mainReleaseImplementation`) extends `implementation`::
 Used for declaring implementation dependencies for a specific variant of the main component (see <<sec:api_vs_implementation,API vs implementation section>>).
 This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers of this specific variant.
 
 
 The following configurations are used by consumers:
 
-`cppApiElements`::
+`cppApiElements` extends `main__Variant__Implementation`::
 Used for compiling against the library.
 This configuration is meant to be used by consumers, to retrieve all the elements necessary to compile against the library.
 
-`__variant__LinkElements` (e.g. `debugLinkElements` and `releaseLinkElements`)::
+`__variant__LinkElements` (e.g. `debugLinkElements` and `releaseLinkElements`) extends `main__Variant__Implementation`::
 Used for linking against the library.
 This configuration is meant to be used by consumers, to retrieve all the elements necessary to link against the library.
 
-`__variant__RuntimeElements` (e.g. `debugRuntimeElements` and `releaseRuntimeElements)::
+`__variant__RuntimeElements` (e.g. `debugRuntimeElements` and `releaseRuntimeElements) extends `main__Variant__Implementation`::
 Used for executing the library.
 This configuration is meant to be used by consumers, to retrieve all the elements necessary to run against the library.
 
 The following configurations are used by the library itself:
 
-`cppCompile__Variant__` (e.g. `cppCompileDebug` and `cppCompileRelease`)::
+`cppCompile__Variant__` (e.g. `cppCompileDebug` and `cppCompileRelease`) extends `main__Variant__Implementation`::
 Used for compiling the library.
 This configuration contains the compile include roots of the library and is therefore used when invoking the {cpp} compiler to compile it.
 
-`nativeLink__Variant__` (e.g. `nativeLinkDebug` and `nativeLinkRelease`)::
+`nativeLink__Variant__` (e.g. `nativeLinkDebug` and `nativeLinkRelease`) extends `main__Variant__Implementation`::
 Used for linking the library the shared library only.
 This configuration contains the libraries of the library and is therefore used when invoking the {cpp} linker to link it.
 
-`nativeRuntime__Variant__` (e.g. `nativeRuntimeDebug` and `nativeRuntimeRelease`)::
+`nativeRuntime__Variant__` (e.g. `nativeRuntimeDebug` and `nativeRuntimeRelease`) extends `main__Variant__Implementation`::
 Used for executing the library.
 This configuration contains the runtime libraries of the library.
 
