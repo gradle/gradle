@@ -25,7 +25,6 @@ import org.gradle.api.tasks.PathSensitivity
 abstract class TemplateProjectGeneratorTask extends ProjectGeneratorTask {
 
     @OutputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
     File destDir
 
     @InputDirectory

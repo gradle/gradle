@@ -87,6 +87,7 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
         then:
         file("build/output").text == "done"
         result.assertTasksExecuted(":custom")
+
         when:
         file("inputs/input").text = "new"
         succeeds("custom")

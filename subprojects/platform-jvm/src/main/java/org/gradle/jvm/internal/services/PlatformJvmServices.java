@@ -23,8 +23,6 @@ import org.gradle.api.internal.resolve.DefaultLocalLibraryResolver;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.internal.resolve.VariantBinarySelector;
-import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
@@ -50,8 +48,6 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
         registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
-        registration.add(ClasspathPropertyAnnotationHandler.class);
-        registration.add(CompileClasspathPropertyAnnotationHandler.class);
     }
 
     @Override

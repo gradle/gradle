@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.LocalState;
+import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 
@@ -27,6 +29,11 @@ import java.lang.annotation.Annotation;
 public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return LocalState.class;
+    }
+
+    @Override
+    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
+        return ImmutableSet.of();
     }
 
     @Override

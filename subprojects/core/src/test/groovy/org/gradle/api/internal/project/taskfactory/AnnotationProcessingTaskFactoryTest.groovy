@@ -27,13 +27,16 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -92,13 +95,25 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithSingleParamAction
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithStaticMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TestTask
+import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.PROCESSED_PROPERTY_TYPE_ANNOTATIONS
+import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS
 
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
-    def propertyWalker = new DefaultPropertyWalker(new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, [] as List, new TestCrossBuildInMemoryCacheFactory()))
+    def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
+        [],
+        ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS) as Class[]),
+        [Object, GroovyObject],
+        [Object, GroovyObject],
+        Internal,
+        { false },
+        cacheFactory
+    )
+    def propertyWalker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, cacheFactory))
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"

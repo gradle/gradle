@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -31,7 +32,6 @@ import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -53,27 +53,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+
 /**
  * Class for easy access to property validation from the validator task.
  */
 @NonNullApi
 public class PropertyValidationAccess {
     private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
-        InputFiles.class, new MissingPathSensitivityValidator(false),
-        InputFile.class, new MissingPathSensitivityValidator(false),
-        InputDirectory.class, new MissingPathSensitivityValidator(false)
+        InputFiles.class, new MissingNormalizationValidator(false),
+        InputFile.class, new MissingNormalizationValidator(false),
+        InputDirectory.class, new MissingNormalizationValidator(false)
     );
     private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> STRICT_PROPERTY_VALIDATORS = ImmutableMap.of(
-        InputFiles.class, new MissingPathSensitivityValidator(true),
-        InputFile.class, new MissingPathSensitivityValidator(true),
-        InputDirectory.class, new MissingPathSensitivityValidator(true)
+        InputFiles.class, new MissingNormalizationValidator(true),
+        InputFile.class, new MissingNormalizationValidator(true),
+        InputDirectory.class, new MissingNormalizationValidator(true)
     );
     private static final PropertyValidationAccess INSTANCE = new PropertyValidationAccess();
 
     private final TaskClassInfoStore taskClassInfoStore;
     private final List<TypeScheme> typeSchemes;
 
-    private PropertyValidationAccess() {
+    @VisibleForTesting
+    PropertyValidationAccess() {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
         // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the plugin service registries
         // For now, re-implement the discovery here
@@ -124,7 +127,7 @@ public class PropertyValidationAccess {
         boolean cacheable;
         boolean mapErrorsToWarnings;
         if (Task.class.isAssignableFrom(topLevelBean)) {
-            cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
+            cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedNonnullCast(topLevelBean)).isCacheable();
             // Treat all errors as warnings, for backwards compatibility
             mapErrorsToWarnings = true;
         } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
@@ -182,10 +185,10 @@ public class PropertyValidationAccess {
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
             if (!typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
-                    return new MapBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType), typeMetadata);
+                    return new MapBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedNonnullCast(beanType), typeMetadata);
                 }
                 if (Iterable.class.isAssignableFrom(rawType)) {
-                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Iterable<?>>>uncheckedCast(beanType), typeMetadata);
+                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Iterable<?>>>uncheckedNonnullCast(beanType), typeMetadata);
                 }
             }
             return new NestedBeanTypeNode(parentNode, propertyName, beanType, typeMetadata);
@@ -235,7 +238,7 @@ public class PropertyValidationAccess {
                 if (validator != null) {
                     validator.validate(null, propertyMetadata, validationContext);
                 }
-                if (propertyMetadata.isAnnotationPresent(Nested.class)) {
+                if (propertyMetadata.getPropertyType().equals(Nested.class)) {
                     TypeToken<?> beanType = unpackProvider(propertyMetadata.getGetterMethod());
                     nodeFactory.createAndAddToQueue(this, qualifiedPropertyName, beanType, queue);
                 }
@@ -246,7 +249,7 @@ public class PropertyValidationAccess {
             Class<?> rawType = method.getReturnType();
             TypeToken<?> genericReturnType = TypeToken.of(method.getGenericReturnType());
             if (Provider.class.isAssignableFrom(rawType)) {
-                return PropertyValidationAccess.extractNestedType(Cast.<TypeToken<Provider<?>>>uncheckedCast(genericReturnType), Provider.class, 0);
+                return PropertyValidationAccess.extractNestedType(Cast.<TypeToken<Provider<?>>>uncheckedNonnullCast(genericReturnType), Provider.class, 0);
             }
             return genericReturnType;
         }
@@ -261,13 +264,8 @@ public class PropertyValidationAccess {
             }
 
             private String decorateMessage(String propertyName, String message) {
-                String decoratedMessage;
-                if (Task.class.isAssignableFrom(topLevelBean)) {
-                    decoratedMessage = String.format("Task type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
-                } else {
-                    decoratedMessage = String.format("Type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
-                }
-                return decoratedMessage;
+                return String.format("Type '%s': property '%s' %s.",
+                    topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
             }
 
             @Override
@@ -328,18 +326,17 @@ public class PropertyValidationAccess {
         void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext);
     }
 
-    private static class MissingPathSensitivityValidator implements PropertyValidator {
+    private static class MissingNormalizationValidator implements PropertyValidator {
         final boolean stricterValidation;
 
-        public MissingPathSensitivityValidator(boolean stricterValidation) {
+        public MissingNormalizationValidator(boolean stricterValidation) {
             this.stricterValidation = stricterValidation;
         }
 
         @Override
         public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
-            PathSensitive pathSensitive = metadata.getAnnotation(PathSensitive.class);
-            if (stricterValidation && pathSensitive == null) {
-                validationContext.visitError(ownerPath, metadata.getPropertyName(), "is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE");
+            if (stricterValidation && !metadata.hasAnnotationForCategory(NORMALIZATION)) {
+                validationContext.visitError(ownerPath, metadata.getPropertyName(), "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE");
             }
         }
     }

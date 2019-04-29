@@ -21,13 +21,22 @@ import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.ClasspathNormalizer;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.work.Incremental;
+
+import java.lang.annotation.Annotation;
+
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -42,8 +51,20 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        PathSensitive pathSensitive = propertyMetadata.getAnnotation(PathSensitive.class);
-        Class<? extends FileNormalizer> fileNormalizer = pathSensitive == null ? null : FileParameterUtils.determineNormalizerForPathSensitivity(pathSensitive.value());
+        Annotation fileNormalization = propertyMetadata.getAnnotationForCategory(NORMALIZATION);
+        Class<? extends FileNormalizer> fileNormalizer;
+        if (fileNormalization == null) {
+            fileNormalizer = null;
+        } else if (fileNormalization instanceof PathSensitive) {
+            PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
+            fileNormalizer = FileParameterUtils.determineNormalizerForPathSensitivity(pathSensitivity);
+        } else if (fileNormalization instanceof Classpath) {
+            fileNormalizer = ClasspathNormalizer.class;
+        } else if (fileNormalization instanceof CompileClasspath) {
+            fileNormalizer = CompileClasspathNormalizer.class;
+        } else {
+            throw new IllegalStateException("Unknown normalization annotation used: " + fileNormalization);
+        }
         visitor.visitInputFileProperty(
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),

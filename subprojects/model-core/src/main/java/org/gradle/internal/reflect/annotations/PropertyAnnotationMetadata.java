@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect;
+package org.gradle.internal.reflect.annotations;
+
+import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.reflect.AnnotationCategory;
+import org.gradle.internal.reflect.ParameterValidationContext;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-public interface PropertyMetadata {
+public interface PropertyAnnotationMetadata extends Comparable<PropertyAnnotationMetadata> {
+    Method getMethod();
+
     String getPropertyName();
 
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
-    @Nullable
-    Annotation getAnnotationForCategory(AnnotationCategory category);
+    ImmutableMap<AnnotationCategory, Annotation> getAnnotations();
 
-    boolean hasAnnotationForCategory(AnnotationCategory category);
-
-    Class<? extends Annotation> getPropertyType();
-
-    Method getGetterMethod();
+    void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext);
 }

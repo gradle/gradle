@@ -228,13 +228,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             ],
             incrementalNonFileInput: [
                 'does not have a value specified',
-                'has @Incremental annotation used on an @Input property',
+                'is annotated with @Incremental that is not allowed for @Input properties',
             ],
             missingInput: 'does not have a value specified',
-            noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
-            noPathSensitivityDir: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
-            noPathSensitivityFile: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
-            outputDir: 'is annotated with unsupported annotation @OutputDirectory',
+            noPathSensitivity: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
+            noPathSensitivityDir: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
+            noPathSensitivityFile: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
+            outputDir: 'is annotated with invalid property type @OutputDirectory',
         )
     }
 
@@ -346,7 +346,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
+        assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
 
         where:
         annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Nested]
@@ -453,12 +453,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
         assertPropertyValidationErrors(
             'conflictingAnnotations': [
-                'is annotated with unsupported annotation @InputFile',
-                'has conflicting property types declared: @InputArtifact, @InputArtifactDependencies'
+                'has conflicting type annotations declared: @InputFile, @InputArtifact, @InputArtifactDependencies; assuming @InputFile',
+                'is annotated with invalid property type @InputFile'
             ],
-            inputFile: 'is annotated with unsupported annotation @InputFile',
+            inputFile: 'is annotated with invalid property type @InputFile',
             notAnnotated: 'is not annotated with an input annotation',
-            noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+            noPathSensitivity: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
             absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms'
         )
     }
@@ -533,7 +533,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
+        assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
 
         where:
         annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal, Nested]

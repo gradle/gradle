@@ -16,10 +16,23 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.ImmutableSet;
+import groovy.lang.GroovyObject;
+import groovy.transform.Generated;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Task;
+import org.gradle.api.artifacts.transform.CacheableTransform;
+import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.HasConvention;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
@@ -38,6 +51,8 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyA
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
@@ -49,25 +64,117 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
+import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
+import org.gradle.internal.scripts.ScriptOrigin;
+import org.gradle.work.Incremental;
 
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class ExecutionGlobalServices {
-    InspectionSchemeFactory createInspectionSchemeFactory(List<PropertyAnnotationHandler> propertyHandlers, List<TypeAnnotationHandler> typeHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new InspectionSchemeFactory(propertyHandlers, typeHandlers, cacheFactory);
+    TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultTypeAnnotationMetadataStore(
+            ImmutableSet.of(
+                CacheableTask.class,
+                CacheableTransform.class
+            ),
+            ModifierAnnotationCategory.asMap(
+                Console.class,
+                Destroys.class,
+                Input.class,
+                InputArtifact.class,
+                InputArtifactDependencies.class,
+                InputDirectory.class,
+                InputFile.class,
+                InputFiles.class,
+                LocalState.class,
+                Nested.class,
+                OptionValues.class,
+                OutputDirectories.class,
+                OutputDirectory.class,
+                OutputFile.class,
+                OutputFiles.class,
+                ReplacedBy.class
+            ),
+            ImmutableSet.of(
+                AbstractTask.class,
+                ConventionTask.class,
+                DefaultTask.class,
+                DynamicObjectAware.class,
+                ExtensionAware.class,
+                GroovyObject.class,
+                HasConvention.class,
+                IConventionAware.class,
+                Object.class,
+                ScriptOrigin.class,
+                Task.class
+            ),
+            ImmutableSet.of(
+                GroovyObject.class,
+                Object.class,
+                ScriptOrigin.class
+            ),
+            Internal.class,
+            new Predicate<Method>() {
+                @Override
+                public boolean test(Method method) {
+                    return method.isAnnotationPresent(Generated.class);
+                }
+            },
+            cacheFactory);
+    }
+
+    InspectionSchemeFactory createInspectionSchemeFactory(
+        List<TypeAnnotationHandler> typeHandlers,
+        List<PropertyAnnotationHandler> propertyHandlers,
+        TypeAnnotationMetadataStore typeAnnotationMetadataStore,
+        CrossBuildInMemoryCacheFactory cacheFactory
+    ) {
+        return new InspectionSchemeFactory(typeHandlers, propertyHandlers, typeAnnotationMetadataStore, cacheFactory);
     }
 
     TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, Console.class, ReplacedBy.class, Internal.class, OptionValues.class), instantiationScheme);
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
+            ImmutableSet.of(
+                Input.class,
+                InputFile.class,
+                InputFiles.class,
+                InputDirectory.class,
+                OutputFile.class,
+                OutputFiles.class,
+                OutputDirectory.class,
+                OutputDirectories.class,
+                Destroys.class,
+                LocalState.class,
+                Nested.class,
+                Console.class,
+                ReplacedBy.class,
+                Internal.class,
+                OptionValues.class
+            ),
+            ImmutableSet.of(
+                Classpath.class,
+                CompileClasspath.class,
+                Incremental.class,
+                Optional.class,
+                PathSensitive.class,
+                SkipWhenEmpty.class
+            ),
+            instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
     }
 
