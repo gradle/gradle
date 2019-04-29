@@ -21,8 +21,9 @@ digraph cppLibraryVariantTaskGraph {
   node [style="dashed,filled", fillcolor=grey]
   rankdir=LR
 
-  compileVariantCpp -> linkVariant -> assembleVariant [dir=back, style=dashed]
+  compileVariantCpp -> linkVariant -> installVariant -> assembleVariant [dir=back, style=dashed]
   compileVariantCpp[label=<compile<i>Variant</i>Cpp>]
   linkVariant[label=<link<i>Variant</i>>]
+  installVariant[label=<install<i>Variant</i>>]
   assembleVariant[label=<assemble<i>Variant</i>>]
 }

@@ -21,12 +21,16 @@ digraph cppApplicationTaskGraph {
   node [style=filled, fillcolor="#cfe2f3"]
   rankdir=LR
 
-  compileDebugCpp -> linkDebug -> assembleDebug -> assemble -> build [dir=back]
-  build -> check
+  compileDebugCpp -> linkDebug -> assemble -> build [dir=back]
+  linkDebug -> assembleDebug [dir=back]
+  check -> build [dir=back]
   compileReleaseCpp -> linkRelease -> assembleRelease [dir=back]
   clean
 
   // Ensure ordering
   compileDebugCpp -> compileReleaseCpp -> clean [style=invis]
   {rank=same compileDebugCpp compileReleaseCpp clean}
+
+  check -> assemble -> assembleDebug -> assembleRelease [style=invis]
+  {rank=same check assemble assembleDebug assembleRelease}
 }
