@@ -16,19 +16,23 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 public class BasicProjectGenerator implements ProjectGenerator {
     private final BuildScriptBuilderFactory scriptBuilderFactory;
+    private final DocumentationRegistry documentationRegistry;
 
-    public BasicProjectGenerator(BuildScriptBuilderFactory scriptBuilderFactory) {
+    public BasicProjectGenerator(BuildScriptBuilderFactory scriptBuilderFactory, DocumentationRegistry documentationRegistry) {
         this.scriptBuilderFactory = scriptBuilderFactory;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -40,7 +44,7 @@ public class BasicProjectGenerator implements ProjectGenerator {
     public void generate(InitSettings settings) {
         scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This is a general purpose Gradle build.\n"
-                + "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")
+                + "Learn how to create Gradle builds at " + documentationRegistry.getGuideFor("creating-new-gradle-builds"))
             .create()
             .generate();
     }
@@ -73,5 +77,10 @@ public class BasicProjectGenerator implements ProjectGenerator {
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
         return Collections.singleton(BuildInitTestFramework.NONE);
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getGuideFor("creating-new-gradle-builds"));
     }
 }

@@ -34,6 +34,7 @@ class LayoutToPropertiesConverterTest extends Specification {
 
     def setup() {
         layout = new BuildLayoutParameters()
+            .setGradleInstallationHomeDir(temp.createDir("gradleDistribution"))
             .setGradleUserHomeDir(temp.createDir("gradleHome"))
             .setProjectDir(temp.createDir("projectDir"))
             .setSearchUpwards(false)
@@ -47,7 +48,15 @@ class LayoutToPropertiesConverterTest extends Specification {
         converter.convert(layout, props).foo == null
     }
 
-    def "configures from gradle home dir"() {
+    def "configures from installation home dir"() {
+        when:
+        temp.file("gradleDistribution/gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx1024m -Dprop=value"
+
+        then:
+        converter.convert(layout, props).get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m -Dprop=value'
+    }
+
+    def "configures from user home dir"() {
         when:
         temp.file("gradleHome/gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx1024m -Dprop=value"
 
@@ -72,6 +81,15 @@ class LayoutToPropertiesConverterTest extends Specification {
 
         then:
         converter.convert(layout, props).get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx128m'
+    }
+
+    def "project dir properties take precedence over gradle installation home properties"() {
+        when:
+        temp.file("projectDir/gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx1024m"
+        temp.file("gradleDistribution/gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx512m"
+
+        then:
+        converter.convert(layout, props).get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m'
     }
 
     def "gradle home properties take precedence over project dir properties"() {

@@ -22,6 +22,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
@@ -74,6 +75,11 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
         TemplateOperation scalaLibTemplateOperation = templateFactory.fromSourceTemplate("scalalibrary/Library.scala.template", "main");
         TemplateOperation scalaTestTemplateOperation = templateFactory.fromSourceTemplate("scalalibrary/LibrarySuite.scala.template", "test");
         templateFactory.whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation).generate();
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getDocumentationFor("scala_plugin"));
     }
 
     @Override

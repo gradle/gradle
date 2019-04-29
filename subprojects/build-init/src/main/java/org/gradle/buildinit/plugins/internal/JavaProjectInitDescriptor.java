@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -69,6 +70,11 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
 
     protected Description getDescription() {
         return DESCRIPTION;
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getDocumentationFor(getDescription().userguideId));
     }
 
     private void addTestFramework(BuildInitTestFramework testFramework, BuildScriptBuilder buildScriptBuilder) {

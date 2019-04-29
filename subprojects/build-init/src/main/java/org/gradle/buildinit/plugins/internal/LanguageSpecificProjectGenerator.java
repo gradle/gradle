@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
+import java.util.Optional;
 import java.util.Set;
 
 public interface LanguageSpecificProjectGenerator {
@@ -28,6 +29,8 @@ public interface LanguageSpecificProjectGenerator {
     ComponentType getComponentType();
 
     Language getLanguage();
+
+    Optional<String> getFurtherReading();
 
     Set<BuildInitTestFramework> getTestFrameworks();
 

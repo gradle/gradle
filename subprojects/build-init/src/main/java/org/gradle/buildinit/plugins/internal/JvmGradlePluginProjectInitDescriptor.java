@@ -21,6 +21,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.util.GUtil;
 
+import java.util.Optional;
+
 public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectInitDescriptor {
     private final DocumentationRegistry documentationRegistry;
 
@@ -71,6 +73,11 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
         TemplateOperation testTemplate = testTemplate(settings, templateFactory, pluginId, testClassName);
         TemplateOperation functionalTestTemplate = functionalTestTemplate(settings, templateFactory, pluginId, functionalTestClassName);
         templateFactory.whenNoSourcesAvailable(sourceTemplate, testTemplate, functionalTestTemplate).generate();
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getTopicGuidesFor("Plugin%20Development"));
     }
 
     protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName);
