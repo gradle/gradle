@@ -52,6 +52,13 @@ public class ModuleExclusions {
     }
 
     public ExcludeSpec excludeAny(ImmutableList<ExcludeMetadata> excludes) {
+        if (excludes.isEmpty()) {
+            // avoids creation of empty hashset
+            return nothing;
+        }
+        if (excludes.size() == 1) {
+            return forExclude(excludes.get(0));
+        }
         return factory.anyOf(excludes.stream()
             .map(this::forExclude)
             .collect(Collectors.toSet()));
