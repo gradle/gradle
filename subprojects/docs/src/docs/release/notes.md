@@ -44,6 +44,13 @@ The `init` task can now generate simple Gradle plugins. You can use these as a s
 
 See the [User manual](userguide/build_init_plugin.html) for more details.
 
+## gradle.properties in installation directory
+
+Gradle now also looks for a `gradle.properties` file in the installation directory.
+This allows organisations that package their own Gradle distributions to add default properties to such a distribution.
+This can be used, for example, to configure daemon memory defaults through `org.gradle.jvmargs`.
+(Properties defined in other locations override properties defined in the installation.)
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
