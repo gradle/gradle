@@ -75,9 +75,13 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
         private final int hashCode;
 
         private ExcludePair(ExcludeSpec left, ExcludeSpec right) {
-            this.left = left;
-            this.right = right;
-            this.hashCode = left.hashCode() ^ right.hashCode(); // must be symmetrical
+            int lhc = left.hashCode();
+            int rhc = right.hashCode();
+            this.hashCode = lhc ^ rhc; // must be symmetrical
+            // Optimizes comparisons by making sure that the 2 elements of
+            // the pair are "sorted" by hashcode ascending
+            this.left = lhc<rhc ? left : right;
+            this.right = lhc<rhc ? right : left;
         }
 
         @Override
@@ -91,9 +95,7 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
 
             ExcludePair that = (ExcludePair) o;
 
-            return (left.equals(that.left) && right.equals(that.right))
-                // symmetry
-                || (left.equals(that.right) && right.equals(that.left));
+            return left.equals(that.left) && right.equals(that.right);
         }
 
         @Override
