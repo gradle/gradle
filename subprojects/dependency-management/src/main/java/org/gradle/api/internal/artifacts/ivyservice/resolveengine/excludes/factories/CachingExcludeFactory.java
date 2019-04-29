@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
 /**
@@ -81,7 +80,7 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
         private ExcludePair(ExcludeSpec left, ExcludeSpec right) {
             this.left = left;
             this.right = right;
-            this.hashCode = left.hashCode() ^ right.hashCode(); // must be symmetrical
+            this.hashCode = 31 * left.hashCode() + right.hashCode();
         }
 
         @Override
@@ -179,30 +178,21 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     private static class ConcurrentCache<K, V> {
-        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         private final Map<K, V> backingMap = Maps.newHashMap();
 
-        static <K, V> ConcurrentCache<K,V> of() {
+        static <K, V> ConcurrentCache<K, V> of() {
             return new ConcurrentCache<>();
         }
 
         V computeIfAbsent(K key, Function<K, V> producer) {
-            lock.readLock().lock();
-            try {
+            synchronized (backingMap) {
                 V value = backingMap.get(key);
                 if (value != null) {
                     return value;
                 }
-            } finally {
-                lock.readLock().unlock();
-            }
-            lock.writeLock().lock();
-            try {
-                V value = producer.apply(key);
+                value = producer.apply(key);
                 backingMap.put(key, value);
                 return value;
-            } finally {
-                lock.writeLock().unlock();
             }
         }
     }
