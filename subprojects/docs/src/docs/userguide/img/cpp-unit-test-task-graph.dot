@@ -21,7 +21,7 @@ digraph cppUnitTestTaskGraph {
   node [style=filled, fillcolor="#cfe2f3"]
   rankdir=LR
 
-  compileTestCpp -> linkTest -> installTest -> runTest -> test -> check ->build [dir=back]
+  compileTestCpp -> linkTest -> installTest -> runTest -> test -> check -> build [dir=back]
   compileDebugCpp -> linkTest [dir=back]
   assemble -> build [dir=back]
   tripleDots -> assemble [dir=back]
