@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.Optimizations;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.List;
 import java.util.Set;
 
 public class DefaultExcludeFactory implements ExcludeFactory {
@@ -67,22 +66,22 @@ public class DefaultExcludeFactory implements ExcludeFactory {
 
     @Override
     public ExcludeSpec anyOf(ExcludeSpec one, ExcludeSpec two) {
-        return Optimizations.optimizeAnyOf(one, two, (a, b) -> DefaultExcludeAnyOf.of(ImmutableList.of(a, b)));
+        return Optimizations.optimizeAnyOf(one, two, (a, b) -> DefaultExcludeAnyOf.of(ImmutableSet.of(a, b)));
     }
 
     @Override
     public ExcludeSpec allOf(ExcludeSpec one, ExcludeSpec two) {
-        return Optimizations.optimizeAllOf(this, one, two, (a, b) -> DefaultExcludeAllOf.of(ImmutableList.of(a, b)));
+        return Optimizations.optimizeAllOf(this, one, two, (a, b) -> DefaultExcludeAllOf.of(ImmutableSet.of(a, b)));
     }
 
     @Override
-    public ExcludeSpec anyOf(List<ExcludeSpec> specs) {
-        return DefaultExcludeAnyOf.of(specs);
+    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
+        return DefaultExcludeAnyOf.of(ImmutableSet.copyOf(specs));
     }
 
     @Override
-    public ExcludeSpec allOf(List<ExcludeSpec> specs) {
-        return DefaultExcludeAllOf.of(specs);
+    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
+        return DefaultExcludeAllOf.of(ImmutableSet.copyOf(specs));
     }
 
     @Override

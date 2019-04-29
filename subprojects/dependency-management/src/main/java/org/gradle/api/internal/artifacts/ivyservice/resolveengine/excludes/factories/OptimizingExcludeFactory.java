@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
-import java.util.List;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * This factory is responsible for optimizing in special cases: null parameters,
@@ -40,20 +40,22 @@ public class OptimizingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec anyOf(List<ExcludeSpec> specs) {
-        return Optimizations.optimizeList(this, specs, list -> {
+    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
+        return Optimizations.optimizeCollection(this, specs, list -> {
             if (list.size() == 2) {
-                return delegate.anyOf(list.get(0), list.get(1));
+                Iterator<ExcludeSpec> it = list.iterator();
+                return delegate.anyOf(it.next(), it.next());
             }
             return delegate.anyOf(list);
         });
     }
 
     @Override
-    public ExcludeSpec allOf(List<ExcludeSpec> specs) {
-        return Optimizations.optimizeList(this, specs, list -> {
+    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
+        return Optimizations.optimizeCollection(this, specs, list -> {
             if (list.size() == 2) {
-                return delegate.allOf(list.get(0), list.get(1));
+                Iterator<ExcludeSpec> it = list.iterator();
+                return delegate.allOf(it.next(), it.next());
             }
             return delegate.allOf(list);
         });

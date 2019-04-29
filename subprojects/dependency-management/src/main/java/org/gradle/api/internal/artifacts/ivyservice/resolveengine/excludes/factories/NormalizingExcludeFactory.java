@@ -16,12 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.CompositeExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAllOf;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAnyOf;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
@@ -53,33 +52,33 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
 
     @Override
     public ExcludeSpec anyOf(ExcludeSpec one, ExcludeSpec two) {
-        return doUnion(ImmutableList.of(one, two));
+        return doUnion(ImmutableSet.of(one, two));
     }
 
     @Override
     public ExcludeSpec allOf(ExcludeSpec one, ExcludeSpec two) {
-        return doIntersect(ImmutableList.of(one, two));
+        return doIntersect(ImmutableSet.of(one, two));
     }
 
     @Override
-    public ExcludeSpec anyOf(List<ExcludeSpec> specs) {
+    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
         return doUnion(specs);
     }
 
     @Override
-    public ExcludeSpec allOf(List<ExcludeSpec> specs) {
+    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
         return doIntersect(specs);
     }
 
-    private ExcludeSpec doUnion(List<ExcludeSpec> specs) {
-        Set<ExcludeSpec> flattened = flatten(ExcludeAnyOf.class, specs, ExcludeEverything.class::isInstance, ExcludeNothing.class::isInstance);
-        if (flattened == null) {
+    private ExcludeSpec doUnion(Set<ExcludeSpec> specs) {
+        FlattenOperationResult flattened = flatten(ExcludeAnyOf.class, specs, ExcludeEverything.class::isInstance, ExcludeNothing.class::isInstance);
+        if (flattened.fastExit) {
             return everything();
         }
-        if (flattened.isEmpty()) {
+        if (flattened.result.isEmpty()) {
             return nothing();
         }
-        Map<UnionOf, List<ExcludeSpec>> byType = flattened.stream().collect(Collectors.groupingBy(UnionOf::typeOf));
+        Map<UnionOf, List<ExcludeSpec>> byType = flattened.result.stream().collect(Collectors.groupingBy(UnionOf::typeOf));
         List<ModuleIdExclude> moduleIdExcludes = UnionOf.MODULEID.fromMap(byType);
         List<ModuleIdSetExclude> moduleIdSetsExcludes = UnionOf.MODULEID_SET.fromMap(byType);
         List<GroupExclude> groupExcludes = UnionOf.GROUP.fromMap(byType);
@@ -129,7 +128,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
         if (moduleSetExcludes.size() > 1) {
             moduleSetExcludes = ImmutableList.of(delegate.moduleSet(moduleSetExcludes.stream().flatMap(e -> e.getModules().stream()).collect(toSet())));
         }
-        ImmutableList.Builder<ExcludeSpec> builder = ImmutableList.builderWithExpectedSize(
+        ImmutableSet.Builder<ExcludeSpec> builder = ImmutableSet.builderWithExpectedSize(
             moduleIdExcludes.size() + groupExcludes.size() + moduleExcludes.size() +
                 moduleIdSetsExcludes.size() + groupSetExcludes.size() + moduleSetExcludes.size() + other.size()
         );
@@ -140,7 +139,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
         builder.addAll(groupSetExcludes);
         builder.addAll(moduleSetExcludes);
         builder.addAll(other);
-        return Optimizations.optimizeList(this, builder.build(), delegate::anyOf);
+        return Optimizations.optimizeCollection(this, builder.build(), delegate::anyOf);
     }
 
     /**
@@ -150,35 +149,56 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
      * - empty list meaning that an easy simplification was reached and we directly know the result
      * - flattened unions/intersections
      */
-    private <T extends ExcludeSpec> Set<ExcludeSpec> flatten(Class<T> flattenType, List<ExcludeSpec> specs, Predicate<ExcludeSpec> fastExit, Predicate<ExcludeSpec> filter) {
-        Set<ExcludeSpec> out = null;
+    private <T extends ExcludeSpec> FlattenOperationResult flatten(Class<T> flattenType, Set<ExcludeSpec> specs, Predicate<ExcludeSpec> fastExit, Predicate<ExcludeSpec> ignoreSpec) {
+        boolean filtered = false;
+        boolean flatten = false;
+        int size = 0;
         for (ExcludeSpec spec : specs) {
             if (fastExit.test(spec)) {
-                return null;
+                return FlattenOperationResult.FAST_EXIT;
             }
-            if (!filter.test(spec)) {
-                if (out == null) {
-                    out = Sets.newHashSetWithExpectedSize(4 * specs.size());
-                }
-                if (flattenType.isInstance(spec)) {
-                    out.addAll(((CompositeExclude) spec).getComponents());
+            if (ignoreSpec.test(spec)) {
+                filtered = true;
+            }
+            if (flattenType.isInstance(spec)) {
+                flatten = true;
+                size += ((CompositeExclude) spec).size();
+            } else {
+                size++;
+            }
+        }
+        if (!filtered && !flatten) {
+            return FlattenOperationResult.of(specs);
+        }
+        if (filtered && !flatten) {
+            return FlattenOperationResult.of(specs.stream().filter(e -> !ignoreSpec.test(e)).collect(Collectors.toSet()));
+        }
+        // slowest path
+        final boolean processAll = !filtered;
+        ImmutableSet.Builder<ExcludeSpec> flattened = ImmutableSet.builderWithExpectedSize(size);
+        for (ExcludeSpec e : specs) {
+            if (processAll || !ignoreSpec.test(e)) {
+                if (flattenType.isInstance(e)) {
+                    CompositeExclude compositeExclude = (CompositeExclude) e;
+                    flattened.addAll(compositeExclude.getComponents());
                 } else {
-                    out.add(spec);
+                    flattened.add(e);
                 }
             }
         }
-        return out == null ? Collections.emptySet() : out;
+        return FlattenOperationResult.of(flattened.build());
     }
 
-    private ExcludeSpec doIntersect(List<ExcludeSpec> specs) {
-        Set<ExcludeSpec> relevant = flatten(ExcludeAllOf.class, specs, ExcludeNothing.class::isInstance, ExcludeEverything.class::isInstance);
-        if (relevant == null) {
+    private ExcludeSpec doIntersect(Set<ExcludeSpec> specs) {
+        FlattenOperationResult flattened = flatten(ExcludeAllOf.class, specs, ExcludeNothing.class::isInstance, ExcludeEverything.class::isInstance);
+        if (flattened.fastExit) {
             return nothing();
         }
-        if (relevant.isEmpty()) {
+        Set<ExcludeSpec> result = flattened.result;
+        if (result.isEmpty()) {
             return everything();
         }
-        return Optimizations.optimizeList(this, ImmutableList.copyOf(relevant), delegate::allOf);
+        return Optimizations.optimizeCollection(this, result, delegate::allOf);
     }
 
     private enum UnionOf {
@@ -207,6 +227,21 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
                 }
             }
             return null;
+        }
+    }
+
+    private static class FlattenOperationResult {
+        private static final FlattenOperationResult FAST_EXIT = new FlattenOperationResult(null, true);
+        private final Set<ExcludeSpec> result;
+        private final boolean fastExit;
+
+        private FlattenOperationResult(Set<ExcludeSpec> result, boolean fastExit) {
+            this.result = result;
+            this.fastExit = fastExit;
+        }
+
+        public static FlattenOperationResult of(Set<ExcludeSpec> specs) {
+            return new FlattenOperationResult(specs, false);
         }
     }
 }

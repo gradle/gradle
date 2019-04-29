@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
@@ -29,13 +28,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.List;
 import java.util.Set;
 
 public abstract class DelegatingExcludeFactory implements ExcludeFactory {
     protected final ExcludeFactory delegate;
 
-    public DelegatingExcludeFactory(ExcludeFactory delegate) {
+    DelegatingExcludeFactory(ExcludeFactory delegate) {
         this.delegate = delegate;
     }
 
@@ -80,12 +78,12 @@ public abstract class DelegatingExcludeFactory implements ExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec anyOf(List<ExcludeSpec> specs) {
+    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
         return delegate.anyOf(specs);
     }
 
     @Override
-    public ExcludeSpec allOf(List<ExcludeSpec> specs) {
+    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
         return delegate.allOf(specs);
     }
 

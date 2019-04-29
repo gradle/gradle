@@ -16,11 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -77,12 +76,12 @@ public abstract class Optimizations {
         return onMiss.apply(one, two);
     }
 
-    public static ExcludeSpec optimizeList(ExcludeFactory factory, List<ExcludeSpec> specs, Function<List<ExcludeSpec>, ExcludeSpec> onMiss) {
+    public static <T extends Collection<ExcludeSpec>> ExcludeSpec optimizeCollection(ExcludeFactory factory, T specs, Function<T, ExcludeSpec> onMiss) {
         if (specs.isEmpty()) {
             return factory.nothing();
         }
         if (specs.size() == 1) {
-            return specs.get(0);
+            return specs.iterator().next();
         }
         return onMiss.apply(specs);
     }

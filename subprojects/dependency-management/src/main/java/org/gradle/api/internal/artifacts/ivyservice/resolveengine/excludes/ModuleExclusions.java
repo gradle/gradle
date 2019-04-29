@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.facto
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.NormalizingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.OptimizingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -54,7 +54,7 @@ public class ModuleExclusions {
     public ExcludeSpec excludeAny(ImmutableList<ExcludeMetadata> excludes) {
         return factory.anyOf(excludes.stream()
             .map(this::forExclude)
-            .collect(Collectors.toList()));
+            .collect(Collectors.toSet()));
     }
 
     public ExcludeSpec nothing() {

@@ -21,11 +21,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.List;
-
 final class DefaultExcludeAllOf extends DefaultCompositeExclude implements ExcludeAllOf {
-    public static ExcludeSpec of(List<ExcludeSpec> components) {
-        return new DefaultExcludeAllOf(ImmutableSet.copyOf(components));
+    public static ExcludeAllOf of(ImmutableSet<ExcludeSpec> components) {
+        return new DefaultExcludeAllOf(components);
     }
 
     private DefaultExcludeAllOf(ImmutableSet<ExcludeSpec> components) {
