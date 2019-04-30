@@ -85,7 +85,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
     @Override
     public String toString() {
-        return VisitableURLClassLoader.class.getSimpleName() + "(" + name + ")";
+        return String.format("%s(%s, %s)", VisitableURLClassLoader.class.getSimpleName(), name, getParent());
     }
 
     public void visit(ClassLoaderVisitor visitor) {

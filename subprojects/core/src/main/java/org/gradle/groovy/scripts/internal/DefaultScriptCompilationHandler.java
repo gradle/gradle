@@ -381,5 +381,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             }
             return super.loadClass(name, resolve);
         }
+
+        @Override
+        public String toString() {
+            return ScriptClassLoader.class.getSimpleName() + "(" + getParent() + ")";
+        }
     }
 }
