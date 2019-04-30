@@ -250,7 +250,7 @@ class EdgeState implements DependencyGraphEdge {
             return transitiveExclusions;
         }
         ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
-        ExcludeSpec edgeExclusions = moduleExclusions.excludeAny(ImmutableList.copyOf(excludes));
+        ExcludeSpec edgeExclusions = moduleExclusions.excludeAny(excludes);
         return moduleExclusions.excludeAny(edgeExclusions, transitiveExclusions);
     }
 
