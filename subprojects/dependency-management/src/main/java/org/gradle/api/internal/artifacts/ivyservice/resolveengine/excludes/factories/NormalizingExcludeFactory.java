@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -226,19 +227,20 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             return FlattenOperationResult.of(specs.stream().filter(e -> !ignoreSpec.test(e)).collect(Collectors.toSet()));
         }
         // slowest path
-        final boolean processAll = !filtered;
-        ImmutableSet.Builder<ExcludeSpec> flattened = ImmutableSet.builderWithExpectedSize(size);
-        for (ExcludeSpec e : specs) {
-            if (processAll || !ignoreSpec.test(e)) {
+        Stream<ExcludeSpec> stream = specs.stream();
+        if (filtered) {
+            stream = stream.filter(e -> !ignoreSpec.test(e));
+        }
+        return FlattenOperationResult.of(stream
+            .flatMap(e -> {
                 if (flattenType.isInstance(e)) {
                     CompositeExclude compositeExclude = (CompositeExclude) e;
-                    flattened.addAll(compositeExclude.getComponents());
-                } else {
-                    flattened.add(e);
+                    return compositeExclude.components();
                 }
-            }
-        }
-        return FlattenOperationResult.of(flattened.build());
+                return Stream.of(e);
+            })
+            .collect(toSet())
+        );
     }
 
     private ExcludeSpec doIntersect(Set<ExcludeSpec> specs) {
