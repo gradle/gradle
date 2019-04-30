@@ -40,7 +40,6 @@ The target machine expresses which machines the application expects to run.
 A target machine is identified by its operating system and architecture.
 Gradle uses the target machine to decide which tool chain to choose based on availability on the host machine.
 
-
 The target machine can be configured as follows:
 
 .Configure application target machines
@@ -165,7 +164,7 @@ The {cpp} Application Plugin adds conventions for sources and tasks, shown below
 
 The {cpp} Application Plugin assumes the project layout shown below.
 None of these directories need to exist or have anything in them.
-The {cpp} Application Plugin will compile whatever it finds and ignores anything missing.
+The {cpp} Application Plugin will compile whatever it finds and ignore anything missing.
 
 `src/main/cpp`::
 {cpp} source with extension of `.cpp`, `.c++` or `.cc`
@@ -198,7 +197,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:source[source]:: `application.cppSource`
 
-link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:systemIncludes[systemIncludes]:: derived from the tool chain.
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:systemIncludes[systemIncludes]:: derived from the tool chain
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 

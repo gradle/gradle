@@ -1,4 +1,4 @@
-// Copyright 2018 the original author or authors.
+// Copyright 2019 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
 [[cpp_library_plugin]]
 = {cpp} Library
 
-The {cpp} Library Plugin provides the tasks, conventions and conventions for building {cpp} libraries.
-In particular, a {cpp} library exposes an API to consumers (i.e., other projects using {cpp} Library or {cpp} Application Plugin).
-// TODO: Link to C++ application plugin chapter
+The {cpp} Library Plugin provides the tasks, conventions and conventions for building a {cpp} library.
+In particular, a {cpp} library provides functionality that can be used by consumers (i.e., other projects using this plugin or the <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application Plugin>>).
 
 == Usage
 
@@ -29,17 +28,18 @@ include::sample[dir="userguide/cpp/cppLibrary/kotlin",files="build.gradle.kts[ta
 
 == Build variants
 
-The {cpp} Library Plugin understands the following dimensions which participate in the variant configuration.
+The {cpp} Library Plugin understands the following dimensions.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 
 Build types - always set to _debug_ and _release_::
-The build type control the debuggability as well as the optimization of the generated binaries.
-- `debug` - generate debug symbols and isn’t optimized
-- `release` - generate debug symbols extracted from the binary and is optimized
+The build type controls the debuggability as well as the optimization of the generated binaries.
+- `debug` - Generate debug symbols and don’t optimized the binary
+- `release` - Generate debug symbols and optimize, but extract the debug symbols from the binary
 
 Linkages - default to _shared_::
-The linkages express whether an shared library or static library will be created.
-It can be configured through the script block as follows:
+The linkage expresses whether a shared library or static library should be created. Libraries can produce a shared library, a static library or both.
+
+The linkage can be configured as follows:
 
 .Configure library linkages
 ====
@@ -47,11 +47,12 @@ include::sample[dir="userguide/cpp/cppLibrary/groovy",files="build.gradle[tags=c
 include::sample[dir="userguide/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=configure-linkages]"]
 ====
 
-Target machines - default to the build host::
-The target machine expresses what machines the library expects to run.
-It includes information about the supported operating system and architecture.
-Gradle makes a decision on which tool chain to choose from the available one on the host machine.
-It can be configured through the script block as follows:
+Target machines - defaults to the build host::
+The target machine expresses which machines the application expects to run.
+A target machine is identified by its operating system and architecture.
+Gradle uses the target machine to decide which tool chain to choose based on availability on the host machine.
+
+The target machine can be configured as follows:
 
 .Configure library target machines
 ====
@@ -62,12 +63,13 @@ include::sample[dir="userguide/cpp/cppLibrary/kotlin",files="build.gradle.kts[ta
 == Tasks
 
 The following diagram shows the relationships between tasks added by this plugin.
-Note the default linkage of a {cpp} library is shared linkage and is shown on the diagram.
+
+Note the default linkage of a {cpp} library is shared linkage as shown in the diagram.
 
 .{cpp} Library Plugin default task graph
 image::cpp-shared-library-task-graph.png[]
 
-Changing the linkage to static linkage, the diagram looks like the following:
+With static linkage, the diagram changes to the following:
 
 .{cpp} Library Plugin static library only task graph
 image::cpp-static-library-task-graph.png[]
@@ -130,7 +132,7 @@ This task is added by the <<base_plugin.adoc,Base Plugin>>.
 
 == Dependency management
 
-Just like the tasks created by the {cpp} Library Plugin, the configurations are created based on the variant of the library component.
+Just like the tasks created by the {cpp} Library Plugin, multiple configurations are created based on the variants of the library component.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 The following graph describes the configurations added by the {cpp} Library Plugin:
 
@@ -200,9 +202,9 @@ Dependencies appearing in the `api` configurations will be transitively exposed 
 Dependencies found in the `implementation` configuration will, on the other hand, not be exposed to consumers, and therefore not leak into the consumer's compile include root and link libraries.
 This comes with several benefits:
 
-* dependencies do not leak into the compile include roots and link libraries of consumers, so you will never accidentally depend on a transitive dependency
+* dependencies do not leak into the compile include roots and link libraries of consumers, so they can never accidentally depend on a transitive dependency
 * faster compilation thanks to the reduced include roots and link libraries
-* fewer recompilations when implementation dependencies change: consumer would not need to be recompiled
+* fewer recompilations when implementation dependencies change since the consumer would not need to be recompiled
 
 
 == Conventions
@@ -213,16 +215,16 @@ The {cpp} Library Plugin adds conventions for sources and tasks, shown below.
 
 The {cpp} Library Plugin assumes the project layout shown below.
 None of these directories needs to exist or have anything in them.
-The {cpp} Library Plugin will compile whatever it finds, and handles anything which is missing.
+The {cpp} Library Plugin will compile whatever it finds and ignore anything missing.
 
 `src/main/cpp`::
 {cpp} source with extension of `.cpp`, `.{cpp}` or `.cc`
 
 `src/main/headers`::
-Private headers - headers needed to compile the library and not needed by the consumers
+Private headers - headers needed to compile the library but are not needed by consumers
 
 `src/main/public`::
-Public headers - headers needed to compile the library and required by the consumers
+Public headers - headers needed to compile the library and required by consumers
 
 You <<building_cpp_projects.adoc#sec:custom_cpp_source_set_paths,configure the project layout>> by configuring the `source`, `privateHeaders` and `publicHeaders` respectively on the `library` script block.
 
@@ -241,7 +243,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:macros[macros]:: [:]
 
-link:{groovyDslPath/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/main/__variant__`
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/main/__variant__`
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:optimized[optimized]:: `false` for debug build type or `true` otherwise
 
@@ -249,7 +251,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:source[source]:: `library.cppSource`
 
-link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:systemIncludes[systemIncludes]:: []
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:systemIncludes[systemIncludes]:: derived from the tool chain
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
