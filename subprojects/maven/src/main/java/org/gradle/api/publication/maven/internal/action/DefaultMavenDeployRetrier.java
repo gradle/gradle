@@ -16,15 +16,13 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
-import org.apache.http.conn.HttpHostConnectException;
 import org.apache.maven.artifact.ant.RemoteRepository;
+import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.aether.deployment.DeploymentException;
 
-import java.net.SocketTimeoutException;
 import java.util.concurrent.Callable;
 
 public class DefaultMavenDeployRetrier implements MavenDeployRetrier {
@@ -59,7 +57,7 @@ public class DefaultMavenDeployRetrier implements MavenDeployRetrier {
             } catch (Exception throwable) {
                 failure = throwable;
             }
-            if (!isLikelyTransientNetworkingIssue(failure) || retries == maxDeployAttempts) {
+            if (!NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure) || retries == maxDeployAttempts) {
                 throw new DeploymentException("Could not deploy to remote repository | " + failure.getMessage(), failure);
             } else {
                 LOGGER.info("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", remoteRepository, backoff, maxDeployAttempts - retries, failure);
@@ -71,20 +69,5 @@ public class DefaultMavenDeployRetrier implements MavenDeployRetrier {
                 }
             }
         }
-    }
-
-    private static boolean isLikelyTransientNetworkingIssue(Throwable failure) {
-        if (failure instanceof SocketTimeoutException || failure instanceof HttpHostConnectException) {
-            return true;
-        }
-        if (failure instanceof HttpErrorStatusCodeException) {
-            HttpErrorStatusCodeException httpError = (HttpErrorStatusCodeException) failure;
-            return httpError.isServerError();
-        }
-        Throwable cause = failure.getCause();
-        if (cause != null && cause != failure) {
-            return isLikelyTransientNetworkingIssue(cause);
-        }
-        return false;
     }
 }

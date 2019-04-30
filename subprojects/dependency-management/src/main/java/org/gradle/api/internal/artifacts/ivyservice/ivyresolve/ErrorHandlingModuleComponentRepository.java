@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.http.HttpStatus;
-import org.apache.http.conn.HttpHostConnectException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -25,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
+import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -36,7 +35,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -46,10 +44,7 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ErroringResolveResult;
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 
-import java.net.SocketTimeoutException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -249,7 +244,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     unexpectedFailure = throwable;
                     failure = onError.transform(throwable);
                 }
-                boolean doNotRetry = !isLikelyTransientNetworkingIssue(failure);
+                boolean doNotRetry = !NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure);
                 if (doNotRetry || retries == maxTentativesCount) {
                     if (unexpectedFailure != null) {
                         repositoryBlacklister.blacklistRepository(repositoryId, unexpectedFailure);
@@ -266,42 +261,6 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     }
                 }
             }
-        }
-
-        /**
-         * Determines if an error should cause a retry. We will currently retry:
-         * <ul>
-         * <li>on a network timeout</li>
-         * <li>on a server error (return code 5xx)</li>
-         * <li>on rate limiting</li>
-         * </ul>
-         */
-        private static <E extends Throwable> boolean isLikelyTransientNetworkingIssue(E failure) {
-            if (failure instanceof SocketTimeoutException || failure instanceof HttpHostConnectException) {
-                return true;
-            }
-            if (failure instanceof DefaultMultiCauseException) {
-                List<? extends Throwable> causes = ((DefaultMultiCauseException) failure).getCauses();
-                for (Throwable cause : causes) {
-                    if (isLikelyTransientNetworkingIssue(cause)) {
-                        return true;
-                    }
-                }
-            }
-            if (failure instanceof HttpErrorStatusCodeException) {
-                HttpErrorStatusCodeException httpError = (HttpErrorStatusCodeException) failure;
-                return httpError.isServerError() || isTransientClientError(httpError.getStatusCode());
-            }
-            Throwable cause = failure.getCause();
-            if (cause != null && cause != failure) {
-                return isLikelyTransientNetworkingIssue(cause);
-            }
-            return false;
-        }
-
-        private static boolean isTransientClientError(int statusCode) {
-            return statusCode == HttpStatus.SC_REQUEST_TIMEOUT ||
-                    statusCode == 429; // Too many requests (not available through HttpStatus.XXX)
         }
 
         @Override
