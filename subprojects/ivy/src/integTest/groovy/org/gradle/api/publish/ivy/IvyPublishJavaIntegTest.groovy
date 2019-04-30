@@ -786,6 +786,73 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    @Unroll("'#requestedVersion' end up in '#expectedVersion' resolved version and '#requestedVersion' revConstraint")
+    def "can publish java-library with revConstraint"() {
+        requiresExternalDependencies = true
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                implementation "commons-collections:commons-collections:${requestedVersion}"
+                constraints {
+                    implementation "commons-collections:commons-collections:${expectedVersion}"
+                }
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        versionMapping {
+                            usage('java-runtime') {
+                                fromResolutionResult()
+                            }
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        succeeds "publish"
+
+        then:
+        javaLibrary.removeGradleMetadataRedirection()
+        outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputDoesNotContain('commons-collections:commons-collections declared without version')
+        javaLibrary.assertPublished()
+        javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
+        javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:${expectedVersion}@runtime")
+        javaLibrary.parsedIvy.dependencies["commons-collections:commons-collections:3.2.2"].revisionConstraint == requestedVersion
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
+            dependency("commons-collections:commons-collections:${expectedVersion}") {
+                rejects()
+                noMoreExcludes()
+            }
+            constraint("commons-collections:commons-collections:${expectedVersion}") { rejects() }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) {
+            expectFiles "commons-collections-${expectedVersion}.jar", 'publishTest-1.9.jar'
+        }
+
+        where:
+        requestedVersion | expectedVersion
+        "3.2.+"          | "3.2.2"
+        "[2.1.0,4.0.0)"  | "3.2.2"
+    }
+
+
     def "can publish java-library with dependencies with version using versionMapping and not adding revConstraints"() {
         requiresExternalDependencies = true
         given:
