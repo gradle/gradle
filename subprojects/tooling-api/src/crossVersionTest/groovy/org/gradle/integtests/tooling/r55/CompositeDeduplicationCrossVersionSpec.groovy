@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import spock.lang.Ignore
 
 @TargetGradleVersion('>=5.5')
 class CompositeDeduplicationCrossVersionSpec extends ToolingApiSpecification {
@@ -44,6 +45,7 @@ class CompositeDeduplicationCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=4.0")
+    @Ignore
     def "Included builds are deduplicated"() {
         given:
         settingsFile << """
