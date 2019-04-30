@@ -32,8 +32,8 @@ import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
-import org.gradle.plugins.ide.eclipse.model.EclipseProject
 import org.gradle.plugins.ide.eclipse.model.Link
+import org.gradle.plugins.ide.internal.configurer.EclipseModelAwareUniqueProjectNameProvider
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -326,8 +326,11 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = new GradleProjectBuilder()
         def serviceRegistry = new DefaultServiceRegistry()
+        def uniqueProjectNameProvider = Stub(EclipseModelAwareUniqueProjectNameProvider) {
+            getUniqueName( _ as Project) >> { Project p -> p.getName()}
+        }
         serviceRegistry.add(LocalComponentRegistry, Stub(LocalComponentRegistry))
         serviceRegistry.add(CompositeBuildContext, Stub(CompositeBuildContext))
-        new EclipseModelBuilder(gradleProjectBuilder, serviceRegistry)
+        new EclipseModelBuilder(gradleProjectBuilder, serviceRegistry, uniqueProjectNameProvider)
     }
 }
