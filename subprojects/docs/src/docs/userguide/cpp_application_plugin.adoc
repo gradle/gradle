@@ -1,4 +1,4 @@
-// Copyright 2018 the original author or authors.
+// Copyright 2019 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 [[cpp_application_plugin]]
 = {cpp} Application
 
-The {cpp} Application Plugin provides the tasks, configurations and conventions for building {cpp} application.
+The {cpp} Application Plugin provides the tasks, configurations and conventions for a building {cpp} application.
 
 == Usage
 
@@ -27,19 +27,21 @@ include::sample[dir="userguide/cpp/cppApplication/kotlin",files="build.gradle.kt
 
 == Build variants
 
-The {cpp} Application Plugin understands the following dimensions which participate in the variant configuration.
+The {cpp} Application Plugin understands the following dimensions.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 
-Build types - always set to _debug_ and _release_::
-The build type control the debuggability as well as the optimization of the generated binaries.
-- `debug` - generate debug symbols and isn’t optimized
-- `release` - generate debug symbols extracted from the binary and is optimized
+Build types - always either _debug_ or _release_::
+The build type controls the debuggability as well as the optimization of the generated binaries.
+- `debug` - Generate debug symbols and don’t optimized the binary
+- `release` - Generate debug symbols and optimize, but extract the debug symbols from the binary
 
-Target machines - default to the build host::
-The target machine expresses what machines the application expects to run.
-It includes information about the supported operating system and architecture.
-Gradle makes a decision on which tool chain to choose from the available one on the host machine.
-It can be configured through the script block as follows:
+Target machines - defaults to the build host::
+The target machine expresses which machines the application expects to run.
+A target machine is identified by its operating system and architecture.
+Gradle uses the target machine to decide which tool chain to choose based on availability on the host machine.
+
+
+The target machine can be configured as follows:
 
 .Configure application target machines
 ====
@@ -56,9 +58,9 @@ image::cpp-application-task-graph.png[]
 
 === Variant-dependent Tasks
 
-The {cpp} Application Plugin creates tasks based on variants of the application component.
+The {cpp} Application Plugin creates tasks based on the variants of the application component.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
-The following diagrams show the relationship between variant-dependent tasks.
+The following diagram shows the relationship between variant-dependent tasks.
 
 .{cpp} Application Plugin variant-dependent task graph
 image::cpp-application-variant-task-graph.png[]
@@ -72,11 +74,6 @@ Compiles {cpp} source files using the selected compiler.
 Depends on: All tasks which contribute to the link executable, including `link__Variant__` and `create__Variant__` tasks from projects that are resolved via project dependencies
 ::
 Links executable from compiled object files using the selected linker.
-
-`assemble__Variant__` (e.g. `assembleDebug` and `assembleRelease`) - Task (lifecycle)::
-Depends on: `link__Variant__`
-::
-Aggregates tasks that assemble the specific variant of this application.
 
 `install__Variant__` (e.g. `installDebug` and `installRelease`) - link:{groovyDslPath}/org.gradle.nativeplatform.tasks.InstallExecutable.html[InstallExecutable]::
 Depends on: `link__Variant__` and all tasks which contribute to the runtime of the executable, including `link__Variant__` tasks from projects that are resolved via project dependencies
@@ -102,7 +99,7 @@ This task is added by the <<base_plugin.adoc,Base Plugin>>.
 `check` - Task (lifecycle)::
 Aggregate task that performs verification tasks, such as running the tests.
 Some plugins add their own verification task to `check`.
-For example, the {cpp} Unit Test Plugin attach his test task to this lifecycle task.
+For example, the {cpp} Unit Test Plugin attaches a task to this lifecycle task to run tests.
 This task is added by the <<base_plugin.adoc,Base Plugin>>.
 // TODO: Add link to C++ Unit Test Plugin reference chapter
 
@@ -118,7 +115,7 @@ This task is added by the <<base_plugin.adoc,Base Plugin>>.
 
 == Dependency management
 
-Just like the tasks created by the {cpp} Application Plugin, the configurations are created based on the variant of the application component.
+Just like the tasks created by the {cpp} Application Plugin, multiple configurations are created based on the variants of the application component.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 The following graph describes the configurations added by the {cpp} Application Plugin:
 
@@ -140,7 +137,7 @@ Used for declaring implementation dependencies for a specific variant of the mai
 This is where you should declare dependencies of the specific variant.
 
 
-The following configurations are used by consumers:
+The following configurations are used by downstream consumers that depend on the application component:
 
 `__variant__RuntimeElements` (e.g. `debugRuntimeElements` and `releaseRuntimeElements) extends `main__Variant__Implementation`::
 Used for executing the application.
@@ -167,8 +164,8 @@ The {cpp} Application Plugin adds conventions for sources and tasks, shown below
 === Project layout
 
 The {cpp} Application Plugin assumes the project layout shown below.
-None of these directories needs to exist or have anything in them.
-The {cpp} Application Plugin will compile whatever it finds, and handles anything which is missing.
+None of these directories need to exist or have anything in them.
+The {cpp} Application Plugin will compile whatever it finds and ignores anything missing.
 
 `src/main/cpp`::
 {cpp} source with extension of `.cpp`, `.c++` or `.cc`
@@ -193,7 +190,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:macros[macros]:: [:]
 
-link:{groovyDslPath/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/main/__variant__`
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/main/__variant__`
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:optimized[optimized]:: `false` for debug build type or `true` otherwise
 
@@ -201,7 +198,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:source[source]:: `application.cppSource`
 
-link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:systemIncludes[systemIncludes]:: []
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:systemIncludes[systemIncludes]:: derived from the tool chain.
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
