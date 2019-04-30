@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
@@ -191,6 +192,7 @@ public class GradleModuleMetadataParser {
                     break;
             }
         }
+        assertDefined(reader, "name", variantName);
         reader.endObject();
 
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
@@ -246,6 +248,10 @@ public class GradleModuleMetadataParser {
                     break;
             }
         }
+        assertDefined(reader, "url", url);
+        assertDefined(reader, "group", group);
+        assertDefined(reader, "module", module);
+        assertDefined(reader, "version", version);
         reader.endObject();
 
         return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.of(), null, ImmutableAttributes.EMPTY, Collections.emptyList()));
@@ -293,6 +299,8 @@ public class GradleModuleMetadataParser {
                         break;
                 }
             }
+            assertDefined(reader, "group", group);
+            assertDefined(reader, "module", module);
             reader.endObject();
 
             dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes, requestedCapabilities));
@@ -324,6 +332,9 @@ public class GradleModuleMetadataParser {
                         break;
                 }
             }
+            assertDefined(reader, "group", group);
+            assertDefined(reader, "name", name);
+            assertDefined(reader, "version", version);
             reader.endObject();
 
             capabilities.add(new VariantCapability(group, name, version));
@@ -366,6 +377,8 @@ public class GradleModuleMetadataParser {
                         break;
                 }
             }
+            assertDefined(reader, "group", group);
+            assertDefined(reader, "module", module);
             reader.endObject();
 
             dependencies.add(new ModuleDependencyConstraint(group, module, version, reason, attributes));
@@ -464,6 +477,8 @@ public class GradleModuleMetadataParser {
                         break;
                 }
             }
+            assertDefined(reader, "name", fileName);
+            assertDefined(reader, "url", fileUrl);
             reader.endObject();
 
             files.add(new ModuleFile(fileName, fileUrl));
@@ -490,12 +505,20 @@ public class GradleModuleMetadataParser {
             }
         }
         reader.endObject();
-        
+
         return attributes;
     }
 
     private void consumeAny(JsonReader reader) throws IOException {
         reader.skipValue();
+    }
+
+    private void assertDefined(JsonReader reader, String attribute, String value) {
+        if (StringUtils.isEmpty(value)) {
+            String path = reader.getPath();
+            // remove leading '$', remove last child segment, use '/' as separator
+            throw new RuntimeException("missing '" + attribute + "' at " + path.substring(1, path.lastIndexOf('.')).replace('.', '/'));
+        }
     }
 
     private static class ModuleFile {
