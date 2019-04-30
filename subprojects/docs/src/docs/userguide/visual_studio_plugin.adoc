@@ -64,6 +64,11 @@ _Depends on_: all Visual Studio project and solution file clean tasks
 +
 Removes all Visual Studio configuration files
 
+`openVisualStudio` - link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+_Depends on_: `visualStudio`
++
+Open the Visual Studio solution inside the IDE.
+
 === Root Tasks
 
 `__projectName__VisualStudioSolution` - link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask.html[GenerateSolutionFileTask]::
