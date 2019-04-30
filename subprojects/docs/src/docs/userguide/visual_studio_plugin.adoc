@@ -57,12 +57,12 @@ image::visual-studio-task-graph.png[]
 `visualStudio` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 _Depends on_: `__projectName__VisualStudioSolution` and all Visual Studio project file generation tasks
 +
-Generates all Visual Studio configuration files
+Generates all Visual Studio configuration files.
 
 `cleanVisualStudio` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 _Depends on_: all Visual Studio project and solution file clean tasks
 +
-Removes all Visual Studio configuration files
+Removes all Visual Studio configuration files.
 
 `openVisualStudio` - link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 _Depends on_: `visualStudio`
@@ -79,11 +79,11 @@ Generates the `.sln` file. This task is only available on the root project.
 
 `__projectName__VisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.html[GenerateProjectFileTask]::
 +
-Generates the `.vcxproj` file.
+Generates the `.vcxproj` file for the application component.
 
 `__projectName__VisualStudioFilters` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.html[GenerateFiltersFileTask]::
 +
-Generates the `.vcxproj.filters` file.
+Generates the `.vcxproj.filters` file for the application component.
 
 `mainVisualStudio` - link:{groovyDslPath}/org.gradle.api.Task.html[Task] (lifecycle)::
 _Depends on_: `__projectName__VisualStudioProject` and `__projectName__VisualStudioFilters`
