@@ -465,6 +465,11 @@ tasks.register("archivePerformanceProject", Copy) {
     from "src/templates/$name"
 }
 
+tasks.register("workerApiProject", Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
 tasks.withType(JvmProjectGeneratorTask).configureEach {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
