@@ -22,7 +22,9 @@ plugins {
 
 // tag::configure-solution-location[]
 visualStudio {
-    solution.location = file('solution.sln')
+    solution {
+        solutionFile.location = file('solution.sln')
+    }
 }
 // end::configure-solution-location[]
 
