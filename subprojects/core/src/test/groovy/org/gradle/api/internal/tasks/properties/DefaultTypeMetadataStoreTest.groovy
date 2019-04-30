@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
@@ -28,6 +29,7 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Console
@@ -71,6 +73,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS + [SearchPath]) as Class[]),
         [Object, GroovyObject, DefaultTask],
         [Object, GroovyObject],
+        [ConfigurableFileCollection, Property],
         Internal,
         { false },
         cacheFactory

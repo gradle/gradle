@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.tasks.properties
 
-
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
+import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
@@ -35,12 +36,10 @@ class InspectionSchemeFactoryTest extends Specification {
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
-        [
-            (Thing1): TYPE,
-            (Thing2): TYPE,
-        ],
+        [(Thing1): TYPE, (Thing2): TYPE],
         [Object, GroovyObject],
         [Object, GroovyObject],
+        [ConfigurableFileCollection, Property],
         IgnoredThing,
         { false },
         cacheFactory
