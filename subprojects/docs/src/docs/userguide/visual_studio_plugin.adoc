@@ -69,13 +69,15 @@ _Depends on_: `visualStudio`
 +
 Open the Visual Studio solution inside the IDE.
 
-=== Root Tasks
+=== IDE Workspace Tasks
 
 `__projectName__VisualStudioSolution` - link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask.html[GenerateSolutionFileTask]::
 +
 Generates the `.sln` file. This task is only available on the root project.
 
-=== C++ Application Plugin Tasks
+=== IDE Project Tasks
+
+==== {cpp} Application Plugin Tasks
 
 `__projectName__VisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.html[GenerateProjectFileTask]::
 +
@@ -90,7 +92,7 @@ _Depends on_: `__projectName__VisualStudioProject` and `__projectName__VisualStu
 +
 Generates all Visual Studio project files for the application component.
 
-=== C++ Library Plugin Tasks
+==== {cpp} Library Plugin Tasks
 
 `__projectName__DllVisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.html[GenerateProjectFileTask]::
 +
