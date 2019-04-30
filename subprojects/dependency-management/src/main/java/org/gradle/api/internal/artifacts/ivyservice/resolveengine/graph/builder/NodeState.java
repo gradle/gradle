@@ -85,7 +85,8 @@ public class NodeState implements DependencyGraphNode {
     private boolean evicted;
     private Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
     private boolean virtualPlatformNeedsRefresh;
-    private HashSet<EdgeState> edgesToRecompute;
+    private Set<EdgeState> edgesToRecompute;
+    private ExcludeSpec cachedNodeExclusions;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -230,7 +231,7 @@ public class NodeState implements DependencyGraphNode {
         // Virtual platforms require their constraints to be recomputed each time as each module addition can cause a shift in versions
         if (!isVirtualPlatformNeedsRefresh()) {
             // Check if node was previously traversed with the same net exclusion when not a virtual platform
-            if (previousTraversalExclusions != null && previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
+            if (previousTraversalExclusions != null && previousTraversalExclusions.equalsIgnoreArtifact(resolutionFilter)) {
                 boolean newConstraints = handleNewConstraints(discoveredEdges);
                 boolean edgesToRecompute = handleEdgesToRecompute(discoveredEdges);
                 if (!newConstraints && !edgesToRecompute) {
@@ -492,7 +493,10 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private ExcludeSpec computeNodeExclusions() {
-        return moduleExclusions.excludeAny(metaData.getExcludes());
+        if (cachedNodeExclusions == null) {
+            cachedNodeExclusions = moduleExclusions.excludeAny(metaData.getExcludes());
+        }
+        return cachedNodeExclusions;
     }
 
     private ExcludeSpec computeExclusionFilter(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions) {
