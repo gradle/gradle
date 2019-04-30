@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -52,6 +53,7 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
@@ -126,6 +128,10 @@ public class ExecutionGlobalServices {
                 GroovyObject.class,
                 Object.class,
                 ScriptOrigin.class
+            ),
+            ImmutableSet.of(
+                ConfigurableFileCollection.class,
+                Property.class
             ),
             Internal.class,
             new Predicate<Method>() {

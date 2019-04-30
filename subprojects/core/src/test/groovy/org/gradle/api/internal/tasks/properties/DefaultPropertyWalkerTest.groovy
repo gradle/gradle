@@ -19,10 +19,12 @@ package org.gradle.api.internal.tasks.properties
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.DefaultTask
 import org.gradle.api.Named
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -238,6 +240,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
             ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS) as Class[]),
             [Object, GroovyObject],
             [Object, GroovyObject],
+            [ConfigurableFileCollection, Property],
             Internal,
             { false },
             cacheFactory
