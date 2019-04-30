@@ -31,10 +31,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 import org.gradle.internal.Cast;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -52,12 +55,57 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
 
     @Override
     public ExcludeSpec anyOf(ExcludeSpec one, ExcludeSpec two) {
-        return doUnion(ImmutableSet.of(one, two));
+        return simplify(ExcludeAllOf.class, one, two, (left, right) -> doUnion(ImmutableSet.of(left, right)));
     }
 
     @Override
     public ExcludeSpec allOf(ExcludeSpec one, ExcludeSpec two) {
-        return doIntersect(ImmutableSet.of(one, two));
+        return simplify(ExcludeAnyOf.class, one, two, (left, right) -> doIntersect(ImmutableSet.of(left, right)));
+    }
+
+    // Simplifies (A ∪ ...) ∩ A = A
+    // and  (A ∩ ...) ∪ A = A
+    private ExcludeSpec simplify(Class<? extends CompositeExclude> clazz, ExcludeSpec one, ExcludeSpec two, BiFunction<ExcludeSpec, ExcludeSpec, ExcludeSpec> orElse) {
+        if (clazz.isInstance(one)) {
+            if (componentsOf(one).contains(two)) {
+                return two;
+            }
+        }
+        if (clazz.isInstance(two)) {
+            if (componentsOf(two).contains(one)) {
+                return one;
+            }
+        }
+        return orElse.apply(one, two);
+    }
+
+    private Set<ExcludeSpec> simplifySet(Class<? extends CompositeExclude> clazz, Set<ExcludeSpec> specs) {
+        if (specs.size() < 3) {
+            return specs;
+        }
+        ExcludeSpec[] asArray = specs.toArray(new ExcludeSpec[0]);
+        boolean doDrop = false;
+        for (int i = 0; i < asArray.length; i++) {
+            ExcludeSpec excludeSpec = asArray[i];
+            if (clazz.isInstance(excludeSpec)) {
+                Set<ExcludeSpec> components = componentsOf(excludeSpec);
+                for (int j = 0; j < asArray.length; j++) {
+                    if (i != j && components.contains(asArray[j])) {
+                        doDrop = true;
+                        asArray[i] = null;
+                        break;
+                    }
+                }
+            }
+        }
+        if (doDrop) {
+            specs = Arrays.stream(asArray).filter(Objects::nonNull).collect(toSet());
+        }
+        return specs;
+    }
+
+    private Set<ExcludeSpec> componentsOf(ExcludeSpec spec) {
+        return ((CompositeExclude) spec).getComponents();
     }
 
     @Override
@@ -71,6 +119,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     private ExcludeSpec doUnion(Set<ExcludeSpec> specs) {
+        specs = simplifySet(ExcludeAllOf.class, specs);
         FlattenOperationResult flattened = flatten(ExcludeAnyOf.class, specs, ExcludeEverything.class::isInstance, ExcludeNothing.class::isInstance);
         if (flattened.fastExit) {
             return everything();
@@ -87,6 +136,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
         List<ModuleSetExclude> moduleSetExcludes = UnionOf.MODULE_SET.fromMap(byType);
         List<ExcludeSpec> other = UnionOf.NOT_JOINABLE.fromMap(byType);
         if (!moduleIdExcludes.isEmpty()) {
+            // If there's more than one module id, merge them into a module id set
             if (moduleIdExcludes.size() > 1 || !moduleIdSetsExcludes.isEmpty()) {
                 ModuleIdSetExclude excludeSpec = delegate.moduleIdSet(moduleIdExcludes.stream().map(ModuleIdExclude::getModuleId).collect(toSet()));
                 if (moduleIdSetsExcludes.isEmpty()) {
@@ -98,6 +148,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             }
         }
         if (!groupExcludes.isEmpty()) {
+            // If there's more than group, merge them into a group set
             if (groupExcludes.size() > 1 || !groupSetExcludes.isEmpty()) {
                 GroupSetExclude excludeSpec = delegate.groupSet(groupExcludes.stream().map(GroupExclude::getGroup).collect(toSet()));
                 if (groupSetExcludes.isEmpty()) {
@@ -109,6 +160,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             }
         }
         if (!moduleExcludes.isEmpty()) {
+            // If there's more than one module, merge them into a module set
             if (moduleExcludes.size() > 1 || !moduleSetExcludes.isEmpty()) {
                 ModuleSetExclude excludeSpec = delegate.moduleSet(moduleExcludes.stream().map(ModuleExclude::getModule).collect(toSet()));
                 if (moduleSetExcludes.isEmpty()) {
@@ -190,6 +242,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     private ExcludeSpec doIntersect(Set<ExcludeSpec> specs) {
+        specs = simplifySet(ExcludeAnyOf.class, specs);
         FlattenOperationResult flattened = flatten(ExcludeAllOf.class, specs, ExcludeNothing.class::isInstance, ExcludeEverything.class::isInstance);
         if (flattened.fastExit) {
             return nothing();
