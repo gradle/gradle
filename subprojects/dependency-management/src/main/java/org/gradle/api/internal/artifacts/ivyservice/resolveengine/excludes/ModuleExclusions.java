@@ -15,19 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.CachingExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.NormalizingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.OptimizingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ModuleExclusions {
@@ -51,13 +52,13 @@ public class ModuleExclusions {
         nothing = factory.nothing();
     }
 
-    public ExcludeSpec excludeAny(ImmutableList<ExcludeMetadata> excludes) {
+    public ExcludeSpec excludeAny(Collection<ExcludeMetadata> excludes) {
         if (excludes.isEmpty()) {
             // avoids creation of empty hashset
             return nothing;
         }
         if (excludes.size() == 1) {
-            return forExclude(excludes.get(0));
+            return forExclude(excludes.iterator().next());
         }
         return factory.anyOf(excludes.stream()
             .map(this::forExclude)
@@ -109,4 +110,11 @@ public class ModuleExclusions {
         return factory.allOf(one, two);
     }
 
+    public ExcludeSpec excludeAll(Set<ExcludeSpec> specs) {
+        return factory.allOf(specs);
+    }
+
+    public ExcludeSpec excludeAny(Set<ExcludeSpec> specs) {
+        return factory.anyOf(specs);
+    }
 }

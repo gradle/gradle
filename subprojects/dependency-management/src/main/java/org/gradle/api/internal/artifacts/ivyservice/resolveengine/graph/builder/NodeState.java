@@ -28,6 +28,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -72,6 +73,7 @@ public class NodeState implements DependencyGraphNode {
 
     private final ConfigurationMetadata metaData;
     private final ResolveState resolveState;
+    private final ModuleExclusions moduleExclusions;
     private final boolean isTransitive;
     private final boolean selectedByVariantAwareResolution;
 
@@ -93,6 +95,7 @@ public class NodeState implements DependencyGraphNode {
         this.metaData = md;
         this.isTransitive = metaData.isTransitive();
         this.selectedByVariantAwareResolution = md instanceof SelectedByVariantMatchingConfigurationMetadata;
+        this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
         component.addConfiguration(this);
     }
 
@@ -222,7 +225,7 @@ public class NodeState implements DependencyGraphNode {
         }
 
         // Determine the net exclusion for this node, by inspecting all transitive incoming edges
-        ExcludeSpec resolutionFilter = getModuleResolutionFilter(incomingEdges);
+        ExcludeSpec resolutionFilter = computeModuleResolutionFilter(incomingEdges);
 
         // Virtual platforms require their constraints to be recomputed each time as each module addition can cause a shift in versions
         if (!isVirtualPlatformNeedsRefresh()) {
@@ -444,7 +447,7 @@ public class NodeState implements DependencyGraphNode {
             LOGGER.debug("{} is filtered.", dependency);
             return true;
         }
-        if (selector == resolveState.getModuleExclusions().nothing()) {
+        if (selector == moduleExclusions.nothing()) {
             return false;
         }
         ModuleIdentifier targetModuleId = dependencyState.getModuleIdentifier();
@@ -479,34 +482,61 @@ public class NodeState implements DependencyGraphNode {
         return isSelected() && !component.getModule().isVirtualPlatform();
     }
 
-    private ExcludeSpec getModuleResolutionFilter(List<EdgeState> incomingEdges) {
-        org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
-        ExcludeSpec nodeExclusions = moduleExclusions.excludeAny(metaData.getExcludes());
+    private ExcludeSpec computeModuleResolutionFilter(List<EdgeState> incomingEdges) {
+        ExcludeSpec nodeExclusions = computeNodeExclusions();
         if (incomingEdges.isEmpty()) {
             return nodeExclusions;
         }
 
-        ExcludeSpec edgeExclusions = null;
+        return computeExclusionFilter(incomingEdges, nodeExclusions);
+    }
 
+    private ExcludeSpec computeNodeExclusions() {
+        return moduleExclusions.excludeAny(metaData.getExcludes());
+    }
+
+    private ExcludeSpec computeExclusionFilter(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions) {
+        ExcludeSpec edgeExclusions = null;
+        Set<ExcludeSpec> excludedByBoth = null;
+        Set<ExcludeSpec> excludedByEither = null;
+        ExcludeSpec nothing = moduleExclusions.nothing();
         for (EdgeState dependencyEdge : incomingEdges) {
             if (dependencyEdge.isTransitive()) {
                 // Transitive dependency
-                edgeExclusions = excludedByBoth(edgeExclusions, dependencyEdge.getExclusions());
+                ExcludeSpec exclusions = dependencyEdge.getExclusions();
+                if (edgeExclusions == null) {
+                    edgeExclusions = exclusions;
+                } else if (exclusions != null && edgeExclusions != exclusions) {
+                    if (excludedByBoth == null) {
+                        excludedByBoth = Sets.newHashSet();
+                    }
+                    excludedByBoth.add(exclusions);
+                }
             } else if (dependencyEdge.getDependencyMetadata().isConstraint()) {
                 // Constraint: only consider explicit exclusions declared for this constraint
                 ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
-                nodeExclusions = excludedByEither(nodeExclusions, constraintExclusions);
+                if (constraintExclusions!= null && constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
+                    if (excludedByEither == null) {
+                        excludedByEither = Sets.newHashSet();
+                    }
+                    excludedByEither.add(constraintExclusions);
+                }
             }
         }
-        return excludedByEither(edgeExclusions, nodeExclusions);
-    }
-
-    private ExcludeSpec excludedByBoth(ExcludeSpec one, ExcludeSpec two) {
-        return resolveState.getModuleExclusions().excludeAll(one, two);
-    }
-
-    private ExcludeSpec excludedByEither(ExcludeSpec one, ExcludeSpec two) {
-        return resolveState.getModuleExclusions().excludeAny(one, two);
+        if (excludedByBoth != null) {
+            if (edgeExclusions != null) {
+                // do not believe what IJ says, it can be non null, see above
+                excludedByBoth.add(edgeExclusions);
+            }
+            edgeExclusions = moduleExclusions.excludeAll(excludedByBoth);
+        }
+        if (excludedByEither != null) {
+            if (nodeExclusions != null) {
+                excludedByEither.add(nodeExclusions);
+                nodeExclusions = moduleExclusions.excludeAny(excludedByEither);
+            }
+        }
+        return moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
     }
 
     private void removeOutgoingEdges() {
