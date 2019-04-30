@@ -51,6 +51,9 @@ Provides support for building C++ applications on Windows, Linux, and macOS.
 <<cpp_library_plugin.adoc#,C++ Library>>::
 Provides support for building C++ libraries on Windows, Linux, and macOS.
 
+<<cpp_unit_test_plugin.adoc#,C++ Unit Test>>::
+Provides support for building and running C++ executable-based tests on Windows, Linux, and macOS.
+
 == Packaging and distribution
 
 <<application_plugin.adoc#,Application>>::

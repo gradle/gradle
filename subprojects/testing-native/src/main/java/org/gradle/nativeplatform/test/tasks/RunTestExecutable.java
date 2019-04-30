@@ -22,6 +22,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.logging.ConsoleRenderer;
 
 import java.io.File;
@@ -30,7 +31,7 @@ import java.io.File;
  * Runs a compiled and installed test executable.
  */
 @Incubating
-public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
+public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> implements VerificationTask {
     /**
      * The directory where the results should be generated.
      */
@@ -81,6 +82,9 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
         this.outputDir = outputDir;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Input
     public boolean getIgnoreFailures() {
         return ignoreFailures;
@@ -91,6 +95,9 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
         return ignoreFailures;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
