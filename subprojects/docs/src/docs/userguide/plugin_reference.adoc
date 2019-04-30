@@ -99,8 +99,11 @@ Performs quality checks on your Groovy source files using http://codenarc.source
 <<eclipse_plugin.adoc#,Eclipse>>::
 Generates Eclipse project files for the build that can be opened by the IDE. This set of plugins can also be used to fine tune http://projects.eclipse.org/projects/tools.buildship[Buildship's] import process for Gradle builds.
 
-<<idea_plugin.adoc#, IntelliJ IDEA>>::
+<<idea_plugin.adoc#,IntelliJ IDEA>>::
 Generates IDEA project files for the build that can be opened by the IDE. It can also be used to fine tune IDEA's import process for Gradle builds.
+
+<<visual_studio_plugin.adoc#,Visual Studio>>::
+Generates Visual Studio solution and project files for build that can be opened by the IDE.
 
 == Utility
 
