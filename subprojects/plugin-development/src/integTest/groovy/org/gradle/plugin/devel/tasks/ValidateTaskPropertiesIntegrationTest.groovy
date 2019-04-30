@@ -18,9 +18,12 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.model.ReplacedBy
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -38,6 +41,7 @@ import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.intellij.lang.annotations.Language
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -385,6 +389,40 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validateTaskProperties"
 
         file("build/reports/task-properties/report.txt").text == ""
+    }
+
+    @Unroll
+    def "report setters for property with mutable type #type"() {
+        @Language("JAVA") myTask = """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.InputFiles;
+
+            public class MyTask extends DefaultTask {
+                // getter and setter
+                @InputFiles public ${type} getMutablePropertyWithSetter() { return null; } 
+                public void setMutablePropertyWithSetter(${type} value) {} 
+
+                // just getter
+                @InputFiles public ${type} getMutablePropertyWithoutSetter() { return null; } 
+
+                // just setter
+                // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
+                public void setMutablePropertyWithoutGetter() {}                
+            }
+        """
+        file("src/main/java/MyTask.java") << myTask
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Type 'MyTask': property 'mutablePropertyWithSetter' with mutable type '${type.replaceAll("<.+>", "")}' is redundant. Use methods on the property value itself to mutate it
+        """.stripIndent().trim()
+
+        where:
+        type << [ConfigurableFileCollection.name, "${Property.name}<String>", RegularFileProperty.name]
     }
 
     def "detects problems with file inputs"() {
