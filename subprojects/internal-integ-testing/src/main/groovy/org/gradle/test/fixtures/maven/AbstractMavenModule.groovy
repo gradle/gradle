@@ -464,7 +464,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                         new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.rejects, d.reason, d.attributes)
                     },
                     artifacts,
-                    v.capabilities
+                    v.capabilities,
+                    v.availableAt
                 )
             },
             attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
@@ -649,7 +650,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         }
 
         variants.each {
-            it.artifacts.each {
+            it.artifacts.findAll { it.name }.each {
                 def variantArtifact = moduleDir.file(it.name)
                 publish (variantArtifact) { Writer writer ->
                     writer << "${it.name} : Variant artifact $it.name"

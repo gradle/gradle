@@ -277,10 +277,10 @@ class ModuleVersionSpec {
                 module.withVariant(variant.name) {
                     attributes = attributes ? attributes + variant.attributes : variant.attributes
                     artifacts = variant.artifacts.collect {
-                        if (it.name) {
+                        if (it.name && it.name == it.url) {
                             // publish variant files as "classified". This can be arbitrary in practice, this
                             // just makes it easier for publishing specs
-                            new FileSpec("${module.module}-${module.version}-$it.name.${it.ext}", it.url)
+                            new FileSpec("${module.module}-${module.version}-$it.name.${it.ext}")
                         } else {
                             new FileSpec(it.name, it.url)
                         }
@@ -288,6 +288,7 @@ class ModuleVersionSpec {
                     dependencies += variant.dependencies
                     dependencyConstraints += variant.dependencyConstraints
                     capabilities += variant.capabilities
+                    availableAt = variant.availableAt
                     if (variant.noArtifacts) {
                         artifacts = []
                         useDefaultArtifacts = false

@@ -56,6 +56,11 @@ class DependencySpec {
         this
     }
 
+    DependencySpec exclude(String group, String module) {
+        exclusions << new ExcludeSpec(group, module)
+        this
+    }
+
     DependencySpec requestedCapability(String group, String name, String version) {
         requestedCapabilities << new CapabilitySpec(group, name, version)
         this

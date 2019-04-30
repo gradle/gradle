@@ -26,6 +26,7 @@ class VariantMetadataSpec {
     List<DependencyConstraintSpec> dependencyConstraints = []
     List<FileSpec> artifacts = []
     List<CapabilitySpec> capabilities = []
+    AvailableAtSpec availableAt
     boolean useDefaultArtifacts = true
     boolean noArtifacts = false
 
@@ -34,13 +35,14 @@ class VariantMetadataSpec {
         this.attributes = attributes
     }
 
-    VariantMetadataSpec(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<DependencyConstraintSpec> dependencyConstraints, List<FileSpec> artifacts, List<CapabilitySpec> capabilities) {
+    VariantMetadataSpec(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<DependencyConstraintSpec> dependencyConstraints, List<FileSpec> artifacts, List<CapabilitySpec> capabilities, AvailableAtSpec availableAt) {
         this.name = name
         this.attributes = attributes
         this.dependencies = dependencies
         this.dependencyConstraints = dependencyConstraints
         this.artifacts = artifacts
         this.capabilities = capabilities
+        this.availableAt = availableAt
     }
 
     void attribute(String name, String value) {
@@ -95,5 +97,9 @@ class VariantMetadataSpec {
 
     void capability(String name) {
         capabilities << new CapabilitySpec('org.test', name, '1.0')
+    }
+
+    void availableAt(String url, String group, String name, String version) {
+        availableAt = new AvailableAtSpec(url, group, name, version)
     }
 }
