@@ -1,4 +1,4 @@
-// Copyright 2018 the original author or authors.
+// Copyright 2019 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 [[cpp_unit_test_plugin]]
 = {cpp} Unit Test
 
-The {cpp} Unit Test Plugin provides the tasks, configurations and conventions for integrating with {cpp} executable-based testing framework, such as https://github.com/google/googletest[Google Test].
+The {cpp} Unit Test Plugin provides the tasks, configurations and conventions for integrating with a {cpp} executable-based testing framework, such as https://github.com/google/googletest[Google Test]. 
 
 == Usage
 
@@ -27,14 +27,15 @@ include::sample[dir="userguide/cpp/cppUnitTest/kotlin",files="build.gradle.kts[t
 
 == Build variants
 
-The {cpp} Unit Test Plugin understands the following dimensions which participate in the variant configuration.
+The {cpp} Unit Test Plugin understands the following dimensions.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 
-Target machines - default to the tested component (if present) or build host (otherwise)::
-The target machine expresses what machines the application expects to run.
-It includes information about the supported operating system and architecture.
-Gradle makes a decision on which tool chain to choose from the available one on the host machine.
-It can be configured through the script block as follows:
+Target machines - defaults to the tested component (if present) or build host (otherwise)::
+The target machine expresses which machines the application expects to run.
+A target machine is identified by its operating system and architecture.
+Gradle uses the target machine to decide which tool chain to choose based on availability on the host machine.
+
+The target machine can be configured as follows:
 
 .Configure application target machines
 ====
@@ -51,7 +52,7 @@ image::cpp-unit-test-task-graph.png[]
 
 === Variant-dependent Tasks
 
-The {cpp} Unit Test Plugin creates tasks based on variants of the unit test component.
+The {cpp} Unit Test Plugin creates tasks based on the variants of the unit test component.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 The following diagrams show the relationship between variant-dependent tasks.
 
@@ -88,7 +89,7 @@ For example, the {cpp} Application Plugin and {cpp} Library Plugin attach their 
 This task is added by the <<base_plugin.adoc,Base Plugin>>.
 
 `test` - Task (lifecycle)::
-Depends on: `runTest__Variant__` that most closely match the build host
+Depends on: `runTest__Variant__` that most closely matches the build host
 ::
 Aggregate task of the variant that most closely match the build host for testing the component.
 
@@ -182,7 +183,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:macros[macros]:: [:]
 
-link:{groovyDslPath/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/test/__variant__`
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:objectFileDir[objectFileDir]:: `$buildDir/obj/test/__variant__`
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:optimized[optimized]:: `false`
 
@@ -190,7 +191,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:source[source]:: `unitTest.cppSource`
 
-link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:systemIncludes[systemIncludes]:: []
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:systemIncludes[systemIncludes]:: derived from the tool chain
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
