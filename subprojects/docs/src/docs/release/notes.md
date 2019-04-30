@@ -11,6 +11,7 @@ Include only their name, impactful features should be called out separately belo
 [Mike Kobit](https://github.com/mkobit),
 [Erhard Pointl](https://github.com/epeee),
 [Sebastian Schuberth](https://github.com/sschuberth)
+[Christian Fränkel](https://github.com/fraenkelc)
 
 <!-- 
 ## 1
