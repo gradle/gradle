@@ -14,7 +14,7 @@
 
 // dot -Tpng subprojects/docs/src/docs/userguide/img/visual-studio-task-graph.dot > subprojects/docs/src/docs/userguide/img/visual-studio-task-graph.png
 digraph visualStudioTaskGraph {
-//   graph [ dpi = 100, fontname="Sans"];
+  graph [ dpi = 100, fontname="Sans"];
   node [fontname = "Sans"];
   edge [fontname = "Sans"];
   node [shape=rectangle, fixedsize=true, width=3.3, height=0.5];
