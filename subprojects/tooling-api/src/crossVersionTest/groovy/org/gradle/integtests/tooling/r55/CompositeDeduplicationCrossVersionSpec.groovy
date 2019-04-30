@@ -18,16 +18,17 @@ package org.gradle.integtests.tooling.r55
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Ignore
 
-@TargetGradleVersion('>=5.5')
+@ToolingApiVersion(">=5.5")
+@TargetGradleVersion(">=4.0")
 class CompositeDeduplicationCrossVersionSpec extends ToolingApiSpecification {
 
     @Rule
-    TemporaryFolder externalProjectFolder = new TemporaryFolder();
+    TemporaryFolder externalProjectFolder = new TemporaryFolder()
 
     def setup() {
         buildFile << """
@@ -44,8 +45,6 @@ class CompositeDeduplicationCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    @TargetGradleVersion(">=4.0")
-    @Ignore
     def "Included builds are deduplicated"() {
         given:
         settingsFile << """
