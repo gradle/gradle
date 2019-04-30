@@ -48,6 +48,9 @@ Provides support for building C++ libraries and applications on Windows, Linux, 
 <<cpp_application_plugin.adoc#,C++ Application>>::
 Provides support for building C++ applications on Windows, Linux, and macOS.
 
+<<cpp_library_plugin.adoc#,C++ Library>>::
+Provides support for building C++ libraries on Windows, Linux, and macOS.
+
 == Packaging and distribution
 
 <<application_plugin.adoc#,Application>>::
