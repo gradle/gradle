@@ -27,6 +27,7 @@ class VariantMetadataSpec {
     List<FileSpec> artifacts = []
     List<CapabilitySpec> capabilities = []
     boolean useDefaultArtifacts = true
+    boolean noArtifacts = false
 
     VariantMetadataSpec(String name, Map<String, String> attributes = [:]) {
         this.name = name
@@ -49,8 +50,8 @@ class VariantMetadataSpec {
         attributes[name] = value
     }
 
-    void dependsOn(String group, String module, String version, String reason = null, Map<String, ?> attributes=[:]) {
-        dependencies += new DependencySpec(group, module, version, null, null, null, null, reason, attributes)
+    void dependsOn(String group, String module, String version, String reason = null, Map<String, ?> attributes = [:]) {
+        dependencies << new DependencySpec(group, module, version, null, null, null, null, reason, attributes)
     }
 
     void dependsOn(String group, String module, String version, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {
@@ -61,11 +62,38 @@ class VariantMetadataSpec {
         dependencies += spec
     }
 
-    void constraint(String group, String module, String version, String reason = null, Map<String, ?> attributes=[:]) {
+    void dependsOn(String notation) {
+        def gav = notation.split(':')
+        dependsOn(gav[0], gav[1], gav[2])
+    }
+
+    void dependsOn(String notation, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {
+        def gav = notation.split(':')
+        dependsOn(gav[0], gav[1], gav[2], config)
+    }
+
+    void constraint(String group, String module, String version, String reason = null, Map<String, ?> attributes = [:]) {
         dependencyConstraints << new DependencyConstraintSpec(group, module, version, null, null, null, reason, attributes)
+    }
+
+    void constraint(String notation) {
+        def gav = notation.split(':')
+        constraint(gav[0], gav[1], gav[2])
     }
 
     void artifact(String name) {
         artifacts << new FileSpec(name)
+    }
+
+    void artifact(String name, String url) {
+        artifacts << new FileSpec(name, url)
+    }
+
+    void capability(String group, String name, String version = '1.0') {
+        capabilities << new CapabilitySpec(group, name, version)
+    }
+
+    void capability(String name) {
+        capabilities << new CapabilitySpec('org.test', name, '1.0')
     }
 }

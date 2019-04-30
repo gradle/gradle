@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.Module
-import org.gradle.test.fixtures.gradle.CapabilitySpec
 import org.gradle.test.fixtures.gradle.FileSpec
+import org.gradle.test.fixtures.gradle.VariantMetadataSpec
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.server.http.HttpArtifact
@@ -36,7 +36,7 @@ class ModuleVersionSpec {
 
     private final List<Object> dependsOn = []
     private final List<Object> constraints = []
-    private final List<VariantSpec> variants = []
+    private final List<VariantMetadataSpec> variants = []
     private final List<Closure<?>> withModule = []
     private final Map<String, String> componentLevelAttributes = [:]
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
@@ -112,11 +112,11 @@ class ModuleVersionSpec {
     }
 
     void variant(String variant, Map<String, String> attributes) {
-        variants << new VariantSpec(name: variant, attributes: attributes)
+        variants << new VariantMetadataSpec(variant, attributes)
     }
 
-    void variant(String name, @DelegatesTo(value = VariantSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def variant = new VariantSpec(name: name)
+    void variant(String name, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def variant = new VariantMetadataSpec(name)
         spec.delegate = variant
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
@@ -277,26 +277,17 @@ class ModuleVersionSpec {
                 module.withVariant(variant.name) {
                     attributes = attributes ? attributes + variant.attributes : variant.attributes
                     artifacts = variant.artifacts.collect {
-                        // publish variant files as "classified". This can be arbitrary in practice, this
-                        // just makes it easier for publishing specs
-                        new FileSpec("${module.module}-${module.version}-$it.name.${it.ext}", it.url)
-                    }
-                    variant.dependsOn.each {
-                        if (it instanceof VariantSpec.DependencySpec) {
-                            dependsOn(it.group, it.name, it.version, it.configuration)
+                        if (it.name) {
+                            // publish variant files as "classified". This can be arbitrary in practice, this
+                            // just makes it easier for publishing specs
+                            new FileSpec("${module.module}-${module.version}-$it.name.${it.ext}", it.url)
                         } else {
-                            def args = it.split(':') as List
-                            dependsOn(*args)
+                            new FileSpec(it.name, it.url)
                         }
                     }
-                    variant.constraints.each {
-                        def args = it.split(':') as List
-                        constraint(*args)
-                    }
-
-                    capabilities = variant.capabilities.collect {
-                        new CapabilitySpec(group: it.group, name: it.name, version: it.version)
-                    }
+                    dependencies += variant.dependencies
+                    dependencyConstraints += variant.dependencyConstraints
+                    capabilities += variant.capabilities
                     if (variant.noArtifacts) {
                         artifacts = []
                         useDefaultArtifacts = false

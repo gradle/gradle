@@ -189,7 +189,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         def variantMetadata = new VariantMetadataSpec(variant, attributes)
         variants.removeAll { it.name == variant }
         variants.add(variantMetadata)
-        return variantMetadata;
+        return variantMetadata
     }
 
     /**
@@ -487,7 +487,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         }
         boolean writeRedirect = gradleMetadataRedirect
         publish(pomFileForPublish) { Writer writer ->
-            def pomPackaging = packaging ?: type;
+            def pomPackaging = packaging ?: type
             new MarkupBuilder(writer).project {
                 mkp.comment(artifactContent)
                 if (writeRedirect) {
@@ -606,7 +606,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     private void updateRootMavenMetaData(TestFile rootMavenMetaData) {
         def allVersions = rootMavenMetaData.exists() ? new XmlParser().parseText(rootMavenMetaData.text).versioning.versions.version*.value().flatten() : []
-        allVersions << version;
+        allVersions << version
         publish(rootMavenMetaData) { Writer writer ->
             def builder = new MarkupBuilder(writer)
             builder.metadata {
