@@ -25,15 +25,20 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import java.io.File;
 
 public class IsolatedClassLoaderUtil {
-    private static ClassLoaderStructure getDefaultClassLoaderStructure(ClassLoader workerInfrastructureClassloader, Iterable<File> userClasspath) {
-        FilteringClassLoader.Spec gradleApiFilter = GradleApiUtil.apiSpecFor(workerInfrastructureClassloader, DirectInstantiator.INSTANCE);
+    static FilteringClassLoader.Spec gradleApiSpec;
+
+    private static FilteringClassLoader.Spec getGradleApiSpec() {
+        if (gradleApiSpec == null) {
+            gradleApiSpec = GradleApiUtil.apiSpecFor(IsolatedClassLoaderUtil.class.getClassLoader(), DirectInstantiator.INSTANCE);
+        }
+        return gradleApiSpec;
+    }
+
+    public static ClassLoaderStructure getDefaultClassLoaderStructure(Iterable<File> userClasspath) {
+        FilteringClassLoader.Spec gradleApiFilter = getGradleApiSpec();
         VisitableURLClassLoader.Spec userSpec = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(userClasspath).getAsURLs());
 
         // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
         return new ClassLoaderStructure(gradleApiFilter).withChild(userSpec);
-    }
-
-    public static ClassLoaderStructure getDefaultClassLoaderStructure(Iterable<File> userClasspath) {
-        return getDefaultClassLoaderStructure(IsolatedClassLoaderUtil.class.getClassLoader(), userClasspath);
     }
 }
