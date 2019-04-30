@@ -668,6 +668,26 @@
     </section>
 
     <section>
+        <title>Xcode task types</title>
+        <para>Tasks contributed by Xcode IDE plugins. To configure IDE plugins please use IDE model types.</para>
+        <table>
+            <title>Xcode task types</title>
+            <tr>
+                <td>org.gradle.ide.xcode.tasks.GenerateSchemeFileTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
         <title>Artifact transform types</title>
         <para>Used to define artifact transforms.</para>
         <table>

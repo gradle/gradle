@@ -77,6 +77,11 @@
         <extends targetClass="org.gradle.api.Project" id="visualStudio" extensionClass="org.gradle.ide.visualstudio.VisualStudioRootExtension"/>
     </plugin>
 
+    <plugin id="xcode" description="Xcode Plugin">
+        <extends targetClass="org.gradle.api.Project" id="xcode" extensionClass="org.gradle.ide.xcode.XcodeExtension"/>
+        <extends targetClass="org.gradle.api.Project" id="xcode" extensionClass="org.gradle.ide.xcode.XcodeRootExtension"/>
+    </plugin>
+
     <plugin id="play" description="Play Plugin">
     </plugin>
     <plugin id="play-coffeescript" description="Play Coffeescript Plugin">

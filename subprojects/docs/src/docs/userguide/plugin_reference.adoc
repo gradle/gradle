@@ -114,6 +114,9 @@ Generates IDEA project files for the build that can be opened by the IDE. It can
 <<visual_studio_plugin.adoc#,Visual Studio>>::
 Generates Visual Studio solution and project files for build that can be opened by the IDE.
 
+<<xcode_plugin.adoc#,Xcode>>::
+Generates Xcode workspace and project files for the build that can be opened by the IDE.
+
 == Utility
 
 <<base_plugin.adoc#,Base>>::
