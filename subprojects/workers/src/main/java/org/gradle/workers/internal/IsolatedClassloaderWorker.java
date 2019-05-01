@@ -23,20 +23,7 @@ import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
-import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.util.GUtil;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.util.concurrent.Callable;
 
 public class IsolatedClassloaderWorker implements Worker {
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
@@ -64,10 +51,10 @@ public class IsolatedClassloaderWorker implements Worker {
         ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(workerClassLoader);
-            Callable<?> worker = transferWorkerIntoWorkerClassloader(spec, workerClassLoader);
-            injectServiceRegistry(worker);
-            Object result = worker.call();
-            return transferResultFromWorkerClassLoader(result);
+            WorkerProtocol worker = new DefaultWorkerServer(serviceRegistry);
+            TransportableActionExecutionSpec transportableSpec = TransportableActionExecutionSpec.from(spec);
+            ActionExecutionSpec effectiveSpec = transportableSpec.deserialize(workerClassLoader);
+            return worker.execute(effectiveSpec);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -78,15 +65,6 @@ public class IsolatedClassloaderWorker implements Worker {
                 this.workerClassLoader = null;
             }
             Thread.currentThread().setContextClassLoader(previousContextLoader);
-        }
-    }
-
-    private void injectServiceRegistry(Object worker) {
-        try {
-            Method setServicesMethod = worker.getClass().getDeclaredMethod("setServiceRegistry", ServiceRegistry.class);
-            setServicesMethod.invoke(worker, serviceRegistry);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -125,60 +103,6 @@ public class IsolatedClassloaderWorker implements Worker {
             return new FilteringClassLoader(parent, filteringSpec);
         } else {
             throw new IllegalArgumentException("Can't handle spec of type " + spec.getClass().getName());
-        }
-    }
-
-    private Callable<?> transferWorkerIntoWorkerClassloader(ActionExecutionSpec spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
-        byte[] serializedWorker;
-        try {
-            serializedWorker = GUtil.serialize(new WorkerCallable(spec));
-        } catch (Exception e) {
-            throw new WorkSerializationException("Could not serialize unit of work", e);
-        }
-
-        try {
-            ObjectInputStream ois = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), workerClassLoader);
-            return (Callable<?>) ois.readObject();
-        } catch (Exception e) {
-            throw new WorkSerializationException("Could not deserialize unit of work", e);
-        }
-    }
-
-    private DefaultWorkResult transferResultFromWorkerClassLoader(Object result) throws IOException, ClassNotFoundException {
-        ByteArrayOutputStream resultBytes = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(resultBytes);
-        try {
-            oos.writeObject(result);
-        } finally {
-            oos.close();
-        }
-        ObjectInputStream ois = new ExceptionReplacingObjectInputStream(new ByteArrayInputStream(resultBytes.toByteArray()), getClass().getClassLoader());
-        return (DefaultWorkResult) ois.readObject();
-    }
-
-    /**
-     * This is serialized across into the worker ClassLoader and then executed.
-     */
-    public static class WorkerCallable implements Callable<Object>, Serializable {
-        private final ActionExecutionSpec spec;
-        private ServiceRegistry serviceRegistry;
-
-        private WorkerCallable(ActionExecutionSpec spec) {
-            this.spec = spec;
-        }
-
-        @Override
-        public Object call() throws Exception {
-            ActionExecutionSpec effectiveSpec = spec;
-            if (spec instanceof WrappedActionExecutionSpec) {
-                effectiveSpec = ((WrappedActionExecutionSpec) spec).unwrap(Thread.currentThread().getContextClassLoader());
-            }
-            WorkerProtocol worker = new DefaultWorkerServer(serviceRegistry);
-            return worker.execute(effectiveSpec);
-        }
-
-        public void setServiceRegistry(ServiceRegistry serviceRegistry) {
-            this.serviceRegistry = serviceRegistry;
         }
     }
 }

@@ -83,13 +83,14 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
+        DaemonForkOptions forkOptions = getDaemonForkOptions(actionClass, configuration);
         try {
-            spec = new SimpleActionExecutionSpec(actionClass, description, configuration.getParams());
+            spec = new SerializedParametersActionExecutionSpec(actionClass, description, configuration.getParams(), forkOptions.getClassLoaderStructure());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
 
-        submit(spec, configuration.getIsolationMode(), getDaemonForkOptions(actionClass, configuration));
+        submit(spec, configuration.getIsolationMode(), forkOptions);
     }
 
     private void submit(final ActionExecutionSpec spec, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {

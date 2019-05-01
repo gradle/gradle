@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -53,9 +52,8 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         DefaultWorkResult result;
                         try {
-                            // TODO This should use the isolation framework to isolate the parameters instead of wrapping/unwrapping the spec
-                            ClassLoader specAndWorkerClassLoader = new MultiParentClassLoader(ActionExecutionSpec.class.getClassLoader(), spec.getImplementationClass().getClassLoader());
-                            ActionExecutionSpec effectiveSpec = new WrappedActionExecutionSpec(spec, null).unwrap(specAndWorkerClassLoader);
+                            // TODO This should use the isolation framework to isolate the parameters instead of wrapping/unwrapping the parameters
+                            ActionExecutionSpec effectiveSpec = ((SerializedParametersActionExecutionSpec)spec).deserialize(spec.getImplementationClass().getClassLoader());
                             WorkerProtocol workerServer = new DefaultWorkerServer(serviceRegistry);
                             result = workerServer.execute(effectiveSpec);
                         } finally {

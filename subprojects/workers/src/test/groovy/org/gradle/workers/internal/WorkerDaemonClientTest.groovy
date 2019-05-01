@@ -17,12 +17,10 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRef
 import spock.lang.Specification
 
 class WorkerDaemonClientTest extends Specification {
-    BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     BuildOperationRef buildOperation = Mock(BuildOperationRef)
 
     WorkerDaemonClient client
@@ -63,6 +61,6 @@ class WorkerDaemonClientTest extends Specification {
     }
 
     def spec() {
-        return new SimpleActionExecutionSpec(Runnable.class, "test", [])
+        return new SerializedParametersActionExecutionSpec(Runnable.class, "test", [] as Object[], null)
     }
 }

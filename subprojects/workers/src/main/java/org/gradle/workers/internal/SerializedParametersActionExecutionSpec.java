@@ -16,26 +16,22 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.util.GUtil;
-
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
-
-public class WrappedActionExecutionSpec implements IsolatedClassloaderActionExecutionSpec {
+public class SerializedParametersActionExecutionSpec extends AbstractSerializedActionExecutionSpec implements IsolatedClassloaderActionExecutionSpec {
     private final String displayName;
-    private final byte[] delegateBytes;
+    private final Class<?> implementationClass;
+    private final byte[] serializedParameters;
     private final ClassLoaderStructure classLoaderStructure;
 
-    public WrappedActionExecutionSpec(ActionExecutionSpec delegate, ClassLoaderStructure classLoaderStructure) {
-        this.delegateBytes = serialize(delegate);
+    public SerializedParametersActionExecutionSpec(Class<?> implementationClass, String displayName, Object[] params, ClassLoaderStructure classLoaderStructure) {
+        this.implementationClass = implementationClass;
+        this.serializedParameters = serialize(params);
         this.classLoaderStructure = classLoaderStructure;
-        this.displayName = delegate.getDisplayName();
+        this.displayName = displayName;
     }
 
     @Override
     public Class<?> getImplementationClass() {
-        throw new UnsupportedOperationException();
+        return implementationClass;
     }
 
     @Override
@@ -53,19 +49,14 @@ public class WrappedActionExecutionSpec implements IsolatedClassloaderActionExec
         return classLoaderStructure;
     }
 
-    private byte[] serialize(ActionExecutionSpec delegate) {
-        try {
-            return GUtil.serialize(delegate);
-        } catch (Exception e) {
-            throw new WorkSerializationException("Could not serialize unit of work", e);
-        }
+    public byte[] getSerializedParameters() {
+        return serializedParameters;
     }
 
-    public ActionExecutionSpec unwrap(ClassLoader classLoader) {
-        ByteArrayInputStream bis = new ByteArrayInputStream(delegateBytes);
+    public ActionExecutionSpec deserialize(ClassLoader classLoader) {
         try {
-            ObjectInputStream ois = new ClassLoaderObjectInputStream(bis, classLoader);
-            return (ActionExecutionSpec) ois.readObject();
+            Object[] params = (Object[]) deserialize(serializedParameters, classLoader);
+            return new SimpleActionExecutionSpec(implementationClass, displayName, params);
         } catch (Exception e) {
             throw new WorkSerializationException("Could not deserialize unit of work", e);
         }
