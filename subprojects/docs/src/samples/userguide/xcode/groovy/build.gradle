@@ -19,9 +19,3 @@ plugins {
     id 'xcode'
 }
 // end::apply-plugin[]
-
-// tag::configure-workspace-location[]
-xcode {
-    workspace.location = file('workspace.xcworkspace')
-}
-// end::configure-workspace-location[]

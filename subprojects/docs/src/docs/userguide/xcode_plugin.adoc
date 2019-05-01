@@ -99,15 +99,4 @@ Generates the `__projectName__.xcodeproj/project.pbxproj` file.
 
 == Configuration
 
-The Xcode Plugin allows for some customization of the generated files.
-The following sections are shows the customization.
-
-=== Change workspace generated file location
-
-The location of the generated workspace files can be configured on the root project using the `xcode` script bloc as follow:
-
-.Change the generated workspace files location
-====
-include::sample[dir="userguide/xcode/groovy",files="build.gradle[tags=configure-workspace-location]"]
-include::sample[dir="userguide/xcode/kotlin",files="build.gradle.kts[tags=configure-workspace-location]"]
-====
+The Xcode Plugin doesn't allows any customization of the generated files.
