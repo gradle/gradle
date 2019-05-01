@@ -31,15 +31,6 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-## Improved Eclipse project name deduplication in Buildship
-
-When importing Gradle Eclipse projects into Buildship, the current Eclipse workpace state is taken into account. This allows Gradle to import/synchronize in Eclipse workspaces that include 
-non-Gradle projects that conflict with project names in the imported project.
- 
-A recent version of Buildship is required to take advantage of this behavior.
-
-Contributed by [Christian Fränkel](https://github.com/fraenkelc)
-
 ## Build init plugin improvements
 
 ### Support for JUnit Jupiter
@@ -94,7 +85,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 Project names configured via [`EclipseProject.setName(...)`](javadoc/org/gradle/plugins/ide/eclipse/model/EclipseProject.html) were honored by Gradle and Buildship in all cases, even 
 when the names caused conflicts and import/synchronization errors. 
 
-Gradle now will now deduplicate these names if they conflict with other project names in an Eclipse workspace. This may lead to different Eclipse project names for projects with user-specified names.
+Gradle now can now deduplicate these names if they conflict with other project names in an Eclipse workspace. This may lead to different Eclipse project names for projects with user-specified names.
+
+A recent version of Buildship is required to take advantage of this behavior.
+
+Contributed by [Christian Fränkel](https://github.com/fraenkelc)
 
 ## Breaking changes
 
