@@ -1,4 +1,4 @@
-// Copyright 2017 the original author or authors.
+// Copyright 2019 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 [[xcode_plugin]]
 = Xcode
 
-The Xcode Plugin generate files that are used by the https://developer.apple.com/xcode/[Xcode IDE], thus making it possible to open the workspace into Xcode (`File` - `Open...`).
+The Xcode Plugin generate files that are used by the https://developer.apple.com/xcode/[Xcode IDE] to open Gradle projects into Xcode (`File` - `Open...`). The generated Xcode project delegates build actions to Gradle.
 
 What exactly the `xcode` plugin generates depends on which other plugins are used:
 
@@ -42,10 +42,10 @@ include::sample[dir="userguide/xcode/groovy",files="build.gradle[tags=apply-plug
 include::sample[dir="userguide/xcode/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
+== Tasks
+
 The Xcode Plugin adds a number of tasks to your project.
 The main tasks that you will use are the `xcode`, `cleanXcode` and `openXcode` tasks.
-
-== Tasks
 
 The following diagram shows the relationships between tasks added by this plugin.
 
@@ -82,7 +82,7 @@ Generates the `__projectName__.xcworkspace` file. This task is only available on
 
 === IDE Project Tasks
 
-Both the <<cpp_application_plugin.adoc#,{cpp} Application Plugin> and <<cpp_library_plugin.adoc#{cpp} Library Plugin>> introduce the same tasks for generating Xcode projects to be included in Xcode workspace.
+Both the <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application Plugin>> and <<cpp_library_plugin.adoc#cpp_library_plugin,{cpp} Library Plugin>> introduce the same tasks for generating Xcode projects to be included in an Xcode workspace.
 
 `xcodeProjectWorkspaceSettings` — link:{groovyDslPath}/org.gradle.api.xcode.tasks.GenerateWorkspaceSettingsFileTask.html[GenerateWorkspaceSettingsFileTask]::
 +

@@ -1,5 +1,5 @@
 // tag::apply-plugin[]
 plugins {
-    `xcode`
+    xcode
 }
 // end::apply-plugin[]
