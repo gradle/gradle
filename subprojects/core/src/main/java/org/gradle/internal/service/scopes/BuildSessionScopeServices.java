@@ -215,8 +215,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultImmutableAttributesFactory(isolatableFactory, NamedObjectInstantiator.INSTANCE);
     }
 
-    AsyncWorkTracker createAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry) {
-        return new DefaultAsyncWorkTracker(projectLeaseRegistry);
+    AsyncWorkTracker createAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultAsyncWorkTracker(projectLeaseRegistry, buildOperationExecutor);
     }
 
     UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {

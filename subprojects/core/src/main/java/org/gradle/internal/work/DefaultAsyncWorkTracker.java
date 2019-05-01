@@ -23,7 +23,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.util.CollectionUtils;
 
@@ -36,9 +40,11 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     private final Set<BuildOperationRef> waiting = Sets.newHashSet();
     private final ReentrantLock lock = new ReentrantLock();
     private final ProjectLeaseRegistry projectLeaseRegistry;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry) {
+    public DefaultAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
         this.projectLeaseRegistry = projectLeaseRegistry;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -55,7 +61,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     }
 
     @Override
-    public void waitForCompletion(BuildOperationRef operation, boolean releaseLocks) {
+    public void waitForCompletion(final BuildOperationRef operation, boolean releaseLocks) {
         final List<AsyncWorkCompletion> workItems;
         lock.lock();
         try {
@@ -76,14 +82,28 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
                 });
                 // only release the project lock if we have to wait for items to finish
                 if (releaseLocks && workInProgress) {
-                    projectLeaseRegistry.withoutProjectLock(
-                        new Runnable() {
+                    buildOperationExecutor.run(new RunnableBuildOperation() {
                         @Override
-                        public void run() {
-                            waitForItemsAndGatherFailures(workItems);
+                        public BuildOperationDescriptor.Builder description() {
+                            return BuildOperationDescriptor.displayName("Waiting for work items to complete")
+                                    .details(new TaskWaitingBuildOperationType.Details() {})
+                                    .parent(operation);
+                        }
+
+                        @Override
+                        public void run(BuildOperationContext context) {
+                            projectLeaseRegistry.withoutProjectLock(
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        waitForItemsAndGatherFailures(workItems);
+                                    }
+                                });
+                            context.setResult(new TaskWaitingBuildOperationType.Result() {});
                         }
                     });
                 } else {
+                    // All items are complete, so we aren't really "waiting" here.
                     waitForItemsAndGatherFailures(workItems);
                 }
             }
