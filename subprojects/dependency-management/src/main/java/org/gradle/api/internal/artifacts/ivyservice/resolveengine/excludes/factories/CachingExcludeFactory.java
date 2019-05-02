@@ -115,15 +115,7 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
         private ExcludesKey(Set<ExcludeSpec> specs) {
             this.specs = specs;
             this.size = specs.size();
-            this.hashCode = computeHashCode();
-        }
-
-        private int computeHashCode() {
-            int hash = 0;
-            for (ExcludeSpec spec : specs) {
-                hash += spec.hashCode();
-            }
-            return hash;
+            this.hashCode = specs.hashCode();
         }
 
         @Override
