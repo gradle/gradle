@@ -97,9 +97,15 @@ public class IsolatedClassloaderWorker implements Worker {
     private ClassLoader createClassLoaderFromSpec(ClassLoader parent, ClassLoaderSpec spec) {
         if (spec instanceof VisitableURLClassLoader.Spec) {
             VisitableURLClassLoader.Spec visitableSpec = (VisitableURLClassLoader.Spec)spec;
+            if (visitableSpec.getClasspath().isEmpty()) {
+                return parent;
+            }
             return new VisitableURLClassLoader(visitableSpec.getName(), parent, visitableSpec.getClasspath());
         } else if (spec instanceof FilteringClassLoader.Spec) {
             FilteringClassLoader.Spec filteringSpec = (FilteringClassLoader.Spec)spec;
+            if (filteringSpec.isEmpty()) {
+                return parent;
+            }
             return new FilteringClassLoader(parent, filteringSpec);
         } else {
             throw new IllegalArgumentException("Can't handle spec of type " + spec.getClass().getName());
