@@ -213,8 +213,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             }
             if (ignoreSpec.test(spec)) {
                 filtered = true;
-            }
-            if (flattenType.isInstance(spec)) {
+            } else if (flattenType.isInstance(spec)) {
                 flatten = true;
                 size += ((CompositeExclude) spec).size();
             } else {
@@ -225,14 +224,22 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             return FlattenOperationResult.of(specs);
         }
         if (filtered && !flatten) {
-            return FlattenOperationResult.of(specs.stream().filter(e -> !ignoreSpec.test(e)).collect(toSet()));
+            return filterOnly(specs, ignoreSpec);
         }
         // slowest path
+        return expensiveFlatten(flattenType, maybeFilter(specs, ignoreSpec, filtered), size);
+    }
+
+    private FlattenOperationResult filterOnly(Set<ExcludeSpec> specs, Predicate<ExcludeSpec> ignoreSpec) {
+        return FlattenOperationResult.of(specs.stream().filter(e -> !ignoreSpec.test(e)).collect(toSet()));
+    }
+
+    private Stream<ExcludeSpec> maybeFilter(Set<ExcludeSpec> specs, Predicate<ExcludeSpec> ignoreSpec, boolean filtered) {
         Stream<ExcludeSpec> stream = specs.stream();
         if (filtered) {
             stream = stream.filter(e -> !ignoreSpec.test(e));
         }
-        return expensiveFlatten(flattenType, stream, size);
+        return stream;
     }
 
     private <T extends ExcludeSpec> FlattenOperationResult expensiveFlatten(Class<T> flattenType, Stream<ExcludeSpec> stream, int size) {
