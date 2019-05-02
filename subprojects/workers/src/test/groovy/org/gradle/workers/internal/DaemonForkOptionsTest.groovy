@@ -103,10 +103,10 @@ class DaemonForkOptionsTest extends Specification {
         def spec3 = Mock(ClassLoaderSpec)
         def spec4 = Mock(ClassLoaderSpec)
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+                .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
                 .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec4))
+                .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec4))
                 .build()
 
         expect:
@@ -118,10 +118,10 @@ class DaemonForkOptionsTest extends Specification {
         def spec2 = Mock(ClassLoaderSpec)
         def spec3 = Mock(ClassLoaderSpec)
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+                .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
                 .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+                .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
                 .build()
 
         expect:
@@ -130,10 +130,10 @@ class DaemonForkOptionsTest extends Specification {
 
     def "is compatible when classloader structures are null"() {
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(null)
+                .withClassLoaderStructure(null)
                 .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(null)
+                .withClassLoaderStructure(null)
                 .build()
 
         expect:
@@ -143,10 +143,10 @@ class DaemonForkOptionsTest extends Specification {
     def "is not compatible when one classloader structure is null"() {
         when:
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(null)
+                .withClassLoaderStructure(null)
                 .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(new ClassLoaderStructure(Mock(ClassLoaderSpec)))
+                .withClassLoaderStructure(new ClassLoaderStructure(Mock(ClassLoaderSpec)))
                 .build()
 
         then:
@@ -154,10 +154,10 @@ class DaemonForkOptionsTest extends Specification {
 
         when:
         settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(new ClassLoaderStructure(Mock(ClassLoaderSpec)))
+                .withClassLoaderStructure(new ClassLoaderStructure(Mock(ClassLoaderSpec)))
                 .build()
         settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStrucuture(null)
+                .withClassLoaderStructure(null)
                 .build()
 
         then:

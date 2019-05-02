@@ -49,7 +49,7 @@ public class DaemonForkOptionsBuilder {
         return this;
     }
 
-    public DaemonForkOptionsBuilder withClassLoaderStrucuture(ClassLoaderStructure classLoaderStructure) {
+    public DaemonForkOptionsBuilder withClassLoaderStructure(ClassLoaderStructure classLoaderStructure) {
         this.classLoaderStructure = classLoaderStructure;
         return this;
     }

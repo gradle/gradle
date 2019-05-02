@@ -65,7 +65,7 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
-            .withClassLoaderStrucuture(classLoaderStructure)
+            .withClassLoaderStructure(classLoaderStructure)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
     }

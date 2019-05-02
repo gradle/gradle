@@ -102,7 +102,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
             .keepAliveMode(KeepAliveMode.SESSION)
-            .withClassLoaderStrucuture(classLoaderStructure)
+            .withClassLoaderStructure(classLoaderStructure)
             .build();
     }
 

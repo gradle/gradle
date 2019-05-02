@@ -82,7 +82,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
-            .withClassLoaderStrucuture(classLoaderStructure)
+            .withClassLoaderStructure(classLoaderStructure)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
     }
