@@ -53,6 +53,7 @@ public class WorkerDaemonStarter {
         builder.onProcessFailure(cleanupAction);
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         forkOptions.getJavaForkOptions().copyTo(javaCommand);
+        builder.registerArgumentSerializer(WorkerDaemonMessageSerializer.create());
         WorkerDaemonProcess workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();
 

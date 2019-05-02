@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker.request;
+package org.gradle.workers.internal;
 
-public interface RequestProtocol {
-    void run(Request request);
-    void runThenStop(Request request);
-    void stop();
+import org.gradle.internal.serialize.DefaultSerializerRegistry;
+import org.gradle.internal.serialize.SerializerRegistry;
+
+public class WorkerDaemonMessageSerializer {
+    public static SerializerRegistry create() {
+        DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
+
+        registry.register(TransportableActionExecutionSpec.class, new TransportableActionExecutionSpecSerializer());
+
+        return registry;
+    }
 }

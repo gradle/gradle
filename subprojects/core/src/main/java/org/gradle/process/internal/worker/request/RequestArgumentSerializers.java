@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,19 @@
 
 package org.gradle.process.internal.worker.request;
 
-public interface RequestProtocol {
-    void run(Request request);
-    void runThenStop(Request request);
-    void stop();
+import com.google.common.collect.Lists;
+import org.gradle.internal.serialize.SerializerRegistry;
+
+import java.util.List;
+
+public class RequestArgumentSerializers {
+    List<SerializerRegistry> argumentSerializers = Lists.newArrayList();
+
+    public void add(SerializerRegistry serializerRegistry) {
+        argumentSerializers.add(serializerRegistry);
+    }
+
+    public List<SerializerRegistry> getArgumentSerializers() {
+        return argumentSerializers;
+    }
 }

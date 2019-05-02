@@ -22,9 +22,13 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.request.Receiver;
+import org.gradle.process.internal.worker.request.Request;
+import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 import org.gradle.process.internal.worker.request.RequestProtocol;
+import org.gradle.process.internal.worker.request.RequestSerializerRegistry;
 import org.gradle.process.internal.worker.request.ResponseProtocol;
 import org.gradle.process.internal.worker.request.WorkerAction;
 
@@ -41,6 +45,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     private final Class<?> workerImplementation;
     private final DefaultWorkerProcessBuilder workerProcessBuilder;
     private Action<WorkerProcess> onFailure = Actions.doNothing();
+    private RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
 
     static {
         try {
@@ -88,6 +93,11 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     @Override
     public Set<String> getSharedPackages() {
         return workerProcessBuilder.getSharedPackages();
+    }
+
+    @Override
+    public void registerArgumentSerializer(SerializerRegistry serializerRegistry) {
+        argumentSerializers.add(serializerRegistry);
     }
 
     @Override
@@ -140,6 +150,8 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                     }
                     workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
                     workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
+                    workerProcess.getConnection().useParameterSerializers(RequestSerializerRegistry.create(workerImplementation.getClassLoader(), argumentSerializers));
+
                     requestProtocol = workerProcess.getConnection().addOutgoing(RequestProtocol.class);
                     workerProcess.getConnection().connect();
                     return workerProcess;
@@ -154,7 +166,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                         requestProtocol = null;
                     }
                 }
-                requestProtocol.run(method.getName(), method.getParameterTypes(), args, CurrentBuildOperationRef.instance().get());
+                requestProtocol.run(new Request(method.getName(), method.getParameterTypes(), args, CurrentBuildOperationRef.instance().get()));
                 boolean hasResult = receiver.awaitNextResult();
                 if (!hasResult) {
                     try {

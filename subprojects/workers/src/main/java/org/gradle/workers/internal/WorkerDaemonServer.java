@@ -25,6 +25,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
+import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -34,8 +35,9 @@ public class WorkerDaemonServer implements WorkerProtocol {
     private Worker isolatedClassloaderWorker;
 
     @Inject
-    public WorkerDaemonServer(ServiceRegistry parent) {
+    public WorkerDaemonServer(ServiceRegistry parent, RequestArgumentSerializers argumentSerializers) {
         this.serviceRegistry = createWorkerDaemonServices(parent);
+        argumentSerializers.add(WorkerDaemonMessageSerializer.create());
     }
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {

@@ -70,6 +70,14 @@ public class TransportableActionExecutionSpec extends AbstractSerializedActionEx
         throw new UnsupportedOperationException();
     }
 
+    public String getImplementationClassName() {
+        return implementationClassName;
+    }
+
+    public byte[] getSerializedParameters() {
+        return serializedParameters;
+    }
+
     @Override
     public ActionExecutionSpec deserialize(ClassLoader classLoader) {
         try {
