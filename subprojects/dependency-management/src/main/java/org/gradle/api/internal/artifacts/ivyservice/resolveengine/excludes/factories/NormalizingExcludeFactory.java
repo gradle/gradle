@@ -82,7 +82,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     private Set<ExcludeSpec> simplifySet(Class<? extends CompositeExclude> clazz, Set<ExcludeSpec> specs) {
-        if (specs.size() < 3) {
+        if (specs.stream().noneMatch(clazz::isInstance)) {
             return specs;
         }
         ExcludeSpec[] asArray = specs.toArray(new ExcludeSpec[0]);
