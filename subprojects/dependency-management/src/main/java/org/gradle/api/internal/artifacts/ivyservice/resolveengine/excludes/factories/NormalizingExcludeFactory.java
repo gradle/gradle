@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.CompositeExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAllOf;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAnyOf;
@@ -224,13 +225,17 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             return FlattenOperationResult.of(specs);
         }
         if (filtered && !flatten) {
-            return FlattenOperationResult.of(specs.stream().filter(e -> !ignoreSpec.test(e)).collect(Collectors.toSet()));
+            return FlattenOperationResult.of(specs.stream().filter(e -> !ignoreSpec.test(e)).collect(toSet()));
         }
         // slowest path
         Stream<ExcludeSpec> stream = specs.stream();
         if (filtered) {
             stream = stream.filter(e -> !ignoreSpec.test(e));
         }
+        return expensiveFlatten(flattenType, stream, size);
+    }
+
+    private <T extends ExcludeSpec> FlattenOperationResult expensiveFlatten(Class<T> flattenType, Stream<ExcludeSpec> stream, int size) {
         return FlattenOperationResult.of(stream
             .flatMap(e -> {
                 if (flattenType.isInstance(e)) {
@@ -239,7 +244,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
                 }
                 return Stream.of(e);
             })
-            .collect(toSet())
+            .collect(Collectors.toCollection(() -> Sets.newHashSetWithExpectedSize(size)))
         );
     }
 
