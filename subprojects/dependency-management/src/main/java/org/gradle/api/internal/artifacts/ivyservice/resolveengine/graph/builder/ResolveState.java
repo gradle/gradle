@@ -125,12 +125,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     public ModuleResolveState getModule(ModuleIdentifier id) {
-        ModuleResolveState module = modules.get(id);
-        if (module == null) {
-            module = new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations);
-            modules.put(id, module);
-        }
-        return module;
+        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations));
     }
 
     @Override
@@ -152,12 +147,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public NodeState getNode(ComponentState module, ConfigurationMetadata configurationMetadata) {
         ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.getId(), configurationMetadata.getName());
-        NodeState configuration = nodes.get(id);
-        if (configuration == null) {
-            configuration = new NodeState(idGenerator.generateId(), id, module, this, configurationMetadata);
-            nodes.put(id, configuration);
-        }
-        return configuration;
+        return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.generateId(), id, module, this, configurationMetadata));
     }
 
     public Collection<SelectorState> getSelectors() {

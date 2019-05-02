@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -51,6 +52,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -86,6 +88,10 @@ public class NodeState implements DependencyGraphNode {
     private Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
     private boolean virtualPlatformNeedsRefresh;
     private Set<EdgeState> edgesToRecompute;
+
+    // caches
+    private Map<DependencyMetadata, DependencyState> dependencyStateCache = Maps.newHashMap();
+    private Map<DependencyState, EdgeState> edgesCache = Maps.newHashMap();
 
     // exclusions optimizations
     private ExcludeSpec cachedNodeExclusions;
@@ -309,6 +315,10 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
+    private DependencyState createDependencyState(DependencyMetadata md) {
+        return new DependencyState(md, resolveState.getComponentSelectorConverter());
+    }
+
     /**
      * Iterate over the dependencies originating in this node, adding them either as a 'pending' dependency
      * or adding them to the `discoveredEdges` collection (and `this.outgoingEdges`)
@@ -317,7 +327,7 @@ public class NodeState implements DependencyGraphNode {
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
-                DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
+                DependencyState dependencyState = dependencyStateCache.computeIfAbsent(dependency, this::createDependencyState);
                 if (isExcluded(resolutionFilter, dependencyState)) {
                     continue;
                 }
@@ -346,7 +356,6 @@ public class NodeState implements DependencyGraphNode {
     /**
      * Iterate over the dependencies originating in this node, adding only the constraints listed
      * in upcomingNoLongerPendingConstraints
-     * @param discoveredEdges
      */
     private void visitAdditionalConstraints(Collection<EdgeState> discoveredEdges) {
         for (DependencyMetadata dependency : metaData.getDependencies()) {
