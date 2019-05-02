@@ -189,7 +189,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         def variantMetadata = new VariantMetadataSpec(variant, attributes)
         variants.removeAll { it.name == variant }
         variants.add(variantMetadata)
-        return variantMetadata;
+        return variantMetadata
     }
 
     /**
@@ -464,7 +464,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                         new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.rejects, d.reason, d.attributes)
                     },
                     artifacts,
-                    v.capabilities
+                    v.capabilities,
+                    v.availableAt
                 )
             },
             attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
@@ -487,7 +488,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         }
         boolean writeRedirect = gradleMetadataRedirect
         publish(pomFileForPublish) { Writer writer ->
-            def pomPackaging = packaging ?: type;
+            def pomPackaging = packaging ?: type
             new MarkupBuilder(writer).project {
                 mkp.comment(artifactContent)
                 if (writeRedirect) {
@@ -606,7 +607,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     private void updateRootMavenMetaData(TestFile rootMavenMetaData) {
         def allVersions = rootMavenMetaData.exists() ? new XmlParser().parseText(rootMavenMetaData.text).versioning.versions.version*.value().flatten() : []
-        allVersions << version;
+        allVersions << version
         publish(rootMavenMetaData) { Writer writer ->
             def builder = new MarkupBuilder(writer)
             builder.metadata {
@@ -649,7 +650,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         }
 
         variants.each {
-            it.artifacts.each {
+            it.artifacts.findAll { it.name }.each {
                 def variantArtifact = moduleDir.file(it.name)
                 publish (variantArtifact) { Writer writer ->
                     writer << "${it.name} : Variant artifact $it.name"

@@ -231,37 +231,6 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         return builder.build();
     }
 
-    @Override
-    public boolean definesVariant(String name) {
-        if (explicitlyDefinesVariants()) {
-            return containsNamedVariant(name);
-        } else {
-            return getConfigurationDefinitions().containsKey(name);
-        }
-    }
-
-    private boolean explicitlyDefinesVariants() {
-        return (variants != null && !variants.isEmpty()) || (newVariants != null && !newVariants.isEmpty());
-    }
-
-    private boolean containsNamedVariant(String name) {
-        if (variants != null) {
-            for (ComponentVariant variant : variants) {
-                if (variant.getName().equals(name)) {
-                    return true;
-                }
-            }
-        }
-        if (newVariants != null) {
-            for (MutableVariantImpl variant : newVariants) {
-                if (variant.getName().equals(name)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     public ImmutableAttributesFactory getAttributesFactory() {
         return attributesFactory;
     }

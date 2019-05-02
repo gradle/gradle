@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,16 @@ package org.gradle.test.fixtures.gradle
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class CapabilitySpec {
+class AvailableAtSpec {
+    String url
     String group
-    String name
+    String module
     String version
 
-    CapabilitySpec(String group, String name, String version) {
+    AvailableAtSpec(String url, String group, String module, String version) {
+        this.url = url
         this.group = group
-        this.name = name
+        this.module = module
         this.version = version
     }
 }

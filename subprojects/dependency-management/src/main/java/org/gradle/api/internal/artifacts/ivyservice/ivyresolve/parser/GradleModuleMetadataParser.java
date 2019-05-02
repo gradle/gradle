@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
@@ -56,6 +57,7 @@ import static com.google.gson.stream.JsonToken.BOOLEAN;
 import static com.google.gson.stream.JsonToken.END_ARRAY;
 import static com.google.gson.stream.JsonToken.END_OBJECT;
 import static com.google.gson.stream.JsonToken.NUMBER;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 public class GradleModuleMetadataParser {
@@ -78,7 +80,7 @@ public class GradleModuleMetadataParser {
             public Void transform(InputStream inputStream) {
                 String version = null;
                 try {
-                    JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "utf-8"));
+                    JsonReader reader = new JsonReader(new InputStreamReader(inputStream, UTF_8));
                     reader.beginObject();
                     if (reader.peek() != JsonToken.NAME) {
                         throw new RuntimeException("Module metadata should contain a 'formatVersion' value.");
@@ -111,12 +113,16 @@ public class GradleModuleMetadataParser {
     private void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
-            if ("variants".equals(name)) {
-                consumeVariants(reader, metadata);
-            } else if ("component".equals(name)) {
-                consumeComponent(reader, metadata);
-            } else {
-                consumeAny(reader);
+            switch (name) {
+                case "variants":
+                    consumeVariants(reader, metadata);
+                    break;
+                case "component":
+                    consumeComponent(reader, metadata);
+                    break;
+                default:
+                    consumeAny(reader);
+                    break;
             }
         }
     }
@@ -125,10 +131,14 @@ public class GradleModuleMetadataParser {
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
-            if ("attributes".equals(name)) {
-                metadata.setAttributes(consumeAttributes(reader));
-            } else {
-                consumeAny(reader);
+            //noinspection SwitchStatementWithTooFewBranches
+            switch (name) {
+                case "attributes":
+                    metadata.setAttributes(consumeAttributes(reader));
+                    break;
+                default:
+                    consumeAny(reader);
+                    break;
             }
         }
         reader.endObject();
@@ -143,36 +153,48 @@ public class GradleModuleMetadataParser {
     }
 
     private void consumeVariant(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
-        reader.beginObject();
         String variantName = null;
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
         List<ModuleFile> files = Collections.emptyList();
         List<ModuleDependency> dependencies = Collections.emptyList();
         List<ModuleDependencyConstraint> dependencyConstraints = Collections.emptyList();
         List<VariantCapability> capabilities = Collections.emptyList();
+
+        reader.beginObject();
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
-            if (name.equals("name")) {
-                variantName = reader.nextString();
-            } else if (name.equals("attributes")) {
-                attributes = consumeAttributes(reader);
-            } else if (name.equals("files")) {
-                files = consumeFiles(reader);
-            } else if (name.equals("dependencies")) {
-                dependencies = consumeDependencies(reader);
-            } else if (name.equals("dependencyConstraints")) {
-                dependencyConstraints = consumeDependencyConstraints(reader);
-            }  else if (name.equals("capabilities")) {
-                capabilities = consumeCapabilities(reader);
-            } else if (name.equals("available-at")) {
-                // For now just collect this as another dependency
-                // TODO - collect this information and merge the metadata from the other module
-                dependencies = consumeVariantLocation(reader);
-            } else {
-                consumeAny(reader);
+            switch (name) {
+                case "name":
+                    variantName = reader.nextString();
+                    break;
+                case "attributes":
+                    attributes = consumeAttributes(reader);
+                    break;
+                case "files":
+                    files = consumeFiles(reader);
+                    break;
+                case "dependencies":
+                    dependencies = consumeDependencies(reader);
+                    break;
+                case "dependencyConstraints":
+                    dependencyConstraints = consumeDependencyConstraints(reader);
+                    break;
+                case "capabilities":
+                    capabilities = consumeCapabilities(reader);
+                    break;
+                case "available-at":
+                    // For now just collect this as another dependency
+                    // TODO - collect this information and merge the metadata from the other module
+                    dependencies = consumeVariantLocation(reader);
+                    break;
+                default:
+                    consumeAny(reader);
+                    break;
             }
         }
+        assertDefined(reader, "name", variantName);
         reader.endObject();
+
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
         AttributeValue<String> entry = attributes.findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
@@ -200,31 +222,45 @@ public class GradleModuleMetadataParser {
     }
 
     private List<ModuleDependency> consumeVariantLocation(JsonReader reader) throws IOException {
+        String url = null;
         String group = null;
         String module = null;
         String version = null;
+
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
-            if (name.equals("group")) {
-                group = reader.nextString();
-            } else if (name.equals("module")) {
-                module = reader.nextString();
-            } else if (name.equals("version")) {
-                version = reader.nextString();
-            } else {
-                consumeAny(reader);
+            switch (name) {
+                case "url":
+                    url = reader.nextString();
+                    break;
+                case "group":
+                    group = reader.nextString();
+                    break;
+                case "module":
+                    module = reader.nextString();
+                    break;
+                case "version":
+                    version = reader.nextString();
+                    break;
+                default:
+                    consumeAny(reader);
+                    break;
             }
         }
+        assertDefined(reader, "url", url);
+        assertDefined(reader, "group", group);
+        assertDefined(reader, "module", module);
+        assertDefined(reader, "version", version);
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<ExcludeMetadata>of(), null, ImmutableAttributes.EMPTY, Collections.emptyList()));
+
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.of(), null, ImmutableAttributes.EMPTY, Collections.emptyList()));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
         List<ModuleDependency> dependencies = new ArrayList<ModuleDependency>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
-            reader.beginObject();
             String group = null;
             String module = null;
             String reason = null;
@@ -232,28 +268,42 @@ public class GradleModuleMetadataParser {
             VersionConstraint version = DefaultImmutableVersionConstraint.of();
             ImmutableList<ExcludeMetadata> excludes = ImmutableList.of();
             List<VariantCapability> requestedCapabilities = ImmutableList.of();
+
+            reader.beginObject();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
-                if (name.equals("group")) {
-                    group = reader.nextString();
-                } else if (name.equals("module")) {
-                    module = reader.nextString();
-                } else if (name.equals("version")) {
-                    version = consumeVersion(reader);
-                } else if (name.equals("excludes")) {
-                    excludes = consumeExcludes(reader);
-                } else if (name.equals("reason")) {
-                    reason = reader.nextString();
-                } else if (name.equals("attributes")) {
-                    attributes = consumeAttributes(reader);
-                } else if (name.equals("requestedCapabilities")) {
-                    requestedCapabilities = consumeCapabilities(reader);
-                } else {
-                    consumeAny(reader);
+                switch (name) {
+                    case "group":
+                        group = reader.nextString();
+                        break;
+                    case "module":
+                        module = reader.nextString();
+                        break;
+                    case "version":
+                        version = consumeVersion(reader);
+                        break;
+                    case "excludes":
+                        excludes = consumeExcludes(reader);
+                        break;
+                    case "reason":
+                        reason = reader.nextString();
+                        break;
+                    case "attributes":
+                        attributes = consumeAttributes(reader);
+                        break;
+                    case "requestedCapabilities":
+                        requestedCapabilities = consumeCapabilities(reader);
+                        break;
+                    default:
+                        consumeAny(reader);
+                        break;
                 }
             }
-            dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes, requestedCapabilities));
+            assertDefined(reader, "group", group);
+            assertDefined(reader, "module", module);
             reader.endObject();
+
+            dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes, requestedCapabilities));
         }
         reader.endArray();
         return dependencies;
@@ -263,22 +313,31 @@ public class GradleModuleMetadataParser {
         ImmutableList.Builder<VariantCapability> capabilities = ImmutableList.builder();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
-            reader.beginObject();
             String group = null;
             String name = null;
             String version = null;
+
+            reader.beginObject();
             while (reader.peek() != END_OBJECT) {
                 String val = reader.nextName();
-                if (val.equals("group")) {
-                    group = reader.nextString();
-                } else if (val.equals("name")) {
-                    name = reader.nextString();
-                } else if (val.equals("version")) {
-                    version = reader.nextString();
+                switch (val) {
+                    case "group":
+                        group = reader.nextString();
+                        break;
+                    case "name":
+                        name = reader.nextString();
+                        break;
+                    case "version":
+                        version = reader.nextString();
+                        break;
                 }
             }
-            capabilities.add(new VariantCapability(group, name, version));
+            assertDefined(reader, "group", group);
+            assertDefined(reader, "name", name);
+            assertDefined(reader, "version", version);
             reader.endObject();
+
+            capabilities.add(new VariantCapability(group, name, version));
         }
         reader.endArray();
         return capabilities.build();
@@ -288,59 +347,80 @@ public class GradleModuleMetadataParser {
         List<ModuleDependencyConstraint> dependencies = new ArrayList<ModuleDependencyConstraint>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
-            reader.beginObject();
             String group = null;
             String module = null;
             String reason = null;
             VersionConstraint version = null;
             ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
+
+            reader.beginObject();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
-                if (name.equals("group")) {
-                    group = reader.nextString();
-                } else if (name.equals("module")) {
-                    module = reader.nextString();
-                } else if (name.equals("version")) {
-                    version = consumeVersion(reader);
-                }  else if (name.equals("reason")) {
-                    reason = reader.nextString();
-                } else if (name.equals("attributes")) {
-                    attributes = consumeAttributes(reader);
-                } else {
-                    consumeAny(reader);
+                switch (name) {
+                    case "group":
+                        group = reader.nextString();
+                        break;
+                    case "module":
+                        module = reader.nextString();
+                        break;
+                    case "version":
+                        version = consumeVersion(reader);
+                        break;
+                    case "reason":
+                        reason = reader.nextString();
+                        break;
+                    case "attributes":
+                        attributes = consumeAttributes(reader);
+                        break;
+                    default:
+                        consumeAny(reader);
+                        break;
                 }
             }
-            dependencies.add(new ModuleDependencyConstraint(group, module, version, reason, attributes));
+            assertDefined(reader, "group", group);
+            assertDefined(reader, "module", module);
             reader.endObject();
+
+            dependencies.add(new ModuleDependencyConstraint(group, module, version, reason, attributes));
         }
         reader.endArray();
         return dependencies;
     }
 
     private ImmutableVersionConstraint consumeVersion(JsonReader reader) throws IOException {
-        reader.beginObject();
         String requiredVersion = "";
         String preferredVersion = "";
         String strictVersion = "";
         List<String> rejects = Lists.newArrayList();
+
+        reader.beginObject();
         while (reader.peek() != END_OBJECT) {
             // At this stage, 'strictly' implies 'requires'.
             String cst = reader.nextName();
-            if ("prefers".equals(cst)) {
-                preferredVersion = reader.nextString();
-            } else if ("requires".equals(cst)) {
-                requiredVersion = reader.nextString();
-            } else if ("strictly".equals(cst)) {
-                strictVersion = reader.nextString();
-            } else if ("rejects".equals(cst)) {
-                reader.beginArray();
-                while (reader.peek() != END_ARRAY) {
-                    rejects.add(reader.nextString());
-                }
-                reader.endArray();
+            switch (cst) {
+                case "prefers":
+                    preferredVersion = reader.nextString();
+                    break;
+                case "requires":
+                    requiredVersion = reader.nextString();
+                    break;
+                case "strictly":
+                    strictVersion = reader.nextString();
+                    break;
+                case "rejects":
+                    reader.beginArray();
+                    while (reader.peek() != END_ARRAY) {
+                        rejects.add(reader.nextString());
+                    }
+                    reader.endArray();
+                    break;
+                default:
+                    consumeAny(reader);
+                    break;
             }
         }
         reader.endObject();
+
         return DefaultImmutableVersionConstraint.of(preferredVersion, requiredVersion, strictVersion, rejects);
     }
 
@@ -348,20 +428,26 @@ public class GradleModuleMetadataParser {
         ImmutableList.Builder<ExcludeMetadata> builder = new ImmutableList.Builder<ExcludeMetadata>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
-            reader.beginObject();
             String group = null;
             String module = null;
+
+            reader.beginObject();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
-                if (name.equals("group")) {
-                    group = reader.nextString();
-                } else if (name.equals("module")) {
-                    module = reader.nextString();
-                } else {
-                    consumeAny(reader);
+                switch (name) {
+                    case "group":
+                        group = reader.nextString();
+                        break;
+                    case "module":
+                        module = reader.nextString();
+                        break;
+                    default:
+                        consumeAny(reader);
+                        break;
                 }
             }
             reader.endObject();
+
             ExcludeMetadata exclude = excludeRuleConverter.createExcludeRule(group, module);
             builder.add(exclude);
         }
@@ -373,21 +459,29 @@ public class GradleModuleMetadataParser {
         List<ModuleFile> files = new ArrayList<ModuleFile>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
-            reader.beginObject();
             String fileName = null;
-            String fileUri = null;
+            String fileUrl = null;
+
+            reader.beginObject();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
-                if (name.equals("name")) {
-                    fileName = reader.nextString();
-                } else if (name.equals("url")) {
-                    fileUri = reader.nextString();
-                } else {
-                    consumeAny(reader);
+                switch (name) {
+                    case "name":
+                        fileName = reader.nextString();
+                        break;
+                    case "url":
+                        fileUrl = reader.nextString();
+                        break;
+                    default:
+                        consumeAny(reader);
+                        break;
                 }
             }
+            assertDefined(reader, "name", fileName);
+            assertDefined(reader, "url", fileUrl);
             reader.endObject();
-            files.add(new ModuleFile(fileName, fileUri));
+
+            files.add(new ModuleFile(fileName, fileUrl));
         }
         reader.endArray();
         return files;
@@ -395,6 +489,7 @@ public class GradleModuleMetadataParser {
 
     private ImmutableAttributes consumeAttributes(JsonReader reader) throws IOException {
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
+
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
             String attrName = reader.nextName();
@@ -410,11 +505,20 @@ public class GradleModuleMetadataParser {
             }
         }
         reader.endObject();
+
         return attributes;
     }
 
     private void consumeAny(JsonReader reader) throws IOException {
         reader.skipValue();
+    }
+
+    private void assertDefined(JsonReader reader, String attribute, String value) {
+        if (StringUtils.isEmpty(value)) {
+            String path = reader.getPath();
+            // remove leading '$', remove last child segment, use '/' as separator
+            throw new RuntimeException("missing '" + attribute + "' at " + path.substring(1, path.lastIndexOf('.')).replace('.', '/'));
+        }
     }
 
     private static class ModuleFile {
