@@ -97,8 +97,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
         this.modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>(graphSize);
-        this.nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>(3*graphSize/2);
-        this.selectors = new LinkedHashMap<ComponentSelector, SelectorState>(5*graphSize/2);
+        this.nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>(3 * graphSize / 2);
+        this.selectors = new LinkedHashMap<ComponentSelector, SelectorState>(5 * graphSize / 2);
         this.queue = new ArrayDeque<NodeState>(graphSize);
         this.resolveOptimizations = new ResolveOptimizations();
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getMetadata());
@@ -155,15 +155,11 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     public SelectorState getSelector(DependencyState dependencyState) {
-        ComponentSelector requested = dependencyState.getRequested();
-        SelectorState selectorState = selectors.get(requested);
-        if (selectorState == null) {
+        SelectorState selectorState = selectors.computeIfAbsent(dependencyState.getRequested(), req -> {
             ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();
-            selectorState = new SelectorState(idGenerator.generateId(), dependencyState, idResolver, versionSelectorScheme, this, moduleIdentifier);
-            selectors.put(requested, selectorState);
-        } else {
-            selectorState.update(dependencyState);
-        }
+            return new SelectorState(idGenerator.generateId(), dependencyState, idResolver, versionSelectorScheme, this, moduleIdentifier);
+        });
+        selectorState.update(dependencyState);
         return selectorState;
     }
 
