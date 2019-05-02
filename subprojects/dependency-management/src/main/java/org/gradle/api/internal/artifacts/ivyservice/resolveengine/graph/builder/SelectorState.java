@@ -91,7 +91,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.versionSelectorScheme = versionSelectorScheme;
         this.targetModule = resolveState.getModule(targetModuleId);
         this.attributesFactory = resolveState.getAttributesFactory();
-
         update(dependencyState);
         this.dependencyState = dependencyState;
         this.firstSeenDependency = dependencyState.getDependency();

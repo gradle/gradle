@@ -54,6 +54,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -78,6 +79,7 @@ public class NodeState implements DependencyGraphNode {
     private final ModuleExclusions moduleExclusions;
     private final boolean isTransitive;
     private final boolean selectedByVariantAwareResolution;
+    private final boolean dependenciesMayChange;
 
     ExcludeSpec previousTraversalExclusions;
 
@@ -92,6 +94,7 @@ public class NodeState implements DependencyGraphNode {
     // caches
     private Map<DependencyMetadata, DependencyState> dependencyStateCache = Maps.newHashMap();
     private Map<DependencyState, EdgeState> edgesCache = Maps.newHashMap();
+    private List<DependencyMetadata> deduplicatedDependencies;
 
     // exclusions optimizations
     private ExcludeSpec cachedNodeExclusions;
@@ -108,6 +111,7 @@ public class NodeState implements DependencyGraphNode {
         this.isTransitive = metaData.isTransitive();
         this.selectedByVariantAwareResolution = md instanceof SelectedByVariantMatchingConfigurationMetadata;
         this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
+        this.dependenciesMayChange = component.getModule() != null && component.getModule().isVirtualPlatform(); // can be null in tests, ComponentState cannot be mocked
         component.addConfiguration(this);
     }
 
@@ -326,7 +330,7 @@ public class NodeState implements DependencyGraphNode {
     private void visitDependencies(ExcludeSpec resolutionFilter, Collection<EdgeState> discoveredEdges) {
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         try {
-            for (DependencyMetadata dependency : metaData.getDependencies()) {
+            for (DependencyMetadata dependency : deduplicatedDependencies()) {
                 DependencyState dependencyState = dependencyStateCache.computeIfAbsent(dependency, this::createDependencyState);
                 if (isExcluded(resolutionFilter, dependencyState)) {
                     continue;
@@ -346,19 +350,29 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
+    private List<? extends DependencyMetadata> deduplicatedDependencies() {
+        if (deduplicatedDependencies == null || dependenciesMayChange) {
+            deduplicatedDependencies = doDeduplicate(metaData.getDependencies());
+        }
+        return deduplicatedDependencies;
+    }
+
+    private static List<DependencyMetadata> doDeduplicate(List<? extends DependencyMetadata> dependencies) {
+        return dependencies.stream().distinct().collect(Collectors.toList());
+    }
+
     private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
         EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
         outgoingEdges.add(dependencyEdge);
         discoveredEdges.add(dependencyEdge);
         dependencyEdge.getSelector().use(deferSelection);
     }
-
     /**
      * Iterate over the dependencies originating in this node, adding only the constraints listed
      * in upcomingNoLongerPendingConstraints
      */
     private void visitAdditionalConstraints(Collection<EdgeState> discoveredEdges) {
-        for (DependencyMetadata dependency : metaData.getDependencies()) {
+        for (DependencyMetadata dependency : deduplicatedDependencies()) {
             if (dependency.isConstraint()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
                 if (upcomingNoLongerPendingConstraints.contains(dependencyState.getModuleIdentifier())) {
@@ -514,7 +528,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private ExcludeSpec computeExclusionFilter(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions) {
-        if (incomingEdges.equals(previousIncoming)) {
+        if (sameIncomingEdgesAsPreviousPass(incomingEdges)) {
             // if we reach this point it means the node selection was restarted, but
             // effectively it has the same incoming edges as before, so we can return
             // the result we computed last time
@@ -540,7 +554,7 @@ public class NodeState implements DependencyGraphNode {
             } else if (dependencyEdge.getDependencyMetadata().isConstraint()) {
                 // Constraint: only consider explicit exclusions declared for this constraint
                 ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
-                if (constraintExclusions!= null && constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
+                if (constraintExclusions != null && constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
                     if (excludedByEither == null) {
                         excludedByEither = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
                     }
@@ -562,9 +576,17 @@ public class NodeState implements DependencyGraphNode {
             }
         }
         ExcludeSpec result = moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
+        // We use a set here because for excludes, order of edges is irrelevant
+        // so we hit the cache more by using a set
         previousIncoming = ImmutableList.copyOf(incomingEdges);
         cachedExcludes = result;
         return result;
+    }
+
+    private boolean sameIncomingEdgesAsPreviousPass(List<EdgeState> incomingEdges) {
+        return previousIncoming != null
+            && previousIncoming.hashCode() == incomingEdges.hashCode()
+            && previousIncoming.equals(incomingEdges);
     }
 
     private void removeOutgoingEdges() {
@@ -713,5 +735,25 @@ public class NodeState implements DependencyGraphNode {
     boolean isSelectedByVariantAwareResolution() {
         // the order is strange logically but here for performance optimization
         return selectedByVariantAwareResolution && isSelected();
+    }
+
+    private static class HashCodeCachingHashSet extends HashSet<EdgeState> {
+        private final int hashCode;
+
+        public HashCodeCachingHashSet(List<EdgeState> incomingEdges, int hashCode) {
+            super(incomingEdges);
+            this.hashCode = hashCode;
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            // to make checkstyle happy
+            return super.equals(o);
+        }
     }
 }
