@@ -825,7 +825,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
         javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:${expectedVersion}@runtime")
-        javaLibrary.parsedIvy.dependencies["commons-collections:commons-collections:3.2.2"].revisionConstraint == requestedVersion
+        javaLibrary.parsedIvy.dependencies["commons-collections:commons-collections:${expectedVersion}"].revisionConstraint == requestedVersion
 
         and:
         javaLibrary.parsedModuleMetadata.variant('apiElements') {
@@ -850,6 +850,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         requestedVersion | expectedVersion
         "3.2.+"          | "3.2.2"
         "[2.1.0,4.0.0)"  | "3.2.2"
+        "latest.release" | "20040616"
     }
 
 

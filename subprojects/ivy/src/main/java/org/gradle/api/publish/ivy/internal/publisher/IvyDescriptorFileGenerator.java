@@ -287,7 +287,7 @@ public class IvyDescriptorFileGenerator {
     }
 
     private boolean isDynamicVersion(String version) {
-        return VersionRangeSelector.ALL_RANGE.matcher(version).matches() || version.endsWith("+");
+        return VersionRangeSelector.ALL_RANGE.matcher(version).matches() || version.endsWith("+") || version.startsWith("latest.");
     }
 
     private void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
