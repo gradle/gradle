@@ -504,6 +504,7 @@ public class NodeState implements DependencyGraphNode {
         Set<ExcludeSpec> excludedByBoth = null;
         Set<ExcludeSpec> excludedByEither = null;
         ExcludeSpec nothing = moduleExclusions.nothing();
+        int incomingEdgeCount = incomingEdges.size();
         for (EdgeState dependencyEdge : incomingEdges) {
             if (dependencyEdge.isTransitive()) {
                 // Transitive dependency
@@ -512,7 +513,7 @@ public class NodeState implements DependencyGraphNode {
                     edgeExclusions = exclusions;
                 } else if (exclusions != null && edgeExclusions != exclusions) {
                     if (excludedByBoth == null) {
-                        excludedByBoth = Sets.newHashSet();
+                        excludedByBoth = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
                     }
                     excludedByBoth.add(exclusions);
                 }
@@ -521,7 +522,7 @@ public class NodeState implements DependencyGraphNode {
                 ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
                 if (constraintExclusions!= null && constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
                     if (excludedByEither == null) {
-                        excludedByEither = Sets.newHashSet();
+                        excludedByEither = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
                     }
                     excludedByEither.add(constraintExclusions);
                 }
