@@ -22,12 +22,15 @@ import org.gradle.internal.operations.BuildOperationRef
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.resources.ResourceLockCoordinationService
+import org.gradle.internal.time.Clock
+import org.gradle.internal.time.MockClock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
     ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
     WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
-    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(workerLeaseService)
+    Clock clock = new MockClock()
+    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(workerLeaseService, clock)
 
     def "can wait for async work to complete"() {
         def operation = Mock(BuildOperationRef)
@@ -276,7 +279,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
     def "releases a project lock before waiting on async work"() {
         def projectLockService = Mock(ProjectLeaseRegistry)
-        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService, clock)
         def operation1 = Mock(BuildOperationRef)
 
         when:
@@ -303,7 +306,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
     def "does not release a project lock before waiting on async work when releaseLocks is false"() {
         def projectLockService = Mock(ProjectLeaseRegistry)
-        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService, clock)
         def operation1 = Mock(BuildOperationRef)
 
         when:
@@ -330,7 +333,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
     def "does not release a project lock before waiting on async work when no work is registered"() {
         def projectLockService = Mock(ProjectLeaseRegistry)
-        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService, clock)
         def operation1 = Mock(BuildOperationRef)
 
         when:
@@ -342,7 +345,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
     def "does not release a project lock when all async work is already completed"() {
         def projectLockService = Mock(ProjectLeaseRegistry)
-        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService, clock)
         def operation1 = Mock(BuildOperationRef)
 
         when:

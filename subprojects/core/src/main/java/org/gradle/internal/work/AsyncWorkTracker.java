@@ -40,10 +40,17 @@ public interface AsyncWorkTracker {
      * @param operation - The build operation whose asynchronous work should be completed
      * @param releaseLocks - Whether or not project locks should be released while waiting on work
      */
-    void waitForCompletion(BuildOperationRef operation, boolean releaseLocks);
+    WaitDetails waitForCompletion(BuildOperationRef operation, boolean releaseLocks);
 
     /**
      * Returns true if the given operation has work registered that has not completed.
      */
     boolean hasUncompletedWork(BuildOperationRef operation);
+
+    interface WaitDetails {
+        boolean getDidWait();
+        long getStartTime();
+        long getEndTime();
+        long getDuration();
+    }
 }

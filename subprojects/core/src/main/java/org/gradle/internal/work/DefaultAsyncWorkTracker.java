@@ -25,6 +25,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -32,13 +33,16 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
+    private static final WaitDetails DID_NOT_WAIT = new DefaultWaitDetails(0, 0);
     private final ListMultimap<BuildOperationRef, AsyncWorkCompletion> items = ArrayListMultimap.create();
     private final Set<BuildOperationRef> waiting = Sets.newHashSet();
     private final ReentrantLock lock = new ReentrantLock();
     private final ProjectLeaseRegistry projectLeaseRegistry;
+    private final Clock clock;
 
-    public DefaultAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry) {
+    public DefaultAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry, Clock clock) {
         this.projectLeaseRegistry = projectLeaseRegistry;
+        this.clock = clock;
     }
 
     @Override
@@ -55,7 +59,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     }
 
     @Override
-    public void waitForCompletion(BuildOperationRef operation, boolean releaseLocks) {
+    public WaitDetails waitForCompletion(BuildOperationRef operation, boolean releaseLocks) {
         final List<AsyncWorkCompletion> workItems;
         lock.lock();
         try {
@@ -76,6 +80,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
                 });
                 // only release the project lock if we have to wait for items to finish
                 if (releaseLocks && workInProgress) {
+                    long startTime = clock.getCurrentTime();
                     projectLeaseRegistry.withoutProjectLock(
                         new Runnable() {
                         @Override
@@ -83,6 +88,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
                             waitForItemsAndGatherFailures(workItems);
                         }
                     });
+                    return new DefaultWaitDetails(startTime, clock.getCurrentTime());
                 } else {
                     waitForItemsAndGatherFailures(workItems);
                 }
@@ -90,6 +96,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         } finally {
             stopWaiting(operation);
         }
+        return DID_NOT_WAIT;
     }
 
     @Override
@@ -147,6 +154,36 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
             waiting.remove(operation);
         } finally {
             lock.unlock();
+        }
+    }
+
+    private static final class DefaultWaitDetails implements WaitDetails {
+        private final long waitStartTime;
+        private final long waitEndTime;
+
+        public DefaultWaitDetails(long waitStartTime, long waitEndTime) {
+            this.waitStartTime = waitStartTime;
+            this.waitEndTime = waitEndTime;
+        }
+
+        @Override
+        public boolean getDidWait() {
+            return waitStartTime == 0;
+        }
+
+        @Override
+        public long getStartTime() {
+            return waitStartTime;
+        }
+
+        @Override
+        public long getEndTime() {
+            return waitEndTime;
+        }
+
+        @Override
+        public long getDuration() {
+            return waitEndTime - waitStartTime;
         }
     }
 }

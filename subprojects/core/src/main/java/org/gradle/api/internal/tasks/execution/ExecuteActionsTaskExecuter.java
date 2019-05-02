@@ -390,45 +390,41 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(actionDisplayName + " for " + task.getIdentityPath().getPath()).name(actionDisplayName);
+                return BuildOperationDescriptor
+                        .displayName(actionDisplayName + " for " + task.getIdentityPath().getPath())
+                        .name(actionDisplayName)
+                        .details(new ExecuteTaskActionBuildOperationDetails());
             }
 
             @Override
             public void run(BuildOperationContext context) {
                 BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
-                Throwable actionFailure = null;
+                List<Throwable> failures = Lists.newArrayList();
                 try {
                     action.execute(task);
                 } catch (Throwable t) {
-                    actionFailure = t;
+                    failures.add(t);
                 } finally {
                     action.clearInputChanges();
                 }
 
+                AsyncWorkTracker.WaitDetails waitDetails = null;
                 try {
-                    asyncWorkTracker.waitForCompletion(currentOperation, true);
+                    waitDetails = asyncWorkTracker.waitForCompletion(currentOperation, true);
                 } catch (Throwable t) {
-                    List<Throwable> failures = Lists.newArrayList();
-
-                    if (actionFailure != null) {
-                        failures.add(actionFailure);
-                    }
-
                     if (t instanceof MultiCauseException) {
                         failures.addAll(((MultiCauseException) t).getCauses());
                     } else {
                         failures.add(t);
                     }
-
-                    if (failures.size() > 1) {
-                        throw new MultipleTaskActionFailures("Multiple task action failures occurred:", failures);
-                    } else {
-                        throw UncheckedException.throwAsUncheckedException(failures.get(0));
-                    }
                 }
 
-                if (actionFailure != null) {
-                    throw UncheckedException.throwAsUncheckedException(actionFailure);
+                context.setResult(new ExecuteTaskActionBuildOperationResult(waitDetails));
+
+                if (failures.size() == 1) {
+                    throw UncheckedException.throwAsUncheckedException(failures.get(0));
+                } else if (failures.size() > 1) {
+                    throw new MultipleTaskActionFailures("Multiple task action failures occurred:", failures);
                 }
             }
         });
@@ -438,6 +434,43 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static class MultipleTaskActionFailures extends DefaultMultiCauseException {
         public MultipleTaskActionFailures(String message, Iterable<? extends Throwable> causes) {
             super(message, causes);
+        }
+    }
+
+    private static class ExecuteTaskActionBuildOperationDetails implements ExecuteTaskActionBuildOperationType.Details {
+    }
+
+    private static class ExecuteTaskActionBuildOperationResult implements ExecuteTaskActionBuildOperationType.Result {
+        private final long waitStart;
+        private final long waitEnd;
+
+        public ExecuteTaskActionBuildOperationResult(@Nullable AsyncWorkTracker.WaitDetails postActionWait) {
+            if (postActionWait == null) {
+                waitStart = 0;
+                waitEnd = 0;
+            } else {
+                waitStart = postActionWait.getStartTime();
+                waitEnd = postActionWait.getEndTime();
+            }
+        }
+
+        @Override
+        public Wait getPostActionWait() {
+            if (waitStart == 0) {
+                return null;
+            }
+
+            return new Wait() {
+                @Override
+                public long getStartTime() {
+                    return waitStart;
+                }
+
+                @Override
+                public long getDuration() {
+                    return waitEnd - waitStart;
+                }
+            };
         }
     }
 }
