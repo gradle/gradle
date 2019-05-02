@@ -86,7 +86,12 @@ public class NodeState implements DependencyGraphNode {
     private Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
     private boolean virtualPlatformNeedsRefresh;
     private Set<EdgeState> edgesToRecompute;
+
+    // exclusions optimizations
     private ExcludeSpec cachedNodeExclusions;
+    private List<EdgeState> previousIncoming;
+    private ExcludeSpec cachedExcludes;
+
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -500,6 +505,12 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private ExcludeSpec computeExclusionFilter(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions) {
+        if (incomingEdges.equals(previousIncoming)) {
+            // if we reach this point it means the node selection was restarted, but
+            // effectively it has the same incoming edges as before, so we can return
+            // the result we computed last time
+            return cachedExcludes;
+        }
         ExcludeSpec edgeExclusions = null;
         Set<ExcludeSpec> excludedByBoth = null;
         Set<ExcludeSpec> excludedByEither = null;
@@ -541,7 +552,10 @@ public class NodeState implements DependencyGraphNode {
                 nodeExclusions = moduleExclusions.excludeAny(excludedByEither);
             }
         }
-        return moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
+        ExcludeSpec result = moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
+        previousIncoming = ImmutableList.copyOf(incomingEdges);
+        cachedExcludes = result;
+        return result;
     }
 
     private void removeOutgoingEdges() {
