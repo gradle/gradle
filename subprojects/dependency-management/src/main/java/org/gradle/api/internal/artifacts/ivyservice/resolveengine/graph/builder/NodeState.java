@@ -281,7 +281,7 @@ public class NodeState implements DependencyGraphNode {
 
     private void prepareToRecomputeEdge(EdgeState edgeToRecompute) {
         if (edgesToRecompute == null) {
-            edgesToRecompute = new HashSet<>();
+            edgesToRecompute = Sets.newLinkedHashSet();
         }
         edgesToRecompute.add(edgeToRecompute);
         resolveState.onMoreSelected(this);
@@ -418,7 +418,8 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
-        EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
+        EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
+        dependencyEdge.getSelector().update(dependencyState);
         outgoingEdges.add(dependencyEdge);
         discoveredEdges.add(dependencyEdge);
         dependencyEdge.getSelector().use(deferSelection);
