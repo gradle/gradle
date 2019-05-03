@@ -19,11 +19,13 @@ package org.gradle.api.internal.file;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
+import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
 import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
@@ -31,6 +33,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultFilePropertyFactory implements FilePropertyFactory {
@@ -218,7 +221,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static abstract class AbstractFileVar<T> extends DefaultPropertyState<T> {
+    static abstract class AbstractFileVar<T extends FileSystemLocation> extends DefaultPropertyState<T> implements FileSystemLocationProperty<T> {
 
         public AbstractFileVar(Class<T> type) {
             super(type);
@@ -233,7 +236,22 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
             }
         }
 
-        public abstract void set(File file);
+        @Override
+        public Provider<T> getLocationOnly() {
+            return new AbstractReadOnlyProvider<T>() {
+                @Nullable
+                @Override
+                public Class<T> getType() {
+                    return AbstractFileVar.this.getType();
+                }
+
+                @Nullable
+                @Override
+                public T getOrNull() {
+                    return AbstractFileVar.this.getOrNull();
+                }
+            };
+        }
     }
 
     static class DefaultRegularFileVar extends AbstractFileVar<RegularFile> implements RegularFileProperty, Managed {
