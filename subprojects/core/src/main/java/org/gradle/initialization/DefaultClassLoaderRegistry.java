@@ -24,6 +24,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader apiOnlyClassLoader;
     private final ClassLoader apiAndPluginsClassLoader;
     private final ClassLoader pluginsClassLoader;
+    private final ClassLoader workerPluginsClassLoader;
     private final Instantiator instantiator;
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport, Instantiator instantiator) {
@@ -31,6 +32,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
         this.apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
         this.pluginsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, classPathRegistry.getClassPath("GRADLE_EXTENSIONS"), legacyTypesSupport);
+        this.workerPluginsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, classPathRegistry.getClassPath("GRADLE_WORKER_EXTENSIONS"), legacyTypesSupport);
         this.apiAndPluginsClassLoader = restrictToGradleApi(pluginsClassLoader);
     }
 
@@ -64,5 +66,10 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     @Override
     public ClassLoader getGradleCoreApiClassLoader() {
         return apiOnlyClassLoader;
+    }
+
+    @Override
+    public ClassLoader getWorkerPluginsClassLoader() {
+        return workerPluginsClassLoader;
     }
 }

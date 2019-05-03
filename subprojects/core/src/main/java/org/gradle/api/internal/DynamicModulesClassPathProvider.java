@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -46,26 +47,34 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
 
     public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_EXTENSIONS")) {
-            Set<Module> coreModules = allRequiredModulesOf("gradle-core");
-            ClassPath classpath = ClassPath.EMPTY;
-            for (String moduleName : GRADLE_EXTENSION_MODULES) {
-                Set<Module> extensionModules = allRequiredModulesOf(moduleName);
-                classpath = plusExtensionModules(classpath, extensionModules, coreModules);
-            }
-            for (String moduleName : GRADLE_OPTIONAL_EXTENSION_MODULES) {
-                Set<Module> optionalExtensionModules = allRequiredModulesOfOptional(moduleName);
-                classpath = plusExtensionModules(classpath, optionalExtensionModules, coreModules);
-            }
-            for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
-                classpath = classpath.plus(pluginModule.getClasspath());
-            }
-            for (Module pluginModule : pluginModuleRegistry.getImplementationModules()) {
-                classpath = classpath.plus(pluginModule.getClasspath());
-            }
-            return removeJaxbIfIncludedInCurrentJdk(classpath);
+            return gradleExtensionsWithout("gradle-core");
+        }
+
+        if (name.equals("GRADLE_WORKER_EXTENSIONS")) {
+            return gradleExtensionsWithout("gradle-core", "gradle-workers", "gradle-dependency-management");
         }
 
         return null;
+    }
+
+    private ClassPath gradleExtensionsWithout(String... modulesToExclude) {
+        Set<Module> coreModules = allRequiredModulesOf(modulesToExclude);
+        ClassPath classpath = ClassPath.EMPTY;
+        for (String moduleName : GRADLE_EXTENSION_MODULES) {
+            Set<Module> extensionModules = allRequiredModulesOf(moduleName);
+            classpath = plusExtensionModules(classpath, extensionModules, coreModules);
+        }
+        for (String moduleName : GRADLE_OPTIONAL_EXTENSION_MODULES) {
+            Set<Module> optionalExtensionModules = allRequiredModulesOfOptional(moduleName);
+            classpath = plusExtensionModules(classpath, optionalExtensionModules, coreModules);
+        }
+        for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
+            classpath = classpath.plus(pluginModule.getClasspath());
+        }
+        for (Module pluginModule : pluginModuleRegistry.getImplementationModules()) {
+            classpath = classpath.plus(pluginModule.getClasspath());
+        }
+        return removeJaxbIfIncludedInCurrentJdk(classpath);
     }
 
     private ClassPath removeJaxbIfIncludedInCurrentJdk(ClassPath classpath) {
@@ -80,8 +89,12 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
         return classpath;
     }
 
-    private Set<Module> allRequiredModulesOf(String name) {
-        return moduleRegistry.getModule(name).getAllRequiredModules();
+    private Set<Module> allRequiredModulesOf(String... names) {
+        Set<Module> modules = Sets.newHashSet();
+        for (String name : names) {
+            modules.addAll(moduleRegistry.getModule(name).getAllRequiredModules());
+        }
+        return modules;
     }
 
     private Set<Module> allRequiredModulesOfOptional(String moduleName) {

@@ -62,7 +62,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
     private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure) {
         if (isolatedClassloaderWorker == null) {
             ClassLoaderRegistry classLoaderRegistry = serviceRegistry.get(ClassLoaderRegistry.class);
-            isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, classLoaderRegistry.getPluginsClassLoader(), serviceRegistry, true);
+            isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, classLoaderRegistry.getWorkerPluginsClassLoader(), serviceRegistry, true);
         }
         return isolatedClassloaderWorker;
     }

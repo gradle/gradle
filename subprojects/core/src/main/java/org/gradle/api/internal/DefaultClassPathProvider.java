@@ -37,17 +37,25 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getModule("gradle-language-groovy").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("groovy-all").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("asm").getClasspath());
+            classpath = addJavaCompilerModules(classpath);
             return classpath;
         }
         if (name.equals("SCALA-COMPILER")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getModule("gradle-language-scala").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-scala").getImplementationClasspath());
+            classpath = addJavaCompilerModules(classpath);
             return classpath;
         }
         if (name.equals("PLAY-COMPILER")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getModule("gradle-platform-play").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-javascript").getImplementationClasspath());
+            classpath = addJavaCompilerModules(classpath);
             return classpath;
+        }
+        if (name.equals("JAVA-COMPILER")) {
+            return addJavaCompilerModules(ClassPath.EMPTY);
         }
         if (name.equals("ANT")) {
             ClassPath classpath = ClassPath.EMPTY;
@@ -57,5 +65,12 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         }
 
         return null;
+    }
+
+    private ClassPath addJavaCompilerModules(ClassPath classpath) {
+        classpath = classpath.plus(moduleRegistry.getModule("gradle-language-java").getImplementationClasspath());
+        classpath = classpath.plus(moduleRegistry.getModule("gradle-language-jvm").getImplementationClasspath());
+        classpath = classpath.plus(moduleRegistry.getModule("gradle-platform-base").getImplementationClasspath());
+        return classpath;
     }
 }

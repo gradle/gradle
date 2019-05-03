@@ -19,19 +19,7 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
-import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.CommandLineJavaCompiler;
-import org.gradle.api.internal.tasks.compile.CompilationFailedException;
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaHomeBasedJavaCompilerFactory;
-import org.gradle.api.internal.tasks.compile.JdkJavaCompiler;
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptions;
-import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -125,24 +113,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         // Guava
         gradleFilterSpec.allowPackage("com.google");
 
-        // Classes in "org.gradle.api.internal.tasks.compile" should come from the
-        // compiler classpath except for the ones listed
-        // TODO Move the Groovy compiler classes to their own package so we can just disallow that instead
+        // This should come from the compiler classpath only
         gradleFilterSpec.disallowPackage("org.gradle.api.internal.tasks.compile");
-        gradleFilterSpec.allowClass(JavaCompileSpec.class);
-        gradleFilterSpec.allowClass(DefaultJavaCompileSpec.class);
-        gradleFilterSpec.allowClass(JvmLanguageCompileSpec.class);
-        gradleFilterSpec.allowClass(CommandLineJavaCompileSpec.class);
-        gradleFilterSpec.allowClass(CommandLineJavaCompiler.class);
-        gradleFilterSpec.allowClass(JdkJavaCompiler.class);
-        gradleFilterSpec.allowClass(JavaHomeBasedJavaCompilerFactory.class);
-        gradleFilterSpec.allowClass(CompilationFailedException.class);
-        gradleFilterSpec.allowClass(MinimalJavaCompileOptions.class);
-        gradleFilterSpec.allowClass(ForkingJavaCompileSpec.class);
-        gradleFilterSpec.allowClass(AbstractDaemonCompiler.class);
-        gradleFilterSpec.allowClass(AbstractDaemonCompiler.CompilerCallable.class);
-        gradleFilterSpec.allowClass(AnnotationProcessorDeclaration.class);
-        gradleFilterSpec.allowClass(IncrementalAnnotationProcessorType.class);
 
         return gradleFilterSpec;
     }

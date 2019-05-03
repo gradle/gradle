@@ -68,7 +68,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, null, GradleVersion.current())
     final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
     final ModuleRegistry moduleRegistry = services.get(ModuleRegistry)
-    final WorkerProcessClassPathProvider workerProcessClassPathProvider = new WorkerProcessClassPathProvider(cacheRepository)
+    final WorkerProcessClassPathProvider workerProcessClassPathProvider = new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry)
     final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), workerProcessClassPathProvider)
     final JavaExecHandleFactory execHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
     final OutputEventListener outputEventListener = new TestOutputEventListener()

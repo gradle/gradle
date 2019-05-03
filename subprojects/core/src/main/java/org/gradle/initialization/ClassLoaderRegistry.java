@@ -35,4 +35,9 @@ public interface ClassLoaderRegistry {
      * Just the Gradle core API, no core plugins.
      */
     ClassLoader getGradleCoreApiClassLoader();
+
+    /**
+     * Returns the implementation class loader for the built-in plugins, constructed for use in a worker process.
+     */
+    ClassLoader getWorkerPluginsClassLoader();
 }

@@ -43,4 +43,9 @@ public class FlatClassLoaderRegistry implements ClassLoaderRegistry {
     public ClassLoader getGradleCoreApiClassLoader() {
         return classLoader;
     }
+
+    @Override
+    public ClassLoader getWorkerPluginsClassLoader() {
+        return classLoader;
+    }
 }

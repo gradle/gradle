@@ -28,8 +28,6 @@ import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
-import java.util.Collections;
-
 public class WorkerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(WorkerDaemonStarter.class);
     private final WorkerProcessFactory workerDaemonProcessFactory;
@@ -48,8 +46,8 @@ public class WorkerDaemonStarter {
         MultiRequestWorkerProcessBuilder<WorkerDaemonProcess> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonProcess.class, WorkerProtocol.class, workerProtocolImplementationClass);
         builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
-        builder.applicationClasspath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
-        builder.sharedPackages(Collections.singleton("org.gradle.workers"));
+        builder.applicationClasspath(classPathRegistry.getClassPath("WORKER_RUNTIME").getAsFiles());
+        builder.sharedPackages("org.gradle", "javax.inject");
         builder.onProcessFailure(cleanupAction);
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         forkOptions.getJavaForkOptions().copyTo(javaCommand);

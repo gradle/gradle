@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.ClassPathProvider;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -68,12 +69,14 @@ import java.util.zip.ZipOutputStream;
 public class WorkerProcessClassPathProvider implements ClassPathProvider, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
     private final CacheRepository cacheRepository;
+    private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
     private ClassPath workerClassPath;
     private PersistentCache workerClassPathCache;
 
-    public WorkerProcessClassPathProvider(CacheRepository cacheRepository) {
+    public WorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         this.cacheRepository = cacheRepository;
+        this.moduleRegistry = moduleRegistry;
     }
 
     public ClassPath findClassPath(String name) {
@@ -89,6 +92,13 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                 LOGGER.debug("Using worker process classpath: {}", workerClassPath);
                 return workerClassPath;
             }
+        }
+        if (name.equals("WORKER_RUNTIME")) {
+            ClassPath classpath = ClassPath.EMPTY;
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-core").getAllRequiredModulesClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getAllRequiredModulesClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-workers").getAllRequiredModulesClasspath());
+            return classpath;
         }
 
         return null;
