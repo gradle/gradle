@@ -992,8 +992,7 @@ include 'other'
 
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true"),
-            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
+            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     @Unroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")
@@ -1041,9 +1040,9 @@ include 'other'
 
         where:
         forceNotation << [
-//                "configurations.all { resolutionStrategy { force 'org:databind:2.6.7.1' } }",
+                "configurations.all { resolutionStrategy { force 'org:databind:2.6.7.1' } }",
                 "dependencies { conf enforcedPlatform('org:platform:2.6.7.1') }",
-//                "dependencies { conf('org:databind:2.6.7.1') { force = true } }",
+                "dependencies { conf('org:databind:2.6.7.1') { force = true } }",
         ]
     }
 
