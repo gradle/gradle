@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -50,11 +51,9 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -94,12 +93,22 @@ public class NodeState implements DependencyGraphNode {
     // caches
     private Map<DependencyMetadata, DependencyState> dependencyStateCache = Maps.newHashMap();
     private Map<DependencyState, EdgeState> edgesCache = Maps.newHashMap();
-    private List<DependencyMetadata> deduplicatedDependencies;
+
+    // Caches the list of dependencies, deduplicated
+    private List<? extends DependencyMetadata> deduplicatedDependencies;
+
+    // Caches the list of dependency states for dependencies
+    private List<DependencyState> cachedDependencyStates;
+
+    // Caches the list of dependency states which are NOT excluded
+    private List<DependencyState> cachedFilteredDependencyStates;
 
     // exclusions optimizations
     private ExcludeSpec cachedNodeExclusions;
-    private List<EdgeState> previousIncoming;
-    private ExcludeSpec cachedExcludes;
+    private Set<EdgeState> previousIncoming;
+    private int previousIncomingHash;
+    private int incomingHash;
+    private ExcludeSpec cachedModuleResolutionFilter;
 
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
@@ -330,11 +339,7 @@ public class NodeState implements DependencyGraphNode {
     private void visitDependencies(ExcludeSpec resolutionFilter, Collection<EdgeState> discoveredEdges) {
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         try {
-            for (DependencyMetadata dependency : deduplicatedDependencies()) {
-                DependencyState dependencyState = dependencyStateCache.computeIfAbsent(dependency, this::createDependencyState);
-                if (isExcluded(resolutionFilter, dependencyState)) {
-                    continue;
-                }
+            for (DependencyState dependencyState : dependencies(resolutionFilter)) {
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
                 if (!pendingState.isPending()) {
@@ -353,12 +358,63 @@ public class NodeState implements DependencyGraphNode {
     private List<? extends DependencyMetadata> deduplicatedDependencies() {
         if (deduplicatedDependencies == null || dependenciesMayChange) {
             deduplicatedDependencies = doDeduplicate(metaData.getDependencies());
+            cachedDependencyStates = null;
+            cachedFilteredDependencyStates = null;
         }
         return deduplicatedDependencies;
     }
 
-    private static List<DependencyMetadata> doDeduplicate(List<? extends DependencyMetadata> dependencies) {
-        return dependencies.stream().distinct().collect(Collectors.toList());
+    private List<DependencyState> dependencies(ExcludeSpec spec) {
+        List<? extends DependencyMetadata> dependencies = deduplicatedDependencies();
+        if (cachedDependencyStates == null) {
+            cachedDependencyStates = cacheDependencyStates(dependencies);
+        }
+        if (cachedFilteredDependencyStates == null) {
+            cachedFilteredDependencyStates = cacheFilteredDependencyStates(spec, cachedDependencyStates);
+        }
+        return cachedFilteredDependencyStates;
+    }
+
+    private List<DependencyState> cacheFilteredDependencyStates(ExcludeSpec spec, List<DependencyState> from) {
+        List<DependencyState> tmp = Lists.newArrayListWithCapacity(from.size());
+        for (DependencyState dependencyState : from) {
+            if (!isExcluded(spec, dependencyState)) {
+                tmp.add(dependencyState);
+            }
+        }
+        return tmp;
+    }
+
+    private List<DependencyState> cacheDependencyStates(List<? extends DependencyMetadata> dependencies) {
+        List<DependencyState> tmp = Lists.newArrayListWithCapacity(dependencies.size());
+        for (DependencyMetadata dependency : dependencies) {
+            tmp.add(cachedDependencyStateFor(dependency));
+        }
+        return tmp;
+    }
+
+    private DependencyState cachedDependencyStateFor(DependencyMetadata md) {
+        return dependencyStateCache.computeIfAbsent(md, this::createDependencyState);
+    }
+
+    private static List<? extends DependencyMetadata> doDeduplicate(List<? extends DependencyMetadata> dependencies) {
+        int size = dependencies.size();
+        if (size < 2) {
+            return dependencies;
+        }
+        return deduplicateWithExpectedSize(dependencies, size);
+    }
+
+    private static List<? extends DependencyMetadata> deduplicateWithExpectedSize(List<? extends DependencyMetadata> dependencies, int size) {
+        // Not using Java 8 stream API as this one will be slightly faster
+        List<DependencyMetadata> result = Lists.newArrayListWithCapacity(size);
+        Set<DependencyMetadata> seen = Sets.newHashSetWithExpectedSize(size);
+        for (DependencyMetadata dependency : dependencies) {
+            if (seen.add(dependency)) {
+                result.add(dependency);
+            }
+        }
+        return result;
     }
 
     private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
@@ -490,11 +546,13 @@ public class NodeState implements DependencyGraphNode {
 
     public void addIncomingEdge(EdgeState dependencyEdge) {
         incomingEdges.add(dependencyEdge);
+        incomingHash += dependencyEdge.hashCode();
         resolveState.onMoreSelected(this);
     }
 
     public void removeIncomingEdge(EdgeState dependencyEdge) {
         incomingEdges.remove(dependencyEdge);
+        incomingHash -= dependencyEdge.hashCode();
         resolveState.onFewerSelected(this);
     }
 
@@ -532,7 +590,7 @@ public class NodeState implements DependencyGraphNode {
             // if we reach this point it means the node selection was restarted, but
             // effectively it has the same incoming edges as before, so we can return
             // the result we computed last time
-            return cachedExcludes;
+            return cachedModuleResolutionFilter;
         }
         ExcludeSpec edgeExclusions = null;
         Set<ExcludeSpec> excludedByBoth = null;
@@ -578,15 +636,19 @@ public class NodeState implements DependencyGraphNode {
         ExcludeSpec result = moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
         // We use a set here because for excludes, order of edges is irrelevant
         // so we hit the cache more by using a set
-        previousIncoming = ImmutableList.copyOf(incomingEdges);
-        cachedExcludes = result;
+        previousIncoming = ImmutableSet.copyOf(incomingEdges);
+        previousIncomingHash = incomingHash;
+        cachedModuleResolutionFilter = result;
+        cachedFilteredDependencyStates = null;
         return result;
     }
 
     private boolean sameIncomingEdgesAsPreviousPass(List<EdgeState> incomingEdges) {
         return previousIncoming != null
-            && previousIncoming.hashCode() == incomingEdges.hashCode()
-            && previousIncoming.equals(incomingEdges);
+            && previousIncomingHash == incomingHash
+            && previousIncoming.size() == incomingEdges.size()
+            // this comparison only stands because we know we work on deduplicated edges
+            && previousIncoming.containsAll(incomingEdges);
     }
 
     private void removeOutgoingEdges() {
@@ -633,7 +695,12 @@ public class NodeState implements DependencyGraphNode {
                 dependency.restart();
             }
         }
+        clearIncomingEdges();
+    }
+
+    private void clearIncomingEdges() {
         incomingEdges.clear();
+        incomingHash = 0;
     }
 
     public void deselect() {
@@ -675,7 +742,7 @@ public class NodeState implements DependencyGraphNode {
             }
             pendingDependencies.addNode(from);
         }
-        incomingEdges.clear();
+        clearIncomingEdges();
     }
 
     void forEachCapability(Action<? super Capability> action) {
@@ -737,23 +804,4 @@ public class NodeState implements DependencyGraphNode {
         return selectedByVariantAwareResolution && isSelected();
     }
 
-    private static class HashCodeCachingHashSet extends HashSet<EdgeState> {
-        private final int hashCode;
-
-        public HashCodeCachingHashSet(List<EdgeState> incomingEdges, int hashCode) {
-            super(incomingEdges);
-            this.hashCode = hashCode;
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            // to make checkstyle happy
-            return super.equals(o);
-        }
-    }
 }
