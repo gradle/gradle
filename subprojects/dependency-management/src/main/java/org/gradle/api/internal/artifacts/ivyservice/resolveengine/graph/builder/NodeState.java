@@ -507,7 +507,7 @@ public class NodeState implements DependencyGraphNode {
         restartIncomingEdges();
     }
 
-    public boolean shouldIncludedInGraphResult() {
+    boolean shouldIncludedInGraphResult() {
         return isSelected() && !component.getModule().isVirtualPlatform();
     }
 
@@ -554,7 +554,7 @@ public class NodeState implements DependencyGraphNode {
             } else if (dependencyEdge.getDependencyMetadata().isConstraint()) {
                 // Constraint: only consider explicit exclusions declared for this constraint
                 ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
-                if (constraintExclusions != null && constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
+                if (constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
                     if (excludedByEither == null) {
                         excludedByEither = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
                     }

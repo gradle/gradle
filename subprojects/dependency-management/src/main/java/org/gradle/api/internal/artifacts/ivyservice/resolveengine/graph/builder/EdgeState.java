@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
@@ -62,6 +61,7 @@ class EdgeState implements DependencyGraphEdge {
 
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
+    private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
     EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
@@ -257,18 +257,26 @@ class EdgeState implements DependencyGraphEdge {
         if (excludes.isEmpty()) {
             cachedExclusions = transitiveExclusions;
         } else {
-            ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
-            ExcludeSpec edgeExclusions = moduleExclusions.excludeAny(excludes);
-            cachedExclusions = moduleExclusions.excludeAny(edgeExclusions, transitiveExclusions);
+            computeExclusionsWhenExcludesPresent(excludes);
         }
     }
 
+    private void computeExclusionsWhenExcludesPresent(List<ExcludeMetadata> excludes) {
+        ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
+        ExcludeSpec edgeExclusions = moduleExclusions.excludeAny(excludes);
+        cachedExclusions = moduleExclusions.excludeAny(edgeExclusions, transitiveExclusions);
+    }
+
     ExcludeSpec getEdgeExclusions() {
-        List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
-        if (excludes.isEmpty()) {
-            return null;
+        if (cachedEdgeExclusions == null) {
+            List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
+            ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
+            if (excludes.isEmpty()) {
+                return moduleExclusions.nothing();
+            }
+            cachedEdgeExclusions = moduleExclusions.excludeAny(excludes);
         }
-        return resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
+        return cachedEdgeExclusions;
     }
 
     @Override
