@@ -10,7 +10,8 @@ Include only their name, impactful features should be called out separately belo
 [Ben Asher](https://github.com/benasher44),
 [Mike Kobit](https://github.com/mkobit),
 [Erhard Pointl](https://github.com/epeee),
-[Sebastian Schuberth](https://github.com/sschuberth), and
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Roberto Perez Alcolea](https://github.com/rpalcolea) and
 [Christian Fränkel](https://github.com/fraenkelc)
 
 <!-- 
