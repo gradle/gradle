@@ -76,6 +76,7 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
         DefaultProjectIdentifier id = new DefaultProjectIdentifier(project.getRootDir(), project.getPath());
         BasicGradleProject converted = new BasicGradleProject().setName(project.getName()).setProjectIdentifier(id);
         converted.setProjectDirectory(project.getProjectDir());
+        converted.setBuildDir(project.getBuildDir());
         if (project.getParent() != null) {
             converted.setParent(convertedProjects.get(project.getParent()));
         }
