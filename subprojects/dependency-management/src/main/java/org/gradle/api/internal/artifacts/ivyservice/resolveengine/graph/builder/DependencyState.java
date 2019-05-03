@@ -38,6 +38,7 @@ class DependencyState {
 
     private ModuleIdentifier moduleIdentifier;
     public ModuleVersionResolveException failure;
+    private boolean reasonsAlreadyAdded;
 
     DependencyState(DependencyMetadata dependency, ComponentSelectorConverter componentSelectorConverter) {
         this(dependency, dependency.getSelector(), null, componentSelectorConverter);
@@ -96,7 +97,11 @@ class DependencyState {
         return dependency instanceof LocalOriginDependencyMetadata && ((LocalOriginDependencyMetadata) dependency).isFromLock();
     }
 
-    public void addSelectionReasons(Set<ComponentSelectionDescriptorInternal> reasons) {
+    void addSelectionReasons(Set<ComponentSelectionDescriptorInternal> reasons) {
+        if (reasonsAlreadyAdded) {
+            return;
+        }
+        reasonsAlreadyAdded = true;
         String reason = dependency.getReason();
         ComponentSelectionDescriptorInternal dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
         if (reason != null) {
