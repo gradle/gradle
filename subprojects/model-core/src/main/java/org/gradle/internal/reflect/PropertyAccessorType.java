@@ -69,7 +69,7 @@ public enum PropertyAccessorType {
         }
 
         private void requireSingleParam(Method method) {
-            if (method.getParameterCount() != 1) {
+            if (!takesSingleParameter(method)) {
                 throw new IllegalArgumentException("Setter method should take one parameter: " + method);
             }
         }
@@ -141,7 +141,7 @@ public enum PropertyAccessorType {
     }
 
     public static boolean takesSingleParameter(Method method) {
-        return method.getParameterTypes().length == 1;
+        return method.getParameterCount() == 1;
     }
 
     private static boolean isGetGetterName(String methodName) {
