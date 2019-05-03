@@ -687,4 +687,44 @@ The following types/formats are supported:
         then:
         result.assertTasksExecuted(":a", ":b")
     }
+
+    def "input property with value of mapped task output location does not imply dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputProperty()
+        buildFile << """
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            tasks.register("b", InputTask) {
+                inValue = task.output.locationOnly.map { it.asFile.name.length() }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":b")
+        file("out.txt").text == "18"
+    }
+
+    def "input property can have value of mapped output property of same task"() {
+        taskTypeWithInputProperty()
+        buildFile << """
+            tasks.register("b", InputTask) {
+                inValue = outFile.locationOnly.map { it.asFile.name.length() }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":b")
+        file("out.txt").text == "17"
+    }
+
 }
