@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
@@ -75,6 +80,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final VersionParser versionParser;
     private final SelectorStateResolver<ComponentState> selectorStateResolver;
     private final ResolveOptimizations resolveOptimizations;
+    private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = Maps.newHashMap();
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
@@ -157,7 +163,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     public SelectorState getSelector(DependencyState dependencyState) {
         SelectorState selectorState = selectors.computeIfAbsent(dependencyState.getRequested(), req -> {
             ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();
-            return new SelectorState(idGenerator.generateId(), dependencyState, idResolver, versionSelectorScheme, this, moduleIdentifier);
+            return new SelectorState(idGenerator.generateId(), dependencyState, idResolver, this, moduleIdentifier);
         });
         selectorState.update(dependencyState);
         return selectorState;
@@ -227,5 +233,13 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     PendingDependenciesVisitor newPendingDependenciesVisitor() {
         return new DefaultPendingDependenciesVisitor(this);
+    }
+
+    ResolvedVersionConstraint resolveVersionConstraint(ComponentSelector selector) {
+        if (selector instanceof ModuleComponentSelector) {
+            VersionConstraint vc = ((ModuleComponentSelector) selector).getVersionConstraint();
+            return resolvedVersionConstraints.computeIfAbsent(vc, key -> new DefaultResolvedVersionConstraint(key, versionSelectorScheme));
+        }
+        return null;
     }
 }
