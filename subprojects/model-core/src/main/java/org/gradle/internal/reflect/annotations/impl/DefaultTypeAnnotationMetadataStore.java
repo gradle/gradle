@@ -44,8 +44,6 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -60,7 +58,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 
@@ -210,6 +207,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private ImmutableSortedSet<PropertyAnnotationMetadata> extractPropertiesFrom(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, ValidationErrorsBuilder errorsBuilder) {
         Method[] methods = type.getDeclaredMethods();
+        // Make sure getters end up before the setters
         Arrays.sort(methods, (a, b) -> a.getName().compareTo(b.getName()));
         for (Method method : methods) {
             processMethodAnnotations(method, methodBuilders, errorsBuilder);
@@ -325,9 +323,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (accessorType == null) {
             validateNotAnnotated("non-property", method, annotations.keySet(), errorsBuilder);
             return;
-        } else if (accessorType == PropertyAccessorType.SETTER) {
+        }
+
+        String propertyName = accessorType.propertyNameFor(method);
+        if (accessorType == PropertyAccessorType.SETTER) {
             validateNotAnnotated("setter", method, annotations.keySet(), errorsBuilder);
-            validateSetterForMutableType(accessorType, method, errorsBuilder);
+            validateSetterForMutableType(method, accessorType, errorsBuilder, propertyName);
             return;
         }
 
@@ -339,7 +340,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return;
         }
 
-        String propertyName = accessorType.propertyNameFor(method);
         PropertyAnnotationMetadataBuilder metadataBuilder = getOrCreateBuilder(propertyName, method, methodBuilders);
         metadataBuilder.overrideMethod(method);
 
@@ -366,32 +366,17 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     }
 
-    private void validateSetterForMutableType(PropertyAccessorType accessorType, Method method, ValidationErrorsBuilder errorsBuilder) {
-        Class<?> setterClass = getSetterClassOrNull(accessorType, method);
-        if (setterClass == null) {
-            return;
+    private void validateSetterForMutableType(Method setterMethod, PropertyAccessorType setterAccessorType, ValidationErrorsBuilder errorsBuilder, String propertyName) {
+        Class<?> setterType = setterAccessorType.propertyTypeFor(setterMethod);
+        if (isSetterProhibitedForType(setterType)) {
+            String typeName = setterType.getName();
+            errorsBuilder.recordError(String.format("property '%s' with mutable type '%s' is redundant. Use methods on the property value itself to mutate it", propertyName, typeName));
         }
-        mutableNonFinalClasses.stream()
-            .filter(c -> c.isAssignableFrom(setterClass)).findAny()
-            .ifPresent(c -> {
-                String propertyName = accessorType.propertyNameFor(method);
-                String typeName = setterClass.getTypeName();
-                errorsBuilder.recordError(String.format("'%s' of type '%s' has redundant setter method.", propertyName, typeName));
-            });
     }
 
-    @Nullable
-    private static Class<?> getSetterClassOrNull(PropertyAccessorType accessorType, Method method) {
-        Type setterType = accessorType.propertyTypeFor(method);
-        if (setterType instanceof ParameterizedType) {
-            setterType = ((ParameterizedType) setterType).getRawType();
-        }
-
-        if (setterType instanceof Class<?>) {
-            return uncheckedNonnullCast(setterType);
-        } else {
-            return null;
-        }
+    private boolean isSetterProhibitedForType(Class<?> setter) {
+        return mutableNonFinalClasses.stream()
+            .anyMatch(prohibited -> prohibited.isAssignableFrom(setter));
     }
 
     private void visitSuperTypes(Class<?> type, Consumer<? super TypeAnnotationMetadata> visitor) {

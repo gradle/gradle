@@ -18,9 +18,7 @@ package org.gradle.internal.reflect.annotations.impl
 
 import groovy.transform.Generated
 import groovy.transform.PackageScope
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
-import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.ParameterValidationContext
@@ -45,7 +43,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         [(Large): TYPE, (Small): TYPE, (Color): COLOR],
         [Object, GroovyObject],
         [Object, GroovyObject],
-        [ConfigurableFileCollection, Property],
+        [MutableType, MutableSubType],
         Ignored,
         { Method method -> method.isAnnotationPresent(Generated) },
         new TestCrossBuildInMemoryCacheFactory())
@@ -488,6 +486,39 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
                 return inputFiles
             }
         }
+
+    def "report setters for property with mutable type"() {
+        expect:
+        assertProperties TypeWithPropertiesWithMutableProperties, [
+            mutableSubType: [(TYPE): Small],
+            mutableType: [(TYPE): Small],
+            mutableSubTypeWithSetter: [(TYPE): Small],
+            mutableTypeWithSetter: [(TYPE): Small]
+        ], [
+            "Type '${TypeWithPropertiesWithMutableProperties.name}': property 'mutableSubTypeWithSetter' with mutable type '${MutableSubType.name}' is redundant. Use methods on the property value itself to mutate it",
+            "Type '${TypeWithPropertiesWithMutableProperties.name}': property 'mutableTypeWithSetter' with mutable type '${MutableType.name}' is redundant. Use methods on the property value itself to mutate it"
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        interface TypeWithPropertiesWithMutableProperties {
+            @Small
+            MutableType getMutableType()
+
+            @Small
+            MutableSubType getMutableSubType()
+
+            @Small
+            MutableType getMutableTypeWithSetter()
+            void setMutableTypeWithSetter(MutableType value)
+
+            @Small
+            MutableSubType getMutableSubTypeWithSetter()
+            void setMutableSubTypeWithSetter(MutableSubType value)
+        }
+
+        class MutableType {}
+        class MutableSubType extends MutableType {}
 
     def "doesn't warn about both method and field having the same irrelevant annotation"() {
         expect:

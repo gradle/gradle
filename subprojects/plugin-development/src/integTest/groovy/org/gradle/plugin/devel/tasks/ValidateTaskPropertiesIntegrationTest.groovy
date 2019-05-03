@@ -416,7 +416,6 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails "validateTaskProperties"
 
         then:
-
         file("build/reports/task-properties/report.txt").text == """
             Warning: Type 'MyTask': property 'mutablePropertyWithSetter' with mutable type '${type.replaceAll("<.+>", "")}' is redundant. Use methods on the property value itself to mutate it
         """.stripIndent().trim()
