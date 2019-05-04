@@ -83,6 +83,9 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
         DefaultModuleComponentIdentifier that = (DefaultModuleComponentIdentifier) o;
 
+        if (hashCode != that.hashCode) {
+            return false;
+        }
         if (!moduleIdentifier.equals(that.moduleIdentifier)) {
             return false;
         }
