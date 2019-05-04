@@ -93,9 +93,6 @@ public class NodeState implements DependencyGraphNode {
     private Map<DependencyMetadata, DependencyState> dependencyStateCache = Maps.newHashMap();
     private Map<DependencyState, EdgeState> edgesCache = Maps.newHashMap();
 
-    // Caches the list of dependencies, deduplicated
-    private List<? extends DependencyMetadata> deduplicatedDependencies;
-
     // Caches the list of dependency states for dependencies
     private List<DependencyState> cachedDependencyStates;
 
@@ -354,17 +351,16 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    private List<? extends DependencyMetadata> deduplicatedDependencies() {
-        if (deduplicatedDependencies == null || dependenciesMayChange) {
-            deduplicatedDependencies = doDeduplicate(metaData.getDependencies());
+    private List<? extends DependencyMetadata> dependencies() {
+        if (dependenciesMayChange) {
             cachedDependencyStates = null;
             cachedFilteredDependencyStates = null;
         }
-        return deduplicatedDependencies;
+        return metaData.getDependencies();
     }
 
     private List<DependencyState> dependencies(ExcludeSpec spec) {
-        List<? extends DependencyMetadata> dependencies = deduplicatedDependencies();
+        List<? extends DependencyMetadata> dependencies = dependencies();
         if (cachedDependencyStates == null) {
             cachedDependencyStates = cacheDependencyStates(dependencies);
         }
@@ -396,26 +392,6 @@ public class NodeState implements DependencyGraphNode {
         return dependencyStateCache.computeIfAbsent(md, this::createDependencyState);
     }
 
-    private static List<? extends DependencyMetadata> doDeduplicate(List<? extends DependencyMetadata> dependencies) {
-        int size = dependencies.size();
-        if (size < 2) {
-            return dependencies;
-        }
-        return deduplicateWithExpectedSize(dependencies, size);
-    }
-
-    private static List<? extends DependencyMetadata> deduplicateWithExpectedSize(List<? extends DependencyMetadata> dependencies, int size) {
-        // Not using Java 8 stream API as this one will be slightly faster
-        List<DependencyMetadata> result = Lists.newArrayListWithCapacity(size);
-        Set<DependencyMetadata> seen = Sets.newHashSetWithExpectedSize(size);
-        for (DependencyMetadata dependency : dependencies) {
-            if (seen.add(dependency)) {
-                result.add(dependency);
-            }
-        }
-        return result;
-    }
-
     private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
         EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
         dependencyEdge.getSelector().update(dependencyState);
@@ -429,7 +405,7 @@ public class NodeState implements DependencyGraphNode {
      * in upcomingNoLongerPendingConstraints
      */
     private void visitAdditionalConstraints(Collection<EdgeState> discoveredEdges) {
-        for (DependencyMetadata dependency : deduplicatedDependencies()) {
+        for (DependencyMetadata dependency : dependencies()) {
             if (dependency.isConstraint()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
                 if (upcomingNoLongerPendingConstraints.contains(dependencyState.getModuleIdentifier())) {
@@ -545,16 +521,19 @@ public class NodeState implements DependencyGraphNode {
         return false;
     }
 
-    public void addIncomingEdge(EdgeState dependencyEdge) {
-        incomingEdges.add(dependencyEdge);
-        incomingHash += dependencyEdge.hashCode();
-        resolveState.onMoreSelected(this);
+    void addIncomingEdge(EdgeState dependencyEdge) {
+        if (!incomingEdges.contains(dependencyEdge)) {
+            incomingEdges.add(dependencyEdge);
+            incomingHash += dependencyEdge.hashCode();
+            resolveState.onMoreSelected(this);
+        }
     }
 
-    public void removeIncomingEdge(EdgeState dependencyEdge) {
-        incomingEdges.remove(dependencyEdge);
-        incomingHash -= dependencyEdge.hashCode();
-        resolveState.onFewerSelected(this);
+    void removeIncomingEdge(EdgeState dependencyEdge) {
+        if (incomingEdges.remove(dependencyEdge)) {
+            incomingHash -= dependencyEdge.hashCode();
+            resolveState.onFewerSelected(this);
+        }
     }
 
     public boolean isSelected() {
