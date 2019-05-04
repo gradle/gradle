@@ -19,8 +19,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
  * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
  */
 public class ExactVersionSelector extends AbstractStringVersionSelector {
+    private final String version;
+
     public ExactVersionSelector(String selector) {
         super(selector);
+        this.version = selector;
     }
 
     public boolean isDynamic() {
@@ -36,8 +39,7 @@ public class ExactVersionSelector extends AbstractStringVersionSelector {
     }
 
     public boolean accept(String candidate) {
-        String selector = getSelector();
-        return selector.isEmpty() || selector.equals(candidate);
+        return version.isEmpty() || version.equals(candidate);
     }
 
 }

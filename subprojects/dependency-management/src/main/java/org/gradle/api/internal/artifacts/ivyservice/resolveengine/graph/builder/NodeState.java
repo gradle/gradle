@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -105,9 +104,9 @@ public class NodeState implements DependencyGraphNode {
 
     // exclusions optimizations
     private ExcludeSpec cachedNodeExclusions;
-    private Set<EdgeState> previousIncoming;
-    private int previousIncomingHash;
-    private int incomingHash;
+    private int previousIncomingEdgeCount;
+    private long previousIncomingHash;
+    private long incomingHash;
     private ExcludeSpec cachedModuleResolutionFilter;
 
 
@@ -424,6 +423,7 @@ public class NodeState implements DependencyGraphNode {
         discoveredEdges.add(dependencyEdge);
         dependencyEdge.getSelector().use(deferSelection);
     }
+
     /**
      * Iterate over the dependencies originating in this node, adding only the constraints listed
      * in upcomingNoLongerPendingConstraints
@@ -587,7 +587,8 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private ExcludeSpec computeExclusionFilter(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions) {
-        if (sameIncomingEdgesAsPreviousPass(incomingEdges)) {
+        int incomingEdgeCount = incomingEdges.size();
+        if (sameIncomingEdgesAsPreviousPass(incomingEdgeCount)) {
             // if we reach this point it means the node selection was restarted, but
             // effectively it has the same incoming edges as before, so we can return
             // the result we computed last time
@@ -597,14 +598,17 @@ public class NodeState implements DependencyGraphNode {
         Set<ExcludeSpec> excludedByBoth = null;
         Set<ExcludeSpec> excludedByEither = null;
         ExcludeSpec nothing = moduleExclusions.nothing();
-        int incomingEdgeCount = incomingEdges.size();
         for (EdgeState dependencyEdge : incomingEdges) {
             if (dependencyEdge.isTransitive()) {
                 // Transitive dependency
                 ExcludeSpec exclusions = dependencyEdge.getExclusions();
-                if (edgeExclusions == null) {
+                if (edgeExclusions == null || exclusions == nothing) {
+                    // if exclusions == nothing, then the intersection will be "nothing"
                     edgeExclusions = exclusions;
-                } else if (exclusions != null && edgeExclusions != exclusions) {
+                    if (exclusions == nothing) {
+                        excludedByBoth = null;
+                    }
+                } else if (exclusions != null && edgeExclusions != exclusions && edgeExclusions != nothing) {
                     if (excludedByBoth == null) {
                         excludedByBoth = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
                     }
@@ -637,19 +641,20 @@ public class NodeState implements DependencyGraphNode {
         ExcludeSpec result = moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
         // We use a set here because for excludes, order of edges is irrelevant
         // so we hit the cache more by using a set
-        previousIncoming = ImmutableSet.copyOf(incomingEdges);
+        previousIncomingEdgeCount = incomingEdgeCount;
         previousIncomingHash = incomingHash;
         cachedModuleResolutionFilter = result;
         cachedFilteredDependencyStates = null;
         return result;
     }
 
-    private boolean sameIncomingEdgesAsPreviousPass(List<EdgeState> incomingEdges) {
-        return previousIncoming != null
+    private boolean sameIncomingEdgesAsPreviousPass(int incomingEdgeCount) {
+        // This is a heuristic, more than truth: it is possible that the 2 long hashs
+        // are identical AND that the sizes of collections are identical, but it's
+        // extremely unlikely (never happened on test cases even on large dependency graph)
+        return cachedModuleResolutionFilter != null
             && previousIncomingHash == incomingHash
-            && previousIncoming.size() == incomingEdges.size()
-            // this comparison only stands because we know we work on deduplicated edges
-            && previousIncoming.containsAll(incomingEdges);
+            && previousIncomingEdgeCount == incomingEdgeCount;
     }
 
     private void removeOutgoingEdges() {

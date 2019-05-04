@@ -125,6 +125,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
         DefaultModuleComponentSelector that = (DefaultModuleComponentSelector) o;
 
+        if (hashCode != that.hashCode) {
+            return false;
+        }
+
         if (!moduleIdentifier.equals(that.moduleIdentifier)) {
             return false;
         }
