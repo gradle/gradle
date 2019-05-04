@@ -112,7 +112,7 @@ public class VirtualPlatformState {
     }
 
     private boolean isSelectedPlatformForced() {
-        boolean forced = platformModule.getSelected().getSelectionReason().isForced();
+        boolean forced = platformModule.getSelected().isForced();
         if (forced) {
             resolveOptimizations.declareForcedPlatformInUse();
         }
@@ -121,7 +121,7 @@ public class VirtualPlatformState {
 
     private boolean isParticipatingModuleForced(ModuleResolveState participatingModule) {
         ComponentState selected = participatingModule.getSelected();
-        boolean forced = selected != null && selected.getSelectionReason().isForced();
+        boolean forced = selected != null && selected.isForced();
         if (forced) {
             resolveOptimizations.declareForcedPlatformInUse();
         }

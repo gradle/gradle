@@ -76,7 +76,8 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
             return false;
         }
         DefaultComponentSelectionDescriptor that = (DefaultComponentSelectionDescriptor) o;
-        return cause == that.cause
+        return hashCode == that.hashCode
+            && cause == that.cause
             && isEquivalentToForce == that.isEquivalentToForce
             && Objects.equal(description, that.description);
     }
