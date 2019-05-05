@@ -135,7 +135,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:bar:1.0") {
-                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                 }
                 constraint("org:foo:1.1", "org:foo:1.1")
             }
@@ -296,7 +296,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 constraint("org:bar:1.1", "org:foo:1.1").selectedByRule()
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
             }
         }
     }
@@ -326,7 +326,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                 constraint("org:foo:1.1", "org:foo:1.1")
             }
         }
@@ -369,7 +369,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1").byConstraint('transitive dependency constraint')
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0").byConstraint('transitive dependency constraint')
                 project(":b", "test:b:") {
                     configuration = "conf"
                     noArtifacts()
@@ -417,7 +417,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.0 and 1.1")
+                edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.1 and 1.0")
                 edge("org:included:1.0", "project :included", "org:included:1.0") {
                     noArtifacts()
                     constraint("org:foo:1.1", "org:foo:1.1")

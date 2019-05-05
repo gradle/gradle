@@ -107,7 +107,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module('org:core:1.1')
                 }
                 module("outside:module:1.0") {
-                    edge('org:core:1.0', 'org:core:1.1').byConflictResolution("between versions 1.0 and 1.1")
+                    edge('org:core:1.0', 'org:core:1.1').byConflictResolution("between versions 1.1 and 1.0")
                 }
             }
         }
@@ -187,7 +187,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 module("org:xml:1.0") {
                     edge('org:core:1.0', 'org:core:1.1')
-                        .byConflictResolution("between versions 1.0 and 1.1")
+                        .byConflictResolution("between versions 1.1 and 1.0")
                         .byConstraint("belongs to platform org:platform:1.1")
                 }
                 module("org:json:1.1") {
@@ -529,7 +529,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 }
                 module('org2:foo:1.0') {
                     edge('org4:a:1.0', 'org4:a:1.1') {
-                        byConflictResolution("between versions 1.0 and 1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
                     }
                 }
                 module('org3:bar:1.0') {
@@ -596,7 +596,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     byConstraint("belongs to platform org:platform:1.1")
                     // byReason("version 1.1 is buggy") // TODO CC: uncomment when we collect rejection from component selection rule
                     edge('org:core:1.0', 'org:core:1.1') {
-                        byConflictResolution("between versions 1.0 and 1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
                     }
                 }
                 module("org:json:1.1") {
@@ -731,7 +731,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module("org.apache.groovy:core:2.5")
                 }
                 edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
-                    byConflictResolution("between versions 1.0 and 1.1")
+                    byConflictResolution("between versions 1.1 and 1.0")
                 }
             }
         }
@@ -813,7 +813,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module("org.apache.groovy:core:2.5")
                 }
                 edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
-                    byConflictResolution("between versions 1.0 and 1.1")
+                    byConflictResolution("between versions 1.1 and 1.0")
                 }
             }
         }

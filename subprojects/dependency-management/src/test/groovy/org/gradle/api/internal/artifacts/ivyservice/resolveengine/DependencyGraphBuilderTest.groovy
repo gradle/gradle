@@ -192,8 +192,8 @@ class DependencyGraphBuilderTest extends Specification {
         traverses root, a
         traverses root, b
         traverses root, c
-        traverses a, d, revision: 'latest'
-        doesNotResolve b, d, revision: 'latest'
+        traverses a, d, revision: 'latest.release'
+        doesNotResolve b, d, revision: 'latest.release'
         doesNotResolve c, d
 
         when:
@@ -259,7 +259,7 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(!null) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1.1', '1.2']
+            assert candidates*.version == ['1.2', '1.1']
             details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
@@ -291,7 +291,7 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(!null) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1.1', '1.2']
+            assert candidates*.version == ['1.2', '1.1']
             details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
@@ -353,7 +353,7 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(!null) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1.1', '1.2']
+            assert candidates*.version == ['1.2', '1.1']
             details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
@@ -362,7 +362,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.components == ids(root, selected, b, c, d)
     }
 
-    def "does not include evicted module required by another evicted module"() {
+    def"does not include evicted module required by another evicted module"() {
         given:
         def selectedA = revision('a', '1.2')
         def evictedA = revision('a', '1.1')
@@ -386,13 +386,13 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(!null) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1.1', '1.2']
+            assert candidates*.version == ['1.2', '1.1']
             details.select(candidates.find { it.version == '1.2' })
         }
         1 * conflictResolver.select(!null) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['2.1', '2.2']
+            assert candidates*.version == ['2.2', '2.1']
             details.select(candidates.find { it.version == '2.2' })
         }
         0 * conflictResolver._
@@ -451,7 +451,7 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(!null) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1.1', '1.2']
+            assert candidates*.version == ['1.2', '1.1']
             details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
@@ -483,19 +483,19 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(_) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1.1', '1.2']
+            assert candidates*.version == ['1.2', '1.1']
             details.select(candidates.find { it.version == '1.2' })
         }
         1 * conflictResolver.select(_) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['2.1', '2.2']
+            assert candidates*.version == ['2.2', '2.1']
             details.select(candidates.find { it.version == '2.2' })
         }
         1 * conflictResolver.select(_) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1.1', '1.2', '1.0']
+            assert candidates*.version == ['1.2', '1.1', '1.0']
             details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
@@ -528,7 +528,7 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(_) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1', '2']
+            assert candidates*.version == ['2', '1']
             details.select(candidates.find { it.version == '2' })
         }
         0 * conflictResolver._
@@ -561,7 +561,7 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(_) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1', '2']
+            assert candidates*.version == ['2', '1']
             details.select(candidates.find { it.version == '2' })
         }
         0 * conflictResolver._

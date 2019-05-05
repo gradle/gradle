@@ -17,13 +17,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
 class ModuleSelectorsTest extends Specification {
 
-    def selectors = new ModuleSelectors()
+    @Subject
+    ModuleSelectors selectors = new ModuleSelectors()
+    int dynCount = 1
 
     def 'empty by default'() {
         expect:
@@ -127,7 +132,7 @@ class ModuleSelectorsTest extends Specification {
     @Unroll
     def 'can add and remove selectors in any order'() {
         given:
-        def selector1 =dynamicSelector()
+        def selector1 = dynamicSelector()
         def selector2 = Mock(ResolvableSelectorState)
         def selector3 = dynamicSelector()
         def selector4 = Mock(ResolvableSelectorState)
@@ -150,6 +155,43 @@ class ModuleSelectorsTest extends Specification {
 
     }
 
+    def "sorts selectors for faster selection"() {
+        given:
+        def dyn1 = dynamicSelector()
+        def dyn2 = dynamicSelector()
+        def latest = latestSelector()
+        def v1 = prefer('1.0')
+        def v2 = prefer('2.0')
+        def v3 = prefer('3.0')
+        def v4 = require("2.0")
+        def v5 = require("3.0")
+        def fromLock = fromLock('1.0')
+
+        expect:
+        sort([v3, v1, v2]) == [v3, v2, v1]
+
+        and:
+        sort([v3, v1, v2, v4]) == [v4, v3, v2, v1]
+
+        and:
+        sort([v3, v1, v2, v4, v5]) == [v5, v4, v3, v2, v1]
+
+        and:
+        sort([v3, dyn1, v1]) == [v3, v1, dyn1]
+
+        and:
+        sort([dyn1, v1, fromLock, dyn2]) == [fromLock, v1, dyn1, dyn2]
+
+        and:
+        sort([v1, fromLock, dyn1, latest]) == [fromLock, latest, v1, dyn1]
+
+    }
+
+    private static List<ResolvableSelectorState> sort(List<ResolvableSelectorState> list) {
+        list.sort(ModuleSelectors.SELECTOR_COMPARATOR)
+        list
+    }
+
     void verifyEmpty(ModuleSelectors<? extends ResolvableSelectorState> selectors) {
         assert selectors.size() == 0
         assert selectors.first() == null
@@ -158,10 +200,49 @@ class ModuleSelectorsTest extends Specification {
     }
 
     ResolvableSelectorState dynamicSelector() {
+        int cpt = dynCount++
         Mock(ResolvableSelectorState) {
             getVersionConstraint() >> Mock(ResolvedVersionConstraint) {
                 isDynamic() >> true
             }
+            toString() >> "dynamic selector $cpt"
+        }
+    }
+
+    ResolvableSelectorState latestSelector() {
+        Mock(ResolvableSelectorState) {
+            getVersionConstraint() >> Mock(ResolvedVersionConstraint) {
+                getPreferredSelector() >> new LatestVersionSelector("release")
+            }
+            toString() >> "latest"
+        }
+    }
+
+    ResolvableSelectorState prefer(String version) {
+        Mock(ResolvableSelectorState) {
+            getVersionConstraint() >> Mock(ResolvedVersionConstraint) {
+                getPreferredSelector() >> new ExactVersionSelector(version)
+            }
+            toString() >> "prefer $version"
+        }
+    }
+
+    ResolvableSelectorState require(String version) {
+        Mock(ResolvableSelectorState) {
+            getVersionConstraint() >> Mock(ResolvedVersionConstraint) {
+                getRequiredSelector() >> new ExactVersionSelector(version)
+            }
+            toString() >> "require $version"
+        }
+    }
+
+    ResolvableSelectorState fromLock(String version) {
+        Mock(ResolvableSelectorState) {
+            getVersionConstraint() >> Mock(ResolvedVersionConstraint) {
+                getPreferredSelector() >> new ExactVersionSelector(version)
+            }
+            isFromLock() >> true
+            toString() >> "lock $version"
         }
     }
 }
