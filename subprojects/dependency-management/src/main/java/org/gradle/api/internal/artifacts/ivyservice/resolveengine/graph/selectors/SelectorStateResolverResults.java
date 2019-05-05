@@ -119,7 +119,7 @@ class SelectorStateResolverResults {
     boolean alreadyHaveResolutionForSelector(ResolvableSelectorState selector) {
         for (Registration registration : results) {
             ComponentIdResolveResult discovered = registration.result;
-            if (included(selector, discovered, registration.selector.isFromLock())) {
+            if (selectorAcceptsCandidate(selector, discovered, registration.selector.isFromLock())) {
                 register(selector, discovered);
                 selector.markResolved();
                 return true;
@@ -128,15 +128,15 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult resolveResult, boolean isFromLock) {
+    boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult candidate, boolean isFromLock) {
         // Check already-resolved dependencies and use this version if it's compatible
         boolean replaces = false;
         for (Registration registration : results) {
-            ComponentIdResolveResult result = registration.result;
-            ResolvableSelectorState selector = registration.selector;
-            if (emptyVersion(result) || sameVersion(result, resolveResult) ||
-                    (included(selector, resolveResult, isFromLock) && lowerVersion(result, resolveResult))) {
-                registration.result = resolveResult;
+            ComponentIdResolveResult previous = registration.result;
+            ResolvableSelectorState previousSelector = registration.selector;
+            if (emptyVersion(previous) || sameVersion(previous, candidate) ||
+                    (selectorAcceptsCandidate(previousSelector, candidate, isFromLock) && lowerVersion(previous, candidate))) {
+                registration.result = candidate;
                 replaces = true;
             }
         }
@@ -172,7 +172,7 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    private static boolean included(ResolvableSelectorState dep, ComponentIdResolveResult candidate, boolean candidateIsFromLock) {
+    private static boolean selectorAcceptsCandidate(ResolvableSelectorState dep, ComponentIdResolveResult candidate, boolean candidateIsFromLock) {
         if (hasFailure(candidate)) {
             return false;
         }

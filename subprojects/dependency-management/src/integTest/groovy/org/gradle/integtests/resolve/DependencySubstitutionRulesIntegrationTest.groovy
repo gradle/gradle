@@ -830,7 +830,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
                 module("org.utils:api:2.0")
-                edge("project :api", "org.utils:api:2.0").byConflictResolution("between versions 1.6 and 2.0").selectedByRule()
+                edge("project :api", "org.utils:api:2.0").byConflictResolution("between versions 2.0 and 1.6").selectedByRule()
             }
         }
     }
@@ -952,7 +952,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 module("org.utils:b:1.3") {
                     module("org.utils:a:1.3")
                 }
-                edge("org.utils:a:1.2", "org.utils:a:1.3").byConflictResolution("between versions 1.2.1 and 1.3")
+                edge("org.utils:a:1.2", "org.utils:a:1.3").byConflictResolution("between versions 1.3 and 1.2.1")
             }
         }
     }
@@ -1278,7 +1278,7 @@ Required by:
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge("org:a:1.0", "org:a:2.0") {
-                    byConflictResolution("between versions 1.0 and 2.0")
+                    byConflictResolution("between versions 2.0 and 1.0")
                     module("org:c:1.0")
                 }
                 edge("foo:b:1.0", "org:b:1.0") {
@@ -1318,7 +1318,7 @@ Required by:
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge("org:a:1.0", "org:a:2.0") {
-                    byConflictResolution("between versions 1.0 and 2.0")
+                    byConflictResolution("between versions 2.0 and 1.0")
                     module("org:c:1.0")
                 }
                 edge("foo:bar:baz", "org:b:1.0") {
@@ -1377,7 +1377,7 @@ Required by:
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge("org:a:1.0", "org:c:2.0") {
-                    byConflictResolution("between versions 1.1 and 2.0")
+                    byConflictResolution("between versions 2.0 and 1.1")
                 }
                 module("org:a:2.0") {
                     module("org:b:2.0") {
@@ -1449,7 +1449,7 @@ Required by:
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge("org:a:1.0", "org:a:2.0") {
-                    byConflictResolution("between versions 1.0 and 2.0")
+                    byConflictResolution("between versions 2.0 and 1.0")
                     module("org:c:1.0")
                 }
                 edge("foo:bar:baz", "org:b:1.0") {

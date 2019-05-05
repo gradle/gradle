@@ -16,23 +16,45 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
+import org.gradle.internal.Cast;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 public class ModuleSelectors<T extends ResolvableSelectorState> implements Iterable<T> {
+    private static final VersionParser VERSION_PARSER = new VersionParser();
+    private static final Version EMPTY_VERSION = VERSION_PARSER.transform("");
+    private static final Comparator<Version> VERSION_COMPARATOR = (new DefaultVersionComparator().asVersionComparator()).reversed();
 
-    private static final Iterator EMPTY_ITERATOR = new EmptyIterator();
+    private static <T, U extends Comparable<? super U>> Comparator<T> reverse(
+        Function<? super T, ? extends U> keyExtractor) {
+        return Cast.uncheckedCast(Comparator.comparing(keyExtractor).reversed());
+    }
 
-    private int selectorsCount = 0;
-    private T singleSelector;
-    private List<T> selectors;
-    private List<T> dynamicSelectors;
+    final static Comparator<ResolvableSelectorState> SELECTOR_COMPARATOR =
+        reverse(ResolvableSelectorState::isProject)
+            .thenComparing(reverse(ResolvableSelectorState::isFromLock))
+            .thenComparing(reverse(ModuleSelectors::hasLatestSelector))
+            .thenComparing(ModuleSelectors::isDynamicSelector)
+            .thenComparing(ModuleSelectors::requiredVersion, VERSION_COMPARATOR)
+            .thenComparing(ModuleSelectors::preferredVersion, VERSION_COMPARATOR);
+
+    private final List<T> selectors = Lists.newArrayList();
+    private int size;
     private boolean deferSelection;
+    private boolean shouldSort;
 
     public boolean checkDeferSelection() {
         if (deferSelection) {
@@ -45,147 +67,85 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
     @SuppressWarnings("unchecked")
     @Override
     public Iterator<T> iterator() {
-        if (selectorsCount == 0) {
-            return EMPTY_ITERATOR;
-        } else if (selectorsCount == 1) {
-            return Iterators.singletonIterator(singleSelector);
-        } else {
-            if (selectors != null && dynamicSelectors != null) {
-                return Iterators.concat(selectors.iterator(), dynamicSelectors.iterator());
-            } else if (selectors != null) {
-                return selectors.iterator();
-            } else {
-                return dynamicSelectors.iterator();
-            }
+        sort();
+        return selectors.iterator();
+    }
+
+    private void sort() {
+        if (shouldSort) {
+            Collections.sort(selectors, SELECTOR_COMPARATOR);
+            shouldSort = false;
         }
     }
 
     public void add(T selector, boolean deferSelection) {
-        assert !contains(selector) : "Inconsistent call to add: should only be done if the selector isn't in use";
-        if (selectorsCount == 0) {
-            singleSelector = selector;
-            this.deferSelection = deferSelection;
-        } else if (selectorsCount == 1) {
-            addSelector(singleSelector);
-            addSelector(selector);
-            singleSelector = null;
-        } else {
-            addSelector(selector);
-        }
-        selectorsCount++;
-    }
-
-    private void addSelector(T selector) {
-        if (isDynamicSelector(selector)) {
-            addDynamicSelector(selector);
-        } else {
-            addSimpleSelector(selector);
-        }
-    }
-
-    private boolean isDynamicSelector(T selector) {
-        return selector.getVersionConstraint() != null && selector.getVersionConstraint().isDynamic();
-    }
-
-    private void addSimpleSelector(T selector) {
-        if (selectors == null) {
-            selectors = Lists.newArrayListWithExpectedSize(3);
-        }
+        this.deferSelection = deferSelection;
         selectors.add(selector);
-    }
-
-    private void addDynamicSelector(T selector) {
-        if (dynamicSelectors == null) {
-            dynamicSelectors = Lists.newArrayListWithExpectedSize(3);
-        }
-        dynamicSelectors.add(selector);
+        size++;
+        shouldSort = size > 1;
     }
 
     public boolean remove(T selector) {
-        assert contains(selector) : "Inconsistent call to remove: should only be done if the selector is in use";
-        boolean removed = false;
-        if (selectorsCount == 0) {
-            return false;
-        } else if (selectorsCount == 1) {
-            removed = singleSelector.equals(selector);
-            if (removed) {
-                singleSelector = null;
-            }
-        } else {
-            if (isDynamicSelector(selector)) {
-                if (dynamicSelectors != null) {
-                    removed = dynamicSelectors.remove(selector);
-                    if (dynamicSelectors.isEmpty()) {
-                        dynamicSelectors = null;
-                    }
-                }
-            } else {
-                if (selectors != null) {
-                    removed = selectors.remove(selector);
-                    if (selectors.isEmpty()) {
-                        selectors = null;
-                    }
-                }
-            }
+        boolean remove = selectors.remove(selector);
+        if (remove) {
+            size--;
+            shouldSort = size > 1;
         }
-        if (removed) {
-            selectorsCount--;
-            if (selectorsCount == 1) {
-                if (selectors != null) {
-                    singleSelector = selectors.get(0);
-                    selectors = null;
-                } else {
-                    singleSelector = dynamicSelectors.get(0);
-                    dynamicSelectors = null;
-                }
-            }
+        return remove;
+    }
+
+    private static boolean isDynamicSelector(ResolvableSelectorState selector) {
+        return selector.getVersionConstraint() != null && selector.getVersionConstraint().isDynamic();
+    }
+
+    private static boolean hasLatestSelector(ResolvableSelectorState selector) {
+        return selector.getVersionConstraint() != null
+            && hasLatestSelector(selector.getVersionConstraint());
+    }
+
+    private static boolean hasLatestSelector(ResolvedVersionConstraint vc) {
+        return hasLatestSelector(vc.getPreferredSelector()) || hasLatestSelector(vc.getRequiredSelector());
+    }
+
+    private static boolean hasLatestSelector(VersionSelector versionSelector) {
+        return versionSelector instanceof LatestVersionSelector;
+    }
+
+    private static Version requiredVersion(ResolvableSelectorState selector) {
+        ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+        if (versionConstraint == null) {
+            return EMPTY_VERSION;
         }
-        return removed;
+        return versionOf(versionConstraint.getRequiredSelector());
+    }
+
+    private static Version preferredVersion(ResolvableSelectorState selector) {
+        ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+        if (versionConstraint == null) {
+            return EMPTY_VERSION;
+        }
+        return versionOf(versionConstraint.getPreferredSelector());
+    }
+
+    private static Version versionOf(VersionSelector selector) {
+        if (!(selector instanceof ExactVersionSelector)) {
+            return EMPTY_VERSION;
+        }
+        return VERSION_PARSER.transform(selector.getSelector());
     }
 
     public int size() {
-        return selectorsCount;
+        return size;
     }
 
     public T first() {
-        if (selectorsCount == 0) {
+        if (size == 0) {
             return null;
-        } else if (selectorsCount == 1) {
-            return singleSelector;
-        } else {
-            if (selectors != null) {
-                return selectors.get(0);
-            } else {
-                return dynamicSelectors.get(0);
-            }
         }
-    }
-
-    // Only used for assertions
-    private boolean contains(T selector) {
-        if (selectorsCount == 0) {
-            return false;
-        } else if (selectorsCount == 1) {
-            return singleSelector.equals(selector);
-        } else {
-            if (isDynamicSelector(selector)) {
-                return dynamicSelectors != null && dynamicSelectors.contains(selector);
-            } else {
-                return selectors != null && selectors.contains(selector);
-            }
+        if (size == 1) {
+            return selectors.get(0);
         }
-    }
-
-    private static class EmptyIterator implements Iterator<Object> {
-
-        @Override
-        public boolean hasNext() {
-            return false;
-        }
-
-        @Override
-        public Object next() {
-            throw new NoSuchElementException("Empty iterator has no elements");
-        }
+        sort();
+        return selectors.get(0);
     }
 }

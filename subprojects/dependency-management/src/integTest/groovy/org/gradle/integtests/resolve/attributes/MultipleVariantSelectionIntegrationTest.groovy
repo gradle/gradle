@@ -355,7 +355,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
-                    byConflictResolution('between versions 1.0 and 1.1')
+                    byConflictResolution('between versions 1.1 and 1.0')
                     // the following assertion is true but limitations to the test fixtures make it hard to check
                     //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
                     variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
@@ -586,7 +586,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
-                    byConflictResolution('between versions 1.0 and 1.1')
+                    byConflictResolution('between versions 1.1 and 1.0')
                     variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'c2'
                 }

@@ -156,7 +156,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                     }
                 }
                 if (available) {
-                    edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                    edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                 } else {
                     module("org:foo:1.0")
                 }
@@ -221,7 +221,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                 }
                 module("org:first-level2:1.0") {
                     if (available) {
-                        edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                        edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                     } else {
                         module("org:foo:1.0")
                     }
@@ -395,7 +395,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                 module("org:first-level:1.0") {
                     if (available) {
                         constraint("org:bar:1.1", "org:foo:1.1").selectedByRule()
-                        edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                        edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                     } else {
                         module("org:foo:1.0")
                     }
