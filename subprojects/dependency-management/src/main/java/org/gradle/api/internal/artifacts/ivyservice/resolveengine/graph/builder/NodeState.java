@@ -43,7 +43,6 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.SelectedByVariantMatchingConfigurationMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +84,7 @@ public class NodeState implements DependencyGraphNode {
     private List<EdgeState> virtualEdges;
     private boolean queued;
     private boolean evicted;
+    private int transitiveEdgeCount;
     private Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
     private boolean virtualPlatformNeedsRefresh;
     private Set<EdgeState> edgesToRecompute;
@@ -236,11 +236,8 @@ public class NodeState implements DependencyGraphNode {
             return;
         }
 
-        // Check if this node is still included in the graph, by looking at incoming edges.
-        List<EdgeState> transitiveIncoming = getTransitiveIncomingEdges();
-
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
-        if (transitiveIncoming.isEmpty() && !isRoot()) {
+        if (transitiveEdgeCount == 0 && !isRoot()) {
             handleNonTransitiveNode(discoveredEdges);
             return;
         }
@@ -486,21 +483,11 @@ public class NodeState implements DependencyGraphNode {
         return dependencyState;
     }
 
-    /**
-     * Returns the set of incoming edges that are transitive. Most edges are transitive, so the implementation is optimized for this case.
-     */
-    private List<EdgeState> getTransitiveIncomingEdges() {
+    private boolean hasAnyTransitiveEdge() {
         if (isRoot()) {
-            return incomingEdges;
+            return true;
         }
-        for (EdgeState incomingEdge : incomingEdges) {
-            if (!incomingEdge.isTransitive()) {
-                // Have a non-transitive edge: return a filtered list
-                return CollectionUtils.filter(incomingEdges, TRANSITIVE_EDGES);
-            }
-        }
-        // All edges are transitive, no need to construct a filtered list.
-        return incomingEdges;
+        return incomingEdges.stream().anyMatch(EdgeState::isTransitive);
     }
 
     private boolean isExcluded(ExcludeSpec selector, DependencyState dependencyState) {
@@ -526,6 +513,9 @@ public class NodeState implements DependencyGraphNode {
             incomingEdges.add(dependencyEdge);
             incomingHash += dependencyEdge.hashCode();
             resolveState.onMoreSelected(this);
+            if (dependencyEdge.isTransitive()) {
+                transitiveEdgeCount++;
+            }
         }
     }
 
@@ -533,6 +523,9 @@ public class NodeState implements DependencyGraphNode {
         if (incomingEdges.remove(dependencyEdge)) {
             incomingHash -= dependencyEdge.hashCode();
             resolveState.onFewerSelected(this);
+            if (dependencyEdge.isTransitive()) {
+                transitiveEdgeCount--;
+            }
         }
     }
 
@@ -594,29 +587,11 @@ public class NodeState implements DependencyGraphNode {
                     excludedByBoth.add(exclusions);
                 }
             } else if (dependencyEdge.getDependencyMetadata().isConstraint()) {
-                // Constraint: only consider explicit exclusions declared for this constraint
-                ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
-                if (constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
-                    if (excludedByEither == null) {
-                        excludedByEither = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
-                    }
-                    excludedByEither.add(constraintExclusions);
-                }
+                excludedByEither = collectEdgeConstraint(nodeExclusions, excludedByEither, dependencyEdge, nothing, incomingEdgeCount);
             }
         }
-        if (excludedByBoth != null) {
-            if (edgeExclusions != null) {
-                // do not believe what IJ says, it can be non null, see above
-                excludedByBoth.add(edgeExclusions);
-            }
-            edgeExclusions = moduleExclusions.excludeAll(excludedByBoth);
-        }
-        if (excludedByEither != null) {
-            if (nodeExclusions != null) {
-                excludedByEither.add(nodeExclusions);
-                nodeExclusions = moduleExclusions.excludeAny(excludedByEither);
-            }
-        }
+        edgeExclusions = intersectEdgeExclusions(edgeExclusions, excludedByBoth);
+        nodeExclusions = joinNodeExclusions(nodeExclusions, excludedByEither);
         ExcludeSpec result = moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
         // We use a set here because for excludes, order of edges is irrelevant
         // so we hit the cache more by using a set
@@ -625,6 +600,39 @@ public class NodeState implements DependencyGraphNode {
         cachedModuleResolutionFilter = result;
         cachedFilteredDependencyStates = null;
         return result;
+    }
+
+    private static Set<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, Set<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing, int incomingEdgeCount) {
+        // Constraint: only consider explicit exclusions declared for this constraint
+        ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
+        if (constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
+            if (excludedByEither == null) {
+                excludedByEither = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
+            }
+            excludedByEither.add(constraintExclusions);
+        }
+        return excludedByEither;
+    }
+
+    private ExcludeSpec joinNodeExclusions(ExcludeSpec nodeExclusions, Set<ExcludeSpec> excludedByEither) {
+        if (excludedByEither != null) {
+            if (nodeExclusions != null) {
+                excludedByEither.add(nodeExclusions);
+                nodeExclusions = moduleExclusions.excludeAny(excludedByEither);
+            }
+        }
+        return nodeExclusions;
+    }
+
+    private ExcludeSpec intersectEdgeExclusions(ExcludeSpec edgeExclusions, Set<ExcludeSpec> excludedByBoth) {
+        if (excludedByBoth != null) {
+            if (edgeExclusions != null) {
+                // do not believe what IJ says, it can be non null, see above
+                excludedByBoth.add(edgeExclusions);
+            }
+            edgeExclusions = moduleExclusions.excludeAll(excludedByBoth);
+        }
+        return edgeExclusions;
     }
 
     private boolean sameIncomingEdgesAsPreviousPass(int incomingEdgeCount) {
@@ -686,6 +694,7 @@ public class NodeState implements DependencyGraphNode {
     private void clearIncomingEdges() {
         incomingEdges.clear();
         incomingHash = 0;
+        transitiveEdgeCount = 0;
     }
 
     public void deselect() {
