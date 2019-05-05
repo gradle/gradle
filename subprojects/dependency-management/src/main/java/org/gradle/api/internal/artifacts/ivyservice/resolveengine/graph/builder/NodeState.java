@@ -566,32 +566,42 @@ public class NodeState implements DependencyGraphNode {
             // the result we computed last time
             return cachedModuleResolutionFilter;
         }
+        ExcludeSpec nothing = moduleExclusions.nothing();
         ExcludeSpec edgeExclusions = null;
         Set<ExcludeSpec> excludedByBoth = null;
         Set<ExcludeSpec> excludedByEither = null;
-        ExcludeSpec nothing = moduleExclusions.nothing();
         for (EdgeState dependencyEdge : incomingEdges) {
             if (dependencyEdge.isTransitive()) {
-                // Transitive dependency
-                ExcludeSpec exclusions = dependencyEdge.getExclusions();
-                if (edgeExclusions == null || exclusions == nothing) {
-                    // if exclusions == nothing, then the intersection will be "nothing"
-                    edgeExclusions = exclusions;
-                    if (exclusions == nothing) {
+                if (edgeExclusions != nothing) {
+                    // Transitive dependency
+                    ExcludeSpec exclusions = dependencyEdge.getExclusions();
+                    if (edgeExclusions == null || exclusions == nothing) {
+                        edgeExclusions = exclusions;
+                    } else if (exclusions != null && edgeExclusions != exclusions) {
+                        if (excludedByBoth == null) {
+                            excludedByBoth = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
+                        }
+                        excludedByBoth.add(exclusions);
+                    }
+                    if (edgeExclusions == nothing) {
+                        // if exclusions == nothing, then the intersection will be "nothing"
                         excludedByBoth = null;
                     }
-                } else if (exclusions != null && edgeExclusions != exclusions && edgeExclusions != nothing) {
-                    if (excludedByBoth == null) {
-                        excludedByBoth = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
-                    }
-                    excludedByBoth.add(exclusions);
                 }
-            } else if (dependencyEdge.getDependencyMetadata().isConstraint()) {
+            } else if (isConstraint(dependencyEdge)) {
                 excludedByEither = collectEdgeConstraint(nodeExclusions, excludedByEither, dependencyEdge, nothing, incomingEdgeCount);
             }
         }
         edgeExclusions = intersectEdgeExclusions(edgeExclusions, excludedByBoth);
         nodeExclusions = joinNodeExclusions(nodeExclusions, excludedByEither);
+        return joinEdgeAndNodeExclusionsThenCacheResult(nodeExclusions, incomingEdgeCount, edgeExclusions);
+    }
+
+    private static boolean isConstraint(EdgeState dependencyEdge) {
+        return dependencyEdge.getDependencyMetadata().isConstraint();
+    }
+
+    private ExcludeSpec joinEdgeAndNodeExclusionsThenCacheResult(ExcludeSpec nodeExclusions, int incomingEdgeCount, ExcludeSpec edgeExclusions) {
         ExcludeSpec result = moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
         // We use a set here because for excludes, order of edges is irrelevant
         // so we hit the cache more by using a set
@@ -625,9 +635,11 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private ExcludeSpec intersectEdgeExclusions(ExcludeSpec edgeExclusions, Set<ExcludeSpec> excludedByBoth) {
+        if (edgeExclusions == moduleExclusions.nothing()) {
+            return edgeExclusions;
+        }
         if (excludedByBoth != null) {
             if (edgeExclusions != null) {
-                // do not believe what IJ says, it can be non null, see above
                 excludedByBoth.add(edgeExclusions);
             }
             edgeExclusions = moduleExclusions.excludeAll(excludedByBoth);
@@ -726,7 +738,7 @@ public class NodeState implements DependencyGraphNode {
      */
     public void clearConstraintEdges(PendingDependencies pendingDependencies, NodeState backToPendingSource) {
         for (EdgeState incomingEdge : incomingEdges) {
-            assert incomingEdge.getDependencyMetadata().isConstraint();
+            assert isConstraint(incomingEdge);
             NodeState from = incomingEdge.getFrom();
             if (from != backToPendingSource) {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
