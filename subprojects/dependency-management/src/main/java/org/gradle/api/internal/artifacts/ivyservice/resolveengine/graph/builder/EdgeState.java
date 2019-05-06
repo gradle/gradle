@@ -58,6 +58,7 @@ class EdgeState implements DependencyGraphEdge {
     private final List<NodeState> targetNodes = Lists.newLinkedList();
     private final boolean isTransitive;
     private final boolean isConstraint;
+    private final int hashCode;
 
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
@@ -74,6 +75,16 @@ class EdgeState implements DependencyGraphEdge {
         this.selector = resolveState.getSelector(dependencyState);
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
         this.isConstraint = dependencyMetadata.isConstraint();
+        this.hashCode = computeHashCode();
+    }
+
+    private int computeHashCode() {
+        int hashCode = from.hashCode();
+        hashCode = 31 * hashCode + dependencyState.hashCode();
+        if (transitiveExclusions != null) {
+            hashCode = 31 * hashCode + transitiveExclusions.hashCode();
+        }
+        return hashCode;
     }
 
     @Override
@@ -348,5 +359,19 @@ class EdgeState implements DependencyGraphEdge {
         if (!isConstraint) {
             selector.getTargetModule().decreaseHardEdgeCount(removalSource);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        // Edge states are deduplicated, this is a performance optimization
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
     }
 }
