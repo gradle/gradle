@@ -16,9 +16,16 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
+import org.gradle.work.InputChanges
+import org.intellij.lang.annotations.Language
+import spock.lang.Issue
 import spock.lang.Unroll
 
+@Unroll
 class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "consecutively failing task has correct up-to-date status and failure"() {
@@ -51,7 +58,6 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         //this exposes an issue we used to have with in-memory cache.
     }
 
-    @Unroll
     def "incremental task after previous failure #description"() {
         file("src/input.txt") << "input"
         buildFile << """
@@ -107,5 +113,125 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         "change"      | false       | "with changed outputs is fully rebuilt"
         "remove"      | false       | "with removed outputs is fully rebuilt"
         "none"        | true        | "with unmodified outputs is executed as incremental"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9320")
+    def "incremental task with NAME_ONLY input (matching file names and content) detects changed input (type: #taskChangeType.simpleName)"() {
+        def taskName = "incrementalTask"
+        def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
+        def modifiedInput = inputs[1]
+
+        @Language("Groovy") script = """
+            class IncrementalTask extends DefaultTask {
+                @InputFiles
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                def inputFiles = project.files(${asFileList(inputs)})
+            
+                @TaskAction
+                def action(${taskChangeType.name} changes) {}
+            }
+            
+            task ${taskName}(type: IncrementalTask) {}
+        """
+        buildScript script
+        run taskName, "--info"
+
+        when:
+        modifiedInput.text = "changed"
+        println "Modified ${modifiedInput} to '${modifiedInput.text}'!"
+
+        run taskName, "--info"
+        then:
+        outputContains "${modifiedInput} has changed."
+
+        when:
+        modifiedInput.text = ""
+        println "Modified ${modifiedInput} to '${modifiedInput.text}'!"
+        run taskName, "--info"
+        then:
+        outputContains "${modifiedInput} has changed."
+
+        where:
+        taskChangeType << [IncrementalTaskInputs, InputChanges]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9320")
+    def "incremental task with NAME_ONLY input (matching file names and content) detects moved files (type: #taskChangeType.simpleName)"() {
+        def taskName = "incrementalTask"
+        def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
+        def movableInput = inputs[1]
+        def renamedInput = file("moved/${movableInput.name}")
+
+        @Language("Groovy") script = """
+            class IncrementalTask extends DefaultTask {
+                @InputFiles
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                def inputFiles = project.files(${asFileList(inputs)}, '${renamedInput}')
+            
+                @TaskAction
+                def action(${taskChangeType.name} changes) {}
+            }
+            
+            task ${taskName}(type: IncrementalTask) {}
+        """
+        buildScript script
+        run taskName, "--info"
+
+        when:
+        println "Moving ${movableInput.absolutePath} to '${renamedInput.absolutePath}'!"
+        renamedInput.text = movableInput.text
+        movableInput.delete()
+
+        run taskName, "--info"
+        then:
+        !movableInput.exists()
+        renamedInput.exists()
+        outputContains "is up-to-date"
+
+        where:
+        taskChangeType << [IncrementalTaskInputs, InputChanges]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9320")
+    def "incremental task with NAME_ONLY inputs (matching file names and content) detects deleted file (type: #taskChangeType.simpleName)"() {
+        def taskName = "incrementalTask"
+        def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
+
+        @Language("Groovy") script = """
+            class IncrementalTask extends DefaultTask {
+                @InputFiles
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                def inputFiles = project.files(${asFileList(inputs)})
+            
+                @TaskAction
+                def action(${taskChangeType.name} changes) {}
+            }
+            
+            task ${taskName}(type: IncrementalTask) {}
+        """
+        buildScript script
+        run taskName
+
+        when:
+        inputs[1..2]*.delete()
+        println "${inputs} exists: ${inputs*.exists()}"
+        run taskName, "--info"
+        then:
+        outputDoesNotContain "${inputs[0]} has been removed."
+        outputContains "${inputs[1]} has been removed."
+        outputContains "${inputs[2]} has been removed."
+
+        where:
+        taskChangeType << [IncrementalTaskInputs, InputChanges]
+    }
+
+    private static Range<String> folderNames() { 'a'..'c' }
+
+    private static String asFileList(List<TestFile> inputs) {
+        inputs.collect { "'${normalizePath(it)}'" }.join(", ")
+    }
+
+    private static String normalizePath(TestFile it) {
+        TextUtil.escapeString(it.absolutePath)
     }
 }

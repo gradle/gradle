@@ -135,7 +135,7 @@ class FingerprintCompareStrategyTest extends Specification {
         changes(NORMALIZED, true,
             ["new/one": fingerprint("one"), "new/two": fingerprint("two", 0x9876cafe)],
             ["old/one": fingerprint("one"), "old/two": fingerprint("two", 0xface1234)]
-        ) == [modified("old/two": "two", FileType.RegularFile, FileType.RegularFile)]
+        ) == [removed("old/two": "two"), added("new/two": "two")]
     }
 
     @Unroll
@@ -144,7 +144,7 @@ class FingerprintCompareStrategyTest extends Specification {
         changes(NORMALIZED, true,
             ["new/two": fingerprint("", 0x9876cafe), "new/one": fingerprint("")],
             ["old/one": fingerprint(""), "old/two": fingerprint("", 0xface1234)]
-        ) == [modified("old/two": "", FileType.RegularFile, FileType.RegularFile)]
+        )*.toString() == [removed("old/two": "two"), added("new/two": "two")]*.toString()
     }
 
     @Unroll
@@ -223,6 +223,61 @@ class FingerprintCompareStrategyTest extends Specification {
             ["new/one-1": fingerprint("one"), "new/one-2": fingerprint("one"), "new/two": fingerprint("two")],
             ["old/one-1": fingerprint("one"), "old/one-2": fingerprint("one"), "old/two": fingerprint("two")]
         ) == []
+    }
+
+    @Unroll
+    def "mix file contents with same name"() {
+        expect:
+        changes(NORMALIZED, true,
+            ["a/input": fingerprint("input", 2), "b/input": fingerprint("input", 0)],
+            ["a/input": fingerprint("input", 0), "b/input": fingerprint("input", 2)]
+        ) == []
+    }
+
+    @Unroll
+    def "file move should be detected if no collisions occur"() {
+        changes(NORMALIZED, true,
+            ["moved/input": fingerprint("input", 1),
+             "unchangedFile": fingerprint("unchangedFile", 2),
+             "changedFile": fingerprint("changedFile", 4)],
+
+            ["original/input": fingerprint("input", 1),
+             "unchangedFile": fingerprint("unchangedFile", 2),
+             "changedFile": fingerprint("changedFile", 3)]
+        ) == [modified("changedFile")]
+    }
+
+    @Unroll
+    def "change file content to other content with same name"() {
+        expect:
+        changes(NORMALIZED, true,
+            ["a/input": fingerprint("input", 1), "b/input": fingerprint("input", 1)],
+            ["a/input": fingerprint("input", 0), "b/input": fingerprint("input", 1)]
+        ) == [modified("a/input": "input")]
+    }
+
+    @Unroll
+    def "should only show modified if absolute path is the same"() {
+        expect:
+        changes(NORMALIZED, true, [
+            "a/input": fingerprint("input", 0),
+            "aa/input": fingerprint("input", 0),
+            "c/input": fingerprint("input", 2),
+            "d/input": fingerprint("input", 3),
+            "e/input2": fingerprint("input", 3)
+        ], [
+            "a/input": fingerprint("input", 1),
+            "b/input": fingerprint("input", 1),
+            "c/input": fingerprint("input", 1),
+            "d/input": fingerprint("input", 3),
+            "e/input1": fingerprint("input", 3)
+        ],
+        ) == [
+            modified("a/input": "input"),
+            removed("b/input": "input"),
+            modified("c/input": "input"),
+            added("aa/input": "input")
+        ]
     }
 
     @Unroll
