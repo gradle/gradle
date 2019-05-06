@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -63,6 +64,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final ResolvedVersionConstraint versionConstraint;
     private final ImmutableAttributesFactory attributesFactory;
     private final Set<ComponentSelectionDescriptorInternal> dependencyReasons = Sets.newLinkedHashSet();
+    private final boolean isProjectSelector;
 
     private ComponentIdResolveResult preferResult;
     private ComponentIdResolveResult requireResult;
@@ -90,6 +92,13 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.dependencyState = dependencyState;
         this.firstSeenDependency = dependencyState.getDependency();
         this.versionConstraint = resolveState.resolveVersionConstraint(firstSeenDependency.getSelector());
+        this.isProjectSelector = getSelector() instanceof ProjectComponentSelector;
+    }
+
+    @Override
+    public boolean isProject() {
+        // this is cached because used very often in sorting selectors
+        return isProjectSelector;
     }
 
     public void use(boolean deferSelection) {
