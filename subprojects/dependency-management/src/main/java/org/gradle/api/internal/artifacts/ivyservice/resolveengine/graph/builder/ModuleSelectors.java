@@ -52,9 +52,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
             .thenComparing(ModuleSelectors::preferredVersion, VERSION_COMPARATOR);
 
     private final List<T> selectors = Lists.newArrayList();
-    private int size;
     private boolean deferSelection;
-    private boolean shouldSort;
 
     public boolean checkDeferSelection() {
         if (deferSelection) {
@@ -67,47 +65,55 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
     @SuppressWarnings("unchecked")
     @Override
     public Iterator<T> iterator() {
-        sort();
         return selectors.iterator();
-    }
-
-    private void sort() {
-        if (shouldSort) {
-            if (size > 1) {
-                // There's a possibility we say sort but the list has been reduced to 0 or 1
-                if (size == 2) {
-                    sortTwoElements();
-                } else {
-                    Collections.sort(selectors, SELECTOR_COMPARATOR);
-                }
-            }
-            shouldSort = false;
-        }
-    }
-
-    private void sortTwoElements() {
-        // faster than performing a Tim sort
-        T first = selectors.get(0);
-        T second = selectors.get(1);
-        if (SELECTOR_COMPARATOR.compare(first, second) > 0) {
-            selectors.set(0, second);
-            selectors.set(1, first);
-        }
     }
 
     public void add(T selector, boolean deferSelection) {
         this.deferSelection = deferSelection;
-        selectors.add(selector);
-        size++;
-        shouldSort = size > 1;
+        if (selectors.isEmpty()) {
+            selectors.add(selector);
+        } else {
+            doAdd(selector);
+        }
+    }
+
+    private void doAdd(T selector) {
+        int size = selectors.size();
+        if (size == 1) {
+            doAddWhenListHasOneElement(selector);
+        } else {
+            doAddWhenListHasManyElements(selectors, selector, size);
+        }
+    }
+
+    private static <T extends ResolvableSelectorState> void doAddWhenListHasManyElements(List<T> selectors, T selector, int size) {
+        int insertionPoint = Collections.binarySearch(selectors, selector, SELECTOR_COMPARATOR);
+        insertionPoint = advanceToPreserveOrder(selectors, selector, size, insertionPoint);
+        if (insertionPoint < 0) {
+            insertionPoint = ~insertionPoint;
+        }
+        selectors.add(insertionPoint, selector);
+    }
+
+    private static <T extends ResolvableSelectorState> int advanceToPreserveOrder(List<T> selectors, T selector, int size, int insertionPoint) {
+        while (insertionPoint > 0 && insertionPoint < size && SELECTOR_COMPARATOR.compare(selectors.get(insertionPoint), selector) == 0) {
+            insertionPoint++;
+        }
+        return insertionPoint;
+    }
+
+    private void doAddWhenListHasOneElement(T selector) {
+        T first = selectors.get(0);
+        int c = SELECTOR_COMPARATOR.compare(first, selector);
+        if (c <= 0) {
+            selectors.add(selector);
+        } else {
+            selectors.add(0, selector);
+        }
     }
 
     public boolean remove(T selector) {
-        boolean remove = selectors.remove(selector);
-        if (remove) {
-            size--;
-        }
-        return remove;
+        return selectors.remove(selector);
     }
 
     private static boolean isDynamicSelector(ResolvableSelectorState selector) {
@@ -152,17 +158,16 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
     }
 
     public int size() {
-        return size;
+        return selectors.size();
     }
 
     public T first() {
-        if (size == 0) {
+        if (size() == 0) {
             return null;
         }
-        if (size == 1) {
+        if (size() == 1) {
             return selectors.get(0);
         }
-        sort();
         return selectors.get(0);
     }
 }

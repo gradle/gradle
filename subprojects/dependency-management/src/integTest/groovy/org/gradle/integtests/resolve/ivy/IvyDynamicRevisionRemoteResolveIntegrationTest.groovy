@@ -603,9 +603,9 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.+", "org.test:projectA:3.0").byConflictResolution("between versions 1.2, 2.1 and 3.0")
-                edge("org.test:projectA:2.+", "org.test:projectA:3.0").byConflictResolution("between versions 1.2, 2.1 and 3.0")
-                edge("org.test:projectA:3.+", "org.test:projectA:3.0").byConflictResolution("between versions 1.2, 2.1 and 3.0")
+                edge("org.test:projectA:1.+", "org.test:projectA:3.0").byConflictResolution("between versions 3.0, 1.2 and 2.1")
+                edge("org.test:projectA:2.+", "org.test:projectA:3.0").byConflictResolution("between versions 3.0, 1.2 and 2.1")
+                edge("org.test:projectA:3.+", "org.test:projectA:3.0").byConflictResolution("between versions 3.0, 1.2 and 2.1")
             }
         }
     }
