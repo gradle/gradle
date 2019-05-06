@@ -169,6 +169,12 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
 
     String createJoinedAppHomeRelativePath(String scriptRelPath) {
         int depth = StringUtils.countMatches(scriptRelPath, "/");
+
+        // Do not count the initial "/", if present
+        if (scriptRelPath.startsWith("/")) {
+            depth--;
+        }
+
         if (depth == 0) {
             return "";
         }
