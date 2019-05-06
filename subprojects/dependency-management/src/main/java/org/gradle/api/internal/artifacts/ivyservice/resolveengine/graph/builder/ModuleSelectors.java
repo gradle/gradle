@@ -73,7 +73,10 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
 
     private void sort() {
         if (shouldSort) {
-            Collections.sort(selectors, SELECTOR_COMPARATOR);
+            if (size > 1) {
+                // There's a possibility we say sort but the list has been reduced to 0 or 1
+                Collections.sort(selectors, SELECTOR_COMPARATOR);
+            }
             shouldSort = false;
         }
     }
@@ -89,7 +92,6 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         boolean remove = selectors.remove(selector);
         if (remove) {
             size--;
-            shouldSort = size > 1;
         }
         return remove;
     }
