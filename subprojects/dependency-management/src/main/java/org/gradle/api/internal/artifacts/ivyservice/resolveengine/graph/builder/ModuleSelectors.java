@@ -75,9 +75,23 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         if (shouldSort) {
             if (size > 1) {
                 // There's a possibility we say sort but the list has been reduced to 0 or 1
-                Collections.sort(selectors, SELECTOR_COMPARATOR);
+                if (size == 2) {
+                    sortTwoElements();
+                } else {
+                    Collections.sort(selectors, SELECTOR_COMPARATOR);
+                }
             }
             shouldSort = false;
+        }
+    }
+
+    private void sortTwoElements() {
+        // faster than performing a Tim sort
+        T first = selectors.get(0);
+        T second = selectors.get(1);
+        if (SELECTOR_COMPARATOR.compare(first, second) > 0) {
+            selectors.set(0, second);
+            selectors.set(1, first);
         }
     }
 
