@@ -32,7 +32,7 @@ def gradleGroovyVersion = "1.0-${groovyVersion}" as String
 
 libraries.aether_connector =    [coordinates: 'org.sonatype.aether:aether-connector-wagon', version: '1.13.1']
 libraries.ant =                 [coordinates: 'org.apache.ant:ant', version: '1.9.14', because: '1.10.x requires Java 8']
-libraries.asm =                 [coordinates: 'org.ow2.asm:asm', version: '7.0']
+libraries.asm =                 [coordinates: 'org.ow2.asm:asm', version: '7.1']
 libraries.asm_commons =         [coordinates: 'org.ow2.asm:asm-commons', version: libraries.asm.version]
 libraries.asm_tree =            [coordinates: 'org.ow2.asm:asm-tree', version: libraries.asm.version]
 libraries.asm_util =            [coordinates: 'org.ow2.asm:asm-util', version: libraries.asm.version]
