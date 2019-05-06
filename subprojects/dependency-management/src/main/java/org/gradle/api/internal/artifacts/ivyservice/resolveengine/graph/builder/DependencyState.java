@@ -117,7 +117,7 @@ class DependencyState {
             addRuleDescriptors(reasons);
         }
         if (isDependencyForced()) {
-            reasons.add(FORCED);
+            maybeAddReason(reasons, FORCED);
         }
     }
 
@@ -125,7 +125,6 @@ class DependencyState {
         for (ComponentSelectionDescriptorInternal descriptor : ruleDescriptors) {
             maybeAddReason(reasons, descriptor);
         }
-        reasons.addAll(ruleDescriptors);
     }
 
     private void addMainReason(List<ComponentSelectionDescriptorInternal> reasons) {
