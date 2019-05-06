@@ -28,23 +28,18 @@ import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import static java.util.Map.Entry.comparingByKey;
 
 /**
  * Compares by normalized path (relative/name only) and file contents. Order does not matter.
  */
 public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprintCompareStrategy {
     public static final FingerprintCompareStrategy INSTANCE = new NormalizedPathFingerprintCompareStrategy();
-
-    private static final Comparator<Entry<FileSystemLocationFingerprint, ?>> ENTRY_COMPARATOR = new Comparator<Entry<FileSystemLocationFingerprint, ?>>() {
-        @Override
-        public int compare(Entry<FileSystemLocationFingerprint, ?> o1, Entry<FileSystemLocationFingerprint, ?> o2) {
-            return o1.getKey().compareTo(o2.getKey());
-        }
-    };
 
     private NormalizedPathFingerprintCompareStrategy() {
     }
@@ -69,17 +64,17 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         String propertyTitle,
         boolean includeAdded
     ) {
-        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = getMissingPreviousFingerprints(previousFingerprints, currentFingerprints);
-        List<Entry<FileSystemLocationFingerprint, FilePathWithType>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
-        Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
-
+        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = getUnaccountedForPreviousFingerprints(previousFingerprints, currentFingerprints);
         ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = getAddedFilesByNormalizedPath(currentFingerprints, unaccountedForPreviousFiles, previousFingerprints);
 
-        for (Entry<FileSystemLocationFingerprint, FilePathWithType> entry : unaccountedForPreviousEntries) {
+        Iterator<Entry<FileSystemLocationFingerprint, FilePathWithType>> iterator = unaccountedForPreviousFiles.entries().stream().sorted(comparingByKey()).iterator();
+        while (iterator.hasNext()) {
+            Entry<FileSystemLocationFingerprint, FilePathWithType> entry = iterator.next();
             FileSystemLocationFingerprint previousFingerprint = entry.getKey();
+            FilePathWithType pathWithType = entry.getValue();
+
             String normalizedPath = previousFingerprint.getNormalizedPath();
             FileType previousFingerprintType = previousFingerprint.getType();
-            FilePathWithType pathWithType = entry.getValue();
 
             if (wasModified(addedFilesByNormalizedPath, normalizedPath, pathWithType)) {
                 if (wasModifiedAndMessageCountSaturated(visitor, propertyTitle, previousFingerprintType, normalizedPath, pathWithType)) {
@@ -106,7 +101,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         return !addedFilesForNormalizedPath.isEmpty() && addedFilesForNormalizedPath.remove(0) != null;
     }
 
-    private static ListMultimap<FileSystemLocationFingerprint, FilePathWithType> getMissingPreviousFingerprints(
+    private static ListMultimap<FileSystemLocationFingerprint, FilePathWithType> getUnaccountedForPreviousFingerprints(
         Map<String, FileSystemLocationFingerprint> previousFingerprints,
         Map<String, FileSystemLocationFingerprint> currentFingerprints
     ) {
