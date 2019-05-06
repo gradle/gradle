@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -36,10 +35,11 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents the edges in the dependency graph.
@@ -347,12 +347,11 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public List<ComponentArtifactMetadata> getArtifacts(final ConfigurationMetadata targetConfiguration) {
-        return CollectionUtils.collect(dependencyMetadata.getArtifacts(), new Transformer<ComponentArtifactMetadata, IvyArtifactName>() {
-            @Override
-            public ComponentArtifactMetadata transform(IvyArtifactName ivyArtifactName) {
-                return targetConfiguration.artifact(ivyArtifactName);
-            }
-        });
+        List<IvyArtifactName> artifacts = dependencyMetadata.getArtifacts();
+        if (artifacts.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return artifacts.stream().map(targetConfiguration::artifact).collect(Collectors.toList());
     }
 
     void maybeDecreaseHardEdgeCount(NodeState removalSource) {
