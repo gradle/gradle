@@ -212,7 +212,7 @@ class ModuleSelectorsTest extends Specification {
     ResolvableSelectorState latestSelector() {
         Mock(ResolvableSelectorState) {
             getVersionConstraint() >> Mock(ResolvedVersionConstraint) {
-                getPreferredSelector() >> new LatestVersionSelector("release")
+                getRequiredSelector() >> new LatestVersionSelector("release")
             }
             toString() >> "latest"
         }

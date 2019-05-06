@@ -106,7 +106,8 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
     }
 
     private static boolean hasLatestSelector(ResolvedVersionConstraint vc) {
-        return hasLatestSelector(vc.getPreferredSelector()) || hasLatestSelector(vc.getRequiredSelector());
+        // Latest is only given priority if it's in a require
+        return hasLatestSelector(vc.getRequiredSelector());
     }
 
     private static boolean hasLatestSelector(VersionSelector versionSelector) {
