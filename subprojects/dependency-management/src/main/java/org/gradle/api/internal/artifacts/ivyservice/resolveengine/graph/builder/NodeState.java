@@ -566,6 +566,13 @@ public class NodeState implements DependencyGraphNode {
             // the result we computed last time
             return cachedModuleResolutionFilter;
         }
+        if (incomingEdgeCount == 1) {
+            return computeExclusionFilterSingleIncomingEdge(incomingEdges.get(0), nodeExclusions);
+        }
+        return computeModuleExclusionsManyEdges(incomingEdges, nodeExclusions, incomingEdgeCount);
+    }
+
+    private ExcludeSpec computeModuleExclusionsManyEdges(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions, int incomingEdgeCount) {
         ExcludeSpec nothing = moduleExclusions.nothing();
         ExcludeSpec edgeExclusions = null;
         Set<ExcludeSpec> excludedByBoth = null;
@@ -594,14 +601,27 @@ public class NodeState implements DependencyGraphNode {
         }
         edgeExclusions = intersectEdgeExclusions(edgeExclusions, excludedByBoth);
         nodeExclusions = joinNodeExclusions(nodeExclusions, excludedByEither);
-        return joinEdgeAndNodeExclusionsThenCacheResult(nodeExclusions, incomingEdgeCount, edgeExclusions);
+        return joinEdgeAndNodeExclusionsThenCacheResult(nodeExclusions, edgeExclusions, incomingEdgeCount);
+    }
+
+    private ExcludeSpec computeExclusionFilterSingleIncomingEdge(EdgeState dependencyEdge, ExcludeSpec nodeExclusions) {
+        ExcludeSpec exclusions = null;
+        if (dependencyEdge.isTransitive()) {
+            exclusions = dependencyEdge.getExclusions();
+        } else if (isConstraint(dependencyEdge)) {
+            exclusions = dependencyEdge.getEdgeExclusions();
+        }
+        if (exclusions == null) {
+            exclusions = moduleExclusions.nothing();
+        }
+        return joinEdgeAndNodeExclusionsThenCacheResult(nodeExclusions, exclusions, 1);
     }
 
     private static boolean isConstraint(EdgeState dependencyEdge) {
         return dependencyEdge.getDependencyMetadata().isConstraint();
     }
 
-    private ExcludeSpec joinEdgeAndNodeExclusionsThenCacheResult(ExcludeSpec nodeExclusions, int incomingEdgeCount, ExcludeSpec edgeExclusions) {
+    private ExcludeSpec joinEdgeAndNodeExclusionsThenCacheResult(ExcludeSpec nodeExclusions, ExcludeSpec edgeExclusions, int incomingEdgeCount) {
         ExcludeSpec result = moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
         // We use a set here because for excludes, order of edges is irrelevant
         // so we hit the cache more by using a set
