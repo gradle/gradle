@@ -35,6 +35,7 @@ class DependencyState {
     private final DependencyMetadata dependency;
     private final List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private final ComponentSelectorConverter componentSelectorConverter;
+    private final int hashCode;
 
     private ModuleIdentifier moduleIdentifier;
     public ModuleVersionResolveException failure;
@@ -49,6 +50,13 @@ class DependencyState {
         this.requested = requested;
         this.ruleDescriptors = ruleDescriptors;
         this.componentSelectorConverter = componentSelectorConverter;
+        this.hashCode = computeHashCode();
+    }
+
+    private int computeHashCode() {
+        int hashCode = dependency.hashCode();
+        hashCode = 31 * hashCode + requested.hashCode();
+        return hashCode;
     }
 
     public ComponentSelector getRequested() {
@@ -115,5 +123,19 @@ class DependencyState {
         if (isDependencyForced()) {
             reasons.add(FORCED);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        // This is a performance optimization, dependency states are deduplicated
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
     }
 }

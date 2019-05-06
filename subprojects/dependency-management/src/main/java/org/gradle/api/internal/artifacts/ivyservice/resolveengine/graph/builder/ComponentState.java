@@ -65,6 +65,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
     private final ImmutableCapability implicitCapability;
+    private final int hashCode;
 
     private volatile ComponentResolveMetadata metadata;
 
@@ -84,6 +85,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
         this.implicitCapability = new ImmutableCapability(id.getGroup(), id.getName(), id.getVersion());
+        this.hashCode = 31 * id.hashCode() ^ resultId.hashCode();
     }
 
     @Override
@@ -474,4 +476,23 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return false;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ComponentState that = (ComponentState) o;
+
+        return that.resultId == resultId;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
 }
