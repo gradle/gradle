@@ -34,7 +34,7 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["5.4-20190329080509+0000"]
+        runner.targetVersions = ["5.5-20190506000034+0000"]
         runner.args += ["-Dorg.gradle.parallel=$parallel"]
 
         when:
