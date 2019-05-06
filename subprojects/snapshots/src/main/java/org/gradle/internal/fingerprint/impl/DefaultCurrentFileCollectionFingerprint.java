@@ -47,11 +47,11 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         if (Iterables.isEmpty(roots)) {
             return strategy.getEmptyFingerprint();
         }
-        Map<String, FileSystemLocationFingerprint> snapshots = strategy.collectFingerprints(roots);
-        if (snapshots.isEmpty()) {
+        Map<String, FileSystemLocationFingerprint> fingerprints = strategy.collectFingerprints(roots);
+        if (fingerprints.isEmpty()) {
             return strategy.getEmptyFingerprint();
         }
-        return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), strategy.getIdentifier(), roots);
+        return new DefaultCurrentFileCollectionFingerprint(fingerprints, strategy.getCompareStrategy(), strategy.getIdentifier(), roots);
     }
 
     private DefaultCurrentFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, FingerprintCompareStrategy compareStrategy, String identifier, Iterable<? extends FileSystemSnapshot> roots) {
