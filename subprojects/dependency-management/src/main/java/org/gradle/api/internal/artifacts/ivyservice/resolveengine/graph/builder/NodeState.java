@@ -404,7 +404,7 @@ public class NodeState implements DependencyGraphNode {
     private void visitAdditionalConstraints(Collection<EdgeState> discoveredEdges) {
         for (DependencyMetadata dependency : dependencies()) {
             if (dependency.isConstraint()) {
-                DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
+                DependencyState dependencyState = dependencyStateCache.computeIfAbsent(dependency, d -> new DependencyState(d, resolveState.getComponentSelectorConverter()));
                 if (upcomingNoLongerPendingConstraints.contains(dependencyState.getModuleIdentifier())) {
                     dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                     createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false);
