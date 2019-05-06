@@ -32,17 +32,7 @@ public class VersionParser implements Transformer<Version, String> {
 
     @Override
     public Version transform(String original) {
-        Version version = cache.get(original);
-        if (version != null) {
-            return version;
-        }
-        return parseAndCache(original);
-    }
-
-    private Version parseAndCache(String original) {
-        Version version = parse(original);
-        cache.put(original, version);
-        return version;
+        return cache.computeIfAbsent(original, this::parse);
     }
 
     private Version parse(String original) {
