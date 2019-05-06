@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -45,7 +44,7 @@ import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 /**
  * Resolution state for a given module version selector.
@@ -63,7 +62,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final DependencyToComponentIdResolver resolver;
     private final ResolvedVersionConstraint versionConstraint;
     private final ImmutableAttributesFactory attributesFactory;
-    private final Set<ComponentSelectionDescriptorInternal> dependencyReasons = Sets.newLinkedHashSet();
+    private final List<ComponentSelectionDescriptorInternal> dependencyReasons = Lists.newArrayListWithExpectedSize(4);
     private final boolean isProjectSelector;
 
     private ComponentIdResolveResult preferResult;

@@ -26,9 +26,10 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.List;
-import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.*;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
 
 class DependencyState {
     private final ComponentSelector requested;
@@ -105,24 +106,48 @@ class DependencyState {
         return dependency instanceof LocalOriginDependencyMetadata && ((LocalOriginDependencyMetadata) dependency).isFromLock();
     }
 
-    void addSelectionReasons(Set<ComponentSelectionDescriptorInternal> reasons) {
+    void addSelectionReasons(List<ComponentSelectionDescriptorInternal> reasons) {
         if (reasonsAlreadyAdded) {
             return;
         }
         reasonsAlreadyAdded = true;
-        String reason = dependency.getReason();
-        ComponentSelectionDescriptorInternal dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
-        if (reason != null) {
-            dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
-        }
-        reasons.add(dependencyDescriptor);
+        addMainReason(reasons);
 
         if (ruleDescriptors != null) {
-            reasons.addAll(ruleDescriptors);
+            addRuleDescriptors(reasons);
         }
         if (isDependencyForced()) {
             reasons.add(FORCED);
         }
+    }
+
+    private void addRuleDescriptors(List<ComponentSelectionDescriptorInternal> reasons) {
+        for (ComponentSelectionDescriptorInternal descriptor : ruleDescriptors) {
+            maybeAddReason(reasons, descriptor);
+        }
+        reasons.addAll(ruleDescriptors);
+    }
+
+    private void addMainReason(List<ComponentSelectionDescriptorInternal> reasons) {
+        ComponentSelectionDescriptorInternal dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
+        String reason = dependency.getReason();
+        if (reason != null) {
+            dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
+        }
+        maybeAddReason(reasons, dependencyDescriptor);
+    }
+
+    private static void maybeAddReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
+        if (reasons.isEmpty()) {
+            reasons.add(reason);
+        } else if (isNewReason(reasons, reason)) {
+            reasons.add(reason);
+        }
+    }
+
+    private static boolean isNewReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
+        return (reasons.size() == 1 && !reason.equals(reasons.get(0)))
+            || !reasons.contains(reason);
     }
 
     @Override
