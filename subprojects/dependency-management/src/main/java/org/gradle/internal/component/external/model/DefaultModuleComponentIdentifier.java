@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -35,7 +34,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         this.version = version;
         // Do NOT change the order of members used in hash code here, it's been empirically
         // tested to reduce the number of collisions on a large dependency graph (performance test)
-        this.hashCode = Objects.hashCode(version, module);
+        this.hashCode = 31 * version.hashCode() + module.hashCode();
     }
 
     public String getDisplayName() {
