@@ -32,6 +32,7 @@ import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
@@ -40,7 +41,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
     private final List<ExcludeMetadata> excludes;
-    private final ImmutableList<IvyArtifactName> artifactNames;
+    private final List<IvyArtifactName> artifactNames;
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
@@ -81,7 +82,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.moduleAttributes = moduleAttributes;
         this.dependencyAttributes = ((AttributeContainerInternal)dependencyAttributes).asImmutable();
         this.dependencyConfiguration = dependencyConfiguration;
-        this.artifactNames = ImmutableList.copyOf(artifactNames);
+        this.artifactNames = asImmutable(artifactNames);
         this.excludes = excludes;
         this.force = force;
         this.changing = changing;
@@ -89,6 +90,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.constraint = constraint;
         this.fromLock = fromLock;
         this.reason = reason;
+    }
+
+    private static List<IvyArtifactName> asImmutable(List<IvyArtifactName> artifactNames) {
+        return artifactNames.isEmpty() ? Collections.emptyList() : ImmutableList.copyOf(artifactNames);
     }
 
     @Override
