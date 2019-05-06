@@ -47,7 +47,14 @@ public class ImmutableCapability implements CapabilityInternal {
     private int computeHashcode(String group, String name, String version) {
         // Do NOT change the order of members used in hash code here, it's been empirically
         // tested to reduce the number of collisions on a large dependency graph (performance test)
-        return  31 * (31 * version.hashCode() + name.hashCode()) + group.hashCode();
+        int hash = safeHash(version);
+        hash = 31 * hash + name.hashCode();
+        hash = 31 * hash + group.hashCode();
+        return  hash;
+    }
+
+    private static int safeHash(String o) {
+        return o == null ? 0 : o.hashCode();
     }
 
     @Override
