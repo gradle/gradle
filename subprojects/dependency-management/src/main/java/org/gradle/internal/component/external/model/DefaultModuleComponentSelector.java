@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -51,7 +50,15 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         this.requestedCapabilities = requestedCapabilities;
         // Do NOT change the order of members used in hash code here, it's been empirically
         // tested to reduce the number of collisions on a large dependency graph (performance test)
-        this.hashCode = Objects.hashCode(version, module, attributes, requestedCapabilities);
+        this.hashCode = computeHashcode(module, version, attributes, requestedCapabilities);
+    }
+
+    private int computeHashcode(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableList<Capability> requestedCapabilities) {
+        int hashCode = version.hashCode();
+        hashCode = 31 * hashCode + module.hashCode();
+        hashCode = 31 * hashCode + attributes.hashCode();
+        hashCode = 31 * hashCode + requestedCapabilities.hashCode();
+        return hashCode;
     }
 
     public String getDisplayName() {
