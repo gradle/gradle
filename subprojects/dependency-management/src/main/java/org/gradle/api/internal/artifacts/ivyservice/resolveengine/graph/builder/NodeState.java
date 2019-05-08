@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -88,6 +90,7 @@ public class NodeState implements DependencyGraphNode {
     private Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
     private boolean virtualPlatformNeedsRefresh;
     private Set<EdgeState> edgesToRecompute;
+    private Multimap<ModuleIdentifier, DependencyState> potentiallyActivatedConstraints;
 
     // caches
     private Map<DependencyMetadata, DependencyState> dependencyStateCache = Maps.newHashMap();
@@ -266,6 +269,7 @@ public class NodeState implements DependencyGraphNode {
             removeOutgoingEdges();
             upcomingNoLongerPendingConstraints = null;
             edgesToRecompute = null;
+            potentiallyActivatedConstraints = null;
         }
 
         visitDependencies(resolutionFilter, discoveredEdges);
@@ -335,7 +339,12 @@ public class NodeState implements DependencyGraphNode {
             for (DependencyState dependencyState : dependencies(resolutionFilter)) {
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
-                if (!pendingState.isPending()) {
+                if (pendingState.isPending()) {
+                    if (potentiallyActivatedConstraints == null) {
+                        potentiallyActivatedConstraints = ArrayListMultimap.create();
+                    }
+                    potentiallyActivatedConstraints.put(dependencyState.getModuleIdentifier(), dependencyState);
+                } else {
                     createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING);
                 }
             }
@@ -402,13 +411,17 @@ public class NodeState implements DependencyGraphNode {
      * in upcomingNoLongerPendingConstraints
      */
     private void visitAdditionalConstraints(Collection<EdgeState> discoveredEdges) {
-        for (DependencyMetadata dependency : dependencies()) {
-            if (dependency.isConstraint()) {
-                DependencyState dependencyState = dependencyStateCache.computeIfAbsent(dependency, d -> new DependencyState(d, resolveState.getComponentSelectorConverter()));
-                if (upcomingNoLongerPendingConstraints.contains(dependencyState.getModuleIdentifier())) {
+        if (potentiallyActivatedConstraints == null) {
+            return;
+        }
+        for (ModuleIdentifier module : upcomingNoLongerPendingConstraints) {
+            Collection<DependencyState> dependencyStates = potentiallyActivatedConstraints.get(module);
+            if (!dependencyStates.isEmpty()) {
+                for (DependencyState dependencyState : dependencyStates) {
                     dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                     createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false);
                 }
+                potentiallyActivatedConstraints.removeAll(module);
             }
         }
         upcomingNoLongerPendingConstraints = null;
@@ -735,7 +748,7 @@ public class NodeState implements DependencyGraphNode {
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
         if (upcomingNoLongerPendingConstraints == null) {
-            upcomingNoLongerPendingConstraints = Sets.newHashSet();
+            upcomingNoLongerPendingConstraints = Sets.newLinkedHashSet();
         }
         upcomingNoLongerPendingConstraints.add(moduleIdentifier);
         // Trigger a replay on this node, to add new constraints to graph
