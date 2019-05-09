@@ -18,11 +18,9 @@ package org.gradle.api.tasks.testing;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.matcher.ElementMatcher;
-import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 
 import java.io.FileNotFoundException;
@@ -33,7 +31,13 @@ import java.lang.instrument.Instrumentation;
 import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
+/**
+ * The Java agent.
+ */
 public class UndeclaredIOAgent {
+    /**
+     * The entry point.
+     */
     public static void premain(String agentArgs, Instrumentation inst) {
         System.setProperty("undeclared.io.agent.file", agentArgs);
         new AgentBuilder.Default()
@@ -63,6 +67,9 @@ public class UndeclaredIOAgent {
             .or(nameStartsWith(UndeclaredIOAgent.class.getName()));
     }
 
+    /**
+     * The inlined input capturing code.
+     */
     public static class CaptureIOWhatever {
 
         @Advice.OnMethodEnter(inline = true)
