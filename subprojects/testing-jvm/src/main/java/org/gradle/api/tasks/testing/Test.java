@@ -63,6 +63,7 @@ import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -608,13 +609,31 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             testFramework = null;
         }
 
+        detectUndeclaredIO(detectedIOFile);
+    }
+
+    private void detectUndeclaredIO(File detectedIOFile) {
         try {
+            String rootProjectDir = getProject().getRootDir().getPath();
             ArrayList<File> undeclaredFiles = new ArrayList<File>();
             Set<File> declaredInputs = getInputs().getFiles().getFiles();
             Set<String> detectedFiles = Sets.newHashSet(Files.readLines(detectedIOFile, Charset.defaultCharset()));
             for (String detectedFile : detectedFiles) {
+                if (detectedFile.isEmpty()) {
+                    continue;
+                }
                 File file = getProject().file(detectedFile);
-                if (!declaredInputs.contains(file)) {
+                String detectedFilePath = file.getPath();
+                if (detectedFilePath.isEmpty()) {
+                    continue;
+                }
+                for (File declaredInput : declaredInputs) {
+                    String declaredInputPath = declaredInput.getPath();
+                    if (FileUtils.doesPathStartWith(detectedFilePath, declaredInputPath)) {
+                        continue;
+                    }
+                }
+                if (FileUtils.doesPathStartWith(detectedFilePath, rootProjectDir)) {
                     undeclaredFiles.add(file);
                 }
             }
