@@ -32,6 +32,7 @@ dependencies {
     implementation libraries.junit.coordinates
     implementation libraries.testng.coordinates
     implementation libraries.bsh.coordinates
+    implementation 'net.bytebuddy:byte-buddy:1.9.12'
 
     testCompile ('com.google.inject:guice:2.0') {
         because 'This is for TestNG'

@@ -20,9 +20,11 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -74,6 +76,7 @@ import org.gradle.util.ConfigureUtil;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -581,9 +584,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @TaskAction
     public void executeTests() {
+        File detectedIOFile = getDetectedIOFile();
         File agentJar = getModuleRegistry().findModule("gradle-testing-jvm").getClasspath().getAsFiles().get(0);
-        System.out.println(agentJar);
-        jvmArgs("-javaagent:" + agentJar);
+        jvmArgs("-javaagent:" + agentJar + "=" + detectedIOFile);
+
         JavaVersion javaVersion = getJavaVersion();
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
@@ -597,6 +601,18 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             super.executeTests();
         } finally {
             testFramework = null;
+        }
+
+        if (detectedIOFile.length() > 0) {
+            throw new GradleException("undeclared input");
+        }
+    }
+
+    private static File getDetectedIOFile() {
+        try {
+            return File.createTempFile("undeclared", "io");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
