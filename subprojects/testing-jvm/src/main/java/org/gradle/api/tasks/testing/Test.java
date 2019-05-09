@@ -16,7 +16,10 @@
 
 package org.gradle.api.tasks.testing;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -77,6 +80,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -604,7 +608,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         }
 
         if (detectedIOFile.length() > 0) {
-            throw new GradleException("undeclared input");
+            try {
+                Set<String> undeclaredInputs = Sets.newHashSet(Files.readLines(detectedIOFile, Charset.defaultCharset()));
+                throw new GradleException("undeclared inputs: " + Joiner.on("\n").join(undeclaredInputs));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

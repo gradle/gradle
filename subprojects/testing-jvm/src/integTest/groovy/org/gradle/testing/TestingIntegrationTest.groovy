@@ -487,10 +487,13 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin:'java'
             ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
+            test { testLogging.showStandardStreams = true }
         """
 
         and:
-        file('src/test/undeclared-input.txt') << "text"
+        def undeclaredInputFile = file('src/test/undeclared-input.txt')
+        undeclaredInputFile << "text"
+
         @Language("java") undeclaredInputReader = """
             import org.junit.Test;
             import java.io.*;
@@ -498,7 +501,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             public class UndeclaredInputReader {
                 @Test
                 public void read() throws Exception {
-                    try (InputStream input = new FileInputStream(new File("src/test/undeclared-input.txt"))) {
+                    try (InputStream input = new FileInputStream(new File("src/test/undeclared-input.txt").getAbsoluteFile())) {
                         input.read();
                     }
                 }
@@ -510,6 +513,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         fails("test")
 
         then:
-        failureCauseContains("undeclared input")
+        failureCauseContains(undeclaredInputFile.absolutePath)
     }
 }

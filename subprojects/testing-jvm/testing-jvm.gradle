@@ -21,6 +21,14 @@ plugins {
     // id 'gradlebuild.classycle'
 }
 
+configurations {
+    byteBuddy {
+    }
+    compileClasspath {
+        extendsFrom byteBuddy
+    }
+}
+
 dependencies {
     compile project(':core')
     compile project(':platformJvm')
@@ -32,9 +40,9 @@ dependencies {
     implementation libraries.junit.coordinates
     implementation libraries.testng.coordinates
     implementation libraries.bsh.coordinates
-    implementation 'net.bytebuddy:byte-buddy:1.9.12'
+    byteBuddy 'net.bytebuddy:byte-buddy:1.9.12'
 
-    testCompile ('com.google.inject:guice:2.0') {
+    testCompile('com.google.inject:guice:2.0') {
         because 'This is for TestNG'
     }
 
@@ -47,8 +55,15 @@ gradlebuildJava {
 
 jar {
     manifest {
-        attributes("Premain-Class": "org.gradle.api.tasks.testing.UndeclaredIOAgent")
+        attributes(
+            "Premain-Class": "org.gradle.api.tasks.testing.UndeclaredIOAgent",
+            "Can-Redefine-Classes": true,
+            "Can-Retransform-Classes": true,
+            "Can-Set-Native-Method-Prefix": true
+        )
     }
+    from { configurations.byteBuddy.collect { zipTree(it) } }
+    dependsOn configurations.byteBuddy
 }
 
 tasks.named("test").configure {
