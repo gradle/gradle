@@ -16,10 +16,58 @@
 
 package org.gradle.api.tasks.testing;
 
+import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.asm.Advice;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.matcher.ElementMatchers;
+import net.bytebuddy.utility.JavaModule;
+
+import java.io.File;
+import java.io.PrintStream;
 import java.lang.instrument.Instrumentation;
 
 public class UndeclaredIOAgent {
+    private static PrintStream out;
+
     public static void premain(String agentArgs, Instrumentation inst) {
-        System.out.println("undeclared input");
+        try {
+            out = new PrintStream(new File(agentArgs));
+            new AgentBuilder.Default()/*
+                .type(ElementMatchers.any())
+                .transform(new CaptureIOTransformer())
+                .installOn(inst)*/;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (out != null) {
+                out.close();
+            }
+        }
     }
+/*
+    private static class CaptureIOTransformer implements AgentBuilder.Transformer {
+        @Override
+        public DynamicType.Builder<?> transform(
+            DynamicType.Builder<?> builder,
+            TypeDescription typeDescription,
+            ClassLoader classLoader,
+            JavaModule module) {
+            return builder.visit(Advice.to(CaptureIOWhatever.class).on(ElementMatchers.isMethod()));
+        }
+    }
+
+    private static class CaptureIOWhatever {
+
+        @Advice.OnMethodEnter(inline = false)
+        public static void monitorStart(@Advice.Origin("#t") String className,
+                                        @Advice.Origin("#m") String methodName,
+                                        @Advice.AllArguments Object[] args) {
+            if ("UndeclaredInputReader".equals(className) && "read".equals(methodName)) {
+                out.print(42);
+            }
+        }
+    }
+
+ */
 }

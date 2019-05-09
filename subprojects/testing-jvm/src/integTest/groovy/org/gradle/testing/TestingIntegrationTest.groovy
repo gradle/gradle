@@ -507,9 +507,9 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         file('src/test/java/UndeclaredInputReader.java') << undeclaredInputReader
 
         when:
-        succeeds("test")
+        fails("test")
 
         then:
-        outputContains("undeclared input")
+        failureCauseContains("undeclared input")
     }
 }
