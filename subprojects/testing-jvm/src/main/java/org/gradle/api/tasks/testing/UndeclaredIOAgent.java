@@ -24,7 +24,6 @@ import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.utility.JavaModule;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -47,33 +46,10 @@ public class UndeclaredIOAgent {
         new AgentBuilder.Default()
             .disableClassFormatChanges()
             .ignore(not(nameStartsWith("java.io")))
-            .type(named(FileInputStream.class.getName()))
-            .transform(new FileInputStreamTransformer())
-            .with(RedefinitionStrategy.RETRANSFORMATION)
-            .installOn(inst);
-
-        new AgentBuilder.Default()
-            .disableClassFormatChanges()
-            .ignore(not(nameStartsWith("java.io")))
             .type(named(File.class.getName()))
             .transform(new FileTransformer())
             .with(RedefinitionStrategy.RETRANSFORMATION)
             .installOn(inst);
-    }
-
-    private static class FileInputStreamTransformer implements AgentBuilder.Transformer {
-        @Override
-        public DynamicType.Builder<?> transform(
-            DynamicType.Builder<?> builder,
-            TypeDescription typeDescription,
-            ClassLoader classLoader,
-            JavaModule module
-        ) {
-            return builder.visit(
-                Advice.to(CaptureFileInputStream.class)
-                    .on(named("open"))
-            );
-        }
     }
 
     private static class FileTransformer implements AgentBuilder.Transformer {
@@ -89,30 +65,6 @@ public class UndeclaredIOAgent {
                     .on(isMethod())
             );
         }
-    }
-
-    /**
-     * The inlined input capturing code.
-     */
-    public static class CaptureFileInputStream {
-
-        @Advice.OnMethodEnter
-        public static void entry(@Advice.Argument(0) File file) {
-            if (System.getProperty("capturing.io") != null) {
-                return;
-            }
-            System.setProperty("capturing.io", "true");
-            try {
-                String outputFile = System.getProperty("undeclared.io.agent.file");
-                PrintStream out = new PrintStream(new FileOutputStream(outputFile, true));
-                out.println(file);
-                out.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            System.clearProperty("capturing.io");
-        }
-
     }
 
     /**
