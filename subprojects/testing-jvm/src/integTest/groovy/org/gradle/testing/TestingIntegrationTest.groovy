@@ -23,6 +23,7 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
+import org.intellij.lang.annotations.Language
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -478,5 +479,37 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         then:
         outputContains "Unable to reset SecurityManager"
+    }
+
+    def "fails if test reads undeclared input"() {
+        given:
+        buildScript """
+            apply plugin:'java'
+            ${mavenCentralRepository()}
+            dependencies { testCompile 'junit:junit:4.12' }
+        """
+
+        and:
+        file('src/test/undeclared-input.txt') << "text"
+        @Language("java") undeclaredInputReader = """
+            import org.junit.Test;
+            import java.io.*;
+
+            public class UndeclaredInputReader {
+                @Test
+                public void read() throws Exception {
+                    try (InputStream input = new FileInputStream(new File("src/test/undeclared-input.txt"))) {
+                        input.read();
+                    }
+                }
+            }
+        """
+        file('src/test/java/UndeclaredInputReader.java') << undeclaredInputReader
+
+        when:
+        succeeds("test")
+
+        then:
+        outputContains("undeclared input")
     }
 }

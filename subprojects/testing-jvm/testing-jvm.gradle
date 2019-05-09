@@ -44,6 +44,12 @@ gradlebuildJava {
     moduleType = ModuleType.WORKER
 }
 
+jar {
+    manifest {
+        attributes("Premain-Class": "org.gradle.api.tasks.testing.UndeclaredIOAgent")
+    }
+}
+
 tasks.named("test").configure {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
