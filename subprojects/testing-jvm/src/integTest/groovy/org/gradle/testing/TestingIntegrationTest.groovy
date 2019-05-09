@@ -487,7 +487,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin:'java'
             ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
-            test { testLogging.showStandardStreams = true }
         """
 
         and:
@@ -514,5 +513,13 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         then:
         failureCauseContains(undeclaredInputFile.absolutePath)
+
+        when:
+        buildFile << """
+            test.inputs.file "src/test/undeclared-input.txt"
+        """
+
+        then:
+        succeeds("test")
     }
 }
