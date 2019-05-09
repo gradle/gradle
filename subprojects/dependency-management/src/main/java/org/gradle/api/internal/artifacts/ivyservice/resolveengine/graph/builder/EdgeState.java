@@ -138,7 +138,7 @@ class EdgeState implements DependencyGraphEdge {
             ModuleResolveState module = targetComponent.getModule();
             if (module.isPending()) {
                 selector.getTargetModule().removeUnattachedDependency(this);
-                from.getOutgoingEdges().remove(this);
+                from.makePending(this);
                 module.addPendingNode(from);
                 return;
             }
@@ -372,5 +372,9 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    DependencyState getDependencyState() {
+        return dependencyState;
     }
 }

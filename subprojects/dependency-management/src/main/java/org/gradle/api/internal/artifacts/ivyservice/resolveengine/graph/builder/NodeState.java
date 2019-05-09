@@ -340,10 +340,7 @@ public class NodeState implements DependencyGraphNode {
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
                 if (pendingState.isPending()) {
-                    if (potentiallyActivatedConstraints == null) {
-                        potentiallyActivatedConstraints = ArrayListMultimap.create();
-                    }
-                    potentiallyActivatedConstraints.put(dependencyState.getModuleIdentifier(), dependencyState);
+                    registerActivatingConstraint(dependencyState);
                 } else {
                     createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING);
                 }
@@ -355,6 +352,13 @@ public class NodeState implements DependencyGraphNode {
             // This way, all edges of the node will be re-processed.
             pendingDepsVisitor.complete();
         }
+    }
+
+    private void registerActivatingConstraint(DependencyState dependencyState) {
+        if (potentiallyActivatedConstraints == null) {
+            potentiallyActivatedConstraints = ArrayListMultimap.create();
+        }
+        potentiallyActivatedConstraints.put(dependencyState.getModuleIdentifier(), dependencyState);
     }
 
     private List<? extends DependencyMetadata> dependencies() {
@@ -843,4 +847,8 @@ public class NodeState implements DependencyGraphNode {
         return selectedByVariantAwareResolution && isSelected();
     }
 
+    void makePending(EdgeState edgeState) {
+        outgoingEdges.remove(edgeState);
+        registerActivatingConstraint(edgeState.getDependencyState());
+    }
 }
