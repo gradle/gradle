@@ -615,25 +615,16 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private void detectUndeclaredIO(File detectedIOFile) {
         try {
             String rootProjectDir = getProject().getRootDir().getPath();
-            ArrayList<File> undeclaredFiles = new ArrayList<File>();
             Set<File> declaredInputs = getInputs().getFiles().getFiles();
             Set<String> detectedFiles = Sets.newHashSet(Files.readLines(detectedIOFile, Charset.defaultCharset()));
+            List<File> undeclaredFiles = new ArrayList<File>();
             for (String detectedFile : detectedFiles) {
                 if (detectedFile.isEmpty()) {
                     continue;
                 }
                 File file = getProject().file(detectedFile);
                 String detectedFilePath = file.getPath();
-                if (detectedFilePath.isEmpty()) {
-                    continue;
-                }
-                for (File declaredInput : declaredInputs) {
-                    String declaredInputPath = declaredInput.getPath();
-                    if (FileUtils.doesPathStartWith(detectedFilePath, declaredInputPath)) {
-                        continue;
-                    }
-                }
-                if (FileUtils.doesPathStartWith(detectedFilePath, rootProjectDir)) {
+                if (!isDeclaredInput(detectedFilePath, declaredInputs) && FileUtils.doesPathStartWith(detectedFilePath, rootProjectDir)) {
                     undeclaredFiles.add(file);
                 }
             }
@@ -643,6 +634,16 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isDeclaredInput(String detectedFilePath, Set<File> declaredInputs) {
+        for (File declaredInput : declaredInputs) {
+            String declaredInputPath = declaredInput.getPath();
+            if (detectedFilePath.equals(declaredInputPath) || FileUtils.doesPathStartWith(detectedFilePath, declaredInputPath)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static File getDetectedIOFile() {
