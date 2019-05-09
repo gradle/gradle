@@ -490,19 +490,22 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """
 
         and:
-        def undeclaredInputFile = file('src/test/undeclared-input.txt')
+        def undeclaredInputFileInputStream = file('src/test/undeclared-input-FileInputStream.txt')
+        undeclaredInputFileInputStream << "text"
+        def undeclaredInputFile = file('src/test/undeclared-input-File.txt')
         undeclaredInputFile << "text"
 
-        @Language("java") undeclaredInputReader = """
+        @Language("JAVA") undeclaredInputReader = """
             import org.junit.Test;
             import java.io.*;
 
             public class UndeclaredInputReader {
                 @Test
                 public void read() throws Exception {
-                    try (InputStream input = new FileInputStream(new File("src/test/undeclared-input.txt"))) {
+                    try (InputStream input = new FileInputStream(new File("${undeclaredInputFileInputStream}"))) {
                         input.read();
-                    }
+                    } 
+                    new File("${undeclaredInputFile}").exists();
                 }
             }
         """
@@ -512,11 +515,13 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         fails("test")
 
         then:
+        failureCauseContains(undeclaredInputFileInputStream.absolutePath)
         failureCauseContains(undeclaredInputFile.absolutePath)
 
         when:
         buildFile << """
-            test.inputs.file "src/test/undeclared-input.txt"
+            test.inputs.file "${undeclaredInputFileInputStream}"
+            test.inputs.file "${undeclaredInputFile}"
         """
 
         then:
