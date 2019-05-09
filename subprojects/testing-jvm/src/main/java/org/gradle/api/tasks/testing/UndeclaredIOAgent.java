@@ -18,13 +18,13 @@ package org.gradle.api.tasks.testing;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
+import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -37,9 +37,8 @@ public class UndeclaredIOAgent {
     public static void premain(String agentArgs, Instrumentation inst) {
         System.setProperty("undeclared.io.agent.file", agentArgs);
         new AgentBuilder.Default()
-            .with(AgentBuilder.Listener.StreamWriting.toSystemError())
             .ignore(ignores())
-            .type(named("java.io.File"))
+            .type(named(java.io.FileInputStream.class.getName()))
             .transform(new CaptureIOTransformer())
             .disableClassFormatChanges()
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
@@ -53,7 +52,9 @@ public class UndeclaredIOAgent {
             TypeDescription typeDescription,
             ClassLoader classLoader,
             JavaModule module) {
-            return builder.visit(Advice.to(CaptureIOWhatever.class).on(ElementMatchers.isMethod()));
+            return builder.visit(
+                Advice.to(CaptureIOWhatever.class).on(named("open"))
+            );
         }
     }
 
@@ -67,19 +68,15 @@ public class UndeclaredIOAgent {
         @Advice.OnMethodEnter(inline = true)
         public static void monitorStart(@Advice.Origin("#t") String className,
                                         @Advice.Origin("#m") String methodName,
-                                        @Advice.This(optional = true) Object thisFile,
                                         @Advice.AllArguments Object[] args) {
-            if (!(thisFile instanceof File)) {
-                return;
-            }
             if (System.getProperty("capturing.io") != null) {
                 return;
             }
             System.setProperty("capturing.io", "true");
-            System.out.println("UNDECLARED: " + className + "." + methodName);
             try {
-                PrintStream out = new PrintStream(new FileOutputStream(System.getProperty("undeclared.io.agent.file"), true));
-                out.println(((File) thisFile).getPath());
+                String outputFile = System.getProperty("undeclared.io.agent.file");
+                PrintStream out = new PrintStream(new FileOutputStream(outputFile, true));
+                out.println(args[0]);
                 out.close();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
