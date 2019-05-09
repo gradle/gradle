@@ -501,7 +501,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             public class UndeclaredInputReader {
                 @Test
                 public void read() throws Exception {
-                    try (InputStream input = new FileInputStream(new File("src/test/undeclared-input.txt").getAbsoluteFile())) {
+                    try (InputStream input = new FileInputStream(new File("src/test/undeclared-input.txt"))) {
                         input.read();
                     }
                 }
