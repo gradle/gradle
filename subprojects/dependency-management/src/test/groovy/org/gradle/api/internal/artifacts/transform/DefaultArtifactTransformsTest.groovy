@@ -151,10 +151,10 @@ class DefaultArtifactTransformsTest extends Specification {
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _) >> []
 
-        matchingCache.collectConsumerVariants(typeAttributes("jar"), targetAttributes, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
-            result.matched(to, transformation, 1)
+        matchingCache.collectConsumerVariants(typeAttributes("jar"), targetAttributes) >> { AttributeContainerInternal from, AttributeContainerInternal to ->
+            match(to, transformation, 1)
         }
-        matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
+        matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes) >> { new ConsumerVariantMatchResult(0) }
         def result = transforms.variantSelector(targetAttributes, true, dependenciesResolver).select(set)
 
         when:
@@ -207,8 +207,8 @@ class DefaultArtifactTransformsTest extends Specification {
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _) >> []
 
-        matchingCache.collectConsumerVariants(_, _, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
-                result.matched(to, Stub(Transformation), 1)
+        matchingCache.collectConsumerVariants(_, _) >> { AttributeContainerInternal from, AttributeContainerInternal to ->
+                match(to, Stub(Transformation), 1)
         }
 
         def selector = transforms.variantSelector(typeAttributes("dll"), true, dependenciesResolver)
@@ -247,8 +247,7 @@ Found the following transforms:
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _) >> []
 
-        matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("jar"), _) >> null
-        matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
+        matchingCache.collectConsumerVariants(_, _) >> new ConsumerVariantMatchResult(0)
 
         expect:
         def result = transforms.variantSelector(typeAttributes("dll"), true, dependenciesResolver).select(set)
@@ -273,8 +272,7 @@ Found the following transforms:
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _) >> []
 
-        matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("jar"), _) >> null
-        matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
+        matchingCache.collectConsumerVariants(_, _) >> new ConsumerVariantMatchResult(0)
 
         when:
         def result = transforms.variantSelector(typeAttributes("dll"), false, dependenciesResolver).select(set)
@@ -301,6 +299,12 @@ Found the following transforms:
         def attributeContainer = new DefaultMutableAttributeContainer(AttributeTestUtil.attributesFactory())
         attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()
+    }
+
+    static ConsumerVariantMatchResult match(ImmutableAttributes output, Transformation trn, int depth) {
+        def result = new ConsumerVariantMatchResult(2)
+        result.matched(output, trn, depth)
+        result
     }
 
     interface TestArtifact extends ResolvableArtifact, Buildable {}

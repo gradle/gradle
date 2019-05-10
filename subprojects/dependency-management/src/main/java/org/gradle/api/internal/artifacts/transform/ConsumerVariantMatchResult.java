@@ -16,19 +16,25 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class ConsumerVariantMatchResult {
     private int minDepth;
-    private final List<ConsumerVariant> matches = new ArrayList<ConsumerVariant>();
+    private final List<ConsumerVariant> matches;
 
-    public void applyTo(ConsumerVariantMatchResult result) {
-        result.matches.addAll(this.matches);
+    ConsumerVariantMatchResult(int estimateSize) {
+        matches = Lists.newArrayListWithExpectedSize(estimateSize);
+    }
+
+    private ConsumerVariantMatchResult(ConsumerVariantMatchResult other) {
+        this.minDepth = other.minDepth;
+        this.matches = Collections.unmodifiableList(other.matches);
     }
 
     public void matched(ImmutableAttributes output, Transformation transformation, int depth) {
@@ -50,6 +56,10 @@ public class ConsumerVariantMatchResult {
 
     public Collection<ConsumerVariant> getMatches() {
         return matches;
+    }
+
+    public ConsumerVariantMatchResult asImmutable() {
+        return new ConsumerVariantMatchResult(this);
     }
 
     public static class ConsumerVariant {
