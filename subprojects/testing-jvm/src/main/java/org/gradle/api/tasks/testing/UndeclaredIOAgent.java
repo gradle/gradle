@@ -20,16 +20,32 @@ import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.RedefinitionStrategy;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.dynamic.ClassFileLocator;
+import net.bytebuddy.dynamic.DynamicType.Builder;
+import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.utility.JavaModule;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.instrument.Instrumentation;
+import java.nio.CharBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
-import static net.bytebuddy.matcher.ElementMatchers.isMethod;
+import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
+import static java.nio.file.Files.createTempDirectory;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toMap;
+import static net.bytebuddy.dynamic.loading.ClassInjector.UsingInstrumentation.Target.BOOTSTRAP;
+import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.not;
@@ -38,55 +54,76 @@ import static net.bytebuddy.matcher.ElementMatchers.not;
  * The Java agent.
  */
 public class UndeclaredIOAgent {
-    /**
-     * The entry point.
-     */
-    public static void premain(String agentArgs, Instrumentation inst) {
-        System.setProperty("undeclared.io.agent.file", agentArgs);
-        new AgentBuilder.Default()
-            .disableClassFormatChanges()
-            .ignore(not(nameStartsWith("java.io")))
-            .type(named(File.class.getName()))
-            .transform(new FileTransformer())
-            .with(RedefinitionStrategy.RETRANSFORMATION)
-            .installOn(inst);
-    }
+    public static CharBuffer results = init();
 
-    private static class FileTransformer implements AgentBuilder.Transformer {
-        @Override
-        public DynamicType.Builder<?> transform(
-            DynamicType.Builder<?> builder,
-            TypeDescription typeDescription,
-            ClassLoader classLoader,
-            JavaModule module
-        ) {
-            return builder.visit(
-                Advice.to(CaptureFile.class)
-                    .on(isMethod())
-            );
+    public static CharBuffer init() {
+        try {
+            return FileChannel.open(Paths.get("build/undeclared.txt"), CREATE, READ, WRITE) // TODO
+                .map(READ_WRITE, 0, 100000) // TODO
+                .asCharBuffer();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
     /**
+     * The entry point.
+     */
+    public static void premain(String outputFile, Instrumentation instrumentation) throws Exception {
+        File temp = injectClassesInBootstrap(instrumentation, UndeclaredIOAgent.class);
+
+        new AgentBuilder.Default()
+            .disableClassFormatChanges()
+            .with(RedefinitionStrategy.RETRANSFORMATION)
+            .ignore(not(nameStartsWith("java.io")))
+            .enableBootstrapInjection(instrumentation, temp)
+            .type(is(File.class))
+            .transform(new AgentBuilder.Transformer() {
+                @Override
+                public Builder<?> transform(Builder<?> b, TypeDescription t, ClassLoader c, JavaModule m) {
+                    return b.visit(Advice.to(UndeclaredIOAgent.class)
+                        .on(not(named("getPath"))));
+                }
+            })
+            .installOn(instrumentation);
+    }
+
+    private static File injectClassesInBootstrap(Instrumentation instrumentation, Class<?>... classes) throws Exception {
+        File temp = createTempDirectory("tmp").toFile();
+        temp.deleteOnExit();
+
+        Map<TypeDescription.ForLoadedType, byte[]> types = stream(classes).collect(toMap(
+            new Function<Class<?>, TypeDescription.ForLoadedType>() {
+                @Override
+                public TypeDescription.ForLoadedType apply(Class<?> type) {
+                    return new TypeDescription.ForLoadedType(type);
+                }
+            },
+            new Function<Class<?>, byte[]>() {
+                @Override
+                public byte[] apply(Class<?> type) {
+                    return ClassFileLocator.ForClassLoader.read(type);
+                }
+            })
+        );
+        ClassInjector.UsingInstrumentation.of(temp, BOOTSTRAP, instrumentation).inject(types);
+
+        return temp;
+    }
+
+    public static final Set<String> visited = new HashSet<String>();
+
+    /**
      * The inlined input capturing code.
      */
-    public static class CaptureFile {
-
-        @Advice.OnMethodEnter
-        public static void entry(@Advice.This(optional = true) File file) {
-            if (System.getProperty("capturing.io") != null || file == null) {
-                return;
+    @Advice.OnMethodEnter(inline = true)
+    public static void enter(@Advice.This(optional = true) File file) {
+        if (file != null) {
+            String filePath = file.getPath();
+            if (visited.add(filePath)) {
+                results.put(filePath, 0, filePath.length());
+                results.put('\0');
             }
-            System.setProperty("capturing.io", "true");
-            try {
-                String outputFile = System.getProperty("undeclared.io.agent.file");
-                PrintStream out = new PrintStream(new FileOutputStream(outputFile, true));
-                out.println(file);
-                out.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            System.clearProperty("capturing.io");
         }
     }
 }
