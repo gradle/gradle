@@ -54,8 +54,7 @@ import static net.bytebuddy.matcher.ElementMatchers.not;
  * The Java agent.
  */
 public class UndeclaredIOAgent {
-    public static CharBuffer results = init();
-
+    public static final CharBuffer results = init();
     public static CharBuffer init() {
         try {
             return FileChannel.open(Paths.get("build/undeclared.txt"), CREATE, READ, WRITE) // TODO
@@ -82,7 +81,7 @@ public class UndeclaredIOAgent {
                 @Override
                 public Builder<?> transform(Builder<?> b, TypeDescription t, ClassLoader c, JavaModule m) {
                     return b.visit(Advice.to(UndeclaredIOAgent.class)
-                        .on(not(named("getPath"))));
+                        .on(not(named("getPath")))); // TODO
                 }
             })
             .installOn(instrumentation);
@@ -121,8 +120,10 @@ public class UndeclaredIOAgent {
         if (file != null) {
             String filePath = file.getPath();
             if (visited.add(filePath)) {
-                results.put(filePath, 0, filePath.length());
-                results.put('\0');
+                synchronized (results) {
+                    results.put(filePath, 0, filePath.length());
+                    results.put('\0');
+                }
             }
         }
     }
