@@ -50,21 +50,20 @@ public class ConsumerProvidedVariantFinder {
         this.attributesFactory = attributesFactory;
     }
 
-    public void collectConsumerVariants(AttributeContainerInternal actual, AttributeContainerInternal requested, ConsumerVariantMatchResult result) {
+    public ConsumerVariantMatchResult collectConsumerVariants(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         AttributeSpecificCache toCache = getCache(requested);
-        ConsumerVariantMatchResult cachedResult = toCache.transforms.get(actual);
-        if (cachedResult == null) {
-            cachedResult = new ConsumerVariantMatchResult();
-            findProducersFor(actual, requested, cachedResult);
-            toCache.transforms.put(actual, cachedResult);
-        }
-        cachedResult.applyTo(result);
+        return toCache.transforms.computeIfAbsent(actual, attrs -> {
+            return findProducersFor(actual, requested).asImmutable();
+        });
     }
 
-    private void findProducersFor(AttributeContainerInternal actual, AttributeContainerInternal requested, ConsumerVariantMatchResult result) {
+    private ConsumerVariantMatchResult findProducersFor(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         // Prefer direct transformation over indirect transformation
         List<ArtifactTransformRegistration> candidates = new ArrayList<ArtifactTransformRegistration>();
-        for (ArtifactTransformRegistration registration : variantTransforms.getTransforms()) {
+        List<ArtifactTransformRegistration> transforms = variantTransforms.getTransforms();
+        int nbOfTransforms = transforms.size();
+        ConsumerVariantMatchResult result = new ConsumerVariantMatchResult(nbOfTransforms * nbOfTransforms);
+        for (ArtifactTransformRegistration registration : transforms) {
             if (matchAttributes(registration.getTo(), requested)) {
                 if (matchAttributes(actual, registration.getFrom())) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), registration.getTo().asImmutable());
@@ -76,13 +75,12 @@ public class ConsumerProvidedVariantFinder {
             }
         }
         if (result.hasMatches()) {
-            return;
+            return result;
         }
 
         for (ArtifactTransformRegistration candidate : candidates) {
-            ConsumerVariantMatchResult inputVariants = new ConsumerVariantMatchResult();
             AttributeContainerInternal requestedPrevious = computeRequestedAttributes(requested, candidate);
-            collectConsumerVariants(actual, requestedPrevious, inputVariants);
+            ConsumerVariantMatchResult inputVariants = collectConsumerVariants(actual, requestedPrevious);
             if (!inputVariants.hasMatches()) {
                 continue;
             }
@@ -92,6 +90,7 @@ public class ConsumerProvidedVariantFinder {
                 result.matched(variantAttributes, transformation, inputVariant.depth + 1);
             }
         }
+        return result;
     }
 
     private AttributeContainerInternal computeRequestedAttributes(AttributeContainerInternal result, ArtifactTransformRegistration transform) {

@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 
+import java.util.List;
+
 public interface VariantTransformRegistry {
 
     /**
@@ -33,5 +35,5 @@ public interface VariantTransformRegistry {
 
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
-    Iterable<ArtifactTransformRegistration> getTransforms();
+    List<ArtifactTransformRegistration> getTransforms();
 }

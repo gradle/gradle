@@ -121,7 +121,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
-    public Iterable<ArtifactTransformRegistration> getTransforms() {
+    public List<ArtifactTransformRegistration> getTransforms() {
         return transforms;
     }
 
