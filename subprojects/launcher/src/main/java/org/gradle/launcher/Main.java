@@ -15,8 +15,6 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
@@ -33,7 +31,6 @@ public class Main extends EntryPoint {
     }
 
     protected void doAction(String[] args, ExecutionListener listener) {
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_8);
         createActionFactory().convert(Arrays.asList(args)).execute(listener);
     }
 
