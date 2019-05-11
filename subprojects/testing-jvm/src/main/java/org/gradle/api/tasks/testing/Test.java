@@ -618,7 +618,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private void detectUndeclaredIO(File detectedIOFile) {
         try {
             String rootProjectDir = getProject().getRootDir().getPath();
-            Set<File> declaredInputs = getInputs().getFiles().getFiles();
+            Set<String> declaredInputs = getDeclaredInputPaths();
             Set<String> detectedFiles = getDetectedFiles(detectedIOFile);
             List<File> undeclaredFiles = new ArrayList<File>();
             for (String detectedFile : detectedFiles) {
@@ -627,7 +627,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
                 }
                 File file = getProject().file(detectedFile);
                 String detectedFilePath = file.getPath();
-                if (!isDeclaredInput(detectedFilePath, declaredInputs) && FileUtils.doesPathStartWith(detectedFilePath, rootProjectDir)) {
+                if (declaredInputs.contains(detectedFilePath)) {
+                    continue;
+                }
+
+                if (FileUtils.doesPathStartWith(detectedFilePath, rootProjectDir) && !isDeclaredInput(detectedFilePath, declaredInputs)) {
                     undeclaredFiles.add(file);
                 }
             }
@@ -637,6 +641,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private Set<String> getDeclaredInputPaths() {
+        Set<File> files = getInputs().getFiles().getFiles();
+        Set<String> paths = new HashSet<String>();
+        for (File file : files) {
+            paths.add(file.getPath());
+        }
+        return paths;
     }
 
     private static final Splitter unaccountedForEntrySplitter = Splitter.on('\0').omitEmptyStrings();
@@ -651,10 +664,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return results;
     }
 
-    private boolean isDeclaredInput(String detectedFilePath, Set<File> declaredInputs) {
-        for (File declaredInput : declaredInputs) {
-            String declaredInputPath = declaredInput.getPath();
-            if (detectedFilePath.equals(declaredInputPath) || FileUtils.doesPathStartWith(detectedFilePath, declaredInputPath)) {
+    private boolean isDeclaredInput(String detectedFilePath, Set<String> declaredInputPaths) {
+        for (String declaredInputPath : declaredInputPaths) {
+            if (FileUtils.doesPathStartWith(detectedFilePath, declaredInputPath)) {
                 return true;
             }
         }
