@@ -28,6 +28,7 @@ import net.bytebuddy.matcher.ElementMatcher.Junction;
 import net.bytebuddy.utility.JavaModule;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.instrument.Instrumentation;
@@ -52,6 +53,7 @@ import static net.bytebuddy.dynamic.loading.ClassInjector.UsingInstrumentation.T
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.nameMatches;
 import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
+import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.not;
 
 /**
@@ -73,15 +75,25 @@ public class UndeclaredIOAgent { // TODO lock from multiple threads or forks
      * The entry point.
      */
     public static void premain(String outputFile, Instrumentation instrumentation) throws Exception {
-        Junction<NamedElement> outputMatch = nameMatches("^(?:set|delete|write|create|mkdir|rename).*");
-        registerFileTransformer(instrumentation, File.class, outputMatch, OutputFileTransformer.class);
-
-        Junction<NamedElement> inputMatch = not(outputMatch.or(nameMatches("^(?:getName|getPath|compareTo|hashCode|equals|toString|getPath|getParent|isInvalid|getPrefixLength|slashify|createTempFile)$"))); // TODO input list?
-        registerFileTransformer(instrumentation, File.class, inputMatch, InputFileTransformer.class);
+        instrumentFile(instrumentation);
+        instrumentInputFileStream(instrumentation);
     }
 
-    private static void registerFileTransformer(Instrumentation instrumentation, Class<File> type, final Junction<NamedElement> methodMatcher, final Class<?> advice) throws Exception {
-        File temp = injectClassesInBootstrap(instrumentation, UndeclaredIOAgent.class, OutputFileTransformer.class, InputFileTransformer.class);
+    private static void instrumentFile(Instrumentation instrumentation) throws Exception {
+        Junction<NamedElement> fileOutputMethodNameMatch = nameMatches("^(?:set|delete|write|create|mkdir|rename).*");
+        registerTransformer(instrumentation, File.class, fileOutputMethodNameMatch, FileOutputTransformer.class);
+
+        Junction<NamedElement> fileInputMethodNameMatch = not(fileOutputMethodNameMatch.or(nameMatches("^(?:getName|getPath|compareTo|hashCode|equals|toString|getPath|getParent|isInvalid|getPrefixLength|slashify|createTempFile)$"))); // TODO input list?
+        registerTransformer(instrumentation, File.class, fileInputMethodNameMatch, FileInputTransformer.class);
+    }
+
+    private static void instrumentInputFileStream(Instrumentation instrumentation) throws Exception {
+        Junction<NamedElement> fileInputStreamMatch = named("open");
+        registerTransformer(instrumentation, FileInputStream.class, fileInputStreamMatch, FileInputStreamFileTransformer.class);
+    }
+
+    private static void registerTransformer(Instrumentation instrumentation, Class<?> type, final Junction<NamedElement> methodMatcher, final Class<?> advice) throws Exception {
+        File temp = injectClassesInBootstrap(instrumentation, UndeclaredIOAgent.class, advice);
 
         new AgentBuilder.Default()
             .disableClassFormatChanges()
@@ -124,14 +136,11 @@ public class UndeclaredIOAgent { // TODO lock from multiple threads or forks
     public static final Set<String> visited = synchronizedSet(new HashSet<String>(Collections.<String>singletonList(null))); // TODO shared input/output?
 
     // TODO don't write inputs/outputs to same results
-    public static class OutputFileTransformer {
-        /**
-         * The inlined output capturing code.
-         */
+    public static class FileOutputTransformer {
         @Advice.OnMethodEnter(inline = false)
         public static void enter(@Advice.This(optional = true) File file) {
             String filePath = (file != null) ? file.getPath() : null;
-            if (results != null && visited.add(filePath)) {
+            if (visited.add(filePath)) {
                 synchronized (results) {
                     results.put(filePath, 0, filePath.length());
                     results.put('\0');
@@ -140,14 +149,23 @@ public class UndeclaredIOAgent { // TODO lock from multiple threads or forks
         }
     }
 
-    public static class InputFileTransformer {
-        /**
-         * The inlined input capturing code.
-         */
+    public static class FileInputTransformer {
         @Advice.OnMethodEnter(inline = false)
         public static void enter(@Advice.This(optional = true) File file) {
             String filePath = (file != null) ? file.getPath() : null;
-            if (results != null && visited.add(filePath)) {
+            if (visited.add(filePath)) {
+                synchronized (results) {
+                    results.put(filePath, 0, filePath.length());
+                    results.put('\0');
+                }
+            }
+        }
+    }
+
+    public static class FileInputStreamFileTransformer {
+        @Advice.OnMethodEnter(inline = false)
+        public static void enter(@Advice.Argument(0) String filePath) {
+            if (visited.add(filePath)) {
                 synchronized (results) {
                     results.put(filePath, 0, filePath.length());
                     results.put('\0');
