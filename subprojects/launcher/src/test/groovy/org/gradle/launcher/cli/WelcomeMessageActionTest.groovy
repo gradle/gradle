@@ -31,7 +31,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-import static org.gradle.launcher.cli.CommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY
+import static org.gradle.launcher.cli.DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY
 
 class WelcomeMessageActionTest extends Specification {
 

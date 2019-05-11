@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.cli;
-
-import org.gradle.api.Action;
-import org.gradle.launcher.bootstrap.ExecutionListener;
+package org.gradle.launcher.bootstrap;
 
 import java.util.List;
 
 public interface CommandLineActionFactory {
-    String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
+    CommandLineExecution convert(List<String> args);
 
-    Action<ExecutionListener> convert(List<String> args);
+    interface CommandLineExecution {
+        void execute(ExecutionListener listener);
+    }
 }
