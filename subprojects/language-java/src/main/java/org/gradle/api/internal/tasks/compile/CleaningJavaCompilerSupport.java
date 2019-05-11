@@ -45,7 +45,7 @@ public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> imp
         }
     }
 
-    protected abstract Compiler<T> getCompiler();
+    public abstract Compiler<T> getCompiler();
 
     protected abstract StaleClassCleaner createCleaner(T spec);
 }

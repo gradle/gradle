@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.CleaningJavaCompilerSupport;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.TaskScopedCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotMaker;
@@ -34,40 +34,45 @@ import org.slf4j.LoggerFactory;
 /**
  * Decorates a non-incremental Java compiler (like javac) so that it can be invoked incrementally.
  */
-public class IncrementalCompilerDecorator {
+public class IncrementalCompilerDecorator<T extends JavaCompileSpec> {
 
     private static final Logger LOG = LoggerFactory.getLogger(IncrementalCompilerDecorator.class);
     private final ClasspathSnapshotMaker classpathSnapshotMaker;
     private final TaskScopedCompileCaches compileCaches;
-    private final CleaningJavaCompiler cleaningCompiler;
-    private final RecompilationSpecProvider staleClassDetector;
+    private final CleaningJavaCompilerSupport<T> cleaningCompiler;
+    private final RecompilationSpecProvider recompilationSpecProvider;
     private final CompilationSourceDirs sourceDirs;
-    private final Compiler<JavaCompileSpec> rebuildAllCompiler;
+    private final Compiler<T> rebuildAllCompiler;
     private final IncrementalCompilationInitializer compilationInitializer;
     private final PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer;
     private StringInterner interner;
 
-    public IncrementalCompilerDecorator(ClasspathSnapshotMaker classpathSnapshotMaker, TaskScopedCompileCaches compileCaches,
-                                        IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler,
-                                        RecompilationSpecProvider staleClassDetector,
-                                        CompilationSourceDirs sourceDirs, Compiler<JavaCompileSpec> rebuildAllCompiler, PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer, StringInterner interner) {
+    public IncrementalCompilerDecorator(ClasspathSnapshotMaker classpathSnapshotMaker,
+                                        TaskScopedCompileCaches compileCaches,
+                                        IncrementalCompilationInitializer compilationInitializer,
+                                        CleaningJavaCompilerSupport<T> cleaningCompiler,
+                                        RecompilationSpecProvider recompilationSpecProvider,
+                                        CompilationSourceDirs sourceDirs,
+                                        Compiler<T> rebuildAllCompiler,
+                                        PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer,
+                                        StringInterner interner) {
         this.classpathSnapshotMaker = classpathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
         this.cleaningCompiler = cleaningCompiler;
-        this.staleClassDetector = staleClassDetector;
+        this.recompilationSpecProvider = recompilationSpecProvider;
         this.sourceDirs = sourceDirs;
         this.rebuildAllCompiler = rebuildAllCompiler;
         this.previousCompilationOutputAnalyzer = previousCompilationOutputAnalyzer;
         this.interner = interner;
     }
 
-    public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
-        Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        return new IncrementalResultStoringCompiler(compiler, classpathSnapshotMaker, compileCaches.getPreviousCompilationStore(), interner);
+    public Compiler<T> prepareCompiler(IncrementalTaskInputs inputs) {
+        Compiler<T> compiler = getCompiler(inputs, sourceDirs);
+        return new IncrementalResultStoringCompiler<T>(compiler, classpathSnapshotMaker, compileCaches.getPreviousCompilationStore(), interner);
     }
 
-    private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
+    private Compiler<T> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         if (!inputs.isIncremental()) {
             LOG.info("Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.");
             return rebuildAllCompiler;
@@ -83,6 +88,6 @@ public class IncrementalCompilerDecorator {
         }
 
         PreviousCompilation previousCompilation = new PreviousCompilation(data, compileCaches.getClasspathEntrySnapshotCache(), previousCompilationOutputAnalyzer);
-        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, rebuildAllCompiler, staleClassDetector, compilationInitializer, classpathSnapshotMaker);
+        return new SelectiveCompiler<T>(inputs, previousCompilation, cleaningCompiler, rebuildAllCompiler, recompilationSpecProvider, compilationInitializer, classpathSnapshotMaker);
     }
 }

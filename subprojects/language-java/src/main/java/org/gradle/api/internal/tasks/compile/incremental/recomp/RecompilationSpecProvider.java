@@ -30,9 +30,11 @@ import java.util.Set;
 public class RecompilationSpecProvider {
 
     private final SourceToNameConverter sourceToNameConverter;
+    private final String extension;
 
-    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter) {
+    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, String extension) {
         this.sourceToNameConverter = sourceToNameConverter;
+        this.extension = extension;
     }
 
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
@@ -82,7 +84,7 @@ public class RecompilationSpecProvider {
         JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(previous, sourceToNameConverter);
         AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor = new AnnotationProcessorChangeProcessor(current, previous);
         ResourceChangeProcessor resourceChangeProcessor = new ResourceChangeProcessor(current.getAnnotationProcessorPath());
-        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor, resourceChangeProcessor);
+        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor, resourceChangeProcessor, extension);
         current.visitChanges(action);
     }
 }

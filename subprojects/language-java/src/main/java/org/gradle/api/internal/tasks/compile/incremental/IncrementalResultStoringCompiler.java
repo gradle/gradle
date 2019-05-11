@@ -41,14 +41,14 @@ import java.util.Set;
 /**
  * Stores the incremental class dependency analysis after compilation has finished.
  */
-class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
+class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Compiler<T> {
 
-    private final Compiler<JavaCompileSpec> delegate;
+    private final Compiler<T> delegate;
     private final ClasspathSnapshotProvider classpathSnapshotProvider;
     private final Stash<PreviousCompilationData> stash;
     private final StringInterner interner;
 
-    IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, Stash<PreviousCompilationData> stash, StringInterner interner) {
+    IncrementalResultStoringCompiler(Compiler<T> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, Stash<PreviousCompilationData> stash, StringInterner interner) {
         this.delegate = delegate;
         this.classpathSnapshotProvider = classpathSnapshotProvider;
         this.stash = stash;
@@ -56,7 +56,7 @@ class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
     }
 
     @Override
-    public WorkResult execute(JavaCompileSpec spec) {
+    public WorkResult execute(T spec) {
         WorkResult result = delegate.execute(spec);
         if (result instanceof RecompilationNotNecessary) {
             return result;

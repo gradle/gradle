@@ -20,6 +20,8 @@ import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
+import java.util.Collection;
+
 class JavaChangeProcessor {
 
     private final SourceToNameConverter sourceToNameConverter;
@@ -31,14 +33,17 @@ class JavaChangeProcessor {
     }
 
     public void processChange(InputFileDetails input, RecompilationSpec spec) {
-        String className = sourceToNameConverter.getClassName(input.getFile());
-        spec.getClassesToCompile().add(className);
-        DependentsSet actualDependents = previousCompilation.getDependents(className, IntSets.EMPTY_SET);
-        if (actualDependents.isDependencyToAll()) {
-            spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
-            return;
+        Collection<String> classNames = sourceToNameConverter.getClassNames(input.getFile());
+        spec.getClassesToCompile().addAll(classNames);
+
+        for (String className : classNames) {
+            DependentsSet actualDependents = previousCompilation.getDependents(className, IntSets.EMPTY_SET);
+            if (actualDependents.isDependencyToAll()) {
+                spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
+                return;
+            }
+            spec.getClassesToCompile().addAll(actualDependents.getDependentClasses());
+            spec.getResourcesToGenerate().addAll(actualDependents.getDependentResources());
         }
-        spec.getClassesToCompile().addAll(actualDependents.getDependentClasses());
-        spec.getResourcesToGenerate().addAll(actualDependents.getDependentResources());
     }
 }

@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class IncrementalCompilationInitializer {
+public class IncrementalCompilationInitializer {
     private final FileOperations fileOperations;
     private final FileTree sourceTree;
 
@@ -104,13 +104,17 @@ class IncrementalCompilationInitializer {
             String path = staleClass.replaceAll("\\.", "/");
             filesToDelete.include(path.concat(".class"));
             filesToDelete.include(path.concat(".java"));
+            filesToDelete.include(path.concat(".groovy"));
             filesToDelete.include(path.concat(".h"));
             filesToDelete.include(path.concat("$*.class"));
             filesToDelete.include(path.concat("$*.java"));
+            filesToDelete.include(path.concat("$*.groovy"));
             filesToDelete.include(path.concat("$*.h"));
 
             sourceToCompile.include(path.concat(".java"));
             sourceToCompile.include(path.concat("$*.java"));
+            sourceToCompile.include(path.concat(".groovy"));
+            sourceToCompile.include(path.concat("$*.groovy"));
         }
     }
 

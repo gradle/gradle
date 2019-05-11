@@ -30,7 +30,7 @@ public class CleaningGroovyCompiler extends CleaningJavaCompilerSupport<GroovyJa
     }
 
     @Override
-    protected Compiler<GroovyJavaJointCompileSpec> getCompiler() {
+    public Compiler<GroovyJavaJointCompileSpec> getCompiler() {
         return compiler;
     }
 

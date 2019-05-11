@@ -28,12 +28,14 @@ class InputChangeAction implements Action<InputFileDetails> {
     private final JavaChangeProcessor javaChangeProcessor;
     private final AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor;
     private final ResourceChangeProcessor resourceChangeProcessor;
+    private final String extension;
 
-    InputChangeAction(RecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor, ResourceChangeProcessor resourceChangeProcessor) {
+    InputChangeAction(RecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor, ResourceChangeProcessor resourceChangeProcessor, String extension) {
         this.spec = spec;
         this.javaChangeProcessor = javaChangeProcessor;
         this.annotationProcessorChangeProcessor = annotationProcessorChangeProcessor;
         this.resourceChangeProcessor = resourceChangeProcessor;
+        this.extension = extension;
     }
 
     @Override
@@ -43,7 +45,7 @@ class InputChangeAction implements Action<InputFileDetails> {
         }
 
         File file = input.getFile();
-        if (hasExtension(file, ".java")) {
+        if (hasExtension(file, extension)) {
             javaChangeProcessor.processChange(input, spec);
         } else if (hasExtension(file, ".jar") || hasExtension(file, ".class")) {
             annotationProcessorChangeProcessor.processChange(input, spec);

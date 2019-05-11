@@ -19,7 +19,7 @@
 package org.gradle.api.internal.tasks.compile.incremental
 
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs
-import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceToNameConverter
+import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaSourceToNameConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -31,15 +31,15 @@ class SourceToNameConverterTest extends Specification {
     def srcDirs = Stub(CompilationSourceDirs) {
         getSourceRoots() >> ["src/main/java", "src/main/java2"].collect { temp.file(it) }
     }
-    @Subject converter = new SourceToNameConverter(srcDirs)
+    @Subject converter = new JavaSourceToNameConverter(srcDirs)
 
     def "knows java source class relative path"() {
         expect:
-        converter.getClassName(temp.file("src/main/java/Foo.java")) == "Foo"
-        converter.getClassName(temp.file("src/main/java/org/bar/Bar.java")) == "org.bar.Bar"
-        converter.getClassName(temp.file("src/main/java2/com/Com.java")) == "com.Com"
+        converter.getClassNames(temp.file("src/main/java/Foo.java")) == "Foo"
+        converter.getClassNames(temp.file("src/main/java/org/bar/Bar.java")) == "org.bar.Bar"
+        converter.getClassNames(temp.file("src/main/java2/com/Com.java")) == "com.Com"
 
-        when: converter.getClassName(temp.file("src/main/unknown/Xxx.java"))
+        when: converter.getClassNames(temp.file("src/main/unknown/Xxx.java"))
         then: thrown(IllegalArgumentException)
     }
 }
