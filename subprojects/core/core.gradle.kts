@@ -97,7 +97,7 @@ dependencies {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {
