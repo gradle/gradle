@@ -62,7 +62,7 @@ public class GradlePluginDevelopmentExtension {
     }
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
-        this.plugins = project.container(PluginDeclaration.class);
+        this.plugins = project.getObjects().container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         testSourceSets(testSourceSets);
     }

@@ -17,7 +17,10 @@ package org.gradle.util
 
 
 import org.gradle.api.Task
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
+import org.gradle.api.internal.MutationGuards
+import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -73,7 +76,8 @@ class TestUtil {
         DefaultServiceRegistry services = new DefaultServiceRegistry()
         services.add(ProviderFactory, new DefaultProviderFactory())
         services.add(InstantiatorFactory, instantiatorFactory())
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory())
+
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory(), new DefaultDomainObjectCollectionFactory(instantiatorFactory(), services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity()))
     }
 
     static NamedObjectInstantiator objectInstantiator() {

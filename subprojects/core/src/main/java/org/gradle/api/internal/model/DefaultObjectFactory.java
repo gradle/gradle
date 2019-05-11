@@ -16,13 +16,17 @@
 
 package org.gradle.api.internal.model;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -56,14 +60,16 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FilePropertyFactory filePropertyFactory;
     private final FileCollectionFactory fileCollectionFactory;
+    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory) {
+    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.fileResolver = fileResolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.filePropertyFactory = filePropertyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.domainObjectCollectionFactory = domainObjectCollectionFactory;
     }
 
     @Override
@@ -100,6 +106,21 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public RegularFileProperty fileProperty() {
         return filePropertyFactory.newFileProperty();
+    }
+
+    @Override
+    public <T> NamedDomainObjectContainer<T> container(Class<T> elementType) {
+        return domainObjectCollectionFactory.newNamedDomainObjectContainer(elementType);
+    }
+
+    @Override
+    public <T> NamedDomainObjectContainer<T> container(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
+        return domainObjectCollectionFactory.newNamedDomainObjectContainer(elementType, factory);
+    }
+
+    @Override
+    public <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType) {
+        return domainObjectCollectionFactory.newDomainObjectSet(elementType);
     }
 
     @Override

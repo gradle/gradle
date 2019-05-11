@@ -19,8 +19,11 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.Iterables;
 import org.gradle.api.execution.internal.DefaultTaskInputsListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -247,7 +250,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             fileResolver,
             directoryFileTreeFactory,
             new DefaultFilePropertyFactory(fileResolver),
-            fileCollectionFactory);
+            fileCollectionFactory,
+            new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity()));
     }
 
     ProviderFactory createProviderFactory() {
