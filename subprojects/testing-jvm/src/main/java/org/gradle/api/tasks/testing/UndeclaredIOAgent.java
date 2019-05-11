@@ -72,10 +72,10 @@ public class UndeclaredIOAgent {
      * The entry point.
      */
     public static void premain(String outputFile, Instrumentation instrumentation) throws Exception {
-        Junction<NamedElement> outputMatch = nameMatches("^(set|delete|write|create|mkdir|rename).*");
+        Junction<NamedElement> outputMatch = nameMatches("^(?:set|delete|write|create|mkdir|rename).*");
         registerFileTransformer(instrumentation, outputMatch, Output.class);
 
-        Junction<NamedElement> inputMatch = not(outputMatch.or(nameMatches("^(getName|getPath).*")));
+        Junction<NamedElement> inputMatch = not(outputMatch.or(nameMatches("^(?:getName|getPath|compareTo|hashCode|equals|toString|getPath|getParent|isInvalid|getPrefixLength|slashify|createTempFile)$")));
         registerFileTransformer(instrumentation, inputMatch, Input.class);
     }
 
