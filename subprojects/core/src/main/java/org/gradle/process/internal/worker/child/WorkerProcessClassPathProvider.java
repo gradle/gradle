@@ -190,13 +190,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         }
 
         private static class WorkerClassRemapper extends Remapper {
-            private static final String SYSTEM_APP_WORKER_INTERNAL_NAME = Type.getInternalName(SystemApplicationClassLoaderWorker.class);
-
             @Override
             public String map(String typeName) {
-                if (typeName.equals(SYSTEM_APP_WORKER_INTERNAL_NAME)) {
-                    return typeName;
-                }
                 if (typeName.startsWith("org/gradle/")) {
                     return "worker/" + typeName;
                 }

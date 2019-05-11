@@ -52,6 +52,7 @@ dependencies {
     }
 
     implementation(project(":dependencyManagement"))
+    implementation(project(":launcherStartup"))
 
     runtime(project(":logging"))
 }
