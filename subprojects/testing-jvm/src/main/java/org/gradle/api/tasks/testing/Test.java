@@ -646,8 +646,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             .map(READ_ONLY, 0, 100000) // TODO
             .asCharBuffer();
 
-        System.out.println("size:" + charBuf.length());
-
         Set<String> results = Sets.newHashSet(unaccountedForEntrySplitter.split(charBuf));
         detectedIOFile.delete();
         return results;
