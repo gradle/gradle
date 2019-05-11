@@ -16,11 +16,9 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -36,7 +34,6 @@ public class ConnectorServices {
     private static DefaultServiceRegistry singletonRegistry;
 
     static {
-        checkJavaVersion();
         singletonRegistry = new ConnectorServiceRegistry();
     }
 
@@ -58,10 +55,6 @@ public class ConnectorServices {
     public static void reset() {
         singletonRegistry.close();
         singletonRegistry = new ConnectorServiceRegistry();
-    }
-
-    private static void checkJavaVersion() {
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle Tooling API", JavaVersion.VERSION_1_8);
     }
 
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
