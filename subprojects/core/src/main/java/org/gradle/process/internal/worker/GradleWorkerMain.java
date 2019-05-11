@@ -17,7 +17,7 @@
 package org.gradle.process.internal.worker;
 
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.process.internal.streams.EncodedStream;
+import org.gradle.internal.stream.EncodedStream;
 
 import java.io.DataInputStream;
 import java.net.URL;
