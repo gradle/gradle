@@ -16,14 +16,19 @@
 
 package org.gradle.api.tasks.compile;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
-import org.apache.commons.io.FilenameUtils;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileType;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
@@ -40,12 +45,15 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -58,9 +66,17 @@ import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.inject.Inject;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -73,6 +89,7 @@ public class GroovyCompile extends AbstractCompile {
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
     private final ConfigurableFileCollection astTransformClasspath;
+    private final File sourceClassesMappingFile;
     private final FileCollection stableSources = getProject().files(new Callable<FileTree>() {
         @Override
         public FileTree call() {
@@ -83,6 +100,7 @@ public class GroovyCompile extends AbstractCompile {
     public GroovyCompile() {
         ObjectFactory objectFactory = getServices().get(ObjectFactory.class);
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
+        compileOptions.setIncremental(false);
         this.compileOptions = compileOptions;
         this.astTransformClasspath = objectFactory.fileCollection();
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
@@ -95,6 +113,7 @@ public class GroovyCompile extends AbstractCompile {
                 }
             });
         }
+        this.sourceClassesMappingFile = new File(getTemporaryDir(), "source-classes-mapping.txt");
     }
 
     @Override
@@ -103,27 +122,32 @@ public class GroovyCompile extends AbstractCompile {
         DefaultGroovyJavaJointCompileSpec spec = createSpec();
         WorkResult result = getCompiler(spec, false).execute(spec);
         setDidWork(result.getDidWork());
+        updateMappingsFile(spec.getCompilationMappingFile(), ImmutableMultimap.<File, String>of());
     }
 
     @TaskAction
     protected void compile(InputChanges inputChanges) {
         System.out.println("Incremental compilation: " + inputChanges.isIncremental());
-        if (!inputChanges.isIncremental() || !getOptions().isIncremental()) {
+        if (!getOptions().isIncremental()) {
+            compile();
+            return;
+        }
+
+        Multimap<File, String> sourceClassesMapping = readSourceClassesMapping(sourceClassesMappingFile);
+        if (!inputChanges.isIncremental() || !sourceClassesMappingFile.isFile()) {
             compile();
         } else {
             List<File> sourceFilesToCompile = new ArrayList<File>();
             for (FileChange fileChange : inputChanges.getFileChanges(getStableSources())) {
-                String normalizedPath = fileChange.getNormalizedPath();
-                String className = FilenameUtils.removeExtension(normalizedPath) + ".class";
-                File outputFile = new File(getDestinationDir(), className);
+                if (fileChange.getFileType() == FileType.DIRECTORY) {
+                    continue;
+                }
                 switch (fileChange.getChangeType()) {
                     case REMOVED:
-                        System.out.println("Deleting " + outputFile);
-                        outputFile.delete();
+                        deleteAffectedOutputs(fileChange.getFile(), sourceClassesMapping);
                         break;
                     case MODIFIED:
-                        System.out.println("Deleting " + outputFile);
-                        outputFile.delete();
+                        deleteAffectedOutputs(fileChange.getFile(), sourceClassesMapping);
                         sourceFilesToCompile.add(fileChange.getFile());
                         break;
                     case ADDED:
@@ -134,7 +158,66 @@ public class GroovyCompile extends AbstractCompile {
             DefaultGroovyJavaJointCompileSpec spec = createSpec(sourceFilesToCompile);
             WorkResult result = getCompiler(spec, true).execute(spec);
             setDidWork(result.getDidWork());
+            updateMappingsFile(spec.getCompilationMappingFile(), sourceClassesMapping);
         }
+    }
+
+    private void updateMappingsFile(File compilationMappingFile, Multimap<File, String> oldMapping) {
+        Multimap<File, String> mapping = MultimapBuilder.hashKeys().arrayListValues().build();
+        mapping.putAll(oldMapping);
+        if (compilationMappingFile != null && compilationMappingFile.isFile()) {
+            Multimap<File, String> newSourceClassesMapping = readSourceClassesMapping(compilationMappingFile);
+            mapping.putAll(newSourceClassesMapping);
+        }
+        PrintWriter fileWriter = null;
+        try {
+            fileWriter = new PrintWriter(new FileWriter(sourceClassesMappingFile));
+            for (Map.Entry<File, String> entry : mapping.entries()) {
+                fileWriter.println("file:" + entry.getKey());
+                fileWriter.println(entry.getValue());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            IoActions.closeQuietly(fileWriter);
+        }
+    }
+
+    private void deleteAffectedOutputs(File sourceFile, Multimap<File, String> sourceClassesMapping) {
+        Collection<String> affectedFiles = sourceClassesMapping.get(sourceFile);
+        if (affectedFiles.isEmpty()) {
+            System.out.println("No previous output files recorded for source file: " + sourceFile);
+        }
+        for (String affectedClass : affectedFiles) {
+            File classFile = new File(getDestinationDir(), affectedClass.replace(".", "/") + ".class");
+            System.out.println("Deleting " + classFile);
+            classFile.delete();
+        }
+        sourceClassesMapping.removeAll(sourceFile);
+    }
+
+    private Multimap<File, String> readSourceClassesMapping(File compilationMappingFile) {
+        Multimap<File, String> sourceClassesMapping = MultimapBuilder.ListMultimapBuilder
+            .hashKeys()
+            .arrayListValues()
+            .build();
+        if (compilationMappingFile.isFile()) {
+            BufferedReader reader = null;
+            try {
+                reader = new BufferedReader(new InputStreamReader(Files.newInputStream(compilationMappingFile.toPath())));
+                for (String uri = reader.readLine(); uri != null; uri = reader.readLine()) {
+                    String className = Preconditions.checkNotNull(reader.readLine());
+                    if (uri.startsWith("file:")) {
+                        sourceClassesMapping.put(new File(uri.substring(5)), className);
+                    }
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            } finally {
+                IoActions.closeQuietly(reader);
+            }
+        }
+        return sourceClassesMapping;
     }
 
     @SkipWhenEmpty
@@ -142,6 +225,12 @@ public class GroovyCompile extends AbstractCompile {
     @InputFiles
     protected FileCollection getStableSources() {
         return stableSources;
+    }
+
+    @Optional
+    @LocalState
+    protected File getSourceClassesMappingFile() {
+        return compileOptions.isIncremental() ? sourceClassesMappingFile : null;
     }
 
     private Compiler<GroovyJavaJointCompileSpec> getCompiler(GroovyJavaJointCompileSpec spec, boolean incremental) {
@@ -177,6 +266,10 @@ public class GroovyCompile extends AbstractCompile {
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
+        if (getOptions().isIncremental()) {
+            spec.setCompilationMappingFile(new File(getTemporaryDir(), "current-compilation-mapping.txt"));
+            spec.getCompilationMappingFile().delete();
+        }
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
             File dir = new File(getTemporaryDir(), "groovy-java-stubs");
             GFileUtils.mkdirs(dir);

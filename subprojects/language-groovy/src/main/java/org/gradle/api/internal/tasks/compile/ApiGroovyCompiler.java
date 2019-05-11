@@ -19,12 +19,19 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.io.Closeables;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
 import groovy.lang.GroovySystem;
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.InnerClassNode;
+import org.codehaus.groovy.classgen.GeneratorContext;
 import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
@@ -45,12 +52,19 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -85,6 +99,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         jointCompilationOptions.put("stubDir", stubDir);
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);
+
+        TrackingCompilationCustomizer trackingCompilationCustomizer = new TrackingCompilationCustomizer();
+        File mappingFile = spec.getCompilationMappingFile();
+        if (mappingFile != null) {
+            configuration.addCompilationCustomizers(trackingCompilationCustomizer);
+        }
 
         ClassLoader classPathLoader;
         VersionNumber version = parseGroovyVersion();
@@ -178,6 +198,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
         try {
             unit.compile();
+            if (mappingFile != null) {
+                trackingCompilationCustomizer.writeMapping(mappingFile);
+            }
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
             System.err.println(e.getMessage());
             // Explicit flush, System.err is an auto-flushing PrintWriter unless it is replaced.
@@ -253,5 +276,52 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
     private ClassLoader getExtClassLoader() {
         return ClassLoaderUtils.getPlatformClassLoader();
+    }
+
+    private static class TrackingCompilationCustomizer extends CompilationCustomizer {
+        public TrackingCompilationCustomizer() {
+            super(CompilePhase.CLASS_GENERATION);
+        }
+
+        private final Map<URI, List<String>> location2ClassNames = new HashMap<URI, List<String>>();
+
+        @Override
+        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws org.codehaus.groovy.control.CompilationFailedException {
+            inspectClassNode(source, classNode);
+        }
+
+        void inspectClassNode(SourceUnit sourceUnit, ClassNode classNode) {
+            location2ClassNames.computeIfAbsent(sourceUnit.getSource().getURI(), new Function<URI, List<String>>() {
+                @Override
+                public List<String> apply(URI uri) {
+                    return new ArrayList<String>();
+                }
+            }).add(classNode.getName());
+            Iterator<InnerClassNode> iterator = classNode.getInnerClasses();
+            while (iterator.hasNext()) {
+                inspectClassNode(sourceUnit, iterator.next());
+            }
+        }
+
+        public void writeMapping(File mappingFile) {
+            PrintWriter fileWriter = null;
+            try {
+                fileWriter = new PrintWriter(new FileWriter(mappingFile, true));
+                for (Map.Entry<URI, List<String>> entry : location2ClassNames.entrySet()) {
+                    for (String className : entry.getValue()) {
+                        fileWriter.println(entry.getKey());
+                        fileWriter.println(className);
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                try {
+                    Closeables.close(fileWriter, false);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 }

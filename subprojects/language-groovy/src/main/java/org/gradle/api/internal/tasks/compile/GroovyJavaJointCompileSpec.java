@@ -16,5 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
+
 public interface GroovyJavaJointCompileSpec extends JavaCompileSpec, GroovyCompileSpec {
+    File getCompilationMappingFile();
+
+    void setCompilationMappingFile(File compilationMappingFile);
 }
