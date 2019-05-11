@@ -19,10 +19,12 @@ package org.gradle.api.tasks.testing;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.RedefinitionStrategy;
 import net.bytebuddy.asm.Advice;
+import net.bytebuddy.description.NamedElement;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.dynamic.loading.ClassInjector;
+import net.bytebuddy.matcher.ElementMatcher.Junction;
 import net.bytebuddy.utility.JavaModule;
 
 import java.io.File;
@@ -32,6 +34,7 @@ import java.lang.instrument.Instrumentation;
 import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -46,8 +49,8 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toMap;
 import static net.bytebuddy.dynamic.loading.ClassInjector.UsingInstrumentation.Target.BOOTSTRAP;
 import static net.bytebuddy.matcher.ElementMatchers.is;
+import static net.bytebuddy.matcher.ElementMatchers.nameMatches;
 import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
-import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.not;
 
 /**
@@ -69,6 +72,14 @@ public class UndeclaredIOAgent {
      * The entry point.
      */
     public static void premain(String outputFile, Instrumentation instrumentation) throws Exception {
+        Junction<NamedElement> outputMatch = nameMatches("^(set|delete|write|create|mkdir|rename).*");
+        registerFileTransformer(instrumentation, outputMatch, Output.class);
+
+        Junction<NamedElement> inputMatch = not(outputMatch.or(nameMatches("^(getName|getPath).*")));
+        registerFileTransformer(instrumentation, inputMatch, Input.class);
+    }
+
+    private static void registerFileTransformer(Instrumentation instrumentation, final Junction<NamedElement> methodMatcher, final Class<?> advice) throws Exception {
         File temp = injectClassesInBootstrap(instrumentation, UndeclaredIOAgent.class);
 
         new AgentBuilder.Default()
@@ -80,8 +91,7 @@ public class UndeclaredIOAgent {
             .transform(new AgentBuilder.Transformer() {
                 @Override
                 public Builder<?> transform(Builder<?> b, TypeDescription t, ClassLoader c, JavaModule m) {
-                    return b.visit(Advice.to(UndeclaredIOAgent.class)
-                        .on(not(named("getPath")))); // TODO
+                    return b.visit(Advice.to(advice).on(methodMatcher));
                 }
             })
             .installOn(instrumentation);
@@ -110,15 +120,32 @@ public class UndeclaredIOAgent {
         return temp;
     }
 
-    public static final Set<String> visited = new HashSet<String>();
+    public static final Set<String> visited = new HashSet<String>(Collections.<String>singletonList(null)); // TODO shared input/output?
 
-    /**
-     * The inlined input capturing code.
-     */
-    @Advice.OnMethodEnter(inline = true)
-    public static void enter(@Advice.This(optional = true) File file) {
-        if (file != null) {
-            String filePath = file.getPath();
+    // TODO don't write inputs/outputs to same results
+    public static class Output {
+        /**
+         * The inlined output capturing code.
+         */
+        @Advice.OnMethodEnter(inline = true)
+        public static void enter(@Advice.This(optional = true) File file) {
+            String filePath = (file != null) ? file.getPath() : null;
+            if (visited.add(filePath)) {
+                synchronized (results) {
+                    results.put(filePath, 0, filePath.length());
+                    results.put('\0');
+                }
+            }
+        }
+    }
+
+    public static class Input {
+        /**
+         * The inlined input capturing code.
+         */
+        @Advice.OnMethodEnter(inline = true)
+        public static void enter(@Advice.This(optional = true) File file) {
+            String filePath = (file != null) ? file.getPath() : null;
             if (visited.add(filePath)) {
                 synchronized (results) {
                     results.put(filePath, 0, filePath.length());
