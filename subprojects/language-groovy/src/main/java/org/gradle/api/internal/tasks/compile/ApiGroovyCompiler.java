@@ -136,6 +136,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         File[] sortedSourceFiles = Iterables.toArray(spec.getSourceFiles(), File.class);
         Arrays.sort(sortedSourceFiles);
         unit.addSources(sortedSourceFiles);
+        System.out.println(String.format("Source files to compile: %s", Arrays.toString(sortedSourceFiles)));
 
         unit.setCompilerFactory(new JavaCompilerFactory() {
             @Override
