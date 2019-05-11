@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -53,6 +54,7 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
@@ -63,11 +65,23 @@ public class GroovyCompile extends AbstractCompile {
     private FileCollection groovyClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
+    private final ConfigurableFileCollection astTransformClasspath;
 
     public GroovyCompile() {
-        CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
+        ObjectFactory objectFactory = getServices().get(ObjectFactory.class);
+        CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
         this.compileOptions = compileOptions;
+        this.astTransformClasspath = objectFactory.fileCollection();
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+        boolean enableCompileAvoidance = Boolean.getBoolean("org.gradle.unsafe.groovy.compile.avoidance");
+        if (!enableCompileAvoidance) {
+            astTransformClasspath.from(new Callable<FileCollection>() {
+                @Override
+                public FileCollection call() {
+                    return getClasspath();
+                }
+            });
+        }
     }
 
     @Override
@@ -120,6 +134,11 @@ public class GroovyCompile extends AbstractCompile {
     @CompileClasspath
     public FileCollection getClasspath() {
         return super.getClasspath();
+    }
+
+    @Classpath
+    public ConfigurableFileCollection getAstTransformClasspath() {
+        return astTransformClasspath;
     }
 
     private void checkGroovyClasspathIsNonEmpty() {
