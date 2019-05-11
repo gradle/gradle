@@ -491,10 +491,11 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """
 
         and:
-        def undeclaredInputFileInputStream = file('src/test/undeclared-input-FileInputStream.txt')
-        undeclaredInputFileInputStream << "text"
-        def undeclaredInputFile = file('src/test/undeclared-input-File.txt')
-        undeclaredInputFile << "text"
+        def undeclaredFileOutputStream = file('src/test/undeclared-input-FileInputStream.txt')
+        def undeclaredFileInputStream = file('src/test/undeclared-input-FileInputStream.txt')
+        undeclaredFileInputStream << "text"
+        def undeclaredFileInput = file('src/test/undeclared-input-File.txt')
+        undeclaredFileInput << "text"
 
         @Language("JAVA") undeclaredInputReader = """
             import org.junit.Test;
@@ -503,10 +504,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             public class UndeclaredInputReader {
                 @Test
                 public void read() throws Exception {
-                    try (FileInputStream input = new FileInputStream(new File("${undeclaredInputFileInputStream}"))) {
+                    try (FileInputStream input = new FileInputStream(new File("${undeclaredFileInputStream}"))) {
                         input.read();
                     } 
-                    new File("${undeclaredInputFile}").exists();
+                    try (FileOutputStream output = new FileOutputStream(new File("${undeclaredFileOutputStream}"))) {
+                        output.write("text".getBytes());
+                    } 
+                    new File("${undeclaredFileInput}").exists(); // goes to file system
+                    new File("ignoredFile").toString(); // works with the parameter only
                 }
             }
         """
@@ -516,13 +521,15 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         fails("test")
 
         then:
-        failureCauseContains(undeclaredInputFileInputStream.absolutePath)
-        failureCauseContains(undeclaredInputFile.absolutePath)
+        failureCauseContains("${undeclaredFileInputStream}")
+        failureCauseContains("${undeclaredFileOutputStream}")
+        failureCauseContains("${undeclaredFileInput}")
 
         when:
         buildFile << """
-            test.inputs.file "${undeclaredInputFileInputStream}"
-            test.inputs.file "${undeclaredInputFile}"
+            test.inputs.file "${undeclaredFileInputStream}"
+            test.inputs.file "${undeclaredFileOutputStream}"
+            test.inputs.file "${undeclaredFileInput}"
         """
 
         then:

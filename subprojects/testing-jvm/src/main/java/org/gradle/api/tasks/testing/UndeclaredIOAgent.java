@@ -29,6 +29,7 @@ import net.bytebuddy.utility.JavaModule;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.instrument.Instrumentation;
@@ -76,20 +77,20 @@ public class UndeclaredIOAgent { // TODO lock from multiple threads or forks
      */
     public static void premain(String outputFile, Instrumentation instrumentation) throws Exception {
         instrumentFile(instrumentation);
-        instrumentInputFileStream(instrumentation);
+        instrumentFileStreams(instrumentation);
     }
 
     private static void instrumentFile(Instrumentation instrumentation) throws Exception {
-        Junction<NamedElement> fileOutputMethodNameMatch = nameMatches("^(?:set|delete|write|create|mkdir|rename).*");
+        Junction<NamedElement> fileOutputMethodNameMatch = nameMatches("^(?:createNewFile|createTempFile|delete|deleteOnExit|mkdir|mkdirs|renameTo|setExecutable|setLastModified|setReadOnly|setReadable|setWritable|writeObject)$");
         registerTransformer(instrumentation, File.class, fileOutputMethodNameMatch, FileOutputTransformer.class);
 
-        Junction<NamedElement> fileInputMethodNameMatch = not(fileOutputMethodNameMatch.or(nameMatches("^(?:getName|getPath|compareTo|hashCode|equals|toString|getPath|getParent|isInvalid|getPrefixLength|slashify|createTempFile)$"))); // TODO input list?
+        Junction<NamedElement> fileInputMethodNameMatch = nameMatches("^(?:canExecute|canRead|canWrite|exists|getAbsoluteFile|getAbsolutePath|getCanonicalFile|getCanonicalPath|getFreeSpace|getParentFile|getTotalSpace|getUsableSpace|isAbsolute|isDirectory|isFile|isHidden|lastModified|length|list|listFiles|listRoots|readObject|toPath|toURI|toURL)$");
         registerTransformer(instrumentation, File.class, fileInputMethodNameMatch, FileInputTransformer.class);
     }
 
-    private static void instrumentInputFileStream(Instrumentation instrumentation) throws Exception {
-        Junction<NamedElement> fileInputStreamMatch = named("open");
-        registerTransformer(instrumentation, FileInputStream.class, fileInputStreamMatch, FileInputStreamFileTransformer.class);
+    private static void instrumentFileStreams(Instrumentation instrumentation) throws Exception {
+        registerTransformer(instrumentation, FileInputStream.class, named("open"), FileInputStreamFileTransformer.class);
+        registerTransformer(instrumentation, FileOutputStream.class, named("open"), FileOutputStreamFileTransformer.class);
     }
 
     private static void registerTransformer(Instrumentation instrumentation, Class<?> type, final Junction<NamedElement> methodMatcher, final Class<?> advice) throws Exception {
@@ -163,6 +164,18 @@ public class UndeclaredIOAgent { // TODO lock from multiple threads or forks
     }
 
     public static class FileInputStreamFileTransformer {
+        @Advice.OnMethodEnter(inline = false)
+        public static void enter(@Advice.Argument(0) String filePath) {
+            if (visited.add(filePath)) {
+                synchronized (results) {
+                    results.put(filePath, 0, filePath.length());
+                    results.put('\0');
+                }
+            }
+        }
+    }
+
+    public static class FileOutputStreamFileTransformer {
         @Advice.OnMethodEnter(inline = false)
         public static void enter(@Advice.Argument(0) String filePath) {
             if (visited.add(filePath)) {
