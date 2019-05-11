@@ -20,6 +20,7 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.CommandLineActionFactory;
+import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 
 import java.util.Arrays;
 
@@ -37,6 +38,6 @@ public class Main extends EntryPoint {
     }
 
     CommandLineActionFactory createActionFactory() {
-        return new CommandLineActionFactory();
+        return new DefaultCommandLineActionFactory();
     }
 }

@@ -22,7 +22,7 @@ import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
 import org.gradle.internal.time.MockClock
-import org.gradle.launcher.cli.CommandLineActionFactory.WelcomeMessageAction
+import org.gradle.launcher.cli.DefaultCommandLineActionFactory.WelcomeMessageAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
