@@ -17,16 +17,24 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.CollectionUtils;
+
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 public class WorkerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(WorkerDaemonStarter.class);
@@ -48,6 +56,10 @@ public class WorkerDaemonStarter {
         builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.applicationClasspath(classPathRegistry.getClassPath("WORKER_RUNTIME").getAsFiles());
         builder.sharedPackages("org.gradle", "javax.inject");
+        if (forkOptions.getClassLoaderStructure().isFlat()) {
+            builder.useApplicationClassloaderOnly();
+            builder.applicationClasspath(toFiles((VisitableURLClassLoader.Spec)forkOptions.getClassLoaderStructure().getSpec()));
+        }
         builder.onProcessFailure(cleanupAction);
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         forkOptions.getJavaForkOptions().copyTo(javaCommand);
@@ -60,5 +72,18 @@ public class WorkerDaemonStarter {
         LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
 
         return client;
+    }
+
+    private static Iterable<File> toFiles(VisitableURLClassLoader.Spec spec) {
+        return CollectionUtils.collect(spec.getClasspath(), new Transformer<File, URL>() {
+            @Override
+            public File transform(URL url) {
+                try {
+                    return new File(url.toURI());
+                } catch (URISyntaxException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        });
     }
 }

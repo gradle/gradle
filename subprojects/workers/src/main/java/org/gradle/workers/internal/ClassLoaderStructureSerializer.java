@@ -37,6 +37,8 @@ public class ClassLoaderStructureSerializer implements Serializer<ClassLoaderStr
 
     @Override
     public void write(Encoder encoder, ClassLoaderStructure classLoaderStructure) throws Exception {
+        encoder.writeBoolean(classLoaderStructure.isFlat());
+
         if (classLoaderStructure.getParent() == null) {
             encoder.writeByte(ROOT);
         } else {
@@ -55,6 +57,7 @@ public class ClassLoaderStructureSerializer implements Serializer<ClassLoaderStr
 
     @Override
     public ClassLoaderStructure read(Decoder decoder) throws EOFException, Exception {
+        boolean flat = decoder.readBoolean();
         byte parentTag = decoder.readByte();
         ClassLoaderStructure parent;
         switch (parentTag) {
@@ -81,6 +84,6 @@ public class ClassLoaderStructureSerializer implements Serializer<ClassLoaderStr
                 throw new IllegalArgumentException("Unexpected payload type.");
         }
 
-        return new ClassLoaderStructure(spec, parent);
+        return new ClassLoaderStructure(spec, parent, flat);
     }
 }

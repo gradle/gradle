@@ -50,7 +50,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         javaForkOptions.setWorkingDir(daemonWorkingDir);
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
-        ClassLoaderStructure classLoaderStructure = new ClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
+        ClassLoaderStructure classLoaderStructure = new ClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()), true);
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)

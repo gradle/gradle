@@ -45,4 +45,9 @@ public interface MultiRequestWorkerProcessBuilder<T> extends WorkerProcessSettin
      * Registers a serializer to use when handling arguments to methods of {@link T}.
      */
     void registerArgumentSerializer(SerializerRegistry serializerRegistry);
+
+    /**
+     * Use a simpler classloader structure where everything is in the application classloader.
+     */
+    MultiRequestWorkerProcessBuilder useApplicationClassloaderOnly();
 }

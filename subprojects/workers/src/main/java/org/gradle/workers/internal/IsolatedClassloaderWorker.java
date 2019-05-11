@@ -25,18 +25,17 @@ import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 
-public class IsolatedClassloaderWorker implements Worker {
+public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
     private final ClassLoaderStructure classLoaderStructure;
     private final ClassLoader workerInfrastructureClassloader;
-    private final ServiceRegistry serviceRegistry;
     private ClassLoader workerClassLoader;
     private boolean reuseClassloader;
 
     public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry serviceRegistry) {
+        super(new DefaultWorkerServer(serviceRegistry));
         this.classLoaderStructure = classLoaderStructure;
         this.workerInfrastructureClassloader = workerInfrastructureClassloader;
-        this.serviceRegistry = serviceRegistry;
     }
 
     public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry serviceRegistry, boolean reuseClassloader) {
@@ -48,13 +47,8 @@ public class IsolatedClassloaderWorker implements Worker {
         ClassLoader workerClassLoader = getWorkerClassLoader();
         GroovySystemLoader workerClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
 
-        ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
         try {
-            Thread.currentThread().setContextClassLoader(workerClassLoader);
-            WorkerProtocol worker = new DefaultWorkerServer(serviceRegistry);
-            TransportableActionExecutionSpec transportableSpec = TransportableActionExecutionSpec.from(spec);
-            ActionExecutionSpec effectiveSpec = transportableSpec.deserialize(workerClassLoader);
-            return worker.execute(effectiveSpec);
+            return executeInClassLoader(spec, workerClassLoader);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -64,7 +58,6 @@ public class IsolatedClassloaderWorker implements Worker {
                 CompositeStoppable.stoppable(workerClassLoader).stop();
                 this.workerClassLoader = null;
             }
-            Thread.currentThread().setContextClassLoader(previousContextLoader);
         }
     }
 

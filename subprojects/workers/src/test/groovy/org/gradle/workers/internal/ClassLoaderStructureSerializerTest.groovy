@@ -43,6 +43,21 @@ class ClassLoaderStructureSerializerTest extends Specification {
         decodedClassloaderStructure == classLoaderStructure
     }
 
+    def "can serialize and deserialize a flat classloader structure"() {
+        def classLoaderStructure = new ClassLoaderStructure(visitableUrlClassloaderSpec(), true)
+
+        when:
+        serializer.write(encoder, classLoaderStructure)
+        encoder.flush()
+
+        and:
+        def decoder = new KryoBackedDecoder(new ByteArrayInputStream(outputStream.toByteArray()))
+        def decodedClassloaderStructure = serializer.read(decoder)
+
+        then:
+        decodedClassloaderStructure == classLoaderStructure
+    }
+
     def filteringClassloaderSpec() {
         def classNames = [ 'allowed.Class1', 'allowed.Class2' ]
         def disallowedClassNames = [ 'disallowed.Class1', 'disallowed.Class2' ]

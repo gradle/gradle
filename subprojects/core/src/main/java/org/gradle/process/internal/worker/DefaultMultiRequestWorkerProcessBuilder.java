@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -36,6 +37,8 @@ import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URL;
+import java.util.Collections;
 import java.util.Set;
 
 class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWorkerProcessBuilder<WORKER> {
@@ -46,6 +49,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     private final DefaultWorkerProcessBuilder workerProcessBuilder;
     private Action<WorkerProcess> onFailure = Actions.doNothing();
     private RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
+    private final ClassPath implementationClasspath;
 
     static {
         try {
@@ -60,8 +64,9 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
         this.workerType = workerType;
         this.workerImplementation = workerImplementation;
         this.workerProcessBuilder = workerProcessBuilder;
+        this.implementationClasspath = ClasspathUtil.getClasspath(workerImplementation.getClassLoader());
         workerProcessBuilder.worker(new WorkerAction(workerImplementation));
-        workerProcessBuilder.setImplementationClasspath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()).getAsURLs());
+        workerProcessBuilder.setImplementationClasspath(implementationClasspath.getAsURLs());
     }
 
     @Override
@@ -127,6 +132,13 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     @Override
     public void onProcessFailure(Action<WorkerProcess> action) {
         this.onFailure = action;
+    }
+
+    @Override
+    public MultiRequestWorkerProcessBuilder useApplicationClassloaderOnly() {
+        workerProcessBuilder.applicationClasspath(implementationClasspath.getAsFiles());
+        workerProcessBuilder.setImplementationClasspath(Collections.<URL>emptyList());
+        return this;
     }
 
     @Override
