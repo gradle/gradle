@@ -40,6 +40,9 @@ class DaemonHealthStatsTest extends Specification {
     }
 
     def "consumes subsequent builds"() {
+        def defaultLocale = Locale.getDefault()
+        Locale.setDefault(Locale.ENGLISH)
+
         when:
         gcInfo.getCollectionTime() >> 25
         gcMonitor.getHeapStats() >> {
@@ -54,6 +57,9 @@ class DaemonHealthStatsTest extends Specification {
 
         then:
         healthStats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, GC rate: 1.00/s, heap usage: 10% of 1.0 kB, non-heap usage: 50% of 2.0 kB]"
+
+        cleanup:
+        Locale.setDefault(defaultLocale)
     }
 
     def "handles no garbage collection data"() {
