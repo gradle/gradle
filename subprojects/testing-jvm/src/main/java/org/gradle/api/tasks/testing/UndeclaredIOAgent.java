@@ -46,6 +46,7 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.Arrays.stream;
+import static java.util.Collections.synchronizedSet;
 import static java.util.stream.Collectors.toMap;
 import static net.bytebuddy.dynamic.loading.ClassInjector.UsingInstrumentation.Target.BOOTSTRAP;
 import static net.bytebuddy.matcher.ElementMatchers.is;
@@ -56,11 +57,11 @@ import static net.bytebuddy.matcher.ElementMatchers.not;
 /**
  * The Java agent.
  */
-public class UndeclaredIOAgent {
-    public static final CharBuffer results = init();
+public class UndeclaredIOAgent { // TODO lock from multiple threads or forks
+    public static final CharBuffer results = init(); // TODO init from premain only?
     public static CharBuffer init() {
         try {
-            return FileChannel.open(Paths.get("build/undeclared.txt"), CREATE, READ, WRITE) // TODO
+            return FileChannel.open(Paths.get("build/undeclared.txt"), CREATE, READ, WRITE) // TODO filename should come from test
                 .map(READ_WRITE, 0, 100000) // TODO
                 .asCharBuffer();
         } catch (IOException e) {
@@ -73,21 +74,21 @@ public class UndeclaredIOAgent {
      */
     public static void premain(String outputFile, Instrumentation instrumentation) throws Exception {
         Junction<NamedElement> outputMatch = nameMatches("^(?:set|delete|write|create|mkdir|rename).*");
-        registerFileTransformer(instrumentation, outputMatch, Output.class);
+        registerFileTransformer(instrumentation, File.class, outputMatch, OutputFileTransformer.class);
 
-        Junction<NamedElement> inputMatch = not(outputMatch.or(nameMatches("^(?:getName|getPath|compareTo|hashCode|equals|toString|getPath|getParent|isInvalid|getPrefixLength|slashify|createTempFile)$")));
-        registerFileTransformer(instrumentation, inputMatch, Input.class);
+        Junction<NamedElement> inputMatch = not(outputMatch.or(nameMatches("^(?:getName|getPath|compareTo|hashCode|equals|toString|getPath|getParent|isInvalid|getPrefixLength|slashify|createTempFile)$"))); // TODO input list?
+        registerFileTransformer(instrumentation, File.class, inputMatch, InputFileTransformer.class);
     }
 
-    private static void registerFileTransformer(Instrumentation instrumentation, final Junction<NamedElement> methodMatcher, final Class<?> advice) throws Exception {
-        File temp = injectClassesInBootstrap(instrumentation, UndeclaredIOAgent.class);
+    private static void registerFileTransformer(Instrumentation instrumentation, Class<File> type, final Junction<NamedElement> methodMatcher, final Class<?> advice) throws Exception {
+        File temp = injectClassesInBootstrap(instrumentation, UndeclaredIOAgent.class, OutputFileTransformer.class, InputFileTransformer.class);
 
         new AgentBuilder.Default()
             .disableClassFormatChanges()
             .with(RedefinitionStrategy.RETRANSFORMATION)
             .ignore(not(nameStartsWith("java.io")))
             .enableBootstrapInjection(instrumentation, temp)
-            .type(is(File.class))
+            .type(is(type))
             .transform(new AgentBuilder.Transformer() {
                 @Override
                 public Builder<?> transform(Builder<?> b, TypeDescription t, ClassLoader c, JavaModule m) {
@@ -120,17 +121,17 @@ public class UndeclaredIOAgent {
         return temp;
     }
 
-    public static final Set<String> visited = new HashSet<String>(Collections.<String>singletonList(null)); // TODO shared input/output?
+    public static final Set<String> visited = synchronizedSet(new HashSet<String>(Collections.<String>singletonList(null))); // TODO shared input/output?
 
     // TODO don't write inputs/outputs to same results
-    public static class Output {
+    public static class OutputFileTransformer {
         /**
          * The inlined output capturing code.
          */
-        @Advice.OnMethodEnter(inline = true)
+        @Advice.OnMethodEnter(inline = false)
         public static void enter(@Advice.This(optional = true) File file) {
             String filePath = (file != null) ? file.getPath() : null;
-            if (visited.add(filePath)) {
+            if (results != null && visited.add(filePath)) {
                 synchronized (results) {
                     results.put(filePath, 0, filePath.length());
                     results.put('\0');
@@ -139,14 +140,14 @@ public class UndeclaredIOAgent {
         }
     }
 
-    public static class Input {
+    public static class InputFileTransformer {
         /**
          * The inlined input capturing code.
          */
-        @Advice.OnMethodEnter(inline = true)
+        @Advice.OnMethodEnter(inline = false)
         public static void enter(@Advice.This(optional = true) File file) {
             String filePath = (file != null) ? file.getPath() : null;
-            if (visited.add(filePath)) {
+            if (results != null && visited.add(filePath)) {
                 synchronized (results) {
                     results.put(filePath, 0, filePath.length());
                     results.put('\0');
