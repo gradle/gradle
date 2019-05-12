@@ -16,14 +16,24 @@
 
 package org.gradle.integtests.resolve.http
 
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.junit.Rule
 
-class HttpRedirectResolveIntegrationTest extends AbstractRedirectResolveIntegrationTest {
+
+class HttpsToHttpRedirectResolveIntegrationTest extends AbstractRedirectResolveIntegrationTest {
+
+    @Rule TestResources resources = new TestResources(temporaryFolder)
+    TestKeyStore keyStore
+
     @Override
     String getFrontServerBaseUrl() {
-        "http://localhost:${server.port}"
+        "https://localhost:${server.sslPort}"
     }
 
     void beforeServerStart() {
-        // No-op
+        keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+        keyStore.configureServerCert(executer)
     }
 }
