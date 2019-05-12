@@ -13,7 +13,7 @@ description = "Kotlin Compiler Embeddable - patched for Gradle"
 base.archivesBaseName = "kotlin-compiler-embeddable-$kotlinVersion-patched-for-gradle"
 
 gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
+    moduleType = ModuleType.CORE
 }
 
 dependencies {
