@@ -105,6 +105,10 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
+### Default JaCoCo version upgraded to 0.8.4
+
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.4](http://www.jacoco.org/jacoco/trunk/doc/changes.html) instead of 0.8.3 by default.
+
 ## Reporting Problems
 
 If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
