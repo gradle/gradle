@@ -313,7 +313,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator, CrossProjectConfigurator projectConfigurator) {
         ServiceRegistry services = ProjectScopeServices.this;
         Instantiator instantiator = instantiatorFactory.injectAndDecorate(services);
-        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE, fileResolver, directoryFileTreeFactory, filePropertyFactory, fileCollectionFactory, new DefaultDomainObjectCollectionFactory(instantiatorFactory,services, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator)));
+        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE, fileResolver, directoryFileTreeFactory, filePropertyFactory, fileCollectionFactory, new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator)));
     }
 
 }
