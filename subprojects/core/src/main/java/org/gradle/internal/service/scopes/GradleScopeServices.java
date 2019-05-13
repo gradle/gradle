@@ -49,6 +49,8 @@ import org.gradle.execution.DefaultBuildExecuter;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
 import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ExcludedTaskFilteringBuildConfigurationAction;
+import org.gradle.execution.IncludedBuildLifecycleBuildExecuter;
+import org.gradle.execution.NotifyingBuildExecuter;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
@@ -146,10 +148,14 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildExecuter createBuildExecuter(StyledTextOutputFactory textOutputFactory) {
-        return new DefaultBuildExecuter(
-            asList(new DryRunBuildExecutionAction(textOutputFactory),
-                new SelectedTaskExecutionAction()));
+    BuildExecuter createBuildExecuter(StyledTextOutputFactory textOutputFactory, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {
+        return new NotifyingBuildExecuter(
+            new IncludedBuildLifecycleBuildExecuter(
+                new DefaultBuildExecuter(
+                    asList(new DryRunBuildExecutionAction(textOutputFactory),
+                        new SelectedTaskExecutionAction())),
+                includedBuildControllers),
+            buildOperationExecutor);
     }
 
     BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry) {

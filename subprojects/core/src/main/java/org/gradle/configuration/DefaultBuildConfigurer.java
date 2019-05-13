@@ -18,20 +18,33 @@ package org.gradle.configuration;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.initialization.BuildLoader;
+import org.gradle.initialization.ModelConfigurationListener;
+import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.SingleMessageLogger;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
+    private final BuildLoader buildLoader;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectConfigurer projectConfigurer;
     private final BuildStateRegistry buildRegistry;
+    private final ModelConfigurationListener modelConfigurationListener;
 
-    public DefaultBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildRegistry) {
+    public DefaultBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildRegistry, BuildLoader buildLoader, ModelConfigurationListener modelConfigurationListener, BuildOperationExecutor buildOperationExecutor) {
         this.projectConfigurer = projectConfigurer;
         this.buildRegistry = buildRegistry;
+        this.buildLoader = buildLoader;
+        this.modelConfigurationListener = modelConfigurationListener;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public void configure(GradleInternal gradle) {
         maybeInformAboutIncubatingMode(gradle);
+
+        buildLoader.load(gradle.getSettings(), gradle);
+
         if (gradle.getParent() == null) {
             buildRegistry.beforeConfigureRootBuild();
         }
@@ -39,7 +52,10 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
             projectConfigurer.configure(gradle.getRootProject());
         } else {
             projectConfigurer.configureHierarchy(gradle.getRootProject());
+            new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);
         }
+
+        modelConfigurationListener.onConfigure(gradle);
     }
 
     private void maybeInformAboutIncubatingMode(GradleInternal gradle) {
