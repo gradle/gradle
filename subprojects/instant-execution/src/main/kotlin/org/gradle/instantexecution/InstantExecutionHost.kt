@@ -40,9 +40,11 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.NotifyingSettingsPreparer
+import org.gradle.initialization.NotifyingTaskExecutionPreparer
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
+import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver
@@ -203,8 +205,18 @@ class InstantExecutionHost internal constructor(
             getService(PluginRequestApplicator::class.java).applyPlugins(pluginRequests, rootProject.buildscript, rootProject.pluginManager, rootProject.classLoaderScope)
         }
 
-        override fun scheduleTasks(tasks: Iterable<Task>) =
+        override fun scheduleTasks(tasks: Iterable<Task>) {
             gradle.taskGraph.addEntryTasks(tasks)
+            gradle.taskGraph.populate()
+
+            // Fire build operation required by build scan to determine when task execution starts
+            // Currently this operation is not around the actual task graph calculation/populate for instant execution (just to make this a smaller step)
+            // This might be better done as a new build operation type
+            NotifyingTaskExecutionPreparer(TaskExecutionPreparer {
+                // Nothing to do
+                // TODO - instant-execution: prehaps move this so it wraps loading tasks from cache file
+            }, getService(BuildOperationExecutor::class.java)).prepareForTaskExecution(gradle)
+        }
 
         private
         fun createSettings(): SettingsInternal {

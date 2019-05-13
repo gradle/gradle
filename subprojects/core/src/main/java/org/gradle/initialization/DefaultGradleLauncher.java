@@ -15,23 +15,17 @@
  */
 package org.gradle.initialization;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
-import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationCategory;
@@ -40,7 +34,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -50,8 +43,6 @@ import java.util.Set;
 public class DefaultGradleLauncher implements GradleLauncher {
 
     private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {
-    };
-    private static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new NotifyProjectsEvaluatedBuildOperationType.Result() {
     };
 
     private enum Stage {
@@ -74,7 +65,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final ModelConfigurationListener modelConfigurationListener;
     private final BuildCompletionListener buildCompletionListener;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
@@ -84,14 +74,15 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private final InstantExecution instantExecution;
     private final SettingsPreparer settingsPreparer;
+    private final TaskExecutionPreparer taskExecutionPreparer;
 
     public DefaultGradleLauncher(GradleInternal gradle, BuildLoader buildLoader,
                                  BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
                                  BuildListener buildListener, ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
-                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter,
-                                 BuildScopeServices buildServices, List<?> servicesToStop, IncludedBuildControllers includedBuildControllers,
-                                 SettingsPreparer settingsPreparer) {
+                                 BuildExecuter buildExecuter, BuildScopeServices buildServices, List<?> servicesToStop,
+                                 IncludedBuildControllers includedBuildControllers, SettingsPreparer settingsPreparer,
+                                 TaskExecutionPreparer taskExecutionPreparer) {
         this.gradle = gradle;
         this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
@@ -99,7 +90,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildListener = buildListener;
         this.modelConfigurationListener = modelConfigurationListener;
         this.buildOperationExecutor = operationExecutor;
-        this.buildConfigurationActionExecuter = buildConfigurationActionExecuter;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
@@ -107,6 +97,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.includedBuildControllers = includedBuildControllers;
         this.instantExecution = gradle.getServices().get(InstantExecution.class);
         this.settingsPreparer = settingsPreparer;
+        this.taskExecutionPreparer = taskExecutionPreparer;
     }
 
     @Override
@@ -155,7 +146,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doClassicBuildStages(Stage upTo) {
-        loadSettings();
+        prepareSettings();
         if (upTo == Stage.LoadSettings) {
             return;
         }
@@ -163,7 +154,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (upTo == Stage.Configure) {
             return;
         }
-        constructTaskGraph();
+        prepareTaskExecution();
         if (upTo == Stage.TaskGraph) {
             return;
         }
@@ -172,24 +163,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doInstantExecution() {
-        reconstructTaskGraphForInstantExecution();
+        instantExecution.loadTaskGraph();
         stage = Stage.TaskGraph;
         runTasks();
-    }
-
-    private void reconstructTaskGraphForInstantExecution() {
-        instantExecution.loadTaskGraph();
-        gradle.getTaskGraph().populate();
-
-        // Fire build operation required by build scan to determine when task execution starts
-        // Currently this operation is not around the actual task graph calculation/populate for instant execution (just to make this a smaller step)
-        // This might be better done as a new build operation type
-        buildOperationExecutor.run(new CalculateTaskGraph() {
-            @Override
-            TaskExecutionGraphInternal populateTaskGraph() {
-                return gradle.getTaskGraph();
-            }
-        });
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
@@ -221,7 +197,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private void loadSettings() {
+    private void prepareSettings() {
         if (stage == null) {
             buildListener.buildStarted(gradle);
 
@@ -239,9 +215,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private void constructTaskGraph() {
+    private void prepareTaskExecution() {
         if (stage == Stage.Configure) {
-            buildOperationExecutor.run(new CalculateTaskGraph());
+            taskExecutionPreparer.prepareForTaskExecution(gradle);
 
             stage = Stage.TaskGraph;
         }
@@ -300,8 +276,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
             buildLoader.load(gradle.getSettings(), gradle);
             buildConfigurer.configure(gradle);
 
-            if (!isConfigureOnDemand()) {
-                projectsEvaluated();
+            if (!gradle.getStartParameter().isConfigureOnDemand()) {
+                new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);
             }
 
             modelConfigurationListener.onConfigure(gradle);
@@ -323,59 +299,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     return getGradle().getIdentityPath().toString();
                 }
             });
-        }
-    }
-
-    private class CalculateTaskGraph implements RunnableBuildOperation {
-        @Override
-        public void run(BuildOperationContext buildOperationContext) {
-            final TaskExecutionGraphInternal taskGraph = populateTaskGraph();
-
-            buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
-                @Override
-                public List<String> getRequestedTaskPaths() {
-                    return toTaskPaths(taskGraph.getRequestedTasks());
-                }
-
-                @Override
-                public List<String> getExcludedTaskPaths() {
-                    return toTaskPaths(taskGraph.getFilteredTasks());
-                }
-
-                private List<String> toTaskPaths(Set<Task> tasks) {
-                    return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
-                        @Override
-                        public String apply(Task task) {
-                            return task.getPath();
-                        }
-                    })).asList();
-                }
-            });
-        }
-
-        TaskExecutionGraphInternal populateTaskGraph() {
-            buildConfigurationActionExecuter.select(gradle);
-
-            if (isConfigureOnDemand()) {
-                projectsEvaluated();
-            }
-
-            final TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-            taskGraph.populate();
-
-            includedBuildControllers.populateTaskGraphs();
-            return taskGraph;
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
-                .details(new CalculateTaskGraphBuildOperationType.Details() {
-                    @Override
-                    public String getBuildPath() {
-                        return getGradle().getIdentityPath().getPath();
-                    }
-                });
         }
     }
 
@@ -403,33 +326,4 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return builder;
         }
     }
-
-    private class NotifyProjectsEvaluatedListeners implements RunnableBuildOperation {
-
-        @Override
-        public void run(BuildOperationContext context) {
-            buildListener.projectsEvaluated(gradle);
-            context.setResult(PROJECTS_EVALUATED_RESULT);
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(gradle.contextualize("Notify projectsEvaluated listeners"))
-                .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
-                    @Override
-                    public String getBuildPath() {
-                        return gradle.getIdentityPath().toString();
-                    }
-                });
-        }
-    }
-
-    private boolean isConfigureOnDemand() {
-        return gradle.getStartParameter().isConfigureOnDemand();
-    }
-
-    private void projectsEvaluated() {
-        buildOperationExecutor.run(new NotifyProjectsEvaluatedListeners());
-    }
-
 }
