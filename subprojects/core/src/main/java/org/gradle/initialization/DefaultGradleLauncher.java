@@ -147,6 +147,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doInstantExecution() {
+        buildListener.buildStarted(gradle);
         instantExecution.loadTaskGraph();
         stage = Stage.TaskGraph;
         runTasks();
