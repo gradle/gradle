@@ -78,7 +78,7 @@ public class JacocoCoverageVerification extends JacocoReportBase {
                 getProject().getName(),
                 getAllClassDirs().filter(fileExistsSpec),
                 getAllSourceDirs().filter(fileExistsSpec),
-                getExecutionData(),
+                getExecutionData().filter(fileExistsSpec),
                 getViolationRules()
         );
 
