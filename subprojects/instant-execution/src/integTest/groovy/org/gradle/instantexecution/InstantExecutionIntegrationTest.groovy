@@ -16,7 +16,9 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -39,6 +41,28 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         firstRunOutput == result.normalizedOutput.replace('Reusing instant execution cache. This is not guaranteed to work in any way.', '')
+    }
+
+    def "restores some details of the project structure"() {
+        def fixture = new BuildOperationsFixture(executer, temporaryFolder)
+
+        settingsFile << """
+            rootProject.name = 'thing'
+        """
+
+        when:
+        instantRun "help"
+
+        then:
+        def event = fixture.first(LoadProjectsBuildOperationType)
+        event.result.rootProject.name == 'thing'
+
+        when:
+        instantRun "help"
+
+        then:
+        def event2 = fixture.first(LoadProjectsBuildOperationType)
+        event2.result.rootProject.name == 'thing'
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {

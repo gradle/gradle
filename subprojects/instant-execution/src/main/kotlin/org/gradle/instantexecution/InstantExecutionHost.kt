@@ -85,17 +85,17 @@ class InstantExecutionHost internal constructor(
         )
     }
 
-    override fun createBuild(): InstantExecutionBuild =
-        DefaultInstantExecutionBuild()
+    override val currentBuild: ClassicModeBuild =
+        DefaultClassicModeBuild()
+
+    override fun createBuild(rootProjectName: String): InstantExecutionBuild =
+        DefaultInstantExecutionBuild(rootProjectName)
 
     override fun newStateSerializer(): StateSerializer =
         serialization.newSerializer()
 
     override fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer =
         serialization.deserializerFor(beanClassLoader)
-
-    override val scheduledTasks: List<Task>
-        get() = gradle.taskGraph.allTasks
 
     private
     val coreAndPluginsScope: ClassLoaderScope
@@ -113,7 +113,18 @@ class InstantExecutionHost internal constructor(
     override val requestedTaskNames = startParameter.taskNames
     override val rootDir = startParameter.currentDir
 
-    inner class DefaultInstantExecutionBuild : InstantExecutionBuild {
+    inner class DefaultClassicModeBuild : ClassicModeBuild {
+        override val scheduledTasks: List<Task>
+            get() = gradle.taskGraph.allTasks
+
+        override val rootProject: ProjectInternal
+            get() = gradle.rootProject
+
+        override fun dependenciesOf(task: Task): Set<Task> =
+            gradle.taskGraph.getDependencies(task)
+    }
+
+    inner class DefaultInstantExecutionBuild(rootProjectName: String) : InstantExecutionBuild {
 
         init {
             gradle.run {
@@ -126,7 +137,7 @@ class InstantExecutionHost internal constructor(
                 }, getService(BuildOperationExecutor::class.java), getService(BuildDefinition::class.java).fromBuild)
                 settingsPreparer.prepareSettings(this)
 
-                rootProject = createProject(":")
+                rootProject = createProject(null, rootProjectName)
             }
         }
 
@@ -134,9 +145,18 @@ class InstantExecutionHost internal constructor(
             val projectPath = Path.path(path)
             val parentPath = projectPath.parent
             val name = projectPath.name
+            if (name == null) {
+                return getProject(path)
+            } else {
+                return createProject(parentPath, name)
+            }
+        }
+
+        private
+        fun InstantExecutionHost.createProject(parentPath: Path?, name: String): ProjectInternal {
             val projectDescriptor = DefaultProjectDescriptor(
                 getProjectDescriptor(parentPath),
-                name ?: "instant-execution",
+                name,
                 rootDir,
                 projectDescriptorRegistry,
                 getService(PathToFileResolver::class.java)
@@ -145,7 +165,7 @@ class InstantExecutionHost internal constructor(
                 projectDescriptor,
                 getProject(parentPath),
                 gradle,
-                coreAndPluginsScope.createChild(path),
+                coreAndPluginsScope.createChild(projectDescriptor.path),
                 coreAndPluginsScope
             )
         }
@@ -255,7 +275,4 @@ class InstantExecutionHost internal constructor(
             coreAndPluginsScope.exportClassLoader,
             null
         )
-
-    override fun dependenciesOf(task: Task): Set<Task> =
-        gradle.taskGraph.getDependencies(task)
 }
