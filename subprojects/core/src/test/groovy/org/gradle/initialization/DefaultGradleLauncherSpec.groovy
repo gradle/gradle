@@ -28,7 +28,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configuration.BuildConfigurer
-import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
@@ -50,15 +49,13 @@ import spock.lang.Specification
 import static org.gradle.util.Path.path
 
 class DefaultGradleLauncherSpec extends Specification {
-    def initScriptHandlerMock = Mock(InitScriptHandler)
-    def settingsLoaderMock = Mock(SettingsLoader)
     def settingsPreparerMock = Mock(SettingsPreparer)
+    def taskExecutionPreparerMock = Mock(TaskExecutionPreparer)
     def buildLoaderMock = Mock(BuildLoader)
     def taskGraphMock = Mock(TaskExecutionGraphInternal)
     def buildConfigurerMock = Mock(BuildConfigurer)
     def buildBroadcaster = Mock(BuildListener)
     def buildExecuter = Mock(BuildExecuter)
-    def buildConfigurationActionExecuter = Mock(BuildConfigurationActionExecuter.class)
     def buildScopeServices = Mock(ServiceRegistry)
     def cacheAccess = Mock(ExecutionHistoryCacheAccess)
 
@@ -121,6 +118,7 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.includedBuilds >> []
         _ * gradleMock.getBuildOperation() >> null
         _ * gradleMock.settings >> settingsMock
+        _ * gradleMock.buildListenerBroadcaster >> buildBroadcaster
 
         buildScopeServices.get(ExecutionHistoryCacheAccess) >> cacheAccess
         buildScopeServices.get(IncludedBuildControllers) >> includedBuildControllers
@@ -135,15 +133,15 @@ class DefaultGradleLauncherSpec extends Specification {
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
-            modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
-            buildServices, [otherService], includedBuildControllers, settingsPreparerMock)
+            modelListenerMock, buildCompletionListener, buildOperationExecutor, buildExecuter,
+            buildServices, [otherService], includedBuildControllers, settingsPreparerMock, taskExecutionPreparerMock)
     }
 
     void testRunTasks() {
         when:
         isRootBuild()
         expectSettingsBuilt()
-        expectDagBuilt()
+        expectTaskGraphBuilt()
         expectTasksRun()
         expectBuildListenerCallbacks()
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -159,7 +157,7 @@ class DefaultGradleLauncherSpec extends Specification {
         isNestedBuild()
 
         expectSettingsBuilt()
-        expectDagBuilt()
+        expectTaskGraphBuilt()
         expectTasksRun()
         expectBuildListenerCallbacks()
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -169,11 +167,10 @@ class DefaultGradleLauncherSpec extends Specification {
         result == gradleMock
 
         and:
-        assert buildOperationExecutor.operations.size() == 4
+        assert buildOperationExecutor.operations.size() == 3
         assert buildOperationExecutor.operations[0].displayName == "Configure build (:nested)"
         assert buildOperationExecutor.operations[1].displayName == "Notify projectsEvaluated listeners (:nested)"
-        assert buildOperationExecutor.operations[2].displayName == "Calculate task graph (:nested)"
-        assert buildOperationExecutor.operations[3].displayName == "Run tasks (:nested)"
+        assert buildOperationExecutor.operations[2].displayName == "Run tasks (:nested)"
     }
 
     void testGetBuildAnalysis() {
@@ -208,7 +205,7 @@ class DefaultGradleLauncherSpec extends Specification {
         when:
         isRootBuild()
         expectSettingsBuilt()
-        expectDagBuilt()
+        expectTaskGraphBuilt()
         expectTasksRun()
         expectBuildListenerCallbacks()
 
@@ -254,7 +251,7 @@ class DefaultGradleLauncherSpec extends Specification {
         given:
         isRootBuild()
         expectSettingsBuilt()
-        expectDagBuilt()
+        expectTaskGraphBuilt()
         expectTasksRunWithFailure(failure)
 
         and:
@@ -279,7 +276,7 @@ class DefaultGradleLauncherSpec extends Specification {
         given:
         isRootBuild()
         expectSettingsBuilt()
-        expectDagBuilt()
+        expectTaskGraphBuilt()
         expectTasksRunWithFailure(failure, failure2)
 
         and:
@@ -302,7 +299,7 @@ class DefaultGradleLauncherSpec extends Specification {
         given:
         isRootBuild()
         expectSettingsBuilt()
-        expectDagBuilt()
+        expectTaskGraphBuilt()
         expectTasksRun()
 
         and:
@@ -332,7 +329,7 @@ class DefaultGradleLauncherSpec extends Specification {
         given:
         isRootBuild()
         expectSettingsBuilt()
-        expectDagBuilt()
+        expectTaskGraphBuilt()
         expectTasksRunWithFailure(failure, failure2)
 
         and:
@@ -366,11 +363,10 @@ class DefaultGradleLauncherSpec extends Specification {
     }
 
     private void expectedBuildOperationsFired() {
-        assert buildOperationExecutor.operations.size() == 4
+        assert buildOperationExecutor.operations.size() == 3
         assert buildOperationExecutor.operations[0].displayName == "Configure build"
         assert buildOperationExecutor.operations[1].displayName == "Notify projectsEvaluated listeners"
-        assert buildOperationExecutor.operations[2].displayName == "Calculate task graph"
-        assert buildOperationExecutor.operations[3].displayName == "Run tasks"
+        assert buildOperationExecutor.operations[2].displayName == "Run tasks"
     }
 
     private void isNestedBuild() {
@@ -394,10 +390,8 @@ class DefaultGradleLauncherSpec extends Specification {
         1 * modelListenerMock.onConfigure(gradleMock)
     }
 
-    private void expectDagBuilt() {
-        1 * buildConfigurerMock.configure(gradleMock)
-        1 * buildConfigurationActionExecuter.select(gradleMock)
-        1 * includedBuildControllers.populateTaskGraphs()
+    private void expectTaskGraphBuilt() {
+        1 * taskExecutionPreparerMock.prepareForTaskExecution(gradleMock)
     }
 
     private void expectTasksRun() {

@@ -375,7 +375,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsPreparer createSettingsPreparer(InitScriptHandler initScriptHandler, SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildDefinition buildDefinition) {
-        return new NotifyingSettingsPreparer(new DefaultSettingsPreparer(initScriptHandler, settingsLoaderFactory), buildOperationExecutor, buildDefinition.getFromBuild());
+        return new NotifyingSettingsPreparer(
+            new DefaultSettingsPreparer(
+                initScriptHandler,
+                settingsLoaderFactory),
+            buildOperationExecutor,
+            buildDefinition.getFromBuild());
     }
 
     protected ScriptClassPathResolver createScriptClassPathResolver(List<ScriptClassPathInitializer> initializers) {

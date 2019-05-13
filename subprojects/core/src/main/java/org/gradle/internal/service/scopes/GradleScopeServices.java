@@ -36,6 +36,7 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
+import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -65,6 +66,9 @@ import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.initialization.DefaultTaskExecutionPreparer;
+import org.gradle.initialization.NotifyingTaskExecutionPreparer;
+import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
@@ -153,6 +157,20 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
         return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions, projectStateRegistry);
+    }
+
+    IncludedBuildControllers createIncludedBuildControllers(GradleInternal gradle, IncludedBuildControllers sharedControllers) {
+        if (gradle.getParent() == null) {
+            return sharedControllers;
+        } else {
+            return IncludedBuildControllers.EMPTY;
+        }
+    }
+
+    TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {
+        return new NotifyingTaskExecutionPreparer(
+            new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, includedBuildControllers, buildOperationExecutor),
+            buildOperationExecutor);
     }
 
     ProjectFinder createProjectFinder(final BuildStateRegistry buildStateRegistry, final GradleInternal gradle) {

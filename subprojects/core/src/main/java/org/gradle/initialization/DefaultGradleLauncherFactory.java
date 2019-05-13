@@ -26,7 +26,6 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
-import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.InternalBuildAdapter;
@@ -135,12 +134,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, parentBuild, startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
 
-        IncludedBuildControllers includedBuildControllers;
-        if (parent == null) {
-            includedBuildControllers = buildTreeScopeServices.get(IncludedBuildControllers.class);
-        } else {
-            includedBuildControllers = IncludedBuildControllers.EMPTY;
-        }
+        IncludedBuildControllers includedBuildControllers = gradle.getServices().get(IncludedBuildControllers.class);
+        TaskExecutionPreparer taskExecutionPreparer = gradle.getServices().get(TaskExecutionPreparer.class);
+
         DefaultGradleLauncher gradleLauncher = new DefaultGradleLauncher(
             gradle,
             serviceRegistry.get(BuildLoader.class),
@@ -150,12 +146,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             listenerManager.getBroadcaster(ModelConfigurationListener.class),
             listenerManager.getBroadcaster(BuildCompletionListener.class),
             buildOperationExecutor,
-            gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
             serviceRegistry,
             servicesToStop,
             includedBuildControllers,
-            settingsPreparer
+            settingsPreparer,
+            taskExecutionPreparer
         );
         nestedBuildFactory.setParent(gradleLauncher);
         nestedBuildFactory.setBuildCancellationToken(buildTreeScopeServices.get(BuildCancellationToken.class));
