@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
-import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.util.Collections;
@@ -47,7 +46,7 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
         if (shouldApplyScanPlugin(target)) {
-            return new DefaultPluginRequests(Collections.<PluginRequestInternal>singletonList(createScanPluginRequest()));
+            return new DefaultPluginRequests(Collections.singletonList(createScanPluginRequest()));
         }
         return DefaultPluginRequests.EMPTY;
     }
@@ -62,8 +61,7 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
         return startParameter.isBuildScan() && target.getParent() == null && target.getGradle().getParent() == null;
     }
 
-    // TODO - instant-execution: review visibility
-    public static DefaultPluginRequest createScanPluginRequest() {
+    private static DefaultPluginRequest createScanPluginRequest() {
         ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(AUTO_APPLIED_ID, AutoAppliedBuildScanPlugin.VERSION);
         return new DefaultPluginRequest(AutoAppliedBuildScanPlugin.ID, AutoAppliedBuildScanPlugin.VERSION, true, null, getScriptDisplayName(), artifact);
     }

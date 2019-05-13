@@ -25,9 +25,11 @@ interface InstantExecutionBuild {
 
     fun createProject(path: String): Project
 
-    fun registerProjects()
-
     fun getProject(path: String): ProjectInternal
+
+    fun autoApplyPlugins()
+
+    fun registerProjects()
 
     fun scheduleTasks(tasks: Iterable<Task>)
 }
