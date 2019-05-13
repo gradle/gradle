@@ -81,6 +81,7 @@ import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ImportsReader;
+import org.gradle.configuration.NotifyingBuildConfigurer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -115,6 +116,7 @@ import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
+import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.NotifyingSettingsPreparer;
 import org.gradle.initialization.ProjectAccessListener;
@@ -400,8 +402,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new TaskPathProjectEvaluator(cancellationToken);
     }
 
-    protected BuildConfigurer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildStateRegistry) {
-        return new DefaultBuildConfigurer(projectConfigurer, buildStateRegistry);
+    protected BuildConfigurer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
+        ModelConfigurationListener modelConfigurationListener = listenerManager.getBroadcaster(ModelConfigurationListener.class);
+        return new NotifyingBuildConfigurer(
+            new DefaultBuildConfigurer(
+                projectConfigurer,
+                buildStateRegistry,
+                buildLoader,
+                modelConfigurationListener,
+                buildOperationExecutor),
+            buildOperationExecutor);
     }
 
     protected ProjectAccessListener createProjectAccessListener() {

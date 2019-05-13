@@ -31,7 +31,7 @@ public class ProjectsEvaluatedNotifier {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    void notify(GradleInternal gradle) {
+    public void notify(GradleInternal gradle) {
         buildOperationExecutor.run(new NotifyProjectsEvaluatedListeners(gradle));
     }
 

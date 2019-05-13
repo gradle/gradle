@@ -18,5 +18,5 @@ package org.gradle.configuration;
 import org.gradle.api.internal.GradleInternal;
 
 public interface BuildConfigurer {
-    void configure(GradleInternal gradleInternal);
+    void configure(GradleInternal gradle);
 }
