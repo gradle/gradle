@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -29,13 +30,24 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.initialization.BuildLoader
+import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
+import org.gradle.initialization.NotifyingBuildLoader
+import org.gradle.initialization.SettingsLocation
+import org.gradle.initialization.SettingsProcessor
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver
+import org.gradle.internal.operations.BuildOperationCategory
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
 import org.gradle.util.Path
@@ -88,6 +100,7 @@ class InstantExecutionHost internal constructor(
     override fun getSystemProperty(propertyName: String) =
         gradle.startParameter.systemPropertiesArgs[propertyName]
 
+    override val startParameter: StartParameter = gradle.startParameter
     inner class DefaultInstantExecutionBuild : InstantExecutionBuild {
 
         init {
@@ -112,13 +125,49 @@ class InstantExecutionHost internal constructor(
                 projectDescriptor,
                 getProject(parentPath),
                 gradle,
-                coreAndPluginsScope,
+                coreAndPluginsScope.createChild(path),
                 coreAndPluginsScope
             )
         }
 
-        override fun registerProjects() =
+        override fun registerProjects() {
+            // Ensure projects are registered for look up e.g. by dependency resolution
             getService(ProjectStateRegistry::class.java).registerProjects(getService(BuildState::class.java))
+
+            // Fire build operation required by build scans to determine build path (and settings execution time)
+            // It may be better to instead point GE at the origin build that produced the cached task graph,
+            // or replace this with a different event/op that carries this information and wraps some actual work
+            val buildOperationExecutor = getService(BuildOperationExecutor::class.java)
+            val settingsProcessor = BuildOperationSettingsProcessor(object : SettingsProcessor {
+                override fun process(gradle: GradleInternal, settingsLocation: SettingsLocation, buildRootClassLoaderScope: ClassLoaderScope, startParameter: StartParameter): SettingsInternal {
+                    return gradle.settings
+                }
+            }, buildOperationExecutor)
+            val settingsLocation = SettingsLocation(gradle.rootProject.projectDir, File(gradle.rootProject.projectDir, "settings.gradle"))
+            settingsProcessor.process(gradle, settingsLocation, coreAndPluginsScope, gradle.startParameter)
+
+            // Fire build operation required by build scans to determine the build's project structure (and build load time)
+            val buildLoader = NotifyingBuildLoader(object : BuildLoader {
+                override fun load(settings: SettingsInternal, gradle: GradleInternal) {
+                }
+            }, buildOperationExecutor)
+            buildLoader.load(gradle.settings, gradle)
+
+            //
+            buildOperationExecutor.run(object: RunnableBuildOperation {
+                override fun run(context: BuildOperationContext?) {
+                }
+
+                override fun description(): BuildOperationDescriptor.Builder {
+                    val project = gradle.rootProject
+                    val displayName = "Configure project " + project.identityPath
+                    return BuildOperationDescriptor.displayName(displayName)
+                                            .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
+                                            .progressDisplayName(displayName)
+                                            .details(ConfigureProjectBuildOperationType.DetailsImpl(project.projectPath, gradle.identityPath, project.rootDir))
+                }
+            })
+        }
 
         override fun getProject(path: String): ProjectInternal =
             gradle.rootProject.project(path)
@@ -142,6 +191,7 @@ class InstantExecutionHost internal constructor(
             )
         }
     }
+
 
     private
     fun getProject(parentPath: Path?) =

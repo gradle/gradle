@@ -62,7 +62,8 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
         return startParameter.isBuildScan() && target.getParent() == null && target.getGradle().getParent() == null;
     }
 
-    private DefaultPluginRequest createScanPluginRequest() {
+    // TODO - instant-execution: review visibility
+    public static DefaultPluginRequest createScanPluginRequest() {
         ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(AUTO_APPLIED_ID, AutoAppliedBuildScanPlugin.VERSION);
         return new DefaultPluginRequest(AutoAppliedBuildScanPlugin.ID, AutoAppliedBuildScanPlugin.VERSION, true, null, getScriptDisplayName(), artifact);
     }

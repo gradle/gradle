@@ -186,8 +186,25 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void reconstructTaskGraphForInstantExecution() {
+        // Fire build operation required by build scan to determine startup duration and settings evaluated duration
+        buildOperationExecutor.run(new LoadBuild() {
+            @Override
+            void doLoadBuild() {
+                // Nothing to do
+            }
+        });
+
         instantExecution.loadTaskGraph();
         gradle.getTaskGraph().populate();
+        // Fire build operation required by build scan to determine when task execution starts
+        // Currently this operation is not around the actual task graph calculation/populate for instant execution (just to make this a smaller step)
+        // This might be better done as a new build operation type
+        buildOperationExecutor.run(new CalculateTaskGraph() {
+            @Override
+            TaskExecutionGraphInternal populateTaskGraph() {
+                return gradle.getTaskGraph();
+            }
+        });
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
@@ -295,11 +312,15 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private class LoadBuild implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
+            doLoadBuild();
+            context.setResult(RESULT);
+        }
+
+        void doLoadBuild() {
             // Evaluate init scripts
             initScriptHandler.executeScripts(gradle);
             // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
             settings = settingsLoader.findAndLoadSettings(gradle);
-            context.setResult(RESULT);
         }
 
         @Override
@@ -354,16 +375,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private class CalculateTaskGraph implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext buildOperationContext) {
-            buildConfigurationActionExecuter.select(gradle);
-
-            if (isConfigureOnDemand()) {
-                projectsEvaluated();
-            }
-
-            final TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-            taskGraph.populate();
-
-            includedBuildControllers.populateTaskGraphs();
+            final TaskExecutionGraphInternal taskGraph = populateTaskGraph();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
@@ -385,6 +397,20 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     })).asList();
                 }
             });
+        }
+
+        TaskExecutionGraphInternal populateTaskGraph() {
+            buildConfigurationActionExecuter.select(gradle);
+
+            if (isConfigureOnDemand()) {
+                projectsEvaluated();
+            }
+
+            final TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
+            taskGraph.populate();
+
+            includedBuildControllers.populateTaskGraphs();
+            return taskGraph;
         }
 
         @Override
