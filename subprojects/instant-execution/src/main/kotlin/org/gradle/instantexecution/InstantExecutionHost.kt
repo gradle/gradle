@@ -105,9 +105,13 @@ class InstantExecutionHost internal constructor(
         gradle.services.get(serviceType)
 
     override fun getSystemProperty(propertyName: String) =
-        gradle.startParameter.systemPropertiesArgs[propertyName]
+        startParameter.systemPropertiesArgs[propertyName]
 
-    override val startParameter: StartParameter = gradle.startParameter
+    private
+    val startParameter = gradle.startParameter
+
+    override val requestedTaskNames = startParameter.taskNames
+    override val rootDir = startParameter.currentDir
 
     inner class DefaultInstantExecutionBuild : InstantExecutionBuild {
 
@@ -133,7 +137,7 @@ class InstantExecutionHost internal constructor(
             val projectDescriptor = DefaultProjectDescriptor(
                 getProjectDescriptor(parentPath),
                 name ?: "instant-execution",
-                File(".").absoluteFile,
+                rootDir,
                 projectDescriptorRegistry,
                 getService(PathToFileResolver::class.java)
             )
@@ -160,7 +164,7 @@ class InstantExecutionHost internal constructor(
                 }
             }, buildOperationExecutor)
             val settingsLocation = SettingsLocation(gradle.rootProject.projectDir, File(gradle.rootProject.projectDir, "settings.gradle"))
-            settingsProcessor.process(gradle, settingsLocation, coreAndPluginsScope, gradle.startParameter)
+            settingsProcessor.process(gradle, settingsLocation, coreAndPluginsScope, startParameter)
 
             // Fire build operation required by build scans to determine the build's project structure (and build load time)
             val buildLoader = NotifyingBuildLoader(object : BuildLoader {
@@ -228,9 +232,9 @@ class InstantExecutionHost internal constructor(
                 classLoaderScopeRegistry.coreScope,
                 classLoaderScopeRegistry.coreScope,
                 getService(ScriptHandlerFactory::class.java).create(settingsSource, classLoaderScopeRegistry.coreScope),
-                File(".").absoluteFile,
+                rootDir,
                 settingsSource,
-                gradle.startParameter
+                startParameter
             )
         }
     }

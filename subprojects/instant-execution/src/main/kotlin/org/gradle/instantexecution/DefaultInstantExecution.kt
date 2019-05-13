@@ -17,7 +17,6 @@
 package org.gradle.instantexecution
 
 import groovy.lang.GroovyObject
-import org.gradle.StartParameter
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Task
@@ -34,13 +33,16 @@ import org.gradle.initialization.InstantExecution
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import java.io.File
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.nio.file.Files
 import java.util.SortedSet
 import java.util.function.Supplier
 
@@ -59,13 +61,15 @@ class DefaultInstantExecution(
 
         val scheduledTasks: List<Task>
 
-        val startParameter: StartParameter
-
         fun dependenciesOf(task: Task): Set<Task>
 
         fun <T> getService(serviceType: Class<T>): T
 
         fun getSystemProperty(propertyName: String): String?
+
+        val rootDir: File
+
+        val requestedTaskNames: List<String>
 
         fun classLoaderFor(classPath: ClassPath): ClassLoader
     }
@@ -75,8 +79,18 @@ class DefaultInstantExecution(
         host.newStateSerializer()
     }
 
-    override fun canExecuteInstantaneously() =
-        isInstantExecutionEnabled && instantExecutionStateFile.isFile
+    override fun canExecuteInstantaneously(): Boolean {
+        if (!isInstantExecutionEnabled) {
+            return false
+        }
+        if (!instantExecutionStateFile.isFile) {
+            logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
+            return false
+        } else {
+            logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
+            return true
+        }
+    }
 
     override fun saveTaskGraph() {
         if (isInstantExecutionEnabled) {
@@ -92,6 +106,7 @@ class DefaultInstantExecution(
 
     private
     fun saveTasks() {
+        Files.createDirectories(instantExecutionStateFile.parentFile.toPath())
         KryoBackedEncoder(instantExecutionStateFile.outputStream()).use { encoder ->
             val scheduledTasks = host.scheduledTasks
             val relevantClassPath = classPathFor(scheduledTasks)
@@ -306,8 +321,12 @@ class DefaultInstantExecution(
         get() = host.getSystemProperty("org.gradle.unsafe.instant-execution") != null
 
     private
-    val instantExecutionStateFile
-        get() = File(".instant-execution-state")
+    val instantExecutionStateFile by lazy {
+        val dir = File(host.rootDir, ".instant-execution-state/${GradleVersion.current().version}").absoluteFile
+        val baseName = HashUtil.createCompactMD5(host.requestedTaskNames.joinToString("/"))
+        val cacheFileName = "$baseName.bin"
+        File(dir, cacheFileName)
+    }
 }
 
 
