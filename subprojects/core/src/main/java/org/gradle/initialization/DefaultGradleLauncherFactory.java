@@ -129,9 +129,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         DeprecatedUsageBuildOperationProgressBroadaster deprecationWarningBuildOperationProgressBroadaster = serviceRegistry.get(DeprecatedUsageBuildOperationProgressBroadaster.class);
         DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), deprecationWarningBuildOperationProgressBroadaster);
 
-        SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);
-        SettingsLoader settingsLoader = parent != null ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
         GradleInternal parentBuild = parent == null ? null : parent.getGradle();
+
+        SettingsPreparer settingsPreparer = serviceRegistry.get(SettingsPreparer.class);
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, parentBuild, startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
 
@@ -143,8 +143,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         DefaultGradleLauncher gradleLauncher = new DefaultGradleLauncher(
             gradle,
-            serviceRegistry.get(InitScriptHandler.class),
-            settingsLoader,
             serviceRegistry.get(BuildLoader.class),
             serviceRegistry.get(BuildConfigurer.class),
             serviceRegistry.get(ExceptionAnalyser.class),
@@ -157,7 +155,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry,
             servicesToStop,
             includedBuildControllers,
-            buildDefinition.getFromBuild()
+            settingsPreparer
         );
         nestedBuildFactory.setParent(gradleLauncher);
         nestedBuildFactory.setBuildCancellationToken(buildTreeScopeServices.get(BuildCancellationToken.class));
