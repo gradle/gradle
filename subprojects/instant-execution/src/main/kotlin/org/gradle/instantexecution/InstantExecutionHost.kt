@@ -50,6 +50,8 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
+import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.util.Path
 import java.io.File
 
@@ -101,6 +103,7 @@ class InstantExecutionHost internal constructor(
         gradle.startParameter.systemPropertiesArgs[propertyName]
 
     override val startParameter: StartParameter = gradle.startParameter
+
     inner class DefaultInstantExecutionBuild : InstantExecutionBuild {
 
         init {
@@ -153,8 +156,8 @@ class InstantExecutionHost internal constructor(
             }, buildOperationExecutor)
             buildLoader.load(gradle.settings, gradle)
 
-            //
-            buildOperationExecutor.run(object: RunnableBuildOperation {
+            // Fire build operation required by build scans to determine the root path
+            buildOperationExecutor.run(object : RunnableBuildOperation {
                 override fun run(context: BuildOperationContext?) {
                 }
 
@@ -162,15 +165,32 @@ class InstantExecutionHost internal constructor(
                     val project = gradle.rootProject
                     val displayName = "Configure project " + project.identityPath
                     return BuildOperationDescriptor.displayName(displayName)
-                                            .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
-                                            .progressDisplayName(displayName)
-                                            .details(ConfigureProjectBuildOperationType.DetailsImpl(project.projectPath, gradle.identityPath, project.rootDir))
+                        .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
+                        .progressDisplayName(displayName)
+                        .details(ConfigureProjectBuildOperationType.DetailsImpl(project.projectPath, gradle.identityPath, project.rootDir))
                 }
             })
         }
 
         override fun getProject(path: String): ProjectInternal =
             gradle.rootProject.project(path)
+
+        override fun autoApplyPlugins() {
+            if (!startParameter.isBuildScan()) {
+                return
+            }
+
+            // System properties are currently set as during settings script execution, so work around for now
+            // TODO - extract system properties setup into some that can be reused for instant execution
+            val buildScanUrl = getSystemProperty("com.gradle.scan.server")
+            if (buildScanUrl != null) {
+                System.setProperty("com.gradle.scan.server", buildScanUrl)
+            }
+
+            val rootProject = getProject(":")
+            val pluginRequests = getService(AutoAppliedPluginRegistry::class.java).getAutoAppliedPlugins(rootProject)
+            getService(PluginRequestApplicator::class.java).applyPlugins(pluginRequests, rootProject.buildscript, rootProject.pluginManager, rootProject.classLoaderScope)
+        }
 
         override fun scheduleTasks(tasks: Iterable<Task>) =
             gradle.taskGraph.addEntryTasks(tasks)

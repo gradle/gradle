@@ -37,9 +37,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.plugin.management.internal.DefaultPluginRequests
-import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry
-import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.util.Path
 import java.io.File
 import java.lang.reflect.Field
@@ -87,29 +84,10 @@ class DefaultInstantExecution(
         }
     }
 
-    private val buildScanPluginRequired: Boolean
-        get() {
-            return host.startParameter.isBuildScan()
-        }
-
     override fun loadTaskGraph() {
         val build = host.createBuild()
-        if (buildScanPluginRequired) {
-            applyBuildScanPluginTo(build)
-        }
+        build.autoApplyPlugins()
         build.scheduleTasks(loadTasksFor(build))
-    }
-
-    private fun applyBuildScanPluginTo(build: InstantExecutionBuild) {
-        // TODO - figure out why this is not being set
-        val buildScanUrl = host.getSystemProperty("com.gradle.scan.server")
-        if (buildScanUrl != null) {
-            System.setProperty("com.gradle.scan.server", buildScanUrl)
-        }
-
-        val pluginRequests = DefaultPluginRequests(listOf(DefaultAutoAppliedPluginRegistry.createScanPluginRequest()))
-        val rootProject = build.getProject(":")
-        host.getService(PluginRequestApplicator::class.java).applyPlugins(pluginRequests, rootProject.buildscript, rootProject.pluginManager, rootProject.classLoaderScope)
     }
 
     private
