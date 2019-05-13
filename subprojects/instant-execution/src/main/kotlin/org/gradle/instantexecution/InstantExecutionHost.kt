@@ -18,6 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.StartParameter
 import org.gradle.api.Task
+import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -38,7 +39,9 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.NotifyingBuildLoader
+import org.gradle.initialization.NotifyingSettingsPreparer
 import org.gradle.initialization.SettingsLocation
+import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
@@ -109,6 +112,14 @@ class InstantExecutionHost internal constructor(
         init {
             gradle.run {
                 settings = createSettings()
+
+                // Fire build operation required by build scan to determine startup duration and settings evaluated duration
+                val settingsPreparer = NotifyingSettingsPreparer(SettingsPreparer {
+                    // Nothing to do
+                    // TODO - instant-execution: instead, create and attach the settings object
+                }, getService(BuildOperationExecutor::class.java), getService(BuildDefinition::class.java).fromBuild)
+                settingsPreparer.prepareSettings(this)
+
                 rootProject = createProject(":")
             }
         }

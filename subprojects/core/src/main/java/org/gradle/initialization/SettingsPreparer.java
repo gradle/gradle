@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 
-public interface BuildLoader {
-    /**
-     * Creates prepares the {@link org.gradle.api.internal.project.ProjectInternal} instances for the given settings,
-     * ready for the projects to be configured.
-     */
-    void load(SettingsInternal settings, GradleInternal gradle);
+/**
+ * Responsible ensuring the `Settings` object for a newly created `Gradle` instance has been created and configured, ready to load the projects.
+ *
+ * <p>This includes running the init scripts and settings script.</p>
+ */
+public interface SettingsPreparer {
+    void prepareSettings(GradleInternal gradle);
 }

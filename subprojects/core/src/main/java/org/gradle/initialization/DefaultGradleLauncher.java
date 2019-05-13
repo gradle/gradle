@@ -33,7 +33,6 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -68,11 +67,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {
-    };
-
-    private final InitScriptHandler initScriptHandler;
-    private final SettingsLoader settingsLoader;
     private final BuildLoader buildLoader;
     private final BuildConfigurer buildConfigurer;
     private final ExceptionAnalyser exceptionAnalyser;
@@ -85,22 +79,20 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
     private final IncludedBuildControllers includedBuildControllers;
-    private final PublicBuildPath fromBuild;
     private final GradleInternal gradle;
-    private SettingsInternal settings;
     private Stage stage;
 
     private final InstantExecution instantExecution;
+    private final SettingsPreparer settingsPreparer;
 
-    public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader, BuildLoader buildLoader,
+    public DefaultGradleLauncher(GradleInternal gradle, BuildLoader buildLoader,
                                  BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
                                  BuildListener buildListener, ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter,
-                                 BuildScopeServices buildServices, List<?> servicesToStop, IncludedBuildControllers includedBuildControllers, PublicBuildPath fromBuild) {
+                                 BuildScopeServices buildServices, List<?> servicesToStop, IncludedBuildControllers includedBuildControllers,
+                                 SettingsPreparer settingsPreparer) {
         this.gradle = gradle;
-        this.initScriptHandler = initScriptHandler;
-        this.settingsLoader = settingsLoader;
         this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
         this.exceptionAnalyser = exceptionAnalyser;
@@ -113,8 +105,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildServices = buildServices;
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
-        this.fromBuild = fromBuild;
         this.instantExecution = gradle.getServices().get(InstantExecution.class);
+        this.settingsPreparer = settingsPreparer;
     }
 
     @Override
@@ -125,7 +117,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     @Override
     public SettingsInternal getLoadedSettings() {
         doBuildStages(Stage.LoadSettings);
-        return settings;
+        return gradle.getSettings();
     }
 
     @Override
@@ -186,16 +178,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void reconstructTaskGraphForInstantExecution() {
-        // Fire build operation required by build scan to determine startup duration and settings evaluated duration
-        buildOperationExecutor.run(new LoadBuild() {
-            @Override
-            void doLoadBuild() {
-                // Nothing to do
-            }
-        });
-
         instantExecution.loadTaskGraph();
         gradle.getTaskGraph().populate();
+
         // Fire build operation required by build scan to determine when task execution starts
         // Currently this operation is not around the actual task graph calculation/populate for instant execution (just to make this a smaller step)
         // This might be better done as a new build operation type
@@ -240,7 +225,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (stage == null) {
             buildListener.buildStarted(gradle);
 
-            buildOperationExecutor.run(new LoadBuild());
+            settingsPreparer.prepareSettings(gradle);
 
             stage = Stage.LoadSettings;
         }
@@ -309,41 +294,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private class LoadBuild implements RunnableBuildOperation {
-        @Override
-        public void run(BuildOperationContext context) {
-            doLoadBuild();
-            context.setResult(RESULT);
-        }
-
-        void doLoadBuild() {
-            // Evaluate init scripts
-            initScriptHandler.executeScripts(gradle);
-            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-            settings = settingsLoader.findAndLoadSettings(gradle);
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(gradle.contextualize("Load build"))
-                .details(new LoadBuildBuildOperationType.Details() {
-                    @Override
-                    public String getBuildPath() {
-                        return gradle.getIdentityPath().toString();
-                    }
-
-                    @Override
-                    public String getIncludedBy() {
-                        return fromBuild == null ? null : fromBuild.getBuildPath().toString();
-                    }
-                });
-        }
-    }
-
     private class ConfigureBuild implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
-            buildLoader.load(settings, gradle);
+            buildLoader.load(gradle.getSettings(), gradle);
             buildConfigurer.configure(gradle);
 
             if (!isConfigureOnDemand()) {
@@ -362,7 +316,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
             } else {
                 builder.operationType(BuildOperationCategory.CONFIGURE_BUILD);
             }
-            builder.totalProgress(settings.getProjectRegistry().size());
+            builder.totalProgress(gradle.getSettings().getProjectRegistry().size());
             return builder.details(new ConfigureBuildBuildOperationType.Details() {
                 @Override
                 public String getBuildPath() {
