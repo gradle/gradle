@@ -44,13 +44,13 @@ public final class ConfigureProjectBuildOperationType implements BuildOperationT
 
     }
 
-    static class DetailsImpl implements Details {
+    public static class DetailsImpl implements Details {
 
         private final Path buildPath;
         private final File rootDir;
         private final Path projectPath;
 
-        DetailsImpl(Path projectPath, Path buildPath, File rootDir) {
+        public DetailsImpl(Path projectPath, Path buildPath, File rootDir) {
             this.projectPath = projectPath;
             this.buildPath = buildPath;
             this.rootDir = rootDir;

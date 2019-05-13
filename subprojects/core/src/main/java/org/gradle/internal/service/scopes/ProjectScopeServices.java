@@ -45,6 +45,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
@@ -220,7 +221,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultModelRegistry(ruleExtractor, project.getPath());
     }
 
-    protected ScriptHandler createScriptHandler() {
+    protected ScriptHandlerInternal createScriptHandler() {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
             get(DependencyManagementServices.class),
             get(FileResolver.class),

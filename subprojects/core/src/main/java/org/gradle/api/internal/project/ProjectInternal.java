@@ -21,12 +21,14 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -134,4 +136,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action);
 
     ProjectState getMutationState();
+
+    @Override
+    ScriptHandlerInternal getBuildscript();
 }

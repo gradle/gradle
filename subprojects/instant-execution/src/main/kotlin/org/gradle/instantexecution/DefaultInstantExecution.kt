@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import groovy.lang.GroovyObject
+import org.gradle.StartParameter
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Task
@@ -36,8 +37,10 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry
+import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.util.Path
-
 import java.io.File
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -58,6 +61,8 @@ class DefaultInstantExecution(
         fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer
 
         val scheduledTasks: List<Task>
+
+        val startParameter: StartParameter
 
         fun dependenciesOf(task: Task): Set<Task>
 
@@ -82,9 +87,29 @@ class DefaultInstantExecution(
         }
     }
 
+    private val buildScanPluginRequired: Boolean
+        get() {
+            return host.startParameter.isBuildScan()
+        }
+
     override fun loadTaskGraph() {
         val build = host.createBuild()
+        if (buildScanPluginRequired) {
+            applyBuildScanPluginTo(build)
+        }
         build.scheduleTasks(loadTasksFor(build))
+    }
+
+    private fun applyBuildScanPluginTo(build: InstantExecutionBuild) {
+        // TODO - figure out why this is not being set
+        val buildScanUrl = host.getSystemProperty("com.gradle.scan.server")
+        if (buildScanUrl != null) {
+            System.setProperty("com.gradle.scan.server", buildScanUrl)
+        }
+
+        val pluginRequests = DefaultPluginRequests(listOf(DefaultAutoAppliedPluginRegistry.createScanPluginRequest()))
+        val rootProject = build.getProject(":")
+        host.getService(PluginRequestApplicator::class.java).applyPlugins(pluginRequests, rootProject.buildscript, rootProject.pluginManager, rootProject.classLoaderScope)
     }
 
     private
