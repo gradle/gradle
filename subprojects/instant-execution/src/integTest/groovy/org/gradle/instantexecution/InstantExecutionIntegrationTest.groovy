@@ -29,21 +29,55 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
     }
 
-    def "classic"() {
-        expect:
-        run "help"
-    }
-
     def "instant execution for help on empty project"() {
         given:
         instantRun "help"
-        def firstRunOutput = result.normalizedOutput
+        def firstRunOutput = result.normalizedOutput.replace('Calculating task graph as no instant execution cache is available for tasks: help', '')
 
         when:
         instantRun "help"
 
         then:
-        result.normalizedOutput == firstRunOutput
+        firstRunOutput == result.normalizedOutput.replace('Reusing instant execution cache. This is not guaranteed to work in any way.', '')
+    }
+
+    def "does not configure build when task graph is already cached for requested tasks"() {
+        given:
+        buildFile << """
+            println "running build script"
+            task a {}
+            task b {
+                dependsOn a
+            }
+        """
+
+        when:
+        instantRun "a"
+
+        then:
+        outputContains("running build script")
+        result.assertTasksExecuted(":a")
+
+        when:
+        instantRun "a"
+
+        then:
+        outputDoesNotContain("running build script")
+        result.assertTasksExecuted(":a")
+
+        when:
+        instantRun "b"
+
+        then:
+        outputContains("running build script")
+        result.assertTasksExecuted(":a", ":b")
+
+        when:
+        instantRun "a"
+
+        then:
+        outputDoesNotContain("running build script")
+        result.assertTasksExecuted(":a")
     }
 
     def "instant execution for compileJava on Java project with no dependencies"() {
