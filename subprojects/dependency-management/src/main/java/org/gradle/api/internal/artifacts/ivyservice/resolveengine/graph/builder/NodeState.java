@@ -332,9 +332,10 @@ public class NodeState implements DependencyGraphNode {
             for (DependencyState dependencyState : dependencies(resolutionFilter)) {
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
-                if (pendingState.isPending()) {
+                if (dependencyState.getDependency().isConstraint()) {
                     registerActivatingConstraint(dependencyState);
-                } else {
+                }
+                if (!pendingState.isPending()) {
                     createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING);
                 }
             }
@@ -418,7 +419,6 @@ public class NodeState implements DependencyGraphNode {
                     dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                     createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false);
                 }
-                potentiallyActivatedConstraints.removeAll(module);
             }
         }
         upcomingNoLongerPendingConstraints = null;
