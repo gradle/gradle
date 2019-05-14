@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -61,9 +60,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final DependencyMetadata firstSeenDependency;
     private final DependencyToComponentIdResolver resolver;
     private final ResolvedVersionConstraint versionConstraint;
-    private final ImmutableAttributesFactory attributesFactory;
     private final List<ComponentSelectionDescriptorInternal> dependencyReasons = Lists.newArrayListWithExpectedSize(4);
     private final boolean isProjectSelector;
+    private final AttributeDesugaring attributeDesugaring;
 
     private ComponentIdResolveResult preferResult;
     private ComponentIdResolveResult requireResult;
@@ -86,12 +85,12 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.id = id;
         this.resolver = resolver;
         this.targetModule = resolveState.getModule(targetModuleId);
-        this.attributesFactory = resolveState.getAttributesFactory();
         update(dependencyState);
         this.dependencyState = dependencyState;
         this.firstSeenDependency = dependencyState.getDependency();
         this.versionConstraint = resolveState.resolveVersionConstraint(firstSeenDependency.getSelector());
         this.isProjectSelector = getSelector() instanceof ProjectComponentSelector;
+        this.attributeDesugaring = resolveState.getAttributeDesugaring();
     }
 
     @Override
@@ -132,7 +131,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public ComponentSelector getRequested() {
-        return selectorWithDesugaredAttributes(dependencyState.getRequested());
+        return attributeDesugaring.desugarSelector(dependencyState.getRequested());
     }
 
     public ModuleResolveState getTargetModule() {
@@ -310,10 +309,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     @Override
     public boolean isFromLock() {
         return fromLock;
-    }
-
-    private ComponentSelector selectorWithDesugaredAttributes(ComponentSelector selector) {
-        return AttributeDesugaring.desugarSelector(selector, attributesFactory);
     }
 
     public void update(DependencyState dependencyState) {

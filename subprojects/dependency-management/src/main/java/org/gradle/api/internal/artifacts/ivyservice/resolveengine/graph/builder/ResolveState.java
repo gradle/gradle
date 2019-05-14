@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -37,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -71,7 +71,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ModuleExclusions moduleExclusions;
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
     private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
-    private final ModuleReplacementsData moduleReplacementsData;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final ImmutableAttributesFactory attributesFactory;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
@@ -81,10 +80,11 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final SelectorStateResolver<ComponentState> selectorStateResolver;
     private final ResolveOptimizations resolveOptimizations;
     private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = Maps.newHashMap();
+    private final AttributeDesugaring attributeDesugaring;
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
-                        ModuleExclusions moduleExclusions, ModuleReplacementsData moduleReplacementsData,
+                        ModuleExclusions moduleExclusions,
                         ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory,
                         DependencySubstitutionApplicator dependencySubstitutionApplicator, VersionSelectorScheme versionSelectorScheme,
                         Comparator<Version> versionComparator, VersionParser versionParser, ModuleConflictResolver conflictResolver,
@@ -95,7 +95,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.edgeFilter = edgeFilter;
         this.attributesSchema = attributesSchema;
         this.moduleExclusions = moduleExclusions;
-        this.moduleReplacementsData = moduleReplacementsData;
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
@@ -107,6 +106,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.selectors = new LinkedHashMap<ComponentSelector, SelectorState>(5 * graphSize / 2);
         this.queue = new ArrayDeque<NodeState>(graphSize);
         this.resolveOptimizations = new ResolveOptimizations();
+        this.attributeDesugaring = new AttributeDesugaring(attributesFactory);
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getMetadata());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
         ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());
@@ -215,10 +215,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return replaceSelectionWithConflictResultAction;
     }
 
-    public ModuleReplacementsData getModuleReplacementsData() {
-        return moduleReplacementsData;
-    }
-
     public ComponentSelectorConverter getComponentSelectorConverter() {
         return componentSelectorConverter;
     }
@@ -241,5 +237,17 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
             return resolvedVersionConstraints.computeIfAbsent(vc, key -> new DefaultResolvedVersionConstraint(key, versionSelectorScheme));
         }
         return null;
+    }
+
+    ImmutableAttributes desugar(ImmutableAttributes attributes) {
+        return attributeDesugaring.desugar(attributes);
+    }
+
+    ComponentSelector desugarSelector(ComponentSelector requested) {
+        return attributeDesugaring.desugarSelector(requested);
+    }
+
+    AttributeDesugaring getAttributeDesugaring() {
+        return attributeDesugaring;
     }
 }
