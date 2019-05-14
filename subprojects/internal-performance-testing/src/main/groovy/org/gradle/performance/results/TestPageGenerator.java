@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import com.googlecode.jatl.Html;
 import groovy.json.JsonOutput;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.performance.util.Git;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -31,7 +32,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> {
+public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> implements PerformanceExecutionGraphRenderer {
     private final String projectName;
 
     public TestPageGenerator(String projectName) {
@@ -206,6 +207,13 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 script();
                     raw("performanceTests.createPerformanceGraph('" + urlEncode(testHistory.getId()) + ".json', " + JsonOutput.toJson(charts) + ")");
                 end();
+
+                renderExecutions();
+            }
+
+            private void renderExecutions() {
+                h3().text("Executions for commit " + Git.current().getCommitId()).end();
+                getGraphs(testHistory).forEach(graph -> graph.render(this));
             }
         };
     }
