@@ -86,9 +86,11 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
 import static java.nio.file.StandardOpenOption.READ;
@@ -617,7 +619,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private void detectUndeclaredIO(File detectedIOFile) {
         try {
-            String rootProjectDir = getProject().getRootDir().getPath();
+            final String rootProjectDir = getProject().getRootDir().getPath();
             Set<String> declaredInputs = getDeclaredInputPaths();
             Set<String> detectedFiles = getDetectedFiles(detectedIOFile);
             List<File> undeclaredFiles = new ArrayList<File>();
@@ -636,7 +638,13 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
                 }
             }
             if (!undeclaredFiles.isEmpty()) {
-                throw new GradleException("undeclared inputs: " + Joiner.on("\n").join(undeclaredFiles));
+                Iterator<String> files = undeclaredFiles.stream().map(new Function<File, String>() {
+                    @Override
+                    public String apply(File file) {
+                        return file.getAbsolutePath().substring(rootProjectDir.length() + 1);
+                    }
+                }).iterator();
+                throw new GradleException("undeclared inputs: " + Joiner.on("\n").join(files));
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

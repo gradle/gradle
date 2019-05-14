@@ -34,13 +34,13 @@ dependencies {
     compile project(':platformJvm')
     compile project(':languageJava')
     compile project(':testingBase')
+    byteBuddy project(':instrumentation')
 
     implementation libraries.asm.coordinates
     implementation libraries.commons_io.coordinates
     implementation libraries.junit.coordinates
     implementation libraries.testng.coordinates
     implementation libraries.bsh.coordinates
-    byteBuddy 'net.bytebuddy:byte-buddy:1.9.12'
 
     testCompile('com.google.inject:guice:2.0') {
         because 'This is for TestNG'
@@ -53,17 +53,17 @@ gradlebuildJava {
     moduleType = ModuleType.WORKER
 }
 
+// TODO can we get rid of this?
 jar {
     manifest {
         attributes(
-            "Premain-Class": "org.gradle.api.tasks.testing.UndeclaredIOAgent",
+            "Premain-Class": "org.gradle.jvm.IOAgent",
             "Can-Redefine-Classes": true,
             "Can-Retransform-Classes": true,
             "Can-Set-Native-Method-Prefix": true
+            // TODO do we need all?
         )
     }
-    from { configurations.byteBuddy.collect { zipTree(it) } }
-    dependsOn configurations.byteBuddy
 }
 
 tasks.named("test").configure {

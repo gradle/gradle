@@ -88,6 +88,7 @@ include("buildCacheHttp")
 include("testingBase")
 include("testingNative")
 include("testingJvm")
+include("instrumentation")
 include("testingJunitPlatform")
 include("platformPlay")
 include("testKit")
@@ -132,6 +133,7 @@ val groovyBuildScriptProjects = hashSetOf(
     "performance",
     "testing-base",
     "testing-jvm",
+    "instrumentation",
     "testing-junit-platform",
     "test-kit",
     "smoke-test",

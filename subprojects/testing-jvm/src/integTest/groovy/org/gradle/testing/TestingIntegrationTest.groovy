@@ -15,7 +15,6 @@
  */
 package org.gradle.testing
 
-
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -491,27 +490,37 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """
 
         and:
-        def undeclaredFileOutputStream = file('src/test/undeclared-input-FileInputStream.txt')
         def undeclaredFileInputStream = file('src/test/undeclared-input-FileInputStream.txt')
         undeclaredFileInputStream << "text"
+        def undeclaredFileOutputStream = file('src/test/undeclared-output-FileOutputStream.txt')
+        undeclaredFileOutputStream << ""
         def undeclaredFileInput = file('src/test/undeclared-input-File.txt')
         undeclaredFileInput << "text"
+        def undeclaredPathOutput = file('src/test/undeclared-output-Path.txt')
+        undeclaredPathOutput << ""
 
         @Language("JAVA") undeclaredInputReader = """
             import org.junit.Test;
             import java.io.*;
+            import java.nio.file.Files;
+            import java.nio.file.Paths;
 
             public class UndeclaredInputReader {
                 @Test
                 public void read() throws Exception {
-                    try (FileInputStream input = new FileInputStream(new File("${undeclaredFileInputStream}"))) {
-                        input.read();
-                    } 
-                    try (FileOutputStream output = new FileOutputStream(new File("${undeclaredFileOutputStream}"))) {
-                        output.write("text".getBytes());
-                    } 
+                    FileInputStream input = new FileInputStream("${undeclaredFileInputStream}");
+                    input.read();
+                    input.close();
+                    
+                    FileOutputStream out = new FileOutputStream("${undeclaredFileOutputStream}");    
+                    out.write("text".getBytes());    
+                    out.close(); 
+                    
                     new File("${undeclaredFileInput}").exists(); // goes to file system
                     new File("ignoredFile").toString(); // works with the parameter only
+                    
+                    Files.exists(Paths.get("${undeclaredPathOutput}"));
+                    Files.delete(Paths.get("${undeclaredPathOutput}"));
                 }
             }
         """
@@ -524,12 +533,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         failureCauseContains("${undeclaredFileInputStream}")
         failureCauseContains("${undeclaredFileOutputStream}")
         failureCauseContains("${undeclaredFileInput}")
+        failureCauseContains("${undeclaredPathOutput}")
 
         when:
         buildFile << """
             test.inputs.file "${undeclaredFileInputStream}"
             test.inputs.file "${undeclaredFileOutputStream}"
             test.inputs.file "${undeclaredFileInput}"
+            test.inputs.file "${undeclaredPathOutput}"
         """
 
         then:

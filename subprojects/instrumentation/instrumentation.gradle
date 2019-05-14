@@ -1,0 +1,52 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+configurations {
+    byteBuddy {
+    }
+    compileClasspath {
+        extendsFrom byteBuddy
+    }
+}
+
+dependencies {
+    compile project(':core')
+    compile project(':platformJvm')
+    compile project(':languageJava')
+
+    implementation 'net.bytebuddy:byte-buddy-agent:1.9.12'
+    byteBuddy 'net.bytebuddy:byte-buddy:1.9.12'
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
+
+jar {
+    manifest {
+        attributes(
+            "Premain-Class": "org.gradle.jvm.IOAgent",
+            "Can-Redefine-Classes": true,
+            "Can-Retransform-Classes": true,
+            "Can-Set-Native-Method-Prefix": true
+            // TODO do we need all?
+        )
+    }
+    from { configurations.byteBuddy.collect { zipTree(it) } }
+    dependsOn configurations.byteBuddy
+}
