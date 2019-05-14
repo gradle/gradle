@@ -51,6 +51,9 @@ class DefaultInstantExecution(
 ) : InstantExecution {
 
     interface Host {
+
+        val isSkipLoadingState: Boolean
+
         val currentBuild: ClassicModeBuild
 
         fun createBuild(rootProjectName: String): InstantExecutionBuild
@@ -75,17 +78,21 @@ class DefaultInstantExecution(
         host.newStateSerializer()
     }
 
-    override fun canExecuteInstantaneously(): Boolean {
-        return if (!isInstantExecutionEnabled) {
-            false
-        } else if (!instantExecutionStateFile.isFile) {
-            logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
-            false
-        } else {
-            logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
-            true
+    override fun canExecuteInstantaneously(): Boolean =
+        isInstantExecutionEnabled && when {
+            host.isSkipLoadingState -> {
+                logger.lifecycle("Calculating task graph as skipping instant execution cache was requested")
+                false
+            }
+            !instantExecutionStateFile.isFile -> {
+                logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
+                false
+            }
+            else -> {
+                logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
+                true
+            }
         }
-    }
 
     override fun saveTaskGraph() {
         if (isInstantExecutionEnabled) {

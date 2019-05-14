@@ -87,6 +87,9 @@ class InstantExecutionHost internal constructor(
         )
     }
 
+    override val isSkipLoadingState: Boolean
+        get() = gradle.startParameter.isRefreshDependencies
+
     override val currentBuild: ClassicModeBuild =
         DefaultClassicModeBuild()
 
