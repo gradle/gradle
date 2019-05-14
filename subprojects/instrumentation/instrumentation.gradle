@@ -47,6 +47,11 @@ jar {
             // TODO do we need all?
         )
     }
-    from { configurations.byteBuddy.collect { zipTree(it) } }
+    from { configurations.byteBuddy.collect { zipTree(it) } } // TODO do we still need a fat jar?
     dependsOn configurations.byteBuddy
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
