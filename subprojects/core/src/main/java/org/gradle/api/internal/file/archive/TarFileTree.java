@@ -104,11 +104,12 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         NoCloseTarInputStream tar = new NoCloseTarInputStream(inputStream);
         TarEntry entry;
         File expandedDir = getExpandedDir();
+        boolean isFirstTimeVisit = !expandedDir.exists();
         while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
             if (entry.isDirectory()) {
-                visitor.visitDir(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
+                visitor.visitDir(new DetailsImpl(resource, isFirstTimeVisit, expandedDir, entry, tar, stopFlag, chmod));
             } else {
-                visitor.visitFile(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
+                visitor.visitFile(new DetailsImpl(resource, isFirstTimeVisit, expandedDir, entry, tar, stopFlag, chmod));
             }
         }
     }
@@ -189,13 +190,15 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         private final NoCloseTarInputStream tar;
         private final AtomicBoolean stopFlag;
         private final ReadableResourceInternal resource;
+        private final boolean isFirstTimeVisit;
         private final File expandedDir;
         private File file;
         private boolean read;
 
-        public DetailsImpl(ReadableResourceInternal resource, File expandedDir, TarEntry entry, NoCloseTarInputStream tar, AtomicBoolean stopFlag, Chmod chmod) {
+        public DetailsImpl(ReadableResourceInternal resource, boolean isFirstTimeVisit, File expandedDir, TarEntry entry, NoCloseTarInputStream tar, AtomicBoolean stopFlag, Chmod chmod) {
             super(chmod);
             this.resource = resource;
+            this.isFirstTimeVisit = isFirstTimeVisit;
             this.expandedDir = expandedDir;
             this.entry = entry;
             this.tar = tar;
@@ -213,7 +216,7 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         public File getFile() {
             if (file == null) {
                 file = new File(expandedDir, entry.getName());
-                if (!file.exists()) {
+                if (isFirstTimeVisit) {
                     copyTo(file);
                 }
             }
