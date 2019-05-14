@@ -1,0 +1,5 @@
+NOTE: We improved the {cpp} documentation and the content of <<building_cpp_projects.adoc#,this page have being moved>>.
+Please update your references.
+++++
+<meta http-equiv="refresh" content="0;URL=building_cpp_projects.html">
+++++
