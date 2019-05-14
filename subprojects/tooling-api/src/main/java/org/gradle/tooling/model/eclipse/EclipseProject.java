@@ -34,11 +34,13 @@ public interface EclipseProject extends HierarchicalEclipseProject {
     /**
      * {@inheritDoc}
      */
+    @Override
     EclipseProject getParent();
 
     /**
      * {@inheritDoc}
      */
+    @Override
     DomainObjectSet<? extends EclipseProject> getChildren();
 
     /**
@@ -60,6 +62,7 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      * @return associated gradle project
      * @since 1.0-milestone-5
      */
+    @Override
     GradleProject getGradleProject();
 
     /**
