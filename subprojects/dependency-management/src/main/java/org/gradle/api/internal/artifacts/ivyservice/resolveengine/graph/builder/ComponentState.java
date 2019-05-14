@@ -279,7 +279,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                 ConfigurationMetadata metadata = node.getMetadata();
                 DisplayName name = Describables.of(metadata.getName());
                 List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
-                AttributeContainer attributes = AttributeDesugaring.desugar(metadata.getAttributes(), node.getAttributesFactory());
+                AttributeContainer attributes = node.desugar(metadata.getAttributes());
                 List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(implicitCapability) : ImmutableList.copyOf(capabilities);
                 ResolvedVariantDetails details = new DefaultVariantDetails(name, attributes, resolvedVariantCapabilities);
                 if (result != null) {

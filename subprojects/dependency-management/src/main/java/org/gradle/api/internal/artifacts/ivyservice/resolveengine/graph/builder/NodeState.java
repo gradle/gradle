@@ -34,8 +34,8 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
@@ -60,13 +60,6 @@ import java.util.Set;
  */
 public class NodeState implements DependencyGraphNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
-    private static final Spec<EdgeState> TRANSITIVE_EDGES = new Spec<EdgeState>() {
-        @Override
-        public boolean isSatisfiedBy(EdgeState edge) {
-            return edge.isTransitive();
-        }
-    };
-
     private final Long resultId;
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = Lists.newArrayList();
@@ -850,5 +843,9 @@ public class NodeState implements DependencyGraphNode {
     void makePending(EdgeState edgeState) {
         outgoingEdges.remove(edgeState);
         registerActivatingConstraint(edgeState.getDependencyState());
+    }
+
+    ImmutableAttributes desugar(ImmutableAttributes attributes) {
+        return resolveState.desugar(attributes);
     }
 }

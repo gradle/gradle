@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
@@ -26,40 +27,50 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 
+import java.util.Map;
 import java.util.Set;
 
-abstract class AttributeDesugaring {
+class AttributeDesugaring {
+    private final Map<ImmutableAttributes, ImmutableAttributes> desugared = Maps.newIdentityHashMap();
+    private final ImmutableAttributesFactory attributesFactory;
+
+    AttributeDesugaring(ImmutableAttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
+    }
+
     /**
      * Desugars attributes so that what we're going to serialize consists only of String or Boolean attributes,
      * and not their original types.
      * @return desugared attributes
      */
-    static ImmutableAttributes desugar(ImmutableAttributes attributes, ImmutableAttributesFactory attributesFactory) {
+    ImmutableAttributes desugar(ImmutableAttributes attributes) {
         if (attributes.isEmpty()) {
             return attributes;
         }
-        AttributeContainerInternal mutable = attributesFactory.mutable();
-        Set<Attribute<?>> keySet = attributes.keySet();
-        for (Attribute<?> attribute : keySet) {
-            Object value = attributes.getAttribute(attribute);
-            Attribute<Object> desugared = Cast.uncheckedCast(attribute);
-            if (attribute.getType() == Boolean.class || attribute.getType() == String.class) {
-                mutable.attribute(desugared, value);
-            } else {
-                desugared = Cast.uncheckedCast(Attribute.of(attribute.getName(), String.class));
-                mutable.attribute(desugared, value.toString());
+        return desugared.computeIfAbsent(attributes,  key -> {
+            AttributeContainerInternal mutable = attributesFactory.mutable();
+            Set<Attribute<?>> keySet = key.keySet();
+            for (Attribute<?> attribute : keySet) {
+                Object value = key.getAttribute(attribute);
+                Attribute<Object> desugared = Cast.uncheckedCast(attribute);
+                if (attribute.getType() == Boolean.class || attribute.getType() == String.class) {
+                    mutable.attribute(desugared, value);
+                } else {
+                    desugared = Cast.uncheckedCast(Attribute.of(attribute.getName(), String.class));
+                    mutable.attribute(desugared, value.toString());
+                }
             }
-        }
-        return mutable.asImmutable();
+            return mutable.asImmutable();
+        });
     }
 
-    static ComponentSelector desugarSelector(ComponentSelector selector, ImmutableAttributesFactory attributesFactory) {
+    ComponentSelector desugarSelector(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) selector;
             AttributeContainer moduleAttributes = module.getAttributes();
             if (!moduleAttributes.isEmpty()) {
                 ImmutableAttributes attributes = ((AttributeContainerInternal) moduleAttributes).asImmutable();
-                return DefaultModuleComponentSelector.newSelector(module.getModuleIdentifier(), module.getVersionConstraint(), desugar(attributes, attributesFactory), module.getRequestedCapabilities());
+                return DefaultModuleComponentSelector.newSelector(module.getModuleIdentifier(), module.getVersionConstraint(), desugar(attributes), module.getRequestedCapabilities());
             }
         }
         if (selector instanceof DefaultProjectComponentSelector) {
@@ -67,7 +78,7 @@ abstract class AttributeDesugaring {
             AttributeContainer projectAttributes = project.getAttributes();
             if (!projectAttributes.isEmpty()) {
                 ImmutableAttributes attributes = ((AttributeContainerInternal) projectAttributes).asImmutable();
-                return new DefaultProjectComponentSelector(project.getBuildIdentifier(), project.getIdentityPath(), project.projectPath(), project.getProjectName(), desugar(attributes, attributesFactory), project.getRequestedCapabilities());
+                return new DefaultProjectComponentSelector(project.getBuildIdentifier(), project.getIdentityPath(), project.projectPath(), project.getProjectName(), desugar(attributes), project.getRequestedCapabilities());
             }
         }
         return selector;
