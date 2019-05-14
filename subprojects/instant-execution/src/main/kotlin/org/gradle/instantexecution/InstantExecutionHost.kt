@@ -65,14 +65,10 @@ import java.io.File
 
 
 class InstantExecutionHost internal constructor(
-    private val gradle: GradleInternal
+    private val gradle: GradleInternal,
+    private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
+    private val projectFactory: IProjectFactory
 ) : DefaultInstantExecution.Host {
-
-    private
-    val classLoaderScopeRegistry = getService(ClassLoaderScopeRegistry::class.java)
-
-    private
-    val projectFactory = getService(IProjectFactory::class.java)
 
     private
     val projectDescriptorRegistry
@@ -95,13 +91,17 @@ class InstantExecutionHost internal constructor(
         DefaultClassicModeBuild()
 
     override fun createBuild(rootProjectName: String): InstantExecutionBuild =
-        DefaultInstantExecutionBuild(rootProjectName)
+        DefaultInstantExecutionBuild(getService(PathToFileResolver::class.java), rootProjectName)
 
     override fun newStateSerializer(): StateSerializer =
         serialization.newSerializer()
 
     override fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer =
         serialization.deserializerFor(beanClassLoader)
+
+    private
+    val coreScope: ClassLoaderScope
+        get() = classLoaderScopeRegistry.coreScope
 
     private
     val coreAndPluginsScope: ClassLoaderScope
@@ -116,8 +116,9 @@ class InstantExecutionHost internal constructor(
     private
     val startParameter = gradle.startParameter
 
-    override val requestedTaskNames = startParameter.taskNames
-    override val rootDir = startParameter.currentDir
+    override val requestedTaskNames: List<String> = startParameter.taskNames
+
+    override val rootDir: File = startParameter.currentDir
 
     inner class DefaultClassicModeBuild : ClassicModeBuild {
         override val scheduledTasks: List<Task>
@@ -130,7 +131,10 @@ class InstantExecutionHost internal constructor(
             gradle.taskGraph.getDependencies(task)
     }
 
-    inner class DefaultInstantExecutionBuild(rootProjectName: String) : InstantExecutionBuild {
+    inner class DefaultInstantExecutionBuild(
+        private val fileResolver: PathToFileResolver,
+        rootProjectName: String
+    ) : InstantExecutionBuild {
 
         init {
             gradle.run {
@@ -165,7 +169,7 @@ class InstantExecutionHost internal constructor(
                 name,
                 rootDir,
                 projectDescriptorRegistry,
-                getService(PathToFileResolver::class.java)
+                fileResolver
             )
             return projectFactory.createProject(
                 projectDescriptor,
@@ -249,20 +253,19 @@ class InstantExecutionHost internal constructor(
         }
 
         private
-        fun createSettings(): SettingsInternal {
-            val settingsSource = StringScriptSource("settings", "")
-            val classLoaderScopeRegistry = getService(ClassLoaderScopeRegistry::class.java)
-            return getService(Instantiator::class.java).newInstance(DefaultSettings::class.java,
-                getService(BuildScopeServiceRegistryFactory::class.java),
-                gradle,
-                classLoaderScopeRegistry.coreScope,
-                classLoaderScopeRegistry.coreScope,
-                getService(ScriptHandlerFactory::class.java).create(settingsSource, classLoaderScopeRegistry.coreScope),
-                rootDir,
-                settingsSource,
-                startParameter
-            )
-        }
+        fun createSettings(): SettingsInternal =
+            StringScriptSource("settings", "").let { settingsSource ->
+                getService(Instantiator::class.java).newInstance(DefaultSettings::class.java,
+                    getService(BuildScopeServiceRegistryFactory::class.java),
+                    gradle,
+                    coreScope,
+                    coreScope,
+                    getService(ScriptHandlerFactory::class.java).create(settingsSource, coreScope),
+                    rootDir,
+                    settingsSource,
+                    startParameter
+                )
+            }
     }
 
 
