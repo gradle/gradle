@@ -691,7 +691,7 @@
         <title>Artifact transform types</title>
         <para>Used to define artifact transforms.</para>
         <table>
-            <title>Native tool chain types</title>
+            <title>Artifact transform types</title>
             <tr>
                 <td>org.gradle.api.artifacts.transform.TransformAction</td>
             </tr>
