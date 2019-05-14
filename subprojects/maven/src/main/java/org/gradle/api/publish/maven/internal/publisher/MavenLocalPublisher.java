@@ -26,8 +26,8 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
     }
 
     @Override
-    protected MavenInstallAction createDeployTask(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        MavenInstallAction mavenInstallTask = new MavenInstallAction(packaging, projectIdentity);
+    protected MavenInstallAction createDeployTask(MavenNormalizedPublication publication, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        MavenInstallAction mavenInstallTask = new MavenInstallAction(publication.getPackaging(), publication.getProjectIdentity());
         mavenInstallTask.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         return mavenInstallTask;
     }

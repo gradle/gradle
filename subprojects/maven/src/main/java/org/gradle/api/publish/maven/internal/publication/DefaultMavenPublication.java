@@ -582,7 +582,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 return true;
             }
         });
-        return new MavenNormalizedPublication(name, pom.getPackaging(), getPomArtifact(), projectIdentity, artifactsToBePublished, determineMainArtifact());
+        return new MavenNormalizedPublication(name, projectIdentity, pom.getPackaging(), getPomArtifact(), determineMainArtifact(), artifactsToBePublished);
     }
 
     private MavenArtifact getPomArtifact() {

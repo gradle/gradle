@@ -43,8 +43,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     }
 
     @Override
-    protected MavenPublishAction createDeployTask(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(packaging, projectIdentity, artifactRepository, repositoryTransportFactory);
+    protected MavenPublishAction createDeployTask(MavenNormalizedPublication publication, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(publication.getPackaging(), publication.getProjectIdentity(), artifactRepository, repositoryTransportFactory);
         deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
         deployTask.setRepositories(createMavenRemoteRepository(artifactRepository), null);
         return deployTask;
