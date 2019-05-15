@@ -22,15 +22,20 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
  * Preconfigures the project to run a gradle build comparison.
+ *
+ * @deprecated This plugin will be removed in the next major version.
  */
+@Deprecated
 public class CompareGradleBuildsPlugin implements Plugin<Project> {
     public void apply(Project project) {
+        SingleMessageLogger.nagUserOfDeprecatedPlugin("Build Comparison");
         project.getPluginManager().apply(ReportingBasePlugin.class);
         final ReportingExtension reportingExtension = project.getExtensions().findByType(ReportingExtension.class);
 

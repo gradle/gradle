@@ -86,9 +86,9 @@ in the next major Gradle version (Gradle 6.0). See the User Manual section on th
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-<!--
-### Example deprecation
--->
+### Deprecated build comparison plugin
+
+The [build comparison](userguide/comparing_builds.html) plugin has been deprecated.
 
 ## Breaking changes and potential breaking changes
 
