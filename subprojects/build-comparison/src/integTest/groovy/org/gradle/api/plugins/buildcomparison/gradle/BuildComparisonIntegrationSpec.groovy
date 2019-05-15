@@ -39,8 +39,20 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     }
 
     def setup() {
+        executer.expectDeprecationWarning()
         executer.requireGradleDistribution()
         applyPlugin()
+    }
+
+    def "emits deprecation warning"() {
+        given:
+        applyPlugin()
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("The Build Comparison plugin has been deprecated")
     }
 
     def compareSimpleArchives() {

@@ -65,6 +65,7 @@ import java.util.Map;
  *
  * Please see the “Comparing Builds” chapter of the Gradle User Manual for more information.
  */
+@Deprecated
 public class CompareGradleBuilds extends DefaultTask implements VerificationTask {
 
     public static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
