@@ -55,6 +55,10 @@ Contributed by link:https://github.com/fraenkelc[Christian Fränkel]
 
 Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
 
+==== Embedded Ant version upgraded to 1.9.14
+
+The version of Ant distributed with Gradle has been upgraded to link:https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.14.html(1.9.14) from 1.9.13.
+
 [[changes_5.4]]
 == Upgrading from 5.3 and earlier
 

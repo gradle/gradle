@@ -37,8 +37,8 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
         def expectedHashes = [
             'annotations-13.0.jar' : 'ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478',
-            'ant-1.9.13.jar' : '2bec7304216081cfc6b6e6cb04422f1626c08ba70259cc4c62dca19dbd2b330a',
-            'ant-launcher-1.9.13.jar' : '080a84963a44901bc8f920037c56de349010388da2c5545077fdd74ae731a40b',
+            'ant-1.9.14.jar' : '37c10bafb295aef7a8618da2ff82f0dd2d0cbe2bbbb7d5ea994ea615238bd041',
+            'ant-launcher-1.9.14.jar' : 'faaf02c32f0649a2ebd146166b96a5c80cfddd3934fa0c260267e9c5be96088d',
             'asm-7.0.jar' : 'b88ef66468b3c978ad0c97fd6e90979e56155b4ac69089ba7a44e9aa7ffe9acf',
             'asm-analysis-7.0.jar' : 'e981f8f650c4d900bb033650b18e122fa6b161eadd5f88978d08751f72ee8474',
             'asm-commons-7.0.jar' : 'fed348ef05958e3e846a3ac074a12af5f7936ef3d21ce44a62c4fa08a771927d',
@@ -174,25 +174,18 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         def removed = expectedHashes.keySet() - depJars.keySet()
 
         expect:
-        if (!(added + removed).isEmpty()) {
-            System.err.println "Dependencies changed: added=$added, removed=$removed"
-            printScript(depJars)
-            assert (added + removed).isEmpty()
-        }
+        assert (added + removed).isEmpty()
 
         def errors = []
         depJars.each { String jarPath, TestFile jar ->
             def expected = expectedHashes[jarPath]
             def actual = jar.sha256Hash
             if (expected != actual) {
-                errors.add([path: jarPath, expectedHash: expected, actualHash: actual])
+                errors << "SHA-256 hash does not match for ${jarPath}: expected=${expected}, actual=${actual}"
             }
         }
 
-        !errors.findAll { error ->
-            System.err.println "Sha-256 hash does not match for ${error.path}: expected=${error.expectedHash}, actual=${error.actualHash}"
-            true
-        }
+        assert errors.empty
     }
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {
@@ -203,15 +196,5 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             file.listFiles().each { f -> collectJars(f, acc) }
         }
         acc
-    }
-
-    private static void printScript(depJars) {
-        System.err.println "Use the following script to regenerate the expected hashes"
-        System.err.println "(note: install the jq package: `brew install jq`)\n"
-
-        System.err.println '#!/bin/bash'
-        depJars.each { String jarName, File jar ->
-            System.err.println """echo -n "'"; echo -n $jarName; echo -n "' : "; wget -qO - `curl -s -H "X-Artifactory-Override-Base-Url: https://dev12.gradle.org/artifactory" https://dev12.gradle.org/artifactory/api/search/artifact?name=$jar.name | jq '.results[0].uri' | tr -d '\"'` | jq '.checksums.sha256' | tr  -d '"' | sed -e "s/\\(.*\\)/'\\1',/"  """
-        }
     }
 }
