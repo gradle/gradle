@@ -18,7 +18,7 @@ package org.gradle.execution
 import org.gradle.api.internal.GradleInternal
 import spock.lang.Specification
 
-class DefaultBuildExecuterTest extends Specification {
+class DefaultBuildWorkExecutorTest extends Specification {
     final GradleInternal gradleInternal = Mock()
 
     def "execute method calls execute method on first execution action"() {
@@ -27,7 +27,7 @@ class DefaultBuildExecuterTest extends Specification {
         def failures = []
 
         given:
-        def buildExecution = new DefaultBuildExecuter([action1, action2])
+        def buildExecution = new DefaultBuildWorkExecutor([action1, action2])
 
         when:
         buildExecution.execute(gradleInternal, failures)
@@ -43,7 +43,7 @@ class DefaultBuildExecuterTest extends Specification {
         def failures = []
 
         given:
-        def buildExecution = new DefaultBuildExecuter([action1, action2])
+        def buildExecution = new DefaultBuildWorkExecutor([action1, action2])
 
         when:
         buildExecution.execute(gradleInternal, failures)
@@ -60,7 +60,7 @@ class DefaultBuildExecuterTest extends Specification {
         def failures = []
 
         given:
-        def buildExecution = new DefaultBuildExecuter([action1])
+        def buildExecution = new DefaultBuildWorkExecutor([action1])
 
         when:
         buildExecution.execute(gradleInternal, failures)
@@ -75,7 +75,7 @@ class DefaultBuildExecuterTest extends Specification {
         def failures = []
 
         given:
-        def buildExecution = new DefaultBuildExecuter([executionAction])
+        def buildExecution = new DefaultBuildWorkExecutor([executionAction])
 
         when:
         buildExecution.execute(gradleInternal, failures)

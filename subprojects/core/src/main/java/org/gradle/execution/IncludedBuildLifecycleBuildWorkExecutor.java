@@ -21,11 +21,11 @@ import org.gradle.composite.internal.IncludedBuildControllers;
 
 import java.util.Collection;
 
-public class IncludedBuildLifecycleBuildExecuter implements BuildExecuter {
-    private final BuildExecuter delegate;
+public class IncludedBuildLifecycleBuildWorkExecutor implements BuildWorkExecutor {
+    private final BuildWorkExecutor delegate;
     private final IncludedBuildControllers includedBuildControllers;
 
-    public IncludedBuildLifecycleBuildExecuter(BuildExecuter delegate, IncludedBuildControllers includedBuildControllers) {
+    public IncludedBuildLifecycleBuildWorkExecutor(BuildWorkExecutor delegate, IncludedBuildControllers includedBuildControllers) {
         this.delegate = delegate;
         this.includedBuildControllers = includedBuildControllers;
     }

@@ -24,9 +24,9 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.composite.internal.IncludedBuildControllers;
-import org.gradle.configuration.BuildConfigurer;
+import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
-import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildState;
@@ -137,11 +137,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         DefaultGradleLauncher gradleLauncher = new DefaultGradleLauncher(
             gradle,
-            serviceRegistry.get(BuildConfigurer.class),
+            serviceRegistry.get(ProjectsPreparer.class),
             serviceRegistry.get(ExceptionAnalyser.class),
             gradle.getBuildListenerBroadcaster(),
             listenerManager.getBroadcaster(BuildCompletionListener.class),
-            gradle.getServices().get(BuildExecuter.class),
+            gradle.getServices().get(BuildWorkExecutor.class),
             serviceRegistry,
             servicesToStop,
             includedBuildControllers,

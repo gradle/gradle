@@ -24,13 +24,13 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class NotifyingBuildConfigurer implements BuildConfigurer {
+public class BuildOperatingFiringProjectsPreparer implements ProjectsPreparer {
     private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {
     };
-    private final BuildConfigurer delegate;
+    private final ProjectsPreparer delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public NotifyingBuildConfigurer(BuildConfigurer delegate, BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperatingFiringProjectsPreparer(ProjectsPreparer delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }

@@ -31,11 +31,11 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import java.util.List;
 import java.util.Set;
 
-public class NotifyingTaskExecutionPreparer implements TaskExecutionPreparer {
+public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionPreparer {
     private final TaskExecutionPreparer delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public NotifyingTaskExecutionPreparer(TaskExecutionPreparer delegate, BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperatingFiringTaskExecutionPreparer(TaskExecutionPreparer delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }
