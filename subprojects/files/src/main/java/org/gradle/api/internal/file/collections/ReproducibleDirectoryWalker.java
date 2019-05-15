@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
+import org.apache.commons.io.comparator.PathFileComparator;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
@@ -30,7 +31,7 @@ public class ReproducibleDirectoryWalker extends AbstractDirectoryWalker {
     protected File[] getChildren(File file) {
         File[] children = file.listFiles();
         if (children != null) {
-            Arrays.sort(children);
+            Arrays.sort(children, PathFileComparator.PATH_COMPARATOR);
         }
         return children;
     }
