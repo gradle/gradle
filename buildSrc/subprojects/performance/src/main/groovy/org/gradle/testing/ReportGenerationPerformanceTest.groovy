@@ -22,9 +22,8 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.gradle.api.Action
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.process.JavaExecSpec
 import org.openmbee.junit.model.JUnitFailure
 import org.openmbee.junit.model.JUnitTestCase
@@ -36,33 +35,32 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
     String buildId
 
     @OutputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
     File reportDir
+
+    @LocalState
+    File resultsJson
 
     protected abstract List<ScenarioBuildResultData> generateResultsForReport()
 
     protected void generatePerformanceReport() {
-        File resultJson = generateResultJson()
+        generateResultsJson()
+
         project.delete(reportDir)
-        try {
-            project.javaexec(new Action<JavaExecSpec>() {
-                void execute(JavaExecSpec spec) {
-                    spec.setMain(reportGeneratorClass)
-                    spec.args(reportDir.path, resultJson.path, getProject().getName())
-                    spec.systemProperties(databaseParameters)
-                    spec.systemProperty("org.gradle.performance.execution.channel", channel)
-                    spec.setClasspath(ReportGenerationPerformanceTest.this.getClasspath())
-                }
-            })
-        } finally {
-            project.delete(resultJson)
-        }
+        project.javaexec(new Action<JavaExecSpec>() {
+            void execute(JavaExecSpec spec) {
+                spec.setMain(reportGeneratorClass)
+                spec.args(reportDir.path, resultsJson.path, getProject().getName())
+                spec.systemProperties(databaseParameters)
+                spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                spec.systemProperty("githubToken", project.findProperty("githubToken"))
+                spec.setClasspath(ReportGenerationPerformanceTest.this.getClasspath())
+            }
+        })
     }
 
-    private File generateResultJson() {
-        File resultJson = File.createTempFile('performanceTest', 'results.json')
-        resultJson.text = JsonOutput.toJson(generateResultsForReport())
-        return resultJson
+    protected void generateResultsJson() {
+        resultsJson.createNewFile()
+        resultsJson.text = JsonOutput.toJson(generateResultsForReport())
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -70,15 +68,5 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
         List<JUnitTestCase> testCases = testSuite.testCases ?: []
         List<JUnitFailure> failures = testCases.collect { it.failures ?: [] }.flatten()
         return failures.collect { it.value }.join("\n")
-    }
-
-    // Modify this class with care, see class org.gradle.performance.results.ScenarioBuildResultData
-    static class ScenarioBuildResultData {
-        String teamCityBuildId
-        String scenarioName
-        String webUrl
-        String testFailure
-        // SUCCESS/FAILURE/UNKNOWN
-        String status
     }
 }

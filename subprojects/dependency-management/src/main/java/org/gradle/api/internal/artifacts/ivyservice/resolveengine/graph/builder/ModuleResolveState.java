@@ -56,7 +56,7 @@ class ModuleResolveState implements CandidateModule {
     private final ModuleIdentifier id;
     private final List<EdgeState> unattachedDependencies = new LinkedList<EdgeState>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
-    private final List<SelectorState> selectors = Lists.newArrayListWithExpectedSize(4);
+    private final ModuleSelectors<SelectorState> selectors = new ModuleSelectors<>();
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
@@ -266,9 +266,8 @@ class ModuleResolveState implements CandidateModule {
         return moduleRevision;
     }
 
-    void addSelector(SelectorState selector) {
-        assert !selectors.contains(selector) : "Inconsistent call to addSelector: should only be done if the selector isn't in use";
-        selectors.add(selector);
+    void addSelector(SelectorState selector, boolean deferSelection) {
+        selectors.add(selector, deferSelection);
         mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selector);
         if (overriddenSelection) {
             assert selected != null : "An overridden module cannot have selected == null";
@@ -284,7 +283,7 @@ class ModuleResolveState implements CandidateModule {
         }
     }
 
-    public List<SelectorState> getSelectors() {
+    public Iterable<SelectorState> getSelectors() {
         return selectors;
     }
 
@@ -366,7 +365,11 @@ class ModuleResolveState implements CandidateModule {
 
 
     public boolean maybeUpdateSelection() {
-        ComponentState newSelected = selectorStateResolver.selectBest(getId(), getSelectors());
+        if (selectors.checkDeferSelection()) {
+            // Selection deferred as we know another selector will be added soon
+            return false;
+        }
+        ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
         if (selected == null) {
             select(newSelected);
             return true;

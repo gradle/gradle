@@ -16,14 +16,10 @@
 
 package org.gradle.swiftpm
 
-
-import spock.lang.Ignore
+import org.gradle.util.VersionNumber
 
 class SwiftPackageManagerExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
-    // Swift Package Manager returns an error code when no target are available:
-    // See https://github.com/gradle/gradle-native/issues/1006
-    @Ignore
     def "produces manifest for build with no native components"() {
         given:
         settingsFile << "include 'lib1', 'lib2'"
@@ -51,7 +47,13 @@ let package = Package(
     ]
 )
 """
-        swiftPmBuildSucceeds()
+        // In Swift PM 5.0+ an error is thrown when there is no buildable target, let's ignore this specific failure for backward compatibility
+        if (swiftc.version.compareTo(VersionNumber.parse("5.0")) < 0) {
+            swiftPmBuildSucceeds()
+        } else {
+            def result = swiftPmBuildFails()
+            result.out.contains("the package does not contain a buildable target")
+        }
     }
 
     def "can configure the location of the generated manifest file"() {

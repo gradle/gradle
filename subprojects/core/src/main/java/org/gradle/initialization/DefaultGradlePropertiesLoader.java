@@ -15,8 +15,8 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +31,9 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
 
     private Map<String, String> defaultProperties = new HashMap<String, String>();
     private Map<String, String> overrideProperties = new HashMap<String, String>();
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
 
-    public DefaultGradlePropertiesLoader(StartParameter startParameter) {
+    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter) {
         this.startParameter = startParameter;
     }
 
@@ -41,9 +41,10 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         loadProperties(settingsDir, startParameter, getAllSystemProperties(), getAllEnvProperties());
     }
 
-    void loadProperties(File settingsDir, StartParameter startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
+    void loadProperties(File settingsDir, StartParameterInternal startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
         defaultProperties.clear();
         overrideProperties.clear();
+        addGradleProperties(defaultProperties, new File(startParameter.getGradleHomeDir(), Project.GRADLE_PROPERTIES));
         addGradleProperties(defaultProperties, new File(settingsDir, Project.GRADLE_PROPERTIES));
         addGradleProperties(overrideProperties, new File(startParameter.getGradleUserHomeDir(), Project.GRADLE_PROPERTIES));
         setSystemProperties(startParameter.getSystemPropertiesArgs());
@@ -62,7 +63,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
 
     private void addGradleProperties(Map<String, String> target, File... files) {
         for (File propertyFile : files) {
-            if (propertyFile.isFile()) {
+            if (propertyFile != null && propertyFile.isFile()) {
                 Properties properties = GUtil.loadProperties(propertyFile);
                 target.putAll(new HashMap(properties));
             }

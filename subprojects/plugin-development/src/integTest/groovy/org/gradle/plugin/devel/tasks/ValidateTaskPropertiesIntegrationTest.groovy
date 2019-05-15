@@ -18,9 +18,12 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.model.ReplacedBy
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -38,6 +41,7 @@ import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.intellij.lang.annotations.Language
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -135,16 +139,16 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'oldThing' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation."
 
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Task type 'MyTask': property 'oldThing' is not annotated with an input or output annotation.
-            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
-            Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation.
         """.stripIndent().trim()
     }
 
@@ -217,12 +221,12 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails("validateTaskProperties")
         failure.assertHasDescription("Execution failed for task ':validateTaskProperties'.")
         failure.assertHasCause("Task property validation failed. See")
-        failure.assertHasCause("Warning: Task type 'MyTask': property 'thing' is annotated with unsupported annotation @${annotation.simpleName}.")
-        failure.assertHasCause("Warning: Task type 'MyTask': property 'options.nestedThing' is annotated with unsupported annotation @${annotation.simpleName}.")
+        failure.assertHasCause("Warning: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.")
+        failure.assertHasCause("Warning: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.")
 
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'options.nestedThing' is annotated with unsupported annotation @${annotation.simpleName}.
-            Warning: Task type 'MyTask': property 'thing' is annotated with unsupported annotation @${annotation.simpleName}.
+            Warning: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.
+            Warning: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.
         """.stripIndent().trim()
 
         where:
@@ -302,12 +306,12 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
 
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
         """.stripIndent().trim()
     }
 
@@ -387,6 +391,39 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/task-properties/report.txt").text == ""
     }
 
+    @Unroll
+    def "report setters for property with mutable type #type"() {
+        @Language("JAVA") myTask = """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.InputFiles;
+
+            public class MyTask extends DefaultTask {
+                // getter and setter
+                @InputFiles public ${type} getMutablePropertyWithSetter() { return null; } 
+                public void setMutablePropertyWithSetter(${type} value) {} 
+
+                // just getter
+                @InputFiles public ${type} getMutablePropertyWithoutSetter() { return null; } 
+
+                // just setter
+                // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
+                public void setMutablePropertyWithoutGetter() {}                
+            }
+        """
+        file("src/main/java/MyTask.java") << myTask
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Type 'MyTask': property 'mutablePropertyWithSetter' with mutable type '${type.replaceAll("<.+>", "")}' is redundant. Use methods on the property value itself to mutate it
+        """.stripIndent().trim()
+
+        where:
+        type << [ConfigurableFileCollection.name, "${Property.name}<String>", RegularFileProperty.name]
+    }
+
     def "detects problems with file inputs"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
@@ -460,12 +497,12 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Task type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.
-            Warning: Task type 'MyTask': property 'inputDirectory' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
-            Warning: Task type 'MyTask': property 'inputFile' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
-            Warning: Task type 'MyTask': property 'inputFiles' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
-            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.
+            Warning: Type 'MyTask': property 'inputDirectory' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'inputFile' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'inputFiles' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
         """.stripIndent().trim()
     }
 
@@ -508,9 +545,9 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'badTime' is private and annotated with @Input.
-            Warning: Task type 'MyTask': property 'options.badNested' is private and annotated with @Input.
-            Warning: Task type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.
+            Warning: Type 'MyTask': property 'badTime' is private and annotated with @Input.
+            Warning: Type 'MyTask': property 'options.badNested' is private and annotated with @Input.
+            Warning: Type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.
         """.stripIndent().trim()
     }
 
@@ -631,9 +668,9 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'dirProp' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
-            Warning: Task type 'MyTask': property 'fileProp' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
-            Warning: Task type 'MyTask': property 'filesProp' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'dirProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'fileProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'filesProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
         """.stripIndent().trim()
     }
 
@@ -690,12 +727,12 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation."
-        failure.assertHasCause "Error: Type 'MyTransformAction': property 'inputFile' is annotated with unsupported annotation @InputFile."
+        failure.assertHasCause "Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile."
         failure.assertHasCause "Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation."
 
         file("build/reports/task-properties/report.txt").text == """
             Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation.
-            Error: Type 'MyTransformAction': property 'inputFile' is annotated with unsupported annotation @InputFile.
+            Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile.
             Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation.
         """.stripIndent().trim()
     }
@@ -757,14 +794,14 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."
-        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' has @Incremental annotation used on an @Input property."
-        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with unsupported annotation @InputArtifact."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."
 
         file("build/reports/task-properties/report.txt").text == """
             Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.
-            Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' has @Incremental annotation used on an @Input property.
-            Error: Type 'MyTransformParameters': property 'inputFile' is annotated with unsupported annotation @InputArtifact.
+            Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties.
+            Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.
             Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.
         """.stripIndent().trim()
     }
@@ -819,7 +856,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'oldProperty' has conflicting property types declared: @Input, @ReplacedBy.
+            Warning: Type 'MyTask': property 'oldProperty' has conflicting type annotations declared: @Input, @ReplacedBy; assuming @Input.
         """.stripIndent().trim()
     }
 }

@@ -1,81 +1,67 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [running Gradle on JDK12](#jdk12-support), a [new API for Incremental Tasks](#incremental-tasks-api), updates to [building native software with Gradle](#native-support), [Swift 5 Support](#swift5-support), and more.
-
-Read the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.0.
-If upgrading from Gradle 4.x, please read [upgrading from Gradle 4.x to 5.0](userguide/upgrading_version_4.html) first.
+This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
+[Martin d'Anjou](https://github.com/martinda),
+[Ben Asher](https://github.com/benasher44),
+[Mike Kobit](https://github.com/mkobit),
+[Erhard Pointl](https://github.com/epeee),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Evgeny Mandrikov](https://github.com/Godin),
+[Roberto Perez Alcolea](https://github.com/rpalcolea) and
+[Christian Fränkel](https://github.com/fraenkelc)
 
-[Ian Kerins](https://github.com/isker),
-[Roberto Perez Alcolea](https://github.com/rpalcolea),
-[Rodolfo Forte](https://github.com/Tschis),
-[gla3dr](https://github.com/gla3dr),
-and [Stefan M.](https://github.com/StefMa).
+<!-- 
+## 1
+
+details of 1
+
+## 2
+
+details of 2
+
+## n
+-->
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle @version@ by updating your wrapper properties:
+Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-Gradle 5.4 has had _one_ patch release. Please use the latest patch release (@version@).
+## Improved Eclipse project name deduplication in Buildship
 
-<a name="jdk12-support"/>
+When importing Gradle Eclipse projects into Buildship, the current Eclipse workpace state is taken into account. This allows Gradle to import/synchronize in Eclipse workspaces that include
+non-Gradle projects that conflict with project names in the imported project.
 
-## Support for JDK12
+The upcoming 3.1.1 version of Buildship is required to take advantage of this behavior.
 
-Gradle now supports running on [JDK12](https://jdk.java.net/12/).
+Contributed by [Christian Fränkel](https://github.com/fraenkelc)
 
-<a name="incremental-tasks-api"/>
+## Build init plugin improvements
 
-## New API for Incremental Tasks
+### Support for JUnit Jupiter
 
-With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see [Incremental Builds](userguide/more_about_tasks.html#sec:up_to_date_checks)).
-However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs.
-When a task has an input that can represent multiple files and the task only processes those files that are out of date, it's called an _incremental task_.
-Prior to Gradle 5.4, you had to use [`IncrementalTaskInputs`](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html) to implement an incremental task.
+The `init` task now provides an option to use Junit Jupiter, instead of Junit 4, to test Java applications and libraries. You can select this test framework when you run the `init` task interactively, or use the `--test-framework` command-line option. See the [User manual](userguide/build_init_plugin.html) for more details.
 
-Now you can use the new [`InputChanges`](dsl/org.gradle.work.InputChanges.html) API for implementing incremental tasks.
-This API addresses some shortcomings of the old API, first and foremost that it is now possible to query for changes of individual input file properties, instead of receiving the changes for all input file properties at once.
-Additionally, the file type and the normalized path can be queried for each change, and the old outputs of the task are automatically removed when Gradle is unable to determine which input files need to be processed.
+Contributed by [Erhard Pointl](https://github.com/epeee)
 
-See the [user manual](userguide/custom_tasks.html#incremental_tasks) for more information on how to implement incremental tasks using the new API.
+### Generate Gradle plugin builds
 
-```
-inputChanges.getFileChanges(inputDir).forEach { change ->
-    val targetFile = outputDir.file(change.normalizedPath).get().asFile
-    if (change.changeType == ChangeType.REMOVED) {
-        targetFile.delete()
-    } else {
-        targetFile.writeText(change.file.readText().reversed())
-    }
-}
-```
+The `init` task can now generate simple Gradle plugins. You can use these as a starting point for developing and testing a Gradle plugin. The `init` task provides an option to use either Java, Groovy or Kotlin for the plugin source. You can select a Gradle plugin when you run the `init` task interactively, or use the `--type` command-line option. 
 
-<a name="native-support"/>
+See the [User manual](userguide/build_init_plugin.html) for more details.
 
-## Building native software with Gradle
+## Define organization-wide properties with a custom Gradle Distribution
 
-Updates include relocating generated object files to separate directories per variant; usage of the new Incremental Changes API. See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-54).
+Gradle now looks for a `gradle.properties` file in the Gradle distribution used by the build.  This file has the [lowest precedence of any `gradle.properties`](userguide/build_environment.html#sec:gradle_configuration_properties) and properties defined in other locations will override values defined here.
 
-<a name="swift5-support"/>
-
-### Swift 5 Support
-
-Gradle now supports [Swift 5](https://swift.org/blog/swift-5-released/) officially [release with the Xcode 10.2](https://developer.apple.com/documentation/xcode_release_notes/xcode_10_2_release_notes).
-Specifying the source compatibility to Swift 5 instruct the compiler to expect Swift 5 compatible source files.
-Have a look at the [Swift samples](https://github.com/gradle/native-samples) to learn more about common use cases.
-
-
-## Ivy publication can expose resolved versions
-
-When using the [`ivy-publish` plugin](userguide/publishing_ivy.html), you can now opt-in to publish the _resolved_ dependency versions instead of the _declared_ ones.
-For details, have a look at the [dedicated section](userguide/publishing_ivy.html#publishing_ivy:resolved_dependencies) in the plugin documentation.
+By placing a `gradle.properties` file in a [custom Gradle distribution](userguide/organizing_gradle_projects.html#sec:custom_gradle_distribution), an organization can add default properties for the entire organization or tweak the default Gradle daemon memory parameters with `org.gradle.jvmargs`.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -104,15 +90,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Using custom local build cache implementations
-
-Using a custom build cache implementation for the local build cache is now deprecated.
-The only allowed type will be `DirectoryBuildCache` going forward.
-There is no change in the support for using custom build cache implementations as the remote build cache. 
-
-### Breaking changes
-
-<!-- summary and links -->
+## Breaking changes and potential breaking changes
 
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about breaking changes and considerations when upgrading to Gradle @version@.
 

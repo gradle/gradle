@@ -18,12 +18,10 @@ package org.gradle.internal.component.local.model
 
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -66,7 +64,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "configuration has no dependencies or artifacts when none have been added"() {
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         when:
         metadata.addConfiguration("super", "description", [] as Set, ImmutableSet.of("super"), false, false, ImmutableAttributes.EMPTY, true, true, ImmutableCapabilities.EMPTY)
         metadata.addConfiguration("conf", "description", ["super"] as Set, ImmutableSet.of("super", "conf"), true, true, ImmutableAttributes.EMPTY, true, true, ImmutableCapabilities.EMPTY)

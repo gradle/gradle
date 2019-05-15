@@ -30,6 +30,7 @@ import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -54,8 +55,9 @@ public class LayoutToPropertiesConverter {
     }
 
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
+        configureFromHomeDir(layout.getGradleInstallationHomeDir(), properties);
         configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
-        configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
+        configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
         configureFromSystemproperties(properties);
         return properties;
     }
@@ -70,7 +72,7 @@ public class LayoutToPropertiesConverter {
         }
     }
 
-    private void configureFromGradleUserHome(File gradleUserHomeDir, Map<String, String> result) {
+    private void configureFromHomeDir(File gradleUserHomeDir, Map<String, String> result) {
         maybeConfigureFrom(new File(gradleUserHomeDir, Project.GRADLE_PROPERTIES), result);
     }
 
@@ -79,8 +81,8 @@ public class LayoutToPropertiesConverter {
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
-    private void maybeConfigureFrom(File propertiesFile, Map<String, String> result) {
-        if (!propertiesFile.isFile()) {
+    private void maybeConfigureFrom(@Nullable File propertiesFile, Map<String, String> result) {
+        if (propertiesFile != null && !propertiesFile.isFile()) {
             return;
         }
 

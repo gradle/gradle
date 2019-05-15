@@ -32,13 +32,12 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.integtests.fixtures.RetryConditions.onBuildTimeout
-import static org.gradle.util.TestPrecondition.PULL_REQUEST_BUILD
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Retry(condition = { onBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = PULL_REQUEST_BUILD.fulfilled ? 60 : 30
+    private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 60
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 20
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
     private static final String CHANGE_DETECTED_OUTPUT = "Change detected, executing build..."

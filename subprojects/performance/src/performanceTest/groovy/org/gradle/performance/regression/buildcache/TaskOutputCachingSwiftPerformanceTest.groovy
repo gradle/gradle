@@ -17,15 +17,13 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore("Swift failures - trying to build with Swift5 on older versions of Gradle")
 class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
         runner.minimumVersion = "4.5"
-        runner.targetVersions = ["5.2-20181218000039+0000"]
+        runner.targetVersions = ["5.5-20190515115345+0000"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 

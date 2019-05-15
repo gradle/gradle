@@ -41,9 +41,9 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
         this.hasCustomDescription = hasCustomDescription;
         this.isEquivalentToForce = isEquivalentToForce;
         if (hasCustomDescription) {
-            this.hashCode = Objects.hashCode(cause, description, isEquivalentToForce);
+            this.hashCode = 31 * (31 * cause.hashCode() + description.hashCode()) + (isEquivalentToForce ? 1 : 0);
         } else {
-            this.hashCode = Objects.hashCode(cause, isEquivalentToForce);
+            this.hashCode = 31 * cause.hashCode() + (isEquivalentToForce ? 1 : 0);
         }
     }
 
@@ -76,7 +76,8 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
             return false;
         }
         DefaultComponentSelectionDescriptor that = (DefaultComponentSelectionDescriptor) o;
-        return cause == that.cause
+        return hashCode == that.hashCode
+            && cause == that.cause
             && isEquivalentToForce == that.isEquivalentToForce
             && Objects.equal(description, that.description);
     }

@@ -17,33 +17,49 @@ package org.gradle.buildinit.plugins.internal.maven;
 
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 public class PomProjectInitDescriptor implements BuildConverter {
     private final MavenSettingsProvider settingsProvider;
     private final BuildScriptBuilderFactory scriptBuilderFactory;
+    private final DocumentationRegistry documentationRegistry;
     private final PathToFileResolver fileResolver;
 
-    public PomProjectInitDescriptor(PathToFileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider, BuildScriptBuilderFactory scriptBuilderFactory) {
+    public PomProjectInitDescriptor(PathToFileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider, BuildScriptBuilderFactory scriptBuilderFactory, DocumentationRegistry documentationRegistry) {
         this.fileResolver = fileResolver;
         this.settingsProvider = mavenSettingsProvider;
         this.scriptBuilderFactory = scriptBuilderFactory;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public String getId() {
         return "pom";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.BASIC;
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.NONE;
     }
 
     @Override
@@ -97,5 +113,10 @@ public class PomProjectInitDescriptor implements BuildConverter {
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
         return Collections.singleton(BuildInitTestFramework.NONE);
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getDocumentationFor("migrating_from_maven"));
     }
 }

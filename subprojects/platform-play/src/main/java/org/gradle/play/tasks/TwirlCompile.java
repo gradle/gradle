@@ -43,7 +43,7 @@ import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.internal.twirl.DefaultTwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
-import org.gradle.play.internal.twirl.TwirlCompilerFactory;
+import org.gradle.play.internal.twirl.TwirlCompilerAdapterFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
@@ -109,7 +109,7 @@ public class TwirlCompile extends SourceTask {
 
     @Input
     public Object getDependencyNotation() {
-        return TwirlCompilerFactory.createAdapter(platform).getDependencyNotation();
+        return TwirlCompilerAdapterFactory.createAdapter(platform).getDependencyNotation();
     }
 
     /**

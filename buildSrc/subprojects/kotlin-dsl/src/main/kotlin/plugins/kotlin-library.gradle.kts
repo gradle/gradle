@@ -21,6 +21,8 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
 import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
 
+import build.configureKotlinCompilerForGradleBuild
+
 
 plugins {
     kotlin("jvm")
@@ -30,16 +32,7 @@ plugins {
 tasks {
 
     withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            apiVersion = "1.3"
-            languageVersion = "1.3"
-            freeCompilerArgs += listOf(
-                "-java-parameters",
-                "-Xjsr305=strict",
-                "-progressive",
-                "-Xskip-runtime-version-check"
-            )
-        }
+        configureKotlinCompilerForGradleBuild()
     }
 
     withType<KtlintFormatTask>().configureEach {

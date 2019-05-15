@@ -72,8 +72,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
+        def result = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         result.matches.size() == 1
@@ -101,8 +100,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
+        def result = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         result.matches.size() == 2
@@ -130,8 +128,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2]
 
         when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
+        def result = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         def match = result.matches.first()
@@ -147,8 +144,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def result2 = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result2)
+        def result2 = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         def match2 = result2.matches.first()
@@ -172,8 +168,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def matchResult = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, matchResult)
+        def matchResult = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         def transformer = matchResult.matches.first()
@@ -216,8 +211,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
+        def result = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         result.matches.first().transformation.is(reg3.transformationStep)
@@ -256,8 +250,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]]]
 
         when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
+        def result = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         result.matches.size() == 1
@@ -308,8 +301,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
+        def result = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         result.matches.size() == 1
@@ -342,8 +334,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2]
 
         when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
+        def result = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         result.matches.empty
@@ -366,8 +357,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2]
 
         when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
+        def result = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         result.matches.empty
@@ -380,8 +370,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def result2 = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result2)
+        def result2 = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         result2.matches.empty
@@ -406,8 +395,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistrations.transforms >> [reg1]
 
         when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
+        def result = matchingCache.collectConsumerVariants(source, requested)
 
         then:
         result.matches.empty

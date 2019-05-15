@@ -328,6 +328,8 @@ A custom Gradle distribution is comprised of the standard Gradle distribution pl
 The initialization scripts come bundled with the distribution and are applied every time the build is run.
 Developers only need to point their checked-in <<gradle_wrapper.adoc#gradle_wrapper,Wrapper>> files to the URL of the custom Gradle distribution.
 
+Custom Gradle distributions may also contain a `gradle.properties` file in the root of the distribution, which provide an organization-wide <<build_environment.adoc#sec:gradle_configuration_properties,set of properties that control the build environment>>.
+
 The following steps are typical for creating a custom Gradle distribution:
 
 1. Implement logic for downloading and repackaging a Gradle distribution.

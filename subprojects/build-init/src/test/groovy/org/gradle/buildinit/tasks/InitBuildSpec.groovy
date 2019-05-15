@@ -20,6 +20,8 @@ import org.gradle.api.GradleException
 import org.gradle.buildinit.plugins.internal.BuildConverter
 import org.gradle.buildinit.plugins.internal.BuildInitializer
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
+import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
@@ -58,12 +60,14 @@ class InitBuildSpec extends Specification {
         projectLayoutRegistry.buildConverter >> buildConverter
         buildConverter.canApplyToCurrentDirectory() >> false
         projectLayoutRegistry.default >> projectSetupDescriptor
-        projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
-        projectSetupDescriptor.id >> "some-type"
+        projectLayoutRegistry.getLanguagesFor(ComponentType.BASIC) >> [Language.NONE]
+        projectLayoutRegistry.get(ComponentType.BASIC, Language.NONE) >> projectSetupDescriptor
+        projectSetupDescriptor.componentType >> ComponentType.BASIC
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.defaultDsl >> GROOVY
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.defaultTestFramework >> NONE
+        projectSetupDescriptor.furtherReading >> Optional.empty()
 
         when:
         init.setupProjectLayout()
@@ -77,6 +81,7 @@ class InitBuildSpec extends Specification {
         projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
         projectSetupDescriptor.testFrameworks >> [SPOCK]
         projectSetupDescriptor.dsls >> [GROOVY, KOTLIN]
+        projectSetupDescriptor.furtherReading >> Optional.empty()
         init.type = "java-library"
         init.dsl = "kotlin"
         init.testFramework = "spock"
@@ -91,6 +96,7 @@ class InitBuildSpec extends Specification {
     def "should throw exception if requested test framework is not supported for the specified type"() {
         given:
         projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
+        projectSetupDescriptor.id >> "some-type"
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.testFrameworks >> [NONE, JUNIT]
         init.type = "some-type"
@@ -101,7 +107,7 @@ class InitBuildSpec extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""The requested test framework 'spock' is not supported for 'some-type' setup type. Supported frameworks:
+        e.message == TextUtil.toPlatformLineSeparators("""The requested test framework 'spock' is not supported for 'some-type' build type. Supported frameworks:
   - 'none'
   - 'junit'""")
     }
@@ -109,6 +115,7 @@ class InitBuildSpec extends Specification {
     def "should throw exception if requested DSL is not supported for the specified type"() {
         given:
         projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
+        projectSetupDescriptor.id >> "some-type"
         projectSetupDescriptor.dsls >> [GROOVY]
         init.type = "some-type"
         init.dsl = "kotlin"
@@ -118,12 +125,13 @@ class InitBuildSpec extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message == "The requested DSL 'kotlin' is not supported for 'some-type' setup type"
+        e.message == "The requested DSL 'kotlin' is not supported for 'some-type' build type"
     }
 
     def "should throw exception if project name is not supported for the specified type"() {
         given:
         projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
+        projectSetupDescriptor.id >> "some-type"
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.supportsProjectName()
@@ -135,12 +143,13 @@ class InitBuildSpec extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message == "Project name is not supported for 'some-type' setup type."
+        e.message == "Project name is not supported for 'some-type' build type."
     }
 
     def "should throw exception if package name is not supported for the specified type"() {
         given:
         projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
+        projectSetupDescriptor.id >> "some-type"
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.supportsPackage()
@@ -152,7 +161,7 @@ class InitBuildSpec extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message == "Package name is not supported for 'some-type' setup type."
+        e.message == "Package name is not supported for 'some-type' build type."
     }
 
 }

@@ -19,6 +19,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -35,23 +38,25 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
-    private final Compiler<T> delegate;
+    private final Class<? extends Compiler<T>> delegateClass;
+    private final Object[] delegateParameters;
     private final WorkerFactory workerFactory;
 
-    public AbstractDaemonCompiler(Compiler<T> delegate, WorkerFactory workerFactory) {
-        this.delegate = delegate;
+    public AbstractDaemonCompiler(Class<? extends Compiler<T>> delegateClass, Object[] delegateParameters, WorkerFactory workerFactory) {
+        this.delegateClass = delegateClass;
+        this.delegateParameters = delegateParameters;
         this.workerFactory = workerFactory;
     }
 
-    public Compiler<T> getDelegate() {
-        return delegate;
+    public Class<? extends Compiler<T>> getDelegateClass() {
+        return delegateClass;
     }
 
     @Override
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonForkOptions(spec);
         Worker worker = workerFactory.getWorker(daemonForkOptions);
-        DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerCallable.class, "compiler daemon", new Object[] {delegate, spec}));
+        DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerCallable.class, "compiler daemon", new Object[] {delegateClass, delegateParameters, spec}));
         if (result.isSuccess()) {
             return result;
         } else {
@@ -72,17 +77,25 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     }
 
     private static class CompilerCallable<T extends CompileSpec> implements Callable<WorkResult> {
-        private final Compiler<T> compiler;
+        private final Class<? extends Compiler<T>> compilerClass;
+        private final Object[] compilerParameters;
         private final T compileSpec;
+        private final InstantiatorFactory instantiatorFactory;
+        private final ServiceRegistry serviceRegistry;
 
         @Inject
-        public CompilerCallable(Compiler<T> compiler, T compileSpec) {
-            this.compiler = compiler;
+        public CompilerCallable(Class<? extends Compiler<T>> compilerClass, Object[] compilerParameters, T compileSpec, InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry) {
+            this.compilerClass = compilerClass;
+            this.compilerParameters = compilerParameters;
             this.compileSpec = compileSpec;
+            this.instantiatorFactory = instantiatorFactory;
+            this.serviceRegistry = serviceRegistry;
         }
 
         @Override
         public WorkResult call() throws Exception {
+            Instantiator instantiator = instantiatorFactory.inject(serviceRegistry);
+            Compiler<T> compiler = instantiator.newInstance(compilerClass, compilerParameters);
             return compiler.execute(compileSpec);
         }
     }

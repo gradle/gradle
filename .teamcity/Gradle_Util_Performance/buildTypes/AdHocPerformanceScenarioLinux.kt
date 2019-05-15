@@ -34,7 +34,7 @@ object AdHocPerformanceScenarioLinux : BuildType({
         param("additional.gradle.parameters", "")
 
         param("env.ANDROID_HOME", "/opt/android/sdk")
-        param("env.PATH", "%env.PATH%:/opt/swift/latest/usr/bin")
+        param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
         param("env.HP_HOME_DIR", "/opt/honest-profiler")
     }
 
@@ -42,7 +42,7 @@ object AdHocPerformanceScenarioLinux : BuildType({
         gradleWrapper {
             name = "GRADLE_RUNNER"
             gradleParams = (
-                performanceTestCommandLine("%templates% performance:performanceAdHocTest", "%baselines%",
+                performanceTestCommandLine("clean %templates% performance:performanceAdHocTest", "%baselines%",
                     """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""")
                     + buildToolGradleParameters()
                     + builtInRemoteBuildCacheNode.gradleParameters(Os.linux)

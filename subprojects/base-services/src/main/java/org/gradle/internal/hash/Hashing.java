@@ -199,48 +199,37 @@ public class Hashing {
     }
 
     private static class MessageDigestHasher implements PrimitiveHasher {
-        private final MessageDigest digest;
         private final ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
-        private boolean done;
+        private MessageDigest digest;
 
         public MessageDigestHasher(MessageDigest digest) {
             this.digest = digest;
         }
 
-        private void checkNotDone() {
-            if (done) {
-                throw new IllegalStateException("Cannot reuse hasher");
+        private MessageDigest getDigest() {
+            if (digest == null) {
+                throw new IllegalStateException("Cannot reuse hasher!");
             }
+            return digest;
         }
 
         @Override
         public void putByte(byte b) {
-            checkNotDone();
-            digest.update(b);
+            getDigest().update(b);
         }
 
         @Override
         public void putBytes(byte[] bytes) {
-            checkNotDone();
-            digest.update(bytes);
+            getDigest().update(bytes);
         }
 
         @Override
         public void putBytes(byte[] bytes, int off, int len) {
-            checkNotDone();
-            digest.update(bytes, off, len);
-        }
-
-        @Override
-        public HashCode hash() {
-            done = true;
-            byte[] bytes = digest.digest();
-            return HashCode.fromBytesNoCopy(bytes);
+            getDigest().update(bytes, off, len);
         }
 
         private void update(int length) {
-            checkNotDone();
-            digest.update(buffer.array(), 0, length);
+            getDigest().update(buffer.array(), 0, length);
             BufferCaster.cast(buffer).clear();
         }
 
@@ -264,7 +253,6 @@ public class Hashing {
 
         @Override
         public void putBoolean(boolean value) {
-            checkNotDone();
             putByte((byte) (value ? 1 : 0));
         }
 
@@ -276,6 +264,13 @@ public class Hashing {
         @Override
         public void putHash(HashCode hashCode) {
             putBytes(hashCode.getBytes());
+        }
+
+        @Override
+        public HashCode hash() {
+            byte[] bytes = getDigest().digest();
+            digest = null;
+            return HashCode.fromBytesNoCopy(bytes);
         }
     }
 

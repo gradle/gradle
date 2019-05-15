@@ -42,8 +42,14 @@ Provides support for generating parsers using http://www.antlr.org/[ANTLR].
 
 == Native languages
 
-<<cpp_plugins.adoc#,C++>>::
-Provides support for building C++ libraries and applications on Windows, Linux, and macOS.
+<<cpp_application_plugin.adoc#,C++ Application>>::
+Provides support for building C++ applications on Windows, Linux, and macOS.
+
+<<cpp_library_plugin.adoc#,C++ Library>>::
+Provides support for building C++ libraries on Windows, Linux, and macOS.
+
+<<cpp_unit_test_plugin.adoc#,C++ Unit Test>>::
+Provides support for building and running C++ executable-based tests on Windows, Linux, and macOS.
 
 == Packaging and distribution
 
@@ -99,8 +105,14 @@ Performs quality checks on your Groovy source files using http://codenarc.source
 <<eclipse_plugin.adoc#,Eclipse>>::
 Generates Eclipse project files for the build that can be opened by the IDE. This set of plugins can also be used to fine tune http://projects.eclipse.org/projects/tools.buildship[Buildship's] import process for Gradle builds.
 
-<<idea_plugin.adoc#, IntelliJ IDEA>>::
+<<idea_plugin.adoc#,IntelliJ IDEA>>::
 Generates IDEA project files for the build that can be opened by the IDE. It can also be used to fine tune IDEA's import process for Gradle builds.
+
+<<visual_studio_plugin.adoc#,Visual Studio>>::
+Generates Visual Studio solution and project files for build that can be opened by the IDE.
+
+<<xcode_plugin.adoc#,Xcode>>::
+Generates Xcode workspace and project files for the build that can be opened by the IDE.
 
 == Utility
 

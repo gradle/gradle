@@ -32,6 +32,7 @@ import org.gradle.kotlin.dsl.fixtures.bytecode.internalName
 import org.gradle.kotlin.dsl.fixtures.bytecode.publicClass
 import org.gradle.kotlin.dsl.fixtures.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.fixtures.bytecode.publicMethod
+import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
@@ -57,6 +58,29 @@ import java.io.File
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
+
+    @Test
+    fun `fails the build with help message for plugin spec with version`() {
+
+        withDefaultSettings().appendText("""
+            rootProject.name = "invalid-plugin"
+        """)
+
+        withKotlinDslPlugin()
+
+        withPrecompiledKotlinScript("invalid-plugin.gradle.kts", """
+            plugins {
+                id("a.plugin") version "1.0"
+            }
+        """)
+
+        assertThat(
+            buildFailureOutput("assemble"),
+            containsMultiLineString("""
+                Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
+            """)
+        )
+    }
 
     @Test
     fun `can use type-safe accessors with same name but different meaning in sibling plugins`() {

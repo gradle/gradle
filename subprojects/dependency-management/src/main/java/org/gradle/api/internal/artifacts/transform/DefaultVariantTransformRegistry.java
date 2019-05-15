@@ -99,7 +99,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             ArtifactTransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
             transforms.add(finalizedRegistration);
         } catch (Exception e) {
-            throw new VariantTransformConfigurationException(String.format("Cannot register artifact transform %s with parameters %s", ModelType.of(actionType).getDisplayName(), parameterObject), e);
+            throw new VariantTransformConfigurationException(String.format("Cannot register artifact transform %s (from %s to %s)", ModelType.of(actionType).getDisplayName(), registration.from, registration.to), e);
         }
     }
 
@@ -121,7 +121,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
-    public Iterable<ArtifactTransformRegistration> getTransforms() {
+    public List<ArtifactTransformRegistration> getTransforms() {
         return transforms;
     }
 

@@ -18,14 +18,12 @@ package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -38,14 +36,11 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
     private final Action<? super WorkerProcessContext> action;
     private final Object workerId;
     private final String displayName;
-    private final File gradleUserHomeDir;
 
-    public ActionExecutionWorker(Action<? super WorkerProcessContext> action, Object workerId, String displayName,
-                                 File gradleUserHomeDir) {
+    public ActionExecutionWorker(Action<? super WorkerProcessContext> action, Object workerId, String displayName) {
         this.action = action;
         this.workerId = workerId;
         this.displayName = displayName;
-        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     public void execute(final WorkerContext workerContext) {
@@ -77,8 +72,6 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
 
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
-
-        NativeServices.initialize(gradleUserHomeDir, false);
 
         clientConnection.addUnrecoverableErrorHandler(new Action<Throwable>() {
             @Override

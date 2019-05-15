@@ -20,6 +20,7 @@ class IvyDescriptorDependency {
     String org
     String module
     String revision
+    String revisionConstraint
     String conf
     String transitive
     Collection<IvyDescriptorDependencyExclusion> exclusions = []

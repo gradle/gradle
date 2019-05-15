@@ -228,13 +228,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             ],
             incrementalNonFileInput: [
                 'does not have a value specified',
-                'has @Incremental annotation used on an @Input property',
+                'is annotated with @Incremental that is not allowed for @Input properties',
             ],
             missingInput: 'does not have a value specified',
-            noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
-            noPathSensitivityDir: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
-            noPathSensitivityFile: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
-            outputDir: 'is annotated with unsupported annotation @OutputDirectory',
+            noPathSensitivity: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
+            noPathSensitivityDir: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
+            noPathSensitivityFile: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
+            outputDir: 'is annotated with invalid property type @OutputDirectory',
         )
     }
 
@@ -346,7 +346,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
+        assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
 
         where:
         annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Nested]
@@ -453,12 +453,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
         assertPropertyValidationErrors(
             'conflictingAnnotations': [
-                'is annotated with unsupported annotation @InputFile',
-                'has conflicting property types declared: @InputArtifact, @InputArtifactDependencies'
+                'has conflicting type annotations declared: @InputFile, @InputArtifact, @InputArtifactDependencies; assuming @InputFile',
+                'is annotated with invalid property type @InputFile'
             ],
-            inputFile: 'is annotated with unsupported annotation @InputFile',
+            inputFile: 'is annotated with invalid property type @InputFile',
             notAnnotated: 'is not annotated with an input annotation',
-            noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+            noPathSensitivity: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
             absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms'
         )
     }
@@ -533,7 +533,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
+        assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
 
         where:
         annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal, Nested]
@@ -677,9 +677,10 @@ abstract class MakeGreen extends ArtifactTransform {
     @Unroll
     def "transform cannot use @InputArtifact to receive #propertyType"() {
         settingsFile << """
-            include 'a', 'b', 'c'
+            include 'a', 'b'
         """
         setupBuildWithColorTransformAction()
+        def typeName = propertyType instanceof Class ? propertyType.name : propertyType.toString()
         buildFile << """
 
 project(':a') {
@@ -690,7 +691,7 @@ project(':a') {
 
 abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @InputArtifact
-    abstract ${propertyType instanceof Class ? propertyType.name : propertyType} getInput()
+    abstract ${typeName} getInput()
     
     void transform(TransformOutputs outputs) {
         input
@@ -703,13 +704,51 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         fails(":a:resolve")
 
         then:
-        // Documents existing behaviour. Should fail eagerly and with a better error message
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
-        failure.assertHasCause("No service of type ${propertyType} available.")
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasCause("Cannot register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
         propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
+    }
+
+    @Unroll
+    def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithColorTransformAction()
+        buildFile << """
+
+project(':a') {
+    dependencies {
+        implementation project(':b')
+    }
+}
+
+abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+    @${annotation.name}
+    abstract ${propertyType.name} getDependencies()
+    
+    void transform(TransformOutputs outputs) {
+        dependencies
+        throw new RuntimeException("broken")
+    }
+}
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasCause("Cannot register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property MakeGreen.getDependencies() of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
+
+        where:
+        annotation                | propertyType
+        InputArtifactDependencies | File
+        InputArtifactDependencies | String
     }
 
     def "transform cannot use @Inject to receive input file"() {

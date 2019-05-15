@@ -33,8 +33,8 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory) {
-        super(delegate, workerDaemonFactory);
+    public DaemonJavaCompiler(File daemonWorkingDir, Class<? extends Compiler<JavaCompileSpec>> delegateClass, Object[] delegateParameters, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory) {
+        super(delegateClass, delegateParameters, workerDaemonFactory);
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
     }

@@ -34,8 +34,6 @@ import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
-import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.util.DeprecationLogger;
 
@@ -187,14 +185,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
      */
     public StartParameter() {
-        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
-        if (gradleInstallation == null) {
-            gradleHomeDir = null;
-        } else {
-            gradleHomeDir = gradleInstallation.getGradleHome();
-        }
-
         BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
+        gradleHomeDir = layoutParameters.getGradleInstallationHomeDir();
         searchUpwards = layoutParameters.getSearchUpwards();
         currentDir = layoutParameters.getCurrentDir();
         projectDir = layoutParameters.getProjectDir();

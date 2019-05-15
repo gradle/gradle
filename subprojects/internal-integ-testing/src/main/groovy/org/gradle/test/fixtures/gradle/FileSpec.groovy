@@ -22,6 +22,7 @@ import groovy.transform.CompileStatic
 class FileSpec {
     String name
     String url
+    String ext = 'jar'
 
     FileSpec(String name) {
         this.name = name

@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 
@@ -40,6 +41,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @Documented
-@InjectionPointQualifier(supportedTypes = { File.class, Provider.class })
+@InjectionPointQualifier(supportedTypes = { File.class }, supportedProviderTypes = { FileSystemLocation.class })
 public @interface InputArtifact {
 }

@@ -275,7 +275,7 @@ Type-safe accessors are unavailable for model elements contributed by the follow
  * Plugins applied via the `apply(plugin = "id")` method
  * The project build script
  * Script plugins, via `apply(from = "script-plugin.gradle.kts")`
- * Plugins applied via <<sec:cross_project_configuration,cross-project configuration>>
+ * Plugins applied via <<sec:kotlin_cross_project_configuration,cross-project configuration>>
 
 You also can not use type-safe accessors in Binary Gradle plugins implemented in Kotlin.
 
@@ -425,7 +425,7 @@ The main difference is that the subprojects' build scripts in the above sample d
 
 Note that you can't use this technique if you want to apply such a plugin either to the root project build script of a multi-project build (rather than solely to its subprojects) or to a single-project build. You'll need to use a different approach in those cases that we detail in <<kotlin_dsl#sec:plugins_resolution_strategy,another section>>.
 
-[[sec:cross_project_configuration]]
+[[sec:kotlin_cross_project_configuration]]
 === Cross-configuring projects
 
 <<multi_project_builds#sec:cross_project_configuration,Cross project configuration>> is a mechanism by which you can configure a project from another project's build script. A common example is when you configure subprojects in the root project build script.

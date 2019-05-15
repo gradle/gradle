@@ -15,10 +15,10 @@
  */
 package org.gradle.internal.component.model;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An attribute matcher, which optimizes for the case of only comparing 0 or 1 candidates and delegates to {@link MultipleCandidateMatcher} for all other cases.
@@ -45,7 +46,7 @@ public class ComponentAttributeMatcher {
      * cache the result of the query, because it's often the case that we ask for the same
      * disambiguation of attributes several times in a row (but with different candidates).
      */
-    private CachedQuery lastQuery;
+    private final Map<CachedQuery, int[]> cachedQueries = Maps.newConcurrentMap();
 
     /**
      * Determines whether the given candidate is compatible with the requested criteria, according to the given schema.
@@ -130,10 +131,9 @@ public class ComponentAttributeMatcher {
 
         ImmutableAttributes requestedAttributes = requested.asImmutable();
         CachedQuery query = CachedQuery.of(schema, requestedAttributes, candidates);
-        // Copy to local variable because the component attribute matcher can be accessed concurrently
-        CachedQuery lastQuery = this.lastQuery;
-        if (query.equals(lastQuery)) {
-            return lastQuery.select(candidates);
+        int[] index = cachedQueries.get(query);
+        if (index != null) {
+            return CachedQuery.select(index, candidates);
         }
         List<T> matches = new MultipleCandidateMatcher<T>(schema, candidates, requestedAttributes).getMatches();
         if (LOGGER.isDebugEnabled()) {
@@ -166,21 +166,29 @@ public class ComponentAttributeMatcher {
                 j++;
             }
         }
-        query.index = queryResult;
-        lastQuery = query;
+        cachedQueries.put(query, queryResult);
     }
 
     private static class CachedQuery {
         private final AttributeSelectionSchema schema;
         private final ImmutableAttributes requestedAttributes;
         private final ImmutableAttributes[] candidates;
-
-        private volatile int[] index;
+        private final int hashCode;
 
         private CachedQuery(AttributeSelectionSchema schema, ImmutableAttributes requestedAttributes, ImmutableAttributes[] candidates) {
             this.schema = schema;
             this.requestedAttributes = requestedAttributes;
             this.candidates = candidates;
+            this.hashCode = computeHashCode(schema, requestedAttributes, candidates);
+        }
+
+        private int computeHashCode(AttributeSelectionSchema schema, ImmutableAttributes requestedAttributes, ImmutableAttributes[] candidates) {
+            int hash = schema.hashCode();
+            hash = 31 * hash + requestedAttributes.hashCode();
+            for (ImmutableAttributes candidate : candidates) {
+                hash = 31 * hash + candidate.hashCode();
+            }
+            return hash;
         }
 
         public static <T extends HasAttributes> CachedQuery of(AttributeSelectionSchema schema, ImmutableAttributes requestedAttributes, Collection<T> candidates) {
@@ -192,7 +200,7 @@ public class ComponentAttributeMatcher {
             return new CachedQuery(schema, requestedAttributes, attributes);
         }
 
-        public <T extends HasAttributes> List<T> select(Collection<? extends T> unfiltered) {
+        public static <T extends HasAttributes> List<T> select(int[] index, Collection<? extends T> unfiltered) {
             if (index.length == 0) {
                 return Collections.emptyList();
             }
@@ -222,14 +230,23 @@ public class ComponentAttributeMatcher {
                 return false;
             }
             CachedQuery that = (CachedQuery) o;
-            return schema.equals(that.schema) &&
+            return hashCode == that.hashCode &&
+                schema.equals(that.schema) &&
                 requestedAttributes.equals(that.requestedAttributes) &&
                 Arrays.equals(candidates, that.candidates);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(schema, requestedAttributes, candidates);
+            return hashCode;
+        }
+
+        @Override
+        public String toString() {
+            return "CachedQuery{" +
+                "requestedAttributes=" + requestedAttributes +
+                ", candidates=" + Arrays.toString(candidates) +
+                '}';
         }
     }
 }

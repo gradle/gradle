@@ -211,6 +211,52 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.versionConstraint.rejectedVersions == ['rej']
     }
 
+    def "serializes attributes"() {
+        given:
+
+        ModuleComponentSelector selector1 = DefaultModuleComponentSelector.newSelector(
+            DefaultModuleIdentifier.newId('group1', 'name1'), constraint('1.0'), AttributeTestUtil.attributes("foo": "val1"), [])
+        ModuleComponentSelector selector2 = DefaultModuleComponentSelector.newSelector(
+            DefaultModuleIdentifier.newId('group2', 'name2'), constraint('1.0'), AttributeTestUtil.attributes("foo": "val2"), [])
+        ModuleComponentSelector selector3 = DefaultModuleComponentSelector.newSelector(
+            DefaultModuleIdentifier.newId('group3', 'name3'), constraint('1.0'), AttributeTestUtil.attributes("foo": "val1"), [])
+
+        when:
+        ModuleComponentSelector result1 = serialize(selector1, serializer)
+        ModuleComponentSelector result2 = serialize(selector2, serializer)
+        ModuleComponentSelector result3 = serialize(selector3, serializer)
+
+        then:
+        result1.attributes == AttributeTestUtil.attributes("foo": "val1")
+        result2.attributes == AttributeTestUtil.attributes("foo": "val2")
+        result3.attributes == AttributeTestUtil.attributes("foo": "val1")
+
+    }
+
+    def "de-duplicates attributes"() {
+        def factory = AttributeTestUtil.attributesFactory()
+        def attr = Attribute.of("foo", String)
+
+        given:
+        ModuleComponentSelector selector1 = DefaultModuleComponentSelector.newSelector(
+            DefaultModuleIdentifier.newId('group1', 'name1'), constraint('1.0'), factory.of(attr, "val1"), [])
+        ModuleComponentSelector selector2 = DefaultModuleComponentSelector.newSelector(
+            DefaultModuleIdentifier.newId('group2', 'name2'), constraint('1.0'), factory.of(attr, "val2"), [])
+        ModuleComponentSelector selector3 = DefaultModuleComponentSelector.newSelector(
+            DefaultModuleIdentifier.newId('group3', 'name3'), constraint('1.0'), factory.of(attr, "val1"), [])
+
+        when:
+        byte[] result1 = toBytes(selector1, serializer)
+        byte[] result2 = toBytes(selector2, serializer)
+        byte[] result3 = toBytes(selector3, serializer)
+
+        then:
+        result2.length == result1.length // different attributes
+        result3.length < result1.length // already seen
+
+    }
+
+
     private static List<Capability> capabilities() {
         [new ImmutableCapability("org", "foo", "${Math.random()}"), new ImmutableCapability("org", "bar", "${Math.random()}")]
     }

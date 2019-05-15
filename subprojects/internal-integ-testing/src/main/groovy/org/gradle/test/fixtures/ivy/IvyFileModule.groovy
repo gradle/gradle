@@ -369,7 +369,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         }
 
         variants.each {
-            it.artifacts.each {
+            it.artifacts.findAll { it.name }.each {
                 def variantArtifact = moduleDir.file(it.name)
                 publish (variantArtifact) { Writer writer ->
                     writer << "${it.name} : Variant artifact $it.name"
@@ -411,7 +411,8 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                         new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.prefers, d.strictly, d.rejects, d.reason, d.attributes)
                     },
                     v.artifacts ?: defaultArtifacts,
-                    v.capabilities
+                    v.capabilities,
+                    v.availableAt
                 )
             },
             attributes + ['org.gradle.status': status]

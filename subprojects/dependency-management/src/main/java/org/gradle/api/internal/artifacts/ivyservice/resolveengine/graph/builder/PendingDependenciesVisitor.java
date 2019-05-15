@@ -19,9 +19,26 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 public interface PendingDependenciesVisitor {
-    boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);
 
-    void markNotPending(ModuleIdentifier id);
+    enum PendingState {
+        PENDING(true),
+        NOT_PENDING(false),
+        NOT_PENDING_ACTIVATING(false);
+
+        private boolean pending;
+
+        PendingState(boolean pending) {
+            this.pending = pending;
+        }
+
+        boolean isPending() {
+            return this.pending;
+        }
+    }
+
+    PendingState maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);
+
+    boolean markNotPending(ModuleIdentifier id);
 
     void complete();
 }

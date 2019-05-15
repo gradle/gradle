@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.test.fixtures.file.TestFile
 
 class GradleFileModuleAdapter {
+    static boolean printComponentGAV = true
+
     private final String group
     private final String module
     private final String version
@@ -45,9 +47,11 @@ class GradleFileModuleAdapter {
                 gradle { }
             }
             component {
-                group this.group
-                module this.module
-                version this.version
+                if (printComponentGAV) {
+                    group this.group
+                    module this.module
+                    version this.version
+                }
                 attributes {
                     this.attributes.each { key, value ->
                         "$key" value
@@ -56,7 +60,7 @@ class GradleFileModuleAdapter {
             }
             variants(this.variants.collect { v ->
                 { ->
-                    name v.name
+                    if (v.name) { name v.name }
                     attributes {
                         v.attributes.each { key, value ->
                             "$key" value
@@ -64,14 +68,14 @@ class GradleFileModuleAdapter {
                     }
                     files(v.artifacts.collect { a ->
                         { ->
-                            name a.name
-                            url a.name
+                            if (a.name) { name a.name }
+                            if (a.url) { url a.url }
                         }
                     })
                     dependencies(v.dependencies.collect { d ->
                         { ->
-                            group d.group
-                            module d.module
+                            if (d.group) { group d.group }
+                            if (d.module) { module d.module }
                             version {
                                 if (d.strictVersion) {
                                     strictly d.strictVersion
@@ -88,8 +92,8 @@ class GradleFileModuleAdapter {
                             if (d.exclusions) {
                                 excludes(d.exclusions.collect { e ->
                                     { ->
-                                        group e.group
-                                        module e.module
+                                        if (e.group) { group e.group }
+                                        if (e.module) { module e.module }
                                     }
                                 })
                             }
@@ -103,9 +107,9 @@ class GradleFileModuleAdapter {
                             if (d.requestedCapabilities) {
                                 requestedCapabilities(d.requestedCapabilities.collect { c ->
                                     { ->
-                                        group c.group
-                                        name c.name
-                                        version c.version
+                                        if (c.group) { group c.group }
+                                        if (c.name) { name c.name }
+                                        if (c.version) { version c.version }
                                     }
                                 })
                             }
@@ -113,8 +117,8 @@ class GradleFileModuleAdapter {
                     })
                     dependencyConstraints(v.dependencyConstraints.collect { dc ->
                         { ->
-                            group dc.group
-                            module dc.module
+                            if (dc.group) { group dc.group }
+                            if (dc.module) { module dc.module }
                             version {
                                 if (dc.strictVersion) {
                                     strictly dc.strictVersion
@@ -141,11 +145,19 @@ class GradleFileModuleAdapter {
                     })
                     capabilities(v.capabilities.collect { c ->
                         { ->
-                            group c.group
-                            name c.name
-                            version c.version
+                            if (c.group) { group c.group }
+                            if (c.name) { name c.name }
+                            if (c.version) { version c.version }
                         }
                     })
+                    if (v.availableAt) {
+                        'available-at' {
+                            if (v.availableAt.url) { url v.availableAt.url }
+                            if (v.availableAt.group) { group v.availableAt.group }
+                            if (v.availableAt.module) { module v.availableAt.module }
+                            if (v.availableAt.version) { version v.availableAt.version }
+                        }
+                    }
                 }
             })
         }

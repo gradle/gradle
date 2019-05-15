@@ -19,16 +19,22 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
+import org.gradle.initialization.BuildLoader
+import org.gradle.initialization.ModelConfigurationListener
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.operations.BuildOperationExecutor
 import spock.lang.Specification
 
 class DefaultBuildConfigurerTest extends Specification {
-    private startParameter = Mock(StartParameter)
-    private gradle = Mock(GradleInternal)
-    private rootProject = Mock(ProjectInternal)
-    private projectConfigurer = Mock(ProjectConfigurer)
-    private buildRegistry = Mock(BuildStateRegistry)
-    private configurer = new DefaultBuildConfigurer(projectConfigurer, buildRegistry)
+    def startParameter = Mock(StartParameter)
+    def gradle = Mock(GradleInternal)
+    def rootProject = Mock(ProjectInternal)
+    def projectConfigurer = Mock(ProjectConfigurer)
+    def buildRegistry = Mock(BuildStateRegistry)
+    def buildLoader = Mock(BuildLoader)
+    def modelListener = Mock(ModelConfigurationListener)
+    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    private configurer = new DefaultBuildConfigurer(projectConfigurer, buildRegistry, buildLoader, modelListener, buildOperationExecutor)
 
     def setup() {
         gradle.startParameter >> startParameter

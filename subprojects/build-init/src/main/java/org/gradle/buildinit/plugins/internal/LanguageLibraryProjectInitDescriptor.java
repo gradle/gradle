@@ -16,53 +16,9 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.internal.Factory;
+import java.util.Optional;
 
 public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSpecificProjectGenerator {
-
-    protected final String language;
-    protected final FileResolver fileResolver;
-    protected final TemplateOperationFactory templateOperationFactory;
-    protected final TemplateLibraryVersionProvider libraryVersionProvider;
-    protected final BuildScriptBuilderFactory scriptBuilderFactory;
-
-    public LanguageLibraryProjectInitDescriptor(String language, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
-        this.language = language;
-        this.scriptBuilderFactory = scriptBuilderFactory;
-        this.fileResolver = fileResolver;
-        this.templateOperationFactory = templateOperationFactory;
-        this.libraryVersionProvider = libraryVersionProvider;
-    }
-
-    @Override
-    public boolean supportsPackage() {
-        return true;
-    }
-
-    @Override
-    public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.GROOVY;
-    }
-
-    @Override
-    public void generate(InitSettings settings) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build");
-        generate(settings, buildScriptBuilder);
-        buildScriptBuilder.create().generate();
-    }
-
-    protected abstract void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder);
-
-    protected TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {
-        return new ConditionalTemplateOperation(new Factory<Boolean>() {
-            public Boolean create() {
-                return fileResolver.resolveFilesAsTree("src/main/" + language).isEmpty() || fileResolver.resolveFilesAsTree("src/test/" + language).isEmpty();
-            }
-        }, operations);
-    }
-
     protected String withPackage(InitSettings settings, String className) {
         if (settings.getPackageName().isEmpty()) {
             return className;
@@ -71,29 +27,8 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         }
     }
 
-    protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName) {
-        return fromClazzTemplate(clazzTemplate, sourceSetName, this.language);
-    }
-
-    protected TemplateOperation fromClazzTemplate(String clazzTemplate, InitSettings settings, String sourceSetName) {
-        return fromClazzTemplate(clazzTemplate, settings, sourceSetName, this.language);
-    }
-
-    protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName, String language) {
-        return fromClazzTemplate(clazzTemplate, null, sourceSetName, language);
-    }
-
-    protected TemplateOperation fromClazzTemplate(String clazzTemplate, InitSettings settings, String sourceSetName, String language) {
-        String targetFileName = clazzTemplate.substring(clazzTemplate.lastIndexOf("/") + 1).replace(".template", "");
-        String packageDecl = "";
-        if (settings != null && !settings.getPackageName().isEmpty()) {
-            packageDecl = "package " + settings.getPackageName();
-            targetFileName = settings.getPackageName().replace(".", "/") + "/" + targetFileName;
-        }
-        return templateOperationFactory.newTemplateOperation()
-            .withTemplate(clazzTemplate)
-            .withTarget("src/" + sourceSetName + "/" + language + "/" + targetFileName)
-            .withBinding("packageDecl", packageDecl)
-            .create();
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.empty();
     }
 }

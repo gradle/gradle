@@ -46,6 +46,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -100,14 +101,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         Class<? extends FileNormalizer> inputArtifactNormalizer = null;
         Class<? extends FileNormalizer> dependenciesNormalizer = null;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
-            if (propertyMetadata.getAnnotation(InputArtifact.class) != null) {
+            Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
+            if (propertyType.equals(InputArtifact.class)) {
                 // Should ask the annotation handler to figure this out instead
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 inputArtifactNormalizer = visitor.normalizer;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, parameterValidationContext);
-            }
-            if (propertyMetadata.getAnnotation(InputArtifactDependencies.class) != null) {
+            } else if (propertyType.equals(InputArtifactDependencies.class)) {
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 dependenciesNormalizer = visitor.normalizer;

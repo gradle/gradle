@@ -31,12 +31,15 @@ class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
     }
 
     @Override
-    public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
+    public PendingState maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
         ModuleIdentifier key = dependencyState.getModuleIdentifier();
         boolean isConstraint = dependencyState.getDependency().isConstraint();
         if (!isConstraint) {
-            markNotPending(key);
-            return false;
+            if (markNotPending(key)) {
+                return PendingState.NOT_PENDING_ACTIVATING;
+            } else {
+                return PendingState.NOT_PENDING;
+            }
         }
 
         // Adding an optional dependency: see if we already have a hard dependency on the same module
@@ -45,27 +48,30 @@ class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
 
         // Already have a hard dependency, this optional dependency is not pending.
         if (!pending) {
-            return false;
+            return PendingState.NOT_PENDING;
         }
 
         // No hard dependency, queue up pending dependency in case we see a hard dependency later.
         module.addPendingNode(node);
-        return true;
+        return PendingState.PENDING;
     }
 
     @Override
-    public void markNotPending(ModuleIdentifier id) {
-        markNoLongerPending(resolveState.getModule(id).getPendingDependencies());
+    public boolean markNotPending(ModuleIdentifier id) {
+        return markNoLongerPending(resolveState.getModule(id).getPendingDependencies());
     }
 
-    private void markNoLongerPending(PendingDependencies pendingDependencies) {
+    private boolean markNoLongerPending(PendingDependencies pendingDependencies) {
+        boolean activatedPending = false;
         if (pendingDependencies.hasPendingComponents()) {
             if (noLongerPending == null) {
                 noLongerPending = Lists.newLinkedList();
             }
             noLongerPending.add(pendingDependencies);
+            activatedPending = true;
         }
         pendingDependencies.increaseHardEdgeCount();
+        return activatedPending;
     }
 
     @Override

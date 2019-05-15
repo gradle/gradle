@@ -668,6 +668,60 @@
     </section>
 
     <section>
+        <title>Xcode task types</title>
+        <para>Tasks contributed by Xcode IDE plugins. To configure IDE plugins please use IDE model types.</para>
+        <table>
+            <title>Xcode task types</title>
+            <tr>
+                <td>org.gradle.ide.xcode.tasks.GenerateSchemeFileTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Visual Studio task types</title>
+        <para>Tasks contributed by Visual Studio IDE plugins. To configure IDE plugins please use IDE model types.</para>
+        <table>
+            <title>Visual Studio task types</title>
+            <tr>
+                <td>org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Artifact transform types</title>
+        <para>Used to define artifact transforms.</para>
+        <table>
+            <title>Artifact transform types</title>
+            <tr>
+                <td>org.gradle.api.artifacts.transform.TransformAction</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.transform.TransformOutputs</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.transform.TransformSpec</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
         <title>Native tool chains model types</title>
         <para>Used to configure tool chains for building C++ components.</para>
         <table>
@@ -790,6 +844,23 @@
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.StaticLibraryBinary</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>C++ component model types</title>
+        <para>Used to configure C++ components.</para>
+        <table>
+            <title>C++ component types</title>
+            <tr>
+                <td>org.gradle.language.cpp.CppApplication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.cpp.CppLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.test.cpp.CppTestSuite</td>
             </tr>
         </table>
     </section>

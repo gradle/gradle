@@ -24,6 +24,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeSelector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -263,6 +264,10 @@ public class IvyDescriptorFileGenerator {
                     .attribute("rev", resolvedVersion != null ? resolvedVersion : dependency.getRevision())
                     .attribute("conf", dependency.getConfMapping());
 
+            if(resolvedVersion != null && isDynamicVersion(dependency.getRevision())) {
+                xmlWriter.attribute("revConstraint", dependency.getRevision());
+            }
+
             if (!dependency.isTransitive()) {
                 xmlWriter.attribute("transitive", "false");
             }
@@ -279,6 +284,10 @@ public class IvyDescriptorFileGenerator {
             writeGlobalExclude(excludeRule, xmlWriter);
         }
         xmlWriter.endElement();
+    }
+
+    private boolean isDynamicVersion(String version) {
+        return VersionRangeSelector.ALL_RANGE.matcher(version).matches() || version.endsWith("+") || version.startsWith("latest.");
     }
 
     private void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {

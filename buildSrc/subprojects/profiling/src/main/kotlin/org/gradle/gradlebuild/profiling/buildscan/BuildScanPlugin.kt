@@ -69,7 +69,6 @@ open class BuildScanPlugin : Plugin<Project> {
         if (isCiServer && !isTravis && !isJenkins) {
             extractAllReportsFromCI()
             monitorUnexpectedCacheMisses()
-            tagRerunTests()
         }
 
         extractCheckstyleAndCodenarcData()
@@ -87,13 +86,6 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.buildCacheEnabled() = gradle.startParameter.isBuildCacheEnabled
-
-    private
-    fun Project.tagRerunTests() {
-        if (stringPropertyOrEmpty("onlyPreviousFailedTestClasses").toBoolean()) {
-            buildScan.tag("RERUN_TESTS")
-        }
-    }
 
     private
     fun isNotTaggedYet() = cacheMissTagged.compareAndSet(false, true)

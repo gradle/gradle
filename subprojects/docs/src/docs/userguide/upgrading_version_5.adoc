@@ -33,6 +33,32 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_5.5]]
+== Upgrading from 5.4 and earlier
+
+=== Potential breaking changes
+
+==== User supplied Eclipse project names may be ignored on conflict
+
+Project names configured via link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/EclipseProject.html[`EclipseProject.setName(...)`] were honored by Gradle and Buildship in all cases, even 
+when the names caused conflicts and import/synchronization errors. 
+
+Gradle can now deduplicate these names if they conflict with other project names in an Eclipse workspace. This may lead to different Eclipse project names for projects with user-specified names.
+
+The upcoming 3.1.1 version of Buildship is required to take advantage of this behavior.
+
+Contributed by link:https://github.com/fraenkelc[Christian Fränkel]
+
+==== Default JaCoCo version upgraded to 0.8.4
+
+<<jacoco_plugin#jacoco_plugin, The JaCoCo plugin>> has been upgraded to use link:http://www.jacoco.org/jacoco/trunk/doc/changes.html[JaCoCo version 0.8.4] instead of 0.8.3 by default.
+
+Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
+
+==== Embedded Ant version upgraded to 1.9.14
+
+The version of Ant distributed with Gradle has been upgraded to link:https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.14.html(1.9.14) from 1.9.13.
+
 [[changes_5.4]]
 == Upgrading from 5.3 and earlier
 

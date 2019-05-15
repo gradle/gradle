@@ -59,11 +59,11 @@ class PrecompiledScriptPlugins : Plugin<Project> {
         override val kotlinCompileTask: TaskProvider<out Task>
             get() = project.tasks.named("compileKotlin")
 
-        override fun applyKotlinCompilerArgs(kotlinCompilerArgs: List<String>) {
+        override fun applyKotlinCompilerArgs(args: List<String>) {
             kotlinCompileTask {
                 require(this is KotlinCompile)
                 kotlinOptions {
-                    freeCompilerArgs += kotlinCompilerArgs
+                    freeCompilerArgs += args
                 }
             }
         }

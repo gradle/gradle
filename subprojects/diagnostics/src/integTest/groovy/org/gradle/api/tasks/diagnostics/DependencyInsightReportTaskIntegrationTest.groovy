@@ -206,7 +206,7 @@ org:leaf2:2.5
       org.gradle.category = library (not requested)
    ]
    Selection reasons:
-      - By conflict resolution : between versions 1.5, 2.5 and 1.0
+      - By conflict resolution : between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
@@ -331,7 +331,7 @@ org:leaf:1.0
 
         then:
         outputContains """Dependency resolution failed because of conflict(s) on the following module(s):
-   - org:leaf2 between versions 1.5, 2.5 and 1.0
+   - org:leaf2 between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
    variant "runtime" [
@@ -340,7 +340,7 @@ org:leaf2:2.5
       org.gradle.category = library (not requested)
    ]
    Selection reasons:
-      - By conflict resolution : between versions 1.5, 2.5 and 1.0
+      - By conflict resolution : between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
@@ -404,7 +404,7 @@ org:leaf2:1.5 -> 2.5
 
         then:
         outputContains """Dependency resolution failed because of conflict(s) on the following module(s):
-   - org:leaf2 between versions 1.5, 2.5 and 1.0
+   - org:leaf2 between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
    variant "runtime" [
@@ -413,7 +413,7 @@ org:leaf2:2.5
       org.gradle.category = library (not requested)
    ]
    Selection reasons:
-      - By conflict resolution : between versions 1.5, 2.5 and 1.0
+      - By conflict resolution : between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
@@ -2761,8 +2761,8 @@ org:foo:1.0
          org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
    Selection reasons:
-      - Was requested : rejected versions 1.2, 1.1
       - By constraint
+      - Was requested : rejected versions 1.2, 1.1
 
 org:foo:{reject 1.2} -> 1.0
 \\--- compileClasspath
@@ -2990,7 +2990,7 @@ planet:venus:2.0.1
          org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
    Selection reasons:
-      - By conflict resolution : between versions 2.0.0, 2.0.1 and 1.0
+      - By conflict resolution : between versions 2.0.1, 2.0.0 and 1.0
 
 planet:venus:2.0.1
 \\--- planet:mars:4.0.0

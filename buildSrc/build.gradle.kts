@@ -73,14 +73,18 @@ subprojects {
 
 allprojects {
     repositories {
-        gradlePluginPortal()
         maven {
             name = "Gradle libs"
             url = uri("https://repo.gradle.org/gradle/libs")
         }
+        gradlePluginPortal()
         maven {
             name = "Gradle snapshot libs"
             url = uri("https://repo.gradle.org/gradle/libs-snapshots")
+        }
+        maven {
+            name = "kotlinx"
+            url = uri("https://dl.bintray.com/kotlin/kotlinx")
         }
         maven {
             name = "kotlin-eap"
@@ -235,3 +239,4 @@ fun Project.applyKotlinProjectConventions() {
         }
     }
 }
+

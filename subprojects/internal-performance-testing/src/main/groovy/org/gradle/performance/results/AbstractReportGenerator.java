@@ -26,20 +26,17 @@ import java.lang.reflect.Type;
 import java.net.URL;
 
 public abstract class AbstractReportGenerator<R extends ResultsStore> {
-    protected static <G extends AbstractReportGenerator> G getGenerator(Class<G> generatorClass) throws Exception {
-        return generatorClass.getConstructor().newInstance();
-    }
 
     protected void generateReport(String... args) {
         File outputDirectory = new File(args[0]);
         File resultJson = new File(args[1]);
         String projectName = args[2];
-        generate(outputDirectory, resultJson, projectName);
+        generate(PerformanceFlakinessAnalyzer.create(), outputDirectory, resultJson, projectName);
     }
 
-    protected void generate(File outputDirectory, File resultJson, String projectName) {
+    protected void generate(PerformanceFlakinessAnalyzer flakinessAnalyzer, File outputDirectory, File resultJson, String projectName) {
         try (ResultsStore store = getResultsStore()) {
-            renderIndexPage(store, resultJson, outputDirectory);
+            renderIndexPage(flakinessAnalyzer, store, resultJson, outputDirectory);
 
             for (String testName : store.getTestNames()) {
                 PerformanceTestHistory testResults = store.getTestResults(testName, 500, 90, ResultsStoreHelper.determineChannel());
@@ -58,8 +55,8 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         }
     }
 
-    protected void renderIndexPage(ResultsStore store, File resultJson, File outputDirectory) throws IOException {
-        new FileRenderer().render(store, new IndexPageGenerator(store, resultJson), new File(outputDirectory, "index.html"));
+    protected void renderIndexPage(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore store, File resultJson, File outputDirectory) throws IOException {
+        new FileRenderer().render(store, new IndexPageGenerator(flakinessAnalyzer, store, resultJson), new File(outputDirectory, "index.html"));
     }
 
     protected void renderScenarioPage(String projectName, File outputDirectory, PerformanceTestHistory testResults) throws IOException {

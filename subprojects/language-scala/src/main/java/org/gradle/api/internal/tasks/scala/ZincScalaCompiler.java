@@ -25,12 +25,14 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import scala.Option;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -40,28 +42,31 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     private final Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
     private final File gradleUserHome;
+    private final ServiceRegistry serviceRegistry;
 
-    public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome) {
+    @Inject
+    public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome, ServiceRegistry serviceRegistry) {
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
         this.gradleUserHome = gradleUserHome;
+        this.serviceRegistry = serviceRegistry;
     }
 
     @Override
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        return Compiler.execute(scalaClasspath, zincClasspath, gradleUserHome, spec);
+        return Compiler.execute(serviceRegistry, scalaClasspath, zincClasspath, gradleUserHome, spec);
     }
 
     // need to defer loading of Zinc/sbt/Scala classes until we are
     // running in the compiler daemon and have them on the class path
     private static class Compiler {
-        static WorkResult execute(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, File gradleUserHome, final ScalaJavaJointCompileSpec spec) {
+        static WorkResult execute(ServiceRegistry serviceRegistry, final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, File gradleUserHome, final ScalaJavaJointCompileSpec spec) {
             LOGGER.info("Compiling with Zinc Scala compiler.");
 
             final xsbti.Logger logger = new SbtLoggerAdapter();
 
             Timer timer = Time.startTimer();
-            com.typesafe.zinc.Compiler compiler = ZincScalaCompilerFactory.createParallelSafeCompiler(scalaClasspath, zincClasspath, logger, gradleUserHome);
+            com.typesafe.zinc.Compiler compiler = ZincScalaCompilerFactory.createParallelSafeCompiler(serviceRegistry, scalaClasspath, zincClasspath, logger, gradleUserHome);
             LOGGER.info("Initialized Zinc Scala compiler: {}", timer.getElapsed());
 
             List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
