@@ -20,11 +20,11 @@ import org.gradle.api.internal.GradleInternal;
 import java.util.Collection;
 
 /**
- * Executes the tasks requested for a build.
+ * Executes the work scheduled for a build. Prior to execution, the work will be prepared by a {@link org.gradle.initialization.TaskExecutionPreparer}.
  */
 public interface BuildWorkExecutor {
     /**
-     * Executes the selected tasks.
+     * Executes the scheduled work and collects the failures.
      */
-    void execute(GradleInternal gradle, Collection<? super Throwable> taskFailures);
+    void execute(GradleInternal gradle, Collection<? super Throwable> failures);
 }

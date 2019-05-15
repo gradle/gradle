@@ -19,7 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 
 /**
- * Responsible for preparing `Gradle` instances for task execution, following configuration of the projects.
+ * Responsible for preparing `Gradle` instances for task execution. The result is passed to a {@link org.gradle.execution.BuildWorkExecutor} for execution. Prior to preparing for task execution, the `Gradle` instance has its projects configured by a {@link org.gradle.configuration.ProjectsPreparer}.
  *
  * <p>This includes resolving the entry tasks and calculating the task graph.</p>
  */

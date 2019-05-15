@@ -29,8 +29,8 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
     }
 
     @Override
-    public void execute(GradleInternal gradle, Collection<? super Throwable> taskFailures) {
-        execute(gradle, 0, taskFailures);
+    public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
+        execute(gradle, 0, failures);
     }
 
     private void execute(final GradleInternal gradle, final int index, final Collection<? super Throwable> taskFailures) {
