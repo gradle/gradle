@@ -26,6 +26,7 @@ import java.util.Collection;
  * @since 4.2
  */
 @Incubating
+@Deprecated
 public interface TwirlTemplateFormat {
     /**
      * Extension without the leading '.'.

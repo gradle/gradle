@@ -38,6 +38,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
 
     def setup() {
+        executer.noDeprecationChecks()
         playApp.writeSources(testDirectory)
     }
 
@@ -64,6 +65,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
             "public/submodule.txt")
 
         when:
+        executer.noDeprecationChecks()
         succeeds(":primary:dist")
 
         then:
@@ -79,6 +81,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         )
 
         when:
+        executer.noDeprecationChecks()
         succeeds(":primary:stage")
 
         then:
@@ -107,6 +110,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         run ":primary:assemble"
 
         when:
+        executer.noDeprecationChecks()
         GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdinPipe().start()
         runningApp.initialize(build)
 

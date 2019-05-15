@@ -45,6 +45,7 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.JavaScriptSourceCode;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.PlayCoffeeScriptCompile;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -57,6 +58,7 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
+@Deprecated
 public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.8.0";
     private static final String DEFAULT_RHINO_VERSION = "1.7R4";
@@ -71,6 +73,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project target) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play CoffeeScript", "org.gradle.playframework");
         target.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 

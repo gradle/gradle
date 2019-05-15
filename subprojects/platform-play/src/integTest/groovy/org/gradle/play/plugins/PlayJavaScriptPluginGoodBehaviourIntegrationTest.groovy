@@ -21,8 +21,23 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class PlayJavaScriptPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
 
+    def setup() {
+        executer.expectDeprecationWarning()
+    }
+
     @Override
     String getPluginName() {
         return 'play-javascript'
+    }
+
+    def "emits deprecation warning"() {
+        given:
+        applyPlugin()
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("The Play JavaScript plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-javascript plugin instead.")
     }
 }

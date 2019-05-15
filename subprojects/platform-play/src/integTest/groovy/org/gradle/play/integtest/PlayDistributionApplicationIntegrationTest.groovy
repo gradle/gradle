@@ -37,6 +37,7 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         verifyStagedFiles()
 
         when:
+        executer.noDeprecationChecks()
         succeeds("dist")
 
         then:

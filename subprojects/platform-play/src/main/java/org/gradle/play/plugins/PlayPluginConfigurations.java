@@ -37,6 +37,7 @@ import java.io.File;
  * Conventional locations and names for play plugins.
  */
 @Incubating
+@Deprecated
 public class PlayPluginConfigurations {
     public static final String PLATFORM_CONFIGURATION = "playPlatform";
     public static final String COMPILE_CONFIGURATION = "play";

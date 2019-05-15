@@ -41,6 +41,7 @@ abstract class AbstractRoutesCompileIntegrationTest extends MultiVersionIntegrat
     }
 
     def setup() {
+        executer.noDeprecationChecks()
         settingsFile << """ rootProject.name = 'routes-play-app' """
         buildFile << """
 plugins {

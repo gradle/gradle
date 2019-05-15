@@ -72,6 +72,7 @@ import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
+import org.gradle.util.SingleMessageLogger;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -81,12 +82,14 @@ import java.util.Date;
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
  */
 @Incubating
+@Deprecated
 public class PlayApplicationPlugin implements Plugin<Project> {
     public static final int DEFAULT_HTTP_PORT = 9000;
     public static final String RUN_GROUP = "Run";
 
     @Override
     public void apply(Project project) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Application", "org.gradle.playframework-application");
         project.getPluginManager().apply(JavaLanguagePlugin.class);
         project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getPluginManager().apply(PlayTwirlPlugin.class);

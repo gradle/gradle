@@ -25,5 +25,6 @@ import org.gradle.platform.base.ToolChain;
  */
 @Incubating
 @HasInternalProtocol
+@Deprecated
 public interface PlayToolChain extends ToolChain {
 }

@@ -44,6 +44,24 @@ class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
         return PLAY_VERSION_TO_CLASSPATH_SIZE[PlayMajorVersion.forPlayVersion(version.toString())]
     }
 
+    def "emits deprecation warning"() {
+        given:
+        applyIdePlugin()
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("The Play Framework plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework plugin instead.")
+        outputContains("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-application plugin instead.")
+        outputContains("The Play JavaScript plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-javascript plugin instead.")
+        outputContains("The Play Ide plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-ide plugin instead.")
+        outputContains("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-twirl plugin instead.")
+        outputContains("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-routes plugin instead.")
+        outputContains("The Play Test plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-test plugin instead.")
+        outputContains("The Play Distribution plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-distribution plugin instead.")
+    }
+
     def "when model configuration changes, IDEA metadata can be rebuilt"() {
         applyIdePlugin()
         succeeds(ideTask)
@@ -61,6 +79,7 @@ model {
 }
 """
         and:
+        executer.noDeprecationChecks()
         succeeds(ideTask)
         then:
         result.assertTaskNotSkipped(":ideaModule")

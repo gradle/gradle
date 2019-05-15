@@ -21,6 +21,7 @@ import org.hamcrest.Matchers
 
 class PlayApplicationBinariesIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        executer.expectDeprecationWarnings(3)
         buildFile << """
             plugins {
                 id 'play-application'

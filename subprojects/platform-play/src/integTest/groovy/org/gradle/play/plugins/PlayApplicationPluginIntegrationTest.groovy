@@ -32,6 +32,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
+        executer.noDeprecationChecks()
         settingsFile << """ rootProject.name = 'play-app' """
         buildFile << """
             plugins {
@@ -121,6 +122,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 """
 
         when:
+        executer.noDeprecationChecks()
         succeeds("assemble")
 
         then:

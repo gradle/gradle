@@ -39,6 +39,7 @@ abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplic
         verifyTestOutput(new JUnitXmlTestExecutionResult(testDirectory, "build/playBinary/reports/test/xml"))
 
         when:
+        executer.noDeprecationChecks()
         succeeds("check")
         then:
         skipped(

@@ -25,6 +25,7 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayAssetsJarIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        executer.noDeprecationChecks()
         new BasicPlayApp().writeSources(file("."))
         settingsFile << """ rootProject.name = 'play-app' """
 
@@ -37,6 +38,7 @@ class PlayAssetsJarIntegrationTest extends AbstractIntegrationSpec {
                 "public/images/favicon.svg",
                 "public/stylesheets/main.css",
                 "public/javascripts/hello.js")
+        executer.noDeprecationChecks()
     }
 
     def "does not rebuild when public assets remain unchanged" () {
