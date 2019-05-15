@@ -1,0 +1,16 @@
+include::dm/01-core-dependency-management.adoc[]
+
+include::dm/02-declaring-dependency-versions.adoc[]
+
+include::dm/03-controlling-transitive-dependencies.adoc[]
+
+include::dm/04-modeling-features.adoc[]
+
+include::dm/05-working-multi-source-repo-env.adoc[]
+
+include::dm/06-publishing.adoc[]
+
+include::dm/07-fine-grained-dm-apis.adoc[]
+
+include::dm/terminology.adoc[]
+

@@ -1,0 +1,65 @@
+[[controlling-transitive-dependencies]]
+= Controlling transitive dependencies
+
+[[adding-constraints-transitive-deps]]
+== Adding constraints on transitive dependencies
+
+[[direct-vs-transitive-deps]]
+=== Direct dependencies vs dependency constraints
+
+[[using-platform-to-control-transitive-deps]]
+== Using a platform to control transitive versions
+
+[[sharing-dep-versions-between-projects]]
+=== Sharing dependency versions between projects
+
+[[enforced-platforms]]
+=== Enforced platforms
+
+[[importing-maven-boms]]
+=== Importing Maven BOMs
+
+[[aligning-dep-versions]]
+== Aligning dependency versions
+
+[[aligning-for-consumers]]
+=== For your consumers
+
+[[aligning-for-your-deps]]
+=== For dependencies you consume
+
+[[matching-dependencies-to-repos]]
+== Matching dependencies to repositories
+
+[[forcing-dependency-versions]]
+== Forcing dependency versions
+
+[[dependency-resolve-rules]]
+=== Dependency resolve rules
+
+[[excluding-transitive-deps]]
+== Excluding transitive dependencies
+
+[[disabling-transitive-resolution]]
+== Disabling transitive resolution
+
+[[handling-mutually-exclusive-deps]]
+== Handling mutually exclusive dependencies
+
+[[declaring-external-component-capabilities]]
+=== Declaring external component capabilities
+
+[[selecting-between-candidates]]
+=== Selecting between candidates
+
+[[module-replacement-rules]]
+==== Module replacement rules
+
+[[dependency-substitution-rules]]
+==== Dependency substitution rules
+
+[[fixing-bad-metadata]]
+== Fixing bad metadata
+
+[[component-metadata-rules]]
+=== Component metadata rules

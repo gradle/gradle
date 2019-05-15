@@ -1,0 +1,11 @@
+[[working-multi-src-repo-env]]
+= Working in a multi-source repository environment
+
+[[refactoring-binary-dep]]
+== Refactoring a binary dependency within the build
+
+[[composite-builds]]
+=== Composite builds
+
+[[integrating-source-dependencies]]
+== Integrating source dependencies

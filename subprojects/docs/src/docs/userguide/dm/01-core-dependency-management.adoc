@@ -1,0 +1,87 @@
+[[core-dependency-management]]
+= Core dependency management
+
+[[declaring-repositories]]
+== Declaring repositories
+
+[[supported-repo-types]]
+=== Supported repository types
+
+[[how-gradle-downloads-deps]]
+=== How Gradle downloads dependencies
+
+[[case-for-maven-local]]
+=== The case for mavenLocal()
+
+[[plugin-vs-build-repos]]
+=== Plugin repositories vs. build repositories
+
+[[declaring-dependencies]]
+== Declaring dependencies
+
+[[what-are-dependency-configurations]]
+=== What are dependency configurations
+
+[[config-inheritance-composition]]
+==== Configuration inheritance and composition
+
+[[resolvable-consumable-configs]]
+==== Resolvable and consumable configurations
+
+[[choosing-configuration]]
+=== Choosing the right configuration for dependencies
+
+[[project-vs-module-deps]]
+=== Project vs module dependencies
+
+[[documenting-dependencies]]
+=== Documenting dependencies
+
+[[supported-metadata-formats]]
+=== Supported Metadata formats
+
+[[supported-md-pom]]
+==== POM files
+
+[[supported-md-ivy]]
+==== Ivy files
+
+[[supported-md-gradle]]
+==== Gradle Module Metadata files
+
+[[understanding-diff-libraries-and-apps]]
+== Understanding difference between libraries and applications
+
+[[producers-vs-consumers]]
+=== Producers vs consumers
+
+[[producer-variants]]
+=== Producer variants
+
+[[strong-encapsulation]]
+=== Strong encapsulation
+
+[[being-respectful-consumers]]
+=== Being respectful of consumers
+
+[[viewing-debugging-dependencies]]
+== Viewing and debugging dependencies
+
+[[debugging-build-scans]]
+=== Build scans
+
+[[debugging-dependencies-task]]
+=== The `dependencies` task
+
+[[debugging-dependency-insight-task]]
+=== The `dependencyInsight` task
+
+[[resolving-variant-aware-errors]]
+=== Resolving variant selection errors
+
+[[ambiguous-variant-selection]]
+==== Ambiguous variant selection errors
+
+[[no-matching-variant-errors]]
+==== No matching variants
+

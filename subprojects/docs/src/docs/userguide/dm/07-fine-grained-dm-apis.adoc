@@ -1,0 +1,33 @@
+[[fine-grained-dm-apis]]
+= Fine-grained dependency management APIs
+
+[[setting-default-config-dependencies]]
+== Setting default configuration dependencies
+
+[[adding-dm-resolution-hooks]]
+== Adding dependency resolution hooks
+
+[[resolution-result-api]]
+== The ResolutionResult API
+
+[[artifact-view-api]]
+== The ArtifactView API
+
+[[artifact-resolution-queries]]
+== Artifact resolution queries
+
+[[artifact-transforms]]
+== Artifact transforms
+
+[[variant-aware-plugins]]
+== Variant-aware plugins
+
+[[adding-new-attributes]]
+=== Adding new attributes
+
+[[attribute-compat-rules]]
+=== Attribute compatibility rules
+
+[[attribute-disamb-rules]]
+=== Attribute disambiguation rules
+
