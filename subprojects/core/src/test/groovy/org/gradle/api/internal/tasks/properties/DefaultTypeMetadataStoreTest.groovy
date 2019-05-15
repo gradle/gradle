@@ -75,8 +75,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         Internal,
-        { false },
-        cacheFactory
+        { false }
     )
     def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Classpath, CompileClasspath], typeAnnotationMetadataStore, cacheFactory)
 

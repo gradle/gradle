@@ -19,7 +19,6 @@ package org.gradle.internal.reflect.annotations.impl
 import groovy.transform.Generated
 import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.ParameterValidationContext
 import spock.lang.Issue
@@ -45,8 +44,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         [Object, GroovyObject],
         [MutableType, MutableSubType],
         Ignored,
-        { Method method -> method.isAnnotationPresent(Generated) },
-        new TestCrossBuildInMemoryCacheFactory())
+        { Method method -> method.isAnnotationPresent(Generated) }
+     )
 
     def "finds not-annotated properties"() {
         expect:

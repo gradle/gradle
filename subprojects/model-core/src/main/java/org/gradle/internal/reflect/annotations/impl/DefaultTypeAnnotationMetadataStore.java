@@ -17,6 +17,9 @@
 package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.base.Equivalence;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -28,8 +31,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -85,7 +86,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private final Set<Class<? extends Annotation>> recordedTypeAnnotations;
     private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
-    private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
+    private final LoadingCache<Class<?>, TypeAnnotationMetadata> cache;
     private final Set<String> potentiallyIgnoredMethodNames;
     private final Set<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
     private final Set<Class<?>> mutableNonFinalClasses;
@@ -102,7 +103,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      * @param ignoredMethodAnnotation Annotation to use to explicitly ignore a method/property.
      * @param generatedMethodDetector Predicate to test if a method was generated (vs. being provided explicitly by the user).
      * @param mutableNonFinalClasses Mutable classes that shouldn't need explicit setters
-     * @param cacheFactory A factory to create cross-build in-memory caches.
      */
     public DefaultTypeAnnotationMetadataStore(
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
@@ -111,12 +111,11 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Collection<Class<?>> ignoreMethodsFromTypes,
         Collection<Class<?>> mutableNonFinalClasses,
         Class<? extends Annotation> ignoredMethodAnnotation,
-        Predicate<? super Method> generatedMethodDetector,
-        CrossBuildInMemoryCacheFactory cacheFactory
+        Predicate<? super Method> generatedMethodDetector
     ) {
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
         this.propertyAnnotationCategories = getBuild(propertyAnnotationCategories, ignoredMethodAnnotation);
-        this.cache = initCache(ignoredSuperTypes, cacheFactory);
+        this.cache = initCache(ignoredSuperTypes, CacheLoader.from(this::createTypeAnnotationMetadata));
         this.potentiallyIgnoredMethodNames = allMethodNamesOf(ignoreMethodsFromTypes);
         this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromTypes);
         this.mutableNonFinalClasses = ImmutableSet.copyOf(mutableNonFinalClasses);
@@ -132,8 +131,9 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             .build();
     }
 
-    private static CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> initCache(Collection<Class<?>> ignoredSuperTypes, CrossBuildInMemoryCacheFactory cacheFactory) {
-        CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> result = cacheFactory.newClassCache();
+    private static LoadingCache<Class<?>, TypeAnnotationMetadata> initCache(Collection<Class<?>> ignoredSuperTypes, CacheLoader<Class<?>, TypeAnnotationMetadata> loader) {
+        LoadingCache<Class<?>, TypeAnnotationMetadata> result = CacheBuilder.newBuilder()
+            .build(loader);
         for (Class<?> ignoredSuperType : ignoredSuperTypes) {
             result.put(ignoredSuperType, EMPTY_TYPE_ANNOTATION_METADATA);
         }
@@ -162,7 +162,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     @Override
     public TypeAnnotationMetadata getTypeAnnotationMetadata(Class<?> type) {
-        return cache.get(type, t -> createTypeAnnotationMetadata(type));
+        return cache.getUnchecked(type);
     }
 
     private TypeAnnotationMetadata createTypeAnnotationMetadata(Class<?> type) {

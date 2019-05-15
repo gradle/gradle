@@ -139,8 +139,7 @@ public class ExecutionGlobalServices {
                 public boolean test(Method method) {
                     return method.isAnnotationPresent(Generated.class);
                 }
-            },
-            cacheFactory);
+            });
     }
 
     InspectionSchemeFactory createInspectionSchemeFactory(
