@@ -68,6 +68,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
 
             snapshotTimestamp != null
             snapshotBuildNumber == '1'
+            localSnapshot == false
             lastUpdated == snapshotTimestamp.replace('.', '')
 
             snapshotVersions == ["1.0-${snapshotTimestamp}-${snapshotBuildNumber}"]
@@ -152,5 +153,88 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(module) { expectFiles "snapshotPublish-${secondVersion}.jar" }
+    }
+
+    def "can install snapshot versions"() {
+        using m2
+
+        settingsFile << 'rootProject.name = "snapshotInstall"'
+        buildFile << """
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    group = 'org.gradle'
+    version = '1.0-SNAPSHOT'
+
+    publishing {
+        publications {
+            pub(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+"""
+        def module = getM2().mavenRepo().module('org.gradle', 'snapshotInstall', '1.0-SNAPSHOT')
+
+        when:
+        succeeds 'publishToMavenLocal'
+
+        then:
+        module.assertArtifactsPublished("maven-metadata-local.xml", "snapshotInstall-1.0-SNAPSHOT.module", "snapshotInstall-1.0-SNAPSHOT.jar", "snapshotInstall-1.0-SNAPSHOT.pom")
+
+        and:
+        module.parsedPom.version == '1.0-SNAPSHOT'
+
+        with (module.rootMetaData) {
+            groupId == "org.gradle"
+            artifactId == "snapshotInstall"
+            releaseVersion == null
+            versions == ['1.0-SNAPSHOT']
+        }
+
+        with (module.snapshotMetaData) {
+            groupId == "org.gradle"
+            artifactId == "snapshotInstall"
+            version == "1.0-SNAPSHOT"
+
+            snapshotTimestamp == null
+            snapshotBuildNumber == null
+            localSnapshot == true
+
+            lastUpdated != null
+
+            snapshotVersions == ["1.0-SNAPSHOT"]
+        }
+
+        // Install a second time
+        when:
+        succeeds 'publishToMavenLocal'
+
+        then:
+        module.assertArtifactsPublished("maven-metadata-local.xml", "snapshotInstall-1.0-SNAPSHOT.module", "snapshotInstall-1.0-SNAPSHOT.jar", "snapshotInstall-1.0-SNAPSHOT.pom")
+
+        and:
+        module.parsedPom.version == '1.0-SNAPSHOT'
+
+        with (module.rootMetaData) {
+            groupId == "org.gradle"
+            artifactId == "snapshotInstall"
+            releaseVersion == null
+            versions == ['1.0-SNAPSHOT']
+        }
+
+        with (module.snapshotMetaData) {
+            groupId == "org.gradle"
+            artifactId == "snapshotInstall"
+            version == "1.0-SNAPSHOT"
+
+            snapshotTimestamp == null
+            snapshotBuildNumber == null
+            localSnapshot == true
+
+            lastUpdated != null
+
+            snapshotVersions == ["1.0-SNAPSHOT"]
+        }
     }
 }

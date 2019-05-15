@@ -36,6 +36,11 @@ class MavenLocalModule extends MavenFileModule {
     }
 
     @Override
+    protected String getMetadataFileName() {
+        return "maven-metadata-local.xml"
+    }
+
+    @Override
     String getMetaDataFileContent() {
         """
 <metadata>

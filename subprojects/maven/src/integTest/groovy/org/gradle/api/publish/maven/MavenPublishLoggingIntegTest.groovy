@@ -71,6 +71,7 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         then:
         def output = result.groupedOutput.task(":publishMavenPublicationToMavenRepository").output
 
+        output.contains("Publishing to repository 'maven'")
         // Logging from LoggingMavenTransferListener
         output.contains("Deploying to")
         output.contains("Uploading: group/root/1.0/root-1.0.jar")
@@ -81,4 +82,12 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         output.contains("Uploading: group/root/maven-metadata.xml to repository")
     }
 
+    def "does not log uploads when installing to mavenLocal"() {
+        when:
+        succeeds 'publishToMavenLocal', '-i'
+
+        then:
+        output.contains("Publishing to maven local repository")
+        !output.contains("Uploading:")
+    }
 }
