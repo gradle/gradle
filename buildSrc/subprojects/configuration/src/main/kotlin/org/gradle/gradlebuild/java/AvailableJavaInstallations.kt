@@ -84,7 +84,7 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     }
 
     fun validateForProductionEnvironment() {
-        validate(validateProductionJdks())
+//        validate(validateProductionJdks())
     }
 
     private
