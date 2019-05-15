@@ -45,7 +45,7 @@ when the names caused conflicts and import/synchronization errors.
 
 Gradle can now deduplicate these names if they conflict with other project names in an Eclipse workspace. This may lead to different Eclipse project names for projects with user-specified names.
 
-A recent version of Buildship is required to take advantage of this behavior.
+The upcoming 3.1.1 version of Buildship is required to take advantage of this behavior.
 
 Contributed by link:https://github.com/fraenkelc[Christian Fränkel]
 
