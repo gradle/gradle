@@ -76,12 +76,12 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.caching.internal.BuildCacheServices;
-import org.gradle.configuration.BuildConfigurer;
-import org.gradle.configuration.DefaultBuildConfigurer;
+import org.gradle.configuration.ProjectsPreparer;
+import org.gradle.configuration.DefaultProjectsPreparer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ImportsReader;
-import org.gradle.configuration.NotifyingBuildConfigurer;
+import org.gradle.configuration.BuildOperatingFiringProjectsPreparer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -118,7 +118,7 @@ import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.NotifyingBuildLoader;
-import org.gradle.initialization.NotifyingSettingsPreparer;
+import org.gradle.initialization.BuildOperatingFiringSettingsPreparer;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
@@ -377,7 +377,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsPreparer createSettingsPreparer(InitScriptHandler initScriptHandler, SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildDefinition buildDefinition) {
-        return new NotifyingSettingsPreparer(
+        return new BuildOperatingFiringSettingsPreparer(
             new DefaultSettingsPreparer(
                 initScriptHandler,
                 settingsLoaderFactory),
@@ -402,10 +402,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new TaskPathProjectEvaluator(cancellationToken);
     }
 
-    protected BuildConfigurer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
+    protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
         ModelConfigurationListener modelConfigurationListener = listenerManager.getBroadcaster(ModelConfigurationListener.class);
-        return new NotifyingBuildConfigurer(
-            new DefaultBuildConfigurer(
+        return new BuildOperatingFiringProjectsPreparer(
+            new DefaultProjectsPreparer(
                 projectConfigurer,
                 buildStateRegistry,
                 buildLoader,

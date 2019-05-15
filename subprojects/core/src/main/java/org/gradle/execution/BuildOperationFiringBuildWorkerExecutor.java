@@ -27,11 +27,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class NotifyingBuildExecuter implements BuildExecuter {
-    private final BuildExecuter delegate;
+public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecutor {
+    private final BuildWorkExecutor delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public NotifyingBuildExecuter(BuildExecuter delegate, BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationFiringBuildWorkerExecutor(BuildWorkExecutor delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }

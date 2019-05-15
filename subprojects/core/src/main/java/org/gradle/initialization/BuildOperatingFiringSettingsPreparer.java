@@ -23,7 +23,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class NotifyingSettingsPreparer implements SettingsPreparer {
+public class BuildOperatingFiringSettingsPreparer implements SettingsPreparer {
     private static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {
     };
 
@@ -31,7 +31,7 @@ public class NotifyingSettingsPreparer implements SettingsPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final PublicBuildPath fromBuild;
 
-    public NotifyingSettingsPreparer(SettingsPreparer delegate, BuildOperationExecutor buildOperationExecutor, PublicBuildPath fromBuild) {
+    public BuildOperatingFiringSettingsPreparer(SettingsPreparer delegate, BuildOperationExecutor buildOperationExecutor, PublicBuildPath fromBuild) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
         this.fromBuild = fromBuild;

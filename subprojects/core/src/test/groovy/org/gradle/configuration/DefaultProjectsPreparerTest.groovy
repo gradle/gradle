@@ -25,7 +25,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import spock.lang.Specification
 
-class DefaultBuildConfigurerTest extends Specification {
+class DefaultProjectsPreparerTest extends Specification {
     def startParameter = Mock(StartParameter)
     def gradle = Mock(GradleInternal)
     def rootProject = Mock(ProjectInternal)
@@ -34,7 +34,7 @@ class DefaultBuildConfigurerTest extends Specification {
     def buildLoader = Mock(BuildLoader)
     def modelListener = Mock(ModelConfigurationListener)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
-    private configurer = new DefaultBuildConfigurer(projectConfigurer, buildRegistry, buildLoader, modelListener, buildOperationExecutor)
+    private configurer = new DefaultProjectsPreparer(projectConfigurer, buildRegistry, buildLoader, modelListener, buildOperationExecutor)
 
     def setup() {
         gradle.startParameter >> startParameter

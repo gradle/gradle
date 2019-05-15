@@ -22,7 +22,7 @@ import java.util.Collection;
 /**
  * Executes the tasks requested for a build.
  */
-public interface BuildExecuter {
+public interface BuildWorkExecutor {
     /**
      * Executes the selected tasks.
      */

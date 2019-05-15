@@ -25,14 +25,14 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.SingleMessageLogger;
 
-public class DefaultBuildConfigurer implements BuildConfigurer {
+public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildLoader buildLoader;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectConfigurer projectConfigurer;
     private final BuildStateRegistry buildRegistry;
     private final ModelConfigurationListener modelConfigurationListener;
 
-    public DefaultBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildRegistry, BuildLoader buildLoader, ModelConfigurationListener modelConfigurationListener, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultProjectsPreparer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildRegistry, BuildLoader buildLoader, ModelConfigurationListener modelConfigurationListener, BuildOperationExecutor buildOperationExecutor) {
         this.projectConfigurer = projectConfigurer;
         this.buildRegistry = buildRegistry;
         this.buildLoader = buildLoader;

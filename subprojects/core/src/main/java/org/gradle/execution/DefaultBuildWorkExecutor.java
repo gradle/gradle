@@ -21,10 +21,10 @@ import org.gradle.api.internal.GradleInternal;
 import java.util.Collection;
 import java.util.List;
 
-public class DefaultBuildExecuter implements BuildExecuter {
+public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
     private final List<BuildExecutionAction> executionActions;
 
-    public DefaultBuildExecuter(Iterable<? extends BuildExecutionAction> executionActions) {
+    public DefaultBuildWorkExecutor(Iterable<? extends BuildExecutionAction> executionActions) {
         this.executionActions = Lists.newArrayList(executionActions);
     }
 
