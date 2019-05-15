@@ -37,8 +37,8 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
     }
 
     @Override
-    public void execute(GradleInternal gradle, Collection<? super Throwable> taskFailures) {
-        buildOperationExecutor.run(new ExecuteTasks(gradle, taskFailures));
+    public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
+        buildOperationExecutor.run(new ExecuteTasks(gradle, failures));
     }
 
     private class ExecuteTasks implements RunnableBuildOperation {

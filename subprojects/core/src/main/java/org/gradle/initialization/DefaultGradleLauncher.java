@@ -194,7 +194,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void prepareProjects() {
         if (stage == Stage.LoadSettings) {
-            projectsPreparer.configure(gradle);
+            projectsPreparer.prepareProjects(gradle);
 
             stage = Stage.Configure;
         }

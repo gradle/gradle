@@ -31,9 +31,9 @@ public class IncludedBuildLifecycleBuildWorkExecutor implements BuildWorkExecuto
     }
 
     @Override
-    public void execute(GradleInternal gradle, Collection<? super Throwable> taskFailures) {
+    public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
         includedBuildControllers.startTaskExecution();
-        delegate.execute(gradle, taskFailures);
-        includedBuildControllers.awaitTaskCompletion(taskFailures);
+        delegate.execute(gradle, failures);
+        includedBuildControllers.awaitTaskCompletion(failures);
     }
 }

@@ -40,7 +40,7 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public void configure(GradleInternal gradle) {
+    public void prepareProjects(GradleInternal gradle) {
         maybeInformAboutIncubatingMode(gradle);
 
         buildLoader.load(gradle.getSettings(), gradle);

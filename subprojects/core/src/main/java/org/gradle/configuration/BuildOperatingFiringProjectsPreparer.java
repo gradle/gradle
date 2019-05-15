@@ -36,7 +36,7 @@ public class BuildOperatingFiringProjectsPreparer implements ProjectsPreparer {
     }
 
     @Override
-    public void configure(GradleInternal gradle) {
+    public void prepareProjects(GradleInternal gradle) {
         buildOperationExecutor.run(new ConfigureBuild(gradle));
     }
 
@@ -49,7 +49,7 @@ public class BuildOperatingFiringProjectsPreparer implements ProjectsPreparer {
 
         @Override
         public void run(BuildOperationContext context) {
-            delegate.configure(gradle);
+            delegate.prepareProjects(gradle);
             context.setResult(CONFIGURE_BUILD_RESULT);
         }
 
