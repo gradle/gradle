@@ -48,7 +48,7 @@ import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
-public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
+public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;

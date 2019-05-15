@@ -53,6 +53,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         }
     };
 
+    @Nullable
     private final GradleInstallation gradleInstallation;
     private final Map<String, Module> modules = new HashMap<String, Module>();
     private final Map<String, Module> externalModules = new HashMap<String, Module>();
