@@ -1,0 +1,77 @@
+[[declaring-dependency-versions]]
+= Declaring dependency versions
+
+include::rich-versions.adoc[]
+
+[[sub::declaring_without_version]]
+== Declaring a dependency without version
+
+A recommended practice for larger projects is to declare dependencies without versions and use <<managing_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constraints allow you to manage versions of all dependencies, including transitive ones, in one place.
+
+.Declaring a dependency without version
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
+====
+
+[[sub:dynamic_changing_versions]]
+== Dealing with versions which change over time
+
+[[sub:declaring_dependency_with_dynamic_version]]
+=== Declaring a dynamic version
+
+Projects might adopt a more aggressive approach for consuming dependencies to modules.
+For example you might want to always integrate the latest version of a dependency to consume cutting edge features at any given time.
+A _dynamic version_ allows for resolving the latest version or the latest version of a version range for a given module.
+
+[NOTE]
+====
+Using dynamic versions in a build bears the risk of potentially breaking it. As soon as a new version of the dependency is released that contains an incompatible API change your source code might stop compiling.
+====
+
+.Declaring a dependency with a dynamic version
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/dynamicVersion/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/dynamicVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic dependency versions and their respective, selected versions.
+
+.Dynamic dependencies in build scan
+image::dependency-management-dynamic-dependency-build-scan.png[]
+
+By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories.
+The <<troubleshooting_dependency_resolution.adoc#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
+
+[[sub:declaring_dependency_with_changing_version]]
+=== Declaring a changing version
+
+A team might decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a module with a so-called _changing version_.
+A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
+
+In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions].
+Snapshot versions contain the suffix `-SNAPSHOT`.
+The following example demonstrates how to declare a snapshot version on the Spring dependency.
+
+.Declaring a dependency with a changing version
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/changingVersion/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/changingVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+By default, Gradle caches changing versions of dependencies for 24 hours.
+Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<troubleshooting_dependency_resolution.adoc#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
+
+Gradle is flexible enough to treat any version as changing version e.g. if you wanted to model snapshot behavior for an Ivy module.
+All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.
+
+[[controlling-dynamic-version-caching]]
+=== Controlling dynamic version caching
+
+[[component-selection-rules]]
+=== Component selection rules
+
+[[refreshing-dependencies]]
+=== Refreshing dependencies
+
+include::dependency-locking.adoc[]

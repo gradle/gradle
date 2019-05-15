@@ -109,37 +109,6 @@ task printTargetConfig {
     }
 }
 
-// tag::api-component-selection[]
-class RejectTestBranch {
-    @Mutate
-    void evaluateRule(ComponentSelection selection) {
-        if (selection.getDescriptor(IvyModuleDescriptor)?.branch == "test") {
-            selection.reject("reject test branch")
-        }
-    }
-}
-
-configurations {
-    ruleSourceConfig {
-        resolutionStrategy {
-            componentSelection {
-                all new RejectTestBranch()
-            }
-        }
-    }
-}
-// end::api-component-selection[]
-
-dependencies {
-    ruleSourceConfig "org.sample:api:1.+"
-}
-
-task printRuleSourceConfig {
-    doLast {
-        configurations.ruleSourceConfig.each { println "Resolved: ${it.name}" }
-    }
-}
-
 configurations {
     sampleConfig {
         resolutionStrategy {

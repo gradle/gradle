@@ -1,0 +1,173 @@
+[[sec:declaring-repositories]]
+= Declaring repositories
+
+Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats. Check out the <<repository_types.adoc#repository_types,full reference on all types of repositories>> for more information.
+
+[[sec:declaring_public_repository]]
+== Declaring a publicly-available repository
+
+Organizations building software may want to leverage public binary repositories to download and consume open source dependencies. Popular public repositories include Maven Central, Bintray JCenter and the Google Android repository. Gradle provides built-in shortcut methods for the most widely-used repositories.
+
+.Declaring a repository with the help of shortcut methods
+image::dependency-management-shortcut-repositories.png[]
+
+To declare JCenter as repository, add this code to your build script:
+
+.Declaring JCenter repository as source for resolving dependencies
+====
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/publicRepository/groovy",files="build.gradle[tags=public-repository]"]
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/publicRepository/kotlin",files="build.gradle.kts[tags=public-repository]"]
+====
+
+Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Alternatively, you can <<#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
+
+[[sec:declaring_custom_repository]]
+== Declaring a custom repository by URL
+
+Most enterprise projects set up a binary repository available only within an intranet. In-house repositories enable teams to publish internal binaries, setup user management and security measure and ensure uptime and availability. Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
+
+Add the following code to declare an in-house repository for your build reachable through a custom URL.
+
+.Declaring a custom repository by URL
+====
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/customRepository/groovy",files="build.gradle[tags=custom-repository]"]
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/customRepository/kotlin",files="build.gradle.kts[tags=custom-repository]"]
+====
+
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<repository_types.adoc#sub:supported_transport_protocols,reference manual on supported transport protocols>>.
+
+You can also <<repository_types.adoc#sec:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories as they are very flexible in terms of how modules are organised in a repository.
+
+[[sec:declaring_multiple_repositories]]
+== Declaring multiple repositories
+
+You can define more than one repository for resolving dependencies. Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other. You can mix any type of repository described in the <<repository_types.adoc#repository_types,reference section>>.
+
+This example demonstrates how to declare various shortcut and custom URL repositories for a project:
+
+.Declaring multiple repositories
+====
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/multipleRepositories/groovy",files="build.gradle[tags=multiple-repositories]"]
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/multipleRepositories/kotlin",files="build.gradle.kts[tags=multiple-repositories]"]
+====
+
+[NOTE]
+====
+The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about the inner workings of <<introduction_dependency_management.adoc#sec:dependency_resolution,Gradle's resolution mechanism>>.
+====
+
+[[supported-repo-types]]
+== Supported repository types
+
+TODO
+
+[[how-gradle-downloads-deps]]
+== How Gradle downloads dependencies
+
+Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called _dependency resolution_. Below is a brief outline of how this process works.
+
+* Given a required dependency, Gradle attempts to resolve the dependency by searching for the module the dependency points at. Each repository is inspected in order. Depending on the type of repository, Gradle looks for metadata files describing the module (`.module`, `.pom` or `ivy.xml` file) or directly for artifact files.
+
+** If the dependency is declared as a dynamic version (like `1.+`, `[1.0,)`, `[1.0, 2.0)`), Gradle will resolve this to the highest available concrete version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
+
+** If the module metadata is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
+
+* Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
+
+** For a dynamic version, a 'higher' concrete version is preferred over a 'lower' version.
+
+** Modules declared by a module metadata file (`.module`, `.pom` or `ivy.xml` file) are preferred over modules that have an artifact file only.
+
+** Modules from earlier repositories are preferred over modules in later repositories.
+
+** When the dependency is declared by a concrete version and a module metadata file is found in a repository, there is no need to continue searching later repositories and the remainder of the process is short-circuited.
+
+* All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
+
+The dependency resolution process is highly customizable to meet enterprise requirements. For more information, see the chapter on <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,customizing dependency resolution>>.
+
+[[sub:http-retries]]
+=== HTTP Retries
+
+Gradle will make several attempts to connect to a given repository. If it fails, Gradle will retry, increasing the amount of time waiting between each retry. After a max number of failed attempts, the repository will be blacklisted for the whole build.
+
+
+[[case-for-maven-local]]
+== The case for mavenLocal()
+
+TODO
+
+[[plugin-vs-build-repos]]
+== Plugin repositories vs. build repositories
+
+TODO
+
+[[dependency_cache]]
+== The Dependency Cache
+
+Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
+
+The Gradle dependency cache consists of two storage types located under `GRADLE_USER_HOME/caches`:
+
+* A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files. The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
+* A binary store of resolved module meta-data, including the results of resolving dynamic versions, module descriptors, and artifacts.
+
+The Gradle cache does not allow the local cache to hide problems and create other mysterious and difficult to debug behavior.
+Gradle enables reliable and reproducible enterprise builds with a focus on bandwidth and storage efficiency.
+
+[[sub:cache_metadata]]
+=== Separate metadata cache
+
+Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache.
+The information stored in the metadata cache includes:
+
+* The result of resolving a dynamic version (e.g. `1.+`) to a concrete version (e.g. `1.2`).
+* The resolved module metadata for a particular module, including module artifacts and module dependencies.
+* The resolved artifact metadata for a particular artifact, including a pointer to the downloaded artifact file.
+* The _absence_ of a particular module or artifact in a particular repository, eliminating repeated attempts to access a resource that does not exist.
+
+Every entry in the metadata cache includes a record of the repository that provided the information as well as a timestamp that can be used for cache expiry.
+
+[[sub:cache_repository_independence]]
+=== Repository caches are independent
+
+As described above, for each repository there is a separate metadata cache.
+A repository is identified by its URL, type and layout.
+If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository.
+This will always involve a remote lookup on the repository, however in many cases <<#sub:cache_artifact_reuse,no download will be required>>.
+
+Dependency resolution will fail if the required artifacts are not available in any repository specified by the build, even if the local cache has a copy of this artifact which was retrieved from a different repository.
+Repository independence allows builds to be isolated from each other in an advanced way that no build tool has done before.
+This is a key feature to create builds that are reliable and reproducible in any environment.
+
+[[sub:cache_artifact_reuse]]
+=== Artifact reuse
+
+Before downloading an artifact, Gradle tries to determine the checksum of the required artifact by downloading the sha file associated with that artifact.
+If the checksum can be retrieved, an artifact is not downloaded if an artifact already exists with the same id and checksum.
+If the checksum cannot be retrieved from the remote server, the artifact will be downloaded (and ignored if it matches an existing artifact).
+
+As well as considering artifacts downloaded from a different repository, Gradle will also attempt to reuse artifacts found in the local Maven Repository.
+If a candidate artifact has been downloaded by Maven, Gradle will use this artifact if it can be verified to match the checksum declared by the remote server.
+
+[[sub:cache_checksum_storage]]
+=== Checksum based storage
+
+It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier.
+This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing its identifier.
+By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact.
+This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository.
+This is done without requiring a separate artifact file store per repository.
+
+[[sub:cache_locking]]
+=== Cache Locking
+
+The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently.
+The lock is held whenever the binary meta-data store is being read or written, but is released for slow operations such as downloading remote artifacts.
+
+[[sub:cache_cleanup]]
+==== Cache Cleanup
+
+Gradle keeps track of which artifacts in the dependency cache are accessed.
+Using this information, the cache is periodically (at most every 24 hours) scanned for artifacts that have not been used for more than 30 days.
+Obsolete artifacts are then deleted to ensure the cache does not grow indefinitely.

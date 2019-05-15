@@ -1,0 +1,72 @@
+[[fine-grained-dm-apis]]
+= Fine-grained dependency management APIs
+
+[[sec:configuration_defaults]]
+== Setting default configuration dependencies
+
+A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration.
+A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override.
+By specifying default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
+
+.Specifying default dependencies on a configuration
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
+====
+
+[[adding-dm-resolution-hooks]]
+== Adding dependency resolution hooks
+
+=== Changing configuration dependencies prior to resolution
+
+At times, a plugin may want to modify the dependencies of a configuration before it is resolved.
+The `withDependencies` method permits dependencies to be added, removed or modified programmatically.
+
+.Modifying dependencies on a configuration
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
+====
+
+
+[[sec:ivy_dynamic_resolve_mode]]
+=== Enabling Ivy dynamic resolve mode
+
+Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic resolve mode.
+Normally, Gradle will use the `rev` attribute for each dependency definition included in an `ivy.xml` file.
+In dynamic resolve mode, Gradle will instead prefer the `revConstraint` attribute over the `rev` attribute for a given dependency definition.
+If the `revConstraint` attribute is not present, the `rev` attribute is used instead.
+
+To enable dynamic resolve mode, you need to set the appropriate option on the repository definition.
+A couple of examples are shown below.
+Note that dynamic resolve mode is only available for Gradle's Ivy repositories.
+It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
+
+.Enabling dynamic resolve mode
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+====
+
+[[resolution-result-api]]
+== The ResolutionResult API
+
+[[artifact-view-api]]
+== The ArtifactView API
+
+[[artifact-resolution-queries]]
+== Artifact resolution queries
+
+include::artifact-transforms.adoc[]
+
+include::variant-aware-plugins.adoc[]
+
+[[adding-new-attributes]]
+=== Adding new attributes
+
+[[attribute-compat-rules]]
+=== Attribute compatibility rules
+
+[[attribute-disamb-rules]]
+=== Attribute disambiguation rules
+

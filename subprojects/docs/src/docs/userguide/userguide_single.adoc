@@ -63,8 +63,6 @@ include::intro_multi_project_builds.adoc[leveloffset=+2]
 
 include::build_cache.adoc[leveloffset=+2]
 
-include::composite_builds.adoc[leveloffset=+2]
-
 [[part:authoring_builds]]
 == Authoring Gradle Builds
 
@@ -97,7 +95,7 @@ include::ant.adoc[leveloffset=+2]
 [[part:dependency_management]]
 == Dependency Management
 
-include::dependency_management.adoc[leveloffset=+2]
+include::dependency-management.adoc[leveloffset=+2]
 
 [[part:publishing]]
 == Publishing Artifacts

@@ -1,0 +1,135 @@
+[[rich-version-constraints]]
+== Rich version declarations
+
+Gradle supports a rich model for declaring versions, which allows to combine different level of version information.
+The terms and their meaning are explained below, from the strongest to the weakest:
+
+`strictly`::
+Any version not matched by this version notation will be excluded.
+This is the strongest version declaration.
+It will cause dependency resolution to fail if no version acceptable by this clause can be selected.
+This term supports dynamic versions.
++
+When defined, overrides previous `require` declaration and clears previous `reject`.
+
+`require`::
+Implies that the selected version cannot be lower than what `require` accepts but could be higher through conflict resolution, even if higher has an exclusive higher bound.
+This is what a direct version on a dependency translates to.
+This term supports dynamic versions.
++
+When defined, overrides previous `strictly` declaration and clears previous `reject`.
+
+`prefer`::
+This is a very soft version declaration.
+It applies only if there is no stronger non dynamic opinion on a version for the module.
+This term does not support dynamic versions.
++
+Definition can complement `strictly` or `require`.
+
+There is also an additional term outside of the level hierarchy:
+
+`reject`::
+Declares that specific version(s) are not accepted for the module.
+This will cause dependency resolution to fail if the only versions selectable are also rejected.
+This term supports dynamic versions.
+
+The following table illustrates a number of use cases and how to combine the different terms for rich version declaration:
+
+.Rich version use cases
+[%header%autowidth,compact]
+|===
+| Which version(s) of this dependency are acceptable? | `strictly` | `require` | `prefer` | `rejects` | Selection result
+
+| Tested with version `1.5`, believe all future versions should work
+|
+| 1.5
+|
+|
+| Any version starting from `1.5`, equivalent of `org:foo:1.5`. An upgrade to `2.4` is accepted.
+
+| Tested with `1.5`, soft constraint upgrades according to semantic versioning
+|
+| [1.0, 2.0[
+| 1.5
+|
+| Any version between `1.0` and `2.0`, `1.5` if nobody else cares. An upgrade to `2.4` is accepted. +
+🔒
+
+| Tested with `1.5`, but follows semantic versioning
+| [1.0, 2.0[
+|
+| 1.5
+|
+| Any version between `1.0` and `2.0` excluded, `1.5` if nobody else cares. +
+🔒
+
+| Same as above, with `1.4` known broken
+| [1.0, 2.0[
+|
+| 1.5
+| 1.4
+| Any version between `1.0` and `2.0` excluded except for `1.4`, `1.5` if nobody else cares. +
+🔒
+
+| No opinion, works with `1.5`
+|
+|
+| 1.5
+|
+| `1.5` if no other opinion, any otherwise
+
+| No opinion, prefer latest release
+|
+|
+| `latest.release`
+|
+| The latest release at build time +
+🔒
+
+| On the edge, latest release, no downgrade
+|
+| `latest.release`
+|
+|
+| The latest release at build time +
+🔒
+
+| No other version than 1.5
+| 1.5
+|
+|
+|
+| 1.5, or failure if another `strict` or higher `require` constraint disagrees
+
+| `1.5` or a patch version of it exclusively
+| [1.5,1.6[
+|
+|
+|
+| Latest `1.5.x` patch release, or failure if another `strict` or higher `require` constraint disagrees +
+🔒
+|===
+
+Lines annotated with a lock (🔒) indicate that leveraging <<dependency_locking.adoc#,dependency locking>> makes sense in this context.
+Another concept that relates with rich version declaration is the ability to publish <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> instead of declared ones.
+
+
+Using `strictly`, especially for a library, must be a well thought process as it can have a serious impact on downstream consumers.
+At the same time, used correctly, it will help consumers understand what combination of libraries do not work together in their context.
+
+
+[NOTE]
+====
+Rich version information will be preserved when using the Gradle metadata format.
+However conversion to Ivy or Maven metadata formats will be lossy.
+The highest level will be published, that is `strictly` or `require` over `prefer`.
+In addition, any `reject` will be ignored.
+====
+
+Rich version declaration is accessed through the `version` DSL method on a dependency or constraint declaration which gives access to link:{javadocPath}/org/gradle/api/artifacts/MutableVersionConstraint.html[MutableVersionConstraint].
+
+.Rich version declaration
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/concreteVersion/groovy",files="build.gradle[tags=rich-version]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version]"]
+====

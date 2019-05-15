@@ -1,19 +1,7 @@
-// Copyright 2017 the original author or authors.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+:samplesPath2: ../../../../samples
 
-[[dependency_locking]]
-= Dependency Locking
+[[dependency-locking]]
+= Dependency locking
 
 Use of dynamic dependency versions (e.g. `1.+` or `[1.0,2.0)`) makes builds non-deterministic.
 This causes builds to break without any obvious change, and worse, can be caused by a transitive dependency that the build author has no control over.
@@ -124,7 +112,7 @@ Module notations are ordered alphabetically, to ease diffs.
 [listing]
 .gradle/dependency-locks/compileClasspath.lockfile
 ----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy/gradle/dependency-locks/compileClasspath.lockfile[]
+include::{samplesPath2}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy/gradle/dependency-locks/compileClasspath.lockfile[]
 ----
 
 which matches the following dependency declaration:
@@ -186,3 +174,4 @@ However, if that configuration happens to be resolved in the future at a time wh
 == Nebula locking plugin
 
 This feature is inspired by the https://github.com/nebula-plugins/gradle-dependency-lock-plugin[Nebula Gradle dependency lock plugin].
+
