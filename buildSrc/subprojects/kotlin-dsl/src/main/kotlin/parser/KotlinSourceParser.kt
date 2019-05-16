@@ -77,6 +77,7 @@ class KotlinSourceParser {
 
     private
     fun Disposable.parseKotlinFiles(sourceRoots: List<File>, compilationClasspath: List<File>): List<KtFile> {
+        configureKotlinCompilerIoForWindowsSupport()
         val configuration = CompilerConfiguration().apply {
 
             put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
@@ -93,6 +94,10 @@ class KotlinSourceParser {
         val environment = KotlinCoreEnvironment.createForProduction(this, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
         return environment.getSourceFiles()
     }
+
+    private
+    fun configureKotlinCompilerIoForWindowsSupport() =
+        org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
 }
 
 

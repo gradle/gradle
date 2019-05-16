@@ -30,6 +30,7 @@ import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.launcher.bootstrap.CommandLineActionFactory
 import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -38,7 +39,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-class CommandLineActionFactoryTest extends Specification {
+class DefaultCommandLineActionFactoryTest extends Specification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
     @Rule
@@ -50,7 +51,7 @@ class CommandLineActionFactoryTest extends Specification {
     final LoggingManagerInternal loggingManager = Mock()
     final CommandLineAction actionFactory1 = Mock()
     final CommandLineAction actionFactory2 = Mock()
-    final CommandLineActionFactory factory = new CommandLineActionFactory() {
+    final CommandLineActionFactory factory = new DefaultCommandLineActionFactory() {
         @Override
         LoggingServiceRegistry createLoggingServices() {
             return loggingServices

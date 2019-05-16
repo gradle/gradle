@@ -39,8 +39,8 @@ import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.internal.reflect.NoSuchPropertyException;
 import org.gradle.internal.reflect.PropertyAccessor;
 import org.gradle.internal.reflect.PropertyMutator;
+import org.gradle.internal.stream.EncodedStream;
 import org.gradle.internal.util.Trie;
-import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -190,13 +190,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         }
 
         private static class WorkerClassRemapper extends Remapper {
-            private static final String SYSTEM_APP_WORKER_INTERNAL_NAME = Type.getInternalName(SystemApplicationClassLoaderWorker.class);
-
             @Override
             public String map(String typeName) {
-                if (typeName.equals(SYSTEM_APP_WORKER_INTERNAL_NAME)) {
-                    return typeName;
-                }
                 if (typeName.startsWith("org/gradle/")) {
                     return "worker/" + typeName;
                 }

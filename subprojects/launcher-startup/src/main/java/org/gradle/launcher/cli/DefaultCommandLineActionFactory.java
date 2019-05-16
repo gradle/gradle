@@ -49,6 +49,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToLogLevelConfigurationConverter;
@@ -71,7 +72,7 @@ import java.util.Map;
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
  */
-public class CommandLineActionFactory {
+public class DefaultCommandLineActionFactory implements CommandLineActionFactory {
     public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
     private static final String HELP = "h";
     private static final String VERSION = "v";
@@ -83,7 +84,8 @@ public class CommandLineActionFactory {
      * @param args The command-line arguments.
      * @return The action to execute.
      */
-    public Action<ExecutionListener> convert(List<String> args) {
+    @Override
+    public CommandLineExecution convert(List<String> args) {
         ServiceRegistry loggingServices = createLoggingServices();
 
         LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
@@ -118,6 +120,7 @@ public class CommandLineActionFactory {
         out.println();
     }
 
+    @VisibleForTesting
     static class WelcomeMessageAction implements Action<Logger> {
 
         private final BuildLayoutParameters buildLayoutParameters;
@@ -175,7 +178,7 @@ public class CommandLineActionFactory {
          * In user environments the system property will never be available.
          */
         private boolean isWelcomeMessageEnabled() {
-            String messageEnabled = System.getProperty(WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY);
+            String messageEnabled = System.getProperty(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY);
 
             if (messageEnabled == null) {
                 return true;
@@ -289,7 +292,7 @@ public class CommandLineActionFactory {
         }
     }
 
-    private static class WithLogging implements Action<ExecutionListener> {
+    private static class WithLogging implements CommandLineExecution {
         private final ServiceRegistry loggingServices;
         private final List<String> args;
         private final LoggingConfiguration loggingConfiguration;

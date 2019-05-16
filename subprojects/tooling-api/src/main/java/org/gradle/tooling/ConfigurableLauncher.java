@@ -51,6 +51,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      * @since 5.0
      */
     @Incubating
+    @Override
     T addArguments(String... arguments);
 
     /**
@@ -58,6 +59,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      * @since 5.0
      */
     @Incubating
+    @Override
     T addArguments(Iterable<String> arguments);
 
     /**
@@ -114,6 +116,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      * @since 5.0
      */
     @Incubating
+    @Override
     T addJvmArguments(String... jvmArguments);
 
     /**
@@ -121,6 +124,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      * @since 5.0
      */
     @Incubating
+    @Override
     T addJvmArguments(Iterable<String> jvmArguments);
 
     /**

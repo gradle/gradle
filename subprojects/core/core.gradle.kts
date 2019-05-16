@@ -1,4 +1,3 @@
-import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
@@ -54,6 +53,7 @@ dependencies {
     api(library("ant"))
     api(library("guava"))
     api(library("inject"))
+    api(project(":workerProcesses"))
 
     implementation(project(":modelGroovy"))
     implementation(project(":snapshots"))
@@ -97,7 +97,7 @@ dependencies {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

@@ -16,10 +16,18 @@
 
 package org.gradle.launcher;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.bootstrap.ProcessBootstrap;
 
 public class GradleMain {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
+        try {
+            UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_8);
+        } catch (UnsupportedJavaRuntimeException ex) {
+            System.err.println(ex.getMessage());
+            System.exit(1);
+        }
         new ProcessBootstrap().run("org.gradle.launcher.Main", args);
     }
 }

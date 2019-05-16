@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.streams;
+package org.gradle.internal.stream;
 
 import java.io.IOException;
 import java.io.InputStream;
