@@ -11,7 +11,6 @@ assignees: ''
 Please follow the instructions below. We receive dozens of issues every week, so to stay productive, we will close issues that don't provide enough information. 
 
 Please open Android-related issues on the Android Issue Tracker at https://source.android.com/source/report-bugs
-Please open Kotlin DSL-related issues at https://github.com/gradle/kotlin-dsl/issues
 Please open Gradle Native-related issues at https://github.com/gradle/gradle-native/issues
 -->
 
