@@ -83,15 +83,15 @@ class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec 
     
     def "has cached result works as expected"() {
         expect:
-        !workspaceProvider.hasCachedResult(new TestWorkspaceIdentity("first"))
+        !workspaceProvider.getCachedResult(new TestWorkspaceIdentity("first"))
 
         when:
         workspaceProvider.withWorkspace(new TestWorkspaceIdentity("first")) { id, workspace ->
             return Try.successful(ImmutableList.of())
         }
         then:
-        workspaceProvider.hasCachedResult(new TestWorkspaceIdentity("first"))
-        !workspaceProvider.hasCachedResult(new TestWorkspaceIdentity("second"))
+        workspaceProvider.getCachedResult(new TestWorkspaceIdentity("first"))
+        !workspaceProvider.getCachedResult(new TestWorkspaceIdentity("second"))
     }
 
     private static class TestWorkspaceIdentity implements TransformationWorkspaceIdentity {

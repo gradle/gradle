@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class TestTransformationWorkspaceProvider implements CachingTransformationWorkspaceProvider {
@@ -42,8 +43,9 @@ public class TestTransformationWorkspaceProvider implements CachingTransformatio
         return workspaceAction.useWorkspace(identityString, new DefaultTransformationWorkspace(new File(transformationsStoreDirectory, identityString)));
     }
 
+    @Nullable
     @Override
-    public boolean hasCachedResult(TransformationWorkspaceIdentity identity) {
-        return false;
+    public Try<ImmutableList<File>> getCachedResult(TransformationWorkspaceIdentity identity) {
+        return null;
     }
 }
