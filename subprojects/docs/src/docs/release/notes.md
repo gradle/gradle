@@ -13,6 +13,7 @@ Include only their name, impactful features should be called out separately belo
 [Erhard Pointl](https://github.com/epeee),
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Evgeny Mandrikov](https://github.com/Godin),
+[Stefan M.](https://github.com/StefMa),
 [Roberto Perez Alcolea](https://github.com/rpalcolea) and
 [Christian Fränkel](https://github.com/fraenkelc)
 
