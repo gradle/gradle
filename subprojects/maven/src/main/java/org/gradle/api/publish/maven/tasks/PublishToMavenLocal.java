@@ -22,7 +22,6 @@ import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenLocalPublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
-import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.TaskAction;
 
@@ -46,8 +45,7 @@ public class PublishToMavenLocal extends AbstractPublishToMaven {
             @Override
             protected void publish() throws Exception {
                 MavenPublisher localPublisher = new MavenLocalPublisher(getTemporaryDirFactory(), getRepositoryTransportFactory(), getMavenRepositoryLocator());
-                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(localPublisher);
-                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
+                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(localPublisher);
                 validatingPublisher.publish(publication.asNormalisedPublication(), null);
             }
         }.run();
