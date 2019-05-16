@@ -70,7 +70,7 @@ You can run your tests in parallel by setting this property to a value greater t
 +
 Your tests can distinguish between parallel test processes by using the value of the `org.gradle.test.worker` property, which is unique for each process. You can use this for anything you want, but it's particularly useful for filenames and other resource identifiers to prevent the kind of conflict we just mentioned.
 
-`forkEvery` - default: 0 (no maximum)::
+`forkEvery` — default: 0 (no maximum)::
 This property specifies the maximum number of test classes that Gradle should run on a test process before its disposed of and a fresh one created. This is mainly used as a way to manage leaky tests or frameworks that have static state that can't be cleared or reset between tests.
 +
 *Warning: a low value (other than 0) can severely hurt the performance of the tests*
