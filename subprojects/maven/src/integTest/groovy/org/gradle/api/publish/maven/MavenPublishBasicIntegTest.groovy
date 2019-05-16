@@ -142,6 +142,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.rootMetaData.artifactId == "root"
         repoModule.rootMetaData.versions == ["1.0"]
         repoModule.rootMetaData.releaseVersion == "1.0"
+        repoModule.rootMetaData.latestVersion == "1.0"
 
         when:
         succeeds 'publishToMavenLocal'
@@ -154,6 +155,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         localModule.rootMetaData.artifactId == "root"
         localModule.rootMetaData.versions == ["1.0"]
         localModule.rootMetaData.releaseVersion == "1.0"
+        localModule.rootMetaData.latestVersion == "1.0"
 
         and:
         resolveArtifacts(repoModule) {
@@ -203,12 +205,14 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.rootMetaData.artifactId == "root"
         repoModule.rootMetaData.versions == ["1.0", "2.0"]
         repoModule.rootMetaData.releaseVersion == "2.0"
+        repoModule.rootMetaData.latestVersion == "2.0"
 
         and:
         localModule.rootMetaData.groupId == "group"
         localModule.rootMetaData.artifactId == "root"
         localModule.rootMetaData.versions == ["1.0", "2.0"]
         localModule.rootMetaData.releaseVersion == "2.0"
+        localModule.rootMetaData.latestVersion == "2.0"
     }
 
     def "can publish to custom maven local repo defined in settings.xml"() {

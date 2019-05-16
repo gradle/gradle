@@ -101,6 +101,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         if (!versioning.getVersions().contains(version)) {
             versioning.addVersion(version);
         }
+        versioning.setLatest(version);
         if (!isSnapshot(version)) {
             versioning.setRelease(version);
         }

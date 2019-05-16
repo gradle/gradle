@@ -58,6 +58,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             groupId == "org.gradle"
             artifactId == "snapshotPublish"
             releaseVersion == null
+            latestVersion == '1.0-SNAPSHOT'
             versions == ['1.0-SNAPSHOT']
         }
 
@@ -189,6 +190,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             groupId == "org.gradle"
             artifactId == "snapshotInstall"
             releaseVersion == null
+            latestVersion == '1.0-SNAPSHOT'
             versions == ['1.0-SNAPSHOT']
         }
 
@@ -220,6 +222,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             groupId == "org.gradle"
             artifactId == "snapshotInstall"
             releaseVersion == null
+            latestVersion == '1.0-SNAPSHOT'
             versions == ['1.0-SNAPSHOT']
         }
 
