@@ -14,7 +14,7 @@ plugins {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.WORKER
 }
 
 dependencies {

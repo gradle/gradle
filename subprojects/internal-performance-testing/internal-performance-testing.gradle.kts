@@ -50,7 +50,7 @@ dependencies {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.REQUIRES_JAVA_8
+    moduleType = ModuleType.INTERNAL
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
