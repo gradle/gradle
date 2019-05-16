@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadata;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
@@ -70,7 +69,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          ImmutableMetadataSources metadataSources,
                          MetadataArtifactProvider metadataArtifactProvider,
                          MavenMetadataLoader mavenMetadataLoader,
@@ -166,6 +164,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         setArtifactPatterns(artifactPatterns);
     }
 
+    @Nullable
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module, ResourceAwareResolveResult result) {
         M2ResourcePattern wholePattern = getWholePattern();
         if (!wholePattern.isComplete(module)) {

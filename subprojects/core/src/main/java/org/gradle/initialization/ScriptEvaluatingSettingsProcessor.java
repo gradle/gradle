@@ -23,7 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
@@ -39,11 +39,11 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private final SettingsFactory settingsFactory;
     private final IGradlePropertiesLoader propertiesLoader;
     private final ScriptPluginFactory configurerFactory;
-    private final TextResourceLoader textResourceLoader;
+    private final TextFileResourceLoader textResourceLoader;
 
     public ScriptEvaluatingSettingsProcessor(ScriptPluginFactory configurerFactory,
                                              SettingsFactory settingsFactory,
-                                             IGradlePropertiesLoader propertiesLoader, TextResourceLoader textResourceLoader) {
+                                             IGradlePropertiesLoader propertiesLoader, TextFileResourceLoader textResourceLoader) {
         this.configurerFactory = configurerFactory;
         this.settingsFactory = settingsFactory;
         this.propertiesLoader = propertiesLoader;

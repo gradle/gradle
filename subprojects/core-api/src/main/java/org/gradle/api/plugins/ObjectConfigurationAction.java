@@ -43,6 +43,17 @@ public interface ObjectConfigurationAction {
     ObjectConfigurationAction from(Object script);
 
     /**
+     * Adds a script to use to configure the target objects. You can call this method multiple times, to use multiple
+     * scripts. Scripts and plugins are applied in the order that they are added.
+     *
+     * @param script The script. Evaluated as per {@link org.gradle.api.Project#file(Object)}. However, note that
+     * a URL can also be used, allowing the script to be fetched using HTTP, for example.
+     * @param allowInsecureProtocol Accept using an insecure protocol like HTTP.
+     * @return this
+     */
+    ObjectConfigurationAction from(Object script, boolean allowInsecureProtocol);
+
+    /**
      * Adds a {@link org.gradle.api.Plugin} to use to configure the target objects. You can call this method multiple
      * times, to use multiple plugins. Scripts and plugins are applied in the order that they are added.
      *

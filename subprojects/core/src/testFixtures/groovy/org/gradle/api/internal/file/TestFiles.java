@@ -26,7 +26,7 @@ import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.BasicTextResourceLoader;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.time.Time;
@@ -98,7 +98,7 @@ public class TestFiles {
         return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, TestUtil.instantiatorFactory().inject(), fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), textResourceLoader(), fileCollectionFactory(basedDir), fileSystem(), Time.clock());
     }
 
-    public static TextResourceLoader textResourceLoader() {
+    public static TextFileResourceLoader textResourceLoader() {
         return new BasicTextResourceLoader();
     }
 

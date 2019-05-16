@@ -37,6 +37,7 @@ public class DefaultHttpSettings implements HttpSettings {
     private final SslContextFactory sslContextFactory;
     private final HostnameVerifier hostnameVerifier;
     private final boolean followRedirects;
+    private final boolean allowInsecureProtocol;
 
     private HttpProxySettings proxySettings;
     private HttpProxySettings secureProxySettings;
@@ -46,8 +47,9 @@ public class DefaultHttpSettings implements HttpSettings {
         return new Builder();
     }
 
-    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, boolean followRedirects) {
+    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, boolean followRedirects, boolean allowInsecureProtocol) {
         this.followRedirects = followRedirects;
+        this.allowInsecureProtocol = allowInsecureProtocol;
         Preconditions.checkNotNull(authenticationSettings, "authenticationSettings");
         Preconditions.checkNotNull(sslContextFactory, "sslContextFactory");
         Preconditions.checkNotNull(hostnameVerifier, "hostnameVerifier");
@@ -87,6 +89,11 @@ public class DefaultHttpSettings implements HttpSettings {
     }
 
     @Override
+    public boolean allowInsecureProtocol() {
+        return allowInsecureProtocol;
+    }
+
+    @Override
     public Collection<Authentication> getAuthenticationSettings() {
         return authenticationSettings;
     }
@@ -106,6 +113,7 @@ public class DefaultHttpSettings implements HttpSettings {
         private SslContextFactory sslContextFactory;
         private HostnameVerifier hostnameVerifier;
         private boolean followRedirects = true;
+        private boolean allowInsecureProtocol = false;
 
         public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {
             this.authenticationSettings = authenticationSettings;
@@ -129,8 +137,13 @@ public class DefaultHttpSettings implements HttpSettings {
             return this;
         }
 
+        public Builder allowInsecureProtocol(boolean allowInsecureProtocol) {
+            this.allowInsecureProtocol = allowInsecureProtocol;
+            return this;
+        }
+
         public HttpSettings build() {
-            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, followRedirects);
+            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, followRedirects, allowInsecureProtocol);
         }
     }
 

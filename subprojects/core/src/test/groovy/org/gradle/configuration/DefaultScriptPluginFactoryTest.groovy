@@ -45,7 +45,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
@@ -78,7 +78,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def documentationRegistry = Mock(DocumentationRegistry)
     def classpathHasher = Mock(ClasspathHasher)
     def providerFactory = Mock(ProviderFactory)
-    def textResourceLoader = Mock(TextResourceLoader)
+    def textResourceLoader = Mock(TextFileResourceLoader)
     def streamHasher = Mock(StreamHasher)
     def fileHasher = Mock(FileHasher)
     def execFactory = Mock(ExecFactory)

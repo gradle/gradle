@@ -40,6 +40,7 @@ public class HttpBuildCache extends AbstractBuildCache {
     private final HttpBuildCacheCredentials credentials;
     private URI url;
     private boolean allowUntrustedServer;
+    private boolean allowUntrustedProtocol;
 
     public HttpBuildCache() {
         this.credentials = new HttpBuildCacheCredentials();
@@ -124,5 +125,23 @@ public class HttpBuildCache extends AbstractBuildCache {
      */
     public void setAllowUntrustedServer(boolean allowUntrustedServer) {
         this.allowUntrustedServer = allowUntrustedServer;
+    }
+
+    /**
+     * Specifies whether it is acceptable to communicate with an HTTP build cache backend over an insecure HTTP connection.
+     *
+     * @since 5.5
+     */
+    public boolean isAllowUntrustedProtocol() {
+        return allowUntrustedProtocol;
+    }
+
+    /**
+     * Specifies whether it is acceptable to communicate with an HTTP build cache backend over an insecure HTTP connection.
+     *
+     * @since 5.5
+     */
+    public void setAllowUntrustedProtocol(boolean allowUntrustedProtocol) {
+        this.allowUntrustedProtocol = allowUntrustedProtocol;
     }
 }

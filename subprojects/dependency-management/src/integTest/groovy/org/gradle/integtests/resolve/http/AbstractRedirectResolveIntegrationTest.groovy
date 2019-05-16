@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.http
 
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.SetSystemProperties
@@ -27,6 +28,10 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
     @Rule HttpServer backingServer = new HttpServer()
 
     abstract String getFrontServerBaseUrl();
+    /**
+     * The goal is to deprecate the download of artifacts over HTTP as it is a security vulnerability.
+     */
+    abstract boolean shouldWarnAboutDeprecation();
 
     def module = ivyRepo().module('group', 'projectA').publish()
 
@@ -40,6 +45,13 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
     @Override
     def setup() {
         setupServer()
+        executer.withWarningMode(WarningMode.All)
+    }
+
+    void optionallyExpectDeprecation() {
+        if (shouldWarnAboutDeprecation()) {
+            outputContains("Resolving dependencies over insecure protocol http")
+        }
     }
 
     def "resolves module artifacts via HTTP redirect"() {
@@ -53,7 +65,11 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         backingServer.expectGet('/redirected/group/projectA/1.0/projectA-1.0.jar', module.jarFile)
 
         then:
+        executer.expectDeprecationWarning()
         succeeds('listJars')
+
+        and:
+        optionallyExpectDeprecation()
     }
 
     def "prints last redirect location in case of failure"() {
@@ -65,9 +81,11 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         backingServer.expectGetBroken('/redirected/group/projectA/1.0/ivy-1.0.xml')
 
         then:
+        executer.expectDeprecationWarning()
         fails('listJars')
 
         and:
+        optionallyExpectDeprecation()
         failureCauseContains("Could not get resource '${server.uri}/repo/group/projectA/1.0/ivy-1.0.xml'")
         failureCauseContains("Could not GET '${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml'")
     }
@@ -82,9 +100,11 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
         then:
         executer.beforeExecute { withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000") }
+        executer.expectDeprecationWarning()
         fails('listJars')
 
         and:
+        optionallyExpectDeprecation()
         failureCauseContains("Could not get resource '${server.uri}/repo/group/projectA/1.0/ivy-1.0.xml'")
         failureCauseContains("Could not GET '${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml'")
         failureCauseContains("Read timed out")

@@ -31,6 +31,11 @@ class HttpsToHttpsRedirectResolveIntegrationTest extends AbstractRedirectResolve
         "https://localhost:${server.sslPort}"
     }
 
+    @Override
+    boolean shouldWarnAboutDeprecation() {
+        return false
+    }
+
     void beforeServerStart() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)

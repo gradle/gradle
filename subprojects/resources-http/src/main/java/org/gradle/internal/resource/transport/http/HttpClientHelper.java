@@ -26,6 +26,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,6 +129,7 @@ public class HttpClientHelper implements Closeable {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(REDIRECT_LOCATIONS);
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
+        validateUrl(request.getURI());
         try {
             CloseableHttpResponse response = getClient().execute(request, httpContext);
             return toHttpClientResponse(request, httpContext, response);
@@ -138,14 +140,38 @@ public class HttpClientHelper implements Closeable {
     }
 
     private HttpClientResponse toHttpClientResponse(HttpRequestBase request, HttpContext httpContext, CloseableHttpResponse response) {
+        validateRedirectChain(httpContext);
         URI lastRedirectLocation = getLastRedirectLocation(httpContext);
         URI effectiveUri = lastRedirectLocation == null ? request.getURI() : lastRedirectLocation;
         return new HttpClientResponse(request.getMethod(), effectiveUri, response);
     }
 
+    private void validateUrl(URI url) {
+        if (settings.allowInsecureProtocol()) return;
+
+        if ("http".equalsIgnoreCase(url.getScheme())) {
+            DeprecationLogger.nagUserOfDeprecated("Resolving content over insecure protocol 'http'");
+        }
+    }
+
+    /**
+     * Validates that no redirect used an insecure protocol.
+     * Redirecting through an insecure protocol can allow for a MITM redirect to an attacker controlled HTTPS server.
+     */
+    private void validateRedirectChain(HttpContext httpContext) {
+        for(URI redirect : getRedirectLocations(httpContext)) {
+            validateUrl(redirect);
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    private URI getLastRedirectLocation(HttpContext httpContext) {
-        List<URI> redirectLocations = (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
+    private static List<URI> getRedirectLocations(HttpContext httpContext) {
+        return (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
+    }
+
+
+    private static URI getLastRedirectLocation(HttpContext httpContext) {
+        List<URI> redirectLocations = getRedirectLocations(httpContext);
         return (redirectLocations == null || redirectLocations.isEmpty()) ? null : Iterables.getLast(redirectLocations);
     }
 

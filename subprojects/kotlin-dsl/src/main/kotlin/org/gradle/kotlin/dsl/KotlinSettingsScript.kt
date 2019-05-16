@@ -43,7 +43,7 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.time.Clock
 
@@ -451,7 +451,7 @@ fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations
         services.get<DirectoryFileTreeFactory>(),
         services.get<StreamHasher>(),
         services.get<FileHasher>(),
-        services.get<TextResourceLoader>(),
+        services.get<TextFileResourceLoader>(),
         DefaultFileCollectionFactory(fileResolver, null),
         services.get<FileSystem>(),
         services.get<Clock>())

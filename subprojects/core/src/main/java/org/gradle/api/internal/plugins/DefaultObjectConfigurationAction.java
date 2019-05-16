@@ -28,7 +28,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -43,17 +43,17 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
     private final ClassLoaderScope classLoaderScope;
-    private final TextResourceLoader resourceLoader;
+    private final TextUrlResourceLoader.Factory resourceLoaderFactory;
     private final Object defaultTarget;
 
     public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
                                             ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
-                                            TextResourceLoader resourceLoader, Object defaultTarget) {
+                                            TextUrlResourceLoader.Factory resourceLoaderFactory, Object defaultTarget) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.classLoaderScope = classLoaderScope;
-        this.resourceLoader = resourceLoader;
+        this.resourceLoaderFactory = resourceLoaderFactory;
         this.defaultTarget = defaultTarget;
     }
 
@@ -65,10 +65,14 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     @Override
     public ObjectConfigurationAction from(final Object script) {
+        return from(script, false);
+    }
+
+    public ObjectConfigurationAction from(final Object script, final boolean allowInsecureProtocol) {
         actions.add(new Runnable() {
             @Override
             public void run() {
-                applyScript(script);
+                applyScript(script, allowInsecureProtocol);
             }
         });
         return this;
@@ -107,9 +111,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    private void applyScript(Object script) {
+    private void applyScript(Object script, boolean allowInsecureProtocol) {
         URI scriptUri = resolver.resolveUri(script);
-        TextResource resource = resourceLoader.loadUri("script", scriptUri);
+        TextResource resource = resourceLoaderFactory.allowInsecureProtocol(allowInsecureProtocol).loadUri("script", scriptUri);
         ScriptSource scriptSource = new TextResourceScriptSource(resource);
         ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri.toString());
         ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild);

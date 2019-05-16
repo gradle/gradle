@@ -51,7 +51,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.ExecResult;
@@ -92,7 +92,7 @@ public abstract class DefaultScript extends BasicScript {
             DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
             StreamHasher streamHasher = services.get(StreamHasher.class);
             FileHasher fileHasher = services.get(FileHasher.class);
-            TextResourceLoader textResourceLoader = services.get(TextResourceLoader.class);
+            TextFileResourceLoader textResourceLoader = services.get(TextFileResourceLoader.class);
             FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
             if (sourceFile != null) {
@@ -120,7 +120,7 @@ public abstract class DefaultScript extends BasicScript {
             __scriptServices.get(ScriptPluginFactory.class),
             __scriptServices.get(ScriptHandlerFactory.class),
             classLoaderScope,
-            __scriptServices.get(TextResourceLoader.class),
+            __scriptServices.get(TextFileResourceLoader.class),
             getScriptTarget()
         );
     }

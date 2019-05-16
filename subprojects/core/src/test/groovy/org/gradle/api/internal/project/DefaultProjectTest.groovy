@@ -77,7 +77,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
-import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
@@ -144,7 +144,7 @@ class DefaultProjectTest extends Specification {
     ManagedProxyFactory managedProxyFactory = Stub(ManagedProxyFactory)
     AntLoggingAdapter antLoggingAdapter = Stub(AntLoggingAdapter)
     AttributesSchema attributesSchema = Stub(AttributesSchema)
-    TextResourceLoader textResourceLoader = Stub(TextResourceLoader)
+    TextFileResourceLoader textResourceLoader = Stub(TextFileResourceLoader)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
@@ -202,7 +202,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) ScriptHandlerFactory) >> Stub(ScriptHandlerFactory)
         serviceRegistryMock.get((Type) ProjectConfigurationActionContainer) >> configureActions
         serviceRegistryMock.get((Type) PluginManagerInternal) >> pluginManager
-        serviceRegistryMock.get((Type) TextResourceLoader) >> textResourceLoader
+        serviceRegistryMock.get((Type) TextFileResourceLoader) >> textResourceLoader
         serviceRegistryMock.get(ManagedProxyFactory) >> managedProxyFactory
         serviceRegistryMock.get(AttributesSchema)  >> attributesSchema
         serviceRegistryMock.get(BuildOperationExecutor)  >> buildOperationExecutor

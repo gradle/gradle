@@ -23,6 +23,11 @@ class HttpRedirectResolveIntegrationTest extends AbstractRedirectResolveIntegrat
         "http://localhost:${server.port}"
     }
 
+    @Override
+    boolean shouldWarnAboutDeprecation() {
+        return true
+    }
+
     void beforeServerStart() {
         // No-op
     }

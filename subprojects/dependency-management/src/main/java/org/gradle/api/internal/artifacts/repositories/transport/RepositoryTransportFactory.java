@@ -94,11 +94,11 @@ public class RepositoryTransportFactory {
         return validSchemes;
     }
 
-    public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications) {
-        return createTransport(Collections.singleton(scheme), name, authentications);
+    public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications, boolean allowInsecureProtocol) {
+        return createTransport(Collections.singleton(scheme), name, authentications, allowInsecureProtocol);
     }
 
-    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications) {
+    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications, boolean allowInsecureProtocol) {
         validateSchemes(schemes);
 
         ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
@@ -113,7 +113,7 @@ public class RepositoryTransportFactory {
         if (schemes.equals(Collections.singleton("file"))) {
             return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard);
         }
-        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
+        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications, allowInsecureProtocol);
 
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
         resourceConnector = startParameterResolutionOverride.overrideExternalResourceConnector(resourceConnector);
@@ -182,9 +182,11 @@ public class RepositoryTransportFactory {
 
     private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
         private final Collection<Authentication> authentications;
+        private final boolean allowInsecureProtocol;
 
-        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications) {
+        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications, boolean allowInsecureProtocol) {
             this.authentications = authentications;
+            this.allowInsecureProtocol = allowInsecureProtocol;
         }
 
         @Override
@@ -208,6 +210,11 @@ public class RepositoryTransportFactory {
         @Override
         public Collection<Authentication> getAuthentications() {
             return authentications;
+        }
+
+        @Override
+        public boolean allowInsecureProtocol() {
+            return allowInsecureProtocol;
         }
     }
 }

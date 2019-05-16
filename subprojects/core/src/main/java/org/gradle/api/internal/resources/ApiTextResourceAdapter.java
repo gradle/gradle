@@ -25,7 +25,7 @@ import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,11 +38,11 @@ import java.nio.charset.Charset;
  */
 public class ApiTextResourceAdapter implements TextResourceInternal {
     private final URI uri;
-    private final TextResourceLoader textResourceLoader;
+    private final TextUrlResourceLoader textResourceLoader;
     private final TemporaryFileProvider tempFileProvider;
     private TextResource textResource;
 
-    public ApiTextResourceAdapter(TextResourceLoader textResourceLoader, TemporaryFileProvider tempFileProvider, URI uri) {
+    public ApiTextResourceAdapter(TextUrlResourceLoader textResourceLoader, TemporaryFileProvider tempFileProvider, URI uri) {
         this.uri = uri;
         this.textResourceLoader = textResourceLoader;
         this.tempFileProvider = tempFileProvider;

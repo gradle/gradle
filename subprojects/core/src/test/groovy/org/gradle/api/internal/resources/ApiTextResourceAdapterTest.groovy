@@ -19,7 +19,7 @@ package org.gradle.api.internal.resources
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.internal.resource.TextResource
-import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.resource.TextUrlResourceLoader
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets
 class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
 
     TextResource textResource = Mock(TextResource)
-    TextResourceLoader textResourceLoader = Mock(TextResourceLoader)
+    TextUrlResourceLoader textResourceLoader = Mock(TextUrlResourceLoader)
     Reader reader
 
     def setup() {
@@ -35,14 +35,14 @@ class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
         file.text = "contents"
         reader = new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())
 
-        textResourceLoader.loadUri("textResource", new URI("http://www.gradle.org/unknown.txt")) >> textResource
+        textResourceLoader.loadUri("textResource", new URI("https://www.gradle.org/unknown.txt")) >> textResource
         textResource.getFile() >>> [file, null]
         textResource.getDisplayName() >> "Text resource display name"
         textResource.getText() >>> ["contents", "more contents"]
         textResource.getCharset() >> StandardCharsets.UTF_8
         textResource.getAsReader() >> reader
 
-        resource = new ApiTextResourceAdapter(textResourceLoader, project.services.get(TemporaryFileProvider), new URI("http://www.gradle.org/unknown.txt"),)
+        resource = new ApiTextResourceAdapter(textResourceLoader, project.services.get(TemporaryFileProvider), new URI("https://www.gradle.org/unknown.txt"))
     }
 
     def cleanup() {

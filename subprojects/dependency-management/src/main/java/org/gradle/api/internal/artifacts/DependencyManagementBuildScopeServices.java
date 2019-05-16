@@ -106,8 +106,10 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
+import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
@@ -241,11 +243,20 @@ class DependencyManagementBuildScopeServices {
         return new ExternalResourceFileStore(artifactCacheMetadata.getExternalResourcesStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal);
     }
 
-    TextResourceLoader createTextResourceLoader(ExternalResourceFileStore resourceFileStore, RepositoryTransportFactory repositoryTransportFactory) {
-        HashSet<String> schemas = Sets.newHashSet("https", "http");
-        RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "http auth", Collections.<Authentication>emptyList());
-        ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(resourceFileStore, transport.getResourceAccessor());
-        return new DefaultUriTextResourceLoader(externalResourceAccessor, schemas);
+    TextFileResourceLoader createTextResourceLoader() {
+        return new BasicTextResourceLoader();
+    }
+
+    TextUrlResourceLoader.Factory createTextUrlResourceLoaderProvider(ExternalResourceFileStore resourceFileStore, RepositoryTransportFactory repositoryTransportFactory) {
+        final HashSet<String> schemas = Sets.newHashSet("https", "http");
+        return new TextUrlResourceLoader.Factory() {
+            @Override
+            public TextUrlResourceLoader allowInsecureProtocol(boolean allowInsecureProtocol) {
+                RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "http auth", Collections.<Authentication>emptyList(), allowInsecureProtocol);
+                ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(resourceFileStore, transport.getResourceAccessor());
+                return new DefaultUriTextResourceLoader(externalResourceAccessor, schemas);
+            }
+        };
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {

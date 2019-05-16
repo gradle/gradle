@@ -50,7 +50,7 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
@@ -78,7 +78,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
     private final ProviderFactory providerFactory;
-    private final TextResourceLoader textResourceLoader;
+    private final TextFileResourceLoader textResourceLoader;
     private final ExecFactory execFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final StreamHasher streamHasher;
@@ -99,7 +99,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector,
                                       ProviderFactory providerFactory,
-                                      TextResourceLoader textResourceLoader,
+                                      TextFileResourceLoader textResourceLoader,
                                       StreamHasher streamHasher,
                                       FileHasher fileHasher,
                                       ExecFactory execFactory,
@@ -175,7 +175,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
             services.add(ProviderFactory.class, providerFactory);
-            services.add(TextResourceLoader.class, textResourceLoader);
+            services.add(TextFileResourceLoader.class, textResourceLoader);
             services.add(StreamHasher.class, streamHasher);
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);

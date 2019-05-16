@@ -37,7 +37,7 @@ import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -261,7 +261,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Inject
-    protected TextResourceLoader getResourceLoader() {
+    protected TextFileResourceLoader getResourceLoader() {
         throw new UnsupportedOperationException();
     }
 
