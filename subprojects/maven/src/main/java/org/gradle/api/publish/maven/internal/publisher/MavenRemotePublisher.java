@@ -16,15 +16,26 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.apache.maven.artifact.repository.metadata.Metadata;
+import org.apache.maven.artifact.repository.metadata.Snapshot;
+import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
+import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
 
 import java.io.File;
 import java.net.URI;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class MavenRemotePublisher extends AbstractMavenPublisher {
 
@@ -42,5 +53,57 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         URI rootUri = artifactRepository.getUrl();
 
         publish(publication, repository, rootUri, false);
+    }
+
+    @Override
+    protected Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+        Metadata metadata = new Metadata();
+        metadata.setModelVersion("1.1.0");
+        metadata.setGroupId(groupId);
+        metadata.setArtifactId(artifactId);
+        metadata.setVersion(version);
+
+        DateFormat utcDateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
+        utcDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String timestamp = utcDateFormatter.format(new Date());
+
+        Snapshot snapshot = new Snapshot();
+        snapshot.setBuildNumber(getPreviousBuildNumber(repository, metadataResource) + 1);
+        snapshot.setTimestamp(timestamp);
+
+        Versioning versioning = new Versioning();
+        versioning.setSnapshot(snapshot);
+        versioning.setLastUpdated(snapshot.getTimestamp().replace(".", ""));
+
+        String timestampVersion = version.replace("SNAPSHOT", snapshot.getTimestamp() + "-" + snapshot.getBuildNumber());
+        for (MavenArtifact artifact : publication.getAllArtifacts()) {
+            SnapshotVersion sv = new SnapshotVersion();
+            sv.setClassifier(artifact.getClassifier());
+            sv.setExtension(artifact.getExtension());
+            sv.setVersion(timestampVersion);
+            sv.setUpdated(versioning.getLastUpdated());
+
+            versioning.getSnapshotVersions().add(sv);
+        }
+
+        metadata.setVersioning(versioning);
+
+        return metadata;
+    }
+
+    private int getPreviousBuildNumber(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+        ExternalResourceReadResult<Metadata> existing = readExistingMetadata(repository, metadataResource);
+
+        if (existing != null) {
+            Metadata recessive = existing.getResult();
+            Versioning versioning = recessive.getVersioning();
+            if (versioning != null) {
+                Snapshot snapshot = versioning.getSnapshot();
+                if (snapshot != null && snapshot.getBuildNumber() > 0) {
+                    return snapshot.getBuildNumber();
+                }
+            }
+        }
+        return 0;
     }
 }

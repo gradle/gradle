@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.maven.artifact.repository.metadata.Metadata;
+import org.apache.maven.artifact.repository.metadata.Snapshot;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
@@ -63,6 +64,20 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         String version = projectIdentity.getVersion().get();
 
         ModuleArtifactPublisher artifactPublisher = new ModuleArtifactPublisher(repository, localRepo, rootUri, groupId, artifactId, version);
+
+        if (isSnapshot(version)) {
+            ExternalResourceName snapshotMetadataPath = artifactPublisher.getSnapshotMetadataPath();
+            Metadata snapshotMetadata = createSnapshotMetadata(publication, groupId, artifactId, version, repository, snapshotMetadataPath);
+
+            artifactPublisher.publish(snapshotMetadataPath, writeMetadataToTmpFile(snapshotMetadata, "snapshot-maven-metadata.xml"));
+
+            if (!localRepo) {
+                // TODO:DAZ There should be a better way than recreating this version
+                Snapshot snapshot = snapshotMetadata.getVersioning().getSnapshot();
+                String timestampVersion = snapshot.getTimestamp() + "-" + snapshot.getBuildNumber();
+                artifactPublisher.artifactVersion = artifactPublisher.moduleVersion.replace("SNAPSHOT", timestampVersion);
+            }
+        }
 
         if (publication.getMainArtifact() != null) {
             artifactPublisher.publish(null, publication.getPackaging(), publication.getMainArtifact().getFile());
@@ -133,6 +148,8 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         return metadataFile;
     }
 
+    protected abstract Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource);
+
     private static class ModuleArtifactPublisher {
         private final ExternalResourceRepository repository;
         private final boolean localRepo;
@@ -160,6 +177,16 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             StringBuilder path = new StringBuilder(128);
             path.append(groupId.replace('.', '/')).append('/');
             path.append(artifactId).append('/');
+            path.append(getMetadataFileName());
+
+            return new ExternalResourceName(rootUri, path.toString());
+        }
+
+        public ExternalResourceName getSnapshotMetadataPath() {
+            StringBuilder path = new StringBuilder(128);
+            path.append(groupId.replace('.', '/')).append('/');
+            path.append(artifactId).append('/');
+            path.append(moduleVersion).append('/');
             path.append(getMetadataFileName());
 
             return new ExternalResourceName(rootUri, path.toString());

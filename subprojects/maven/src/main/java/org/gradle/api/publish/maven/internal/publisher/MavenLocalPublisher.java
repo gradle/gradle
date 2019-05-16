@@ -50,4 +50,33 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
 
         publish(publication, repository, rootUri, true);
     }
+
+    @Override
+    protected Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+        Metadata metadata = new Metadata();
+        metadata.setModelVersion("1.1.0");
+        metadata.setGroupId(groupId);
+        metadata.setArtifactId(artifactId);
+        metadata.setVersion(version);
+
+        Snapshot snapshot = new Snapshot();
+        snapshot.setLocalCopy(true);
+        Versioning versioning = new Versioning();
+        versioning.updateTimestamp();
+        versioning.setSnapshot(snapshot);
+
+        for (MavenArtifact artifact : publication.getAllArtifacts()) {
+            SnapshotVersion sv = new SnapshotVersion();
+            sv.setClassifier(artifact.getClassifier());
+            sv.setExtension(artifact.getExtension());
+            sv.setVersion(version);
+            sv.setUpdated(versioning.getLastUpdated());
+
+            versioning.getSnapshotVersions().add(sv);
+        }
+
+        metadata.setVersioning(versioning);
+
+        return metadata;
+    }
 }
