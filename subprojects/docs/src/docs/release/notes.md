@@ -26,6 +26,16 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
+## Improvements for plugin authors
+
+### Task dependencies are honored for `@Input` properties of type `Property`
+
+TBD - honors dependencies on `@Input` properties.
+
+### Property methods
+
+TBD - added `getLocationOnly()`. 
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.

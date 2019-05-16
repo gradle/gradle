@@ -33,6 +33,21 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_5.6]]
+== Upgrading from 5.5 and earlier
+
+=== Potential breaking changes
+
+==== Task dependencies are honored for task `@Input` properties whose value is a `Property`
+
+Previously, task dependencies would be ignored for task `@Input` properties of type `Property<T>`. These are now honored, so that it is possible to attach a task output property to a task `@Input` property. However, this may introduce unexpected cycles in the task dependency graph.
+
+==== Declaring task dependencies using a file `Provider` that does not represent a task output
+
+Previously, it was possible to pass `Task.dependsOn()` a `Provider<File>`, `Provider<RegularFile>` or `Provider<Directory>` instance that does not represent a task output. These providers would be silently ignored. In Gradle 5.5 this is now an error, because Gradle does not know how to build files that are not task outputs.
+
+Note that it is still possible to to pass `dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDir })`.
+
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
 
@@ -40,8 +55,8 @@ Some plugins will break with this new version of Gradle, for example because the
 
 ==== User supplied Eclipse project names may be ignored on conflict
 
-Project names configured via link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/EclipseProject.html[`EclipseProject.setName(...)`] were honored by Gradle and Buildship in all cases, even 
-when the names caused conflicts and import/synchronization errors. 
+Project names configured via link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/EclipseProject.html[`EclipseProject.setName(...)`] were honored by Gradle and Buildship in all cases, even
+when the names caused conflicts and import/synchronization errors.
 
 Gradle can now deduplicate these names if they conflict with other project names in an Eclipse workspace. This may lead to different Eclipse project names for projects with user-specified names.
 
