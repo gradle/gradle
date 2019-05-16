@@ -38,10 +38,12 @@ import java.util.Collections;
 public class MavenLocalPublisher extends AbstractMavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenLocalPublisher.class);
 
+    private final RepositoryTransportFactory repositoryTransportFactory;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public MavenLocalPublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        super(temporaryDirFactory, repositoryTransportFactory);
+        super(temporaryDirFactory);
+        this.repositoryTransportFactory = repositoryTransportFactory;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 

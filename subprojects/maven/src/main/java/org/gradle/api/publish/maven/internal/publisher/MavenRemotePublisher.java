@@ -41,9 +41,11 @@ import java.util.TimeZone;
 
 public class MavenRemotePublisher extends AbstractMavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenRemotePublisher.class);
+    private final RepositoryTransportFactory repositoryTransportFactory;
 
     public MavenRemotePublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory) {
-        super(temporaryDirFactory, repositoryTransportFactory);
+        super(temporaryDirFactory);
+        this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
     @Override
@@ -73,7 +75,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         String timestamp = utcDateFormatter.format(new Date());
 
         Snapshot snapshot = new Snapshot();
-        snapshot.setBuildNumber(getPreviousBuildNumber(repository, metadataResource) + 1);
+        snapshot.setBuildNumber(getNextBuildNumber(repository, metadataResource));
         snapshot.setTimestamp(timestamp);
 
         Versioning versioning = new Versioning();
@@ -96,7 +98,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         return metadata;
     }
 
-    private int getPreviousBuildNumber(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+    private int getNextBuildNumber(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
         ExternalResourceReadResult<Metadata> existing = readExistingMetadata(repository, metadataResource);
 
         if (existing != null) {
@@ -105,10 +107,10 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
             if (versioning != null) {
                 Snapshot snapshot = versioning.getSnapshot();
                 if (snapshot != null && snapshot.getBuildNumber() > 0) {
-                    return snapshot.getBuildNumber();
+                    return snapshot.getBuildNumber() + 1;
                 }
             }
         }
-        return 0;
+        return 1;
     }
 }

@@ -17,14 +17,10 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.maven.artifact.repository.metadata.Metadata;
-import org.apache.maven.artifact.repository.metadata.Snapshot;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -41,10 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 import static org.apache.maven.artifact.ArtifactUtils.isSnapshot;
 
@@ -53,12 +47,10 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
 
     private static final String POM_FILE_ENCODING = "UTF-8";
     private final Factory<File> temporaryDirFactory;
-    protected final RepositoryTransportFactory repositoryTransportFactory;
     private final XmlTransformer xmlTransformer = new XmlTransformer();
 
-    public AbstractMavenPublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory) {
+    AbstractMavenPublisher(Factory<File> temporaryDirFactory) {
         this.temporaryDirFactory = temporaryDirFactory;
-        this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
     protected void publish(MavenNormalizedPublication publication, ExternalResourceRepository repository, URI rootUri, boolean localRepo) {
@@ -70,16 +62,15 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         ModuleArtifactPublisher artifactPublisher = new ModuleArtifactPublisher(repository, localRepo, rootUri, groupId, artifactId, version);
 
         if (isSnapshot(version)) {
-            ExternalResourceName snapshotMetadataPath = artifactPublisher.getSnapshotMetadataPath();
+            ExternalResourceName snapshotMetadataPath = artifactPublisher.getSnapshotMetadataLocation();
             Metadata snapshotMetadata = createSnapshotMetadata(publication, groupId, artifactId, version, repository, snapshotMetadataPath);
 
             artifactPublisher.publish(snapshotMetadataPath, writeMetadataToTmpFile(snapshotMetadata, "snapshot-maven-metadata.xml"));
 
             if (!localRepo) {
-                // TODO:DAZ There should be a better way than recreating this version
-                Snapshot snapshot = snapshotMetadata.getVersioning().getSnapshot();
-                String timestampVersion = snapshot.getTimestamp() + "-" + snapshot.getBuildNumber();
-                artifactPublisher.artifactVersion = artifactPublisher.moduleVersion.replace("SNAPSHOT", timestampVersion);
+                // Use the timestamped version for all published artifacts:
+                // The timestamped version is hidden deep in `Metadata.versioning.snapshotVersions`
+                artifactPublisher.artifactVersion = snapshotMetadata.getVersioning().getSnapshotVersions().get(0).getVersion();
             }
         }
 
@@ -91,7 +82,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             artifactPublisher.publish(artifact.getClassifier(), artifact.getExtension(), artifact.getFile());
         }
 
-        ExternalResourceName externalResource = artifactPublisher.getMetadataPath();
+        ExternalResourceName externalResource = artifactPublisher.getMetadataLocation();
         Metadata metadata = createMetadata(groupId, artifactId, version, repository, externalResource);
         artifactPublisher.publish(externalResource, writeMetadataToTmpFile(metadata, "module-maven-metadata.xml"));
     }
@@ -126,75 +117,66 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         return new Versioning();
     }
 
-    protected ExternalResourceReadResult<Metadata> readExistingMetadata(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
-        return repository.resource(metadataResource).withContentIfPresent(new Transformer<Metadata, InputStream>() {
-            @Override
-            public Metadata transform(InputStream inputStream) {
-                try {
-                    return new MetadataXpp3Reader().read(inputStream, false);
-                } catch (Exception e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-        });
-    }
-
     private File writeMetadataToTmpFile(Metadata metadata, String fileName) {
         File metadataFile = new File(temporaryDirFactory.create(), fileName);
-        xmlTransformer.transform(metadataFile, POM_FILE_ENCODING, new Action<Writer>() {
-            public void execute(Writer writer) {
-                try {
-                    new MetadataXpp3Writer().write(writer, metadata);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+        xmlTransformer.transform(metadataFile, POM_FILE_ENCODING, writer -> {
+            try {
+                new MetadataXpp3Writer().write(writer, metadata);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         });
         return metadataFile;
     }
 
+    ExternalResourceReadResult<Metadata> readExistingMetadata(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+        return repository.resource(metadataResource).withContentIfPresent(inputStream -> {
+            try {
+                return new MetadataXpp3Reader().read(inputStream, false);
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        });
+    }
+
     protected abstract Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource);
 
+    /**
+     * Publishes artifacts for a single Maven module.
+     */
     private static class ModuleArtifactPublisher {
         private final ExternalResourceRepository repository;
         private final boolean localRepo;
         private final URI rootUri;
-        private final String groupId;
+        private final String groupPath;
         private final String artifactId;
         private final String moduleVersion;
         private String artifactVersion;
 
-        public ModuleArtifactPublisher(ExternalResourceRepository repository, boolean localRepo, URI rootUri, String groupId, String artifactId, String moduleVersion) {
+        ModuleArtifactPublisher(ExternalResourceRepository repository, boolean localRepo, URI rootUri, String groupId, String artifactId, String moduleVersion) {
             this.repository = repository;
             this.localRepo = localRepo;
             this.rootUri = rootUri;
-            this.groupId = groupId;
+            this.groupPath = groupId.replace('.', '/');
             this.artifactId = artifactId;
             this.moduleVersion = moduleVersion;
             this.artifactVersion = moduleVersion;
         }
 
-        public ExternalResourceName getArtifactPath(String classifier, String extension) {
-            return new ExternalResourceName(rootUri, getArtifactPath(groupId, artifactId, moduleVersion, artifactVersion, classifier, extension));
+        /**
+         * Return the location of the module `maven-metadata.xml`, which lists all published versions for a Maven module.
+         */
+        ExternalResourceName getMetadataLocation() {
+            String path = groupPath + '/' + artifactId + '/' + getMetadataFileName();
+            return new ExternalResourceName(rootUri, path);
         }
 
-        public ExternalResourceName getMetadataPath() {
-            StringBuilder path = new StringBuilder(128);
-            path.append(groupId.replace('.', '/')).append('/');
-            path.append(artifactId).append('/');
-            path.append(getMetadataFileName());
-
-            return new ExternalResourceName(rootUri, path.toString());
-        }
-
-        public ExternalResourceName getSnapshotMetadataPath() {
-            StringBuilder path = new StringBuilder(128);
-            path.append(groupId.replace('.', '/')).append('/');
-            path.append(artifactId).append('/');
-            path.append(moduleVersion).append('/');
-            path.append(getMetadataFileName());
-
-            return new ExternalResourceName(rootUri, path.toString());
+        /**
+         * Return the location of the snapshot `maven-metadata.xml`, which contains details of the latest published snapshot for a Maven module.
+         */
+        ExternalResourceName getSnapshotMetadataLocation() {
+            String path = groupPath + '/' + artifactId + '/' + moduleVersion + '/' + getMetadataFileName();
+            return new ExternalResourceName(rootUri, path);
         }
 
         private String getMetadataFileName() {
@@ -204,31 +186,28 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             return "maven-metadata.xml";
         }
 
-        private String getArtifactPath(String groupId, String artifactId, String moduleVersion, String artifactVersion, String classifier, String extension) {
+        /**
+         * Publishes a single module artifact, based on classifier and extension.
+         */
+        void publish(String classifier, String extension, File content) {
             StringBuilder path = new StringBuilder(128);
-            path.append(groupId.replace('.', '/')).append('/');
+            path.append(groupPath).append('/');
             path.append(artifactId).append('/');
             path.append(moduleVersion).append('/');
-
             path.append(artifactId).append('-').append(artifactVersion);
 
             if (classifier != null) {
                 path.append('-').append(classifier);
             }
-
             if (extension.length() > 0) {
                 path.append('.').append(extension);
             }
 
-            return path.toString();
-        }
-
-        public void publish(String classifier, String extension, File content) {
-            ExternalResourceName externalResource = getArtifactPath(classifier, extension);
+            ExternalResourceName externalResource = new ExternalResourceName(rootUri, path.toString());
             publish(externalResource, content);
         }
 
-        public void publish(ExternalResourceName externalResource, File content) {
+        void publish(ExternalResourceName externalResource, File content) {
             if (!localRepo) {
                 LOGGER.info("Uploading {} to {}", externalResource.getShortDisplayName(), externalResource.getPath());
             }
@@ -249,11 +228,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
             HashValue hash = HashUtil.createHash(src, algorithm);
             String formattedHashString = hash.asZeroPaddedHexString(checksumLength);
-            try {
-                return formattedHashString.getBytes("US-ASCII");
-            } catch (UnsupportedEncodingException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            return formattedHashString.getBytes(StandardCharsets.US_ASCII);
         }
     }
 }
