@@ -131,6 +131,8 @@ data class CIBuildModel (
             GradleSubproject("languageNative"),
             GradleSubproject("languageScala"),
             GradleSubproject("launcher"),
+            GradleSubproject("launcher-bootstrap", unitTests = false, functionalTests = false),
+            GradleSubproject("launcher-startup", unitTests = false, functionalTests = false),
             GradleSubproject("logging"),
             GradleSubproject("maven", crossVersionTests = true),
             GradleSubproject("messaging"),
@@ -167,6 +169,7 @@ data class CIBuildModel (
             GradleSubproject("toolingNative", unitTests = false, functionalTests = false, crossVersionTests = true),
             GradleSubproject("versionControl"),
             GradleSubproject("workers"),
+            GradleSubproject("worker-processes", unitTests = false, functionalTests = false),
             GradleSubproject("wrapper", crossVersionTests = true),
 
             GradleSubproject("soak", unitTests = false, functionalTests = false),
