@@ -28,12 +28,16 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
 
 public class MavenLocalPublisher extends AbstractMavenPublisher {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MavenLocalPublisher.class);
+
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public MavenLocalPublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
@@ -43,6 +47,8 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
 
     @Override
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
+        LOGGER.info("Publishing to maven local repository");
+
         URI rootUri = mavenRepositoryLocator.getLocalMavenRepository().toURI();
         String protocol = rootUri.getScheme().toLowerCase();
         RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, "mavenLocal", Collections.emptyList());

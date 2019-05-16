@@ -36,6 +36,8 @@ import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.ByteArrayReadableContent;
 import org.gradle.internal.resource.local.FileReadableContent;
 import org.gradle.internal.xml.XmlTransformer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +49,8 @@ import java.net.URI;
 import static org.apache.maven.artifact.ArtifactUtils.isSnapshot;
 
 abstract class AbstractMavenPublisher implements MavenPublisher {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MavenPublisher.class);
+
     private static final String POM_FILE_ENCODING = "UTF-8";
     private final Factory<File> temporaryDirFactory;
     protected final RepositoryTransportFactory repositoryTransportFactory;
@@ -224,6 +228,9 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         public void publish(ExternalResourceName externalResource, File content) {
+            if (!localRepo) {
+                LOGGER.info("Uploading {} to {}", externalResource.getShortDisplayName(), externalResource.getPath());
+            }
             repository.withProgressLogging().resource(externalResource).put(new FileReadableContent(content));
             if (!localRepo) {
                 publishChecksums(repository, content, externalResource);

@@ -29,6 +29,8 @@ import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInterna
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -38,6 +40,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 public class MavenRemotePublisher extends AbstractMavenPublisher {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MavenRemotePublisher.class);
 
     public MavenRemotePublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory) {
         super(temporaryDirFactory, repositoryTransportFactory);
@@ -45,6 +48,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
 
     @Override
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
+        LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), artifactRepository.getUrl());
+
         String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
         RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(),
                 ((AuthenticationSupportedInternal) artifactRepository).getConfiguredAuthentication());
