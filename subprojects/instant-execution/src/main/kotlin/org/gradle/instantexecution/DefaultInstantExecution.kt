@@ -195,16 +195,16 @@ class DefaultInstantExecution(
             val finalValue = unpack(conventionalValue) ?: continue
             val valueSerializer = stateSerializer.serializerFor(finalValue)
             if (valueSerializer == null) {
-                logField(taskType, field.name, "serialize", "there's no serializer for type ${finalValue.javaClass}")
+                logFieldWarning("serialize", task.path, taskType.name, field.name, "there's no serializer for type '${finalValue.javaClass.name}'")
                 continue
             }
             writeString(field.name)
             try {
                 valueSerializer(this)
             } catch (e: Exception) {
-                throw GradleException("Could not save the value of field `${field.name}` of task `${task.path}`.", e)
+                throw GradleException("Could not save the value of field '${taskType.name}.${field.name}' of task ${task.path}.", e)
             }
-            println("SERIALIZED ${task.path} field ${field.name} value $finalValue")
+            logFieldSerialization("serialize", task.path, taskType.name, field.name, finalValue)
         }
         writeString("")
     }
@@ -247,7 +247,7 @@ class DefaultInstantExecution(
             try {
                 val value = deserializer.read(decoder) ?: continue
                 val field = taskFieldsByName.getValue(fieldName)
-                println("DESERIALIZED ${task.path} field $fieldName value $value")
+                logFieldSerialization("deserialize", task.path, typeName, fieldName, value)
                 @Suppress("unchecked_cast")
                 when (field.type) {
                     DirectoryProperty::class.java -> (field.getFieldValue(task) as? DirectoryProperty)?.set(value as File)
@@ -259,12 +259,12 @@ class DefaultInstantExecution(
                         if (field.type.isAssignableFrom(value.javaClass)) {
                             field.setValue(task, value)
                         } else {
-                            logField(taskClass, fieldName, "deserialize", "${field.type} != ${value.javaClass}")
+                            logFieldWarning("deserialize", "$projectPath:$taskName", typeName, fieldName, "${field.type} != ${value.javaClass}")
                         }
                     }
                 }
             } catch (e: Exception) {
-                throw GradleException("Could not load value of field `$fieldName` of task ${task.path}.", e)
+                throw GradleException("Could not load value of field '$typeName.$fieldName' of task ${task.path}.", e)
             }
         }
         return task to taskDependencies
@@ -313,9 +313,18 @@ class DefaultInstantExecution(
     )
 
     private
-    fun logField(taskType: Class<*>, name: String?, actionName: String, reason: String) {
-        logger.lifecycle("Field `$name` from $taskType cannot be ${actionName}d because $reason.")
-    }
+    fun logFieldSerialization(actionName: String, taskPath: String, taskType: String, fieldName: String?, value: Any?) =
+        logger.info(
+            "instant-execution > task '{}' field '{}.{}' {}d value '{}'",
+            taskPath, taskType, fieldName, actionName, value
+        )
+
+    private
+    fun logFieldWarning(actionName: String, taskPath: String, taskType: String, fieldName: String?, reason: String) =
+        logger.warn(
+            "instant-execution > task '{}' field '{}.{}' cannot be {}d because {}.",
+            taskPath, taskType, fieldName, actionName, reason
+        )
 
     private
     val isInstantExecutionEnabled: Boolean
