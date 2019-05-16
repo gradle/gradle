@@ -22,6 +22,7 @@ class MixedPlayAndLegacyJavaProjectIntegrationTest extends AbstractIntegrationSp
 
     @Issue("GRADLE-3356")
     def "can apply both java and play plugins"() {
+        executer.noDeprecationChecks()
         settingsFile.text = "rootProject.name = 'mixedJavaAndPlay'"
         buildFile << """
             plugins {

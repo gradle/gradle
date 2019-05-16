@@ -50,6 +50,7 @@ import java.util.List;
  * </p>
  */
 @Incubating
+@Deprecated
 public class RoutesCompile extends SourceTask {
 
     /**

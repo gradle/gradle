@@ -59,6 +59,7 @@ import java.util.Set;
  * Task for compiling Twirl templates into Scala code.
  */
 @Incubating
+@Deprecated
 public class TwirlCompile extends SourceTask {
 
     /**

@@ -46,6 +46,7 @@ import java.util.Set;
  * Task to run a Play application.
  */
 @Incubating
+@Deprecated
 public class PlayRun extends ConventionTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayRun.class);
 

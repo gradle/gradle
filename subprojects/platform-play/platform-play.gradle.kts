@@ -3,7 +3,6 @@ import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 

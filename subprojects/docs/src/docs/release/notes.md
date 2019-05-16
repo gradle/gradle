@@ -86,6 +86,10 @@ in the next major Gradle version (Gradle 6.0). See the User Manual section on th
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
+### Deprecated Play plugins
+
+Play web application support has been deprecated and replaced by the new [Gradle Play Plugin](https://gradle.github.io/playframework).
+
 ### Deprecated build comparison plugin
 
 The [build comparison](userguide/comparing_builds.html) plugin has been deprecated.

@@ -34,6 +34,7 @@ import java.util.Map;
  */
 @Incubating
 @HasInternalProtocol
+@Deprecated
 public interface PlayApplicationBinarySpec extends ApplicationBinarySpec {
     /**
      * {@inheritDoc}

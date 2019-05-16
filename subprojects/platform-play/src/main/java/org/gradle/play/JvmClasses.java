@@ -26,6 +26,7 @@ import java.util.Set;
  * A set of classes and resources that operate together.
  */
 @Incubating
+@Deprecated
 public interface JvmClasses extends BuildableComponentSpec {
     /**
      * The classes directory for this binary.

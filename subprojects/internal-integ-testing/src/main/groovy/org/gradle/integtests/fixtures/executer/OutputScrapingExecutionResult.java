@@ -145,8 +145,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 // Remove the "Expiring Daemon" message
                 i++;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
-                // Remove the "Deprecated Gradle features..." message and "See https://docs.gradle.org..."
-                i+=2;
+                // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
+                i+=4;
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 i++;

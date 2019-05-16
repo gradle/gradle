@@ -24,5 +24,6 @@ import org.gradle.model.Managed;
  * Represents a source set containing routes files
  */
 @Incubating @Managed
+@Deprecated
 public interface RoutesSourceSet extends LanguageSourceSet {
 }

@@ -23,5 +23,6 @@ import org.gradle.language.base.LanguageSourceSet;
  * Represents a source set containing javascript sources.
  */
 @Incubating
+@Deprecated
 public interface JavaScriptSourceSet extends LanguageSourceSet {
 }

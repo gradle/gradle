@@ -24,5 +24,6 @@ import org.gradle.model.Managed;
  * Represents a source set for CoffeeScript sources
  */
 @Incubating @Managed
+@Deprecated
 public interface CoffeeScriptSourceSet extends LanguageSourceSet {
 }
