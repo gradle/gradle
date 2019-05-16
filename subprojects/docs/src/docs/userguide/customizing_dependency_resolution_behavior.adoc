@@ -292,7 +292,7 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/replac
 include::sample[dir="userguide/dependencyManagement/customizingResolution/replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
 ====
 
-For more examples and detailed API, refer to the DSL reference for link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html[ComponentMetadataHandler].
+For more examples and detailed API, refer to the DSL reference for link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentModuleMetadataHandler.html[ComponentModuleMetadataHandler].
 
 What happens when we declare that `google-collections` is replaced by `guava`? Gradle can use this information for conflict resolution. Gradle will consider every version of `guava` newer/better than any version of `google-collections`. Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list. Note that if only `google-collections` appears in the dependency graph (e.g. no `guava`) Gradle will not eagerly replace it with `guava`. Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict (e.g. only `google-collections` or only `guava` in the graph) the replacement information is not used.
 
