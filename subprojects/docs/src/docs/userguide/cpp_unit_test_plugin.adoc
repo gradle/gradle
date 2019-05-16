@@ -17,6 +17,7 @@
 
 The {cpp} Unit Test Plugin provides the tasks, configurations and conventions for integrating with a {cpp} executable-based testing framework, such as https://github.com/google/googletest[Google Test]. 
 
+[[sec:cpp_unit_test_usage]]
 == Usage
 
 .Applying the {cpp} Unit Test Plugin
@@ -25,6 +26,7 @@ include::sample[dir="userguide/cpp/cppUnitTest/groovy",files="build.gradle[tags=
 include::sample[dir="userguide/cpp/cppUnitTest/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
+[[sec:cpp_unit_test_build_varants]]
 == Build variants
 
 The {cpp} Unit Test Plugin understands the following dimensions.
@@ -43,6 +45,7 @@ include::sample[dir="userguide/cpp/cppUnitTest/groovy",files="build.gradle[tags=
 include::sample[dir="userguide/cpp/cppUnitTest/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
 ====
 
+[[sec:cpp_unit_test_tasks]]
 == Tasks
 
 The following diagram shows the relationships between tasks added by this plugin.
@@ -50,6 +53,7 @@ The following diagram shows the relationships between tasks added by this plugin
 .{cpp} Unit Test Plugin default task graph
 image::cpp-unit-test-task-graph.png[]
 
+[[sec:cpp_unit_test_task_variants]]
 === Variant-dependent Tasks
 
 The {cpp} Unit Test Plugin creates tasks based on the variants of the unit test component.
@@ -79,6 +83,7 @@ Depends on: `installTest__Variant__`
 ::
 Run the installed executable.
 
+[[sec:cpp_unit_test_lifecycle_tasks]]
 === Lifecycle Tasks
 
 The {cpp} Unit Test Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc,Base Plugin chapter>> - which the {cpp} Application Plugin applies automatically:
@@ -110,6 +115,7 @@ This task is added by the <<base_plugin.adoc,Base Plugin>>.
 Deletes the build directory and everything in it, i.e. the path specified by the `Project.getBuildDir()` project property.
 This task is added by the <<base_plugin.adoc,Base Plugin>>.
 
+[[sec:cpp_unit_test_dependency_management]]
 == Dependency management
 
 Just like the tasks created by the {cpp} Unit Test Plugin, the configurations are created based on the variant of the application component.
@@ -150,10 +156,12 @@ This configuration contains the libraries of the unit test and is therefore used
 Used for executing the unit test.
 This configuration contains the runtime libraries of the unit test.
 
+[[sec:cpp_unit_test_conventions]]
 == Conventions
 
 The {cpp} Unit Test Plugin adds conventions for sources and tasks, shown below.
 
+[[sec:cpp_unit_test_layout]]
 === Project layout
 
 The {cpp} Unit Test Plugin assumes the project layout shown below.
@@ -168,6 +176,7 @@ Headers - headers needed to compile the unit test
 
 You <<building_cpp_projects.adoc#sec:custom_cpp_source_set_paths,configure the project layout>> by configuring the `source` and `privateHeaders` respectively on the `unitTest` script block.
 
+[[sec:cpp_unit_test_compile_task]]
 === `compileTest__Variant__Cpp` Task
 
 The {cpp} Unit Test Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[CppCompile] instance for each variant of the test component to build (e.g. `compileTestCpp`).
@@ -197,6 +206,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:toolChain[toolChain]:: <<building_cpp_projects.adoc#cpp_supported_tool_chain,automatically selected based on target machine>>
 
+[[sec:cpp_unit_test_link_task]]
 === `linkTest__Variant__` Task
 
 The {cpp} Unit Test Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.LinkExecutable.html[LinkExecutable] instance for each variant of the test component - e.g. `linkTest`.
@@ -218,12 +228,14 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:toolChain[toolChain]:: <<building_cpp_projects.adoc#cpp_supported_tool_chain,automatically selected based on target machine>>
 
+[[sec:cpp_unit_test_install_task]]
 === `installTest__Variant__` Task
 
 The {cpp} Unit Test Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.InstallExecutable.html[InstallExecutable] instance for each variant of the test component - e.g. `installTest`.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 There is no need to configure any properties on the task.
 
+[[sec:cpp_unit_test_run_task]]
 === `runTest__Variant__` Task
 
 The {cpp} Unit Test Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html[RunTestExecutable] instance for each variant of the test component - e.g. `runTest`.

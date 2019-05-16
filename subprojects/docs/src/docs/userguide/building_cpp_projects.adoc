@@ -23,6 +23,7 @@ If you don’t have much experience with building native projects with Gradle, t
 
 The C++ plugins covered in this chapter were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend users to use those plugins over <<native_software.adoc#native_binaries,the older Native plugins>> that you may find references to.
 
+[[sec:cpp_introduction]]
 == Introduction
 
 The simplest build script for a C\++ project applies the C++ application plugin or the C++ library plugin and optionally sets the project version:
