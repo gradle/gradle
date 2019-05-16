@@ -351,7 +351,7 @@ tasks.register("k9AndroidBuild", RemoteProject) {
 
 tasks.register("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    branch = 'android-34'
+    branch = 'android-35'
 }
 
 tasks.register("santaTrackerAndroidBuild", RemoteProject) {

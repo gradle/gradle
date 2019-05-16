@@ -156,7 +156,7 @@ public abstract class TransformationNode extends Node {
                     }
 
                     TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), file);
-                    return transformationStep.transform(initialArtifactTransformationSubject, dependenciesResolver, services);
+                    return transformationStep.createInvocation(initialArtifactTransformationSubject, dependenciesResolver, services).invoke();
                 }
 
                 @Override
@@ -188,7 +188,7 @@ public abstract class TransformationNode extends Node {
                 @Override
                 protected Try<TransformationSubject> transform() {
                     return previousTransformationNode.getTransformedSubject().flatMap(transformedSubject ->
-                        transformationStep.transform(transformedSubject, dependenciesResolver, services));
+                        transformationStep.createInvocation(transformedSubject, dependenciesResolver, services).invoke());
                 }
 
                 @Override
