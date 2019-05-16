@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.PublicationArtifact;
@@ -39,6 +40,12 @@ public class ValidatingMavenPublisher implements MavenPublisher {
 
     public ValidatingMavenPublisher(MavenPublisher delegate) {
         this.delegate = delegate;
+    }
+
+    public static void validateRepositoryName(String name) {
+        if (!name.matches(ID_REGEX)) {
+            throw new InvalidUserDataException("Repository name " + name + " is not valid for publishing");
+        }
     }
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {

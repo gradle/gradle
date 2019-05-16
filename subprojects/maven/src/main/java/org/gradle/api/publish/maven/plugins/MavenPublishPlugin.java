@@ -50,6 +50,7 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publication.WritableMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.publish.maven.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
@@ -76,7 +77,6 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * @since 1.4
  */
 public class MavenPublishPlugin implements Plugin<Project> {
-
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
     private final InstantiatorFactory instantiatorFactory;
@@ -122,6 +122,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension extension) {
+                extension.getRepositories().all(repository -> ValidatingMavenPublisher.validateRepositoryName(repository.getName()));
                 extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(
                         dependencyMetaDataProvider,
                         instantiatorFactory.decorateLenient(),
@@ -145,6 +146,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         final TaskProvider<Task> publishLocalLifecycleTask = tasks.named(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
         final NamedDomainObjectList<MavenArtifactRepository> repositories = extension.getRepositories().withType(MavenArtifactRepository.class);
 
+        repositories.all(repository -> ValidatingMavenPublisher.validateRepositoryName(repository.getName()));
         repositories.all(repository -> tasks.register(publishAllToSingleRepoTaskName(repository), publish -> {
             publish.setDescription("Publishes all Maven publications produced by this project to the " + repository.getName() + " repository.");
             publish.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);

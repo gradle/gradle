@@ -140,4 +140,33 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         failure.assertHasCause "Failed to publish publication 'maven' to repository 'maven'"
         failure.assertHasCause "Invalid publication 'maven': groupId cannot be empty"
     }
+
+    def "fails with reasonable error message for invalid repository name"() {
+        settingsFile << "rootProject.name = 'invalid-repo'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'org.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { 
+                        name 'bad:name'
+                        url "${mavenRepo.uri}" 
+                    }
+                }
+                publications {
+                    maven(MavenPublication)
+                }
+            }
+        """
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription "A problem occurred evaluating root project 'invalid-repo'"
+        failure.assertHasCause "Repository name 'bad:name' is not valid for publication"
+    }
 }
