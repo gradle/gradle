@@ -56,7 +56,7 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
 
     @Override
     public VersionSelector complementForRejection(VersionSelector selector) {
-        // TODO:DAZ We can probably now support more versions with `strictly` but we'll need more test coverage
+        // TODO We can probably now support more versions with `strictly` but we'll need more test coverage
         if ((selector instanceof ExactVersionSelector)
             || (selector instanceof VersionRangeSelector && ((VersionRangeSelector) selector).getUpperBound() != null)) {
             return new InverseVersionSelector(selector);
