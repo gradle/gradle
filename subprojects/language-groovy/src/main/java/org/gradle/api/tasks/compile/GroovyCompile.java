@@ -145,10 +145,10 @@ public class GroovyCompile extends AbstractCompile {
             return;
         }
 
-        Multimap<File, String> sourceClassesMapping = readSourceClassesMapping(sourceClassesMappingFile);
         if (!inputChanges.isIncremental() || !sourceClassesMappingFile.isFile()) {
             compile();
         } else {
+            Multimap<File, String> sourceClassesMapping = readSourceClassesMapping(sourceClassesMappingFile);
             DefaultGroovyJavaJointCompileSpec spec = createSpec();
             WorkResult result = getCompiler(inputChanges, spec, true, sourceClassesMapping).execute(spec);
             setDidWork(result.getDidWork());
@@ -182,21 +182,19 @@ public class GroovyCompile extends AbstractCompile {
             .hashKeys()
             .arrayListValues()
             .build();
-        if (compilationMappingFile.isFile()) {
-            BufferedReader reader = null;
-            try {
-                reader = new BufferedReader(new InputStreamReader(Files.newInputStream(compilationMappingFile.toPath())));
-                for (String uri = reader.readLine(); uri != null; uri = reader.readLine()) {
-                    String className = Preconditions.checkNotNull(reader.readLine());
-                    if (uri.startsWith("file:")) {
-                        sourceClassesMapping.put(new File(uri.substring(5)), className);
-                    }
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(Files.newInputStream(compilationMappingFile.toPath())));
+            for (String uri = reader.readLine(); uri != null; uri = reader.readLine()) {
+                String className = Preconditions.checkNotNull(reader.readLine());
+                if (uri.startsWith("file:")) {
+                    sourceClassesMapping.put(new File(uri.substring(5)), className);
                 }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            } finally {
-                IoActions.closeQuietly(reader);
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            IoActions.closeQuietly(reader);
         }
         return sourceClassesMapping;
     }
@@ -422,7 +420,7 @@ public class GroovyCompile extends AbstractCompile {
 
         @Override
         public void outOfDate(Action<? super InputFileDetails> outOfDateAction) {
-            for (final FileChange change: inputChanges.getFileChanges(sources)) {
+            for (final FileChange change : inputChanges.getFileChanges(sources)) {
                 final ChangeType changeType = change.getChangeType();
                 if (changeType != ChangeType.REMOVED) {
                     outOfDateAction.execute(new InputFileDetails() {
@@ -452,7 +450,7 @@ public class GroovyCompile extends AbstractCompile {
 
         @Override
         public void removed(Action<? super InputFileDetails> removedAction) {
-            for (final FileChange change: inputChanges.getFileChanges(sources)) {
+            for (final FileChange change : inputChanges.getFileChanges(sources)) {
                 if (change.getChangeType() == ChangeType.REMOVED) {
                     removedAction.execute(new InputFileDetails() {
                         @Override
