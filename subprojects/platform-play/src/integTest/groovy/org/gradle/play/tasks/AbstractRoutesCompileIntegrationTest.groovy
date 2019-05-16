@@ -132,6 +132,7 @@ GET     /newroute                          ${controllers()}.Application.index()
 """
 
         and:
+        executer.noDeprecationChecks()
         succeeds "compilePlayBinaryPlayRoutes"
 
         then:
@@ -143,6 +144,7 @@ GET     /newroute                          ${controllers()}.Application.index()
         getReverseRoutesFile().assertContentsHaveChangedSince(reverseRoutesFileSnapshot);
 
         when:
+        executer.noDeprecationChecks()
         succeeds "compilePlayBinaryPlayRoutes"
 
         then:
@@ -170,6 +172,7 @@ GET     /newroute                          ${controllers()}.Application.index()
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
 
         when:
+        executer.noDeprecationChecks()
         withRoutesTemplate("foo")
         and:
         succeeds("compilePlayBinaryPlayRoutes")
@@ -177,6 +180,7 @@ GET     /newroute                          ${controllers()}.Application.index()
         destinationDir.assertHasDescendants((createRouteFileList() + createRouteFileList('foo')) as String[])
 
         when:
+        executer.noDeprecationChecks()
         file("conf/foo.routes").delete()
         then:
         succeeds("compilePlayBinaryPlayRoutes")
