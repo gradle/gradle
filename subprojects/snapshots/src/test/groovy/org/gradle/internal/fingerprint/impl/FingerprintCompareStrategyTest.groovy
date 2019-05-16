@@ -28,14 +28,14 @@ import spock.lang.Unroll
 
 import static AbstractFingerprintCompareStrategy.compareTrivialFingerprints
 
+@Unroll
 class FingerprintCompareStrategyTest extends Specification {
 
     private static final ABSOLUTE = AbsolutePathFingerprintCompareStrategy.INSTANCE
     private static final NORMALIZED = NormalizedPathFingerprintCompareStrategy.INSTANCE
     private static final IGNORED_PATH = IgnoredPathCompareStrategy.INSTANCE
 
-    @Unroll
-    def "empty snapshots (#strategy, include added: #includeAdded)"() {
+    def "empty snapshots (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             [:],
@@ -51,8 +51,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ABSOLUTE     | false
     }
 
-    @Unroll
-    def "trivial addition (#strategy, include added: #includeAdded)"() {
+    def "trivial addition (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["new/one": fingerprint("one")],
@@ -68,8 +67,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ABSOLUTE     | false        | []
     }
 
-    @Unroll
-    def "non-trivial addition"() {
+    def "non-trivial addition (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["new/one": fingerprint("one"), "new/two": fingerprint("two")],
@@ -77,8 +75,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [added("new/two": "two")]
     }
 
-    @Unroll
-    def "non-trivial addition with absolute paths (#strategy, include added: #includeAdded)"() {
+    def "non-trivial addition with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one": fingerprint("one"), "two": fingerprint("two")],
@@ -91,8 +88,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ABSOLUTE | false        | []
     }
 
-    @Unroll
-    def "trivial removal (#strategy, include added: #includeAdded)"() {
+    def "trivial removal (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             [:],
@@ -106,8 +102,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ABSOLUTE   | false
     }
 
-    @Unroll
-    def "non-trivial removal"() {
+    def "non-trivial removal (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["new/one": fingerprint("one")],
@@ -115,8 +110,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [removed("old/two": "two")]
     }
 
-    @Unroll
-    def "non-trivial removal with absolute paths (#strategy, include added: #includeAdded)"() {
+    def "non-trivial removal with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one": fingerprint("one")],
@@ -129,8 +123,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ABSOLUTE | false
     }
 
-    @Unroll
-    def "non-trivial modification"() {
+    def "non-trivial modification (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["new/one": fingerprint("one"), "new/two": fingerprint("two", 0x9876cafe)],
@@ -138,8 +131,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [removed("old/two": "two"), added("new/two": "two")]
     }
 
-    @Unroll
-    def "non-trivial modification with re-ordering and same normalized paths (UNORDERED)"() {
+    def "non-trivial modification with re-ordering and same normalized paths (UNORDERED, NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["new/two": fingerprint("", 0x9876cafe), "new/one": fingerprint("")],
@@ -147,8 +139,7 @@ class FingerprintCompareStrategyTest extends Specification {
         )*.toString() == [removed("old/two": "two"), added("new/two": "two")]*.toString()
     }
 
-    @Unroll
-    def "non-trivial modification with absolute paths (#strategy, include added: #includeAdded)"() {
+    def "non-trivial modification with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one": fingerprint("one"), "two": fingerprint("two", 0x9876cafe)],
@@ -161,8 +152,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ABSOLUTE | false
     }
 
-    @Unroll
-    def "trivial replacement"() {
+    def "trivial replacement (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["new/two": fingerprint("two")],
@@ -170,8 +160,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [removed("old/one": "one"), added("new/two": "two")]
     }
 
-    @Unroll
-    def "non-trivial replacement"() {
+    def "non-trivial replacement (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["new/one": fingerprint("one"), "new/two": fingerprint("two"), "new/four": fingerprint("four")],
@@ -179,8 +168,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [removed("old/three": "three"), added("new/two": "two")]
     }
 
-    @Unroll
-    def "non-trivial replacement with absolute paths (#strategy, include added: #includeAdded)"() {
+    def "non-trivial replacement with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one": fingerprint("one"), "two": fingerprint("two"), "four": fingerprint("four")],
@@ -193,8 +181,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ABSOLUTE | false        | [removed("three")]
     }
 
-    @Unroll
-    def "reordering (#strategy, include added: #includeAdded)"() {
+    def "reordering (NormalizedPathFingerprintCompareStrategy, include added: true)"() {
         expect:
         changes(NORMALIZED, true,
             ["new/one": fingerprint("one"), "new/two": fingerprint("two"), "new/three": fingerprint("three")],
@@ -202,8 +189,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == []
     }
 
-    @Unroll
-    def "reordering with absolute paths (#strategy, include added: #includeAdded)"() {
+    def "reordering with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
             ["one": fingerprint("one"), "two": fingerprint("two"), "three": fingerprint("three")],
@@ -216,8 +202,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ABSOLUTE | false        | []
     }
 
-    @Unroll
-    def "handling duplicates"() {
+    def "handling duplicates (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["new/one-1": fingerprint("one"), "new/one-2": fingerprint("one"), "new/two": fingerprint("two")],
@@ -225,8 +210,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == []
     }
 
-    @Unroll
-    def "mix file contents with same name"() {
+    def "mix file contents with same name (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["a/input": fingerprint("input", 2), "b/input": fingerprint("input", 0)],
@@ -234,8 +218,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == []
     }
 
-    @Unroll
-    def "file move should be detected if no collisions occur"() {
+    def "file move should be detected if no collisions occur (NormalizedPathFingerprintCompareStrategy)"() {
         changes(NORMALIZED, true,
             ["moved/input": fingerprint("input", 1),
              "unchangedFile": fingerprint("unchangedFile", 2),
@@ -247,8 +230,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [modified("changedFile")]
     }
 
-    @Unroll
-    def "change file content to other content with same name"() {
+    def "change file content to other content with same name (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["a/input": fingerprint("input", 1), "b/input": fingerprint("input", 1)],
@@ -256,8 +238,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [modified("a/input": "input")]
     }
 
-    @Unroll
-    def "should only show modified if absolute path is the same"() {
+    def "should only show modified if absolute path is the same (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true, [
             "a/input": fingerprint("input", 0),
@@ -280,7 +261,6 @@ class FingerprintCompareStrategyTest extends Specification {
         ]
     }
 
-    @Unroll
     def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
         expect:
         compareTrivialFingerprints(new CollectingChangeVisitor(), current, previous, "test", true) == null
