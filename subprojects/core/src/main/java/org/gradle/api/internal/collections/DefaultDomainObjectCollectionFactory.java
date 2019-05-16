@@ -16,15 +16,19 @@
 
 package org.gradle.api.internal.collections;
 
+import groovy.lang.Closure;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DynamicPropertyNamer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -47,18 +51,29 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
         // TODO - this should also be using the decorating instantiator but cannot for backwards compatibility
         ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<T>(elementType, instantiatorFactory.injectLenient(servicesToInject));
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, elementType, instantiator, new DynamicPropertyNamer(), objectFactory, mutationGuard, collectionCallbackActionDecorator);
+        return Cast.uncheckedCast(instantiator.newInstance(FactoryNamedDomainObjectContainer.class, elementType, instantiator, new DynamicPropertyNamer(), objectFactory, mutationGuard, collectionCallbackActionDecorator));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, elementType, instantiator, new DynamicPropertyNamer(), factory, mutationGuard, collectionCallbackActionDecorator);
+        return Cast.uncheckedCast(instantiator.newInstance(FactoryNamedDomainObjectContainer.class, elementType, instantiator, new DynamicPropertyNamer(), factory, mutationGuard, collectionCallbackActionDecorator));
+    }
+
+    @Override
+    public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> type, Closure factoryClosure) {
+        Instantiator instantiator = instantiatorFactory.decorateLenient();
+        return Cast.uncheckedCast(instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure, mutationGuard, collectionCallbackActionDecorator));
     }
 
     @Override
     public <T> DomainObjectSet<T> newDomainObjectSet(Class<T> elementType) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return instantiator.newInstance(DefaultDomainObjectSet.class, elementType, collectionCallbackActionDecorator);
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultDomainObjectSet.class, elementType, collectionCallbackActionDecorator));
+    }
+
+    @Override
+    public <T> CompositeDomainObjectSet<T> newDomainObjectSet(Class<T> elementType, DomainObjectCollection<? extends T>... collections) {
+        return CompositeDomainObjectSet.create(elementType, collectionCallbackActionDecorator, collections);
     }
 }

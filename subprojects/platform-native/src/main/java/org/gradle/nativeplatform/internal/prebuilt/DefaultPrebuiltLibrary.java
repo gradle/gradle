@@ -18,8 +18,7 @@ package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.PrebuiltLibrary;
@@ -30,10 +29,10 @@ public class DefaultPrebuiltLibrary implements PrebuiltLibrary {
     private final SourceDirectorySet headers;
     private final DomainObjectSet<NativeLibraryBinary> binaries;
 
-    public DefaultPrebuiltLibrary(String name, ObjectFactory objectFactory, CollectionCallbackActionDecorator decorator) {
+    public DefaultPrebuiltLibrary(String name, ObjectFactory objectFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.name = name;
         headers = objectFactory.sourceDirectorySet("headers", "headers for prebuilt library '" + name + "'");
-        binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class, decorator);
+        binaries = domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);
     }
 
     @Override

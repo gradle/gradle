@@ -25,9 +25,9 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.model.ObjectFactory;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -40,12 +40,12 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     private final DomainObjectSet<SoftwareComponent> variants;
     private final AttributeContainer attributeContainer;
 
-    public MainLibraryVariant(String name, Usage usage, Configuration dependencies, AttributeContainer attributeContainer, CollectionCallbackActionDecorator decorator) {
+    public MainLibraryVariant(String name, Usage usage, Configuration dependencies, AttributeContainer attributeContainer, ObjectFactory objectFactory) {
         this.name = name;
         this.usage = usage;
         this.dependencies = dependencies;
         this.attributeContainer = attributeContainer;
-        this.variants = new DefaultDomainObjectSet<SoftwareComponent>(SoftwareComponent.class, decorator);
+        this.variants = objectFactory.domainObjectSet(SoftwareComponent.class);
     }
 
     @Override

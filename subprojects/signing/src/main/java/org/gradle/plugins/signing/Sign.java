@@ -64,11 +64,10 @@ public class Sign extends DefaultTask implements SignatureSpec {
     private SignatureType signatureType;
     private Signatory signatory;
     private boolean required = true;
-    private final DefaultDomainObjectSet<Signature> signatures;
+    private final DomainObjectSet<Signature> signatures = getProject().getObjects().domainObjectSet(Signature.class);
 
     @Inject
     public Sign() {
-        this.signatures = new DefaultDomainObjectSet<Signature>(Signature.class, getCallbackActionDecorator());
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf(task -> isRequired() || getSignatory() != null);
     }

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.PrebuiltLibraries;
@@ -28,15 +29,15 @@ import org.gradle.nativeplatform.PrebuiltLibrary;
 public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer<PrebuiltLibrary> implements PrebuiltLibraries {
     private final ObjectFactory objectFactory;
     private final Action<PrebuiltLibrary> libraryInitializer;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private String name;
+    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public DefaultPrebuiltLibraries(String name, Instantiator instantiator, ObjectFactory objectFactory, Action<PrebuiltLibrary> libraryInitializer, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultPrebuiltLibraries(String name, Instantiator instantiator, ObjectFactory objectFactory, Action<PrebuiltLibrary> libraryInitializer, CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         super(PrebuiltLibrary.class, instantiator, collectionCallbackActionDecorator);
         this.name = name;
         this.objectFactory = objectFactory;
         this.libraryInitializer = libraryInitializer;
-        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
+        this.domainObjectCollectionFactory = domainObjectCollectionFactory;
     }
 
     @Override
@@ -56,7 +57,7 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
 
     @Override
     protected PrebuiltLibrary doCreate(String name) {
-        return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, objectFactory, collectionCallbackActionDecorator);
+        return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, objectFactory, domainObjectCollectionFactory);
     }
 
     @Override

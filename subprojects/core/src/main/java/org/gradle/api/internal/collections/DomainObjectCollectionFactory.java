@@ -16,9 +16,18 @@
 
 package org.gradle.api.internal.collections;
 
+import groovy.lang.Closure;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.api.internal.DynamicPropertyNamer;
+import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
+import org.gradle.api.internal.MutationGuards;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.reflect.Instantiator;
 
 public interface DomainObjectCollectionFactory {
     /**
@@ -32,7 +41,17 @@ public interface DomainObjectCollectionFactory {
     <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory);
 
     /**
+     * Creates a {@link NamedDomainObjectContainer} for managing named objects of the specified type. The given closure is used to create object instances. The name of the instance to be created is passed as a parameter to the closure.
+     */
+    <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> type, Closure factoryClosure);
+
+    /**
      * Creates a {@link DomainObjectSet} for managing objects of the specified type.
      */
     <T> DomainObjectSet<T> newDomainObjectSet(Class<T> elementType);
+
+    /**
+     * Creates a {@link CompositeDomainObjectSet} for managing a collection of {@link DomainObjectCollection} of the specified type.
+     */
+    <T> CompositeDomainObjectSet<T> newDomainObjectSet(Class<T> elementType, DomainObjectCollection<? extends T>... collections);
 }

@@ -37,7 +37,7 @@ class DefaultPluginContainerTest extends Specification {
     def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
     def target = Mock(PluginTarget)
     def instantiator = TestUtil.instantiatorFactory().inject()
-    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationExecutor(), new DefaultUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP)
+    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationExecutor(), new DefaultUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP, domainObjectCollectionFactory)
 
     @Subject
     def container = pluginManager.pluginContainer
