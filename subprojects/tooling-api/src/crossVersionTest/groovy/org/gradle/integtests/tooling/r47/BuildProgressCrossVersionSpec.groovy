@@ -24,7 +24,8 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 
-@TargetGradleVersion(">=4.7")
+@TargetGradleVersion(">=4.7 <5.6")
+// As of 5.6, we no longer rely on the Maven Aether libraries for `maven-publish`
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     public RepositoryHttpServer server

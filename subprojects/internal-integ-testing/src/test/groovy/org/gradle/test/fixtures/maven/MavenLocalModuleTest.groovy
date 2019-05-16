@@ -26,6 +26,7 @@ class MavenLocalModuleTest extends Specification {
     TestFile testFile
     MavenModule mavenLocalModule
     MavenModule snapshotMavenLocalModule
+    private String mavenMetadataFileName = 'maven-metadata-local.xml'
 
     def setup() {
         testFile = tmpDir.file("file")
@@ -168,7 +169,7 @@ class MavenLocalModuleTest extends Specification {
         then:
         mavenModule != null
         publishedFiles*.name.containsAll('my-artifact-1.0.jar', 'my-artifact-1.0.pom')
-        !publishedFiles.find { it.name == 'maven-metadata.xml' }
+        !publishedFiles.find { it.name == mavenMetadataFileName }
         mavenLocalModule.assertArtifactsPublished('my-artifact-1.0.jar', 'my-artifact-1.0.pom')
     }
 
@@ -180,9 +181,9 @@ class MavenLocalModuleTest extends Specification {
         then:
         mavenModule != null
         publishedFiles*.name.containsAll('my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
-        publishedFiles.find { it.name == 'maven-metadata.xml' }.exists()
-        new XmlSlurper().parseText(publishedFiles.find { it.name == 'maven-metadata.xml' }.text).versioning.snapshot.localCopy.text() == 'true'
-        snapshotMavenLocalModule.assertArtifactsPublished('maven-metadata.xml', 'my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
+        publishedFiles.find { it.name == mavenMetadataFileName }.exists()
+        new XmlSlurper().parseText(publishedFiles.find { it.name == mavenMetadataFileName }.text).versioning.snapshot.localCopy.text() == 'true'
+        snapshotMavenLocalModule.assertArtifactsPublished(mavenMetadataFileName, 'my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
     }
 
     def "Publish artifacts for non-unique snapshot"() {
@@ -196,8 +197,8 @@ class MavenLocalModuleTest extends Specification {
         then:
         mavenModule != null
         publishedFiles*.name.containsAll('my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
-        publishedFiles.find { it.name == 'maven-metadata.xml' }.exists()
-        new XmlSlurper().parseText(publishedFiles.find { it.name == 'maven-metadata.xml' }.text).versioning.snapshot.localCopy.text() == 'true'
-        snapshotMavenLocalModule.assertArtifactsPublished('maven-metadata.xml', 'my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
+        publishedFiles.find { it.name == mavenMetadataFileName }.exists()
+        new XmlSlurper().parseText(publishedFiles.find { it.name == mavenMetadataFileName }.text).versioning.snapshot.localCopy.text() == 'true'
+        snapshotMavenLocalModule.assertArtifactsPublished(mavenMetadataFileName, 'my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
     }
 }

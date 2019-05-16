@@ -93,7 +93,7 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
         writes2.size() == 12
 
         def reads2 = buildOperations.all(ExternalResourceReadBuildOperationType)
-        reads2.size() == 3
+        reads2.size() == 1
     }
 
 }
