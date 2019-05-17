@@ -43,6 +43,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.InjectionPointQualifier;
+import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -733,9 +734,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     continue;
                 }
                 boolean matches = true;
-                for (int i = 0; matches && i < candidate.getParameterTypes().length - 1; i++) {
+                for (int i = 0; i < candidate.getParameterTypes().length - 1; i++) {
                     if (!candidate.getParameterTypes()[i].equals(method.getParameterTypes()[i])) {
                         matches = false;
+                        break;
                     }
                 }
                 if (matches) {
@@ -832,6 +834,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private static class ManagedTypeHandler extends ClassGenerationHandler {
         private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
         private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
+        private final List<PropertyMetadata> readOnlyNestedProperties = new ArrayList<>();
         private boolean hasFields;
 
         @Override
@@ -857,7 +860,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             // Property is readable and all getters and setters are abstract
-
             if (property.setters.isEmpty()) {
                 if (property.getType().equals(ConfigurableFileCollection.class)
                     || property.getType().equals(ListProperty.class)
@@ -865,9 +867,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     || property.getType().equals(MapProperty.class)
                     || property.getType().equals(RegularFileProperty.class)
                     || property.getType().equals(DirectoryProperty.class)
-                    || property.getType().equals(Property.class)) {
+                    || property.getType().equals(Property.class)
+                ) {
                     // Read-only property with managed type
                     readOnlyProperties.add(property);
+                    return true;
+                } else if (property.getMainGetter().method.getAnnotation(Nested.class) != null) {
+                    // Read-only nested property with managed type
+                    readOnlyNestedProperties.add(property);
                     return true;
                 }
                 return false;
@@ -883,8 +890,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (!hasFields) {
                 visitor.mixInManaged();
             }
-            if (!readOnlyProperties.isEmpty()) {
+            if (!readOnlyProperties.isEmpty() || !readOnlyNestedProperties.isEmpty()) {
                 visitor.mixInServiceInjection();
+            }
+            if (!readOnlyNestedProperties.isEmpty()) {
+                visitor.instantiatesNestedObjects();
             }
         }
 
@@ -905,9 +915,31 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     visitor.applyReadOnlyManagedStateToGetter(property, getter.method);
                 }
             }
-            if (!hasFields) {
-                visitor.addManagedMethods(mutableProperties, readOnlyProperties);
+            for (PropertyMetadata property : readOnlyNestedProperties) {
+                visitor.applyManagedStateToProperty(property);
+                for (MethodMetadata getter : property.getters) {
+                    visitor.applyNestedManagedStateToGetter(property, getter.method);
+                }
             }
+            if (!hasFields) {
+                visitor.addManagedMethods(
+                    mutableProperties,
+                    concat(readOnlyProperties, readOnlyNestedProperties)
+                );
+            }
+        }
+
+        private static List<PropertyMetadata> concat(List<PropertyMetadata> first, List<PropertyMetadata> second) {
+            if (first.isEmpty()) {
+                return second;
+            }
+            if (second.isEmpty()) {
+                return first;
+            }
+            return ImmutableList.<PropertyMetadata>builderWithExpectedSize(first.size() + second.size())
+                    .addAll(first)
+                    .addAll(second)
+                    .build();
         }
     }
 
@@ -1184,6 +1216,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void mixInServiceInjection();
 
+        void instantiatesNestedObjects();
+
         ClassGenerationVisitor builder();
     }
 
@@ -1213,6 +1247,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter);
 
         void applyManagedStateToProperty(PropertyMetadata property);
+
+        void applyNestedManagedStateToGetter(PropertyMetadata property, Method getter);
 
         void applyManagedStateToGetter(PropertyMetadata property, Method getter);
 

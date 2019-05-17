@@ -43,6 +43,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -1781,6 +1782,11 @@ public class AsmBackedClassGeneratorTest {
 
     public interface InterfaceFileCollectionBean {
         ConfigurableFileCollection getProp();
+    }
+
+    public interface InterfaceNestedBean {
+        @Nested
+        InterfaceFileCollectionBean getProp();
     }
 
     public interface InterfacePropertyBean {

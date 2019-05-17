@@ -28,7 +28,6 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -156,9 +155,18 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
+        buildFile << """
+            interface NestedType {
+                @InputFile
+                RegularFileProperty getInputFile()
+                @OutputDirectory
+                DirectoryProperty getOutputDirectory()
+            }
+        """
         setupBuildWithColorTransform {
             params("""
                 extension = 'green'
+                nested.inputFile.set(file("some"))    
             """)
         }
         buildFile << """
@@ -205,6 +213,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     @Input
                     String getIncrementalNonFileInput()
                     void setIncrementalNonFileInput(String value)
+
+                    @Nested
+                    NestedType getNested()
                 }
             
                 void transform(TransformOutputs outputs) {
@@ -235,6 +246,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             noPathSensitivityDir: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
             noPathSensitivityFile: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
             outputDir: 'is annotated with invalid property type @OutputDirectory',
+            'nested.outputDirectory': 'is annotated with invalid property type @OutputDirectory',
+            'nested.inputFile': 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
         )
     }
 
@@ -349,7 +362,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
 
         where:
-        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Nested]
+        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
     @Unroll
@@ -536,7 +549,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
 
         where:
-        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal, Nested]
+        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
     @Unroll
