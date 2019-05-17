@@ -91,12 +91,12 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             } else if (dependency instanceof ProviderInternal) {
                 // When a Provider is used as a task dependency (rather than as a task input), need to unpack the value
                 ProviderInternal<?> provider = (ProviderInternal<?>) dependency;
-                if (!provider.maybeVisitBuildDependencies(new NestedContext(queue, context))) {
+                if (!provider.maybeVisitBuildDependencies(context)) {
                     // The provider does not know how to produce the value, so use the value instead
                     queue.addFirst(provider.get());
                 }
             } else if (dependency instanceof TaskDependencyContainer) {
-                ((TaskDependencyContainer) dependency).visitDependencies(new NestedContext(queue, context));
+                ((TaskDependencyContainer) dependency).visitDependencies(context);
             } else if (dependency instanceof Closure) {
                 Closure closure = (Closure) dependency;
                 Object closureResult = closure.call(context.getTask());
@@ -138,9 +138,9 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
                     formats.add("A String or CharSequence task name or path");
-                    formats.add("A TaskReference instance");
                 }
                 formats.add("A Task instance");
+                formats.add("A TaskReference instance");
                 formats.add("A Buildable instance");
                 formats.add("A TaskDependency instance");
                 formats.add("A Provider that represents a task output");
@@ -283,26 +283,6 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         @Override
         public int hashCode() {
             return delegate.hashCode();
-        }
-    }
-
-    private static class NestedContext extends AbstractTaskDependencyResolveContext {
-        private final Deque<Object> queue;
-        private final TaskDependencyResolveContext context;
-
-        public NestedContext(Deque<Object> queue, TaskDependencyResolveContext context) {
-            this.queue = queue;
-            this.context = context;
-        }
-
-        @Override
-        public void add(Object dependency) {
-            queue.addFirst(dependency);
-        }
-
-        @Override
-        public Task getTask() {
-            return context.getTask();
         }
     }
 }

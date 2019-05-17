@@ -73,7 +73,7 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
                 add(deferredResult);
             }
         } else if (element instanceof Iterable && !(element instanceof Path)) {
-            // Ignore Path
+            // Ignore Path (which is-a Iterable)
             Iterable<?> iterable = (Iterable) element;
             for (Object value : iterable) {
                 add(value);

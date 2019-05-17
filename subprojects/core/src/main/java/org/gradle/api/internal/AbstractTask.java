@@ -169,7 +169,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskDestroyables = new DefaultTaskDestroyables(taskMutator);
         taskLocalState = new DefaultTaskLocalState(taskMutator);
 
-        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.<Object>of(taskInputs.getFiles()));
+        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs));
 
         this.timeout = project.getObjects().property(Duration.class);
     }
