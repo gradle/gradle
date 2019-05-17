@@ -17,22 +17,18 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.DirectoryTree;
-import org.gradle.api.file.FileCollection;
-import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
@@ -46,7 +42,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 
 public class SourceFoldersCreator {
 
@@ -113,7 +108,6 @@ public class SourceFoldersCreator {
         ArrayList<SourceFolder> entries = Lists.newArrayList();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
         Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath);
-        Multimap<SourceSet, SourceSet> sourceSetUsages = getSourceSetUsages(sortedSourceSets);
         for (SourceSet sourceSet : sortedSourceSets) {
             List<DirectoryTree> sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
             for (DirectoryTree tree : sortedSourceDirs) {
@@ -126,7 +120,7 @@ public class SourceFoldersCreator {
                     folder.setIncludes(getIncludesForTree(sourceSet, tree));
                     folder.setExcludes(getExcludesForTree(sourceSet, tree));
                     folder.setOutput(sourceSetOutputPaths.get(sourceSet));
-                    addScopeAttributes(folder, sourceSet, sourceSetUsages);
+                    addSourceSetAttribute(folder);
                     entries.add(folder);
                 }
             }
@@ -170,51 +164,10 @@ public class SourceFoldersCreator {
         return trimmedSourceFolders;
     }
 
-    private void addScopeAttributes(SourceFolder folder, SourceSet sourceSet, Multimap<SourceSet, SourceSet> sourceSetUsages) {
-        folder.getEntryAttributes().put(EclipsePluginConstants.GRADLE_SCOPE_ATTRIBUTE_NAME, sanitizeNameForAttribute(sourceSet));
-        folder.getEntryAttributes().put(EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME, Joiner.on(',').join(getUsingSourceSetNames(sourceSet, sourceSetUsages)));
-    }
-
-    private List<String> getUsingSourceSetNames(SourceSet sourceSet, Multimap<SourceSet, SourceSet> sourceSetUsages) {
-        Collection<SourceSet> usingSourceSets = sourceSetUsages.get(sourceSet);
-        List<String> usingSourceSetNames = Lists.newArrayList();
-        for (SourceSet usingSourceSet : usingSourceSets) {
-            usingSourceSetNames.add(sanitizeNameForAttribute(usingSourceSet));
+    private void addSourceSetAttribute(SourceFolder folder) {
+        if (folder.getPath().toLowerCase().contains("test")) {
+            folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
         }
-        return usingSourceSetNames;
-    }
-
-    private String sanitizeNameForAttribute(SourceSet sourceSet) {
-        return sourceSet.getName().replaceAll(",", "");
-    }
-
-    private Multimap<SourceSet, SourceSet> getSourceSetUsages(Iterable<SourceSet> sourceSets) {
-        Multimap<SourceSet, SourceSet> usages = LinkedHashMultimap.create();
-        for (SourceSet sourceSet : sourceSets) {
-            for (SourceSet otherSourceSet : sourceSets) {
-                if (containsOutputOf(sourceSet, otherSourceSet)) {
-                    usages.put(otherSourceSet, sourceSet);
-                }
-            }
-        }
-        return usages;
-    }
-
-    private boolean containsOutputOf(SourceSet sourceSet, SourceSet otherSourceSet) {
-        try {
-            return containsAll(sourceSet.getRuntimeClasspath(), otherSourceSet.getOutput());
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private boolean containsAll(FileCollection first, FileCollection second) {
-        for (File file : second) {
-            if (!first.contains(file)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private Map<SourceSet, String> collectSourceSetOutputPaths(Iterable<SourceSet> sourceSets, String defaultOutputPath) {

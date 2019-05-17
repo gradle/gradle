@@ -178,7 +178,7 @@ public class IdeaDependenciesProvider {
         }
 
         @Override
-        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc) {
+        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, Set<Configuration>  configurations) {
             ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
             SingleEntryModuleLibrary library = new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope);
             library.setModuleVersion(DefaultModuleVersionIdentifier.newId(moduleId.getModuleIdentifier(), moduleId.getVersion()));
@@ -196,7 +196,7 @@ public class IdeaDependenciesProvider {
         }
 
         @Override
-        public void visitFileDependency(ResolvedArtifactResult artifact) {
+        public void visitFileDependency(ResolvedArtifactResult artifact, Set<Configuration>  configurations) {
             fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope));
         }
 

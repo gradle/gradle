@@ -135,14 +135,14 @@ public class WtpComponentFactory {
         }
 
         @Override
-        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc) {
+        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, Set<Configuration>  configurations) {
             if (includeLibraries()) {
                 moduleEntries.add(createWbDependentModuleEntry(artifact.getFile(), wtp.getFileReferenceFactory(), deployPath));
             }
         }
 
         @Override
-        public void visitFileDependency(ResolvedArtifactResult artifact) {
+        public void visitFileDependency(ResolvedArtifactResult artifact, Set<Configuration>  configurations) {
             if (includeLibraries()) {
                 fileEntries.add(createWbDependentModuleEntry(artifact.getFile(), wtp.getFileReferenceFactory(), deployPath));
             }
