@@ -35,6 +35,7 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 
@@ -43,10 +44,12 @@ import java.io.File;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
+@Deprecated
 public class PlayTestPlugin extends RuleSource {
     @Mutate
     void createTestTasks(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Test", "org.gradle.playframework-test");
         for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
             final FileCollection testCompileClasspath = getTestCompileClasspath(binary, configurations);
 

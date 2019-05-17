@@ -46,6 +46,7 @@ import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.TwirlCompile;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -56,10 +57,12 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
+@Deprecated
 public class PlayTwirlPlugin extends RuleSource {
 
     @ComponentType
     void registerTwirlLanguageType(TypeBuilder<TwirlSourceSet> builder) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Twirl", "org.gradle.playframework-twirl");
         builder.defaultImplementation(DefaultTwirlSourceSet.class);
     }
 

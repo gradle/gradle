@@ -52,6 +52,7 @@ import java.util.List;
  * Task to minify JavaScript assets.
  */
 @Incubating
+@Deprecated
 public class JavaScriptMinify extends SourceTask {
     private File destinationDir;
     private PlayPlatform playPlatform;

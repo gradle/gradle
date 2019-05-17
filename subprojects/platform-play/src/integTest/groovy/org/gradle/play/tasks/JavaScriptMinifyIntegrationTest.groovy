@@ -74,6 +74,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         succeeds "assemble"
 
         when:
+        executer.noDeprecationChecks()
         succeeds "assemble"
 
         then:
@@ -90,6 +91,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         // Detects missing output
         when:
+        executer.noDeprecationChecks()
         processedJavaScript("test.min.js").delete()
         assetsJar.file.delete()
         succeeds "assemble"
@@ -109,6 +111,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         // Detects changed input
         when:
+        executer.noDeprecationChecks()
         file("app/assets/test.js") << "alert('this is a change!');"
         succeeds "assemble"
 
@@ -138,6 +141,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         )
 
         when:
+        executer.noDeprecationChecks()
         source2.delete()
         succeeds "assemble"
 
@@ -193,6 +197,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         )
 
         when:
+        executer.noDeprecationChecks()
         succeeds "assemble"
 
         then:

@@ -31,6 +31,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
         verifyJars()
 
         when:
+        executer.noDeprecationChecks()
         succeeds("createPlayBinaryJar")
 
         then:
@@ -50,6 +51,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
         """
 
         when:
+        executer.noDeprecationChecks()
         startBuild "runPlayBinary"
 
         then:

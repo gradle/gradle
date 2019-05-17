@@ -34,6 +34,7 @@ What exactly the `xcode` plugin generates depends on which other plugins are use
 | Adds a target for each specified linkage representing the shared and/or static library to the project file.
 |===
 
+[[sec:xcode_usage]]
 == Usage
 
 .Applying the Xcode Plugin
@@ -42,6 +43,7 @@ include::sample[dir="userguide/xcode/groovy",files="build.gradle[tags=apply-plug
 include::sample[dir="userguide/xcode/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
+[[sec:xcode_tasks]]
 == Tasks
 
 The Xcode Plugin adds a number of tasks to your project.
@@ -52,6 +54,7 @@ The following diagram shows the relationships between tasks added by this plugin
 .Xcode Plugin default task graph
 image::xcode-task-graph.png[]
 
+[[sec:xcode_lifecycle_tasks]]
 === Lifecycle Tasks
 
 `xcode` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
@@ -69,6 +72,7 @@ _Depends on_: `xcode`
 +
 Open the Xcode workspace inside the IDE.
 
+[[sec:xcode_workspace_tasks]]
 === IDE Workspace Tasks
 
 `xcodeWorkspaceWorkspaceSettings` - link:{groovyDslPath}/org.gradle.api.xcode.tasks.GenerateWorkspaceSettingsFileTask.html[GenerateWorkspaceSettingsFileTask]::
@@ -80,6 +84,7 @@ _Depends on_: `xcodeWorkspaceWorkspaceSettings`
 +
 Generates the `__projectName__.xcworkspace` file. This task is only available on the root project.
 
+[[sec:xcode_project_tasks]]
 === IDE Project Tasks
 
 Both the <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application Plugin>> and <<cpp_library_plugin.adoc#cpp_library_plugin,{cpp} Library Plugin>> introduce the same tasks for generating Xcode projects to be included in an Xcode workspace.
@@ -97,6 +102,7 @@ _Depends on_: `xcodeProjectWorkspaceSettings` and `xcodeScheme` (if buildable bi
 +
 Generates the `__projectName__.xcodeproj/project.pbxproj` file.
 
+[[sec:xcode_configuration]]
 == Configuration
 
 The Xcode Plugin doesn't allows any customization of the generated files.

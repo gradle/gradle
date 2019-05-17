@@ -15,9 +15,10 @@
 [[play_plugin]]
 = Building Play applications
 
-[NOTE]
+[CAUTION]
 ====
-Support for building Play applications is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+Play web application support is deprecated and will be removed in the next major Gradle release.
+Please use the new https://gradle.github.io/playframework[Gradle Play Plugin], available from the plugin portal, instead.
 ====
 
 https://www.playframework.com/[Play] is a modern web application framework. The Play plugin adds support for building, testing and running Play applications with Gradle.

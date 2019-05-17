@@ -74,6 +74,7 @@ model {
         succeeds("compilePlayBinaryScala")
 
         when:
+        executer.noDeprecationChecks()
         withInjectedRoutesController()
         buildFile << """
 model {

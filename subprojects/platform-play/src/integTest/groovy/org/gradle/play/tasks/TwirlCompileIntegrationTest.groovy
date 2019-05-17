@@ -87,6 +87,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 
         // Modifying user templates causes TwirlCompile to be out-of-date
         when:
+        executer.noDeprecationChecks()
         buildFile << """
             model {
                 components {
@@ -137,6 +138,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 
         // Changing the imports causes TwirlCompile to be out-of-date
         when:
+        executer.noDeprecationChecks()
         buildFile << """
             model {
                 components {
@@ -168,11 +170,13 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         def input1FirstCompileSnapshot = destinationDir.file("html/input1.template.scala").snapshot()
 
         when:
+        executer.noDeprecationChecks()
         succeeds("compilePlayBinaryPlayTwirlTemplates")
         then:
         skipped(":compilePlayBinaryPlayTwirlTemplates")
 
         when:
+        executer.noDeprecationChecks()
         withTwirlTemplate("input2.scala.html")
         and:
         succeeds("compilePlayBinaryPlayTwirlTemplates")
@@ -182,6 +186,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         destinationDir.file("html/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot)
 
         when:
+        executer.noDeprecationChecks()
         file("app/views/input2.scala.html").delete()
         then:
         succeeds("compilePlayBinaryPlayTwirlTemplates")
@@ -200,6 +205,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         def input1FirstCompileSnapshot = destinationDir.file("html/input1.template.scala").snapshot()
 
         when:
+        executer.noDeprecationChecks()
         file("app/views/input2.scala.html").delete()
 
         then:

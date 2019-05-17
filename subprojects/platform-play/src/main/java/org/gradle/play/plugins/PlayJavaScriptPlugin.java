@@ -36,6 +36,7 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.JavaScriptSourceCode;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptMinify;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -46,9 +47,11 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
+@Deprecated
 public class PlayJavaScriptPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play JavaScript", "org.gradle.playframework-javascript");
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 

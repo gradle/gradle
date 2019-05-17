@@ -34,6 +34,7 @@ What exactly the `visual-studio` plugin generates depends on which other plugins
 | Adds a project for each specified linkage representing the shared and/or static library to the solution file.
 |===
 
+[[sec:visual_studio_usage]]
 == Usage
 
 .Applying the Visual Studio Plugin
@@ -45,6 +46,7 @@ include::sample[dir="userguide/visualStudio/kotlin",files="build.gradle.kts[tags
 The Visual Studio Plugin adds a number of tasks to your project.
 The main tasks that you will use are the `visualStudio`, `cleanVisualStudio` and `openVisualStudio` tasks.
 
+[[sec:visual_studio_tasks]]
 == Tasks
 
 The following diagram shows the relationships between tasks added by this plugin.
@@ -52,6 +54,7 @@ The following diagram shows the relationships between tasks added by this plugin
 .Visual Studio Plugin default task graph
 image::visual-studio-task-graph.png[]
 
+[[sec:visual_studio_lifecycle_tasks]]
 === Lifecycle Tasks
 
 `visualStudio` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
@@ -69,14 +72,17 @@ _Depends on_: `visualStudio`
 +
 Open the Visual Studio solution inside the IDE.
 
+[[sec:visual_studio_workspace_tasks]]
 === IDE Workspace Tasks
 
 `__projectName__VisualStudioSolution` - link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask.html[GenerateSolutionFileTask]::
 +
 Generates the `.sln` file. This task is only available on the root project.
 
+[[sec:visual_studio_project_tasks]]
 === IDE Project Tasks
 
+[[sec:visual_studio_cpp_application_tasks]]
 ==== {cpp} Application Plugin Tasks
 
 `__projectName__VisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.html[GenerateProjectFileTask]::
@@ -92,6 +98,7 @@ _Depends on_: `__projectName__VisualStudioProject` and `__projectName__VisualStu
 +
 Generates all Visual Studio project files for the application component.
 
+[[sec:visual_studio_cpp_library_tasks]]
 ==== {cpp} Library Plugin Tasks
 
 `__projectName__DllVisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.html[GenerateProjectFileTask]::
@@ -115,11 +122,13 @@ _Depends on_: `__projectName__DllVisualStudioProject` (for shared linkage), `__p
 +
 Generates all Visual Studio project files for the library component.
 
+[[sec:visual_studio_configuration]]
 == Configuration
 
 The Visual Studio Plugin allows for some customization of the generated files.
 The following sections are shows the customization.
 
+[[sec:visual_studio_configure_workspace_location]]
 === Change solution generated file location
 
 The location of the generated solution can be configured on the root project:
@@ -130,6 +139,7 @@ include::sample[dir="userguide/visualStudio/groovy",files="build.gradle[tags=con
 include::sample[dir="userguide/visualStudio/kotlin",files="build.gradle.kts[tags=configure-solution-location]"]
 ====
 
+[[sec:visual_studio_configure_project_location]]
 === Change project generated files location
 
 The location of the generated project files can be configured on any project:

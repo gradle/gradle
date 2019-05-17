@@ -19,15 +19,18 @@ package org.gradle.play.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.util.SingleMessageLogger;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
  */
 @Incubating
+@Deprecated
 public class PlayPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Framework", "org.gradle.playframework");
         project.getPluginManager().apply(PlayApplicationPlugin.class);
         project.getPluginManager().apply(PlayTestPlugin.class);
         project.getPluginManager().apply(PlayJavaScriptPlugin.class);

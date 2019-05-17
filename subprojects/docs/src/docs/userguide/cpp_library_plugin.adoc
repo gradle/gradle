@@ -18,6 +18,7 @@
 The {cpp} Library Plugin provides the tasks, conventions and conventions for building a {cpp} library.
 In particular, a {cpp} library provides functionality that can be used by consumers (i.e., other projects using this plugin or the <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application Plugin>>).
 
+[[sec:cpp_library_usage]]
 == Usage
 
 .Applying the {cpp} Library Plugin
@@ -26,6 +27,7 @@ include::sample[dir="userguide/cpp/cppLibrary/groovy",files="build.gradle[tags=a
 include::sample[dir="userguide/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
+[[sec:cpp_library_build_variants]]
 == Build variants
 
 The {cpp} Library Plugin understands the following dimensions.
@@ -60,6 +62,7 @@ include::sample[dir="userguide/cpp/cppLibrary/groovy",files="build.gradle[tags=c
 include::sample[dir="userguide/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
 ====
 
+[[sec:cpp_library_tasks]]
 == Tasks
 
 The following diagram shows the relationships between tasks added by this plugin.
@@ -74,6 +77,7 @@ With static linkage, the diagram changes to the following:
 .{cpp} Library Plugin static library only task graph
 image::cpp-static-library-task-graph.png[]
 
+[[sec:cpp_library_task_variants]]
 === Variant-dependent Tasks
 
 The {cpp} Library Plugin creates tasks based on variants of the library component.
@@ -102,7 +106,7 @@ Depends on: `link__Variant__` (shared linkage) or `create__Variant__` (static li
 ::
 Aggregates tasks that assemble the specific variant of this library.
 
-
+[[sec:cpp_library_lifecycle_tasks]]
 === Lifecycle Tasks
 
 The {cpp} Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc,Base Plugin chapter>> - which the {cpp} Library Plugin applies automatically:
@@ -130,6 +134,7 @@ This task is added by the <<base_plugin.adoc,Base Plugin>>.
 Deletes the build directory and everything in it, i.e. the path specified by the `Project.getBuildDir()` project property.
 This task is added by the <<base_plugin.adoc,Base Plugin>>.
 
+[[sec:cpp_library_dependency_management]]
 == Dependency management
 
 Just like the tasks created by the {cpp} Library Plugin, multiple configurations are created based on the variants of the library component.
@@ -146,15 +151,15 @@ image::cpp-library-configurations.png[]
 The following configurations are used to declare dependencies:
 
 `api`::
-Used for declaring API dependencies (see <<sec:api_vs_implementation,API vs implementation section>>).
+Used for declaring API dependencies (see <<sec:cpp_library_api_vs_implementation,API vs implementation section>>).
 This is where you should declare dependencies which are transitively exported to consumers, for compile and link.
 
 `implementation` extends `api`::
-Used for declaring implementation dependencies for all variants of the main component (see <<sec:api_vs_implementation,API vs implementation section>>).
+Used for declaring implementation dependencies for all variants of the main component (see <<sec:cpp_library_api_vs_implementation,API vs implementation section>>).
 This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers of any variants.
 
 `main__Variant__Implementation` (e.g. `mainDebugImplementation` and `mainReleaseImplementation`) extends `implementation`::
-Used for declaring implementation dependencies for a specific variant of the main component (see <<sec:api_vs_implementation,API vs implementation section>>).
+Used for declaring implementation dependencies for a specific variant of the main component (see <<sec:cpp_library_api_vs_implementation,API vs implementation section>>).
 This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers of this specific variant.
 
 
@@ -186,7 +191,7 @@ This configuration contains the libraries of the library and is therefore used w
 Used for executing the library.
 This configuration contains the runtime libraries of the library.
 
-[[sec:api_vs_implementation]]
+[[sec:cpp_library_api_vs_implementation]]
 === API vs implementation
 
 The plugin exposes two configurations that can be used to declare dependencies: `api` and `implementation`.
@@ -206,11 +211,12 @@ This comes with several benefits:
 * faster compilation thanks to the reduced include roots and link libraries
 * fewer recompilations when implementation dependencies change since the consumer would not need to be recompiled
 
-
+[[sec:cpp_library_conventions]]
 == Conventions
 
 The {cpp} Library Plugin adds conventions for sources and tasks, shown below.
 
+[[sec:cpp_library_layout]]
 === Project layout
 
 The {cpp} Library Plugin assumes the project layout shown below.
@@ -228,6 +234,7 @@ Public headers - headers needed to compile the library and required by consumers
 
 You <<building_cpp_projects.adoc#sec:custom_cpp_source_set_paths,configure the project layout>> by configuring the `source`, `privateHeaders` and `publicHeaders` respectively on the `library` script block.
 
+[[sec:cpp_library_compile_task]]
 === `compile__Variant__Cpp` Task
 
 The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[CppCompile] instance for each variant of the library component to build (e.g. `compileDebugCpp` and `compileReleaseCpp`).
@@ -257,6 +264,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:toolChain[toolChain]:: <<building_cpp_projects.adoc#cpp_supported_tool_chain,automatically selected based on target machine>>
 
+[[sec:cpp_library_link_task]]
 === `link__Variant__` Task
 
 The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.LinkSharedLibrary.html[LinkSharedLibrary] instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
@@ -278,6 +286,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:toolChain[toolChain]:: <<building_cpp_projects.adoc#cpp_supported_tool_chain,automatically selected based on target machine>>
 
+[[sec:cpp_library_create_task]]
 === `create__Variant__` Task
 
 The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CreateStaticLibrary.html[CreateStaticLibrary] instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
