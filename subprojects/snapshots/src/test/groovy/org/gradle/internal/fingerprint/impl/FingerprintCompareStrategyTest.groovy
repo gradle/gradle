@@ -45,7 +45,6 @@ class FingerprintCompareStrategyTest extends Specification {
         where:
         strategy     | includeAdded
         NORMALIZED   | true
-        NORMALIZED   | false
         IGNORED_PATH | true
         IGNORED_PATH | false
         ABSOLUTE     | true
@@ -56,32 +55,26 @@ class FingerprintCompareStrategyTest extends Specification {
     def "trivial addition (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["one-new": fingerprint("one")],
+            ["new/one": fingerprint("one")],
             [:]
         ) as List == results
 
         where:
         strategy     | includeAdded | results
-        NORMALIZED   | true         | [added("one-new": "one")]
-        NORMALIZED   | false        | []
-        IGNORED_PATH | true         | [added("one-new": "one")]
+        NORMALIZED   | true         | [added("new/one": "one")]
+        IGNORED_PATH | true         | [added("new/one": "one")]
         IGNORED_PATH | false        | []
-        ABSOLUTE     | true         | [added("one-new": "one")]
+        ABSOLUTE     | true         | [added("new/one": "one")]
         ABSOLUTE     | false        | []
     }
 
     @Unroll
-    def "non-trivial addition (#strategy, include added: #includeAdded)"() {
+    def "non-trivial addition"() {
         expect:
-        changes(strategy, includeAdded,
-            ["one-new": fingerprint("one"), "two-new": fingerprint("two")],
-            ["one-old": fingerprint("one")]
-        ) == results
-
-        where:
-        strategy   | includeAdded | results
-        NORMALIZED | true         | [added("two-new": "two")]
-        NORMALIZED | false        | []
+        changes(NORMALIZED, true,
+            ["new/one": fingerprint("one"), "new/two": fingerprint("two")],
+            ["old/one": fingerprint("one")]
+        ) == [added("new/two": "two")]
     }
 
     @Unroll
@@ -103,29 +96,23 @@ class FingerprintCompareStrategyTest extends Specification {
         expect:
         changes(strategy, includeAdded,
             [:],
-            ["one-old": fingerprint("one")]
-        ) as List == [removed("one-old": "one")]
+            ["old/one": fingerprint("one")]
+        ) as List == [removed("old/one": "one")]
 
         where:
         strategy   | includeAdded
         NORMALIZED | true
-        NORMALIZED | false
         ABSOLUTE   | true
         ABSOLUTE   | false
     }
 
     @Unroll
-    def "non-trivial removal (#strategy, include added: #includeAdded)"() {
+    def "non-trivial removal"() {
         expect:
-        changes(strategy, includeAdded,
-            ["one-new": fingerprint("one")],
-            ["one-old": fingerprint("one"), "two-old": fingerprint("two")]
-        ) == [removed("two-old": "two")]
-
-        where:
-        strategy   | includeAdded
-        NORMALIZED | true
-        NORMALIZED | false
+        changes(NORMALIZED, true,
+            ["new/one": fingerprint("one")],
+            ["old/one": fingerprint("one"), "old/two": fingerprint("two")]
+        ) == [removed("old/two": "two")]
     }
 
     @Unroll
@@ -143,29 +130,21 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "non-trivial modification (#strategy, include added: #includeAdded)"() {
+    def "non-trivial modification"() {
         expect:
-        changes(strategy, includeAdded,
-            ["one-new": fingerprint("one"), "two-new": fingerprint("two", 0x9876cafe)],
-            ["one-old": fingerprint("one"), "two-old": fingerprint("two", 0xface1234)]
-        ) == [modified("two-new": "two", FileType.RegularFile, FileType.RegularFile)]
-
-        where:
-        strategy   | includeAdded
-        NORMALIZED | true
-        NORMALIZED | false
+        changes(NORMALIZED, true,
+            ["new/one": fingerprint("one"), "new/two": fingerprint("two", 0x9876cafe)],
+            ["old/one": fingerprint("one"), "old/two": fingerprint("two", 0xface1234)]
+        ) == [modified("old/two": "two", FileType.RegularFile, FileType.RegularFile)]
     }
 
     @Unroll
-    def "non-trivial modification with re-ordering and same normalized paths (UNORDERED, include added: #includeAdded)"() {
+    def "non-trivial modification with re-ordering and same normalized paths (UNORDERED)"() {
         expect:
-        changes(NORMALIZED, includeAdded,
-            ["two-new": fingerprint("", 0x9876cafe), "one-new": fingerprint("")],
-            ["one-old": fingerprint(""), "two-old": fingerprint("", 0xface1234)]
-        ) == [modified("two-new": "", FileType.RegularFile, FileType.RegularFile)]
-
-        where:
-        includeAdded << [true, false]
+        changes(NORMALIZED, true,
+            ["new/two": fingerprint("", 0x9876cafe), "new/one": fingerprint("")],
+            ["old/one": fingerprint(""), "old/two": fingerprint("", 0xface1234)]
+        ) == [modified("old/two": "", FileType.RegularFile, FileType.RegularFile)]
     }
 
     @Unroll
@@ -183,31 +162,21 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "trivial replacement (#strategy, include added: #includeAdded)"() {
+    def "trivial replacement"() {
         expect:
-        changes(strategy, includeAdded,
-            ["two-new": fingerprint("two")],
-            ["one-old": fingerprint("one")]
-        ) as List == results
-
-        where:
-        strategy   | includeAdded | results
-        NORMALIZED | true         | [removed("one-old": "one"), added("two-new": "two")]
-        NORMALIZED | false        | [removed("one-old": "one")]
+        changes(NORMALIZED, true,
+            ["new/two": fingerprint("two")],
+            ["old/one": fingerprint("one")]
+        ) == [removed("old/one": "one"), added("new/two": "two")]
     }
 
     @Unroll
-    def "non-trivial replacement (#strategy, include added: #includeAdded)"() {
+    def "non-trivial replacement"() {
         expect:
-        changes(strategy, includeAdded,
-            ["one-new": fingerprint("one"), "two-new": fingerprint("two"), "four-new": fingerprint("four")],
-            ["one-old": fingerprint("one"), "three-old": fingerprint("three"), "four-old": fingerprint("four")]
-        ) == results
-
-        where:
-        strategy   | includeAdded | results
-        NORMALIZED | true         | [removed("three-old": "three"), added("two-new": "two")]
-        NORMALIZED | false        | [removed("three-old": "three")]
+        changes(NORMALIZED, true,
+            ["new/one": fingerprint("one"), "new/two": fingerprint("two"), "new/four": fingerprint("four")],
+            ["old/one": fingerprint("one"), "old/three": fingerprint("three"), "old/four": fingerprint("four")]
+        ) == [removed("old/three": "three"), added("new/two": "two")]
     }
 
     @Unroll
@@ -227,15 +196,10 @@ class FingerprintCompareStrategyTest extends Specification {
     @Unroll
     def "reordering (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy, includeAdded,
-            ["one-new": fingerprint("one"), "two-new": fingerprint("two"), "three-new": fingerprint("three")],
-            ["one-old": fingerprint("one"), "three-old": fingerprint("three"), "two-old": fingerprint("two")]
-        ) == results
-
-        where:
-        strategy   | includeAdded | results
-        NORMALIZED | true         | []
-        NORMALIZED | false        | []
+        changes(NORMALIZED, true,
+            ["new/one": fingerprint("one"), "new/two": fingerprint("two"), "new/three": fingerprint("three")],
+            ["old/one": fingerprint("one"), "old/three": fingerprint("three"), "old/two": fingerprint("two")]
+        ) == []
     }
 
     @Unroll
@@ -253,17 +217,12 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     @Unroll
-    def "handling duplicates (#strategy, include added: #includeAdded)"() {
+    def "handling duplicates"() {
         expect:
-        changes(strategy, includeAdded,
-            ["one-new-1": fingerprint("one"), "one-new-2": fingerprint("one"), "two-new": fingerprint("two")],
-            ["one-old-1": fingerprint("one"), "one-old-2": fingerprint("one"), "two-old": fingerprint("two")]
+        changes(NORMALIZED, true,
+            ["new/one-1": fingerprint("one"), "new/one-2": fingerprint("one"), "new/two": fingerprint("two")],
+            ["old/one-1": fingerprint("one"), "old/one-2": fingerprint("one"), "old/two": fingerprint("two")]
         ) == []
-
-        where:
-        strategy   | includeAdded
-        NORMALIZED | true
-        NORMALIZED | false
     }
 
     @Unroll
