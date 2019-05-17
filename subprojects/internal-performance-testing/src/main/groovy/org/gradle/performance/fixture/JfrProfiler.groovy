@@ -59,9 +59,8 @@ class JfrProfiler extends Profiler implements Stoppable {
 
     @Override
     List<String> getAdditionalJvmOpts(BuildExperimentSpec spec) {
-        def jfrFile = getJfrFile(spec)
-        jfrFile.parentFile.mkdirs()
-        getJvmOpts(!useDaemon(spec), jfrFile)
+        def jfrOutputDir = getJfrOutputDirectory(spec)
+        getJvmOpts(!useDaemon(spec), jfrOutputDir)
     }
 
     private List<String> getJvmOpts(boolean startRecordingImmediately, File jfrOutputLocation) {
@@ -90,10 +89,12 @@ class JfrProfiler extends Profiler implements Stoppable {
         pid.gradleArgs
     }
 
-    private File getJfrFile(BuildExperimentSpec spec) {
+    private File getJfrOutputDirectory(BuildExperimentSpec spec) {
         def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
         def baseDir = new File(logDirectory, fileSafeName)
-        new File(baseDir, "profile.jfr")
+        def outputDir = new File(baseDir, "jfr-recordings")
+        outputDir.mkdirs()
+        return outputDir
     }
 
     void start(BuildExperimentSpec spec) {
@@ -103,11 +104,12 @@ class JfrProfiler extends Profiler implements Stoppable {
     }
 
     void stop(BuildExperimentSpec spec) {
-        def jfrFile = getJfrFile(spec)
+        def jfrOutputDir = getJfrOutputDirectory(spec)
         if (useDaemon(spec)) {
+            def jfrFile = new File(jfrOutputDir, "profile.jfr")
             jCmd.execute(pid.pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
         }
-        flameGraphGenerator.generateGraphs(jfrFile)
+        flameGraphGenerator.generateGraphs(jfrOutputDir)
     }
 
     @Override
