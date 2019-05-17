@@ -21,12 +21,29 @@ import org.gradle.api.Incubating;
 /**
  * Marker interface for parameter objects to {@link TransformAction}s.
  *
+ * <p>
+ *     Parameter types should use be interfaces, only declaring getters for {@link org.gradle.api.provider.Property} like objects.
+ *     All getters need to be annotated one of the input annotations {@link org.gradle.api.tasks.Console}, {@link org.gradle.api.tasks.Input}, {@link org.gradle.api.tasks.InputDirectory}, {@link org.gradle.api.tasks.InputFile}, {@link org.gradle.api.tasks.InputFiles}, {@link org.gradle.api.tasks.Internal} or {@link org.gradle.api.model.ReplacedBy}.
+ *     Normalization annotations such as {@link org.gradle.api.tasks.PathSensitive} or {@link org.gradle.api.tasks.Classpath} can be used as well.
+ *     Example:
+ * </p>
+ * <pre>
+ * interface MyParameters extends TransformParameters {
+ *     {@literal @}Input
+ *     Property&lt;String&gt; getStringParameter();
+ *     {@literal @}InputFiles
+ *     ConfigurableFileCollection getInputFiles();
+ * }
+ * </pre>
+ *
  * @since 5.3
  */
 @Incubating
 public interface TransformParameters {
     /**
      * Used for {@link TransformAction}s without parameters.
+     *
+     * <p>When {@link None} is used as parameters, calling {@link TransformAction#getParameters()} throws an exception.</p>
      *
      * @since 5.3
      */

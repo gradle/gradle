@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts.transform;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 import javax.inject.Inject;
@@ -23,13 +24,33 @@ import javax.inject.Inject;
 /**
  * Interface for artifact transform actions.
  *
- * <p>Implementations must provide a public constructor.</p>
+ * <p>
+ *     A transform action implementation is an abstract class implementing the {@link #transform(TransformOutputs)} method.
+ *     The abstract methods will be created by Gradle when possible.
+ *     A minimal implementation may look like this:
+ * </p>
  *
- * <p>Implementations can receive parameters by using annotated abstract getter methods.</p>
+ * <pre>
+ * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+ *     {@literal @}InputArtifact
+ *     abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
  *
- * <p>A property annotated with {@link InputArtifact} will receive the <em>input artifact</em> location, which is the file or directory that the transform should be applied to.
+ *     {@literal @}Override
+ *     public void transform(TransformOutputs outputs) {
+ *         File input = getInputArtifact().get().getAsFile();
+ *         File output = outputs.file(input.getName() + ".transformed");
+ *         // Do something to generate output from input
+ *     }
+ * }
+ * </pre>
  *
- * <p>A property annotated with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its input artifact.
+ * <ul>
+ *     <li>Do not implement {@link #getParameters()} in your class, the method will be implemented by Gradle.</li>
+ *     <li>Implementations must provide a public constructor.</li>
+ *     <li>Implementations can receive parameters by using annotated abstract getter methods.</li>
+ *     <li>A property annotated with {@link InputArtifact} will receive the <em>input artifact</em> location, which is the file or directory that the transform should be applied to.</li>
+ *     <li>A property annotated with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its input artifact.</li>
+ * </ul>
  *
  * @param <T> Parameter type for the transform action. Should be {@link TransformParameters.None} if the action does not have parameters.
  * @since 5.3
@@ -38,13 +59,20 @@ import javax.inject.Inject;
 public interface TransformAction<T extends TransformParameters> {
 
     /**
-     * The object provided by {@link TransformSpec#getParameters()}.
+     * The object provided by {@link TransformSpec#getParameters()} when registering the artifact transform.
+     *
+     * <p>
+     *     Do not implement this method in your subclass.
+     *     Gradle provides the implementation when registering the transform action via {@link org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(Class, Action)}.
+     * </p>
      */
     @Inject
     T getParameters();
 
     /**
      * Executes the transform.
+     *
+     * <p>This method must be overwritten in the subclass.</p>
      *
      * @param outputs Receives the outputs of the transform.
      */

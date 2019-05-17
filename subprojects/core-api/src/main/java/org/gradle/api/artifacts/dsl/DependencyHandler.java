@@ -451,6 +451,40 @@ public interface DependencyHandler extends ExtensionAware {
     /**
      * Registers an artifact transform.
      *
+     * <p>
+     *     The registration action needs to specify the {@code from} and {@code to} attributes.
+     *     It may also provide parameters for the transform action by using {@link TransformSpec#parameters(Action)}.
+     * </p>
+     *
+     * <p>Example: When you have a transform action like this:</p>
+     *
+     * <pre>
+     * abstract class MyTransform implements TransformAction&lt;Parameters&gt; {
+     *     interface Parameters extends TransformParameters {
+     *         {@literal @}Input
+     *         Property&lt;String&gt; getStringParameter();
+     *         {@literal @}InputFiles
+     *         ConfigurableFileCollection getInputFiles();
+     *     }
+     *
+     *     ...
+     * }
+     * </pre>
+     *
+     * Then you can register the action like this:
+     *
+     * <pre>
+     * registerTransform(MyTransform) {
+     *     from.attribute(artifactType, "jar")
+     *     to.attribute(artifactType, "java-classes-directory")
+     *
+     *     parameters {
+     *         stringParameter.set("Some string")
+     *         inputFiles.from("my-input-file")
+     *     }
+     * }
+     * </pre>
+     *
      * @see TransformAction
      * @since 5.3
      */
