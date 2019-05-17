@@ -27,8 +27,7 @@ dependencies {
 }
 
 gradlebuildJava {
-    // Needs to run in the compiler daemon
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

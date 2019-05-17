@@ -12,6 +12,8 @@ dependencies {
     compile(project(":toolingApi"))
     compile(project(":compositeBuilds"))
     compile(project(":workers"))
+
+    implementation(library("commons_io"))
 }
 
 gradlebuildJava {

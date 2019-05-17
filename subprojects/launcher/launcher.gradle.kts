@@ -12,20 +12,20 @@ dependencies {
     compileOnly(project(":launcherBootstrap"))
     compileOnly(project(":launcherStartup"))
 
-    compile(project(":baseServices"))
-    compile(project(":jvmServices"))
-    compile(project(":core"))
-    compile(project(":cli"))
-    compile(project(":buildOption"))
-    compile(project(":toolingApi"))
-    compile(project(":native"))
-    compile(project(":logging"))
-    compile(project(":docs"))
+    runtimeOnly(project(":baseServices"))
+    runtimeOnly(project(":jvmServices"))
+    runtimeOnly(project(":core"))
+    runtimeOnly(project(":cli"))
+    runtimeOnly(project(":buildOption"))
+    runtimeOnly(project(":toolingApi"))
+    runtimeOnly(project(":native"))
+    runtimeOnly(project(":logging"))
+    runtimeOnly(project(":docs"))
 
-    compile(library("asm"))
-    compile(library("commons_io"))
-    compile(library("commons_lang"))
-    compile(library("slf4j_api"))
+    runtimeOnly(library("asm"))
+    runtimeOnly(library("commons_io"))
+    runtimeOnly(library("commons_lang"))
+    runtimeOnly(library("slf4j_api"))
 
     integTestCompile(project(":internalIntegTesting"))
     integTestRuntime(project(":plugins"))
@@ -53,7 +53,7 @@ if (currentJavaInstallation.javaVersion.isJava8) {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.STARTUP
 }
 
 testFixtures {
