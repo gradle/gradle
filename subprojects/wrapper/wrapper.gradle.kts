@@ -1,8 +1,5 @@
-import java.util.jar.Attributes
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +13,18 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
+import java.util.jar.Attributes
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
-    id 'gradlebuild.classycle'
+    gradlebuild.classycle
 }
 
 dependencies {
-    compile project(":cli")
+    implementation(project(":cli"))
 
-    testCompile libraries.ant.coordinates
+    testImplementation(library("ant"))
 }
 
 gradlebuildJava {
@@ -31,19 +32,20 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
 
-tasks.register("executableJar", Jar) {
-    archiveName = 'gradle-wrapper.jar'
+tasks.register<Jar>("executableJar") {
+    archiveFileName.set("gradle-wrapper.jar")
     manifest {
         attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
-        attributes([(Attributes.Name.IMPLEMENTATION_TITLE.toString()): "Gradle Wrapper"])
+        attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
     }
-    from sourceSets.main.output
-    from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
+    from(sourceSets.main.get().output)
+    from(configurations.runtimeClasspath.get().allDependencies.withType<ProjectDependency>().map { it.dependencyProject.sourceSets.main.get().output })
 }
 
+val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
 integTestTasks.configureEach {
     binaryDistributions.binZipRequired = true
 }

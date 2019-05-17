@@ -130,7 +130,6 @@ rootProject.name = "gradle"
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = hashSetOf(
     "distributions",
-    "wrapper",
     "docs",
     "performance",
     "testing-base",
