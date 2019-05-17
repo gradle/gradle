@@ -21,6 +21,7 @@ import com.google.common.io.Files
 import com.google.common.io.Resources
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
+import org.apache.commons.io.FileUtils
 import org.gradle.api.JavaVersion
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.performance.util.JCmd
@@ -99,12 +100,8 @@ class JfrProfiler extends Profiler implements Stoppable {
 
     void start(BuildExperimentSpec spec) {
         // Remove any profiles created during warmup
-        def jfrOutputDir = getJfrOutputDirectory(spec)
-        jfrOutputDir.listFiles()
-            .findAll { it.name.endsWith(".jfr") }
-            .forEach { File file ->
-                file.delete()
-            }
+        // TODO Should not run warmup runs with the profiler enabled for no daemon cases – https://github.com/gradle/gradle/issues/9458
+        FileUtils.cleanDirectory(getJfrOutputDirectory(spec))
         if (useDaemon(spec)) {
             jCmd.execute(pid.pid, "JFR.start", "name=profile", "settings=$config")
         }
