@@ -34,6 +34,7 @@ class PropertiesRenderer implements ClassDocMemberRenderer {
         extensionPropertiesSummaryRenderer = new ExtensionPropertiesSummaryRenderer(propertyTableRenderer);
     }
 
+    @Override
     public void renderSummaryTo(ClassDoc classDoc, Element parent) {
         Document document = parent.getOwnerDocument();
 
@@ -68,6 +69,7 @@ class PropertiesRenderer implements ClassDocMemberRenderer {
         }
     }
 
+    @Override
     public void renderDetailsTo(ClassDoc classDoc, Element parent) {
         if (hasProperties(classDoc)) {
             Document document = parent.getOwnerDocument();

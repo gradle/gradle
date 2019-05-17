@@ -51,6 +51,7 @@ class SerializedOperationFinish implements SerializedOperation {
         this.failureMsg = (String) map.get("failure");
     }
 
+    @Override
     public Map<String, ?> toMap() {
         ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 

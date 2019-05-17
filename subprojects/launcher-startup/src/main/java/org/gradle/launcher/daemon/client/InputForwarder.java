@@ -67,6 +67,7 @@ public class InputForwarder implements Stoppable {
 
             forwardingExecuter = executorFactory.create("Forward input");
             forwardingExecuter.execute(new Runnable() {
+                @Override
                 public void run() {
                     byte[] buffer = new byte[bufferSize];
                     int readCount;
@@ -105,6 +106,7 @@ public class InputForwarder implements Stoppable {
         return this;
     }
 
+    @Override
     public void stop() {
         lifecycleLock.lock();
         try {

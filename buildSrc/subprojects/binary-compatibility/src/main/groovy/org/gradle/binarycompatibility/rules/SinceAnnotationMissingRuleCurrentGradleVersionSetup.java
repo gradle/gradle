@@ -29,6 +29,7 @@ public class SinceAnnotationMissingRuleCurrentGradleVersionSetup implements Setu
         this.currentVersion = currentVersion.get("currentVersion");
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContext context) {
         Map<String, Object> userData = (Map<String, Object>) context.getUserData();

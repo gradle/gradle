@@ -48,6 +48,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository, metadataFactory);
     }
 
+    @Override
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
         validateMetadata(publication);
         validateArtifacts(publication);

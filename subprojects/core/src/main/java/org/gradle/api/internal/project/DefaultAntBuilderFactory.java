@@ -34,6 +34,7 @@ public class DefaultAntBuilderFactory implements Factory<AntBuilder>, Closeable 
         this.loggingAdapterFactory = loggingAdapterFactory;
     }
 
+    @Override
     public DefaultAntBuilder create() {
         AntLoggingAdapter loggingAdapter = loggingAdapterFactory.create();
         DefaultAntBuilder antBuilder = new DefaultAntBuilder(project, loggingAdapter);
@@ -44,6 +45,7 @@ public class DefaultAntBuilderFactory implements Factory<AntBuilder>, Closeable 
         return antBuilder;
     }
 
+    @Override
     public void close() {
         stoppable.stop();
     }

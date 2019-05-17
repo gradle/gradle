@@ -645,16 +645,20 @@ public abstract class CollectionUtils {
         return new Iterable<T>() {
             private final Iterator<? extends Factory<? extends T>> delegate = factories.iterator();
 
+            @Override
             public Iterator<T> iterator() {
                 return new Iterator<T>() {
+                    @Override
                     public boolean hasNext() {
                         return delegate.hasNext();
                     }
 
+                    @Override
                     public T next() {
                         return delegate.next().create();
                     }
 
+                    @Override
                     public void remove() {
                         throw new UnsupportedOperationException();
                     }

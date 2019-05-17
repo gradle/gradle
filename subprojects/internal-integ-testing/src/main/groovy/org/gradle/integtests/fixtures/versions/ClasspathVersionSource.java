@@ -38,6 +38,7 @@ public class ClasspathVersionSource implements Factory<Properties> {
         this.classLoader = classLoader;
     }
 
+    @Override
     public Properties create() {
         URL resource = classLoader.getResource(resourceName);
         if (resource == null) {

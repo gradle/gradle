@@ -113,6 +113,7 @@ public class DefaultResolutionResultBuilder {
             this.rootModule = rootModule;
         }
 
+        @Override
         public ResolvedComponentResult create() {
             return rootModule;
         }

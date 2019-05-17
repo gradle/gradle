@@ -52,11 +52,13 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         this.classLoaderFactory = payloadClassLoaderFactory;
     }
 
+    @Override
     public SerializeMap newSerializeSession() {
         return new SerializeMap() {
             final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
             final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
 
+            @Override
             public short visitClass(Class<?> target) {
                 ClassLoader classLoader = target.getClassLoader();
                 Short id = classLoaderIds.get(classLoader);
@@ -82,8 +84,10 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         };
     }
 
+    @Override
     public DeserializeMap newDeserializeSession() {
         return new DeserializeMap() {
+            @Override
             public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
                 ClassLoader classLoader = getClassLoader(classLoaderDetails);
                 return Class.forName(className, false, classLoader);
@@ -141,6 +145,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     }
 
     private class ClassLoaderToDetailsTransformer implements Transformer<ClassLoader, ClassLoaderDetails> {
+        @Override
         public ClassLoader transform(ClassLoaderDetails details) {
             List<ClassLoader> parents = new ArrayList<ClassLoader>();
             for (ClassLoaderDetails parentDetails : details.parents) {
@@ -157,6 +162,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     }
 
     private class DetailsToClassLoaderTransformer implements Transformer<ClassLoaderDetails, ClassLoader> {
+        @Override
         public ClassLoaderDetails transform(ClassLoader classLoader) {
             ClassLoaderSpecVisitor visitor = new ClassLoaderSpecVisitor(classLoader);
             visitor.visit(classLoader);

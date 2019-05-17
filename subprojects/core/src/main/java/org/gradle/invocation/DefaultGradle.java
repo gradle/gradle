@@ -248,6 +248,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public void allprojects(final Action<? super Project> action) {
         rootProject("Gradle.allprojects", new Action<Project>() {
+            @Override
             public void execute(Project project) {
                 project.allprojects(action);
             }
@@ -431,6 +432,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return services;
     }
 
+    @Override
     @Inject
     public ServiceRegistryFactory getServiceRegistryFactory() {
         throw new UnsupportedOperationException();
@@ -481,11 +483,13 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         throw new UnsupportedOperationException();
     }
 
+    @Override
     @Inject
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     @Inject
     public PublicBuildPath getPublicBuildPath() {
         throw new UnsupportedOperationException();

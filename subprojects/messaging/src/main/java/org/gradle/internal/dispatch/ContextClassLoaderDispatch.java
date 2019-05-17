@@ -25,6 +25,7 @@ public class ContextClassLoaderDispatch<T> implements Dispatch<T> {
         this.contextClassLoader = contextClassLoader;
     }
 
+    @Override
     public void dispatch(T message) {
         ClassLoader original = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(contextClassLoader);

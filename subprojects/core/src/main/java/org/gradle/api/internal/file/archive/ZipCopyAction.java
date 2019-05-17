@@ -70,6 +70,7 @@ public class ZipCopyAction implements CopyAction {
         this.preserveFileTimestamps = preserveFileTimestamps;
     }
 
+    @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
         final ZipOutputStream zipOutStr;
 
@@ -81,6 +82,7 @@ public class ZipCopyAction implements CopyAction {
 
         try {
             IoActions.withResource(zipOutStr, new Action<ZipOutputStream>() {
+                @Override
                 public void execute(ZipOutputStream outputStream) {
                     stream.process(new StreamAction(outputStream, encoding));
                 }
@@ -106,6 +108,7 @@ public class ZipCopyAction implements CopyAction {
             }
         }
 
+        @Override
         public void processFile(FileCopyDetailsInternal details) {
             if (details.isDirectory()) {
                 visitDir(details);

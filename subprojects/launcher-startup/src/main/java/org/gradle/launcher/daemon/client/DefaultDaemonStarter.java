@@ -68,6 +68,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         this.versionValidator = versionValidator;
     }
 
+    @Override
     public DaemonStartupInfo startDaemon(boolean singleUse) {
         String daemonUid = UUID.randomUUID().toString();
 

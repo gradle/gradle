@@ -31,6 +31,7 @@ public class MatchingCopyAction implements Action<FileCopyDetails> {
         this.toApply = toApply;
     }
 
+    @Override
     public void execute(FileCopyDetails details) {
         if (matchSpec.isSatisfiedBy(details.getRelativeSourcePath())) {
             toApply.execute(details);

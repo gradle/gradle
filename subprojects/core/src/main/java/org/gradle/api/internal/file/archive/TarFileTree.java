@@ -68,14 +68,17 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         this.fileHasher = fileHasher;
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("TAR '%s'", resource.getDisplayName());
     }
 
+    @Override
     public DirectoryFileTree getMirror() {
         return directoryFileTreeFactory.create(getExpandedDir());
     }
 
+    @Override
     public void visit(FileVisitor visitor) {
         InputStream inputStream;
         try {
@@ -114,6 +117,7 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         }
     }
 
+    @Override
     public File getBackingFile() {
         if (tarFile != null) {
             return tarFile;
@@ -205,14 +209,17 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
             this.stopFlag = stopFlag;
         }
 
+        @Override
         public String getDisplayName() {
             return String.format("tar entry %s!%s", resource.getDisplayName(), entry.getName());
         }
 
+        @Override
         public void stopVisiting() {
             stopFlag.set(true);
         }
 
+        @Override
         public File getFile() {
             if (file == null) {
                 file = new File(expandedDir, entry.getName());
@@ -223,18 +230,22 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
             return file;
         }
 
+        @Override
         public long getLastModified() {
             return entry.getModTime().getTime();
         }
 
+        @Override
         public boolean isDirectory() {
             return entry.isDirectory();
         }
 
+        @Override
         public long getSize() {
             return entry.getSize();
         }
 
+        @Override
         public InputStream open() {
             if (read && file != null) {
                 return GFileUtils.openInputStream(file);
@@ -246,10 +257,12 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
             return tar;
         }
 
+        @Override
         public RelativePath getRelativePath() {
             return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
         }
 
+        @Override
         public int getMode() {
             return entry.getMode() & 0777;
         }

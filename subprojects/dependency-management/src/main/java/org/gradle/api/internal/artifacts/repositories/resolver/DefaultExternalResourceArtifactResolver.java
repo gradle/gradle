@@ -59,6 +59,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return null;
     }
 
+    @Override
     public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
         if (artifact instanceof ModuleDescriptorArtifactMetadata) {
             return downloadStaticResource(ivyPatterns, artifact, result);
@@ -66,6 +67,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return downloadStaticResource(artifactPatterns, artifact, result);
     }
 
+    @Override
     public boolean artifactExists(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
         return staticResourceExists(artifactPatterns, artifact, result);
     }

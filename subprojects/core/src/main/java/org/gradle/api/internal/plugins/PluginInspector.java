@@ -60,18 +60,22 @@ public class PluginInspector {
             this.clazz = clazz;
         }
 
+        @Override
         public Class<T> asClass() {
             return clazz;
         }
 
+        @Override
         public boolean isImperative() {
             return true;
         }
 
+        @Override
         public Type getType() {
             return Type.IMPERATIVE_CLASS;
         }
 
+        @Override
         public boolean isHasRules() {
             return false;
         }
@@ -85,18 +89,22 @@ public class PluginInspector {
             this.clazz = clazz;
         }
 
+        @Override
         public Class<T> asClass() {
             return clazz;
         }
 
+        @Override
         public boolean isImperative() {
             return true;
         }
 
+        @Override
         public boolean isHasRules() {
             return true;
         }
 
+        @Override
         public Type getType() {
             return Type.HYBRID_IMPERATIVE_AND_RULES_CLASS;
         }
@@ -111,18 +119,22 @@ public class PluginInspector {
             this.clazz = clazz;
         }
 
+        @Override
         public Class<T> asClass() {
             return clazz;
         }
 
+        @Override
         public boolean isImperative() {
             return false;
         }
 
+        @Override
         public Type getType() {
             return Type.PURE_RULE_SOURCE_CLASS;
         }
 
+        @Override
         public boolean isHasRules() {
             return false;
         }
@@ -136,18 +148,22 @@ public class PluginInspector {
             this.clazz = clazz;
         }
 
+        @Override
         public Class<T> asClass() {
             return clazz;
         }
 
+        @Override
         public boolean isImperative() {
             return false;
         }
 
+        @Override
         public boolean isHasRules() {
             return false;
         }
 
+        @Override
         public Type getType() {
             return Type.UNKNOWN;
         }

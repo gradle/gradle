@@ -31,10 +31,12 @@ import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 
 public class CompileServices extends AbstractPluginServiceRegistry {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JvmBinaryRenderer.class);
     }
 
+    @Override
     public void registerGradleServices(ServiceRegistration registration) {
         registration.addProvider(new GradleScopeCompileServices());
     }

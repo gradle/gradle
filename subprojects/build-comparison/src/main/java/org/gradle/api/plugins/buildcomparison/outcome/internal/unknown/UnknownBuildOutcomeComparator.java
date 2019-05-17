@@ -21,10 +21,12 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssoc
 
 public class UnknownBuildOutcomeComparator implements BuildOutcomeComparator<UnknownBuildOutcome, UnknownBuildOutcomeComparisonResult> {
 
+    @Override
     public Class<UnknownBuildOutcome> getComparedType() {
         return UnknownBuildOutcome.class;
     }
 
+    @Override
     public UnknownBuildOutcomeComparisonResult compare(BuildOutcomeAssociation<UnknownBuildOutcome> association) {
         return new UnknownBuildOutcomeComparisonResult(association);
     }

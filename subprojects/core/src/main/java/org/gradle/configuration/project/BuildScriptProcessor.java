@@ -31,6 +31,7 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
         this.configurerFactory = configurerFactory;
     }
 
+    @Override
     public void execute(final ProjectInternal project) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());

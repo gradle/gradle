@@ -35,14 +35,17 @@ public class ComponentNotFound<T> implements SearchResult<T> {
         this.locations = locations;
     }
 
+    @Override
     public T getComponent() {
         return null;
     }
 
+    @Override
     public boolean isAvailable() {
         return false;
     }
 
+    @Override
     public void explain(DiagnosticsVisitor visitor) {
         visitor.node(message);
         if (!locations.isEmpty()) {

@@ -50,10 +50,12 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         this.parent = parent;
     }
 
+    @Override
     public void register(ToolingModelBuilder builder) {
         builders.add(builder);
     }
 
+    @Override
     public ToolingModelBuilder getBuilder(String modelName) throws UnsupportedOperationException {
         ToolingModelBuilder match = null;
         for (ToolingModelBuilder builder : builders) {
@@ -155,10 +157,12 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     }
 
     private static class VoidToolingModelBuilder implements ToolingModelBuilder {
+        @Override
         public boolean canBuild(String modelName) {
             return modelName.equals(Void.class.getName());
         }
 
+        @Override
         public Object buildAll(String modelName, Project project) {
             return null;
         }

@@ -44,6 +44,7 @@ public class DefaultTaskOutputFilePropertyRegistration extends AbstractTaskFileP
         return this;
     }
 
+    @Override
     public OutputFilePropertyType getPropertyType() {
         return outputFilePropertyType;
     }

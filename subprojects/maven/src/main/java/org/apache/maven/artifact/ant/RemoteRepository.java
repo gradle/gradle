@@ -89,6 +89,7 @@ public class RemoteRepository
         this.releases = releases;
     }
 
+    @Override
     protected String getDefaultId()
     {
         return getUrl();

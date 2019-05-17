@@ -58,6 +58,7 @@ public class ResolvedArtifactCaches implements Stoppable {
         return resolvedArtifactCache;
     }
 
+    @Override
     public void stop() {
         cachePerRepo.clear();
     }

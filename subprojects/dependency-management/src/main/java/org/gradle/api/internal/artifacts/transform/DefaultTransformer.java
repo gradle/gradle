@@ -147,6 +147,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         return isolatedParameters != null;
     }
 
+    @Override
     public boolean requiresDependencies() {
         return requiresDependencies;
     }

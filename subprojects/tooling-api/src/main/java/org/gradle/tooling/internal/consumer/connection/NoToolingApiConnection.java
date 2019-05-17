@@ -35,17 +35,21 @@ public class NoToolingApiConnection implements ConsumerConnection {
         this.distribution = distribution;
     }
 
+    @Override
     public void stop() {
     }
 
+    @Override
     public String getDisplayName() {
         return distribution.getDisplayName();
     }
 
+    @Override
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "1.2");
     }
 
+    @Override
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "1.8");
     }
@@ -55,6 +59,7 @@ public class NoToolingApiConnection implements ConsumerConnection {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "4.8");
     }
 
+    @Override
     public void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "2.6");
     }

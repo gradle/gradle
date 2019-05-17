@@ -55,6 +55,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
         );
     }
 
+    @Override
     public Address start(final IncomingConnectionHandler handler, final Runnable connectionErrorHandler) {
         lifecycleLock.lock();
         try {
@@ -69,6 +70,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
             // thread while we are in the middle here.
 
             Action<ConnectCompletion> connectEvent = new Action<ConnectCompletion>() {
+                @Override
                 public void execute(ConnectCompletion completion) {
                     RemoteConnection<Message> remoteConnection;
                     try {
@@ -89,6 +91,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
         }
     }
 
+    @Override
     public void stop() {
         lifecycleLock.lock();
         try {

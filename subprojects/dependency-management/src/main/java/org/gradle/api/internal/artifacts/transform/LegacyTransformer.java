@@ -54,6 +54,7 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
         this.secondaryInputsHash = hashSecondaryInputs(isolatableParameters, implementationClass, classLoaderHierarchyHasher);
     }
 
+    @Override
     public boolean requiresDependencies() {
         return false;
     }

@@ -52,10 +52,12 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
         return identifier;
     }
 
+    @Override
     public Class<? extends Artifact> getType() {
         return type;
     }
 
+    @Override
     public File getFile() {
         return file;
     }

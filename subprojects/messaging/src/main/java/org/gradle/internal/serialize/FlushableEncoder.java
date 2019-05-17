@@ -26,5 +26,6 @@ public interface FlushableEncoder extends Encoder, Flushable {
     /**
      * Ensures that all buffered data has been written to the backing stream. Does not flush the backing stream.
      */
+    @Override
     void flush() throws IOException;
 }

@@ -33,6 +33,7 @@ public class FixedPatternStep implements PatternStep {
         return "{match: " + value + "}";
     }
 
+    @Override
     public boolean matches(String candidate) {
         return caseSensitive ? candidate.equals(value) : candidate.equalsIgnoreCase(value);
     }

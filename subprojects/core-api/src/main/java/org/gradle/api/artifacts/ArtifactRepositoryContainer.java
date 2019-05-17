@@ -57,6 +57,7 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      *
      * @param repository The repository to add.
      */
+    @Override
     boolean add(ArtifactRepository repository);
 
     /**
@@ -76,20 +77,24 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
     /**
      * {@inheritDoc}
      */
+    @Override
     ArtifactRepository getByName(String name) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
+    @Override
     ArtifactRepository getByName(String name, Closure configureClosure) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
+    @Override
     ArtifactRepository getByName(String name, Action<? super ArtifactRepository> configureAction) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
+    @Override
     ArtifactRepository getAt(String name) throws UnknownRepositoryException;
 }

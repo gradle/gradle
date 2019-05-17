@@ -34,6 +34,7 @@ public class MultiChoiceAddress implements InetEndpoint {
         this.candidates = new ArrayList<InetAddress>(candidates);
     }
 
+    @Override
     public String getDisplayName() {
         return "[" + canonicalAddress + " port:" + port + ", addresses:" + candidates + "]";
     }
@@ -42,10 +43,12 @@ public class MultiChoiceAddress implements InetEndpoint {
         return canonicalAddress;
     }
 
+    @Override
     public List<InetAddress> getCandidates() {
         return candidates;
     }
 
+    @Override
     public int getPort() {
         return port;
     }

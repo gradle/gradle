@@ -27,6 +27,7 @@ public class ExceptionTrackingFailureHandler implements DispatchFailureHandler<O
         this.logger = logger;
     }
 
+    @Override
     public void dispatchFailed(Object message, Throwable failure) {
         if (this.failure != null && !Thread.currentThread().isInterrupted()) {
             logger.error(failure.getMessage(), failure);
@@ -35,6 +36,7 @@ public class ExceptionTrackingFailureHandler implements DispatchFailureHandler<O
         }
     }
 
+    @Override
     public void stop() throws DispatchException {
         if (failure != null) {
             try {

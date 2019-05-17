@@ -35,6 +35,7 @@ public class EndPointQueue implements Dispatch<InterHubMessage> {
         this.condition = condition;
     }
 
+    @Override
     public void dispatch(InterHubMessage message) {
         queue.add(message);
         condition.signalAll();

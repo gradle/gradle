@@ -33,6 +33,7 @@ public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyz
     @Override
     public ClassAnalysis getClassAnalysis(final HashCode classFileHash, final FileTreeElement classFile) {
         return cache.get(classFileHash, new Factory<ClassAnalysis>() {
+            @Override
             public ClassAnalysis create() {
                 return analyzer.getClassAnalysis(classFileHash, classFile);
             }

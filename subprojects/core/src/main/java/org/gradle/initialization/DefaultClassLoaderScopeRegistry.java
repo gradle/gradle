@@ -30,10 +30,12 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
         this.coreAndPluginsScope = new RootClassLoaderScope(loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache);
     }
 
+    @Override
     public ClassLoaderScope getCoreAndPluginsScope() {
         return coreAndPluginsScope;
     }
 
+    @Override
     public ClassLoaderScope getCoreScope() {
         return coreScope;
     }

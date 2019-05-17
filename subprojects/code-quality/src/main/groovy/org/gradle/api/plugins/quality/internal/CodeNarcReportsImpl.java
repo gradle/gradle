@@ -47,14 +47,17 @@ public class CodeNarcReportsImpl extends TaskReportContainer<SingleFileReport> i
         add(TaskGeneratedSingleFileReport.class, "console", task);
     }
 
+    @Override
     public SingleFileReport getXml() {
         return getByName("xml");
     }
 
+    @Override
     public SingleFileReport getHtml() {
         return getByName("html");
     }
 
+    @Override
     public SingleFileReport getText() {
         return getByName("text");
     }

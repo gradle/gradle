@@ -40,6 +40,7 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         return "M2 pattern '" + getPattern() + "'";
     }
 
+    @Override
     public ExternalResourceName getLocation(ModuleComponentArtifactMetadata artifact) {
         Map<String, String> attributes = toAttributes(artifact);
         String pattern = maybeSubstituteTimestamp(artifact, getBase().getPath());
@@ -56,11 +57,13 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         return pattern;
     }
 
+    @Override
     public ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
         Map<String, String> attributes = toAttributes(module, artifact);
         return getBase().getRoot().resolve(substituteTokens(getBase().getPath(), attributes));
     }
 
+    @Override
     public ExternalResourceName toModulePath(ModuleIdentifier module) {
         String pattern = getBase().getPath();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
@@ -70,6 +73,7 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(module)));
     }
 
+    @Override
     public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
         String pattern = getBase().getPath();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
@@ -79,6 +83,7 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(componentIdentifier)));
     }
 
+    @Override
     protected String substituteTokens(String pattern, Map<String, String> attributes) {
         String org = attributes.get(IvyPatternHelper.ORGANISATION_KEY);
         if (org != null) {

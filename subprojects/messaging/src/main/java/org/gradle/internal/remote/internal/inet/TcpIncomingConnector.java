@@ -49,6 +49,7 @@ public class TcpIncomingConnector implements IncomingConnector {
         this.idGenerator = idGenerator;
     }
 
+    @Override
     public ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote) {
         final ServerSocketChannel serverSocket;
         int localPort;
@@ -69,14 +70,17 @@ public class TcpIncomingConnector implements IncomingConnector {
         executor.execute(new Receiver(serverSocket, action, allowRemote));
 
         return new ConnectionAcceptor() {
+            @Override
             public Address getAddress() {
                 return address;
             }
 
+            @Override
             public void requestStop() {
                 CompositeStoppable.stoppable(serverSocket).stop();
             }
 
+            @Override
             public void stop() {
                 requestStop();
                 executor.stop();
@@ -95,6 +99,7 @@ public class TcpIncomingConnector implements IncomingConnector {
             this.allowRemote = allowRemote;
         }
 
+        @Override
         public void run() {
             try {
                 try {

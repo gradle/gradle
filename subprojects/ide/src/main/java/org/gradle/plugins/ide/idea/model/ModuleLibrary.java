@@ -95,10 +95,12 @@ public class ModuleLibrary implements Dependency {
     /**
      * The scope of this library. If <tt>null</tt>, the scope attribute is not added.
      */
+    @Override
     public String getScope() {
         return scope;
     }
 
+    @Override
     public void setScope(String scope) {
         this.scope = scope;
     }

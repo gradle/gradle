@@ -28,12 +28,14 @@ public interface BuildableArtifactResolveResult extends ResolveResult, Buildable
     /**
      * Returns the resolve failure, if any.
      */
+    @Override
     @Nullable
     ArtifactResolveException getFailure();
 
     /**
      * @throws ArtifactResolveException If the resolution was unsuccessful.
      */
+    @Override
     File getResult() throws ArtifactResolveException;
 
     /**

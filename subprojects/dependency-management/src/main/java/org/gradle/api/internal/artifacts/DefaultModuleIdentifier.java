@@ -41,10 +41,12 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
         return new DefaultModuleIdentifier(group, name);
     }
 
+    @Override
     public String getGroup() {
         return group;
     }
 
+    @Override
     public String getName() {
         return name;
     }

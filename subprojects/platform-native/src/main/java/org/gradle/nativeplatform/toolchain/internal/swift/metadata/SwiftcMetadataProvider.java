@@ -91,6 +91,7 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
             this.version = version;
         }
 
+        @Override
         public String getVendor() {
             return versionString;
         }

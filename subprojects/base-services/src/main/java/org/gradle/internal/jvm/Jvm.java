@@ -175,6 +175,7 @@ public class Jvm implements JavaInfo {
     /**
      * {@inheritDoc}
      */
+    @Override
     public File getJavaExecutable() throws JavaHomeException {
         if (javaExecutable != null) {
             return javaExecutable;
@@ -186,6 +187,7 @@ public class Jvm implements JavaInfo {
     /**
      * {@inheritDoc}
      */
+    @Override
     public File getJavacExecutable() throws JavaHomeException {
         if (javacExecutable != null) {
             return javacExecutable;
@@ -197,6 +199,7 @@ public class Jvm implements JavaInfo {
     /**
      * {@inheritDoc}
      */
+    @Override
     public File getJavadocExecutable() throws JavaHomeException {
         if (javadocExecutable != null) {
             return javadocExecutable;
@@ -208,6 +211,7 @@ public class Jvm implements JavaInfo {
     /**
      * {@inheritDoc}
      */
+    @Override
     public File getExecutable(String name) throws JavaHomeException {
         return findExecutable(name);
     }
@@ -223,6 +227,7 @@ public class Jvm implements JavaInfo {
     /**
      * {@inheritDoc}
      */
+    @Override
     public File getJavaHome() {
         return javaHome;
     }
@@ -241,6 +246,7 @@ public class Jvm implements JavaInfo {
     /**
      * {@inheritDoc}
      */
+    @Override
     public File getToolsJar() {
         if (toolsJar != null) {
             return toolsJar;
@@ -315,9 +321,6 @@ public class Jvm implements JavaInfo {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
         return envVars;
     }

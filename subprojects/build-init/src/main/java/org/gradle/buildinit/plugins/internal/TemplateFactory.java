@@ -40,6 +40,7 @@ public class TemplateFactory {
 
     public TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {
         return new ConditionalTemplateOperation(new Factory<Boolean>() {
+            @Override
             public Boolean create() {
                 return fileResolver.resolveFilesAsTree("src/main/" + language.getName()).isEmpty() || fileResolver.resolveFilesAsTree("src/test/" + language.getName()).isEmpty();
             }

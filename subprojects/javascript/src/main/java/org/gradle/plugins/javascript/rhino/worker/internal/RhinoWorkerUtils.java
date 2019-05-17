@@ -39,7 +39,9 @@ public abstract class RhinoWorkerUtils {
     }
 
     public static class DefaultScopeOperation<T> implements ScopeOperation<T> {
+        @Override
         public void initContext(Context context) {}
+        @Override
         public T action(Scriptable scope, Context context) {
             return null;
         }

@@ -24,6 +24,7 @@ import java.util.List;
 
 public abstract class AbstractProjectSpec implements ProjectSpec {
     private static final String UNRELATED_BUILD_HINT = " If this is an unrelated build, it must have its own settings file.";
+    @Override
     public boolean containsProject(ProjectRegistry<? extends ProjectIdentifier> registry) {
         checkPreconditions(registry);
         List<ProjectIdentifier> matches = new ArrayList<ProjectIdentifier>();
@@ -31,6 +32,7 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
         return !matches.isEmpty();
     }
 
+    @Override
     public <T extends ProjectIdentifier> T selectProject(String settingsDescription, ProjectRegistry<? extends T> registry) {
         checkPreconditions(registry);
         List<T> matches = new ArrayList<T>();

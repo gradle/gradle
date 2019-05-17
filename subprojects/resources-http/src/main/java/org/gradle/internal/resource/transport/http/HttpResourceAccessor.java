@@ -34,6 +34,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         this.http = http;
     }
 
+    @Override
     @Nullable
     public HttpResponseResource openResource(final URI uri, boolean revalidate) {
         String location = uri.toString();
@@ -58,6 +59,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         return wrapResponse(uri, response);
     }
 
+    @Override
     public ExternalResourceMetaData getMetaData(URI uri, boolean revalidate) {
         String location = uri.toString();
         LOGGER.debug("Constructing external resource metadata: {}", location);

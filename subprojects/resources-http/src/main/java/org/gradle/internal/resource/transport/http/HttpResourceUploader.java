@@ -32,6 +32,7 @@ public class HttpResourceUploader implements ExternalResourceUploader {
         this.http = http;
     }
 
+    @Override
     public void upload(ReadableContent resource, URI destination) throws IOException {
         HttpPut method = new HttpPut(destination);
         final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);

@@ -31,6 +31,7 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     public DefaultBuildableComponentResolveResult() {
     }
 
+    @Override
     public DefaultBuildableComponentResolveResult failed(ModuleVersionResolveException failure) {
         metadata = null;
         this.failure = failure;
@@ -42,10 +43,12 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         failed(new ModuleVersionNotFoundException(DefaultModuleVersionIdentifier.newId(versionIdentifier), getAttempted()));
     }
 
+    @Override
     public void resolved(ComponentResolveMetadata metaData) {
         this.metadata = metaData;
     }
 
+    @Override
     public void setMetadata(ComponentResolveMetadata metadata) {
         assertResolved();
         this.metadata = metadata;
@@ -57,16 +60,19 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         return metadata.getId();
     }
 
+    @Override
     public ModuleVersionIdentifier getModuleVersionId() throws ModuleVersionResolveException {
         assertResolved();
         return metadata.getModuleVersionId();
     }
 
+    @Override
     public ComponentResolveMetadata getMetadata() throws ModuleVersionResolveException {
         assertResolved();
         return metadata;
     }
 
+    @Override
     public ModuleVersionResolveException getFailure() {
         assertHasResult();
         return failure;
@@ -85,6 +91,7 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         }
     }
 
+    @Override
     public boolean hasResult() {
         return failure != null || metadata != null;
     }

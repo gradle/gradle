@@ -35,6 +35,7 @@ public class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskActi
         this.instantiator = instantiator;
     }
 
+    @Override
     protected void doExecute(Task task, String methodName) {
         InputChangesInternal inputChanges = getInputChanges();
 

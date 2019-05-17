@@ -73,6 +73,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
         return "test";
     }
 
+    @Override
     public SourceFile getSourceFile() {
         return sourceFile("swift", getTestSuiteName() + ".swift",
                 renderImports()

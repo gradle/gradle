@@ -52,6 +52,7 @@ public class ClosureBackedAction<T> implements Action<T> {
         new ClosureBackedAction<T>(closure).execute(delegate);
     }
 
+    @Override
     public void execute(T delegate) {
         if (closure == null) {
             return;

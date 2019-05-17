@@ -36,6 +36,7 @@ public class FileReadableContent implements ReadableContent {
         return file.length();
     }
 
+    @Override
     public InputStream open() {
         try {
             return new FileInputStream(file);

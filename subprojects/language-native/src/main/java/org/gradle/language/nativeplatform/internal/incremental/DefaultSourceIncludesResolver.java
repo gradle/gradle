@@ -431,6 +431,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             return contentHash.hashCode();
         }
 
+        @Override
         IncludeFile toIncludeFile(boolean quotedPath) {
             if (quotedPath) {
                 return new QuotedIncludeFile(file, includePath, contentHash);

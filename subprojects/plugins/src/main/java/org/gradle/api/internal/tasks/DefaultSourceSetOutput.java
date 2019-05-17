@@ -49,10 +49,12 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
         this.outputDirectories = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classes");
         outputDirectories.from(new Callable() {
+            @Override
             public Object call() {
                 return classesDirs;
             }
         }, new Callable() {
+            @Override
             public Object call() {
                 return getResourcesDir();
             }

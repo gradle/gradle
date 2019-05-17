@@ -17,12 +17,15 @@
 package org.gradle.util;
 
 public class NoOpChangeListener<T> implements ChangeListener<T> {
+    @Override
     public void added(T element) {
     }
 
+    @Override
     public void removed(T element) {
     }
 
+    @Override
     public void changed(T element) {
     }
 }

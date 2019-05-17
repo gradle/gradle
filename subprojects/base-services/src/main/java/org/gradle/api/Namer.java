@@ -44,6 +44,7 @@ public interface Namer<T> {
             this.namer = namer;
         }
 
+        @Override
         public int compare(T o1, T o2) {
             return namer.determineName(o1).compareTo(namer.determineName(o2));
         }

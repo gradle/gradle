@@ -36,6 +36,7 @@ public class MultiEndPointQueue implements Dispatch<InterHubMessage> {
         this.lock = lock;
     }
 
+    @Override
     public void dispatch(InterHubMessage message) {
         queue.add(message);
         flush();

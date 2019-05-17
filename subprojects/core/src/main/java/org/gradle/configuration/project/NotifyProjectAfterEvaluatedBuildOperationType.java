@@ -50,10 +50,12 @@ public final class NotifyProjectAfterEvaluatedBuildOperationType implements Buil
             this.buildPath = buildPath;
         }
 
+        @Override
         public String getProjectPath() {
             return projectPath.getPath();
         }
 
+        @Override
         public String getBuildPath() {
             return buildPath.getPath();
         }

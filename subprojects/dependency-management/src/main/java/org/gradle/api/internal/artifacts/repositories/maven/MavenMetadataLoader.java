@@ -72,8 +72,10 @@ public class MavenMetadataLoader {
     private void parseMavenMetadataInto(ExternalResource metadataResource, final MavenMetadata mavenMetadata) {
         LOGGER.debug("parsing maven-metadata: {}", metadataResource);
         metadataResource.withContent(new ErroringAction<InputStream>() {
+            @Override
             public void doExecute(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
                 XMLHelper.parse(inputStream, null, new ContextualSAXHandler() {
+                    @Override
                     public void endElement(String uri, String localName, String qName)
                             throws SAXException {
                         if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {

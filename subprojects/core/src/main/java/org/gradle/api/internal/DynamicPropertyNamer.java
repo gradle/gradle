@@ -24,6 +24,7 @@ import org.gradle.internal.metaobject.DynamicObjectUtil;
 import java.util.Map;
 
 public class DynamicPropertyNamer implements Namer<Object> {
+    @Override
     public String determineName(Object thing) {
         Object name;
         try {

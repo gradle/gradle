@@ -56,8 +56,10 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         return mapping;
     }
 
+    @Override
     public MappedProperty map(String propertyName, final Closure<?> value) {
         return map(propertyName, new MappedPropertyImpl() {
+            @Override
             public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
                 switch (value.getMaximumNumberOfParameters()) {
                     case 0:
@@ -71,8 +73,10 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         });
     }
 
+    @Override
     public MappedProperty map(String propertyName, final Callable<?> value) {
         return map(propertyName, new MappedPropertyImpl() {
+            @Override
             public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
                 return uncheckedCall(value);
             }
@@ -87,6 +91,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         }
     }
 
+    @Override
     public <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue) {
         if (isExplicitValue) {
             return actualValue;
@@ -107,6 +112,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         return returnValue;
     }
 
+    @Override
     public Convention getConvention() {
         return _convention;
     }

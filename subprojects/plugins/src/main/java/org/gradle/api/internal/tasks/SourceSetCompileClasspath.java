@@ -26,10 +26,12 @@ public class SourceSetCompileClasspath implements Classpath {
         this.sourceSet = sourceSet;
     }
 
+    @Override
     public FileCollection getFiles() {
         return sourceSet.getCompileClasspath();
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return sourceSet.getCompileClasspath().getBuildDependencies();
     }

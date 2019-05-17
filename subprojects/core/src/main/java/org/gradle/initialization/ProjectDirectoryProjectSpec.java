@@ -29,10 +29,12 @@ public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
         this.dir = dir;
     }
 
+    @Override
     protected String formatNoMatchesMessage(String settings) {
         return String.format("Project directory '%s' is not part of the build defined by %s.", dir, settings);
     }
 
+    @Override
     protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {
         return String.format("Multiple projects in this build have project directory '%s': %s", dir, matches);
     }

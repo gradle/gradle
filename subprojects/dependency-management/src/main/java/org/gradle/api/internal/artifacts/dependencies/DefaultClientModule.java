@@ -35,6 +35,7 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
         super(assertModuleId(group, name), version, configuration);
     }
 
+    @Override
     public String getId() {
         return emptyStringIfNull(getGroup()) + ":" + getName() + ":" + emptyStringIfNull(getVersion());
     }
@@ -43,14 +44,17 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
         return value == null ? "" : value;
     }
 
+    @Override
     public Set<ModuleDependency> getDependencies() {
         return dependencies;
     }
 
+    @Override
     public void addDependency(ModuleDependency dependency) {
         this.dependencies.add(dependency);
     }
 
+    @Override
     public ClientModule copy() {
         DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(), getTargetConfiguration());
         copyTo(copiedClientModule);
@@ -60,6 +64,7 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
         return copiedClientModule;
     }
 
+    @Override
     public boolean contentEquals(Dependency dependency) {
         if (this == dependency) {
             return true;

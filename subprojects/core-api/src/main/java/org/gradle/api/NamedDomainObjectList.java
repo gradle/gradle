@@ -33,20 +33,24 @@ public interface NamedDomainObjectList<T> extends NamedDomainObjectCollection<T>
     /**
      * {@inheritDoc}
      */
+    @Override
     <S extends T> NamedDomainObjectList<S> withType(Class<S> type);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     NamedDomainObjectList<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     NamedDomainObjectList<T> matching(Closure spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     List<T> findAll(Closure spec);
 }

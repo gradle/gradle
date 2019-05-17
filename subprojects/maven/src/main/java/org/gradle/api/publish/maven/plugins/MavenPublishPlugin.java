@@ -107,6 +107,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(PublishingPlugin.class);
 
@@ -190,6 +191,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         final String installTaskName = "publish" + capitalize(publicationName) + "PublicationToMavenLocal";
 
         tasks.register(installTaskName, PublishToMavenLocal.class, new Action<PublishToMavenLocal>() {
+            @Override
             public void execute(PublishToMavenLocal publishLocalTask) {
                 publishLocalTask.setPublication(publication);
                 publishLocalTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
@@ -208,6 +210,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generatePomFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateMavenPom> generatorTask = tasks.register(descriptorTaskName, GenerateMavenPom.class, new Action<GenerateMavenPom>() {
+            @Override
             public void execute(final GenerateMavenPom generatePomTask) {
                 generatePomTask.setDescription("Generates the Maven POM file for publication '" + publicationName + "'.");
                 generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
@@ -232,6 +235,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, new Action<GenerateModuleMetadata>() {
+            @Override
             public void execute(final GenerateModuleMetadata generateTask) {
                 generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
                 generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
@@ -272,6 +276,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
             this.attributesSchema = attributesSchema;
         }
 
+        @Override
         public MavenPublication create(final String name) {
             MutableMavenProjectIdentity projectIdentity = createProjectIdentity();
             NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();

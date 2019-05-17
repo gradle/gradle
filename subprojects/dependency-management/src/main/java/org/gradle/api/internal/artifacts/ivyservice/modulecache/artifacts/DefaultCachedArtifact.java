@@ -42,22 +42,27 @@ public class DefaultCachedArtifact implements CachedArtifact, Serializable {
         this.descriptorHash = descriptorHash;
     }
 
+    @Override
     public boolean isMissing() {
         return cachedFile == null;
     }
 
+    @Override
     public File getCachedFile() {
         return cachedFile;
     }
 
+    @Override
     public long getCachedAt() {
         return cachedAt;
     }
 
+    @Override
     public BigInteger getDescriptorHash() {
         return descriptorHash;
     }
 
+    @Override
     public List<String> attemptedLocations() {
         return attemptedLocations;
     }

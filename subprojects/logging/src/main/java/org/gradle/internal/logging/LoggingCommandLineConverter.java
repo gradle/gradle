@@ -46,6 +46,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         logLevelMap.put(DEBUG, LogLevel.DEBUG);
     }
 
+    @Override
     public LoggingConfiguration convert(ParsedCommandLine commandLine, LoggingConfiguration loggingConfiguration) throws CommandLineArgumentException {
         for (BuildOption<LoggingConfiguration> option : buildOptions) {
             option.applyFromCommandLine(commandLine, loggingConfiguration);
@@ -54,6 +55,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         return loggingConfiguration;
     }
 
+    @Override
     public void configure(CommandLineParser parser) {
         for (BuildOption<LoggingConfiguration> option : buildOptions) {
             option.configure(parser);

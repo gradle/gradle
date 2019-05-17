@@ -25,6 +25,7 @@ public interface ConsumerActionExecutor extends Stoppable {
     /**
      * Blocks until all actions have completed.
      */
+    @Override
     void stop();
     
     String getDisplayName();

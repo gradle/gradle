@@ -55,6 +55,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
         this.attributesFactory = attributesFactory;
     }
 
+    @Override
     public Dependency createDependency(Object dependencyNotation) {
         Dependency dependency = dependencyNotationParser.parseNotation(dependencyNotation);
         injectServices(dependency);
@@ -83,6 +84,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
     }
 
 
+    @Override
     public ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
         ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
         if (configureClosure != null) {
@@ -91,6 +93,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
         return clientModule;
     }
 
+    @Override
     public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map) {
         return projectDependencyFactory.createFromMap(projectFinder, map);
     }

@@ -41,6 +41,7 @@ public class PluginsProjectConfigureActions implements ProjectConfigureAction, I
         this.actions = actions;
     }
 
+    @Override
     public void execute(ProjectInternal project) {
         for (Action<ProjectInternal> action : actions) {
             action.execute(project);

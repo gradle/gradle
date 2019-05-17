@@ -34,6 +34,7 @@ public class InMemoryModuleMetadataCache extends AbstractModuleMetadataCache {
         this.delegate = delegate;
     }
 
+    @Override
     protected CachedMetadata get(ModuleComponentAtRepositoryKey key) {
         CachedMetadata metadata = inMemoryCache.get(key);
         if (metadata == null && delegate != null) {
@@ -45,6 +46,7 @@ public class InMemoryModuleMetadataCache extends AbstractModuleMetadataCache {
         return metadata;
     }
 
+    @Override
     protected void store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData) {
         inMemoryCache.put(key, cachedMetaData);
         if (delegate != null) {

@@ -39,6 +39,7 @@ public class DefaultInitScriptProcessor implements InitScriptProcessor {
         this.scriptHandlerFactory = scriptHandlerFactory;
     }
 
+    @Override
     public void process(final ScriptSource initScript, GradleInternal gradle) {
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         URI uri = initScript.getResource().getLocation().getURI();

@@ -194,6 +194,7 @@ public class AntlrTask extends SourceTask {
         final MutableBoolean cleanRebuild = new MutableBoolean();
         inputs.outOfDate(
             new Action<InputFileDetails>() {
+                @Override
                 public void execute(InputFileDetails details) {
                     File input = details.getFile();
                     if (sourceFiles.contains(input)) {

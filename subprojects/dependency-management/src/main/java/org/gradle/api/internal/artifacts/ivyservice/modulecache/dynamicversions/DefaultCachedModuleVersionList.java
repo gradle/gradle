@@ -28,10 +28,12 @@ class DefaultCachedModuleVersionList implements ModuleVersionsCache.CachedModule
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
     }
 
+    @Override
     public Set<String> getModuleVersions() {
         return moduleVersions;
     }
 
+    @Override
     public long getAgeMillis() {
         return ageMillis;
     }

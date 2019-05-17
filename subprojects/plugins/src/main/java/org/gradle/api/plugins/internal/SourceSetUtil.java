@@ -43,6 +43,7 @@ public class SourceSetUtil {
         compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
         compile.setSource(sourceSet.getJava());
         compile.getConventionMapping().map("classpath", new Callable<Object>() {
+            @Override
             public Object call() {
                 return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
             }

@@ -138,6 +138,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.
      */
+    @Override
     public <T> AttributeValue<T> findEntry(Attribute<T> key) {
         DefaultImmutableAttributes attributes = hierarchy.get(key);
         return (AttributeValue<T>) (attributes == null ? MISSING : attributes);
@@ -146,6 +147,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     /**
      * Locates the entry for the attribute with the given name. Returns a 'missing' value when not present.
      */
+    @Override
     public AttributeValue<?> findEntry(String key) {
         if (singleEntryName == key) {
             // The identity check is intentional here, do not replace with .equals()

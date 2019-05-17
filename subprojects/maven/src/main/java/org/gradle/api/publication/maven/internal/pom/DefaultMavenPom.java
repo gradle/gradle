@@ -60,43 +60,52 @@ public class DefaultMavenPom implements MavenPom {
         model.setModelVersion("4.0.0");
     }
 
+    @Override
     public Conf2ScopeMappingContainer getScopeMappings() {
         return scopeMappings;
     }
 
+    @Override
     public ConfigurationContainer getConfigurations() {
         return configurations;
     }
 
+    @Override
     public DefaultMavenPom setConfigurations(ConfigurationContainer configurations) {
         this.configurations = configurations;
         return this;
     }
 
+    @Override
     public DefaultMavenPom setGroupId(String groupId) {
         getModel().setGroupId(groupId);
         return this;
     }
 
+    @Override
     public String getGroupId() {
         return getModel().getGroupId();
     }
 
+    @Override
     public DefaultMavenPom setArtifactId(String artifactId) {
         getModel().setArtifactId(artifactId);
         return this;
     }
 
+    @Override
     public String getArtifactId() {
         return getModel().getArtifactId();
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public DefaultMavenPom setDependencies(List<?> dependencies) {
         getModel().setDependencies((List<Dependency>) dependencies);
         return this;
     }
 
+    @Override
     public List<Dependency> getDependencies() {
         return getModel().getDependencies();
     }
@@ -110,24 +119,29 @@ public class DefaultMavenPom implements MavenPom {
         return getModel().getName();
     }
 
+    @Override
     public DefaultMavenPom setVersion(String version) {
         getModel().setVersion(version);
         return this;
     }
 
+    @Override
     public String getVersion() {
         return getModel().getVersion();
     }
 
+    @Override
     public String getPackaging() {
         return getModel().getPackaging();
     }
 
+    @Override
     public DefaultMavenPom setPackaging(String packaging) {
         getModel().setPackaging(packaging);
         return this;
     }
 
+    @Override
     public DefaultMavenPom project(Closure cl) {
         CustomModelBuilder pomBuilder = new CustomModelBuilder(getModel());
         InvokerHelper.invokeMethod(pomBuilder, "project", cl);
@@ -144,10 +158,12 @@ public class DefaultMavenPom implements MavenPom {
         });
     }
 
+    @Override
     public Model getModel() {
         return model;
     }
 
+    @Override
     public DefaultMavenPom setModel(Object model) {
         this.model = (Model) model;
         return this;
@@ -170,6 +186,7 @@ public class DefaultMavenPom implements MavenPom {
         return (List<Dependency>) pomDependenciesConverter.convert(getScopeMappings(), configurations);
     }
 
+    @Override
     public DefaultMavenPom getEffectivePom() {
         DefaultMavenPom effectivePom = new DefaultMavenPom(null, this.scopeMappings, pomDependenciesConverter, fileResolver);
         effectivePom.setModel(model.clone());
@@ -188,6 +205,7 @@ public class DefaultMavenPom implements MavenPom {
         return this;
     }
 
+    @Override
     public DefaultMavenPom writeTo(final Writer pomWriter) {
         try {
             getEffectivePom().writeNonEffectivePom(pomWriter);
@@ -197,8 +215,10 @@ public class DefaultMavenPom implements MavenPom {
         return this;
     }
 
+    @Override
     public DefaultMavenPom writeTo(Object path) {
         IoActions.writeTextFile(fileResolver.resolve(path), POM_FILE_ENCODING, new Action<BufferedWriter>() {
+            @Override
             public void execute(BufferedWriter writer) {
                 writeTo(writer);
             }
@@ -209,6 +229,7 @@ public class DefaultMavenPom implements MavenPom {
     private void writeNonEffectivePom(final Writer pomWriter) throws IOException {
         try {
             withXmlActions.transform(pomWriter, POM_FILE_ENCODING, new ErroringAction<Writer>() {
+                @Override
                 protected void doExecute(Writer writer) throws IOException {
                     new MavenXpp3Writer().write(writer, getModel());
                 }
@@ -218,21 +239,25 @@ public class DefaultMavenPom implements MavenPom {
         }
     }
 
+    @Override
     public DefaultMavenPom whenConfigured(final Closure closure) {
         whenConfiguredActions.add(ConfigureUtil.configureUsing(closure));
         return this;
     }
 
+    @Override
     public DefaultMavenPom whenConfigured(final Action<MavenPom> action) {
         whenConfiguredActions.add(action);
         return this;
     }
 
+    @Override
     public DefaultMavenPom withXml(final Closure closure) {
         withXmlActions.addAction(closure);
         return this;
     }
 
+    @Override
     public DefaultMavenPom withXml(final Action<XmlProvider> action) {
         withXmlActions.addAction(action);
         return this;

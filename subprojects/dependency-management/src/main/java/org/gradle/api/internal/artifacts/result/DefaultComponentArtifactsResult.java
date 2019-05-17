@@ -31,10 +31,12 @@ public class DefaultComponentArtifactsResult implements ComponentArtifactsResult
         this.componentIdentifier = componentIdentifier;
     }
 
+    @Override
     public ComponentIdentifier getId() {
         return componentIdentifier;
     }
 
+    @Override
     public Set<ArtifactResult> getArtifacts(Class<? extends Artifact> type) {
         Set<ArtifactResult> matching = Sets.newLinkedHashSet();
         for (ArtifactResult artifactResult : artifactResults) {

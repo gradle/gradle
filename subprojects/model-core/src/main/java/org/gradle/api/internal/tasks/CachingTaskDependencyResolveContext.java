@@ -72,6 +72,7 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         }
     }
 
+    @Override
     @Nullable
     public Task getTask() {
         return task;

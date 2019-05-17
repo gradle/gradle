@@ -26,22 +26,27 @@ public class ProjectBackedModule implements Module {
         this.project = project;
     }
 
+    @Override
     public String getGroup() {
         return project.getGroup().toString();
     }
 
+    @Override
     public String getName() {
         return project.getName();
     }
 
+    @Override
     public String getVersion() {
         return project.getVersion().toString();
     }
 
+    @Override
     public String getStatus() {
         return project.getStatus().toString();
     }
 
+    @Override
     public String getProjectPath() {
         return project.getPath();
     }

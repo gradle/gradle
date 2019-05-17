@@ -34,6 +34,7 @@ public interface MutableVersionConstraint extends VersionConstraint {
      *
      * @since 4.6
      */
+    @Override
     @Nullable
     String getBranch();
 

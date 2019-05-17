@@ -74,6 +74,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 

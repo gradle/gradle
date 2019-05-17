@@ -32,6 +32,7 @@ public interface IdeaSingleEntryLibraryDependency extends IdeaDependency, Extern
      *
      * @return The file. Never null.
      */
+    @Override
     File getFile();
 
     /**
@@ -39,6 +40,7 @@ public interface IdeaSingleEntryLibraryDependency extends IdeaDependency, Extern
      *
      * @return The source file. Returns null when the source is not available for this dependency.
      */
+    @Override
     @Nullable
     File getSource();
 
@@ -47,6 +49,7 @@ public interface IdeaSingleEntryLibraryDependency extends IdeaDependency, Extern
      *
      * @return The Javadoc file. Returns null when the Javadoc is not available for this dependency.
      */
+    @Override
     @Nullable
     File getJavadoc();
 }

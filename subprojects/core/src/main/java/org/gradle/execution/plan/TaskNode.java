@@ -57,6 +57,7 @@ public abstract class TaskNode extends Node {
         return mustSuccessors;
     }
 
+    @Override
     public Set<Node> getFinalizers() {
         return finalizers;
     }

@@ -70,6 +70,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             @Nullable
             public Object get() {
                 return DeprecationLogger.whileDisabled(new Factory<Object>() {
+                    @Override
                     public Object create() {
                         try {
                             return method.invoke(bean);

@@ -56,6 +56,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         this.originalRequest = originalRequest != null ? originalRequest : this;
     }
 
+    @Override
     public PluginId getId() {
         return id;
     }
@@ -104,6 +105,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return b.toString();
     }
 
+    @Override
     public String getDisplayName() {
         return toString();
     }

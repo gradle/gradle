@@ -33,6 +33,7 @@ public interface GradleBuild extends Model, BuildModel {
      *
      * @since 2.13
      */
+    @Override
     BuildIdentifier getBuildIdentifier();
 
     /**

@@ -78,6 +78,7 @@ public class XmlTransformer implements Transformer<String, String> {
 
     public void transform(File destination, final String encoding, final Action<? super Writer> generator) {
         IoActions.writeTextFile(destination, encoding, new Action<Writer>() {
+            @Override
             public void execute(Writer writer) {
                 transform(writer, encoding, generator);
             }
@@ -86,6 +87,7 @@ public class XmlTransformer implements Transformer<String, String> {
 
     public void transform(File destination, final Action<? super Writer> generator) {
         IoActions.writeTextFile(destination, new Action<Writer>() {
+            @Override
             public void execute(Writer writer) {
                 transform(writer, generator);
             }
@@ -104,6 +106,7 @@ public class XmlTransformer implements Transformer<String, String> {
         doTransform(stringWriter.toString()).writeTo(destination, encoding);
     }
 
+    @Override
     public String transform(String original) {
         return doTransform(original).toString();
     }
@@ -220,6 +223,7 @@ public class XmlTransformer implements Transformer<String, String> {
             }
         }
 
+        @Override
         public StringBuilder asString() {
             if (builder == null) {
                 builder = new StringBuilder(toString());
@@ -229,6 +233,7 @@ public class XmlTransformer implements Transformer<String, String> {
             return builder;
         }
 
+        @Override
         public Node asNode() {
             if (node == null) {
                 try {
@@ -242,6 +247,7 @@ public class XmlTransformer implements Transformer<String, String> {
             return node;
         }
 
+        @Override
         public Element asElement() {
             if (element == null) {
                 Document document;

@@ -25,14 +25,17 @@ public class ComponentFound<T> implements SearchResult<T> {
         this.component = component;
     }
 
+    @Override
     public T getComponent() {
         return component;
     }
 
+    @Override
     public boolean isAvailable() {
         return true;
     }
 
+    @Override
     public void explain(DiagnosticsVisitor visitor) {
     }
 }

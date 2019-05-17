@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins.osgi;
 import org.gradle.internal.Factory;
 
 public class DefaultAnalyzerFactory implements Factory<ContainedVersionAnalyzer> {
+    @Override
     public ContainedVersionAnalyzer create() {
         return new ContainedVersionAnalyzer();
     }

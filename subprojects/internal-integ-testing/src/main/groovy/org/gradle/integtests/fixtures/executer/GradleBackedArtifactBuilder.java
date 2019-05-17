@@ -30,14 +30,17 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
         this.rootDir = new TestFile(rootDir);
     }
 
+    @Override
     public TestFile sourceFile(String path) {
         return rootDir.file("src/main/java", path);
     }
 
+    @Override
     public TestFile resourceFile(String path) {
         return rootDir.file("src/main/resources", path);
     }
 
+    @Override
     public void buildJar(File jarFile) {
         buildJar(jarFile, false);
     }

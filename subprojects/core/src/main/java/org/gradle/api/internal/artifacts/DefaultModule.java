@@ -34,22 +34,27 @@ public class DefaultModule implements Module {
         this.status = status;
     }
 
+    @Override
     public String getGroup() {
         return group;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getVersion() {
         return version;
     }
 
+    @Override
     public String getStatus() {
         return status;
     }
 
+    @Override
     public String getProjectPath() {
         return null;
     }

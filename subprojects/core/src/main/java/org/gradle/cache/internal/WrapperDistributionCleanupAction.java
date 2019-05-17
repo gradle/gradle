@@ -88,6 +88,7 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
         return "Deleting unused Gradle distributions in " + distsDir;
     }
 
+    @Override
     public boolean execute(@Nonnull CleanupProgressMonitor progressMonitor) {
         long maximumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1));
         Set<GradleVersion> usedVersions = this.usedGradleVersions.getUsedGradleVersions();

@@ -51,6 +51,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
         return displayName.getDisplayName();
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return clientConfiguration.getBuildDependencies();
     }

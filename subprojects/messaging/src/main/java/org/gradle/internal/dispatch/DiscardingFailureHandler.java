@@ -24,6 +24,7 @@ public class DiscardingFailureHandler<T> implements DispatchFailureHandler<T> {
         this.logger = logger;
     }
 
+    @Override
     public void dispatchFailed(T message, Throwable failure) {
         logger.error(String.format("Could not dispatch message %s. Discarding message.", message), failure);
     }

@@ -24,6 +24,7 @@ public class VersionInfo implements Versioned {
         this.version = version;
     }
 
+    @Override
     public Version getVersion() {
         return version;
     }

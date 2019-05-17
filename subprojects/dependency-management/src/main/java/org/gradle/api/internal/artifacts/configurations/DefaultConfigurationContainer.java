@@ -131,6 +131,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return configuration;
     }
 
+    @Override
     public Set<? extends ConfigurationInternal> getAll() {
         return withType(ConfigurationInternal.class);
     }
@@ -150,6 +151,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
     }
 
+    @Override
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();

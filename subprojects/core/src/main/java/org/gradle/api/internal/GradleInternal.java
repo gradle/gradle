@@ -42,8 +42,10 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}
      */
+    @Override
     ProjectInternal getRootProject() throws IllegalStateException;
 
+    @Override
     GradleInternal getParent();
 
     GradleInternal getRoot();
@@ -56,6 +58,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}
      */
+    @Override
     TaskExecutionGraphInternal getTaskGraph();
 
     /**

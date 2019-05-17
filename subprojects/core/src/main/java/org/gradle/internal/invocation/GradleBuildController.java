@@ -47,10 +47,12 @@ public class GradleBuildController implements BuildController {
         return gradleLauncher;
     }
 
+    @Override
     public GradleInternal getGradle() {
         return getLauncher().getGradle();
     }
 
+    @Override
     public GradleInternal run() {
         return doBuild(GradleInternal.BuildType.TASKS, new Action<GradleLauncher>() {
             @Override
@@ -60,6 +62,7 @@ public class GradleBuildController implements BuildController {
         });
     }
 
+    @Override
     public GradleInternal configure() {
         return doBuild(GradleInternal.BuildType.MODEL, new Action<GradleLauncher>() {
             @Override

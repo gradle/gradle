@@ -23,6 +23,7 @@ public class DescriptiveChange implements Change {
         this.message = String.format(message, params);
     }
 
+    @Override
     public String getMessage() {
         return message;
     }

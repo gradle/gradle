@@ -91,6 +91,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 1.2-rc-1 and later.
      */
+    @Override
     public void configure(ConnectionParameters parameters) {
         assertUsingSupportedJavaVersion();
         ProviderConnectionParameters providerConnectionParameters = new ProtocolToModelAdapter().adapt(ProviderConnectionParameters.class, parameters);
@@ -126,6 +127,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 1.0-milestone-3 and later
      */
+    @Override
     public ConnectionMetaDataVersion1 getMetaData() {
         return new DefaultConnectionMetaData();
     }
@@ -133,6 +135,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 1.0-milestone-3 and later
      */
+    @Override
     @Deprecated
     public void stop() {
         // We don't do anything here, as older consumers call this method when the project connection is closed but then later attempt to reuse the connection
@@ -141,6 +144,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 2.2-rc-1 and later
      */
+    @Override
     public void shutdown(ShutdownParameters parameters) {
         CompositeStoppable.stoppable(services).stop();
     }
@@ -148,6 +152,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 1.0-milestone-3 to 1.1.
      */
+    @Override
     @Deprecated
     public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
         throw unsupportedConnectionException();
@@ -156,6 +161,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 1.0-milestone-3 to 1.0-milestone-7
      */
+    @Override
     @Deprecated
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
         throw unsupportedConnectionException();
@@ -164,6 +170,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 1.0-milestone-8 to 1.1
      */
+    @Override
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
         throw unsupportedConnectionException();
@@ -172,6 +179,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 1.2-rc-1 to 1.5
      */
+    @Override
     @Deprecated
     public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
         throw unsupportedConnectionException();
@@ -180,6 +188,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 1.6-rc-1 to 2.0
      */
+    @Override
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw unsupportedConnectionException();
     }
@@ -187,6 +196,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 2.1-rc-1 and later
      */
+    @Override
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
@@ -197,6 +207,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 1.8-rc-1 to 2.0
      */
+    @Override
     public <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         throw unsupportedConnectionException();
     }
@@ -204,6 +215,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 2.1-rc-1 to 4.3
      */
+    @Override
     public <T> BuildResult<T> run(InternalBuildAction<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
@@ -215,6 +227,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 4.4 and later
      */
+    @Override
     public <T> BuildResult<T> run(InternalBuildActionVersion2<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
@@ -237,6 +250,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     /**
      * This is used by consumers 2.6-rc-1 and later
      */
+    @Override
     public BuildResult<?> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);

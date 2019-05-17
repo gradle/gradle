@@ -34,6 +34,7 @@ public class DefaultAnnouncerFactory implements AnnouncerFactory {
         this.processOperations = processOperations;
     }
 
+    @Override
     public Announcer createAnnouncer(String type) {
         Announcer announcer = createActualAnnouncer(type);
         return announcer != null ? new IgnoreUnavailableAnnouncer(announcer) : new UnknownAnnouncer();

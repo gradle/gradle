@@ -140,6 +140,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
         condition.signalAll();
     }
 
+    @Override
     public void dispatch(final T message) {
         lock.lock();
         try {
@@ -167,6 +168,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     /**
      * Commences a shutdown of this dispatch.
      */
+    @Override
     public void requestStop() {
         lock.lock();
         try {
@@ -183,6 +185,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     /**
      * Stops accepting new messages, and blocks until all queued messages have been dispatched.
      */
+    @Override
     public void stop() {
         lock.lock();
         try {

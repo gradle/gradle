@@ -32,6 +32,7 @@ public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory,
         this.services = services;
     }
 
+    @Override
     public ServiceRegistry createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
             GradleScopeServices gradleServices = new GradleScopeServices(services, (GradleInternal) domainObject);
@@ -47,6 +48,7 @@ public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory,
                 domainObject.getClass().getSimpleName()));
     }
 
+    @Override
     public void close() {
         registries.stop();
     }

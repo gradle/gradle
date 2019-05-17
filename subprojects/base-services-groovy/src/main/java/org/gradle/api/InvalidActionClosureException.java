@@ -37,6 +37,7 @@ public class InvalidActionClosureException extends GradleException {
 
     private static String toMessage(Closure<?> closure, Object argument) {
         List<Object> classNames = CollectionUtils.collect(closure.getParameterTypes(), new Transformer<Object, Class>() {
+            @Override
             public Object transform(Class clazz) {
                 return clazz.getName();
             }

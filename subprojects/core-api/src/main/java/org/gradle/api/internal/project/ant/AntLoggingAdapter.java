@@ -30,46 +30,57 @@ public class AntLoggingAdapter implements BuildLogger {
 
     private AntMessagePriority lifecycleLogLevel;
 
+    @Override
     public void setMessageOutputLevel(int level) {
         // ignore
     }
 
+    @Override
     public void setOutputPrintStream(PrintStream output) {
         // ignore
     }
 
+    @Override
     public void setEmacsMode(boolean emacsMode) {
         // ignore
     }
 
+    @Override
     public void setErrorPrintStream(PrintStream err) {
         // ignore
     }
 
+    @Override
     public void buildStarted(BuildEvent event) {
         // ignore
     }
 
+    @Override
     public void buildFinished(BuildEvent event) {
         // ignore
     }
 
+    @Override
     public void targetStarted(BuildEvent event) {
         // ignore
     }
 
+    @Override
     public void targetFinished(BuildEvent event) {
         // ignore
     }
 
+    @Override
     public void taskStarted(BuildEvent event) {
         // ignore
     }
 
+    @Override
     public void taskFinished(BuildEvent event) {
         // ignore
     }
 
+    @Override
     public void messageLogged(BuildEvent event) {
         final StringBuffer message = new StringBuffer();
         if (event.getTask() != null) {

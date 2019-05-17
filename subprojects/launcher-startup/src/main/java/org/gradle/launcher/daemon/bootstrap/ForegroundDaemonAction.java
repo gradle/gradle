@@ -37,6 +37,7 @@ public class ForegroundDaemonAction implements Runnable {
         this.configuration = configuration;
     }
 
+    @Override
     public void run() {
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.start();

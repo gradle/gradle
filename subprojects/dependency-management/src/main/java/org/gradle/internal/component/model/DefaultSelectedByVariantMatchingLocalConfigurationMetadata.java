@@ -45,6 +45,7 @@ public class DefaultSelectedByVariantMatchingLocalConfigurationMetadata extends 
         return delegate.getFiles();
     }
 
+    @Override
     public List<? extends LocalOriginDependencyMetadata> getDependencies() {
         return delegate.getDependencies();
     }

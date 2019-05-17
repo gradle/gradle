@@ -33,18 +33,22 @@ public class SimpleHttpFileServer implements HttpFileServer {
         this.port = port;
     }
 
+    @Override
     public int getPort() {
         return port;
     }
 
+    @Override
     public String getResourceUrl(String path) {
         return "http://localhost:" + port + "/" + (path.startsWith("/") ? path.substring(1) : path);
     }
 
+    @Override
     public File getContentRoot() {
         return contentRoot;
     }
 
+    @Override
     public void stop() {
         stopper.stop();
     }

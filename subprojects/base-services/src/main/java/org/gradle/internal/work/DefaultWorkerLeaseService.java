@@ -336,6 +336,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     private class Root implements LeaseHolder {
         int leasesInUse;
 
+        @Override
         public String getDisplayName() {
             return "root";
         }

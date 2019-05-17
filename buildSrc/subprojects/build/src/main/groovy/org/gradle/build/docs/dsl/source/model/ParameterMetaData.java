@@ -51,6 +51,7 @@ public class ParameterMetaData implements Serializable, TypeContainer {
         return builder.toString();
     }
 
+    @Override
     public void visitTypes(Action<TypeMetaData> action) {
         action.execute(type);
     }

@@ -18,6 +18,7 @@ package org.gradle.api.publication.maven.internal;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 public class DefaultArtifactPomFactory implements ArtifactPomFactory {
+    @Override
     public ArtifactPom createArtifactPom(MavenPom pom) {
         return new DefaultArtifactPom(pom);
     }

@@ -26,6 +26,7 @@ import java.util.Set;
 
 public class AcceptedRegressionsRulePostProcess implements PostProcessViolationsRule {
 
+    @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContextWithViolations context) {
         Set<ApiChange> acceptedApiChanges = (Set<ApiChange>) context.getUserData().get("acceptedApiChanges");

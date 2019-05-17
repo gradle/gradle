@@ -95,6 +95,7 @@ public class MavenProjectsCreator {
         reactorProjects.add(mavenProject);
         List<ProjectBuildingResult> allProjects = builder.build(ImmutableList.of(pomFile), true, buildingRequest);
         CollectionUtils.collect(allProjects, reactorProjects, new Transformer<MavenProject, ProjectBuildingResult>() {
+            @Override
             public MavenProject transform(ProjectBuildingResult original) {
                 return original.getProject();
             }

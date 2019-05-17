@@ -95,6 +95,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         this.errorContent = error.ansiCharsToPlainText();
     }
 
+    @Override
     public String getOutput() {
         return output.withNormalizedEol();
     }
@@ -159,6 +160,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return LogContent.of(result).withNormalizedEol();
     }
 
+    @Override
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
         SequentialOutputMatcher matcher = ignoreLineOrder ? new AnyOrderOutputMatcher() : new SequentialOutputMatcher();
         matcher.assertOutputMatches(expectedOutput, getNormalizedOutput(), ignoreExtraLines);
@@ -203,10 +205,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return assertContentContains(errorContent.withNormalizedEol(), expectedOutput, "Error output");
     }
 
+    @Override
     public String getError() {
         return error.withNormalizedEol();
     }
 
+    @Override
     public List<String> getExecutedTasks() {
         return ImmutableList.copyOf(findExecutedTasksInOrderStarted());
     }
@@ -218,6 +222,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return tasks;
     }
 
+    @Override
     public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
         Set<String> allTasks = TaskOrderSpecs.exact(taskPaths).getTasks();
         assertTasksExecuted(allTasks);
@@ -265,6 +270,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
+    @Override
     public Set<String> getSkippedTasks() {
         return new TreeSet<String>(grepTasks(SKIPPED_TASK_PATTERN));
     }
@@ -279,6 +285,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
+    @Override
     public ExecutionResult assertTaskSkipped(String taskPath) {
         Set<String> tasks = new TreeSet<String>(getSkippedTasks());
         if (!tasks.contains(taskPath)) {
@@ -304,6 +311,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
+    @Override
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
         Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
         if (!tasks.contains(taskPath)) {
@@ -337,6 +345,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         final List<String> taskStatusLines = Lists.newArrayList();
 
         getMainContent().eachLine(new Action<String>() {
+            @Override
             public void execute(String line) {
                 java.util.regex.Matcher matcher = pattern.matcher(line);
                 if (matcher.matches()) {

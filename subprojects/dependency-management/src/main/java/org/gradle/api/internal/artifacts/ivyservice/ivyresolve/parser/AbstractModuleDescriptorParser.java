@@ -30,15 +30,18 @@ public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComp
         this.fileResourceRepository = fileResourceRepository;
     }
 
+    @Override
     public ParseResult<T> parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
         LocallyAvailableExternalResource resource = fileResourceRepository.resource(descriptorFile);
         return parseDescriptor(ivySettings, resource, validate);
     }
 
+    @Override
     public ParseResult<T> parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetaDataParseException {
         return parseMetaData(ivySettings, descriptorFile, false);
     }
 
+    @Override
     public ParseResult<T> parseMetaData(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MetaDataParseException {
         return parseDescriptor(ivySettings, resource, false);
     }

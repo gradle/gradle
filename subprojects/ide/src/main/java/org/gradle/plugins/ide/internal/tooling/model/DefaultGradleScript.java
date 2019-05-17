@@ -24,6 +24,7 @@ import java.io.Serializable;
 public class DefaultGradleScript implements GradleScript, Serializable {
     private File sourceFile;
 
+    @Override
     public File getSourceFile() {
         return sourceFile;
     }

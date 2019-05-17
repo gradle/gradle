@@ -26,8 +26,10 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 public class HandleCancel implements DaemonCommandAction {
     private static final Logger LOGGER = Logging.getLogger(HandleCancel.class);
 
+    @Override
     public void execute(final DaemonCommandExecution execution) {
         execution.getConnection().onCancel(new Runnable() {
+            @Override
             public void run() {
                 LOGGER.info("HandleCancel processing {}", execution.getCommand());
                 execution.getDaemonStateControl().cancelBuild();

@@ -38,18 +38,22 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         this(DefaultModuleIdentifier.newId(group, name), version);
     }
 
+    @Override
     public String getGroup() {
         return module.getGroup();
     }
 
+    @Override
     public String getName() {
         return module.getName();
     }
 
+    @Override
     public String getVersion() {
         return version;
     }
 
+    @Override
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
         return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }

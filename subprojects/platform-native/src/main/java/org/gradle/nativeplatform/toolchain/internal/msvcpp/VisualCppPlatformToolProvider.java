@@ -250,6 +250,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     private <T extends NativeCompileSpec> Transformer<T, T> addDefinitions(Class<T> type) {
         return new Transformer<T, T>() {
+            @Override
             public T transform(T original) {
                 for (Map.Entry<String, String> definition : libraries.getPreprocessorMacros().entrySet()) {
                     original.define(definition.getKey(), definition.getValue());
@@ -261,6 +262,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     private Transformer<LinkerSpec, LinkerSpec> addLibraryPath() {
         return new Transformer<LinkerSpec, LinkerSpec>() {
+            @Override
             public LinkerSpec transform(LinkerSpec original) {
                 original.libraryPath(libraries.getLibDirs());
                 return original;

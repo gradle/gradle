@@ -90,10 +90,12 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         return parent == null;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         NameValidator.validate(name, "project name",
             INVALID_NAME_IN_INCLUDE_HINT);
@@ -101,6 +103,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this.name = name;
     }
 
+    @Override
     public File getProjectDir() {
         if (canonicalDir == null) {
             canonicalDir = fileResolver.resolve(dir);
@@ -108,23 +111,28 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         return canonicalDir;
     }
 
+    @Override
     public void setProjectDir(File dir) {
         this.canonicalDir = null;
         this.dir = dir;
     }
 
+    @Override
     public DefaultProjectDescriptor getParent() {
         return parent;
     }
 
+    @Override
     public ProjectIdentifier getParentIdentifier() {
         return parent;
     }
 
+    @Override
     public Set<ProjectDescriptor> getChildren() {
         return children;
     }
 
+    @Override
     public String getPath() {
         return path.toString();
     }
@@ -133,14 +141,17 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this.path = path;
     }
 
+    @Override
     public String getBuildFileName() {
         return buildFile().getName();
     }
 
+    @Override
     public void setBuildFileName(String name) {
         this.buildFileName = name;
     }
 
+    @Override
     public File getBuildFile() {
         return FileUtils.normalize(buildFile());
     }

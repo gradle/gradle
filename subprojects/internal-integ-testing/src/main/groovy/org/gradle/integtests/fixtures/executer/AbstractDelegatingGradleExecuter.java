@@ -34,6 +34,7 @@ public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExe
         return configureExecuter().runWithFailure();
     }
 
+    @Override
     public void assertCanExecute() throws AssertionError {
         configureExecuter().assertCanExecute();
     }

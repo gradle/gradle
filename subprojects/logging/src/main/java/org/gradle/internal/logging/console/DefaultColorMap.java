@@ -52,9 +52,11 @@ public class DefaultColorMap implements ColorMap {
     private final Map<String, Color> colorBySpec = new HashMap<String, Color>();
 
     private final Color noDecoration = new Color() {
+        @Override
         public void on(Ansi ansi) {
         }
 
+        @Override
         public void off(Ansi ansi) {
         }
     };
@@ -91,10 +93,12 @@ public class DefaultColorMap implements ColorMap {
         addDefault(style.name().toLowerCase(), colorSpec);
     }
 
+    @Override
     public Color getStatusBarColor() {
         return getColor(STATUS_BAR);
     }
 
+    @Override
     public Color getColourFor(StyledTextOutput.Style style) {
         return getColor(style.name().toLowerCase());
     }
@@ -207,10 +211,12 @@ public class DefaultColorMap implements ColorMap {
             this.ansiColor = ansiColor;
         }
 
+        @Override
         public void on(Ansi ansi) {
             ansi.fgBright(ansiColor);
         }
 
+        @Override
         public void off(Ansi ansi) {
             ansi.fg(DEFAULT);
         }
@@ -223,10 +229,12 @@ public class DefaultColorMap implements ColorMap {
             this.ansiColor = ansiColor;
         }
 
+        @Override
         public void on(Ansi ansi) {
             ansi.fg(ansiColor);
         }
 
+        @Override
         public void off(Ansi ansi) {
             ansi.fg(DEFAULT);
         }
@@ -241,10 +249,12 @@ public class DefaultColorMap implements ColorMap {
             this.off = off;
         }
 
+        @Override
         public void on(Ansi ansi) {
             ansi.a(on);
         }
 
+        @Override
         public void off(Ansi ansi) {
             ansi.a(off);
         }

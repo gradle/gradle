@@ -26,6 +26,7 @@ public interface PasswordCredentials extends org.gradle.api.credentials.Password
      *
      * @return The user name. May be null.
      */
+    @Override
     @Nullable
     String getUsername();
 
@@ -34,6 +35,7 @@ public interface PasswordCredentials extends org.gradle.api.credentials.Password
      *
      * @param userName The user name. May be null.
      */
+    @Override
     void setUsername(@Nullable String userName);
 
     /**
@@ -41,6 +43,7 @@ public interface PasswordCredentials extends org.gradle.api.credentials.Password
      *
      * @return The password. May be null.
      */
+    @Override
     @Nullable
     String getPassword();
 
@@ -49,5 +52,6 @@ public interface PasswordCredentials extends org.gradle.api.credentials.Password
      *
      * @param password The password. May be null.
      */
+    @Override
     void setPassword(@Nullable String password);
 }

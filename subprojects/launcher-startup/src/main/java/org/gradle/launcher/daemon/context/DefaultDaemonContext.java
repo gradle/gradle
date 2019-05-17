@@ -56,26 +56,32 @@ public class DefaultDaemonContext implements DaemonContext {
             uid, javaHome, daemonRegistryDir, pid, idleTimeout, priority, Joiner.on(',').join(daemonOpts));
     }
 
+    @Override
     public String getUid() {
         return uid;
     }
 
+    @Override
     public File getJavaHome() {
         return javaHome;
     }
 
+    @Override
     public File getDaemonRegistryDir() {
         return daemonRegistryDir;
     }
 
+    @Override
     public Long getPid() {
         return pid;
     }
 
+    @Override
     public Integer getIdleTimeout() {
         return idleTimeout;
     }
 
+    @Override
     public List<String> getDaemonOpts() {
         return daemonOpts;
     }

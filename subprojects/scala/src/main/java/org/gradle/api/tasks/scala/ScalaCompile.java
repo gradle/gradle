@@ -82,6 +82,7 @@ public class ScalaCompile extends AbstractScalaCompile {
         this.compiler = compiler;
     }
 
+    @Override
     protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
         assertScalaClasspathIsNonEmpty();
         if (compiler == null) {

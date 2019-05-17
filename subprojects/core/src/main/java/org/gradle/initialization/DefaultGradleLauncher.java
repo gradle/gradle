@@ -101,6 +101,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         return gradle;
     }
 
+    @Override
     public GradleInternal executeTasks() {
         doBuildStages(Stage.RunTasks);
         return gradle;
@@ -251,6 +252,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         gradle.addListener(listener);
     }
 
+    @Override
     public void stop() {
         try {
             CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();

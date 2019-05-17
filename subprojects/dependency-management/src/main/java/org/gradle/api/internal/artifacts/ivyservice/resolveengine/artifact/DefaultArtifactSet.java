@@ -178,6 +178,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             this.moduleSource = moduleSource;
         }
 
+        @Override
         public File create() {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(artifact, moduleSource, result);

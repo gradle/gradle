@@ -28,5 +28,6 @@ public interface VariantComponent extends ModelElement {
      * The variants of this component.
      */
     Iterable<? extends Binary> getVariants();
+    @Override
     String getName();
 }

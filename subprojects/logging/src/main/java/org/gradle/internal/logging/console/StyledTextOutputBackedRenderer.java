@@ -40,6 +40,7 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
         this.textOutput = new OutputEventTextOutputImpl(textOutput);
     }
 
+    @Override
     public void onOutput(OutputEvent event) {
         if (event instanceof LogLevelChangeEvent) {
             LogLevelChangeEvent changeEvent = (LogLevelChangeEvent) event;

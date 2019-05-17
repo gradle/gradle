@@ -25,8 +25,10 @@ import org.gradle.api.tasks.TaskState;
  */
 public class TaskExecutionAdapter implements TaskExecutionListener {
 
+    @Override
     public void beforeExecute(Task task) {}
 
+    @Override
     public void afterExecute(Task task, TaskState state) {}
 
 }

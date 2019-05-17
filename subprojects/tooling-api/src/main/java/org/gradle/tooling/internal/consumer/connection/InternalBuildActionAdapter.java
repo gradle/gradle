@@ -51,6 +51,7 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
     /**
      * This is used by providers 1.8-rc-1 to 4.3
      */
+    @Override
     public T execute(final InternalBuildController buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
         BuildController buildControllerAdapter = new BuildControllerAdapter(protocolToModelAdapter, new InternalBuildControllerAdapter() {
@@ -66,6 +67,7 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
     /**
      * This is used by providers 4.4 and later
      */
+    @Override
     public T execute(final InternalBuildControllerVersion2 buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
         BuildController buildControllerAdapter = new BuildControllerAdapter(protocolToModelAdapter, new InternalBuildControllerAdapter() {

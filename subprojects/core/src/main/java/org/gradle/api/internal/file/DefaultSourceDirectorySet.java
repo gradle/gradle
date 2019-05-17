@@ -85,6 +85,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this(name, name, fileResolver, directoryFileTreeFactory);
     }
 
+    @Override
     public String getName() {
         return this.name;
     }
@@ -94,6 +95,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         return dirs;
     }
 
+    @Override
     public Set<File> getSrcDirs() {
         Set<File> dirs = new LinkedHashSet<File>();
         for (DirectoryTree tree : getSrcDirTrees()) {
@@ -102,64 +104,77 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         return dirs;
     }
 
+    @Override
     public Set<String> getIncludes() {
         return patterns.getIncludes();
     }
 
+    @Override
     public Set<String> getExcludes() {
         return patterns.getExcludes();
     }
 
+    @Override
     public PatternFilterable setIncludes(Iterable<String> includes) {
         patterns.setIncludes(includes);
         return this;
     }
 
+    @Override
     public PatternFilterable setExcludes(Iterable<String> excludes) {
         patterns.setExcludes(excludes);
         return this;
     }
 
+    @Override
     public PatternFilterable include(String... includes) {
         patterns.include(includes);
         return this;
     }
 
+    @Override
     public PatternFilterable include(Iterable<String> includes) {
         patterns.include(includes);
         return this;
     }
 
+    @Override
     public PatternFilterable include(Spec<FileTreeElement> includeSpec) {
         patterns.include(includeSpec);
         return this;
     }
 
+    @Override
     public PatternFilterable include(Closure includeSpec) {
         patterns.include(includeSpec);
         return this;
     }
 
+    @Override
     public PatternFilterable exclude(Iterable<String> excludes) {
         patterns.exclude(excludes);
         return this;
     }
 
+    @Override
     public PatternFilterable exclude(String... excludes) {
         patterns.exclude(excludes);
         return this;
     }
 
+    @Override
     public PatternFilterable exclude(Spec<FileTreeElement> excludeSpec) {
         patterns.exclude(excludeSpec);
         return this;
     }
 
+    @Override
     public PatternFilterable exclude(Closure excludeSpec) {
         patterns.exclude(excludeSpec);
         return this;
     }
 
+    @Override
     public PatternFilterable getFilter() {
         return filter;
     }
@@ -179,6 +194,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.outputDir.set(outputDir);
     }
 
+    @Override
     public Set<DirectoryTree> getSrcDirTrees() {
         // This implementation is broken. It does not consider include and exclude patterns
         Map<File, DirectoryTree> trees = new LinkedHashMap<File, DirectoryTree>();
@@ -231,11 +247,13 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         return displayName;
     }
 
+    @Override
     public SourceDirectorySet srcDir(Object srcDir) {
         source.add(srcDir);
         return this;
     }
 
+    @Override
     public SourceDirectorySet srcDirs(Object... srcDirs) {
         for (Object srcDir : srcDirs) {
             source.add(srcDir);
@@ -243,12 +261,14 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         return this;
     }
 
+    @Override
     public SourceDirectorySet setSrcDirs(Iterable<?> srcPaths) {
         source.clear();
         GUtil.addToCollection(source, srcPaths);
         return this;
     }
 
+    @Override
     public SourceDirectorySet source(SourceDirectorySet source) {
         this.source.add(source);
         return this;

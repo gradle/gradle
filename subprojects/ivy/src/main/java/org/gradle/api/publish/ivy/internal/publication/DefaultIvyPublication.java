@@ -156,6 +156,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this, instantiator, objectFactory);
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -176,6 +177,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return component;
     }
 
+    @Override
     public IvyModuleDescriptorSpecInternal getDescriptor() {
         return descriptor;
     }
@@ -212,6 +214,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         moduleDescriptorGenerator = null;
     }
 
+    @Override
     public void descriptor(Action<? super IvyModuleDescriptorSpec> configure) {
         configure.execute(descriptor);
     }
@@ -226,6 +229,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.alias = alias;
     }
 
+    @Override
     public void from(SoftwareComponent component) {
         if (this.component != null) {
             throw new InvalidUserDataException(String.format("Ivy publication '%s' cannot include multiple components", name));
@@ -333,24 +337,29 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         ivyDependencies.add(new DefaultIvyDependency(dependency, confMapping, attributes));
     }
 
+    @Override
     public void configurations(Action<? super IvyConfigurationContainer> config) {
         populateFromComponent();
         config.execute(configurations);
     }
 
+    @Override
     public IvyConfigurationContainer getConfigurations() {
         populateFromComponent();
         return configurations;
     }
 
+    @Override
     public IvyArtifact artifact(Object source) {
         return mainArtifacts.artifact(source);
     }
 
+    @Override
     public IvyArtifact artifact(Object source, Action<? super IvyArtifact> config) {
         return mainArtifacts.artifact(source, config);
     }
 
+    @Override
     public void setArtifacts(Iterable<?> sources) {
         artifactsOverridden = true;
         mainArtifacts.clear();
@@ -359,31 +368,38 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         }
     }
 
+    @Override
     public DefaultIvyArtifactSet getArtifacts() {
         populateFromComponent();
         return mainArtifacts;
     }
 
+    @Override
     public String getOrganisation() {
         return publicationIdentity.getOrganisation();
     }
 
+    @Override
     public void setOrganisation(String organisation) {
         publicationIdentity.setOrganisation(organisation);
     }
 
+    @Override
     public String getModule() {
         return publicationIdentity.getModule();
     }
 
+    @Override
     public void setModule(String module) {
         publicationIdentity.setModule(module);
     }
 
+    @Override
     public String getRevision() {
         return publicationIdentity.getRevision();
     }
 
+    @Override
     public void setRevision(String revision) {
         publicationIdentity.setRevision(revision);
     }
@@ -422,15 +438,18 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         derivedArtifacts.remove(artifact);
     }
 
+    @Override
     public IvyPublicationIdentity getIdentity() {
         return publicationIdentity;
     }
 
+    @Override
     public Set<IvyDependencyInternal> getDependencies() {
         populateFromComponent();
         return ivyDependencies;
     }
 
+    @Override
     public IvyNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
         DomainObjectSet<IvyArtifact> existingDerivedArtifacts = derivedArtifacts.matching(new Spec<IvyArtifact>() {
@@ -479,6 +498,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return ivyDescriptorArtifact.getFile();
     }
 
+    @Override
     public ModuleVersionIdentifier getCoordinates() {
         return DefaultModuleVersionIdentifier.newId(getOrganisation(), getModule(), getRevision());
     }

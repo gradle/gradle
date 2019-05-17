@@ -37,14 +37,17 @@ public class LockOptionsBuilder implements LockOptions {
         return this;
     }
 
+    @Override
     public FileLockManager.LockMode getMode() {
         return mode;
     }
 
+    @Override
     public boolean isUseCrossVersionImplementation() {
         return crossVersion;
     }
 
+    @Override
     public LockOptions withMode(FileLockManager.LockMode mode) {
         return new LockOptionsBuilder(mode, crossVersion);
     }

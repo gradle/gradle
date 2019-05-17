@@ -42,6 +42,7 @@ public class DefaultBuildOutcomeComparisonResultRendererFactory<C> implements Bu
         }
     }
 
+    @Override
     public <T extends BuildOutcomeComparisonResult> BuildOutcomeComparisonResultRenderer<T, C> getRenderer(Class<? extends T> resultType) {
         //noinspection unchecked
         return (BuildOutcomeComparisonResultRenderer<T, C>) renderers.get(resultType);

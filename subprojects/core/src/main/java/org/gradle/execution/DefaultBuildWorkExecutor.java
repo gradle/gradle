@@ -38,10 +38,12 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
             return;
         }
         executionActions.get(index).execute(new BuildExecutionContext() {
+            @Override
             public GradleInternal getGradle() {
                 return gradle;
             }
 
+            @Override
             public void proceed() {
                 execute(gradle, index + 1, taskFailures);
             }

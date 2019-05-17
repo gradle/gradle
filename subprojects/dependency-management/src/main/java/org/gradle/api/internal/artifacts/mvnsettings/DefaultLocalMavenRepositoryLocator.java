@@ -40,6 +40,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         this.system = system;
     }
 
+    @Override
     public File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException {
         String localOverride = system.getProperty("maven.repo.local");
         if (localOverride != null) {

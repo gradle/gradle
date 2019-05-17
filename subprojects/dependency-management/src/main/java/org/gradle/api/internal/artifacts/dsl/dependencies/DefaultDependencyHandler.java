@@ -169,22 +169,27 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         return dependencyConstraintHandler;
     }
 
+    @Override
     public void components(Action<? super ComponentMetadataHandler> configureAction) {
         configureAction.execute(getComponents());
     }
 
+    @Override
     public ComponentMetadataHandler getComponents() {
         return componentMetadataHandler;
     }
 
+    @Override
     public void modules(Action<? super ComponentModuleMetadataHandler> configureAction) {
         configureAction.execute(getModules());
     }
 
+    @Override
     public ComponentModuleMetadataHandler getModules() {
         return componentModuleMetadataHandler;
     }
 
+    @Override
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
         return resolutionQueryFactory.createArtifactResolutionQuery();
     }

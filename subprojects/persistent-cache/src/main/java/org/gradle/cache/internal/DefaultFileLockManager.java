@@ -86,14 +86,17 @@ public class DefaultFileLockManager implements FileLockManager {
         this.generator = generator;
     }
 
+    @Override
     public FileLock lock(File target, LockOptions options, String targetDisplayName) throws LockTimeoutException {
         return lock(target, options, targetDisplayName, "");
     }
 
+    @Override
     public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName) {
         return lock(target, options, targetDisplayName, operationDisplayName, null);
     }
 
+    @Override
     public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended) {
         if (options.getMode() == LockMode.None) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
@@ -168,30 +171,36 @@ public class DefaultFileLockManager implements FileLockManager {
             this.mode = lock.isShared() ? LockMode.Shared : LockMode.Exclusive;
         }
 
+        @Override
         public boolean isLockFile(File file) {
             return file.equals(lockFile);
         }
 
+        @Override
         public boolean getUnlockedCleanly() {
             assertOpen();
             return !lockState.isDirty();
         }
 
+        @Override
         public State getState() {
             assertOpen();
             return lockState;
         }
 
+        @Override
         public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
             assertOpenAndIntegral();
             return action.create();
         }
 
+        @Override
         public void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
             assertOpenAndIntegral();
             doWriteAction(action);
         }
 
+        @Override
         public void writeFile(Runnable action) throws LockTimeoutException {
             assertOpen();
             doWriteAction(action);
@@ -224,9 +233,11 @@ public class DefaultFileLockManager implements FileLockManager {
             }
         }
 
+        @Override
         public void close() {
             CompositeStoppable stoppable = new CompositeStoppable();
             stoppable.add(new Stoppable() {
+                @Override
                 public void stop() {
                     if (lockFileAccess == null) {
                         return;
@@ -259,6 +270,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 }
             });
             stoppable.add(new Stoppable() {
+                @Override
                 public void stop() {
                     try {
                         fileLockContentionHandler.stop(lockId);
@@ -268,6 +280,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 }
             });
             stoppable.add(new Stoppable() {
+                @Override
                 public void stop() {
                     lock = null;
                     lockFileAccess = null;
@@ -277,6 +290,7 @@ public class DefaultFileLockManager implements FileLockManager {
             stoppable.stop();
         }
 
+        @Override
         public LockMode getMode() {
             return mode;
         }

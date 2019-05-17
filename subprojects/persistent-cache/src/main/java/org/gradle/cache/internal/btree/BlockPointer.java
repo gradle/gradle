@@ -68,6 +68,7 @@ public class BlockPointer implements Comparable<BlockPointer> {
         return Longs.hashCode(pos);
     }
 
+    @Override
     public int compareTo(BlockPointer o) {
         return Longs.compare(pos, o.pos);
     }

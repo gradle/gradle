@@ -60,6 +60,7 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     /**
      * output *.ipr file
      */
+    @Override
     public File getOutputFile() {
         if (ideaProject == null) {
             return super.getOutputFile();
@@ -67,6 +68,7 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
         return ideaProject.getOutputFile();
     }
 
+    @Override
     public void setOutputFile(File newOutputFile) {
         ideaProject.setOutputFile(newOutputFile);
     }

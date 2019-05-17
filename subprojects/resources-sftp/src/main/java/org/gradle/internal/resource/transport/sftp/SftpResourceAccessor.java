@@ -37,6 +37,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         this.credentials = credentials;
     }
 
+    @Override
     public ExternalResourceMetaData getMetaData(URI uri, boolean revalidate) {
         LockableSftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
         try {
@@ -66,6 +67,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         return new DefaultExternalResourceMetaData(uri, lastModified, contentLength);
     }
 
+    @Override
     public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
         ExternalResourceMetaData metaData = getMetaData(location, revalidate);
         return metaData != null ? new SftpResource(sftpClientFactory, metaData, location, credentials) : null;

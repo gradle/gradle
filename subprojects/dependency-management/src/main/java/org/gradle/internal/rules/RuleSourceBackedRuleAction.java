@@ -47,6 +47,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
     public static <R, T> RuleSourceBackedRuleAction<R, T> create(ModelType<T> subjectType, R ruleSourceInstance) {
         ModelType<R> ruleSourceType = ModelType.typeOf(ruleSourceInstance);
         List<Method> mutateMethods = findAllMethods(ruleSourceType.getConcreteClass(), new Spec<Method>() {
+            @Override
             public boolean isSatisfiedBy(Method element) {
                 return element.isAnnotationPresent(Mutate.class);
             }
@@ -83,10 +84,12 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         return Arrays.asList(parameterTypes).subList(1, parameterTypes.length);
     }
 
+    @Override
     public List<Class<?>> getInputTypes() {
         return inputTypes;
     }
 
+    @Override
     public void execute(T subject, List<?> inputs) {
         Object[] args = new Object[inputs.size() + 1];
         args[0] = subject;
@@ -117,6 +120,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         for (final Method method : target.getDeclaredMethods()) {
             List<Method> seenWithName = seen.get(method.getName());
             Method override = CollectionUtils.findFirst(seenWithName, new Spec<Method>() {
+                @Override
                 public boolean isSatisfiedBy(Method potentionOverride) {
                     return potentionOverride.getName().equals(method.getName())
                         && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes());

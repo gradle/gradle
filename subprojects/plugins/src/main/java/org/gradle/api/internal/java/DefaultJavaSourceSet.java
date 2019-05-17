@@ -39,6 +39,7 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
         return "Java";
     }
 
+    @Override
     public Classpath getCompileClasspath() {
         return compileClasspath;
     }
@@ -48,6 +49,7 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
         return new DefaultDependencySpecContainer();
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return new AbstractTaskDependency() {
             @Override

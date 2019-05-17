@@ -46,10 +46,12 @@ public class RuleBasedPluginTarget implements PluginTarget {
         return imperativeTarget.getConfigurationTargetIdentifier();
     }
 
+    @Override
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         imperativeTarget.applyImperative(pluginId, plugin);
     }
 
+    @Override
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
         target.prepareForRuleBasedPlugins();
         ModelRegistry modelRegistry = target.getModelRegistry();
@@ -63,6 +65,7 @@ public class RuleBasedPluginTarget implements PluginTarget {
         }
     }
 
+    @Override
     public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin) {
         applyImperative(pluginId, plugin);
         applyRules(pluginId, plugin.getClass());

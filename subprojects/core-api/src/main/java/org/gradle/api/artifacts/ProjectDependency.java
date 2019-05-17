@@ -31,5 +31,6 @@ public interface ProjectDependency extends ModuleDependency, SelfResolvingDepend
     /**
      * {@inheritDoc}
      */
+    @Override
     ProjectDependency copy();
 }

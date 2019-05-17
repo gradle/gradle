@@ -287,6 +287,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return firstSeenDependency;
     }
 
+    @Override
     public ResolvedVersionConstraint getVersionConstraint() {
         return versionConstraint;
     }

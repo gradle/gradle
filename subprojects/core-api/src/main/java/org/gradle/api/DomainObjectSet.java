@@ -30,20 +30,24 @@ public interface DomainObjectSet<T> extends DomainObjectCollection<T>, Set<T> {
     /**
      * {@inheritDoc}
      */
+    @Override
     <S extends T> DomainObjectSet<S> withType(Class<S> type);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     DomainObjectSet<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     DomainObjectSet<T> matching(Closure spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     Set<T> findAll(Closure spec);
 }

@@ -47,11 +47,13 @@ public class NTLMSchemeFactory implements AuthSchemeProvider {
                 NtlmFlags.NTLMSSP_NEGOTIATE_ALWAYS_SIGN |
                 NtlmFlags.NTLMSSP_REQUEST_TARGET;
 
+        @Override
         public String generateType1Msg(final String domain, final String workstation) throws NTLMEngineException {
             final Type1Message type1Message = new Type1Message(TYPE_1_FLAGS, domain, workstation);
             return Base64.encode(type1Message.toByteArray());
         }
 
+        @Override
         public String generateType3Msg(final String username, final String password, final String domain, final String workstation, final String challenge) throws NTLMEngineException {
             Type2Message type2Message;
             try {

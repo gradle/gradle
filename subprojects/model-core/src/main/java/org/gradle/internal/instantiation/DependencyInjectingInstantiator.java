@@ -40,6 +40,7 @@ class DependencyInjectingInstantiator implements Instantiator {
         this.constructorSelector = constructorSelector;
     }
 
+    @Override
     public <T> T newInstance(Class<? extends T> type, Object... parameters) {
         try {
             ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forParams(type, parameters);

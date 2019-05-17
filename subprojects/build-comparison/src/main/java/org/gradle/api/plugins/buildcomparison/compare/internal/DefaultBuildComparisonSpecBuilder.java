@@ -31,6 +31,7 @@ public class DefaultBuildComparisonSpecBuilder implements BuildComparisonSpecBui
     private final Set<BuildOutcome> target = new HashSet<BuildOutcome>();
     private final List<BuildOutcomeAssociation<?>> outcomeAssociations = new LinkedList<BuildOutcomeAssociation<?>>();
 
+    @Override
     public <A extends BuildOutcome, F extends A, T extends A> BuildOutcomeAssociation<A> associate(F from, T to, Class<A> type) {
         this.source.add(from);
         this.target.add(to);
@@ -41,14 +42,17 @@ public class DefaultBuildComparisonSpecBuilder implements BuildComparisonSpecBui
         return outcomeAssociation;
     }
 
+    @Override
     public <F extends BuildOutcome> void addUnassociatedFrom(F from) {
         this.source.add(from);
     }
 
+    @Override
     public <T extends BuildOutcome> void addUnassociatedTo(T to) {
         this.target.add(to);
     }
 
+    @Override
     public BuildComparisonSpec build() {
         return new DefaultBuildComparisonSpec(source, target, outcomeAssociations);
     }

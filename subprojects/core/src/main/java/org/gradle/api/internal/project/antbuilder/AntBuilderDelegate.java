@@ -86,10 +86,12 @@ public class AntBuilderDelegate extends BuilderSupport {
         return builder.getProperty(name);
     }
 
+    @Override
     protected Object createNode(Object name) {
         return builder.invokeMethod("createNode", name);
     }
 
+    @Override
     protected Object createNode(Object name, Map attributes) {
         if (name.equals("taskdef")) {
             taskdef(Cast.<Map<String, String>>uncheckedCast(attributes));
@@ -99,18 +101,22 @@ public class AntBuilderDelegate extends BuilderSupport {
         return null;
     }
 
+    @Override
     protected Object createNode(Object name, Map attributes, Object value) {
         return builder.invokeMethod("createNode", name, attributes, value);
     }
 
+    @Override
     protected Object createNode(Object name, Object value) {
         return builder.invokeMethod("createNode", name, value);
     }
 
+    @Override
     protected void setParent(Object parent, Object child) {
         builder.invokeMethod("setParent", parent, child);
     }
 
+    @Override
     protected void nodeCompleted(Object parent, Object node) {
         if (parent == null && node == null) {// happens when dispatching to taskdef via createNode()
             return;
@@ -118,6 +124,7 @@ public class AntBuilderDelegate extends BuilderSupport {
         builder.invokeMethod("nodeCompleted", parent, node);
     }
 
+    @Override
     protected Object postNodeCompletion(Object parent, Object node) {
         return builder.invokeMethod("postNodeCompletion", parent, node);
     }

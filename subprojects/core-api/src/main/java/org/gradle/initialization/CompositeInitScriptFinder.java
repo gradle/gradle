@@ -27,6 +27,7 @@ public class CompositeInitScriptFinder implements InitScriptFinder {
         this.finders = Arrays.asList(finders);
     }
 
+    @Override
     public void findScripts(Collection<File> scripts) {
         for (InitScriptFinder finder : finders) {
             finder.findScripts(scripts);

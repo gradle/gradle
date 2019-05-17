@@ -52,12 +52,14 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         this.classLoaderCache = classLoaderCache;
     }
 
+    @Override
     public SerializeMap newSerializeSession() {
         final Set<ClassLoader> candidates = new LinkedHashSet<ClassLoader>();
         final Set<URL> classPath = new LinkedHashSet<URL>();
         final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
         final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
         return new SerializeMap() {
+            @Override
             public short visitClass(Class<?> target) {
                 ClassLoader classLoader = target.getClassLoader();
                 Short id = classLoaderIds.get(classLoader);
@@ -95,9 +97,11 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         };
     }
 
+    @Override
     public DeserializeMap newDeserializeSession() {
         final DeserializeMap deserializeMap = delegate.newDeserializeSession();
         return new DeserializeMap() {
+            @Override
             public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
                 Set<ClassLoader> candidates;
                 lock.lock();

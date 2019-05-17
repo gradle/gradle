@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     private final Set<ManagedExecutor> executors = new CopyOnWriteArraySet<ManagedExecutor>();
 
+    @Override
     public void stop() {
         try {
             CompositeStoppable.stoppable(executors).stop();
@@ -35,6 +36,7 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         }
     }
 
+    @Override
     public ManagedExecutor create(String displayName) {
         ManagedExecutor executor = new TrackedManagedExecutor(createExecutor(displayName), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
@@ -45,6 +47,7 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return Executors.newCachedThreadPool(new ThreadFactoryImpl(displayName));
     }
 
+    @Override
     public ManagedExecutor create(String displayName, int fixedSize) {
         TrackedManagedExecutor executor = new TrackedManagedExecutor(createExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);

@@ -38,6 +38,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 public class JsHintPlugin implements Plugin<Project> {
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(RhinoPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
@@ -48,11 +49,13 @@ public class JsHintPlugin implements Plugin<Project> {
 
         ConventionMapping conventionMapping = ((IConventionAware) jsHintExtension).getConventionMapping();
         conventionMapping.map("js", new Callable<Configuration>() {
+            @Override
             public Configuration call() {
                 return configuration;
             }
         });
         conventionMapping.map("version", new Callable<String>() {
+            @Override
             public String call() {
                 return JsHintExtension.DEFAULT_DEPENDENCY_VERSION;
             }
@@ -62,18 +65,22 @@ public class JsHintPlugin implements Plugin<Project> {
         final ReportingExtension reportingExtension = project.getExtensions().getByType(ReportingExtension.class);
 
         project.getTasks().withType(JsHint.class, new Action<JsHint>() {
+            @Override
             public void execute(final JsHint task) {
                 task.getConventionMapping().map("rhinoClasspath", new Callable<FileCollection>() {
+                    @Override
                     public FileCollection call() {
                         return rhinoExtension.getClasspath();
                     }
                 });
                 task.getConventionMapping().map("jsHint", new Callable<FileCollection>() {
+                    @Override
                     public FileCollection call() {
                         return jsHintExtension.getJs();
                     }
                 });
                 task.getConventionMapping().map("jsonReport", new Callable<File>() {
+                    @Override
                     public File call() {
                         return reportingExtension.file(task.getName() + "/report.json");
                     }

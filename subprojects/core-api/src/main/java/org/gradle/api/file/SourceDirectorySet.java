@@ -39,6 +39,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
     /**
      * A concise name for the source directory set (typically used to identify it in a collection).
      */
+    @Override
     String getName();
 
     /**

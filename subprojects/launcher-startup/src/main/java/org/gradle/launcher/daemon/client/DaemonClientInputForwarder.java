@@ -54,6 +54,7 @@ public class DaemonClientInputForwarder implements Stoppable {
         forwarder.start();
     }
 
+    @Override
     public void stop() {
         forwarder.stop();
     }
@@ -65,6 +66,7 @@ public class DaemonClientInputForwarder implements Stoppable {
             this.dispatch = dispatch;
         }
 
+        @Override
         public void text(String input) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Forwarding input to daemon: '{}'", input.replace("\n", "\\n"));
@@ -72,6 +74,7 @@ public class DaemonClientInputForwarder implements Stoppable {
             dispatch.dispatch(new ForwardInput(input.getBytes()));
         }
 
+        @Override
         public void endOfStream(@Nullable Throwable failure) {
             CloseInput message = new CloseInput();
             LOGGER.debug("Dispatching close input message: {}", message);

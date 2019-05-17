@@ -37,5 +37,6 @@ public interface ComponentMetadataVersionLister extends Action<ComponentMetadata
      *
      * @since 4.9
      */
+    @Override
     void execute(ComponentMetadataListerDetails details);
 }

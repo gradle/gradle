@@ -51,6 +51,7 @@ public class MaybeCompressedFileResource implements ReadableResourceInternal {
         }
     }
 
+    @Override
     public InputStream read() throws MissingResourceException {
         return resource.read();
     }
@@ -59,18 +60,22 @@ public class MaybeCompressedFileResource implements ReadableResourceInternal {
         return resource;
     }
 
+    @Override
     public String getDisplayName() {
         return resource.getDisplayName();
     }
 
+    @Override
     public URI getURI() {
         return resource.getURI();
     }
 
+    @Override
     public String getBaseName() {
         return resource.getBaseName();
     }
 
+    @Override
     public File getBackingFile() {
         return resource.getBackingFile();
     }

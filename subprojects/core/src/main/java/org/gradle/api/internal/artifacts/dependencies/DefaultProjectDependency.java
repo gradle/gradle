@@ -54,18 +54,22 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         this.buildProjectDependencies = buildProjectDependencies;
     }
 
+    @Override
     public Project getDependencyProject() {
         return dependencyProject;
     }
 
+    @Override
     public String getGroup() {
         return dependencyProject.getGroup().toString();
     }
 
+    @Override
     public String getName() {
         return dependencyProject.getName();
     }
 
+    @Override
     public String getVersion() {
         return dependencyProject.getVersion().toString();
     }
@@ -81,6 +85,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return selectedConfiguration;
     }
 
+    @Override
     public ProjectDependency copy() {
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject,
             getTargetConfiguration(), projectAccessListener, buildProjectDependencies);
@@ -88,16 +93,19 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return copiedProjectDependency;
     }
 
+    @Override
     public Set<File> resolve() {
         return resolve(true);
     }
 
+    @Override
     public Set<File> resolve(boolean transitive) {
         CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive, Collections.<String, String>emptyMap());
         context.add(this);
         return context.resolve().getFiles();
     }
 
+    @Override
     public void beforeResolved() {
         projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
     }
@@ -116,10 +124,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         }
     }
 
+    @Override
     public TaskDependencyInternal getBuildDependencies() {
         return new TaskDependencyImpl();
     }
 
+    @Override
     public boolean contentEquals(Dependency dependency) {
         if (this == dependency) {
             return true;

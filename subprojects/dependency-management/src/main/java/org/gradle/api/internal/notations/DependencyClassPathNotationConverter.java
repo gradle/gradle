@@ -77,6 +77,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         visitor.candidate("ClassPathNotation").example("gradleApi()");
     }
 
+    @Override
     public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {

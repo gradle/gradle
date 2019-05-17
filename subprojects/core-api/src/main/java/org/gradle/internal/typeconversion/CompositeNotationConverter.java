@@ -27,6 +27,7 @@ public class CompositeNotationConverter<N, T> implements NotationConverter<N, T>
         this.converters = converters;
     }
 
+    @Override
     public void convert(N notation, NotationConvertResult<? super T> result) throws TypeConversionException {
         for (int i = 0; !result.hasResult() && i < converters.size(); i++) {
             NotationConverter<? super N, ? extends T> converter = converters.get(i);

@@ -29,6 +29,7 @@ import org.gradle.maven.MavenModule;
 import org.gradle.maven.MavenPomArtifact;
 
 public class MavenPublishServices extends AbstractPluginServiceRegistry {
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
     }

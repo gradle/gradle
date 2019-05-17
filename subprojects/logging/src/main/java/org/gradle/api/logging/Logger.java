@@ -37,6 +37,7 @@ public interface Logger extends org.slf4j.Logger {
      * @param message the log message
      * @param objects the log message parameters
      */
+    @Override
     void debug(String message, Object... objects);
 
     /**
@@ -88,6 +89,7 @@ public interface Logger extends org.slf4j.Logger {
      * @param message the log message.
      * @param objects the log message parameters.
      */
+    @Override
     void info(String message, Object... objects);
 
     /**

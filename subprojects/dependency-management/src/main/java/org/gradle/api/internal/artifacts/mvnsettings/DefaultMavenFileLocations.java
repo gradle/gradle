@@ -22,10 +22,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultMavenFileLocations implements MavenFileLocations {
+    @Override
     public File getUserMavenDir() {
         return new File(SystemProperties.getInstance().getUserHome(), ".m2");
     }
 
+    @Override
     @Nullable
     public File getGlobalMavenDir() {
         String m2Home = System.getenv("M2_HOME");
@@ -35,10 +37,12 @@ public class DefaultMavenFileLocations implements MavenFileLocations {
         return new File(m2Home);
     }
 
+    @Override
     public File getUserSettingsFile() {
         return new File(getUserMavenDir(), "settings.xml");
     }
 
+    @Override
     @Nullable
     public File getGlobalSettingsFile() {
         File dir = getGlobalMavenDir();

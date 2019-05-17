@@ -55,6 +55,7 @@ public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpira
             } else {
                 // Check that given daemon still exists in registry - a daemon registry could be removed and recreated between checks
                 List<Long> allDaemonPids = Lists.transform(daemon.getDaemonRegistry().getAll(), new Function<DaemonInfo, Long>() {
+                    @Override
                     public Long apply(DaemonInfo info) {
                         return info.getPid();
                     }

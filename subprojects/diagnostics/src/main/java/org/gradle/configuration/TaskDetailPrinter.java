@@ -68,6 +68,7 @@ public class TaskDetailPrinter {
         final Set<Class> classes = classListMap.keySet();
         boolean multipleClasses = classes.size() > 1;
         final List<Class> sortedClasses = sort(classes, new Comparator<Class>() {
+            @Override
             public int compare(Class o1, Class o2) {
                 return o1.getSimpleName().compareTo(o2.getSimpleName());
             }
@@ -104,11 +105,13 @@ public class TaskDetailPrinter {
 
     private ListMultimap<Class, Task> groupTasksByType(List<Task> tasks) {
         final Set<Class> taskTypes = new TreeSet<Class>(new Comparator<Class>() {
+            @Override
             public int compare(Class o1, Class o2) {
                 return o1.getSimpleName().compareTo(o2.getSimpleName());
             }
         });
         taskTypes.addAll(collect(tasks, new Transformer<Class, Task>() {
+            @Override
             public Class transform(Task original) {
                 return getDeclaredTaskType(original);
             }
@@ -117,6 +120,7 @@ public class TaskDetailPrinter {
         ListMultimap<Class, Task> tasksGroupedByType = ArrayListMultimap.create();
         for (final Class taskType : taskTypes) {
             tasksGroupedByType.putAll(taskType, filter(tasks, new Spec<Task>() {
+                @Override
                 public boolean isSatisfiedBy(Task element) {
                     return getDeclaredTaskType(element).equals(taskType);
                 }
@@ -136,6 +140,7 @@ public class TaskDetailPrinter {
 
     private void printTaskDescription(StyledTextOutput output, List<Task> tasks) {
         printTaskAttribute(output, "Description", tasks, new Transformer<String, Task>() {
+            @Override
             public String transform(Task task) {
                 return task.getDescription();
             }
@@ -144,6 +149,7 @@ public class TaskDetailPrinter {
 
     private void printTaskGroup(StyledTextOutput output, List<Task> tasks) {
         printTaskAttribute(output, "Group", tasks, new Transformer<String, Task>() {
+            @Override
             public String transform(Task task) {
                 return task.getGroup();
             }

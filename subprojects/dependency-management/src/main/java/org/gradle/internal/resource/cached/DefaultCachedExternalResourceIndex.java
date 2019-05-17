@@ -43,6 +43,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
         return new DefaultCachedExternalResource(artifactFile, timeProvider.getCurrentTime(), externalResourceMetaData);
     }
 
+    @Override
     public void store(final K key, final File artifactFile, ExternalResourceMetaData externalResourceMetaData) {
         assertArtifactFileNotNull(artifactFile);
         assertKeyNotNull(key);
@@ -50,6 +51,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
         storeInternal(key, createEntry(artifactFile, externalResourceMetaData));
     }
 
+    @Override
     public void storeMissing(K key) {
         storeInternal(key, new DefaultCachedExternalResource(timeProvider.getCurrentTime()));
     }

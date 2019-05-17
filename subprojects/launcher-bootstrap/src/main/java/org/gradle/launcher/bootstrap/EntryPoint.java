@@ -70,6 +70,7 @@ public abstract class EntryPoint {
     private static class RecordingExecutionListener implements ExecutionListener {
         private Throwable failure;
 
+        @Override
         public void onFailure(Throwable failure) {
             this.failure = failure;
         }

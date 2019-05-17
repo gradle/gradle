@@ -63,6 +63,7 @@ public class Resources implements MethodRule {
         return new TestFile(file);
     }
 
+    @Override
     public Statement apply(final Statement statement, FrameworkMethod frameworkMethod, Object o) {
         testClass = frameworkMethod.getMethod().getDeclaringClass();
         return statement;

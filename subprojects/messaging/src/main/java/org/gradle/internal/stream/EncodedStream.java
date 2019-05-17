@@ -37,6 +37,7 @@ public abstract class EncodedStream {
             this.delegate = delegate;
         }
 
+        @Override
         public int read() throws IOException {
             int byte1 = delegate.read();
             if (byte1 < 0) {
@@ -68,6 +69,7 @@ public abstract class EncodedStream {
             this.delegate = delegate;
         }
 
+        @Override
         public void write(int b) throws IOException {
             delegate.write(HEX_DIGIT[(b >> 4) & 0x0f]);
             delegate.write(HEX_DIGIT[b & 0x0f]);

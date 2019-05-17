@@ -61,6 +61,7 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
         return metadata.isChanging();
     }
 
+    @Override
     public String getStatus() {
         return metadata.getStatus();
     }

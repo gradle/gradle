@@ -106,6 +106,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         return root;
     }
 
+    @Override
     protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
         if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
             MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
@@ -126,6 +127,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         resolveStaticDependency(moduleComponentIdentifier, prescribedMetaData, result, super.createArtifactResolver());
     }
 
+    @Override
     protected boolean isMetaDataArtifact(ArtifactType artifactType) {
         return artifactType == ArtifactType.MAVEN_POM;
     }
@@ -199,10 +201,12 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         }
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getLocalAccess() {
         return localAccess;
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
     }

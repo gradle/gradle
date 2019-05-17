@@ -146,10 +146,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return super.getDisplayName() + '(' + url + ')';
     }
 
+    @Override
     public ModuleVersionPublisher createPublisher() {
         return createRealResolver();
     }
 
+    @Override
     public ConfiguredModuleComponentRepository createResolver() {
         return createRealResolver();
     }
@@ -255,6 +257,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository, metadataFactory));
     }
 
+    @Override
     public URI getUrl() {
         return baseUrl == null ? null : fileResolver.resolveUri(baseUrl);
     }
@@ -321,6 +324,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         config.execute(layout);
     }
 
+    @Override
     public IvyArtifactRepositoryMetaDataProvider getResolve() {
         return metaDataProvider;
     }
@@ -337,6 +341,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             this.fileResolver = fileResolver;
         }
 
+        @Override
         public void apply(URI baseUri, PatternBasedResolver resolver) {
             for (String artifactPattern : artifactPatterns) {
                 ResolvedPattern resolvedPattern = new ResolvedPattern(artifactPattern, fileResolver);
@@ -374,10 +379,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private static class MetaDataProvider implements IvyArtifactRepositoryMetaDataProvider {
         boolean dynamicResolve;
 
+        @Override
         public boolean isDynamicMode() {
             return dynamicResolve;
         }
 
+        @Override
         public void setDynamicMode(boolean mode) {
             this.dynamicResolve = mode;
         }

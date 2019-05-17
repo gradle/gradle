@@ -143,6 +143,7 @@ public class IvyDescriptorFileGenerator {
 
     public IvyDescriptorFileGenerator writeTo(File file) {
         xmlTransformer.transform(file, IVY_FILE_ENCODING, new Action<Writer>() {
+            @Override
             public void execute(Writer writer) {
                 try {
                     writeDescriptor(writer);

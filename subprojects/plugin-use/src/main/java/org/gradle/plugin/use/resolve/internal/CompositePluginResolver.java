@@ -28,6 +28,7 @@ public class CompositePluginResolver implements PluginResolver {
         this.repositories = repositories;
     }
 
+    @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
         for (PluginResolver repository : repositories) {
             repository.resolve(pluginRequest, result);

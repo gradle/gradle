@@ -67,12 +67,14 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
             this.moduleIdentifierFactory = moduleIdentifierFactory;
         }
 
+        @Override
         public void write(Encoder encoder, ModuleAtRepositoryKey value) throws Exception {
             encoder.writeString(value.repositoryId);
             encoder.writeString(value.moduleId.getGroup());
             encoder.writeString(value.moduleId.getName());
         }
 
+        @Override
         public ModuleAtRepositoryKey read(Decoder decoder) throws Exception {
             String resolverId = decoder.readString();
             String group = decoder.readString();
@@ -83,6 +85,7 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
 
     private static class ModuleVersionsCacheEntrySerializer extends AbstractSerializer<ModuleVersionsCacheEntry> {
 
+        @Override
         public void write(Encoder encoder, ModuleVersionsCacheEntry value) throws Exception {
             Set<String> versions = value.moduleVersionListing;
             encoder.writeInt(versions.size());
@@ -92,6 +95,7 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
             encoder.writeLong(value.createTimestamp);
         }
 
+        @Override
         public ModuleVersionsCacheEntry read(Decoder decoder) throws Exception {
             int size = decoder.readInt();
             Set<String> versions = new LinkedHashSet<String>();

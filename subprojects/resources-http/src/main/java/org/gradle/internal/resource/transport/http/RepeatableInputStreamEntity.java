@@ -37,18 +37,22 @@ public class RepeatableInputStreamEntity extends AbstractHttpEntity {
         }
     }
 
+    @Override
     public boolean isRepeatable() {
         return true;
     }
 
+    @Override
     public long getContentLength() {
         return source.getContentLength();
     }
 
+    @Override
     public InputStream getContent() throws IOException, IllegalStateException {
         return source.open();
     }
 
+    @Override
     public void writeTo(OutputStream outstream) throws IOException {
         InputStream content = getContent();
         try {
@@ -58,6 +62,7 @@ public class RepeatableInputStreamEntity extends AbstractHttpEntity {
         }
     }
 
+    @Override
     public boolean isStreaming() {
         return true;
     }

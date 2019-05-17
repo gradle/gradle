@@ -44,18 +44,22 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
         return delegate.toString();
     }
 
+    @Override
     public String getId() {
         return delegate.getId();
     }
 
+    @Override
     public String getName() {
         return delegate.getName();
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getLocalAccess() {
         return localAccess;
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
     }

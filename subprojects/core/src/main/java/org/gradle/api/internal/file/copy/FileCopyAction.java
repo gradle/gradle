@@ -30,6 +30,7 @@ public class FileCopyAction implements CopyAction {
         this.fileResolver = fileResolver;
     }
 
+    @Override
     public WorkResult execute(CopyActionProcessingStream stream) {
         FileCopyDetailsInternalAction action = new FileCopyDetailsInternalAction();
         stream.process(action);
@@ -39,6 +40,7 @@ public class FileCopyAction implements CopyAction {
     private class FileCopyDetailsInternalAction implements CopyActionProcessingStreamAction {
         private boolean didWork;
 
+        @Override
         public void processFile(FileCopyDetailsInternal details) {
             File target = fileResolver.resolve(details.getRelativePath().getPathString());
             boolean copied = details.copyTo(target);

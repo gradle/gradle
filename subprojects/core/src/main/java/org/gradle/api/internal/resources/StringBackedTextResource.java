@@ -48,14 +48,17 @@ public class StringBackedTextResource implements TextResourceInternal {
         return getDisplayName();
     }
 
+    @Override
     public String asString() {
         return string;
     }
 
+    @Override
     public Reader asReader() {
         return new StringReader(string);
     }
 
+    @Override
     public File asFile(String charset) {
         File file = tempFileProvider.createTemporaryFile("string", ".txt", "resource");
         try {
@@ -66,18 +69,22 @@ public class StringBackedTextResource implements TextResourceInternal {
         return file;
     }
 
+    @Override
     public File asFile() {
         return asFile(Charset.defaultCharset().name());
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return TaskDependencyInternal.EMPTY;
     }
 
+    @Override
     public Object getInputProperties() {
         return string;
     }
 
+    @Override
     public FileCollection getInputFiles() {
         return null;
     }

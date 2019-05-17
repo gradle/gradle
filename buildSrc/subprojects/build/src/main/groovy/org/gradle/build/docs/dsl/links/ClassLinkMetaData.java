@@ -125,6 +125,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         methods.put(getterOrSetter.getOverrideSignature(), new PropertyLinkMetaData(propertyName, getterOrSetter.getName(), getterOrSetter.getOverrideSignature()));
     }
 
+    @Override
     public void attach(ClassMetaDataRepository<ClassLinkMetaData> linkMetaDataClassMetaDataRepository) {
     }
 

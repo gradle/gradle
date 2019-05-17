@@ -90,6 +90,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return pluginClass.cast(instances.get(pluginClass));
     }
 
+    @Override
     public <P extends Plugin> P addImperativePlugin(Class<P> type) {
         return addImperativePlugin(pluginRegistry.inspect(type));
     }
@@ -116,6 +117,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         };
     }
 
+    @Override
     public PluginContainer getPluginContainer() {
         return pluginContainer;
     }
@@ -125,6 +127,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         doApply(plugin);
     }
 
+    @Override
     public void apply(String pluginId) {
         PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(pluginId));
         if (plugin == null) {
@@ -133,6 +136,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         doApply(plugin);
     }
 
+    @Override
     public void apply(Class<?> type) {
         doApply(pluginRegistry.inspect(type));
     }
@@ -209,6 +213,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return null;
     }
 
+    @Override
     public DomainObjectSet<PluginWithId> pluginsForId(String id) {
         PluginId pluginId = DefaultPluginId.unvalidated(id);
         DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
@@ -225,6 +230,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return pluginsForId;
     }
 
+    @Override
     public AppliedPlugin findPlugin(final String id) {
         DomainObjectSet<PluginWithId> pluginWithIds = pluginsForId(id);
         if (!pluginWithIds.isEmpty()) {
@@ -233,12 +239,15 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return null;
     }
 
+    @Override
     public boolean hasPlugin(String id) {
         return findPlugin(id) != null;
     }
 
+    @Override
     public void withPlugin(final String id, final Action<? super AppliedPlugin> action) {
         Action<PluginWithId> wrappedAction = new Action<PluginWithId>() {
+            @Override
             public void execute(PluginWithId pluginWithId) {
                 action.execute(pluginWithId.asAppliedPlugin());
             }
@@ -299,6 +308,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             this.applicationId = applicationId;
         }
 
+        @Override
         @Nullable
         public String getPluginId() {
             PluginId pluginId = pluginImplementation.getPluginId();

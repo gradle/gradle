@@ -27,5 +27,6 @@ public interface InternalTestFinishedProgressEvent extends InternalTestProgressE
      *
      * @return The test result
      */
+    @Override
     InternalTestResult getResult();
 }

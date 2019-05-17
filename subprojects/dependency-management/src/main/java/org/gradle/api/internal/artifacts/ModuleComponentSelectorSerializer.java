@@ -44,6 +44,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         this.attributeContainerSerializer = attributeContainerSerializer;
     }
 
+    @Override
     public ModuleComponentSelector read(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();
@@ -65,6 +66,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         return new DefaultImmutableVersionConstraint(preferred, required, strictly, rejects);
     }
 
+    @Override
     public void write(Encoder encoder, ModuleComponentSelector value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getModule());

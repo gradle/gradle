@@ -369,6 +369,7 @@ public class MavenPomFileGenerator {
 
     public MavenPomFileGenerator writeTo(File file) {
         xmlTransformer.transform(file, POM_FILE_ENCODING, new Action<Writer>() {
+            @Override
             public void execute(Writer writer) {
                 try {
                     new MavenXpp3Writer().write(writer, model);

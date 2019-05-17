@@ -60,6 +60,7 @@ public class TestNGTestFramework implements TestFramework {
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
         new DslObject(options).getConventionMapping().map("outputDirectory", new Callable<File>() {
+            @Override
             public File call() {
                 return html.getDestination();
             }
@@ -114,6 +115,7 @@ public class TestNGTestFramework implements TestFramework {
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return new Action<WorkerProcessBuilder>() {
+            @Override
             public void execute(WorkerProcessBuilder workerProcessBuilder) {
                 workerProcessBuilder.sharedPackages("org.testng");
             }

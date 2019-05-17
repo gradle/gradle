@@ -47,9 +47,11 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         this.resultType = resultType;
     }
 
+    @Override
     public void report(final R results) {
         try {
             db.withConnection(new ConnectionAction<Void>() {
+                @Override
                 public Void execute(Connection connection) throws SQLException {
                     long executionId;
                     PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -110,13 +112,16 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         return list == null ? null : list.toArray(new String[0]);
     }
 
+    @Override
     public void close() {
         db.close();
     }
 
+    @Override
     public List<String> getTestNames() {
         try {
             return db.withConnection(new ConnectionAction<List<String>>() {
+                @Override
                 public List<String> execute(Connection connection) throws SQLException {
                 Set<String> testNames = Sets.newLinkedHashSet();
                 PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId, testGroup from testExecution where resultType = ? order by testGroup, testId");
@@ -140,9 +145,11 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         return getTestResults(testName, Integer.MAX_VALUE, Integer.MAX_VALUE, channel);
     }
 
+    @Override
     public CrossBuildPerformanceTestHistory getTestResults(final String testName, final int mostRecentN, final int maxDaysOld, final String channel) {
         try {
             return db.withConnection(new ConnectionAction<CrossBuildPerformanceTestHistory>() {
+                @Override
                 public CrossBuildPerformanceTestHistory execute(Connection connection) throws SQLException {
                     List<CrossBuildPerformanceResults> results = Lists.newArrayList();
                     Set<BuildDisplayInfo> builds = Sets.newTreeSet(new Comparator<BuildDisplayInfo>() {

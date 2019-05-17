@@ -36,6 +36,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     private Object target;
     private ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
 
+    @Override
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
         setScriptTarget(target);
@@ -50,6 +51,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         this.dynamicObject.setTarget(target);
     }
 
+    @Override
     public StandardOutputCapture getStandardOutputCapture() {
         return standardOutputCapture;
     }

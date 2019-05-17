@@ -32,6 +32,7 @@ import org.gradle.ivy.IvyDescriptorArtifact;
 import org.gradle.ivy.IvyModule;
 
 public class IvyServices extends AbstractPluginServiceRegistry {
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildServices());
     }

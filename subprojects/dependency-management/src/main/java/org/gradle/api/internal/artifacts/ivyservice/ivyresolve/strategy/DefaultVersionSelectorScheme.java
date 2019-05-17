@@ -34,6 +34,7 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
         this.versionParser = versionParser;
     }
 
+    @Override
     public VersionSelector parseSelector(String selectorString) {
         if (VersionRangeSelector.ALL_RANGE.matcher(selectorString).matches()) {
             return new VersionRangeSelector(selectorString, versionComparator.asVersionComparator(), versionParser);
@@ -50,6 +51,7 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
         return new ExactVersionSelector(selectorString);
     }
 
+    @Override
     public String renderSelector(VersionSelector selector) {
         return selector.getSelector();
     }

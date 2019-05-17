@@ -32,6 +32,7 @@ public class DefaultZipCompressor implements ZipCompressor {
         zip64Mode = allowZip64Mode ? Zip64Mode.AsNeeded : Zip64Mode.Never;
     }
 
+    @Override
     public ZipOutputStream createArchiveOutputStream(File destination) throws IOException {
         ZipOutputStream outStream = new ZipOutputStream(destination);
         try {

@@ -65,6 +65,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         this.instantiator = instantiator;
     }
 
+    @Override
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         this.project = project;

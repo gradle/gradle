@@ -115,6 +115,7 @@ public class LineFilter extends Reader {
         return len;
     }
 
+    @Override
     public void close() throws IOException {
         in.close();
     }

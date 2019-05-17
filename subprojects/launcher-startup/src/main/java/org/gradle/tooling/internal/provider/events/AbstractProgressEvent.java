@@ -29,10 +29,12 @@ public abstract class AbstractProgressEvent<T extends InternalOperationDescripto
         this.descriptor = descriptor;
     }
 
+    @Override
     public long getEventTime() {
         return eventTime;
     }
 
+    @Override
     public T getDescriptor() {
         return descriptor;
     }

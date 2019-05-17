@@ -34,10 +34,12 @@ public class AbstractDependencyResult implements DependencyResult {
         this.constraint = constraint;
     }
 
+    @Override
     public ComponentSelector getRequested() {
         return requested;
     }
 
+    @Override
     public ResolvedComponentResult getFrom() {
         return from;
     }

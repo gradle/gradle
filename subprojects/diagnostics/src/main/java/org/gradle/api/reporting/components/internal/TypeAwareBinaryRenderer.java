@@ -27,6 +27,7 @@ import java.util.Map;
 
 public class TypeAwareBinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
     static final Comparator<BinarySpec> SORT_ORDER = new Comparator<BinarySpec>() {
+        @Override
         public int compare(BinarySpec binary1, BinarySpec binary2) {
             return binary1.getName().compareTo(binary2.getName());
         }

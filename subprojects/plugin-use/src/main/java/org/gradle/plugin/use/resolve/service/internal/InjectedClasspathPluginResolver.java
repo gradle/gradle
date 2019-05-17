@@ -49,6 +49,7 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
         );
     }
 
+    @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginRequest.getId());
         if (plugin == null) {
@@ -80,10 +81,12 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
             this.plugin = plugin;
         }
 
+        @Override
         public PluginId getPluginId() {
             return plugin.getPluginId();
         }
 
+        @Override
         public void execute(PluginResolveContext pluginResolveContext) {
             pluginResolveContext.addFromDifferentLoader(plugin);
         }

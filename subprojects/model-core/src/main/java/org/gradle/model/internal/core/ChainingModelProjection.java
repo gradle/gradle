@@ -44,6 +44,7 @@ public class ChainingModelProjection implements ModelProjection {
     @Override
     public Iterable<String> getTypeDescriptions(final MutableModelNode node) {
         return Iterables.concat(Iterables.transform(projections, new Function<ModelProjection, Iterable<String>>() {
+            @Override
             public Iterable<String> apply(ModelProjection projection) {
                 return projection.getTypeDescriptions(node);
             }

@@ -40,10 +40,12 @@ public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
         allGroovy.getFilter().include("**/*.groovy");
     }
 
+    @Override
     public SourceDirectorySet getGroovy() {
         return groovy;
     }
 
+    @Override
     public GroovySourceSet groovy(@Nullable Closure configureClosure) {
         configure(configureClosure, getGroovy());
         return this;
@@ -55,6 +57,7 @@ public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
         return this;
     }
 
+    @Override
     public SourceDirectorySet getAllGroovy() {
         return allGroovy;
     }

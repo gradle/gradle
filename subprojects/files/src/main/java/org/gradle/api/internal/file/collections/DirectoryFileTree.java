@@ -70,6 +70,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         this.postfix = postfix;
     }
 
+    @Override
     public String getDisplayName() {
         String includes = patternSet.getIncludes().isEmpty() ? "" : String.format(" include %s", GUtil.toString(patternSet.getIncludes()));
         String excludes = patternSet.getExcludes().isEmpty() ? "" : String.format(" exclude %s", GUtil.toString(patternSet.getExcludes()));
@@ -81,24 +82,29 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         return getDisplayName();
     }
 
+    @Override
     public PatternSet getPatterns() {
         return patternSet;
     }
 
+    @Override
     public File getDir() {
         return dir;
     }
 
+    @Override
     public Collection<DirectoryFileTree> getLocalContents() {
         return Collections.singletonList(this);
     }
 
+    @Override
     public DirectoryFileTree filter(PatternFilterable patterns) {
         PatternSet patternSet = this.patternSet.intersect();
         patternSet.copyFrom(patterns);
         return new DirectoryFileTree(dir, patternSet, directoryWalkerFactory, fileSystem, postfix);
     }
 
+    @Override
     public boolean contains(File file) {
         return DirectoryTrees.contains(fileSystem, this, file) && file.isFile();
     }
@@ -113,6 +119,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         visit(visitor);
     }
 
+    @Override
     public void visit(FileVisitor visitor) {
         visitFrom(visitor, dir, RelativePath.EMPTY_ROOT);
     }

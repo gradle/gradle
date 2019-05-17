@@ -25,5 +25,6 @@ public interface BoundedDispatch<T> extends Dispatch<T>, StreamCompletion {
     /**
      * Signals the end of the stream of messages. No further messages should be dispatched using the {@link Dispatch#dispatch(Object)} method after this method is called.
      */
+    @Override
     void endStream();
 }

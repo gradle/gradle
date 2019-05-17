@@ -75,6 +75,7 @@ public class ModelRuleExtractor {
     private final LoadingCache<Class<?>, CachedRuleSource> cache = CacheBuilder.newBuilder()
             .weakKeys()
             .build(new CacheLoader<Class<?>, CachedRuleSource>() {
+                @Override
                 public CachedRuleSource load(Class<?> source) {
                     return doExtract(source);
                 }
@@ -94,6 +95,7 @@ public class ModelRuleExtractor {
 
     private String describeHandlers() {
         String desc = Joiner.on(", ").join(CollectionUtils.collect(handlers, new Transformer<String, MethodModelRuleExtractor>() {
+            @Override
             public String transform(MethodModelRuleExtractor original) {
                 return original.getDescription();
             }

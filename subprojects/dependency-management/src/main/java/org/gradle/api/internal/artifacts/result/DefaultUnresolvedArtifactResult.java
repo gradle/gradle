@@ -40,10 +40,12 @@ public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult
         return identifier;
     }
 
+    @Override
     public Class<? extends Artifact> getType() {
         return type;
     }
 
+    @Override
     public Throwable getFailure() {
         return failure;
     }

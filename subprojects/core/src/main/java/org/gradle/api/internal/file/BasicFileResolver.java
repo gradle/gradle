@@ -39,6 +39,7 @@ public class BasicFileResolver implements Transformer<File, String> {
         this.baseDir = baseDir;
     }
 
+    @Override
     public File transform(String original) {
         if (original.startsWith("file:")) {
             try {

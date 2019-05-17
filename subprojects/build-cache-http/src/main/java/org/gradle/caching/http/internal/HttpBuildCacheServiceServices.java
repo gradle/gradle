@@ -24,6 +24,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 public class HttpBuildCacheServiceServices extends AbstractPluginServiceRegistry {
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(BuildCacheServiceRegistration.class, new DefaultBuildCacheServiceRegistration(HttpBuildCache.class, DefaultHttpBuildCacheServiceFactory.class));
     }

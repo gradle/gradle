@@ -42,6 +42,7 @@ public class DefaultBuildOutcomeRendererFactory<C> implements BuildOutcomeRender
         }
     }
 
+    @Override
     public <T extends BuildOutcome> BuildOutcomeRenderer<T, C> getRenderer(Class<? extends T> resultType) {
         //noinspection unchecked
         return (BuildOutcomeRenderer<T, C>) renderers.get(resultType);

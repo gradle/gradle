@@ -35,6 +35,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
         outputEventListener = outputListener;
     }
 
+    @Override
     public void configure(LogLevel logLevel) {
         if (logLevel == currentLevel) {
             return;

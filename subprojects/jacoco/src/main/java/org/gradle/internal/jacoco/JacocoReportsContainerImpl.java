@@ -35,14 +35,17 @@ public class JacocoReportsContainerImpl extends TaskReportContainer<Configurable
         add(TaskGeneratedSingleFileReport.class, "csv", task);
     }
 
+    @Override
     public DirectoryReport getHtml() {
         return (DirectoryReport)getByName("html");
     }
 
+    @Override
     public SingleFileReport getXml() {
         return (SingleFileReport)getByName("xml");
     }
 
+    @Override
     public SingleFileReport getCsv() {
         return (SingleFileReport)getByName("csv");
     }

@@ -72,6 +72,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         this.configInputStream = configInputStream;
     }
 
+    @Override
     public Void call() throws Exception {
         if (System.getProperty("org.gradle.worker.test.stuck") != null) {
             // Simulate a stuck worker. There's probably a way to inject this failure...
@@ -130,6 +131,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
             final ObjectConnection serverConnection = connection;
             action.execute(new WorkerContext() {
+                @Override
                 public ClassLoader getApplicationClassLoader() {
                     return ClassLoader.getSystemClassLoader();
                 }

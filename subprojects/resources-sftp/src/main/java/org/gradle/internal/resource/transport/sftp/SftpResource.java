@@ -58,10 +58,12 @@ public class SftpResource implements ExternalResourceReadResponse {
         return false;
     }
 
+    @Override
     public ExternalResourceMetaData getMetaData() {
         return metaData;
     }
 
+    @Override
     public void close() {
         clientFactory.releaseSftpClient(client);
     }

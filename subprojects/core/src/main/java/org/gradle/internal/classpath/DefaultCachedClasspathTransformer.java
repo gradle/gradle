@@ -130,6 +130,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         public File transform(final File original) {
             if (shouldUseFromCache(original)) {
                 return cache.useCache(new Factory<File>() {
+                    @Override
                     public File create() {
                         return jarCache.getCachedJar(original, baseDir);
                     }

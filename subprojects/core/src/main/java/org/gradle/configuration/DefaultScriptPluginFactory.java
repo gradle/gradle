@@ -132,6 +132,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.scriptPluginFactory = scriptPluginFactory;
     }
 
+    @Override
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
         return new ScriptPluginImpl(scriptSource, (ScriptHandlerInternal) scriptHandler, targetScope, baseScope, topLevelScript);
     }
@@ -151,10 +152,12 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             this.topLevelScript = topLevelScript;
         }
 
+        @Override
         public ScriptSource getSource() {
             return scriptSource;
         }
 
+        @Override
         public void apply(final Object target) {
             final DefaultServiceRegistry services = new DefaultServiceRegistry() {
                 Factory<PatternSet> createPatternSetFactory() {
@@ -217,6 +220,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             }
 
             Runnable buildScriptRunner = new Runnable() {
+                @Override
                 public void run() {
                     runner.run(target, services);
                 }

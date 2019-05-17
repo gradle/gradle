@@ -281,6 +281,7 @@ public class HttpClientConfigurer {
             this.alwaysSendAuth = alwaysSendAuth;
         }
 
+        @Override
         public void process(final HttpRequest request, final HttpContext context) throws HttpException {
 
             AuthState authState = (AuthState) context.getAttribute(HttpClientContext.TARGET_AUTH_STATE);

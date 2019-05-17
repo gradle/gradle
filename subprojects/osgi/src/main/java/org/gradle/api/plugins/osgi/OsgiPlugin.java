@@ -36,6 +36,7 @@ import java.io.File;
  */
 @Deprecated
 public class OsgiPlugin implements Plugin<Project> {
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 

@@ -25,6 +25,7 @@ import org.gradle.api.tasks.wrapper.Wrapper;
  * The wrapper plugin.
  */
 public class WrapperPlugin implements Plugin<Project> {
+    @Override
     public void apply(Project project) {
         if (project.getParent() == null) {
             project.getTasks().register("wrapper", Wrapper.class, new Action<Wrapper>() {

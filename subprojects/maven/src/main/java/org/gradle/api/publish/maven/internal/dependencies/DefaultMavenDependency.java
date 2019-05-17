@@ -52,14 +52,17 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
         this.type = type;
     }
 
+    @Override
     public String getGroupId() {
         return groupId;
     }
 
+    @Override
     public String getArtifactId() {
         return artifactId;
     }
 
+    @Override
     public String getVersion() {
         return version;
     }
@@ -70,10 +73,12 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
         return type;
     }
 
+    @Override
     public Collection<DependencyArtifact> getArtifacts() {
         return artifacts;
     }
     
+    @Override
     public Collection<ExcludeRule> getExcludeRules() {
         return excludeRules;
     }

@@ -62,6 +62,7 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         visitor.candidate("A URI or URL instance.");
     }
 
+    @Override
     public void convert(Object notation, NotationConvertResult<? super Object> result) throws TypeConversionException {
         if (notation instanceof File) {
             result.converted(notation);

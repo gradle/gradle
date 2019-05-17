@@ -30,6 +30,7 @@ public class ChainingTransformer<T> implements Transformer<T, T> {
         this.type = type;
     }
 
+    @Override
     public T transform(T original) {
         T value = original;
         for (Transformer<T, T> transformer : transformers) {
@@ -44,6 +45,7 @@ public class ChainingTransformer<T> implements Transformer<T, T> {
 
     public void add(final Closure transformer) {
         transformers.add(new Transformer<T, T>() {
+            @Override
             public T transform(T original) {
                 transformer.setDelegate(original);
                 transformer.setResolveStrategy(Closure.DELEGATE_FIRST);

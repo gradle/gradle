@@ -34,6 +34,7 @@ class StandardTaskAction implements ImplementationAwareTaskAction, Describable {
         this.method = method;
     }
 
+    @Override
     public void execute(Task task) {
         ClassLoader original = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());

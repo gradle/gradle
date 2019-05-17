@@ -44,6 +44,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         this.forkOptionsFactory = forkOptionsFactory;
     }
 
+    @Override
     public Compiler<ScalaJavaJointCompileSpec> newCompiler(ScalaJavaJointCompileSpec spec) {
         Set<File> scalaClasspathFiles = scalaClasspath.getFiles();
         Set<File> zincClasspathFiles = zincClasspath.getFiles();

@@ -148,6 +148,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
      *
      * @see #requestStop(String reason)
      */
+    @Override
     public void stop() {
         stopNow("service stop");
     }
@@ -290,6 +291,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         onStartCommand(commandDisplayName);
         try {
             executor.execute(new Runnable() {
+                @Override
                 public void run() {
                     try {
                         command.run();

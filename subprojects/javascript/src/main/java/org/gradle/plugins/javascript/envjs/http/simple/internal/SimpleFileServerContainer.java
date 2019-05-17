@@ -42,6 +42,7 @@ public class SimpleFileServerContainer implements Container {
         this.context = context;
     }
 
+    @Override
     public void handle(Request req, Response resp) {
         Index requestIndex = context.getIndex(req.getTarget());
         File targetFile = requestIndex.getFile();

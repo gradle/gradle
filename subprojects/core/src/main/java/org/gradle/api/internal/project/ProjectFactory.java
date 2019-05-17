@@ -41,6 +41,7 @@ public class ProjectFactory implements IProjectFactory {
         this.projectRegistry = projectRegistry;
     }
 
+    @Override
     public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
         File buildFile = projectDescriptor.getBuildFile();
         TextResource resource = resourceLoader.loadFile("build file", buildFile);

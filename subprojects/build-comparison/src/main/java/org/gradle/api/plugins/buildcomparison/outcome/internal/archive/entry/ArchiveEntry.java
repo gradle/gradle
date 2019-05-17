@@ -36,6 +36,7 @@ public class ArchiveEntry {
             this.components = components;
         }
 
+        @Override
         public int compareTo(Path o) {
             for (int i = 0; i < Math.max(components.size(), o.components.size()); ++i) {
                 boolean hasLeft = components.size() > i;

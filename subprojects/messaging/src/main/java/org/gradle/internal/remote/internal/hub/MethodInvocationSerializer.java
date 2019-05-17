@@ -33,10 +33,12 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
         this.methodArgsSerializer = methodArgsSerializer;
     }
 
+    @Override
     public ObjectReader<MethodInvocation> newReader(Decoder decoder) {
         return new MethodInvocationReader(decoder, classLoader, methodArgsSerializer);
     }
 
+    @Override
     public ObjectWriter<MethodInvocation> newWriter(Encoder encoder) {
         return new MethodInvocationWriter(encoder, methodArgsSerializer);
     }
@@ -63,6 +65,7 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
             this.methodArgsSerializer = methodArgsSerializer;
         }
 
+        @Override
         public void write(MethodInvocation value) throws Exception {
             if (value.getArguments().length != value.getMethod().getParameterTypes().length) {
                 throw new IllegalArgumentException(String.format("Mismatched number of parameters to method %s.", value.getMethod()));
@@ -114,6 +117,7 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
             this.methodArgsSerializer = methodArgsSerializer;
         }
 
+        @Override
         public MethodInvocation read() throws Exception {
             MethodDetails methodDetails = readMethod();
             Object[] args = readArguments(methodDetails);

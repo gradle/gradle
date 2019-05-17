@@ -159,14 +159,17 @@ public class ResolveIvyFactory {
             delegate.add(moduleComponentRepository);
         }
 
+        @Override
         public DependencyToComponentIdResolver getComponentIdResolver() {
             return this;
         }
 
+        @Override
         public ComponentMetaDataResolver getComponentResolver() {
             return this;
         }
 
+        @Override
         public ArtifactResolver getArtifactResolver() {
             return this;
         }

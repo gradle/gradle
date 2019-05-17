@@ -50,6 +50,7 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
         componentIdSerializer = new ComponentIdentifierSerializer();
     }
 
+    @Override
     public ResolvedGraphComponent read(Decoder decoder) throws IOException {
         long resultId = decoder.readSmallLong();
         ModuleVersionIdentifier id = idSerializer.read(decoder);
@@ -87,6 +88,7 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
         return capabilities.build();
     }
 
+    @Override
     public void write(Encoder encoder, ResolvedGraphComponent value) throws IOException {
         encoder.writeSmallLong(value.getResultId());
         idSerializer.write(encoder, value.getModuleVersion());

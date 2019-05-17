@@ -36,6 +36,7 @@ public class DefaultMavenPomFactory implements Factory<MavenPom> {
         this.fileResolver = fileResolver;
     }
 
+    @Override
     public MavenPom create() {
         return new DefaultMavenPom(configurationContainer,
                 new DefaultConf2ScopeMappingContainer(conf2ScopeMappingContainer.getMappings()), pomDependenciesConverter, fileResolver);

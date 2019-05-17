@@ -55,6 +55,7 @@ public class DefaultTestClassScanner implements Runnable {
     private void detectionScan() {
         testFrameworkDetector.startDetection(testClassProcessor);
         candidateClassFiles.visit(new ClassFileVisitor() {
+            @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
                 testFrameworkDetector.processTestClass(new RelativeFile(fileDetails.getFile(), fileDetails.getRelativePath()));
             }
@@ -63,6 +64,7 @@ public class DefaultTestClassScanner implements Runnable {
 
     private void filenameScan() {
         candidateClassFiles.visit(new ClassFileVisitor() {
+            @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
                 TestClassRunInfo testClass = new DefaultTestClassRunInfo(getClassName(fileDetails));
                 testClassProcessor.processTestClass(testClass);

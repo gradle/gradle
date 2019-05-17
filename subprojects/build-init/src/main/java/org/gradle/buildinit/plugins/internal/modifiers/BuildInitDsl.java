@@ -61,6 +61,7 @@ public enum BuildInitDsl implements WithIdentifier {
         return supported.build();
     }
 
+    @Override
     public String getId() {
         return Names.idFor(this);
     }

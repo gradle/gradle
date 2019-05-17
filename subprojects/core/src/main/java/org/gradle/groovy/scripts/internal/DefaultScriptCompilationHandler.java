@@ -278,6 +278,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
             this.verifier = new Verifier() {
+                @Override
                 public void visitClass(ClassNode node) {
                     customVerifier.execute(node);
                     super.visitClass(node);

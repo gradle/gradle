@@ -92,6 +92,7 @@ public class BuildOperationNotificationBridge {
     // and discard buffered notifications if no listeners have yet appeared.
     // This avoids buffering until the end of the build when no listener comes.
     private final BuildListener buildListener = new InternalBuildAdapter() {
+        @Override
         public void buildStarted(@SuppressWarnings("NullableProblems") Gradle gradle) {
             if (gradle.getParent() == null) {
                 gradle.rootProject(new InternalAction<Project>() {

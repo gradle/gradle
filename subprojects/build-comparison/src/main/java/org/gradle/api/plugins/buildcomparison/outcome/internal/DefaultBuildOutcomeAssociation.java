@@ -28,14 +28,17 @@ public class DefaultBuildOutcomeAssociation<A extends BuildOutcome> implements B
         this.type = type;
     }
 
+    @Override
     public A getSource() {
         return source;
     }
 
+    @Override
     public A getTarget() {
         return target;
     }
 
+    @Override
     public Class<A> getType() {
         return type;
     }

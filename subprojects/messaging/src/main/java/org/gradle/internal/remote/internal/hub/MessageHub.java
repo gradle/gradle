@@ -180,6 +180,7 @@ public class MessageHub implements AsyncStoppable {
      *
      * </ul>
      */
+    @Override
     public void requestStop() {
         lock.lock();
         try {
@@ -210,6 +211,7 @@ public class MessageHub implements AsyncStoppable {
      *
      * </ul>
      */
+    @Override
     public void stop() {
         try {
             lock.lock();
@@ -230,6 +232,7 @@ public class MessageHub implements AsyncStoppable {
     }
 
     private static class Discard implements BoundedDispatch<Object>, RejectedMessageListener, StreamFailureHandler {
+        @Override
         public void dispatch(Object message) {
         }
 
@@ -237,6 +240,7 @@ public class MessageHub implements AsyncStoppable {
         public void endStream() {
         }
 
+        @Override
         public void messageDiscarded(Object message) {
         }
 
@@ -254,6 +258,7 @@ public class MessageHub implements AsyncStoppable {
             this.connectionState = connectionState;
         }
 
+        @Override
         public void run() {
             try {
                 try {
@@ -304,6 +309,7 @@ public class MessageHub implements AsyncStoppable {
             this.connectionState = connectionState;
         }
 
+        @Override
         public void run() {
             try {
                 List<InterHubMessage> messages = new ArrayList<InterHubMessage>();
@@ -357,6 +363,7 @@ public class MessageHub implements AsyncStoppable {
             return "Dispatch " + type.getSimpleName() + " to " + displayName + " channel " + channelIdentifier;
         }
 
+        @Override
         public void dispatch(T message) {
             lock.lock();
             try {
@@ -383,6 +390,7 @@ public class MessageHub implements AsyncStoppable {
             this.streamFailureHandler = streamFailureHandler;
         }
 
+        @Override
         public void run() {
             try {
                 List<InterHubMessage> messages = new ArrayList<InterHubMessage>();

@@ -60,14 +60,17 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         this.repositoryContentDescriptor = createRepositoryDescriptor();
     }
 
+    @Override
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         if (isPartOfContainer) {
             throw new IllegalStateException("The name of an ArtifactRepository cannot be changed after it has been added to a repository container. You should set the name when creating the repository.");
@@ -80,6 +83,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         return getName();
     }
 
+    @Override
     public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> ruleClass) {
         this.componentMetadataSupplierRuleClass = ruleClass;
         this.componentMetadataSupplierRuleConfiguration = null;

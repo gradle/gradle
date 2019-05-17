@@ -28,18 +28,22 @@ public class RootPomParent implements PomParent {
     private final Map<MavenDependencyKey, PomReader.PomDependencyData> dependencies = Collections.emptyMap();
     private final Map<MavenDependencyKey, PomDependencyMgt> dependencyMgts = Collections.emptyMap();
 
+    @Override
     public Map<String, String> getProperties() {
         return properties;
     }
 
+    @Override
     public Map<MavenDependencyKey, PomDependencyData> getDependencies() {
         return dependencies;
     }
 
+    @Override
     public Map<MavenDependencyKey, PomDependencyMgt> getDependencyMgt() {
         return dependencyMgts;
     }
 
+    @Override
     public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependencyKey) {
         return null;
     }

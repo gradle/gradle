@@ -34,6 +34,7 @@ public class CopySpecActionImpl implements Action<CopySpecResolver> {
         this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
+    @Override
     public void execute(final CopySpecResolver specResolver) {
         FileTree source = specResolver.getSource();
         source.visit(new CopyFileVisitorImpl(specResolver, action, instantiator, fileSystem, reproducibleFileOrder));

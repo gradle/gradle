@@ -28,6 +28,7 @@ public class ReflectionDispatch implements Dispatch<MethodInvocation> {
         this.target = target;
     }
 
+    @Override
     public void dispatch(MethodInvocation message) {
         try {
             Method method = message.getMethod();

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class DelayedConfigurationActions implements ProjectConfigureAction {
+    @Override
     public void execute(ProjectInternal projectInternal) {
         ProjectConfigurationActionContainer actions = projectInternal.getConfigurationActions();
         try {

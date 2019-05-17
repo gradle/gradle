@@ -44,10 +44,12 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         this.checksumDirAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDir, grouper.getNumberOfGroupingDirs() + NUMBER_OF_CHECKSUM_DIRS);
     }
 
+    @Override
     public LocallyAvailableResource move(K key, File source) {
         return markAccessed(delegate.move(toPath(key, getChecksum(source)), source));
     }
 
+    @Override
     public Set<? extends LocallyAvailableResource> search(K key) {
         return delegate.search(toPath(key, "*"));
     }
@@ -71,6 +73,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         return temporaryFileProvider.createTemporaryFile("filestore", "bin");
     }
 
+    @Override
     public LocallyAvailableResource add(K key, Action<File> addAction) {
         //We cannot just delegate to the add method as we need the file content for checksum calculation here
         //and reexecuting the action isn't acceptable

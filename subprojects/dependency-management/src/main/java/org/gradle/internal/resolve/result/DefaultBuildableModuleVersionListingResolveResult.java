@@ -34,41 +34,49 @@ public class DefaultBuildableModuleVersionListingResolveResult extends DefaultRe
         authoritative = false;
     }
 
+    @Override
     public State getState() {
         return state;
     }
 
+    @Override
     public boolean hasResult() {
         return state != State.Unknown;
     }
 
+    @Override
     public Set<String> getVersions() throws ModuleVersionResolveException {
         assertHasResult();
         return versions;
     }
 
+    @Override
     public ModuleVersionResolveException getFailure() {
         assertHasResult();
         return failure;
     }
 
+    @Override
     public void listed(Collection<String> versions) {
         reset(State.Listed);
         this.versions = ImmutableSet.copyOf(versions);
         this.authoritative = true;
     }
 
+    @Override
     public void failed(ModuleVersionResolveException failure) {
         reset(State.Failed);
         this.failure = failure;
         this.authoritative = true;
     }
 
+    @Override
     public boolean isAuthoritative() {
         assertHasResult();
         return authoritative;
     }
 
+    @Override
     public void setAuthoritative(boolean authoritative) {
         assertHasResult();
         this.authoritative = authoritative;

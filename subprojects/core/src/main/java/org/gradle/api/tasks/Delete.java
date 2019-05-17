@@ -138,6 +138,7 @@ public class Delete extends ConventionTask implements DeleteSpec {
      *
      * @param followSymlinks if symlinks should be followed.
      */
+    @Override
     public void setFollowSymlinks(boolean followSymlinks) {
         this.followSymlinks = followSymlinks;
     }
@@ -147,6 +148,7 @@ public class Delete extends ConventionTask implements DeleteSpec {
      *
      * @param targets Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      */
+    @Override
     public Delete delete(Object... targets) {
         for (Object target : targets) {
             this.delete.add(target);

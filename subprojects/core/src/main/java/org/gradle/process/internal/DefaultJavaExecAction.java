@@ -31,6 +31,7 @@ public class DefaultJavaExecAction extends JavaExecHandleBuilder implements Java
         super(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
     }
 
+    @Override
     public ExecResult execute() {
         ExecHandle execHandle = build();
         ExecResult execResult = execHandle.start().waitForFinish();

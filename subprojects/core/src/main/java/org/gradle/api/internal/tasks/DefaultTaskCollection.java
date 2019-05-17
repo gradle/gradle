@@ -61,6 +61,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         this.parentMutationGuard = parentMutationGuard;
     }
 
+    @Override
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
         return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard);
     }
@@ -80,10 +81,12 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
+    @Override
     public Action<? super T> whenTaskAdded(Action<? super T> action) {
         return whenObjectAdded(action);
     }
 
+    @Override
     public void whenTaskAdded(Closure closure) {
         whenObjectAdded(closure);
     }

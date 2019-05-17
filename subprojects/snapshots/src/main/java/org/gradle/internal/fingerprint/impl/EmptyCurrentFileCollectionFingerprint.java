@@ -69,6 +69,7 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     public void accept(FileSystemSnapshotVisitor visitor) {
     }
 
+    @Override
     public ImmutableMultimap<String, HashCode> getRootHashes() {
         return ImmutableMultimap.of();
     }

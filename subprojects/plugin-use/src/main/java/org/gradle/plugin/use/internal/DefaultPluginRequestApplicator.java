@@ -77,6 +77,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
+    @Override
     public void applyPlugins(final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, final ClassLoaderScope classLoaderScope) {
         if (target == null || requests.isEmpty()) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.<PluginImplementation<?>>emptyList());
@@ -86,6 +87,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope);
 
         List<Result> results = collect(requests, new Transformer<Result, PluginRequestInternal>() {
+            @Override
             public Result transform(PluginRequestInternal request) {
                 PluginRequestInternal configuredRequest = pluginResolutionStrategy.applyTo(request);
                 return resolveToFoundResult(effectivePluginResolver, configuredRequest);
@@ -109,6 +111,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                     @Override
                     public void run() {
                         result.found.execute(new PluginResolveContext() {
+                            @Override
                             public void addLegacy(PluginId pluginId, final String m2RepoUrl, Object dependencyNotation) {
                                 repoUrls.add(m2RepoUrl);
                                 addLegacy(pluginId, dependencyNotation);
@@ -146,6 +149,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             final PluginRequestInternal request = entry.getKey().request;
             final PluginId id = entry.getValue();
             applyPlugin(request, id, new Runnable() {
+                @Override
                 public void run() {
                     if (request.isApply()) {
                         target.apply(id.toString());
@@ -157,6 +161,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         for (final Map.Entry<Result, PluginImplementation<?>> entry : Iterables.concat(pluginImpls.entrySet(), pluginImplsFromOtherLoaders.entrySet())) {
             final Result result = entry.getKey();
             applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
+                @Override
                 public void run() {
                     if (result.request.isApply()) {
                         target.apply(entry.getValue());
@@ -184,6 +189,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private void maven(RepositoryHandler repositories, final String m2RepoUrl) {
         repositories.maven(new Action<MavenArtifactRepository>() {
+            @Override
             public void execute(MavenArtifactRepository mavenArtifactRepository) {
                 mavenArtifactRepository.setUrl(m2RepoUrl);
             }
@@ -321,6 +327,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             found = pluginResolution;
         }
 
+        @Override
         public boolean isFound() {
             return found != null;
         }

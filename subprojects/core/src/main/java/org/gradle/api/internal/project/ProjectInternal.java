@@ -56,28 +56,34 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     Attribute<String> STATUS_ATTRIBUTE = Attribute.of("org.gradle.status", String.class);
 
+    @Override
     ProjectInternal getParent();
 
+    @Override
     ProjectInternal getRootProject();
 
     Project evaluate();
 
     ProjectInternal bindAllModelRules();
 
+    @Override
     TaskContainerInternal getTasks();
 
     ScriptSource getBuildScriptSource();
 
     void addChildProject(ProjectInternal childProject);
 
+    @Override
     ProjectInternal project(String path) throws UnknownProjectException;
 
+    @Override
     ProjectInternal findProject(String path);
 
     ProjectRegistry<ProjectInternal> getProjectRegistry();
 
     DynamicObject getInheritedScope();
 
+    @Override
     GradleInternal getGradle();
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
@@ -95,12 +101,15 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     StandardOutputCapture getStandardOutputCapture();
 
+    @Override
     ProjectStateInternal getState();
 
+    @Override
     ExtensionContainerInternal getExtensions();
 
     ProjectConfigurationActionContainer getConfigurationActions();
 
+    @Override
     ModelRegistry getModelRegistry();
 
     ClassLoaderScope getClassLoaderScope();
@@ -116,6 +125,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     /**
      * Returns a unique path for this project within its containing build.
      */
+    @Override
     Path getProjectPath();
 
     /**

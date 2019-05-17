@@ -48,6 +48,7 @@ class FinalizerThread extends Thread {
         this.lock = lock;
     }
 
+    @Override
     public void run() {
 
         try {

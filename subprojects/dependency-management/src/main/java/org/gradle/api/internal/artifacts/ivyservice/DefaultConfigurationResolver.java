@@ -131,6 +131,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         result.graphResolved(resolutionResultBuilder.getResolutionResult(), new ResolvedLocalComponentsResultGraphVisitor(currentBuild), new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.<UnresolvedDependency>emptySet()), artifactsVisitor.complete(), artifactTransforms, configuration.getIncoming(), configuration.getDependenciesResolver()));
     }
 
+    @Override
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
         List<ResolutionAwareRepository> resolutionAwareRepositories = getRepositories();
         StoreSet stores = storeFactory.createStoreSet();
@@ -187,10 +188,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
     }
 
+    @Override
     public List<ResolutionAwareRepository> getRepositories() {
         return CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
     }
 
+    @Override
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) {
         ArtifactResolveState resolveState = (ArtifactResolveState) results.getArtifactResolveState();
         ResolvedGraphResults graphResults = resolveState.graphResults;

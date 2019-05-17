@@ -418,6 +418,7 @@ public class AvailableToolChains {
          * Initialise the process environment so that this tool chain is visible to the default discovery mechanism that the
          * plugin uses (eg add the compiler to the PATH).
          */
+        @Override
         public void initialiseEnvironment() {
             String compilerPath = Joiner.on(File.pathSeparator).join(pathEntries);
 
@@ -429,6 +430,7 @@ public class AvailableToolChains {
             }
         }
 
+        @Override
         public void resetEnvironment() {
             if (originalPath != null) {
                 PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, originalPath);
@@ -958,6 +960,7 @@ public class AvailableToolChains {
             return true;
         }
 
+        @Override
         public VersionNumber getVersion() {
             return version;
         }

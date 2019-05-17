@@ -44,6 +44,7 @@ class DefaultTimer implements Timer {
         return Math.max(elapsedMillis, 0);
     }
 
+    @Override
     public void reset() {
         startTime = timeSource.nanoTime();
     }

@@ -181,6 +181,7 @@ public class TestFile extends File {
         }
     }
 
+    @Override
     public TestFile[] listFiles() {
         File[] children = super.listFiles();
         if (children == null) {

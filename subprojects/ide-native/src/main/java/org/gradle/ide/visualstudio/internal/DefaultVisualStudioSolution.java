@@ -137,15 +137,18 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
             this.location = defaultLocation;
         }
 
+        @Override
         @Internal
         public File getLocation() {
             return fileResolver.resolve(location);
         }
 
+        @Override
         public void setLocation(Object location) {
             this.location = location;
         }
 
+        @Override
         public void withContent(Action<? super TextProvider> action) {
             actions.add(action);
         }

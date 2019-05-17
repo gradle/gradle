@@ -29,6 +29,7 @@ public class MapSerializer<U, V> extends AbstractSerializer<Map<U, V>> {
         this.valueSerializer = valueSerializer;
     }
 
+    @Override
     public Map<U, V> read(Decoder decoder) throws Exception {
         int size = decoder.readInt();
         Map<U, V> valueMap = new LinkedHashMap<U, V>(size);
@@ -40,6 +41,7 @@ public class MapSerializer<U, V> extends AbstractSerializer<Map<U, V>> {
         return valueMap;
     }
 
+    @Override
     public void write(Encoder encoder, Map<U, V> value) throws Exception {
         encoder.writeInt(value.size());
         for (Map.Entry<U, V> entry : value.entrySet()) {

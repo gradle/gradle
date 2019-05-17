@@ -95,10 +95,12 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return daemonRegistry;
     }
 
+    @Override
     public DaemonClientConnection maybeConnect(ExplainingSpec<DaemonContext> constraint) {
         return findConnection(getCompatibleDaemons(daemonRegistry.getAll(), constraint));
     }
 
+    @Override
     public DaemonClientConnection maybeConnect(DaemonConnectDetails daemon) {
         try {
             return connectToDaemon(daemon, new CleanupOnStaleAddress(daemon, true));
@@ -108,6 +110,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
+    @Override
     public DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint) {
         final Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> idleBusy = partitionByState(daemonRegistry.getAll(), Idle);
         final Collection<DaemonInfo> idleDaemons = idleBusy.getLeft();
@@ -171,6 +174,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
     private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByState(final Collection<DaemonInfo> daemons, final DaemonStateControl.State state) {
         return CollectionUtils.partition(daemons, new Spec<DaemonInfo>() {
+            @Override
             public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
                 return daemonInfo.getState() == state;
             }
@@ -202,6 +206,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
+    @Override
     public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
         return doStartDaemon(constraint, false);
     }
@@ -280,6 +285,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             this.exposeAsStale = exposeAsStale;
         }
 
+        @Override
         public boolean maybeStaleAddress(Exception failure) {
             LOGGER.info("{}{}", DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE, daemon);
             final Date timestamp = new Date(System.currentTimeMillis());

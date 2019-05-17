@@ -220,11 +220,13 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     private static class BuiltInActions implements CommandLineAction {
+        @Override
         public void configureCommandLineParser(CommandLineParser parser) {
             parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
             parser.option(VERSION, "version").hasDescription("Print version info.");
         }
 
+        @Override
         public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(HELP)) {
                 return new ShowUsageAction(parser);
@@ -245,6 +247,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             this.e = e;
         }
 
+        @Override
         public void execute(ExecutionListener executionListener) {
             System.err.println();
             System.err.println(e.getMessage());
@@ -260,12 +263,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             this.parser = parser;
         }
 
+        @Override
         public void run() {
             showUsage(System.out, parser);
         }
     }
 
     private static class ShowVersionAction implements Runnable {
+        @Override
         public void run() {
             GradleVersion currentVersion = GradleVersion.current();
 
@@ -307,6 +312,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             this.reporter = reporter;
         }
 
+        @Override
         public void execute(ExecutionListener executionListener) {
             CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = new LoggingCommandLineConverter();
             CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
@@ -376,6 +382,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             this.args = args;
         }
 
+        @Override
         public void execute(ExecutionListener executionListener) {
             List<CommandLineAction> actions = new ArrayList<CommandLineAction>();
             actions.add(new BuiltInActions());

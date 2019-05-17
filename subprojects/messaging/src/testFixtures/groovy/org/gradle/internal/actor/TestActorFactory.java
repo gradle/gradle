@@ -23,19 +23,24 @@ import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.gradle.internal.dispatch.ReflectionDispatch;
 
 public class TestActorFactory implements ActorFactory {
+    @Override
     public Actor createActor(Object target) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public Actor createBlockingActor(final Object target) {
         return new Actor() {
+            @Override
             public <T> T getProxy(Class<T> type) {
                 return new ProxyDispatchAdapter<T>(new ReflectionDispatch(target), type, ThreadSafe.class).getSource();
             }
 
+            @Override
             public void stop() throws DispatchException {
             }
 
+            @Override
             public void dispatch(MethodInvocation message) {
                 throw new UnsupportedOperationException();
             }

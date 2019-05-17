@@ -70,6 +70,7 @@ public class PublishingPlugin implements Plugin<Project> {
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
+    @Override
     public void apply(final Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator, collectionCallbackActionDecorator);

@@ -31,6 +31,7 @@ public class MultipleBuildFailuresExceptionAnalyser implements ExceptionAnalyser
         this.collector = collector;
     }
 
+    @Override
     public RuntimeException transform(Throwable exception) {
         List<Throwable> failures = new ArrayList<Throwable>();
         if (exception instanceof MultipleBuildFailures) {

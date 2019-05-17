@@ -33,18 +33,22 @@ class DefaultProjectConnection implements ProjectConnection {
         this.parameters = parameters;
     }
 
+    @Override
     public void close() {
         connection.stop();
     }
 
+    @Override
     public <T> T getModel(Class<T> modelType) {
         return model(modelType).get();
     }
 
+    @Override
     public <T> void getModel(final Class<T> modelType, final ResultHandler<? super T> handler) {
         model(modelType).get(handler);
     }
 
+    @Override
     public BuildLauncher newBuild() {
         return new DefaultBuildLauncher(connection, parameters);
     }
@@ -54,6 +58,7 @@ class DefaultProjectConnection implements ProjectConnection {
         return new DefaultTestLauncher(connection, parameters);
     }
 
+    @Override
     public <T> ModelBuilder<T> model(Class<T> modelType) {
         if (!modelType.isInterface()) {
             throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
@@ -61,6 +66,7 @@ class DefaultProjectConnection implements ProjectConnection {
         return new DefaultModelBuilder<T>(modelType, connection, parameters);
     }
 
+    @Override
     public <T> BuildActionExecuter<T> action(final BuildAction<T> buildAction) {
         return new DefaultBuildActionExecuter<T>(buildAction, connection, parameters);
     }

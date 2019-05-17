@@ -48,6 +48,7 @@ public class DirectInstantiator implements Instantiator {
     private DirectInstantiator() {
     }
 
+    @Override
     public <T> T newInstance(Class<? extends T> type, Object... params) {
         try {
             Class<?>[] argTypes = wrapArgs(params);
