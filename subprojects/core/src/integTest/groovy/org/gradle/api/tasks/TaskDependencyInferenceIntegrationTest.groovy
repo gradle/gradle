@@ -231,8 +231,8 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasCause("""Cannot convert ${displayName} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
-  - A TaskReference instance
   - A Task instance
+  - A TaskReference instance
   - A Buildable instance
   - A TaskDependency instance
   - A Provider that represents a task output
@@ -265,8 +265,8 @@ The following types/formats are supported:
         failure.assertHasCause("""Cannot convert ${file(path)} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
-  - A TaskReference instance
   - A Task instance
+  - A TaskReference instance
   - A Buildable instance
   - A TaskDependency instance
   - A Provider that represents a task output
@@ -306,8 +306,8 @@ The following types/formats are supported:
         failure.assertHasCause("""Cannot convert ${displayName} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
-  - A TaskReference instance
   - A Task instance
+  - A TaskReference instance
   - A Buildable instance
   - A TaskDependency instance
   - A Provider that represents a task output
@@ -341,8 +341,8 @@ The following types/formats are supported:
         failure.assertHasCause("""Cannot convert ${file(path)} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
-  - A TaskReference instance
   - A Task instance
+  - A TaskReference instance
   - A Buildable instance
   - A TaskDependency instance
   - A Provider that represents a task output

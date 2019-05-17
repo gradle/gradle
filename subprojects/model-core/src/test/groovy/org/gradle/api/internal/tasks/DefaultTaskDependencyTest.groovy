@@ -149,6 +149,33 @@ class DefaultTaskDependencyTest extends Specification {
         dependency.getDependencies(task) == emptySet()
     }
 
+    def "delegates to Provider to determine build dependencies"() {
+        def provider = Mock(ProviderInternal)
+
+        given:
+        1 * provider.maybeVisitBuildDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherTask); return true }
+
+        when:
+        dependency.add(provider)
+
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
+    }
+
+    def "uses Provider value to determine build dependencies when Provider does not know anything about the tasks that produce its value"() {
+        def provider = Mock(ProviderInternal)
+
+        given:
+        1 * provider.maybeVisitBuildDependencies(_) >> { return false }
+        1 * provider.get() >> otherTask
+
+        when:
+        dependency.add(provider)
+
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
+    }
+
     def "delegates to TaskDependencyContainer to determine build dependencies"() {
         def dep = Mock(TaskDependencyContainer)
 
@@ -177,22 +204,6 @@ class DefaultTaskDependencyTest extends Specification {
         dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    def "fails when a TaskDependencyContainer has an unsupported value"() {
-        def dep = Mock(TaskDependencyContainer)
-
-        given:
-        1 * dep.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(123) }
-        dependency.add(dep)
-
-        when:
-        dependency.getDependencies(task)
-
-        then:
-        def e = thrown(TaskDependencyResolveException)
-        e.cause instanceof UnsupportedNotationException
-        e.cause.message.startsWith('Cannot convert 123 to a task.')
-    }
-
     def "fails for other types"() {
         when:
         dependency.add(12)
@@ -204,8 +215,8 @@ class DefaultTaskDependencyTest extends Specification {
         e.cause.message == TextUtil.toPlatformLineSeparators('''Cannot convert 12 to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
-  - A TaskReference instance
   - A Task instance
+  - A TaskReference instance
   - A Buildable instance
   - A TaskDependency instance
   - A Provider that represents a task output
