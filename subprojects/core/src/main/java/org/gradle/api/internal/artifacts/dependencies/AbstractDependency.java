@@ -27,6 +27,7 @@ public abstract class AbstractDependency implements ResolvableDependency, Depend
         target.reason = reason;
     }
 
+    @Override
     public void resolve(DependencyResolveContext context) {
     }
 

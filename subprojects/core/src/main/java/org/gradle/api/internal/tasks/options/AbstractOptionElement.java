@@ -40,6 +40,7 @@ abstract class AbstractOptionElement implements OptionElement {
         this.optionType = optionType;
     }
 
+    @Override
     public Class<?> getOptionType() {
         return optionType;
     }
@@ -68,10 +69,12 @@ abstract class AbstractOptionElement implements OptionElement {
         return javaMethod.invoke(object, parameterValues);
     }
 
+    @Override
     public String getOptionName() {
         return optionName;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }

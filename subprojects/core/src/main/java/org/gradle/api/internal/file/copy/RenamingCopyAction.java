@@ -27,6 +27,7 @@ public class RenamingCopyAction implements Action<FileCopyDetails> {
         this.transformer = transformer;
     }
 
+    @Override
     public void execute(FileCopyDetails fileCopyDetails) {
         RelativePath path = fileCopyDetails.getRelativePath();
         String newName = transformer.transform(path.getLastName());

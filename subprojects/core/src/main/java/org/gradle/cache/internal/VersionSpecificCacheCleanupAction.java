@@ -66,6 +66,7 @@ public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction
         return "Deleting unused version-specific caches in " + versionSpecificCacheDirectoryScanner.getBaseDir();
     }
 
+    @Override
     public boolean execute(@Nonnull CleanupProgressMonitor progressMonitor) {
         if (requiresCleanup()) {
             Timer timer = Time.startTimer();

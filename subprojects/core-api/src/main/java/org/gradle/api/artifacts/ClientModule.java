@@ -51,5 +51,6 @@ public interface ClientModule extends ExternalModuleDependency {
     /**
      * {@inheritDoc}
      */
+    @Override
     ClientModule copy();
 }

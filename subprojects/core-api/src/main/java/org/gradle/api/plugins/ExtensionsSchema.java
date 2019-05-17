@@ -47,6 +47,7 @@ public interface ExtensionsSchema extends NamedDomainObjectCollectionSchema, Ite
          *
          * @return the name of the extension
          */
+        @Override
         String getName();
 
         /**
@@ -54,6 +55,7 @@ public interface ExtensionsSchema extends NamedDomainObjectCollectionSchema, Ite
          *
          * @return the public type of the extension
          */
+        @Override
         TypeOf<?> getPublicType();
     }
 }

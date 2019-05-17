@@ -50,6 +50,7 @@ public class FileCollectionBackedTextResource implements TextResourceInternal {
         return getDisplayName();
     }
 
+    @Override
     public String asString() {
         File file = asFile();
         try {
@@ -61,6 +62,7 @@ public class FileCollectionBackedTextResource implements TextResourceInternal {
         }
     }
 
+    @Override
     public Reader asReader() {
         File file = asFile();
         try {
@@ -70,6 +72,7 @@ public class FileCollectionBackedTextResource implements TextResourceInternal {
         }
     }
 
+    @Override
     public File asFile(String targetCharset) {
         try {
             Charset targetCharsetObj = Charset.forName(targetCharset);
@@ -90,18 +93,22 @@ public class FileCollectionBackedTextResource implements TextResourceInternal {
         }
     }
 
+    @Override
     public File asFile() {
         return asFile(Charset.defaultCharset().name());
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return fileCollection.getBuildDependencies();
     }
 
+    @Override
     public Object getInputProperties() {
         return charset.name();
     }
 
+    @Override
     public FileCollection getInputFiles() {
         return fileCollection;
     }

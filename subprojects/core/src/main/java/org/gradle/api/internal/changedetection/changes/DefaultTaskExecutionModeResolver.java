@@ -33,6 +33,7 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
         this.startParameter = startParameter;
     }
 
+    @Override
     public TaskExecutionMode getExecutionMode(TaskInternal task, TaskProperties properties) {
         // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
         AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();

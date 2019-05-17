@@ -49,6 +49,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         super(type, new ListElementSource<T>(), instantiator, namer, decorator);
     }
 
+    @Override
     public void add(int index, T element) {
         assertMutable("add(int, T)");
         assertCanAdd(element);
@@ -57,6 +58,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         getEventRegister().fireObjectAdded(element);
     }
 
+    @Override
     public boolean addAll(int index, Collection<? extends T> c) {
         assertMutable("addAll(int, Collection)");
         boolean changed = false;
@@ -78,10 +80,12 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         return (IndexedElementSource<T>) super.getStore();
     }
 
+    @Override
     public T get(int index) {
         return getStore().get(index);
     }
 
+    @Override
     public T set(int index, T element) {
         assertMutable("set(int, T)");
         assertCanAdd(element);
@@ -95,6 +99,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         return oldElement;
     }
 
+    @Override
     public T remove(int index) {
         assertMutable("remove(int)");
         T element = getStore().remove(index);
@@ -105,22 +110,27 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         return element;
     }
 
+    @Override
     public int indexOf(Object o) {
         return getStore().indexOf(o);
     }
 
+    @Override
     public int lastIndexOf(Object o) {
         return getStore().lastIndexOf(o);
     }
 
+    @Override
     public ListIterator<T> listIterator() {
         return new ListIteratorImpl(getStore().listIterator());
     }
 
+    @Override
     public ListIterator<T> listIterator(int index) {
         return new ListIteratorImpl(getStore().listIterator(index));
     }
 
+    @Override
     public List<T> subList(int fromIndex, int toIndex) {
         return Collections.unmodifiableList(getStore().subList(fromIndex, toIndex));
     }
@@ -158,32 +168,39 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
             this.iterator = iterator;
         }
 
+        @Override
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
+        @Override
         public boolean hasPrevious() {
             return iterator.hasPrevious();
         }
 
+        @Override
         public T next() {
             lastElement = iterator.next();
             return lastElement;
         }
 
+        @Override
         public T previous() {
             lastElement = iterator.previous();
             return lastElement;
         }
 
+        @Override
         public int nextIndex() {
             return iterator.nextIndex();
         }
 
+        @Override
         public int previousIndex() {
             return iterator.previousIndex();
         }
 
+        @Override
         public void add(T t) {
             assertMutable("listIterator().add(T)");
             assertCanAdd(t);
@@ -192,6 +209,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
             getEventRegister().fireObjectAdded(t);
         }
 
+        @Override
         public void remove() {
             assertMutable("listIterator().remove()");
             iterator.remove();
@@ -200,6 +218,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
             lastElement = null;
         }
 
+        @Override
         public void set(T t) {
             assertMutable("listIterator().set(T)");
             assertCanAdd(t);

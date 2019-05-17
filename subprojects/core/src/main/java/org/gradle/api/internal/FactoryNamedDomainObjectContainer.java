@@ -115,6 +115,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
             this.factoryClosure = factoryClosure;
         }
 
+        @Override
         public T create(String name) {
             return type.cast(factoryClosure.call(name));
         }

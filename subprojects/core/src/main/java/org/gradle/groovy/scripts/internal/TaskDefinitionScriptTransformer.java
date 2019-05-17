@@ -27,10 +27,12 @@ import java.util.Collections;
 import java.util.List;
 
 public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
+    @Override
     protected int getPhase() {
         return Phases.CANONICALIZATION;
     }
 
+    @Override
     public void call(SourceUnit source) throws CompilationFailedException {
         AstUtils.visitScriptCode(source, new TaskDefinitionTransformer());
     }

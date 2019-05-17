@@ -59,42 +59,52 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
         return this;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getExtension() {
         return extension;
     }
 
+    @Override
     public String getType() {
         return type;
     }
 
+    @Override
     public String getClassifier() {
         return classifier;
     }
 
+    @Override
     public File getFile() {
         return file;
     }
 
+    @Override
     public Date getDate() {
         return date;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @Override
     public void setExtension(String extension) {
         this.extension = extension;
     }
 
+    @Override
     public void setType(String type) {
         this.type = type;
     }
 
+    @Override
     public void setClassifier(String classifier) {
         this.classifier = classifier;
     }

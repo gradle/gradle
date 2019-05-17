@@ -76,6 +76,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         this.cacheRepository = cacheRepository;
     }
 
+    @Override
     public ClassPath findClassPath(String name) {
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
@@ -94,6 +95,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         return null;
     }
 
+    @Override
     public void close() {
         // This isn't quite right. Should close the worker classpath cache once we're finished with the worker processes. This may be before the end of this build
         // or they may be used across multiple builds
@@ -116,6 +118,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
     private static class CacheInitializer implements Action<PersistentCache> {
         private final WorkerClassRemapper remapper = new WorkerClassRemapper();
 
+        @Override
         public void execute(PersistentCache cache) {
             try {
                 File jarFile = jarFile(cache);

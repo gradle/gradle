@@ -25,6 +25,7 @@ public class StackTraceSanitizingExceptionAnalyser implements ExceptionAnalyser 
         this.analyser = analyser;
     }
 
+    @Override
     public RuntimeException transform(Throwable exception) {
         return (RuntimeException) StackTraceUtils.deepSanitize(analyser.transform(exception));
     }

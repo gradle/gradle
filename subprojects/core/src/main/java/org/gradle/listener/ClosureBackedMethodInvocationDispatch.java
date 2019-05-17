@@ -31,6 +31,7 @@ public class ClosureBackedMethodInvocationDispatch implements Dispatch<MethodInv
         this.closure = closure;
     }
 
+    @Override
     public void dispatch(MethodInvocation message) {
         if (message.getMethod().getName().equals(methodName)) {
             Object[] parameters = message.getArguments();

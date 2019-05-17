@@ -35,6 +35,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         }
     };
 
+    @Override
     @Nullable
     public UserCodeApplicationId current() {
         return stackThreadLocal.get().peek();
@@ -51,6 +52,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         }
     }
 
+    @Override
     public void reapply(UserCodeApplicationId id, Runnable runnable) {
         Deque<UserCodeApplicationId> stack = stackThreadLocal.get();
         stack.push(id);

@@ -29,6 +29,7 @@ public class ConfigureActionsProjectEvaluator implements ProjectEvaluator {
         this.configureActions = Arrays.asList(configureActions);
     }
 
+    @Override
     public void evaluate(ProjectInternal project, ProjectStateInternal state) {
         for (ProjectConfigureAction configureAction : configureActions) {
             configureAction.execute(project);

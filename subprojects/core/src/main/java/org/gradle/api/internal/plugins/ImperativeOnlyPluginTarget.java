@@ -36,17 +36,20 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
         return target.getConfigurationTargetIdentifier();
     }
 
+    @Override
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         // TODO validate that the plugin accepts this kind of argument
         Plugin<T> cast = uncheckedCast(plugin);
         cast.apply(target);
     }
 
+    @Override
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
         String message = String.format("Cannot apply model rules of plugin '%s' as the target '%s' is not model rule aware", clazz.getName(), target.toString());
         throw new UnsupportedOperationException(message);
     }
 
+    @Override
     public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin) {
         applyRules(pluginId, plugin.getClass());
     }

@@ -33,20 +33,24 @@ public interface NamedDomainObjectSet<T> extends NamedDomainObjectCollection<T>,
     /**
      * {@inheritDoc}
      */
+    @Override
     <S extends T> NamedDomainObjectSet<S> withType(Class<S> type);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     NamedDomainObjectSet<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     NamedDomainObjectSet<T> matching(Closure spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     Set<T> findAll(Closure spec);
 }

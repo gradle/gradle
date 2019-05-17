@@ -29,6 +29,7 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
         this.delegate = new DefaultPathKeyFileStore(baseDir);
     }
 
+    @Override
     public LocallyAvailableResource move(String key, File source) {
         return delegate.move(normalizePath(key), source);
     }
@@ -41,10 +42,12 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
         return path.replaceAll("[^\\d\\w\\.\\*/]", "_");
     }
 
+    @Override
     public LocallyAvailableResource add(String key, Action<File> addAction) {
         return delegate.add(normalizePath(key), addAction);
     }
 
+    @Override
     public Set<? extends LocallyAvailableResource> search(String key) {
         return delegate.search(normalizeSearchPath(key));
     }

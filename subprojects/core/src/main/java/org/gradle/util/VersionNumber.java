@@ -86,6 +86,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return new VersionNumber(major, minor, micro, patch, null, scheme);
     }
 
+    @Override
     public int compareTo(VersionNumber other) {
         if (major != other.major) {
             return major - other.major;
@@ -158,6 +159,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
             this.depth = depth;
         }
 
+        @Override
         public VersionNumber parse(String versionString) {
             if (versionString == null || versionString.length() == 0) {
                 return UNKNOWN;
@@ -266,6 +268,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
             super(3);
         }
 
+        @Override
         public String format(VersionNumber versionNumber) {
             return String.format(VERSION_TEMPLATE, versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
         }
@@ -278,6 +281,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
             super(4);
         }
 
+        @Override
         public String format(VersionNumber versionNumber) {
             return String.format(VERSION_TEMPLATE, versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.patch, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
         }

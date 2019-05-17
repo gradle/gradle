@@ -160,5 +160,6 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * Adds this collection to an Ant task as a nested node. Equivalent to calling {@code addToAntBuilder(builder,
      *nodeName,AntType.ResourceCollection)}.
      */
+    @Override
     Object addToAntBuilder(Object builder, String nodeName);
 }

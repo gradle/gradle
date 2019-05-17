@@ -62,10 +62,12 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void importBuild(Object antBuildFile) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer) {
         throw new UnsupportedOperationException();
     }
@@ -91,6 +93,7 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         throw new UnsupportedOperationException();
     }
 
+    @Override
     protected Object postNodeCompletion(Object parent, Object node) {
         try {
             return nodeField.get(this);
@@ -99,6 +102,7 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         }
     }
 
+    @Override
     protected Object doInvokeMethod(String methodName, Object name, Object args) {
         Object value = super.doInvokeMethod(methodName, name, args);
         // Discard the node so it can be garbage collected. Some Ant tasks cache a potentially large amount of state
@@ -112,6 +116,7 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         return value;
     }
 
+    @Override
     public void close() {
         Project project = getProject();
         project.fireBuildFinished(null);

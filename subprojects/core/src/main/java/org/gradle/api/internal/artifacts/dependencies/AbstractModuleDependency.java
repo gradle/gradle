@@ -61,10 +61,12 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.configuration = configuration;
     }
 
+    @Override
     public boolean isTransitive() {
         return transitive;
     }
 
+    @Override
     public ModuleDependency setTransitive(boolean transitive) {
         validateMutation(this.transitive, transitive);
         this.transitive = transitive;
@@ -76,11 +78,13 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return configuration;
     }
 
+    @Override
     public void setTargetConfiguration(@Nullable String configuration) {
         validateMutation(this.configuration, configuration);
         this.configuration = configuration;
     }
 
+    @Override
     public ModuleDependency exclude(Map<String, String> excludeProperties) {
         if (excludeRuleContainer.maybeAdd(excludeProperties)) {
             validateMutation();
@@ -88,6 +92,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return this;
     }
 
+    @Override
     public Set<ExcludeRule> getExcludeRules() {
         return excludeRuleContainer.getRules();
     }
@@ -96,6 +101,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.excludeRuleContainer = excludeRuleContainer;
     }
 
+    @Override
     public Set<DependencyArtifact> getArtifacts() {
         return artifacts;
     }
@@ -104,11 +110,13 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.artifacts = artifacts;
     }
 
+    @Override
     public AbstractModuleDependency addArtifact(DependencyArtifact artifact) {
         artifacts.add(artifact);
         return this;
     }
 
+    @Override
     public DependencyArtifact artifact(Closure configureClosure) {
         return artifact(configureUsing(configureClosure));
     }

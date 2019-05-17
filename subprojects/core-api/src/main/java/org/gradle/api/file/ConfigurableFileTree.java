@@ -41,6 +41,7 @@ public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFi
      *
      * @return The base directory. Never returns null.
      */
+    @Override
     File getDir();
 
     /**

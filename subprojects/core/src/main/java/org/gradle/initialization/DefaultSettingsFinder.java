@@ -27,6 +27,7 @@ public class DefaultSettingsFinder implements ISettingsFinder {
         this.layoutFactory = layoutFactory;
     }
 
+    @Override
     public BuildLayout find(StartParameter startParameter) {
         return layoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
     }

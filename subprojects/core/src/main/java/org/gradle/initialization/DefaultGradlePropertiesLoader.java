@@ -37,6 +37,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         this.startParameter = startParameter;
     }
 
+    @Override
     public void loadProperties(File settingsDir) {
         loadProperties(settingsDir, startParameter, getAllSystemProperties(), getAllEnvProperties());
     }
@@ -70,6 +71,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         }
     }
 
+    @Override
     public Map<String, String> mergeProperties(Map<String, String> properties) {
         Map<String, String> result = new HashMap<String, String>();
         result.putAll(defaultProperties);

@@ -52,6 +52,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         if (taskClassInfo.isIncremental()) {
             // Add a dummy upToDateWhen spec: this will force TaskOutputs.hasOutputs() to be true.
             task.getOutputs().upToDateWhen(new Spec<Task>() {
+                @Override
                 public boolean isSatisfiedBy(Task element) {
                     return true;
                 }

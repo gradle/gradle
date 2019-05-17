@@ -62,6 +62,7 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
      *
      * @since 4.8
      */
+    @Override
     @Incubating
     AttributeContainer getAttributes();
 
@@ -73,6 +74,7 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
      *
      * @since 4.8
      */
+    @Override
     @Incubating
     DependencyConstraint attributes(Action<? super AttributeContainer> configureAction);
 

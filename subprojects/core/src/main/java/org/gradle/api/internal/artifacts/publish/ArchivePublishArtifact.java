@@ -43,6 +43,7 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
         return this;
     }
 
+    @Override
     public String getName() {
         if (name != null) {
             return name;
@@ -57,22 +58,27 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
         return baseName + (GUtil.isTrue(archiveTask.getAppendix())? "-" + archiveTask.getAppendix() : "");
     }
 
+    @Override
     public String getExtension() {
         return GUtil.elvis(extension, archiveTask.getExtension());
     }
 
+    @Override
     public String getType() {
         return GUtil.elvis(type, archiveTask.getExtension());
     }
 
+    @Override
     public String getClassifier() {
         return GUtil.elvis(classifier, archiveTask.getClassifier());
     }
 
+    @Override
     public File getFile() {
         return GUtil.elvis(file, archiveTask.getArchivePath());
     }
 
+    @Override
     public Date getDate() {
         return GUtil.elvis(date, new Date(archiveTask.getArchivePath().lastModified()));
     }
@@ -81,18 +87,22 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
         return archiveTask;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @Override
     public void setExtension(String extension) {
         this.extension = extension;
     }
 
+    @Override
     public void setType(String type) {
         this.type = type;
     }
 
+    @Override
     public void setClassifier(String classifier) {
         this.classifier = classifier;
     }

@@ -86,6 +86,7 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> imple
      * {@inheritDoc}
      */
     @Input
+    @Override
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
@@ -98,6 +99,7 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> imple
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }

@@ -33,26 +33,31 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
     /**
      * {@inheritDoc}
      */
+    @Override
     TaskCollection<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     TaskCollection<T> matching(Closure closure);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     T getByName(String name, Closure configureClosure) throws UnknownTaskException;
 
     /**
      * {@inheritDoc}
      */
+    @Override
     T getByName(String name) throws UnknownTaskException;
 
     /**
      * {@inheritDoc}
      */
+    @Override
     <S extends T> TaskCollection<S> withType(Class<S> type);
 
     /**
@@ -80,6 +85,7 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
     /**
      * {@inheritDoc}
      */
+    @Override
     T getAt(String name) throws UnknownTaskException;
 
     /**
@@ -91,6 +97,7 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      * @throws UnknownTaskException If a task with the given name is not defined.
      * @since 4.9
      */
+    @Override
     TaskProvider<T> named(String name) throws UnknownTaskException;
 
     /**
@@ -98,6 +105,7 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      *
      * @since 5.0
      */
+    @Override
     TaskProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownTaskException;
 
 
@@ -106,6 +114,7 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      *
      * @since 5.0
      */
+    @Override
     <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException;
 
     /**
@@ -113,5 +122,6 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      *
      * @since 5.0
      */
+    @Override
     <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException;
 }

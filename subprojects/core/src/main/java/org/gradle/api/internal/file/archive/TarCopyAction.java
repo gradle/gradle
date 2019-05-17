@@ -54,6 +54,7 @@ public class TarCopyAction implements CopyAction {
         this.preserveFileTimestamps = preserveFileTimestamps;
     }
 
+    @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
 
         final OutputStream outStr;
@@ -88,6 +89,7 @@ public class TarCopyAction implements CopyAction {
             this.tarOutStr = tarOutStr;
         }
 
+        @Override
         public void processFile(FileCopyDetailsInternal details) {
             if (details.isDirectory()) {
                 visitDir(details);

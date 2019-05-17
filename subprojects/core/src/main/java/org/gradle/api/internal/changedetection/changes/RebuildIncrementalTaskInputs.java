@@ -26,16 +26,19 @@ public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs 
         this.inputChanges = inputChanges;
     }
 
+    @Override
     public boolean isIncremental() {
         return false;
     }
 
+    @Override
     public void doOutOfDate(final Action<? super InputFileDetails> outOfDateAction) {
         for (InputFileDetails inputFileChange : inputChanges) {
             outOfDateAction.execute(inputFileChange);
         }
     }
 
+    @Override
     public void doRemoved(Action<? super InputFileDetails> removedAction) {
     }
 }

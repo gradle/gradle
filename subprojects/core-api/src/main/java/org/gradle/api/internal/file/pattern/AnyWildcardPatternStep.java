@@ -21,6 +21,7 @@ public class AnyWildcardPatternStep implements PatternStep {
         return "{any}";
     }
 
+    @Override
     public boolean matches(String candidate) {
         return true;
     }

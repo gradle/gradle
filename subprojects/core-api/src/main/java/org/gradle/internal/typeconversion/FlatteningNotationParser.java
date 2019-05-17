@@ -42,6 +42,7 @@ public class FlatteningNotationParser<N, T> implements NotationParser<N, Set<T>>
         visitor.candidate("Collections or arrays of any other supported format. Nested collections/arrays will be flattened.");
     }
 
+    @Override
     public Set<T> parseNotation(N notation) {
         Collection<N> notations = GUtil.collectionize(notation);
         if (notations.isEmpty()) {

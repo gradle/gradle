@@ -82,6 +82,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         });
     }
 
+    @Override
     public PluginRegistry createChild(final ClassLoaderScope lookupScope) {
         return new DefaultPluginRegistry(this, pluginInspector, lookupScope);
     }
@@ -103,6 +104,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         return null;
     }
 
+    @Override
     public <T> PluginImplementation<T> inspect(Class<T> clazz) {
         PluginImplementation<T> implementation = maybeInspect(clazz);
         if (implementation != null) {

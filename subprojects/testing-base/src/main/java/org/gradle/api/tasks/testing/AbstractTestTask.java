@@ -287,6 +287,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * {@inheritDoc}
      */
     @Internal
+    @Override
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
@@ -294,6 +295,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }

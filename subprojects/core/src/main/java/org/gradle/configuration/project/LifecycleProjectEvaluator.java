@@ -62,6 +62,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         this.delegate = delegate;
     }
 
+    @Override
     public void evaluate(final ProjectInternal project, final ProjectStateInternal state) {
         if (state.isUnconfigured()) {
             buildOperationExecutor.run(new EvaluateProject(project, state));

@@ -110,18 +110,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return eventRegister.filtered(filter);
     }
 
+    @Override
     public DomainObjectCollection<T> matching(final Spec<? super T> spec) {
         return filtered(createFilter(spec));
     }
 
+    @Override
     public DomainObjectCollection<T> matching(Closure spec) {
         return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
+    @Override
     public <S extends T> DomainObjectCollection<S> withType(final Class<S> type) {
         return filtered(createFilter(type));
     }
 
+    @Override
     public Iterator<T> iterator() {
         return new IteratorImpl(store.iterator());
     }
@@ -134,6 +138,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return new IteratorImpl(store.iteratorNoFlush());
     }
 
+    @Override
     public void all(Action<? super T> action) {
         assertMutable("all(Action)");
         Action<? super T> decoratedAction = addEagerAction(action);
@@ -188,10 +193,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return getMutationGuard().withMutationDisabled(action);
     }
 
+    @Override
     public void all(Closure action) {
         all(toAction(action));
     }
 
+    @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
         assertMutable("withType(Class, Action)");
         DomainObjectCollection<S> result = withType(type);
@@ -199,15 +206,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return result;
     }
 
+    @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
         return withType(type, toAction(configureClosure));
     }
 
+    @Override
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
         assertMutable("whenObjectAdded(Action)");
         return addEagerAction(action);
     }
 
+    @Override
     public void whenObjectAdded(Closure action) {
         whenObjectAdded(toAction(action));
     }
@@ -217,11 +227,13 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return eventRegister.registerEagerAddAction(type, action);
     }
 
+    @Override
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
         eventRegister.registerRemoveAction(type, action);
         return action;
     }
 
+    @Override
     public void whenObjectRemoved(Closure action) {
         whenObjectRemoved(toAction(action));
     }
@@ -230,6 +242,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return ConfigureUtil.configureUsing(action);
     }
 
+    @Override
     public boolean add(T toAdd) {
         assertMutable("add(T)");
         assertMutableCollectionContents();
@@ -288,6 +301,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     protected void didAdd(T toAdd) {
     }
 
+    @Override
     public boolean addAll(Collection<? extends T> c) {
         assertMutable("addAll(Collection<T>)");
         assertMutableCollectionContents();
@@ -300,6 +314,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return changed;
     }
 
+    @Override
     public void clear() {
         assertMutable("clear()");
         assertMutableCollectionContents();
@@ -313,18 +328,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
+    @Override
     public boolean contains(Object o) {
         return getStore().contains(o);
     }
 
+    @Override
     public boolean containsAll(Collection<?> c) {
         return getStore().containsAll(c);
     }
 
+    @Override
     public boolean isEmpty() {
         return getStore().isEmpty();
     }
 
+    @Override
     public boolean remove(Object o) {
         assertMutable("remove(Object)");
         assertMutableCollectionContents();
@@ -361,6 +380,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     protected void didRemove(ProviderInternal<? extends T> t) {
     }
 
+    @Override
     public boolean removeAll(Collection<?> c) {
         assertMutable("removeAll(Collection)");
         assertMutableCollectionContents();
@@ -376,6 +396,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return changed;
     }
 
+    @Override
     public boolean retainAll(Collection<?> target) {
         assertMutable("retainAll(Collection)");
         assertMutableCollectionContents();
@@ -390,6 +411,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return changed;
     }
 
+    @Override
     public int size() {
         return store.size();
     }
@@ -404,6 +426,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return store.getMutationGuard();
     }
 
+    @Override
     public Collection<T> findAll(Closure cl) {
         return findAll(cl, new ArrayList<T>());
     }
@@ -442,15 +465,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             this.iterator = iterator;
         }
 
+        @Override
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
+        @Override
         public T next() {
             currentElement = iterator.next();
             return currentElement;
         }
 
+        @Override
         public void remove() {
             assertMutable("iterator().remove()");
             assertMutableCollectionContents();

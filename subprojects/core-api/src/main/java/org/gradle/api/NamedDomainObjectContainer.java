@@ -80,6 +80,7 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @param configureClosure The closure to configure this container with
      * @return This.
      */
+    @Override
     NamedDomainObjectContainer<T> configure(Closure configureClosure);
 
     /**

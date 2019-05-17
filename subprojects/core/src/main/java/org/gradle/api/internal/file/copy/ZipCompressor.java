@@ -23,6 +23,7 @@ import java.io.IOException;
 
 public interface ZipCompressor extends ArchiveOutputStreamFactory {
 
+    @Override
     ZipOutputStream createArchiveOutputStream(File destination) throws IOException;
 
 }

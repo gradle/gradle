@@ -43,6 +43,7 @@ public class DisconnectableInputStream extends BulkReadInputStream {
      */
 
     static class ThreadExecuter implements Action<Runnable> {
+        @Override
         public void execute(Runnable runnable) {
             Thread thread = new Thread(runnable);
             thread.setName("DisconnectableInputStream source reader");
@@ -66,6 +67,7 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     DisconnectableInputStream(final InputStream source, Action<Runnable> executer, int bufferLength) {
         buffer = new byte[bufferLength];
         Runnable consume = new Runnable() {
+            @Override
             public void run() {
                 try {
                     while (true) {

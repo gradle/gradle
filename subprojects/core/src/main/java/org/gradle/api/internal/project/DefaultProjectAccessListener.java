@@ -20,10 +20,12 @@ import org.gradle.initialization.ProjectAccessListener;
 
 public class DefaultProjectAccessListener implements ProjectAccessListener {
 
+    @Override
     public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
         evaluateProjectAndDiscoverTasks(targetProject);
     }
 
+    @Override
     public void beforeResolvingProjectDependency(ProjectInternal targetProject) {
         evaluateProjectAndDiscoverTasks(targetProject);
     }

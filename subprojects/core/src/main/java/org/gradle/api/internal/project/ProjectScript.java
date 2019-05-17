@@ -25,31 +25,38 @@ import org.gradle.internal.logging.StandardOutputCapture;
 import java.util.Map;
 
 public abstract class ProjectScript extends DefaultScript {
+    @Override
     public void apply(Closure closure) {
         getScriptTarget().apply(closure);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public void apply(Map options) {
         getScriptTarget().apply(options);
     }
 
+    @Override
     public ScriptHandler getBuildscript() {
         return getScriptTarget().getBuildscript();
     }
 
+    @Override
     public void buildscript(Closure configureClosure) {
         getScriptTarget().buildscript(configureClosure);
     }
 
+    @Override
     public StandardOutputCapture getStandardOutputCapture() {
         return getScriptTarget().getStandardOutputCapture();
     }
 
+    @Override
     public LoggingManager getLogging() {
         return getScriptTarget().getLogging();
     }
 
+    @Override
     public Logger getLogger() {
         return getScriptTarget().getLogger();
     }

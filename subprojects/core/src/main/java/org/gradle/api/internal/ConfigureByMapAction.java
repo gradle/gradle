@@ -37,6 +37,7 @@ public class ConfigureByMapAction<T> implements Action<T> {
         this.mandatoryProperties = mandatoryProperties;
     }
 
+    @Override
     public void execute(T thing) {
         ConfigureUtil.configureByMap(properties, thing, mandatoryProperties);
     }

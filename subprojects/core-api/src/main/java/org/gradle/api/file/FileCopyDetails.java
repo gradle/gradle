@@ -85,6 +85,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      *
      * @return The destination name. Never returns null.
      */
+    @Override
     String getName();
 
     /**
@@ -95,6 +96,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      *
      * @return The path, relative to the root of the copy destination. Never returns null.
      */
+    @Override
     String getPath();
 
     /**
@@ -102,6 +104,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      *
      * @return The path, relative to the root of the copy destination. Never returns null.
      */
+    @Override
     RelativePath getRelativePath();
 
     /**

@@ -40,6 +40,7 @@ public class TaskFactory implements ITaskFactory {
         this.instantiator = instantiator;
     }
 
+    @Override
     public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
         return new TaskFactory(project, instantiator);
     }
@@ -62,6 +63,7 @@ public class TaskFactory implements ITaskFactory {
         }
 
         return AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
+            @Override
             public S call() {
                 try {
                     return identity.type.cast(instantiator.newInstance(implType, args));

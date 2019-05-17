@@ -35,6 +35,7 @@ public class Bzip2Archiver extends AbstractArchiver {
         super(resource);
     }
 
+    @Override
     protected String getSchemePrefix() {
         return "bzip2:";
     }
@@ -43,6 +44,7 @@ public class Bzip2Archiver extends AbstractArchiver {
         // this is not very beautiful but at some point we will
         // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
         return new ArchiveOutputStreamFactory() {
+            @Override
             public OutputStream createArchiveOutputStream(File destination) throws FileNotFoundException {
                 OutputStream outStr = new BufferedOutputStream(new FileOutputStream(destination));
                 try {
@@ -58,6 +60,7 @@ public class Bzip2Archiver extends AbstractArchiver {
         };
     }
 
+    @Override
     public InputStream read() {
         InputStream input = new BufferedInputStream(resource.read());
         try {

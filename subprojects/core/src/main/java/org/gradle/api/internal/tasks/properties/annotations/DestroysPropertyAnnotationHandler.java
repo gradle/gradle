@@ -33,6 +33,7 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
         return Destroys.class;
     }
 
+    @Override
     public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
         return ImmutableSet.of();
     }

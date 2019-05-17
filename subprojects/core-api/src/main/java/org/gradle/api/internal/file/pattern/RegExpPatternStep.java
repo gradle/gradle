@@ -50,6 +50,7 @@ public class RegExpPatternStep implements PatternStep {
         return result.toString();
     }
 
+    @Override
     public boolean matches(String testString) {
         Matcher matcher = pattern.matcher(testString);
         return matcher.matches();

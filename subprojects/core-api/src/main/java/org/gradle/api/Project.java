@@ -1707,6 +1707,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return Returned instance allows adding DSL extensions to the project
      */
+    @Override
     ExtensionContainer getExtensions();
 
     /**

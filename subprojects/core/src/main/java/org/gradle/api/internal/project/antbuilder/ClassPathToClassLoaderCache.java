@@ -58,6 +58,7 @@ public class ClassPathToClassLoaderCache implements Stoppable {
         this.finalizerThread.start();
     }
 
+    @Override
     public void stop() {
         finalizerThread.exit();
         try {

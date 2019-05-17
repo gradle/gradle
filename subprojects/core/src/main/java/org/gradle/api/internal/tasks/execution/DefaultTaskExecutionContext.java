@@ -87,6 +87,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.overlappingOutputs = overlappingOutputs;
     }
 
+    @Override
     public Optional<BeforeExecutionState> getBeforeExecutionState() {
         return Optional.ofNullable(beforeExecutionState);
     }
@@ -106,6 +107,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.taskExecutionMode = taskExecutionMode;
     }
 
+    @Override
     public long markExecutionTime() {
         if (this.executionTime != null) {
             throw new IllegalStateException("execution time already set");

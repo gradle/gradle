@@ -29,10 +29,12 @@ public class BuildFileProjectSpec extends AbstractProjectSpec {
         this.buildFile = buildFile;
     }
 
+    @Override
     protected String formatNoMatchesMessage(String settings) {
         return String.format("Build file '%s' is not part of the build defined by %s.", buildFile, settings);
     }
 
+    @Override
     protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {
         return String.format("Multiple projects in this build have build file '%s': %s", buildFile, matches);
     }

@@ -110,6 +110,7 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
         logWriter.println(message);
     }
 
+    @Override
     public String getLogLocation() {
         return new ConsoleRenderer().asClickableFileUrl(configuration.getOutputFile());
     }

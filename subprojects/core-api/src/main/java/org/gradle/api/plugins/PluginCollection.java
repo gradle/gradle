@@ -32,16 +32,19 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
     /**
      * {@inheritDoc}
      */
+    @Override
     PluginCollection<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     PluginCollection<T> matching(Closure closure);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     <S extends T> PluginCollection<S> withType(Class<S> type);
 
     /**

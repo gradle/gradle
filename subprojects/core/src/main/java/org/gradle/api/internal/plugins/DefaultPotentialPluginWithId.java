@@ -40,22 +40,27 @@ public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> 
         return "id '" + pluginId + "'";
     }
 
+    @Override
     public PluginId getPluginId() {
         return pluginId;
     }
 
+    @Override
     public Class<? extends T> asClass() {
         return potentialPlugin.asClass();
     }
 
+    @Override
     public boolean isImperative() {
         return potentialPlugin.isImperative();
     }
 
+    @Override
     public boolean isHasRules() {
         return potentialPlugin.isHasRules();
     }
 
+    @Override
     public Type getType() {
         return potentialPlugin.getType();
     }

@@ -113,6 +113,7 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
         try {
             return doAdd(path, new Action<File>() {
+                @Override
                 public void execute(File file) {
                     if (source.isDirectory()) {
                         GFileUtils.moveExistingDirectory(source, file);
@@ -155,6 +156,7 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
         final Set<LocallyAvailableResource> entries = new HashSet<LocallyAvailableResource>();
         findFiles(pattern).visit(new EmptyFileVisitor() {
+            @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 final File file = fileDetails.getFile();
                 // We cannot clean in progress markers, or in progress files here because

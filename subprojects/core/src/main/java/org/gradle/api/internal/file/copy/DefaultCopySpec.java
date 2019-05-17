@@ -390,6 +390,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     public CopySpec filter(final Class<? extends FilterReader> filterType) {
         appendCopyAction(new Action<FileCopyDetails>() {
+            @Override
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.filter(filterType);
             }
@@ -405,6 +406,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     public CopySpec filter(final Transformer<String, String> transformer) {
         appendCopyAction(new Action<FileCopyDetails>() {
+            @Override
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.filter(transformer);
             }
@@ -415,6 +417,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     public CopySpec filter(final Map<String, ?> properties, final Class<? extends FilterReader> filterType) {
         appendCopyAction(new Action<FileCopyDetails>() {
+            @Override
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.filter(properties, filterType);
             }
@@ -425,6 +428,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     public CopySpec expand(final Map<String, ?> properties) {
         appendCopyAction(new Action<FileCopyDetails>() {
+            @Override
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.expand(properties);
             }
@@ -570,6 +574,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         public FileTree getAllSource() {
             final ImmutableList.Builder<FileTree> builder = ImmutableList.builder();
             walk(new Action<CopySpecResolver>() {
+                @Override
                 public void execute(CopySpecResolver copySpecResolver) {
                     builder.add(copySpecResolver.getSource());
                 }
@@ -664,6 +669,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             return null;
         }
 
+        @Override
         public boolean getIncludeEmptyDirs() {
             if (includeEmptyDirs != null) {
                 return includeEmptyDirs;
@@ -674,6 +680,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             return true;
         }
 
+        @Override
         public List<Spec<FileTreeElement>> getAllIncludeSpecs() {
             List<Spec<FileTreeElement>> result = new ArrayList<Spec<FileTreeElement>>();
             if (parentResolver != null) {
@@ -694,6 +701,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             return patterns;
         }
 
+        @Override
         public void walk(Action<? super CopySpecResolver> action) {
             action.execute(this);
             for (CopySpecInternal child : getChildren()) {
@@ -701,6 +709,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             }
         }
 
+        @Override
         public String getFilteringCharset() {
             if (filteringCharset != null) {
                 return filteringCharset;
