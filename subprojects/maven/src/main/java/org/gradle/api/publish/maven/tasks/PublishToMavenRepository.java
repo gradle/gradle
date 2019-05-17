@@ -21,11 +21,12 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.DuplicatePublicationTracker;
-import org.gradle.api.publish.maven.internal.publisher.DuplicateTrackingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
+
+import javax.inject.Inject;
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to a {@link MavenArtifactRepository}.
@@ -33,8 +34,6 @@ import org.gradle.api.tasks.TaskAction;
  * @since 1.4
  */
 public class PublishToMavenRepository extends AbstractPublishToMaven {
-
-    public DuplicatePublicationTracker duplicatePublicationTracker;
     private MavenArtifactRepository repository;
 
     /**
@@ -75,11 +74,16 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         new PublishOperation(publication, repository.getName()) {
             @Override
             protected void publish() {
+                getDuplicatePublicationTracker().checkCanPublish(publication, repository);
                 MavenPublisher remotePublisher = getMavenPublishers().getRemotePublisher(getTemporaryDirFactory());
                 remotePublisher = new ValidatingMavenPublisher(remotePublisher);
-                remotePublisher = new DuplicateTrackingMavenPublisher(remotePublisher, duplicatePublicationTracker);
                 remotePublisher.publish(publication.asNormalisedPublication(), repository);
             }
         }.run();
+    }
+
+    @Inject
+    protected DuplicatePublicationTracker getDuplicatePublicationTracker() {
+        throw new UnsupportedOperationException();
     }
 }

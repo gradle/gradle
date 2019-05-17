@@ -37,6 +37,12 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+          "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
+          "member": "Method org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getDuplicatePublicationTracker()",
+          "acceptation": "Injected service",
+          "changes": []
         }
     ]
 }

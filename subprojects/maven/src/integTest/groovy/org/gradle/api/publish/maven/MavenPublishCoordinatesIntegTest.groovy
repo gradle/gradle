@@ -187,4 +187,70 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate-publications:1.0' to repository 'maven'")
     }
 
+    def "fails when publications in different projects share the same coordinates"() {
+        given:
+        settingsFile << """
+include 'projectA'
+include 'projectB'
+"""
+        buildFile << """
+        subprojects {
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'org.example'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    main(MavenPublication) {
+                        from components.java
+                        artifactId "duplicate"
+                    }
+                }
+            }
+        }
+        """
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate:1.0' to repository 'maven'")
+    }
+
+    def "does not fail for publication with duplicate repositories"() {
+        given:
+        settingsFile << "rootProject.name = 'duplicate-repos'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'org.example'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    main(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        def module = mavenRepo.module('org.example', 'duplicate-repos', '1.0').withModuleMetadata()
+
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublishedAsJavaModule()
+    }
 }
