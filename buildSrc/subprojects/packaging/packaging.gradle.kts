@@ -3,8 +3,8 @@ dependencies {
     implementation(project(":build"))
     implementation(project(":kotlinDsl"))
     implementation("com.google.guava:guava:27.1-jre")
-    implementation("org.ow2.asm:asm:6.0")
-    implementation("org.ow2.asm:asm-commons:6.0")
+    implementation("org.ow2.asm:asm:7.1")
+    implementation("org.ow2.asm:asm-commons:7.1")
     implementation("com.google.code.gson:gson:2.7")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.1.0")

@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.ow2.asm:asm:6.0") {
+    implementation("org.ow2.asm:asm:7.1") {
         because("we require a JDK 9 compatible bytecode generator")
     }
 }
