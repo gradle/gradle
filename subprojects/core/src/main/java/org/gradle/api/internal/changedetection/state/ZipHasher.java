@@ -102,6 +102,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     }
 
     private void fingerprintZipEntries(String parentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input) throws IOException {
+        fingerprints.add(newZipMarker(parentName));
         for (ZipEntry zipEntry : input) {
             ZipEntryRelativePath relativePath = new ZipEntryRelativePath(zipEntry);
             if (zipEntry.isDirectory() || resourceFilter.shouldBeIgnored(relativePath)) {
@@ -117,6 +118,10 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
                 }
             }
         }
+    }
+
+    private DefaultFileSystemLocationFingerprint newZipMarker(String relativePath) {
+        return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, HashCode.fromInt(0));
     }
 
     private static class ZipEntryRelativePath implements Factory<String[]> {
