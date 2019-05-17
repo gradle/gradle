@@ -56,10 +56,9 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
     }
 
     protected void publish(MavenNormalizedPublication publication, ExternalResourceRepository repository, URI rootUri, boolean localRepo) {
-        MavenProjectIdentity projectIdentity = publication.getProjectIdentity();
-        String groupId = projectIdentity.getGroupId().get();
-        String artifactId = projectIdentity.getArtifactId().get();
-        String version = projectIdentity.getVersion().get();
+        String groupId = publication.getGroupId();
+        String artifactId = publication.getArtifactId();
+        String version = publication.getVersion();
 
         ModuleArtifactPublisher artifactPublisher = new ModuleArtifactPublisher(repository, localRepo, rootUri, groupId, artifactId, version);
 
