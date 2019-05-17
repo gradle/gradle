@@ -24,7 +24,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;

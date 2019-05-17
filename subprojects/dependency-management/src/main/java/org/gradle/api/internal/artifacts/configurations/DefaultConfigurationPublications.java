@@ -30,8 +30,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;

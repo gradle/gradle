@@ -17,9 +17,6 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 

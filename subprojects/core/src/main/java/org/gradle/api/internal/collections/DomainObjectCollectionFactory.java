@@ -21,13 +21,7 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
-import org.gradle.api.internal.DynamicPropertyNamer;
-import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
-import org.gradle.api.internal.MutationGuards;
-import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.reflect.Instantiator;
 
 public interface DomainObjectCollectionFactory {
     /**

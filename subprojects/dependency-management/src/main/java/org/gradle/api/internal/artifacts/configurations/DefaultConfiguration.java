@@ -52,7 +52,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DocumentationRegistry;
