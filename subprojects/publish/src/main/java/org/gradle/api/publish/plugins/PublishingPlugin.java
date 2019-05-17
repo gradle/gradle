@@ -16,10 +16,8 @@
 
 package org.gradle.api.publish.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -27,7 +25,6 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
@@ -75,20 +72,14 @@ public class PublishingPlugin implements Plugin<Project> {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator, collectionCallbackActionDecorator);
         PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
-        project.getTasks().register(PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.setDescription("Publishes all publications produced by this project.");
-                task.setGroup(PUBLISH_TASK_GROUP);
-            }
+        project.getTasks().register(PUBLISH_LIFECYCLE_TASK_NAME, task -> {
+            task.setDescription("Publishes all publications produced by this project.");
+            task.setGroup(PUBLISH_TASK_GROUP);
         });
-        extension.getPublications().all(new Action<Publication>() {
-            @Override
-            public void execute(Publication publication) {
-                PublicationInternal internalPublication = (PublicationInternal) publication;
-                ProjectInternal projectInternal = (ProjectInternal) project;
-                projectPublicationRegistry.registerPublication(projectInternal, internalPublication);
-            }
+        extension.getPublications().all(publication -> {
+            PublicationInternal internalPublication = (PublicationInternal) publication;
+            ProjectInternal projectInternal = (ProjectInternal) project;
+            projectPublicationRegistry.registerPublication(projectInternal, internalPublication);
         });
         bridgeToSoftwareModelIfNeeded((ProjectInternal) project);
     }
