@@ -16,15 +16,18 @@
 
 package org.gradle.api.publish.plugins;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
@@ -44,6 +47,7 @@ public class PublishingPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_TASK_GROUP = "publishing";
     public static final String PUBLISH_LIFECYCLE_TASK_NAME = "publish";
+    private static final String VALID_NAME_REGEX = "[A-Za-z0-9_\\-.]+";
 
     private final Instantiator instantiator;
     private final ArtifactPublicationServices publicationServices;
@@ -82,6 +86,24 @@ public class PublishingPlugin implements Plugin<Project> {
             projectPublicationRegistry.registerPublication(projectInternal, internalPublication);
         });
         bridgeToSoftwareModelIfNeeded((ProjectInternal) project);
+        validatePublishingModelWhenComplete(project, extension);
+    }
+
+    private void validatePublishingModelWhenComplete(Project project, PublishingExtension extension) {
+        project.afterEvaluate(projectAfterEvaluate -> {
+            for (ArtifactRepository repository : extension.getRepositories()) {
+                String repositoryName = repository.getName();
+                if (!repositoryName.matches(VALID_NAME_REGEX)) {
+                    throw new InvalidUserDataException("Repository name '" + repositoryName + "' is not valid for publication. Must match regex " + VALID_NAME_REGEX + ".");
+                }
+            }
+            for (Publication publication : extension.getPublications()) {
+                String repositoryName = publication.getName();
+                if (!repositoryName.matches(VALID_NAME_REGEX)) {
+                    throw new InvalidUserDataException("Publication name '" + repositoryName + "' is not valid for publication. Must match regex " + VALID_NAME_REGEX + ".");
+                }
+            }
+        });
     }
 
     private void bridgeToSoftwareModelIfNeeded(ProjectInternal project) {
