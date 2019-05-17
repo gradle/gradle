@@ -31,14 +31,17 @@ class DefaultCachedArtifacts implements CachedArtifacts {
         this.descriptorHash = descriptorHash;
     }
 
+    @Override
     public Set<ComponentArtifactMetadata> getArtifacts() {
         return artifacts;
     }
 
+    @Override
     public BigInteger getDescriptorHash() {
         return descriptorHash;
     }
 
+    @Override
     public long getAgeMillis() {
         return ageMillis;
     }

@@ -50,6 +50,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         rootBuildOperation = CurrentBuildOperationRef.instance().get();
     }
 
+    @Override
     public IncludedBuildController getBuildController(BuildIdentifier buildId) {
         IncludedBuildController buildController = buildControllers.get(buildId);
         if (buildController != null) {

@@ -55,6 +55,7 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
     @Override
     public void generate(Project project) throws IOException {
         SortedSet<Configuration> sortedConfigurations = new TreeSet<Configuration>(new Comparator<Configuration>() {
+            @Override
             public int compare(Configuration conf1, Configuration conf2) {
                 return conf1.getName().compareTo(conf2.getName());
             }

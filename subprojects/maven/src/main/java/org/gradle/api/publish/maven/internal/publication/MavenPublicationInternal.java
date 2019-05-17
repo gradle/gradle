@@ -31,6 +31,7 @@ import java.util.Set;
 
 public interface MavenPublicationInternal extends MavenPublication, PublicationInternal<MavenArtifact> {
 
+    @Override
     MavenPomInternal getPom();
 
     void setPomGenerator(Task pomGenerator);
@@ -69,6 +70,7 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
      */
     void publishWithOriginalFileName();
 
+    @Override
     VersionMappingStrategyInternal getVersionMappingStrategy();
 
     boolean writeGradleMetadataMarker();

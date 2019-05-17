@@ -56,6 +56,7 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
         this.fileStorePrefix = fileStorePrefix;
     }
 
+    @Override
     public Set<BuildOutcome> transform(ProjectOutcomes rootProject) {
         Set<BuildOutcome> keyedOutcomes = new HashSet<BuildOutcome>();
         addBuildOutcomes(rootProject, rootProject, keyedOutcomes);

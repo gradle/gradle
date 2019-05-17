@@ -33,6 +33,7 @@ public class MessageHubBackedServer implements MessagingServer {
         this.executorFactory = executorFactory;
     }
 
+    @Override
     public ConnectionAcceptor accept(Action<ObjectConnection> action) {
         return connector.accept(new ConnectEventAction(action), false);
     }
@@ -44,6 +45,7 @@ public class MessageHubBackedServer implements MessagingServer {
             this.action = action;
         }
 
+        @Override
         public void execute(ConnectCompletion completion) {
             action.execute(new MessageHubBackedObjectConnection(executorFactory, completion));
         }

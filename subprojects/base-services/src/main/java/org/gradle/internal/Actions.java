@@ -52,6 +52,7 @@ public abstract class Actions {
     }
 
     private static class NullAction<T> implements Action<T>, Serializable {
+        @Override
         public void execute(T t) {
         }
     }
@@ -109,6 +110,7 @@ public abstract class Actions {
             this.actions = actions;
         }
 
+        @Override
         public void execute(T item) {
             for (Action<? super T> action : actions) {
                 action.execute(item);
@@ -161,6 +163,7 @@ public abstract class Actions {
             this.action = action;
         }
 
+        @Override
         public void execute(I thing) {
             T transformed = transformer.transform(thing);
             action.execute(transformed);
@@ -204,6 +207,7 @@ public abstract class Actions {
             this.runnable = runnable;
         }
 
+        @Override
         public void execute(T t) {
             runnable.run();
         }
@@ -235,6 +239,7 @@ public abstract class Actions {
             this.action = action;
         }
 
+        @Override
         public void execute(T t) {
             if (filter.isSatisfiedBy(t)) {
                 action.execute(t);

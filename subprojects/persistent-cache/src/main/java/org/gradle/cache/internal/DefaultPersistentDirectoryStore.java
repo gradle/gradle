@@ -101,10 +101,12 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     protected CacheInitializationAction getInitAction() {
         return new CacheInitializationAction() {
+            @Override
             public boolean requiresInitialization(FileLock fileLock) {
                 return false;
             }
 
+            @Override
             public void initialize(FileLock fileLock) {
                 throw new UnsupportedOperationException();
             }

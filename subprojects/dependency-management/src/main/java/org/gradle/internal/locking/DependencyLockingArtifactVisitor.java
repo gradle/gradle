@@ -134,6 +134,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     public void finishArtifacts() {
     }
 
+    @Override
     public void complete() {
         if (!lockOutOfDate) {
             Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.<ModuleComponentIdentifier>emptySet() : this.changingResolvedModules;

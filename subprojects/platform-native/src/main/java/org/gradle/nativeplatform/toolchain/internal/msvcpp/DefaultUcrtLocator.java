@@ -28,6 +28,7 @@ public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<UcrtI
         super(windowsRegistry);
     }
 
+    @Override
     public String getComponentName() {
         return COMPONENT_NAME;
     }

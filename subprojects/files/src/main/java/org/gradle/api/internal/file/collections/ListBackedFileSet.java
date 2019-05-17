@@ -36,6 +36,7 @@ public class ListBackedFileSet implements MinimalFileSet {
         this.files = ImmutableSet.copyOf(files);
     }
 
+    @Override
     public String getDisplayName() {
         switch (files.size()) {
             case 0:
@@ -47,6 +48,7 @@ public class ListBackedFileSet implements MinimalFileSet {
         }
     }
 
+    @Override
     public Set<File> getFiles() {
         return files;
     }

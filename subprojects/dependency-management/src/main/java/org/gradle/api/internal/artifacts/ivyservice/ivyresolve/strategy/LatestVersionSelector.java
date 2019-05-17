@@ -29,22 +29,27 @@ public class LatestVersionSelector extends AbstractStringVersionSelector {
         return selectorStatus;
     }
 
+    @Override
     public boolean isDynamic() {
         return true;
     }
 
+    @Override
     public boolean requiresMetadata() {
         return true;
     }
 
+    @Override
     public boolean matchesUniqueVersion() {
         return true;
     }
 
+    @Override
     public boolean accept(String candidate) {
         throw new UnsupportedOperationException("accept(String)");
     }
 
+    @Override
     public boolean accept(ComponentMetadata candidate) {
         int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
         int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());

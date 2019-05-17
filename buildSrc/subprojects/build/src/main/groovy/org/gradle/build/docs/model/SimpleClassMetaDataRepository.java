@@ -69,6 +69,7 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
         }
     }
 
+    @Override
     public T get(String fullyQualifiedClassName) {
         T t = find(fullyQualifiedClassName);
         if (t == null) {
@@ -77,6 +78,7 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
         return t;
     }
 
+    @Override
     public T find(String fullyQualifiedClassName) {
         T t = classes.get(fullyQualifiedClassName);
         if (t != null) {
@@ -95,10 +97,12 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
         return candidates;
     }
 
+    @Override
     public void put(String fullyQualifiedClassName, T metaData) {
         classes.put(fullyQualifiedClassName, metaData);
     }
 
+    @Override
     public void each(Closure cl) {
         for (Map.Entry<String, T> entry : classes.entrySet()) {
             cl.call(new Object[]{entry.getKey(), entry.getValue()});

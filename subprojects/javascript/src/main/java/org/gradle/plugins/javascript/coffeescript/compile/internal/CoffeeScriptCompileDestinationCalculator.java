@@ -29,6 +29,7 @@ public class CoffeeScriptCompileDestinationCalculator implements Transformer<Fil
         this.destination = destination;
     }
 
+    @Override
     public File transform(RelativePath relativePath) {
         String sourceFileName = relativePath.getLastName();
 
@@ -44,6 +45,7 @@ public class CoffeeScriptCompileDestinationCalculator implements Transformer<Fil
 
     public static Transformer<Transformer<File, RelativePath>, File> asFactory() {
         return new Transformer<Transformer<File, RelativePath>, File>() {
+            @Override
             public Transformer<File, RelativePath> transform(File original) {
                 return new CoffeeScriptCompileDestinationCalculator(original);
             }

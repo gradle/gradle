@@ -37,6 +37,7 @@ import java.io.IOException;
 public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentIdentifier> {
     private final BuildIdentifierSerializer buildIdentifierSerializer = new BuildIdentifierSerializer();
 
+    @Override
     public ComponentIdentifier read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
@@ -68,6 +69,7 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
         throw new IllegalArgumentException("Unable to find component identifier type with id: " + id);
     }
 
+    @Override
     public void write(Encoder encoder, ComponentIdentifier value) throws IOException {
         if (value == null) {
             throw new IllegalArgumentException("Provided component identifier may not be null");

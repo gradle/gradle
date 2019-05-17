@@ -193,6 +193,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Defaults
         public void registerFactoryForCustomNativePlatforms(PlatformContainer platforms, final Instantiator instantiator) {
             NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = new NamedDomainObjectFactory<NativePlatform>() {
+                @Override
                 public NativePlatform create(String name) {
                     return instantiator.newInstance(DefaultNativePlatform.class, name);
                 }
@@ -429,6 +430,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                                     final CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
             super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer(), collectionCallbackActionDecorator);
             registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
+                @Override
                 public PrebuiltLibraries create(String name) {
                     return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, objectFactory, binaryFactory, collectionCallbackActionDecorator);
                 }

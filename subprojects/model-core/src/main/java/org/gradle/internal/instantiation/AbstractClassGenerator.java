@@ -126,6 +126,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return new TypeToken<Provider<T>>() {}.where(new TypeParameter<T>() {}, providerType);
     }
 
+    @Override
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
         CACHE_LOCK.lock();
         try {

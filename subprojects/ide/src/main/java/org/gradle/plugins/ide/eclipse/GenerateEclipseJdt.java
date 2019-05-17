@@ -42,10 +42,12 @@ public class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
         this.jdt = jdt;
     }
 
+    @Override
     protected Jdt create() {
         return new Jdt(getTransformer());
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     protected void configure(Jdt jdtContent) {
         EclipseJdt jdtModel = getJdt();

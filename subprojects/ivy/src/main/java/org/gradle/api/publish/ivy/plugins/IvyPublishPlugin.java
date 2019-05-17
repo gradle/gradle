@@ -98,6 +98,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(PublishingPlugin.class);
 
@@ -168,6 +169,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         final String descriptorTaskName = "generateDescriptorFileFor" + capitalize(publicationName) + "Publication";
 
         TaskProvider<GenerateIvyDescriptor> generatorTask = tasks.register(descriptorTaskName, GenerateIvyDescriptor.class, new Action<GenerateIvyDescriptor>() {
+            @Override
             public void execute(final GenerateIvyDescriptor descriptorTask) {
                 descriptorTask.setDescription("Generates the Ivy Module Descriptor XML file for publication '" + publicationName + "'.");
                 descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
@@ -185,6 +187,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, new Action<GenerateModuleMetadata>() {
+            @Override
             public void execute(final GenerateModuleMetadata generateTask) {
                 generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
                 generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
@@ -223,6 +226,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
             this.attributesSchema = attributesSchema;
         }
 
+        @Override
         public IvyPublication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
             IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module);

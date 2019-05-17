@@ -77,6 +77,7 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
         return result;
     }
 
+    @Override
     public void visit(ClassLoaderVisitor visitor) {
         visitor.visitSpec(new Spec());
         visitor.visitParent(getParent());

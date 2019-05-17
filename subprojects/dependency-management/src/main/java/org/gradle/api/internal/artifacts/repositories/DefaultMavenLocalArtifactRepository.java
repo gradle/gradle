@@ -68,6 +68,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    @Override
     protected MavenResolver createRealResolver() {
         URI rootUri = getUrl();
         if (rootUri == null) {
@@ -95,6 +96,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         return resolver;
     }
 
+    @Override
     protected DefaultMavenPomMetadataSource.MavenMetadataValidator getMetadataValidationServices() {
         return new MavenLocalMetadataValidator();
     }

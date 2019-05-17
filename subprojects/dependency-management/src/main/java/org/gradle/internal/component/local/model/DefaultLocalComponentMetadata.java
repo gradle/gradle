@@ -314,6 +314,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return componentId;
         }
 
+        @Override
         public void addDependency(LocalOriginDependencyMetadata dependency) {
             definedDependencies.add(dependency);
         }

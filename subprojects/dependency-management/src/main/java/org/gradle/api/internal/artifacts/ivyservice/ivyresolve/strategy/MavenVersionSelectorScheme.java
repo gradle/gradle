@@ -39,6 +39,7 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
         this.defaultVersionSelectorScheme = defaultVersionSelectorScheme;
     }
 
+    @Override
     public VersionSelector parseSelector(String selectorString) {
         if (selectorString.equals(RELEASE)) {
             return new LatestVersionSelector(LATEST_RELEASE);
@@ -49,6 +50,7 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
         }
     }
 
+    @Override
     public String renderSelector(VersionSelector selector) {
         return toMavenSyntax(defaultVersionSelectorScheme.renderSelector(selector));
     }

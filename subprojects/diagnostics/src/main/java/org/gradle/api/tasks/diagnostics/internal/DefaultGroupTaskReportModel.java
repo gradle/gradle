@@ -31,6 +31,7 @@ public class DefaultGroupTaskReportModel implements TaskReportModel {
     public void build(TaskReportModel model) {
         Comparator<String> keyComparator = GUtil.last(GUtil.last(STRING_COMPARATOR, OTHER_GROUP), DEFAULT_GROUP);
         Comparator<TaskDetails> taskComparator = new Comparator<TaskDetails>() {
+            @Override
             public int compare(TaskDetails task1, TaskDetails task2) {
                 int diff = STRING_COMPARATOR.compare(task1.getPath().getName(), task2.getPath().getName());
                 if (diff != 0) {

@@ -211,6 +211,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return version((majorPart + 1) + ".0");
     }
 
+    @Override
     public int compareTo(GradleVersion gradleVersion) {
         String[] majorVersionParts = versionPart.split("\\.");
         String[] otherMajorVersionParts = gradleVersion.versionPart.split("\\.");
@@ -304,6 +305,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
             }
         }
 
+        @Override
         public int compareTo(Stage other) {
             if (stage > other.stage) {
                 return 1;

@@ -50,6 +50,7 @@ public class ArgWriter implements ArgCollector {
 
     public static Transformer<ArgWriter, PrintWriter> unixStyleFactory() {
         return new Transformer<ArgWriter, PrintWriter>() {
+            @Override
             public ArgWriter transform(PrintWriter original) {
                 return unixStyle(original);
             }
@@ -67,6 +68,7 @@ public class ArgWriter implements ArgCollector {
 
     public static Transformer<ArgWriter, PrintWriter> javaStyleFactory() {
         return new Transformer<ArgWriter, PrintWriter>() {
+            @Override
             public ArgWriter transform(PrintWriter original) {
                 return javaStyle(original);
             }
@@ -82,6 +84,7 @@ public class ArgWriter implements ArgCollector {
 
     public static Transformer<ArgWriter, PrintWriter> windowsStyleFactory() {
         return new Transformer<ArgWriter, PrintWriter>() {
+            @Override
             public ArgWriter transform(PrintWriter original) {
                 return windowsStyle(original);
             }
@@ -118,6 +121,7 @@ public class ArgWriter implements ArgCollector {
     /**
      * Writes a set of args on a single line, escaping and quoting as required.
      */
+    @Override
     public ArgWriter args(Object... args) {
         for (int i = 0; i < args.length; i++) {
             Object arg = args[i];
@@ -146,6 +150,7 @@ public class ArgWriter implements ArgCollector {
         return quotablePattern.matcher(str).find();
     }
 
+    @Override
     public ArgCollector args(Iterable<?> args) {
         for (Object arg : args) {
             args(arg);

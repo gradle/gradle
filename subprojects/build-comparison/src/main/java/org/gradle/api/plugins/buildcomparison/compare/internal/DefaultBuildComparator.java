@@ -32,6 +32,7 @@ public class DefaultBuildComparator implements BuildComparator {
         this.comparatorFactory = comparatorFactory;
     }
 
+    @Override
     public BuildComparisonResult compareBuilds(BuildComparisonSpec spec) {
         Set<BuildOutcome> uncomparedFrom = new HashSet<BuildOutcome>(spec.getSource());
         Set<BuildOutcome> uncomparedTo = new HashSet<BuildOutcome>(spec.getTarget());

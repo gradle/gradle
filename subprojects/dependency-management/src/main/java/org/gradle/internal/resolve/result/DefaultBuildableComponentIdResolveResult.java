@@ -36,24 +36,29 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ImmutableSet.Builder<RejectedVersion> rejections;
     private Object mark;
 
+    @Override
     public boolean hasResult() {
         return id != null || failure != null;
     }
 
+    @Override
     public ModuleVersionResolveException getFailure() {
         return failure;
     }
 
+    @Override
     public ComponentIdentifier getId() {
         assertResolved();
         return id;
     }
 
+    @Override
     public ModuleVersionIdentifier getModuleVersionId() {
         assertResolved();
         return moduleVersionId;
     }
 
+    @Override
     public ComponentResolveMetadata getMetadata() {
         assertResolved();
         return metadata;
@@ -64,6 +69,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         return rejected;
     }
 
+    @Override
     public void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier) {
         reset();
         this.id = id;
@@ -76,11 +82,13 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         rejected = true;
     }
 
+    @Override
     public void resolved(ComponentResolveMetadata metadata) {
         resolved(metadata.getId(), metadata.getModuleVersionId());
         this.metadata = metadata;
     }
 
+    @Override
     public void failed(ModuleVersionResolveException failure) {
         reset();
         this.failure = failure;

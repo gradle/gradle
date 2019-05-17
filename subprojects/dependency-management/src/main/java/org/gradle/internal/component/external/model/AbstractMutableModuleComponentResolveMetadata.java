@@ -181,6 +181,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.moduleSource = source;
     }
 
+    @Override
     public void setAttributes(AttributeContainer attributes) {
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) attributes);
         // the "status" attribute is mandatory, so if it's missing, we need to add it
@@ -205,6 +206,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         return variantMetadataRules;
     }
 
+    @Override
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
         MutableVariantImpl variant = new MutableVariantImpl(variantName, attributes);
         if (newVariants == null) {
@@ -231,6 +233,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         return builder.build();
     }
 
+    @Override
     public ImmutableAttributesFactory getAttributesFactory() {
         return attributesFactory;
     }

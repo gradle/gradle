@@ -63,6 +63,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
         }, throttleMs, throttleMs, TimeUnit.MILLISECONDS);
     }
 
+    @Override
     public void onOutput(OutputEvent newEvent) {
         synchronized (lock) {
             queue.add(newEvent);

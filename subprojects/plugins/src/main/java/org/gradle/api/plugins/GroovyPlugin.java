@@ -31,6 +31,7 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
 public class GroovyPlugin implements Plugin<Project> {
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(GroovyBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);

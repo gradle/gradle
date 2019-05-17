@@ -167,6 +167,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         return runtimeLibs;
     }
 
+    @Override
     public RegularFileProperty getModuleFile() {
         return moduleFile;
     }

@@ -364,6 +364,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         /**
          * Stops this logging system. Restores state from when started.
          */
+        @Override
         public void stop() {
             try {
                 if (originalState != null) {

@@ -57,6 +57,7 @@ abstract class AbstractResourcePattern implements ResourcePattern {
         this.typeIsOptional = isOptionalToken(IvyPatternHelper.TYPE_KEY);
     }
 
+    @Override
     public String getPattern() {
         return pattern.getDecoded();
     }

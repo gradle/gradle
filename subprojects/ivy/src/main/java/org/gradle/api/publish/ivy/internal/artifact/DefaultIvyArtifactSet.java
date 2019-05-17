@@ -47,18 +47,21 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
         this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());
     }
 
+    @Override
     public IvyArtifact artifact(Object source) {
         IvyArtifact artifact = ivyArtifactParser.parseNotation(source);
         add(artifact);
         return artifact;
     }
 
+    @Override
     public IvyArtifact artifact(Object source, Action<? super IvyArtifact> config) {
         IvyArtifact artifact = artifact(source);
         config.execute(artifact);
         return artifact;
     }
 
+    @Override
     public FileCollection getFiles() {
         return files;
     }

@@ -129,6 +129,7 @@ public class Path implements Comparable<Path> {
         return result;
     }
 
+    @Override
     public int compareTo(Path other) {
         if (absolute && !other.absolute) {
             return 1;

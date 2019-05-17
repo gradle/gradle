@@ -34,6 +34,7 @@ import java.util.Set;
  */
 public class MavenRepositoryLayout extends AbstractRepositoryLayout {
 
+    @Override
     public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {
             return;

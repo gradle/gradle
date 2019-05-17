@@ -77,6 +77,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         throw e;
     }
 
+    @Override
     public byte readByte() throws EOFException {
         try {
             return input.readByte();
@@ -85,6 +86,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         }
     }
 
+    @Override
     public void readBytes(byte[] buffer, int offset, int count) throws EOFException {
         try {
             input.readBytes(buffer, offset, count);
@@ -93,6 +95,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         }
     }
 
+    @Override
     public long readLong() throws EOFException {
         try {
             return input.readLong();
@@ -101,6 +104,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         }
     }
 
+    @Override
     public long readSmallLong() throws EOFException, IOException {
         try {
             return input.readLong(true);
@@ -109,6 +113,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         }
     }
 
+    @Override
     public int readInt() throws EOFException {
         try {
             return input.readInt();
@@ -117,6 +122,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         }
     }
 
+    @Override
     public int readSmallInt() throws EOFException {
         try {
             return input.readInt(true);
@@ -125,6 +131,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         }
     }
 
+    @Override
     public boolean readBoolean() throws EOFException {
         try {
             return input.readBoolean();
@@ -133,10 +140,12 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         }
     }
 
+    @Override
     public String readString() throws EOFException {
         return readNullableString();
     }
 
+    @Override
     public String readNullableString() throws EOFException {
         try {
             byte b = readByte();
@@ -172,6 +181,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         return input.total() + extraSkipped;
     }
 
+    @Override
     public void close() throws IOException {
         strings = null;
         input.close();

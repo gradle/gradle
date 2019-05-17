@@ -39,10 +39,12 @@ public class ImmutableDomainObjectSet<T> extends AbstractSet<T> implements Domai
         return elements.size();
     }
 
+    @Override
     public T getAt(int index) throws IndexOutOfBoundsException {
         return getAll().get(index);
     }
 
+    @Override
     public List<T> getAll() {
         return new ArrayList<T>(elements);
     }

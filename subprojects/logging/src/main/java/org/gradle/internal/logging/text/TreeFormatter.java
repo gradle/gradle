@@ -49,6 +49,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
     /**
      * Starts a new node with the given text.
      */
+    @Override
     public TreeFormatter node(String text) {
         if (current.state == State.TraverseChildren) {
             // First child node
@@ -150,6 +151,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
         append("]");
     }
 
+    @Override
     public TreeFormatter startChildren() {
         if (current.state == State.CollectValue) {
             current.state = State.TraverseChildren;
@@ -159,6 +161,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
         return this;
     }
 
+    @Override
     public TreeFormatter endChildren() {
         if (current.parent == null) {
             throw new IllegalStateException("Not visiting any node.");

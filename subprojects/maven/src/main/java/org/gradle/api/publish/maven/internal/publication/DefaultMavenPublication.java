@@ -169,6 +169,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.featurePreviews = featurePreviews;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -189,6 +190,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return component;
     }
 
+    @Override
     public MavenPomInternal getPom() {
         return pom;
     }
@@ -225,6 +227,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
 
+    @Override
     public void pom(Action<? super MavenPom> configure) {
         configure.execute(pom);
     }
@@ -239,6 +242,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.alias = alias;
     }
 
+    @Override
     public void from(SoftwareComponent component) {
         if (this.component != null) {
             throw new InvalidUserDataException(String.format("Maven publication '%s' cannot include multiple components", name));
@@ -410,19 +414,23 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return dependency.isTransitive() ? Sets.union(globalExcludes, dependency.getExcludeRules()) : EXCLUDE_ALL_RULE;
     }
 
+    @Override
     public MavenArtifact artifact(Object source) {
         return mainArtifacts.artifact(source);
     }
 
+    @Override
     public MavenArtifact artifact(Object source, Action<? super MavenArtifact> config) {
         return mainArtifacts.artifact(source, config);
     }
 
+    @Override
     public MavenArtifactSet getArtifacts() {
         populateFromComponent();
         return mainArtifacts;
     }
 
+    @Override
     public void setArtifacts(Iterable<?> sources) {
         artifactsOverridden = true;
         mainArtifacts.clear();
@@ -431,26 +439,32 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
     }
 
+    @Override
     public String getGroupId() {
         return projectIdentity.getGroupId().get();
     }
 
+    @Override
     public void setGroupId(String groupId) {
         projectIdentity.getGroupId().set(groupId);
     }
 
+    @Override
     public String getArtifactId() {
         return projectIdentity.getArtifactId().get();
     }
 
+    @Override
     public void setArtifactId(String artifactId) {
         projectIdentity.getArtifactId().set(artifactId);
     }
 
+    @Override
     public String getVersion() {
         return projectIdentity.getVersion().get();
     }
 
+    @Override
     public void setVersion(String version) {
         projectIdentity.getVersion().set(version);
     }
@@ -508,6 +522,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         derivedArtifacts.remove(artifact);
     }
 
+    @Override
     public MutableMavenProjectIdentity getMavenProjectIdentity() {
         return projectIdentity;
     }
@@ -530,11 +545,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return importDependencyConstraints;
     }
 
+    @Override
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
         populateFromComponent();
         return runtimeDependencies;
     }
 
+    @Override
     public Set<MavenDependencyInternal> getApiDependencies() {
         populateFromComponent();
         return apiDependencies;
@@ -546,6 +563,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return optionalDependencies;
     }
 
+    @Override
     public MavenNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
         DomainObjectSet<MavenArtifact> existingDerivedArtifacts = this.derivedArtifacts.matching(new Spec<MavenArtifact>() {
@@ -574,6 +592,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return pomArtifact;
     }
 
+    @Override
     public String determinePackagingFromArtifacts() {
         Set<MavenArtifact> unclassifiedArtifacts = getUnclassifiedArtifactsWithExtension();
         if (unclassifiedArtifacts.size() == 1) {
@@ -604,6 +623,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private Set<MavenArtifact> getUnclassifiedArtifactsWithExtension() {
         populateFromComponent();
         return CollectionUtils.filter(mainArtifacts, new Spec<MavenArtifact>() {
+            @Override
             public boolean isSatisfiedBy(MavenArtifact mavenArtifact) {
                 return hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact);
             }
@@ -618,6 +638,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return element.getExtension() != null && element.getExtension().length() > 0;
     }
 
+    @Override
     public ModuleVersionIdentifier getCoordinates() {
         return DefaultModuleVersionIdentifier.newId(getGroupId(), getArtifactId(), getVersion());
     }
@@ -631,6 +652,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return null;
     }
 
+    @Override
     public void publishWithOriginalFileName() {
         this.isPublishWithOriginalFileName = true;
     }

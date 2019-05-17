@@ -122,6 +122,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         return parentServices;
     }
 
+    @Override
     public ServiceProvider asProvider() {
         return thisAsServiceProvider;
     }
@@ -212,14 +213,17 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private ServiceRegistration newRegistration() {
         return new ServiceRegistration() {
+            @Override
             public <T> void add(Class<T> serviceType, T serviceInstance) {
                 DefaultServiceRegistry.this.add(serviceType, serviceInstance);
             }
 
+            @Override
             public void add(Class<?> serviceType) {
                 ownServices.add(new ConstructorService(DefaultServiceRegistry.this, serviceType));
             }
 
+            @Override
             public void addProvider(Object provider) {
                 DefaultServiceRegistry.this.addProvider(provider);
             }
@@ -247,6 +251,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     /**
      * Closes all services for this registry. For each service, if the service has a public void close() or stop() method, that method is called to close the service.
      */
+    @Override
     public void close() {
         noLongerMutable();
         if (state.compareAndSet(State.STARTED, State.CLOSED)) {
@@ -271,6 +276,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         return state.get() == State.CLOSED;
     }
 
+    @Override
     public <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
         return serviceType.cast(get((Type) serviceType));
     }
@@ -354,6 +360,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
     }
 
+    @Override
     public <T> T newInstance(Class<T> type) {
         return getFactory(type).create();
     }
@@ -560,6 +567,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             return serviceProvider instanceof ManagedObjectServiceProvider && ((ManagedObjectServiceProvider) serviceProvider).owner == owner;
         }
 
+        @Override
         public final synchronized void stop() {
             try {
                 if (instance != null) {
@@ -795,10 +803,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             this.method = method;
         }
 
+        @Override
         public String getDisplayName() {
             return "Service " + format(method.getServiceType()) + " at " + method.getOwner().getSimpleName() + "." + method.getName() + "()";
         }
 
+        @Override
         protected Type[] getParameterTypes() {
             return method.getParameterTypes();
         }
@@ -808,6 +818,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             return method.getMethod();
         }
 
+        @Override
         protected Object invokeMethod(Object[] params) {
             Object result;
             try {
@@ -836,14 +847,17 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private Service getThisAsService() {
         return new Service() {
+            @Override
             public String getDisplayName() {
                 return "ServiceRegistry " + DefaultServiceRegistry.this.getDisplayName();
             }
 
+            @Override
             public Object get() {
                 return DefaultServiceRegistry.this;
             }
 
+            @Override
             public void requiredBy(ServiceProvider serviceProvider) {
             }
         };
@@ -855,6 +869,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             setInstance(serviceInstance);
         }
 
+        @Override
         public String getDisplayName() {
             return "Service " + format(serviceType) + " with implementation " + getInstance();
         }
@@ -898,6 +913,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             }
         }
 
+        @Override
         public String getDisplayName() {
             return "Service " + format(serviceType);
         }

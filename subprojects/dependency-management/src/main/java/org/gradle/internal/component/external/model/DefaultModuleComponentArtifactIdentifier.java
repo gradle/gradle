@@ -58,6 +58,7 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
         return builder.toString();
     }
 
+    @Override
     public String getDisplayName() {
         String name = this.name.toString();
         String componentIdentifier = this.componentIdentifier.toString();
@@ -73,6 +74,7 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
         return name;
     }
 
+    @Override
     public ModuleComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
     }

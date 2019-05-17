@@ -100,10 +100,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.metadataProcessor = metadataProcessor;
     }
 
+    @Override
     public String getId() {
         return delegate.getId();
     }
 
+    @Override
     public String getName() {
         return delegate.getName();
     }
@@ -113,10 +115,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.toString();
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getLocalAccess() {
         return locateInCacheRepositoryAccess;
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return resolveAndCacheRepositoryAccess;
     }

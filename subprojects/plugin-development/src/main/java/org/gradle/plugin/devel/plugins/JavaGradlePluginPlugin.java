@@ -120,6 +120,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      */
     static final String VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION = "Validates task property annotations for the plugin.";
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
@@ -187,6 +188,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
                 pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
                 pluginUnderTestMetadataTask.getPluginClasspath().from(new Callable<Object>() {
+                    @Override
                     public Object call() {
                         final Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
                         FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
@@ -290,6 +292,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             this.classes = classes;
         }
 
+        @Override
         public void execute(Task task) {
             if (descriptors == null || descriptors.isEmpty()) {
                 LOGGER.warn(String.format(NO_DESCRIPTOR_WARNING_MESSAGE, task.getPath()));
@@ -337,6 +340,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             this.descriptors = descriptors;
         }
 
+        @Override
         public void execute(FileCopyDetails fileCopyDetails) {
             PluginDescriptor descriptor;
             try {
@@ -362,6 +366,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             this.classList = classList;
         }
 
+        @Override
         public void execute(FileCopyDetails fileCopyDetails) {
             classList.add(fileCopyDetails.getRelativePath().toString());
         }

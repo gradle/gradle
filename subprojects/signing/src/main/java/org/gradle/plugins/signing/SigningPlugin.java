@@ -33,6 +33,7 @@ public class SigningPlugin implements Plugin<Project> {
      *
      * @see SigningExtension
      */
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(BasePlugin.class);
         project.getExtensions().create("signing", SigningExtension.class, project);

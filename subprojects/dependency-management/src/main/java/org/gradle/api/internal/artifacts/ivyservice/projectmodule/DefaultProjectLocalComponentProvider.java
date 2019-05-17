@@ -58,6 +58,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         this.thisBuild = thisBuild;
     }
 
+    @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
         if (!isLocalProject(projectIdentifier)) {
             return null;

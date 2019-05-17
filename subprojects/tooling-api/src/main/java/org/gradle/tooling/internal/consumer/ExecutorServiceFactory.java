@@ -21,5 +21,6 @@ import org.gradle.internal.Factory;
 import java.util.concurrent.ExecutorService;
 
 public interface ExecutorServiceFactory extends Factory<ExecutorService> {
+    @Override
     ExecutorService create();
 }

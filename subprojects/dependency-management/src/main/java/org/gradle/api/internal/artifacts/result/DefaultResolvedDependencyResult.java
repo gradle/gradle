@@ -28,6 +28,7 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
         this.selected = selected;
     }
 
+    @Override
     public ResolvedComponentResult getSelected() {
         return selected;
     }

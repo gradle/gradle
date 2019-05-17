@@ -41,6 +41,7 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
         this.classLoader = classLoader;
     }
 
+    @Override
     public T read(Decoder decoder) throws Exception {
         try {
             return (T) new ClassLoaderObjectInputStream(decoder.getInputStream(), classLoader).readObject();
@@ -49,6 +50,7 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
         }
     }
 
+    @Override
     public void write(Encoder encoder, T value) throws IOException {
         ObjectOutputStream objectStr = new ObjectOutputStream(encoder.getOutputStream());
         objectStr.writeObject(value);

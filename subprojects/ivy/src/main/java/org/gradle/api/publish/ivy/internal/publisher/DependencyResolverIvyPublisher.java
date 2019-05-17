@@ -28,6 +28,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 public class DependencyResolverIvyPublisher implements IvyPublisher {
 
+    @Override
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
         ModuleVersionPublisher publisher = repository.createPublisher();
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();

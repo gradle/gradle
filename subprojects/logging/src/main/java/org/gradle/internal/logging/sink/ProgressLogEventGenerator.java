@@ -49,6 +49,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         this.listener = listener;
     }
 
+    @Override
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             onStart((ProgressStartEvent) event);

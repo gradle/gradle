@@ -105,5 +105,6 @@ public interface DaemonConnection extends Stoppable {
     /**
      * Blocks until all handlers have been notified and any queued messages have been dispatched to the client.
      */
+    @Override
     void stop();
 }

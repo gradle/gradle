@@ -31,6 +31,7 @@ public interface Launchable extends ProjectModel {
      *
      * @since 2.13
      */
+    @Override
     ProjectIdentifier getProjectIdentifier();
 
     /**

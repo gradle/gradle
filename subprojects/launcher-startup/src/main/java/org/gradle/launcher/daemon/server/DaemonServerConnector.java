@@ -39,6 +39,7 @@ public interface DaemonServerConnector extends Stoppable {
     /**
      * Stops accepting new connections, and blocks until all active connections close.
      */
+    @Override
     public void stop();
 
 }

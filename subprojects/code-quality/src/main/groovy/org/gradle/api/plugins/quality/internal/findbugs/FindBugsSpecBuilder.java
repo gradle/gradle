@@ -204,6 +204,7 @@ public class FindBugsSpecBuilder {
 
             // Filter unexisting files as FindBugs can't handle them.
             args.add(classpath.filter(new Spec<File>() {
+                @Override
                 public boolean isSatisfiedBy(File element) {
                     return element.exists();
                 }

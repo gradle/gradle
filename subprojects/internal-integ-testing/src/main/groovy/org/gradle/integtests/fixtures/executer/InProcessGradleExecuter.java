@@ -208,8 +208,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         return super.createGradleHandle();
     }
 
+    @Override
     protected Factory<JavaExecHandleBuilder> getExecHandleFactory() {
         return new Factory<JavaExecHandleBuilder>() {
+            @Override
             public JavaExecHandleBuilder create() {
                 NativeServicesTestFixture.initialize();
                 GradleInvocation invocation = buildInvocation();
@@ -397,6 +399,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             new NoOpBuildEventConsumer());
     }
 
+    @Override
     public void assertCanExecute() {
         assertNull(getExecutable());
         String defaultEncoding = getImplicitJvmSystemProperties().get("file.encoding");
@@ -434,6 +437,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         private final List<String> executedTasks = new CopyOnWriteArrayList<String>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
 
+        @Override
         public void graphPopulated(TaskExecutionGraph graph) {
             List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
             graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
@@ -451,6 +455,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             this.skippedTasks = skippedTasks;
         }
 
+        @Override
         public void beforeExecute(Task task) {
             if (!planned.contains(task)) {
                 System.out.println("Warning: " + task + " was executed even though it is not part of the task plan!");
@@ -464,6 +469,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             executedTasks.add(taskPath);
         }
 
+        @Override
         public void afterExecute(Task task, TaskState state) {
             String taskPath = path(task);
             if (taskPath.startsWith(":buildSrc:")) {
@@ -491,6 +497,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             this.outputResult = outputResult;
         }
 
+        @Override
         public String getOutput() {
             return outputResult.getOutput();
         }
@@ -515,6 +522,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return outputResult.getGroupedOutput();
         }
 
+        @Override
         public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
             outputResult.assertOutputEquals(expectedOutput, ignoreExtraLines, ignoreLineOrder);
             return this;
@@ -555,14 +563,17 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return this;
         }
 
+        @Override
         public String getError() {
             return outputResult.getError();
         }
 
+        @Override
         public List<String> getExecutedTasks() {
             return new ArrayList<String>(executedTasks);
         }
 
+        @Override
         public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
             Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
             assertThat(executedTasks, containsInAnyOrder(expected.toArray()));
@@ -570,6 +581,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return this;
         }
 
+        @Override
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
             Set<String> flattenedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
             assertThat(executedTasks, containsInAnyOrder(flattenedTasks.toArray()));
@@ -606,6 +618,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return this;
         }
 
+        @Override
         public Set<String> getSkippedTasks() {
             return new TreeSet<String>(skippedTasks);
         }
@@ -618,6 +631,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return this;
         }
 
+        @Override
         public ExecutionResult assertTaskSkipped(String taskPath) {
             assertThat(skippedTasks, hasItem(taskPath));
             outputResult.assertTaskSkipped(taskPath);
@@ -633,6 +647,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return this;
         }
 
+        @Override
         public ExecutionResult assertTaskNotSkipped(String taskPath) {
             assertThat(getNotSkippedTasks(), hasItem(taskPath));
             outputResult.assertTaskNotSkipped(taskPath);
@@ -680,18 +695,21 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             }
         }
 
+        @Override
         public ExecutionFailure assertHasLineNumber(int lineNumber) {
             outputFailure.assertHasLineNumber(lineNumber);
             assertThat(this.lineNumbers, hasItem(equalTo(String.valueOf(lineNumber))));
             return this;
         }
 
+        @Override
         public ExecutionFailure assertHasFileName(String filename) {
             outputFailure.assertHasFileName(filename);
             assertThat(this.fileNames, hasItem(equalTo(filename)));
             return this;
         }
 
+        @Override
         public ExecutionFailure assertHasResolution(String resolution) {
             outputFailure.assertHasResolution(resolution);
             return this;
@@ -708,11 +726,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return this;
         }
 
+        @Override
         public ExecutionFailure assertHasCause(String description) {
             assertThatCause(startsWith(description));
             return this;
         }
 
+        @Override
         public ExecutionFailure assertThatCause(Matcher<String> matcher) {
             outputFailure.assertThatCause(matcher);
             List<Throwable> causes = new ArrayList<Throwable>();
@@ -754,6 +774,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return this;
         }
 
+        @Override
         public ExecutionFailure assertHasNoCause() {
             outputFailure.assertHasNoCause();
             if (failure instanceof LocationAwareException) {
@@ -765,22 +786,26 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return this;
         }
 
+        @Override
         public ExecutionFailure assertHasDescription(String context) {
             assertThatDescription(startsWith(context));
             return this;
         }
 
+        @Override
         public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
             outputFailure.assertThatDescription(matcher);
             assertThat(descriptions, hasItem(normalizedLineSeparators(matcher)));
             return this;
         }
 
+        @Override
         public ExecutionFailure assertTestsFailed() {
             new DetailedExecutionFailure(this).assertTestsFailed();
             return this;
         }
 
+        @Override
         public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
             return new DependencyResolutionFailure(this, configurationPath);
         }

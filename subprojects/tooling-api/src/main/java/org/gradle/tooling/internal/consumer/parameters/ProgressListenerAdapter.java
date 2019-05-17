@@ -31,11 +31,13 @@ class ProgressListenerAdapter implements ProgressListenerVersion1 {
         this.listeners.addAll(listeners);
     }
 
+    @Override
     public void onOperationStart(final String description) {
         stack.addFirst(description == null ? "" : description);
         fireChangeEvent();
     }
 
+    @Override
     public void onOperationEnd() {
         stack.removeFirst();
         fireChangeEvent();
@@ -44,6 +46,7 @@ class ProgressListenerAdapter implements ProgressListenerVersion1 {
     private void fireChangeEvent() {
         final String description = stack.isEmpty() ? "" : stack.getFirst();
         listeners.getSource().statusChanged(new ProgressEvent() {
+            @Override
             public String getDescription() {
                 return description;
             }

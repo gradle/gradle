@@ -45,30 +45,37 @@ public class DefaultProjectOutcomes implements ProjectOutcomes, Serializable {
         this.parent = parent;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getPath() {
         return projectPath;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     public File getProjectDirectory() {
         return projectDirectory;
     }
 
+    @Override
     public DomainObjectSet<? extends GradleBuildOutcome> getOutcomes() {
         return outcomes;
     }
 
+    @Override
     public ProjectOutcomes getParent() {
         return parent;
     }
 
+    @Override
     public DomainObjectSet<ProjectOutcomes> getChildren() {
         return new ImmutableDomainObjectSet<ProjectOutcomes>(children);
     }

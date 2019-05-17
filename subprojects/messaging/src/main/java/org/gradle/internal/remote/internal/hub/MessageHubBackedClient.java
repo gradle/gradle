@@ -31,6 +31,7 @@ public class MessageHubBackedClient implements MessagingClient {
         this.executorFactory = executorFactory;
     }
 
+    @Override
     public ObjectConnection getConnection(Address address) {
         return new MessageHubBackedObjectConnection(executorFactory, connector.connect(address));
     }

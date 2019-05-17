@@ -59,6 +59,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
     }
 
+    @Override
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         resolver.resolve(identifier, componentOverrideMetadata, result);
 

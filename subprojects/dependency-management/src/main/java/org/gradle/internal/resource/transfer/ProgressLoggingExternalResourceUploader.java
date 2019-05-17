@@ -51,10 +51,12 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
             this.uploadOperation = uploadOperation;
         }
 
+        @Override
         public InputStream open() {
             return new ProgressLoggingInputStream(delegate.open(), uploadOperation);
         }
 
+        @Override
         public long getContentLength() {
             return delegate.getContentLength();
         }

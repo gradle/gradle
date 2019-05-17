@@ -80,14 +80,17 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         return this;
     }
 
+    @Override
     public String getUid() {
         return context.getUid();
     }
 
+    @Override
     public Long getPid() {
         return context.getPid();
     }
 
+    @Override
     public Address getAddress() {
         return address;
     }
@@ -100,6 +103,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         return state;
     }
 
+    @Override
     public byte[] getToken() {
         return token;
     }

@@ -30,6 +30,7 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
 
     private List<BuildOption<DaemonParameters>> buildOptions = DaemonBuildOptions.get();
 
+    @Override
     public DaemonParameters convert(ParsedCommandLine args, DaemonParameters target) throws CommandLineArgumentException {
         for (BuildOption<DaemonParameters> option : buildOptions) {
             option.applyFromCommandLine(args, target);
@@ -38,6 +39,7 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
         return target;
     }
 
+    @Override
     public void configure(CommandLineParser parser) {
         for (BuildOption<DaemonParameters> option : buildOptions) {
             option.configure(parser);

@@ -28,6 +28,7 @@ public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    @Override
     public DefaultExclude convertExcludeRule(ExcludeRule excludeRule) {
         return createExcludeRule(excludeRule.getGroup(), excludeRule.getModule());
     }

@@ -55,6 +55,7 @@ public class DaemonRegistryServices {
     DaemonRegistry createDaemonRegistry(DaemonDir daemonDir, final FileLockManager fileLockManager, final Chmod chmod) {
         final File daemonRegistryFile = daemonDir.getRegistry();
         return daemonRegistryCache.get(daemonRegistryFile, new Factory<DaemonRegistry>() {
+            @Override
             public DaemonRegistry create() {
                 return new PersistentDaemonRegistry(daemonRegistryFile, fileLockManager, chmod);
             }

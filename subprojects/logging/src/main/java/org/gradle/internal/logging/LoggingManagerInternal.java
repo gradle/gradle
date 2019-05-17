@@ -28,11 +28,13 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
      *
      * <p>While a log manager is active, any changes made to the settings will take effect immediately. When a log manager is not active, changes to its settings will apply only once it is made active by calling {@link #start()}.</p>
      */
+    @Override
     LoggingManagerInternal start();
 
     /**
      * Stops logging, restoring the log manger that was active when {@link #start()} was called on this manager. Shuts down the logging system when there was no log manager active prior to starting this one.
      */
+    @Override
     LoggingManagerInternal stop();
 
     /**
@@ -43,11 +45,13 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
     /**
      * Sets the log level to capture stdout at. Does not enable capture.
      */
+    @Override
     LoggingManagerInternal captureStandardOutput(LogLevel level);
 
     /**
      * Sets the log level to capture stderr at. Does not enable capture.
      */
+    @Override
     LoggingManagerInternal captureStandardError(LogLevel level);
 
     LoggingManagerInternal setLevelInternal(LogLevel logLevel);

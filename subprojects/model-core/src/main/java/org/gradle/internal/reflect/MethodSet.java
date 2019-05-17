@@ -38,6 +38,7 @@ public class MethodSet implements Iterable<Method> {
         return true;
     }
 
+    @Override
     public Iterator<Method> iterator() {
         return methods.iterator();
     }

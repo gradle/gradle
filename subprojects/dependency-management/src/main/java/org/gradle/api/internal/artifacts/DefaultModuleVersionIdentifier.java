@@ -43,14 +43,17 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         this.hashCode = 31 * id.hashCode() ^ version.hashCode();
     }
 
+    @Override
     public String getGroup() {
         return id.getGroup();
     }
 
+    @Override
     public String getName() {
         return id.getName();
     }
 
+    @Override
     public String getVersion() {
         return version;
     }
@@ -85,6 +88,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         return hashCode;
     }
 
+    @Override
     public ModuleIdentifier getModule() {
         return id;
     }

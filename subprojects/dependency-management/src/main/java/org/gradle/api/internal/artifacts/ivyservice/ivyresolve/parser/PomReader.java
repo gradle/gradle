@@ -110,6 +110,7 @@ public class PomReader implements PomParent {
     }
 
     private static final EntityResolver M2_ENTITY_RESOLVER = new EntityResolver() {
+        @Override
         public InputSource resolveEntity(String publicId, String systemId)
             throws SAXException, IOException {
             if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
@@ -137,6 +138,7 @@ public class PomReader implements PomParent {
         setPomProperties(childPomProperties);
         final String systemId = resource.getFile().toURI().toASCIIString();
         Document pomDomDoc = resource.withContent(new Transformer<Document, InputStream>() {
+            @Override
             public Document transform(InputStream inputStream) {
                 try {
                     return parseToDom(inputStream, systemId);
@@ -263,6 +265,7 @@ public class PomReader implements PomParent {
         return parentElement != null;
     }
 
+    @Override
     public Map<String, String> getProperties() {
         return effectiveProperties;
     }
@@ -378,6 +381,7 @@ public class PomReader implements PomParent {
     /**
      * Returns all dependencies for this POM, including those inherited from parent POMs.
      */
+    @Override
     public Map<MavenDependencyKey, PomDependencyData> getDependencies() {
         if (resolvedDependencies == null) {
             resolvedDependencies = resolveDependencies();
@@ -427,6 +431,7 @@ public class PomReader implements PomParent {
     /**
      * Returns all dependency management elements for this POM, including those inherited from parent and imported POMs.
      */
+    @Override
     public Map<MavenDependencyKey, PomDependencyMgt> getDependencyMgt() {
         if (resolvedDependencyMgts == null) {
             resolvedDependencyMgts = resolveDependencyMgt();
@@ -483,6 +488,7 @@ public class PomReader implements PomParent {
         return depMgmtElements;
     }
 
+    @Override
     public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependencyKey) {
         return getDependencyMgt().get(dependencyKey);
     }
@@ -506,6 +512,7 @@ public class PomReader implements PomParent {
             this.depElement = depElement;
         }
 
+        @Override
         public MavenDependencyKey getId() {
             return new MavenDependencyKey(getGroupId(), getArtifactId(), getType(), getClassifier());
         }
@@ -513,6 +520,7 @@ public class PomReader implements PomParent {
         /* (non-Javadoc)
          * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getGroupId()
          */
+        @Override
         public String getGroupId() {
             String val = getFirstChildText(depElement, GROUP_ID);
             checkNotNull(val, GROUP_ID, DEPENDENCY);
@@ -522,6 +530,7 @@ public class PomReader implements PomParent {
         /* (non-Javadoc)
          * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getArtifactId()
          */
+        @Override
         public String getArtifactId() {
             String val = getFirstChildText(depElement, ARTIFACT_ID);
             checkNotNull(val, ARTIFACT_ID, DEPENDENCY);
@@ -531,16 +540,19 @@ public class PomReader implements PomParent {
         /* (non-Javadoc)
          * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getVersion()
          */
+        @Override
         public String getVersion() {
             String val = getFirstChildText(depElement, VERSION);
             return replaceProps(val);
         }
 
+        @Override
         public String getScope() {
             String val = getFirstChildText(depElement, SCOPE);
             return replaceProps(val);
         }
 
+        @Override
         public String getType() {
             String val = getFirstChildText(depElement, TYPE);
             val = replaceProps(val);
@@ -552,11 +564,13 @@ public class PomReader implements PomParent {
             return val;
         }
 
+        @Override
         public String getClassifier() {
             String val = getFirstChildText(depElement, CLASSIFIER);
             return replaceProps(val);
         }
 
+        @Override
         public List<ModuleIdentifier> getExcludedModules() {
             Element exclusionsElement = getFirstChildElement(depElement, EXCLUSIONS);
             if (exclusionsElement != null) {
@@ -601,14 +615,17 @@ public class PomReader implements PomParent {
             this.element = element;
         }
 
+        @Override
         public String getId() {
             return getFirstChildText(element, PROFILE_ID);
         }
 
+        @Override
         public Map<String, String> getProperties() {
             return parseProperties(element);
         }
 
+        @Override
         public List<PomDependencyMgt> getDependencyMgts() {
             if (declaredDependencyMgts == null) {
                 declaredDependencyMgts = getDependencyMgt(element);
@@ -617,6 +634,7 @@ public class PomReader implements PomParent {
             return declaredDependencyMgts;
         }
 
+        @Override
         public List<PomDependencyData> getDependencies() {
             if (declaredDependencies == null) {
                 declaredDependencies = getDependencyData(element);

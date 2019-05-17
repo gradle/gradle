@@ -18,10 +18,12 @@ package org.gradle.configuration.internal;
 
 public class TestUserCodeApplicationContext extends DefaultUserCodeApplicationContext {
 
+    @Override
     public UserCodeApplicationId push() {
         return super.push();
     }
 
+    @Override
     public void pop() {
         super.pop();
     }

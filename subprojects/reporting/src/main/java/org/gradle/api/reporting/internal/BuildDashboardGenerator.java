@@ -40,6 +40,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
     @Override
     public void render(Collection<Report> reports, final File outputFile) {
         this.reports = new TreeSet<Report>(new Comparator<Report>() {
+            @Override
             public int compare(Report o1, Report o2) {
                 return o1.getDisplayName().compareTo(o2.getDisplayName());
             }

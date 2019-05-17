@@ -29,6 +29,7 @@ public interface ConsumerConnection extends Stoppable {
     /**
      * Cleans up resources used by this connection. Blocks until complete.
      */
+    @Override
     void stop();
 
     String getDisplayName();

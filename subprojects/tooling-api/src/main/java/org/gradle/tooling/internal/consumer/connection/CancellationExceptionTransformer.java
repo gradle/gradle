@@ -32,6 +32,7 @@ class CancellationExceptionTransformer implements Transformer<RuntimeException, 
         return new CancellationExceptionTransformer();
     }
 
+    @Override
     public RuntimeException transform(RuntimeException e) {
         for (Throwable t = e; t != null; t = t.getCause()) {
             if ("org.gradle.api.BuildCancelledException".equals(t.getClass().getName())

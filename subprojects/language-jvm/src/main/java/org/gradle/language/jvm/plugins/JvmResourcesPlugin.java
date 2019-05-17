@@ -90,14 +90,17 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
+                @Override
                 public String getTaskPrefix() {
                     return "process";
                 }
 
+                @Override
                 public Class<? extends DefaultTask> getTaskType() {
                     return ProcessResources.class;
                 }
 
+                @Override
                 public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     ProcessResources resourcesTask = (ProcessResources) task;
                     JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;

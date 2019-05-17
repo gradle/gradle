@@ -93,5 +93,6 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
      *
      * @since 4.5
      */
+    @Override
     BinaryCollection<? extends CppBinary> getBinaries();
 }

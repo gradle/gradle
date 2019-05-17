@@ -176,6 +176,7 @@ public class GUtil {
 
     public static Comparator<String> caseInsensitive() {
         return new Comparator<String>() {
+            @Override
             public int compare(String o1, String o2) {
                 int diff = o1.compareToIgnoreCase(o2);
                 if (diff != 0) {
@@ -429,6 +430,7 @@ public class GUtil {
 
     public static <T> Comparator<T> last(final Comparator<? super T> comparator, final T lastValue) {
         return new Comparator<T>() {
+            @Override
             public int compare(T o1, T o2) {
                 boolean o1Last = comparator.compare(o1, lastValue) == 0;
                 boolean o2Last = comparator.compare(o2, lastValue) == 0;
@@ -498,6 +500,7 @@ public class GUtil {
     private static <T extends Enum<T>> T findEnumValue(Class<? extends T> enumType, final String literal) {
         List<? extends T> enumConstants = Arrays.asList(enumType.getEnumConstants());
         return CollectionUtils.findFirst(enumConstants, new Spec<T>() {
+            @Override
             public boolean isSatisfiedBy(T enumValue) {
                 return enumValue.name().equalsIgnoreCase(literal);
             }

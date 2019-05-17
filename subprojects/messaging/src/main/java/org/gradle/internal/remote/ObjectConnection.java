@@ -34,12 +34,14 @@ public interface ObjectConnection extends AsyncStoppable, ObjectConnectionBuilde
      * Commences a graceful stop of this connection. Stops accepting outgoing messages. Requests that the peer stop
      * sending incoming messages.
      */
+    @Override
     void requestStop();
 
     /**
      * Performs a graceful stop of this connection. Stops accepting outgoing messages. Blocks until all incoming messages
      * have been handled, and all outgoing messages have been forwarded to the peer.
      */
+    @Override
     void stop();
 
     /**

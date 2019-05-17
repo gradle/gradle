@@ -113,36 +113,45 @@ public class SftpClientFactory implements Stoppable {
                 jsch = new JSch();
                 if(LOGGER.isDebugEnabled()) {
                     JSch.setLogger(new com.jcraft.jsch.Logger() {
+                        @Override
                         public boolean isEnabled(int level) {
                             return true;
                         }
+                        @Override
                         public void log(int level, String message) {
                             LOGGER.debug(message);
                         }
                     });
                 }
                 jsch.setHostKeyRepository(new HostKeyRepository() {
+                    @Override
                     public int check(String host, byte[] key) {
                         return HostKeyRepository.OK;
                     }
 
+                    @Override
                     public void add(HostKey hostkey, UserInfo ui) {
                     }
 
+                    @Override
                     public void remove(String host, String type) {
                     }
 
+                    @Override
                     public void remove(String host, String type, byte[] key) {
                     }
 
+                    @Override
                     public String getKnownHostsRepositoryID() {
                         return "allow-everything";
                     }
 
+                    @Override
                     public HostKey[] getHostKey() {
                         throw new UnsupportedOperationException();
                     }
 
+                    @Override
                     public HostKey[] getHostKey(String host, String type) {
                         return new HostKey[0];
                     }
@@ -158,6 +167,7 @@ public class SftpClientFactory implements Stoppable {
         }
     }
 
+    @Override
     public void stop() {
         synchronized (lock) {
             try {
@@ -180,15 +190,18 @@ public class SftpClientFactory implements Stoppable {
             this.session = session;
         }
 
+        @Override
         public void stop() {
             channelSftp.disconnect();
             session.disconnect();
         }
 
+        @Override
         public SftpHost getHost() {
             return host;
         }
 
+        @Override
         public ChannelSftp getSftpClient() {
             return channelSftp;
         }

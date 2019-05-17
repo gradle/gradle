@@ -41,6 +41,7 @@ public class FileBackedBlockStore implements BlockStore {
         return "cache '" + cacheFile + "'";
     }
 
+    @Override
     public void open(Runnable runnable, Factory factory) {
         this.factory = factory;
         try {
@@ -58,6 +59,7 @@ public class FileBackedBlockStore implements BlockStore {
         }
     }
 
+    @Override
     public void close() {
         try {
             file.close();
@@ -66,6 +68,7 @@ public class FileBackedBlockStore implements BlockStore {
         }
     }
 
+    @Override
     public void clear() {
         try {
             file.setLength(0);
@@ -76,24 +79,29 @@ public class FileBackedBlockStore implements BlockStore {
         nextBlock = 0;
     }
 
+    @Override
     public void attach(BlockPayload block) {
         if (block.getBlock() == null) {
             block.setBlock(new BlockImpl(block));
         }
     }
 
+    @Override
     public void remove(BlockPayload block) {
         BlockImpl blockImpl = (BlockImpl) block.getBlock();
         blockImpl.detach();
     }
 
+    @Override
     public void flush() {
     }
 
+    @Override
     public <T extends BlockPayload> T readFirst(Class<T> payloadType) {
         return read(BlockPointer.pos(0), payloadType);
     }
 
+    @Override
     public <T extends BlockPayload> T read(BlockPointer pos, Class<T> payloadType) {
         assert !pos.isNull();
         try {
@@ -108,6 +116,7 @@ public class FileBackedBlockStore implements BlockStore {
         }
     }
 
+    @Override
     public void write(BlockPayload block) {
         BlockImpl blockImpl = (BlockImpl) block.getBlock();
         try {
@@ -162,6 +171,7 @@ public class FileBackedBlockStore implements BlockStore {
             this.pos = pos;
         }
 
+        @Override
         public int getSize() {
             if (payloadSize < 0) {
                 payloadSize = getPayload().getSize();
@@ -239,6 +249,7 @@ public class FileBackedBlockStore implements BlockStore {
             input.done();
         }
 
+        @Override
         public RuntimeException blockCorruptedException() {
             return new CorruptedCacheException(String.format("Corrupted %s found in %s.", this,
                     FileBackedBlockStore.this));

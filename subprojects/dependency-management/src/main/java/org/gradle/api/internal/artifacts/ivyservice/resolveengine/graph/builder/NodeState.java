@@ -131,6 +131,7 @@ public class NodeState implements DependencyGraphNode {
         return this;
     }
 
+    @Override
     public ComponentState getComponent() {
         return component;
     }
@@ -539,6 +540,7 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
+    @Override
     public boolean isSelected() {
         return !incomingEdges.isEmpty();
     }

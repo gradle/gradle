@@ -39,6 +39,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
         this.file = file;
     }
 
+    @Override
     public void write(WriteAction write) {
         if (encoder == null) {
             try {
@@ -69,6 +70,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
         return "Binary store in " + file;
     }
 
+    @Override
     public BinaryData done() {
         try {
             if (encoder != null) {
@@ -81,6 +83,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
         }
     }
 
+    @Override
     public void close() {
         try {
             if (encoder != null) {
@@ -117,6 +120,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
             this.sourceDescription = sourceDescription;
         }
 
+        @Override
         public <T> T read(BinaryStore.ReadAction<T> readAction) {
             try {
                 if (decoder == null) {
@@ -131,6 +135,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
             }
         }
 
+        @Override
         public void close() {
             try {
                 if (resources != null) {

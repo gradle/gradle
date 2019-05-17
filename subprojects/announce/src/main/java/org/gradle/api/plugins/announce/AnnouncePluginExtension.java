@@ -113,6 +113,7 @@ public class AnnouncePluginExtension {
             this.extension = extension;
         }
 
+        @Override
         public void send(String title, String message) {
             if (local == null) {
                 local = extension.getAnnouncerFactory().createAnnouncer("local");

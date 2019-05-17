@@ -29,10 +29,12 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
         this.componentResults = componentResults;
     }
 
+    @Override
     public Set<ComponentResult> getComponents() {
         return componentResults;
     }
 
+    @Override
     public Set<ComponentArtifactsResult> getResolvedComponents() {
         Set<ComponentArtifactsResult> resolvedComponentResults = Sets.newLinkedHashSet();
         for (ComponentResult componentResult : componentResults) {

@@ -30,6 +30,7 @@ public abstract class AbstractSingletonFileTree implements SingletonFileTree, Pa
 
     protected abstract FileVisitDetails createFileVisitDetails();
 
+    @Override
     public void visit(FileVisitor visitor) {
         FileVisitDetails fileVisitDetails = createFileVisitDetails();
         if (patterns.isEmpty() || patterns.getAsSpec().isSatisfiedBy(fileVisitDetails)) {

@@ -101,6 +101,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
                 super(AsmConstants.ASM_LEVEL);
             }
 
+            @Override
             public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                 if (desc.equals(ANNOTATION_DESCRIPTOR)) {
                     found = true;

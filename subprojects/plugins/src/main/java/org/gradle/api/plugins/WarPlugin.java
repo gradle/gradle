@@ -52,25 +52,30 @@ public class WarPlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         final WarPluginConvention pluginConvention = new DefaultWarPluginConvention(project);
         project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).configureEach(new Action<War>() {
+            @Override
             public void execute(War task) {
                 task.from(new Callable() {
+                    @Override
                     public Object call() throws Exception {
                         return pluginConvention.getWebAppDir();
                     }
                 });
                 task.dependsOn(new Callable() {
+                    @Override
                     public Object call() throws Exception {
                         return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
                                 SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
                 task.classpath(new Object[] {new Callable() {
+                    @Override
                     public Object call() throws Exception {
                         FileCollection runtimeClasspath = project.getConvention().getPlugin(JavaPluginConvention.class)
                                 .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();

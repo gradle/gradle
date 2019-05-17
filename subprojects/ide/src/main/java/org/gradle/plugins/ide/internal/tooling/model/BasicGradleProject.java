@@ -42,11 +42,13 @@ public class BasicGradleProject extends PartialBasicGradleProject {
         return this;
     }
 
+    @Override
     public BasicGradleProject setName(String name) {
         super.setName(name);
         return this;
     }
 
+    @Override
     public Set<? extends BasicGradleProject> getChildren() {
         return children;
     }

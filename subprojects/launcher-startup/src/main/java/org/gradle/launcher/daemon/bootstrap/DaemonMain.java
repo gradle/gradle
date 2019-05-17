@@ -172,6 +172,7 @@ public class DaemonMain extends EntryPoint {
         final PrintStream log = result;
 
         ShutdownHooks.addShutdownHook(new Runnable() {
+            @Override
             public void run() {
                 //just in case we have a bug related to logging,
                 //printing some exit info directly to file:

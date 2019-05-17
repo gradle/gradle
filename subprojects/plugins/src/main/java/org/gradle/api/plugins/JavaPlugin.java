@@ -263,6 +263,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         this.softwareComponentFactory = softwareComponentFactory;
     }
 
+    @Override
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
@@ -407,13 +408,16 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
+            @Override
             public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
+                    @Override
                     public Object call() throws Exception {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
                     }
                 });
                 test.getConventionMapping().map("classpath", new Callable<Object>() {
+                    @Override
                     public Object call() throws Exception {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
@@ -520,10 +524,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             this.convention = convention;
         }
 
+        @Override
         public Collection<String> getBuildTasks() {
             return Collections.singleton(JavaBasePlugin.BUILD_TASK_NAME);
         }
 
+        @Override
         public FileCollection getRuntimeClasspath() {
             ProjectInternal project = convention.getProject();
             SourceSet mainSourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -534,6 +540,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             return mainSourceSetArtifact.plus(runtimeClasspath.minus(mainSourceSet.getOutput()).minus(gradleApi));
         }
 
+        @Override
         public Configuration getCompileDependencies() {
             return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         }

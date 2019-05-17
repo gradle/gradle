@@ -26,6 +26,7 @@ import org.gradle.internal.serialize.Serializer;
 public class ComponentArtifactIdentifierSerializer implements Serializer<DefaultModuleComponentArtifactIdentifier> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
+    @Override
     public void write(Encoder encoder, DefaultModuleComponentArtifactIdentifier value) throws Exception {
         componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
         IvyArtifactName ivyArtifactName = value.getName();
@@ -35,6 +36,7 @@ public class ComponentArtifactIdentifierSerializer implements Serializer<Default
         encoder.writeNullableString(ivyArtifactName.getClassifier());
     }
 
+    @Override
     public DefaultModuleComponentArtifactIdentifier read(Decoder decoder) throws Exception {
         ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
         String artifactName = decoder.readString();

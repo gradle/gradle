@@ -34,6 +34,7 @@ class BlocksRenderer implements ClassDocMemberRenderer {
         extensionBlocksSummaryRenderer = new ExtensionBlocksSummaryRenderer(blockTableRenderer);
     }
 
+    @Override
     public void renderSummaryTo(ClassDoc classDoc, Element parent) {
         Document document = parent.getOwnerDocument();
 
@@ -67,6 +68,7 @@ class BlocksRenderer implements ClassDocMemberRenderer {
         }
     }
 
+    @Override
     public void renderDetailsTo(ClassDoc classDoc, Element parent) {
         if (hasBlocks(classDoc)) {
             Document document = parent.getOwnerDocument();

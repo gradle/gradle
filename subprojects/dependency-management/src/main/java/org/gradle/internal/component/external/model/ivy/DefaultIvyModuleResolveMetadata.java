@@ -127,10 +127,12 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         return excludes;
     }
 
+    @Override
     public String getBranch() {
         return branch;
     }
 
+    @Override
     public ImmutableMap<NamespaceId, String> getExtraAttributes() {
         return extraAttributes;
     }

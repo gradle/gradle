@@ -59,6 +59,7 @@ public class DefaultDaemonServerConfiguration implements DaemonServerConfigurati
         return daemonUid;
     }
 
+    @Override
     public DaemonParameters.Priority getPriority() {
         return priority;
     }

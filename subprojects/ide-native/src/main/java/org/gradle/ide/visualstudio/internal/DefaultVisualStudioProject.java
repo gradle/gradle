@@ -229,14 +229,17 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
             this.location = defaultLocation;
         }
 
+        @Override
         public File getLocation() {
             return fileResolver.resolve(location);
         }
 
+        @Override
         public void setLocation(Object location) {
             this.location = location;
         }
 
+        @Override
         public void withXml(Action<? super XmlProvider> action) {
             actions.add(action);
         }

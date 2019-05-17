@@ -48,6 +48,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator, objectFactory);
     }
 
+    @Override
     protected MavenPublishAction createPublishAction(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         MavenWagonDeployAction deployAction = new MavenWagonDeployAction(packaging, projectIdentity, getJars());
         deployAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
@@ -59,22 +60,27 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         return configuration != null ? new ArrayList<File>(configuration.resolve()) : protocolProviderJars;
     }
 
+    @Override
     public RemoteRepository getRepository() {
         return remoteRepository;
     }
 
+    @Override
     public void setRepository(Object remoteRepository) {
         this.remoteRepository = (RemoteRepository) remoteRepository;
     }
 
+    @Override
     public RemoteRepository getSnapshotRepository() {
         return remoteSnapshotRepository;
     }
 
+    @Override
     public void setSnapshotRepository(Object remoteSnapshotRepository) {
         this.remoteSnapshotRepository = (RemoteRepository) remoteSnapshotRepository;
     }
 
+    @Override
     public void addProtocolProviderJars(Collection<File> jars) {
         protocolProviderJars.addAll(jars);
     }

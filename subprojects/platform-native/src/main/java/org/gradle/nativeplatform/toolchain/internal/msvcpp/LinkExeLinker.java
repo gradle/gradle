@@ -68,6 +68,7 @@ class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
         };
     }
 
+    @Override
     protected void addOptionsFileArgs(List<String> args, File tempDir) {
         new VisualCppOptionsFileArgsWriter(tempDir).execute(args);
     }

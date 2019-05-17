@@ -118,6 +118,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.callbackActionDecorator = callbackActionDecorator;
     }
 
+    @Override
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, ivyMetadataFactory, instantiatorFactory, objectFactory);
     }
@@ -135,6 +136,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         return mavenRepository;
     }
 
+    @Override
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, fileResourceRepository, featurePreviews, mavenMetadataFactory, isolatableFactory, objectFactory);
         File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
@@ -142,28 +144,33 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         return mavenRepository;
     }
 
+    @Override
     public MavenArtifactRepository createJCenterRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository(new NamedMavenRepositoryDescriber(DefaultRepositoryHandler.BINTRAY_JCENTER_URL));
         mavenRepository.setUrl(DefaultRepositoryHandler.BINTRAY_JCENTER_URL);
         return mavenRepository;
     }
 
+    @Override
     public MavenArtifactRepository createMavenCentralRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository(new NamedMavenRepositoryDescriber(RepositoryHandler.MAVEN_CENTRAL_URL));
         mavenRepository.setUrl(RepositoryHandler.MAVEN_CENTRAL_URL);
         return mavenRepository;
     }
 
+    @Override
     public MavenArtifactRepository createGoogleRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository(new NamedMavenRepositoryDescriber(RepositoryHandler.GOOGLE_URL));
         mavenRepository.setUrl(RepositoryHandler.GOOGLE_URL);
         return mavenRepository;
     }
 
+    @Override
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactFileStore, externalResourcesFileStore, createAuthenticationContainer(), ivyContextManager, moduleIdentifierFactory, instantiatorFactory, fileResourceRepository, metadataParser, featurePreviews, ivyMetadataFactory, isolatableFactory, objectFactory);
     }
 
+    @Override
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, externalResourcesFileStore, fileResourceRepository, featurePreviews, mavenMetadataFactory, isolatableFactory, objectFactory);
     }

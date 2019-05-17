@@ -41,11 +41,13 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         this.s3Client = s3Client;
     }
 
+    @Override
     public List<String> list(URI parent) {
         LOGGER.debug("Listing parent resources: {}", parent);
         return s3Client.listDirectChildren(parent);
     }
 
+    @Override
     public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource: {}", location);
         S3Object s3Object = s3Client.getResource(location);
@@ -55,6 +57,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         return new S3Resource(s3Object, location);
     }
 
+    @Override
     public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
         S3Object s3Object = s3Client.getMetaData(location);

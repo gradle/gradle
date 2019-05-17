@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 public class ModelRuleSourceDetector {
 
     private static final Comparator<Class<?>> COMPARE_BY_CLASS_NAME = new Comparator<Class<?>>() {
+        @Override
         public int compare(Class<?> left, Class<?> right) {
             return left.getName().compareTo(right.getName());
         }

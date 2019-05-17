@@ -44,6 +44,7 @@ class LoggingMavenTransferListener extends AbstractTransferListener {
         this.buildOperationRef = buildOperationRef;
     }
 
+    @Override
     public void transferInitiated(TransferEvent event) {
         previousBuildOperationRef.set(currentBuildOperationRef.get());
         currentBuildOperationRef.set(buildOperationRef);
@@ -51,6 +52,7 @@ class LoggingMavenTransferListener extends AbstractTransferListener {
         LOGGER.info(message, event.getResource().getResourceName(), "remote", event.getResource().getRepositoryUrl());
     }
 
+    @Override
     public void transferStarted(TransferEvent event) {
         long contentLength = event.getResource().getContentLength();
         if (contentLength > 0) {
@@ -58,6 +60,7 @@ class LoggingMavenTransferListener extends AbstractTransferListener {
         }
     }
 
+    @Override
     public void transferFailed(TransferEvent event) {
         if (event.getException() instanceof MetadataNotFoundException) {
             LOGGER.info(event.getException().getMessage());
@@ -67,6 +70,7 @@ class LoggingMavenTransferListener extends AbstractTransferListener {
         resetCurrentBuildOperationRef();
     }
 
+    @Override
     public void transferSucceeded(TransferEvent event) {
         long contentLength = event.getResource().getContentLength();
         if (contentLength > 0 && event.getRequestType() == RequestType.PUT) {

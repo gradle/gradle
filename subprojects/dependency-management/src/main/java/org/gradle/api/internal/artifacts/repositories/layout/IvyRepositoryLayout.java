@@ -31,6 +31,7 @@ import java.util.Set;
  */
 public class IvyRepositoryLayout extends AbstractRepositoryLayout {
 
+    @Override
     public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {
             return;

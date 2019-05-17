@@ -31,6 +31,7 @@ import java.util.concurrent.Callable;
  * The build init plugin.
  */
 public class BuildInitPlugin implements Plugin<Project> {
+    @Override
     public void apply(final Project project) {
         if (project.getParent() == null) {
             project.getTasks().register("init", InitBuild.class, new Action<InitBuild>() {

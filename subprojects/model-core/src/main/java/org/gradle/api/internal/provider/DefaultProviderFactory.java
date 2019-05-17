@@ -23,6 +23,7 @@ import java.util.concurrent.Callable;
 
 public class DefaultProviderFactory implements ProviderFactory {
 
+    @Override
     public <T> Provider<T> provider(final Callable<? extends T> value) {
         if (value == null) {
             throw new IllegalArgumentException("Value cannot be null");

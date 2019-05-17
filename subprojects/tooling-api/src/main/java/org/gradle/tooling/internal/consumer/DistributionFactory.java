@@ -113,16 +113,19 @@ public class DistributionFactory {
             this.clock = clock;
         }
 
+        @Override
         public String getDisplayName() {
             return "Gradle distribution '" + wrapperConfiguration.getDistribution() + "'";
         }
 
+        @Override
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, final InternalBuildProgressListener progressListener, final File userHomeDir, BuildCancellationToken cancellationToken) {
             if (installedDistribution == null) {
                 final DistributionInstaller installer = new DistributionInstaller(progressLoggerFactory, progressListener, clock);
                 File installDir;
                 try {
                     cancellationToken.addCallback(new Runnable() {
+                        @Override
                         public void run() {
                             installer.cancel();
                         }
@@ -160,10 +163,12 @@ public class DistributionFactory {
             this.locationDisplayName = locationDisplayName;
         }
 
+        @Override
         public String getDisplayName() {
             return displayName;
         }
 
+        @Override
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
             if (!gradleHomeDir.exists()) {
                 throw new IllegalArgumentException(String.format("The specified %s does not exist.", locationDisplayName));
@@ -188,10 +193,12 @@ public class DistributionFactory {
     }
 
     private static class ClasspathDistribution implements Distribution {
+        @Override
         public String getDisplayName() {
             return "Gradle classpath distribution";
         }
 
+        @Override
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
             DefaultModuleRegistry registry = new DefaultModuleRegistry(null);
             return registry.getModule("gradle-launcher").getAllRequiredModulesClasspath();

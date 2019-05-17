@@ -67,6 +67,7 @@ class PackagePageRenderer extends PageRenderer<PackageTestResults> {
         addFailuresTab();
         addIgnoredTab();
         addTab("Classes", new ErroringAction<SimpleHtmlWriter>() {
+            @Override
             public void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
                 renderClasses(htmlWriter);
             }

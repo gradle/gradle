@@ -44,10 +44,12 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
 
     public void build() {
         groups = TreeMultimap.create(new Comparator<String>() {
+            @Override
             public int compare(String string1, String string2) {
                 return string1.compareToIgnoreCase(string2);
             }
         }, new Comparator<TaskDetails>() {
+            @Override
             public int compare(TaskDetails task1, TaskDetails task2) {
                 return task1.getPath().compareTo(task2.getPath());
             }

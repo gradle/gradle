@@ -33,6 +33,7 @@ public class DefaultCompatibilityCheckResult<T> implements CompatibilityCheckRes
         this.producerValue = producerValue;
     }
 
+    @Override
     public boolean isCompatible() {
         assert done;
         return compatible;

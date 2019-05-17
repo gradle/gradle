@@ -48,6 +48,7 @@ class DefaultIvyModuleArtifactPublishMetadata implements IvyModuleArtifactPublis
         this.file = file;
     }
 
+    @Override
     public IvyArtifactName getArtifactName() {
         return id.getName();
     }
@@ -57,10 +58,12 @@ class DefaultIvyModuleArtifactPublishMetadata implements IvyModuleArtifactPublis
         return configurations;
     }
 
+    @Override
     public ModuleComponentArtifactIdentifier getId() {
         return id;
     }
 
+    @Override
     public File getFile() {
         return file;
     }

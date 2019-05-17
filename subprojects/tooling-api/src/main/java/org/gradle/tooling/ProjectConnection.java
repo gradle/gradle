@@ -161,5 +161,6 @@ public interface ProjectConnection extends Closeable {
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.
      * @since 1.0-milestone-3
      */
+    @Override
     void close();
 }

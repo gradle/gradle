@@ -44,6 +44,7 @@ public abstract class Transformers {
     //just returns the original object
     public static <T> Transformer<T, T> noOpTransformer() {
         return new Transformer<T, T>() {
+            @Override
             public T transform(T original) {
                 return original;
             }
@@ -57,6 +58,7 @@ public abstract class Transformers {
             this.outputType = outputType;
         }
 
+        @Override
         public O transform(I input) {
             return Cast.cast(outputType, input);
         }
@@ -67,6 +69,7 @@ public abstract class Transformers {
     }
 
     private static class ToStringTransformer<T> implements Transformer<String, T> {
+        @Override
         public String transform(T original) {
             return original == null ? null : original.toString();
         }
@@ -111,6 +114,7 @@ public abstract class Transformers {
      */
     public static <T> Transformer<Class<T>, T> type() {
         return new Transformer<Class<T>, T>() {
+            @Override
             public Class<T> transform(T original) {
                 @SuppressWarnings("unchecked")
                 Class<T> aClass = (Class<T>) original.getClass();
@@ -121,6 +125,7 @@ public abstract class Transformers {
 
     public static <R> Transformer<R, Object> toTransformer(final Factory<R> factory) {
         return new Transformer<R, Object>() {
+            @Override
             public R transform(Object original) {
                 return factory.create();
             }
@@ -129,6 +134,7 @@ public abstract class Transformers {
 
     public static <R, I> Transformer<R, I> toTransformer(final Action<? super I> action) {
         return new Transformer<R, I>() {
+            @Override
             public R transform(I original) {
                 action.execute(original);
                 return null;
@@ -141,6 +147,7 @@ public abstract class Transformers {
      */
     public static Transformer<URL, URI> toURL() {
         return new Transformer<URL, URI>() {
+            @Override
             public URL transform(URI original) {
                 try {
                     return original.toURL();
@@ -156,6 +163,7 @@ public abstract class Transformers {
      */
     public static <T, I> Transformer<T, I> constant(final T t) {
         return new Transformer<T, I>() {
+            @Override
             public T transform(I original) {
                 return t;
             }

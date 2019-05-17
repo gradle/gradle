@@ -28,10 +28,12 @@ public final class DefaultCancellationTokenSource implements CancellationTokenSo
         tokenImpl = new CancellationTokenImpl(new DefaultBuildCancellationToken());
     }
 
+    @Override
     public void cancel() {
         tokenImpl.token.cancel();
     }
 
+    @Override
     public CancellationToken token() {
         return tokenImpl;
     }
@@ -43,10 +45,12 @@ public final class DefaultCancellationTokenSource implements CancellationTokenSo
             this.token = token;
         }
 
+        @Override
         public BuildCancellationToken getToken() {
             return token;
         }
 
+        @Override
         public boolean isCancellationRequested() {
             return token.isCancellationRequested();
         }

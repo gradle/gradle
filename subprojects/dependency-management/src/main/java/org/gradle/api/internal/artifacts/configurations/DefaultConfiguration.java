@@ -298,10 +298,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         };
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public State getState() {
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (cachedResolverResults.hasError()) {
@@ -318,24 +320,29 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolvedState;
     }
 
+    @Override
     public Module getModule() {
         return metaDataProvider.getModule();
     }
 
+    @Override
     public boolean isVisible() {
         return visible;
     }
 
+    @Override
     public Configuration setVisible(boolean visible) {
         validateMutation(MutationType.DEPENDENCIES);
         this.visible = visible;
         return this;
     }
 
+    @Override
     public Set<Configuration> getExtendsFrom() {
         return Collections.unmodifiableSet(extendsFrom);
     }
 
+    @Override
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
         validateMutation(MutationType.DEPENDENCIES);
         for (Configuration configuration : this.extendsFrom) {
@@ -357,6 +364,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    @Override
     public Configuration extendsFrom(Configuration... extendsFrom) {
         validateMutation(MutationType.DEPENDENCIES);
         for (Configuration configuration : extendsFrom) {
@@ -381,26 +389,31 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    @Override
     public boolean isTransitive() {
         return transitive;
     }
 
+    @Override
     public Configuration setTransitive(boolean transitive) {
         validateMutation(MutationType.DEPENDENCIES);
         this.transitive = transitive;
         return this;
     }
 
+    @Override
     @Nullable
     public String getDescription() {
         return description;
     }
 
+    @Override
     public Configuration setDescription(@Nullable String description) {
         this.description = description;
         return this;
     }
 
+    @Override
     public Set<Configuration> getHierarchy() {
         if (extendsFrom.isEmpty()) {
             return Collections.singleton(this);
@@ -441,6 +454,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    @Override
     public void runDependencyActions() {
         defaultDependencyActions.execute(dependencies);
         withDependencyActions.execute(dependencies);
@@ -454,10 +468,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Override
     public Set<Configuration> getAll() {
         return ImmutableSet.copyOf(configurationsProvider.getAll());
     }
 
+    @Override
     public Set<File> resolve() {
         return getFiles();
     }
@@ -482,30 +498,37 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return intrinsicFiles.isEmpty();
     }
 
+    @Override
     public Set<File> files(Dependency... dependencies) {
         return fileCollection(dependencies).getFiles();
     }
 
+    @Override
     public Set<File> files(Closure dependencySpecClosure) {
         return fileCollection(dependencySpecClosure).getFiles();
     }
 
+    @Override
     public Set<File> files(Spec<? super Dependency> dependencySpec) {
         return fileCollection(dependencySpec).getFiles();
     }
 
+    @Override
     public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
         return new ConfigurationFileCollection(dependencySpec);
     }
 
+    @Override
     public FileCollection fileCollection(Closure dependencySpecClosure) {
         return new ConfigurationFileCollection(dependencySpecClosure);
     }
 
+    @Override
     public FileCollection fileCollection(Dependency... dependencies) {
         return new ConfigurationFileCollection(WrapUtil.toLinkedSet(dependencies));
     }
 
+    @Override
     public void markAsObserved(InternalState requestedState) {
         markThisObserved(requestedState);
         markParentsObserved(requestedState);
@@ -525,6 +548,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Override
     public ResolvedConfiguration getResolvedConfiguration() {
         resolveToStateOrLater(ARTIFACTS_RESOLVED);
         return cachedResolverResults.getResolvedConfiguration();
@@ -707,6 +731,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return cachedResolverResults;
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         assertIsResolvable();
         return intrinsicFiles.getBuildDependencies();
@@ -715,6 +740,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     /**
      * {@inheritDoc}
      */
+    @Override
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
         if (useDependedOn) {
             return new TasksFromProjectDependencies(taskName, getAllDependencies(), projectAccessListener);
@@ -723,10 +749,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Override
     public DependencySet getDependencies() {
         return dependencies;
     }
 
+    @Override
     public DependencySet getAllDependencies() {
         if (allDependencies == null) {
             initAllDependencies();
@@ -769,10 +797,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         allDependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "all dependency constraints"), inheritedDependencyConstraints);
     }
 
+    @Override
     public PublishArtifactSet getArtifacts() {
         return artifacts;
     }
 
+    @Override
     public PublishArtifactSet getAllArtifacts() {
         initAllArtifacts();
         return allArtifacts;
@@ -811,11 +841,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Override
     public Set<ExcludeRule> getExcludeRules() {
         initExcludeRules();
         return Collections.unmodifiableSet(parsedExcludeRules);
     }
 
+    @Override
     public Set<ExcludeRule> getAllExcludeRules() {
         Set<ExcludeRule> result = Sets.newLinkedHashSet();
         result.addAll(getExcludeRules());
@@ -845,6 +877,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.excludeRules.addAll(excludeRules);
     }
 
+    @Override
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
         validateMutation(MutationType.DEPENDENCIES);
         parsedExcludeRules = null;
@@ -852,14 +885,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    @Override
     public String getUploadTaskName() {
         return Configurations.uploadTaskName(getName());
     }
 
+    @Override
     public String getDisplayName() {
         return displayName.getDisplayName();
     }
 
+    @Override
     public ResolvableDependencies getIncoming() {
         return resolvableDependencies;
     }
@@ -905,18 +941,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         action.execute(outgoing);
     }
 
+    @Override
     public ConfigurationInternal copy() {
         return createCopy(getDependencies(), getDependencyConstraints(), false);
     }
 
+    @Override
     public Configuration copyRecursive() {
         return createCopy(getAllDependencies(), getAllDependencyConstraints(), true);
     }
 
+    @Override
     public Configuration copy(Spec<? super Dependency> dependencySpec) {
         return createCopy(CollectionUtils.filter(getDependencies(), dependencySpec), getDependencyConstraints(), false);
     }
 
+    @Override
     public Configuration copyRecursive(Spec<? super Dependency> dependencySpec) {
         return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), getAllDependencyConstraints(), true);
     }
@@ -971,14 +1011,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return copiedConfiguration;
     }
 
+    @Override
     public Configuration copy(Closure dependencySpec) {
         return copy(Specs.convertClosureToSpec(dependencySpec));
     }
 
+    @Override
     public Configuration copyRecursive(Closure dependencySpec) {
         return copyRecursive(Specs.convertClosureToSpec(dependencySpec));
     }
 
+    @Override
     public ResolutionStrategyInternal getResolutionStrategy() {
         if (resolutionStrategy == null) {
             resolutionStrategy = resolutionStrategyFactory.create();
@@ -988,10 +1031,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionStrategy;
     }
 
+    @Override
     public ComponentResolveMetadata toRootComponentMetaData() {
         return rootComponentMetadataBuilder.toRootComponentMetaData();
     }
 
+    @Override
     public String getPath() {
         return path.getPath();
     }
@@ -1034,6 +1079,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         notifyChildren(type);
     }
 
+    @Override
     public void validateMutation(MutationType type) {
         preventIllegalMutation(type);
         markAsModified(type);
@@ -1142,6 +1188,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private ConfigurationFileCollection(final Set<Dependency> dependencies) {
             this(new Spec<Dependency>() {
+                @Override
                 public boolean isSatisfiedBy(Dependency element) {
                     return dependencies.contains(element);
                 }
@@ -1158,10 +1205,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return dependencySpec;
         }
 
+        @Override
         public String getDisplayName() {
             return DefaultConfiguration.this.getDisplayName();
         }
 
+        @Override
         public Set<File> getFiles() {
             ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
             getSelectedArtifacts().visitArtifacts(visitor, lenient);
@@ -1303,10 +1352,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
 
+        @Override
         public String getName() {
             return name;
         }
 
+        @Override
         public String getPath() {
             return path.getPath();
         }
@@ -1316,36 +1367,44 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return "dependencies '" + getIdentityPath() + "'";
         }
 
+        @Override
         public FileCollection getFiles() {
             return new ConfigurationFileCollection(Specs.satisfyAll());
         }
 
+        @Override
         public DependencySet getDependencies() {
             runDependencyActions();
             return getAllDependencies();
         }
 
+        @Override
         public DependencyConstraintSet getDependencyConstraints() {
             runDependencyActions();
             return getAllDependencyConstraints();
         }
 
+        @Override
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
             dependencyResolutionListeners.add("beforeResolve", userCodeApplicationContext.decorateWithCurrent(action));
         }
 
+        @Override
         public void beforeResolve(Closure action) {
             beforeResolve(ConfigureUtil.configureUsing(action));
         }
 
+        @Override
         public void afterResolve(Action<? super ResolvableDependencies> action) {
             dependencyResolutionListeners.add("afterResolve", userCodeApplicationContext.decorateWithCurrent(action));
         }
 
+        @Override
         public void afterResolve(Closure action) {
             afterResolve(ConfigureUtil.configureUsing(action));
         }
 
+        @Override
         public ResolutionResult getResolutionResult() {
             return new LenientResolutionResult(DEFAULT_ERROR_HANDLER);
         }

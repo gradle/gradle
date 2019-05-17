@@ -44,22 +44,27 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
         this.chmod = chmod;
     }
 
+    @Override
     public T get() {
         return fileAccess.readFile(new Factory<T>() {
+            @Override
             public T create() {
                 return deserialize();
             }
         });
     }
 
+    @Override
     public void set(final T newValue) {
         fileAccess.writeFile(new Runnable() {
+            @Override
             public void run() {
                 serialize(newValue);
             }
         });
     }
 
+    @Override
     public T update(final UpdateAction<T> updateAction) {
         class Updater implements Runnable {
             private final UpdateAction<T> updateAction;
@@ -70,6 +75,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
                 this.updateAction = updateAction;
             }
 
+            @Override
             public void run() {
                 T oldValue = deserialize();
                 result = updateAction.update(oldValue);
@@ -93,6 +99,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
                 this.updateAction = updateAction;
             }
 
+            @Override
             public void run() {
                 T oldValue = deserialize();
                 result = updateAction.update(oldValue);

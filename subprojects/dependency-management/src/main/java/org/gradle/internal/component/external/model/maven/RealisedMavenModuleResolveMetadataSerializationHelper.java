@@ -80,6 +80,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         return new RealisedMavenModuleResolveMetadata(resolveMetadata, realisedVariants, derivedVariants, configurations);
     }
 
+    @Override
     protected void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
         List<? extends DependencyMetadata> dependencies = configuration.getDependencies();
         encoder.writeSmallInt(dependencies.size());

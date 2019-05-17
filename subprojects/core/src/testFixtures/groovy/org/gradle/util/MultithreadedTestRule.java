@@ -103,6 +103,7 @@ public class MultithreadedTestRule extends ExternalResource {
      */
     protected ThreadHandle start(final Closure closure) {
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 closure.call();
             }
@@ -116,6 +117,7 @@ public class MultithreadedTestRule extends ExternalResource {
      */
     protected ThreadHandle run(final Closure closure) {
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 closure.call();
             }
@@ -152,6 +154,7 @@ public class MultithreadedTestRule extends ExternalResource {
                 return "test thread " + getId();
             }
 
+            @Override
             public void run() {
                 Throwable failure = null;
                 try {
@@ -355,6 +358,7 @@ public class MultithreadedTestRule extends ExternalResource {
         final Thread targetThread = Thread.currentThread();
         LOGGER.debug("Thread {} expecting tick {}", targetThread, tick);
         start(new Runnable() {
+            @Override
             public void run() {
                 try {
                     Thread.sleep(500L);
@@ -441,10 +445,12 @@ public class MultithreadedTestRule extends ExternalResource {
     private class ExecutorImpl extends AbstractExecutorService {
         private final Set<ThreadHandle> threads = new CopyOnWriteArraySet<ThreadHandle>();
 
+        @Override
         public void execute(Runnable command) {
             threads.add(start(command));
         }
 
+        @Override
         public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
             Date expiry = new Date(System.currentTimeMillis() + unit.toMillis(timeout));
             for (ThreadHandle thread : threads) {
@@ -455,17 +461,21 @@ public class MultithreadedTestRule extends ExternalResource {
             return true;
         }
 
+        @Override
         public void shutdown() {
         }
 
+        @Override
         public List<Runnable> shutdownNow() {
             return new ArrayList<Runnable>();
         }
 
+        @Override
         public boolean isShutdown() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean isTerminated() {
             throw new UnsupportedOperationException();
         }
@@ -498,6 +508,7 @@ public class MultithreadedTestRule extends ExternalResource {
             return String.format("tick %d", number);
         }
 
+        @Override
         public ClockTick hasParticipants(int count) {
             participants = count;
             return this;
@@ -624,6 +635,7 @@ public class MultithreadedTestRule extends ExternalResource {
             this.thread = thread;
         }
 
+        @Override
         public ThreadHandle waitFor() {
             Date expiry = new Date(System.currentTimeMillis() + 2 * MAX_WAIT_TIME);
             if (!waitUntil(expiry)) {
@@ -632,6 +644,7 @@ public class MultithreadedTestRule extends ExternalResource {
             return this;
         }
 
+        @Override
         public boolean waitUntil(Date expiry) {
             if (isCurrentThread()) {
                 throw new RuntimeException("A test thread cannot wait for itself to complete.");
@@ -656,6 +669,7 @@ public class MultithreadedTestRule extends ExternalResource {
             return true;
         }
 
+        @Override
         public boolean isCurrentThread() {
             return Thread.currentThread() == thread;
         }
@@ -664,6 +678,7 @@ public class MultithreadedTestRule extends ExternalResource {
             return blockedStates.contains(thread.getState());
         }
 
+        @Override
         public void waitUntilBlocked() {
             long expiry = System.currentTimeMillis() + 2000L;
             while (!isBlocked()) {

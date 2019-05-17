@@ -50,6 +50,7 @@ public class CachedStoreFactory<T> implements Closeable {
         return new SimpleStore<T>(cache, id, stats);
     }
 
+    @Override
     public void close() {
         LOG.debug(displayName + " cache closed. Cache reads: "
                 + stats.readsFromCache + ", disk reads: "
@@ -89,6 +90,7 @@ public class CachedStoreFactory<T> implements Closeable {
             this.stats = stats;
         }
 
+        @Override
         public T load(Factory<T> createIfNotPresent) {
             T out = cache.getIfPresent(id);
             if (out != null) {

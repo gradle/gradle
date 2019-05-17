@@ -45,6 +45,7 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
         this.pluginInspector = pluginInspector;
     }
 
+    @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
         PluginId pluginId = pluginRequest.getId();
         if (isCorePlugin(pluginId) || isAbsentFromTheClasspath(pluginId)) {

@@ -460,6 +460,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             this.configuration = configuration;
         }
 
+        @Override
         public void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {
             boolean leaf = node.getChildren().isEmpty();
             target.text(leaf ? configuration.getName() : node.getName());

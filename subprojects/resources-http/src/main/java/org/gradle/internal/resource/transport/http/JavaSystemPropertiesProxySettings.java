@@ -90,10 +90,12 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
         return Pattern.compile(Pattern.quote(nonProxyHost));
     }
 
+    @Override
     public HttpProxySettings.HttpProxy getProxy() {
         return proxy;
     }
 
+    @Override
     public HttpProxySettings.HttpProxy getProxy(String host) {
         if (proxy == null || isNonProxyHost(host)) {
             return null;

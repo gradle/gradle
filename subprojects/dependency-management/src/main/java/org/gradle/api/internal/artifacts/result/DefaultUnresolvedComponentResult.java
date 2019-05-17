@@ -27,10 +27,12 @@ public class DefaultUnresolvedComponentResult implements UnresolvedComponentResu
         this.failure = failure;
     }
 
+    @Override
     public ComponentIdentifier getId() {
         return componentIdentifier;
     }
 
+    @Override
     public Throwable getFailure() {
         return failure;
     }

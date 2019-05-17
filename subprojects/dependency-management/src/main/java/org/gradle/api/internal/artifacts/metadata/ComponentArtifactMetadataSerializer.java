@@ -30,6 +30,7 @@ import org.gradle.internal.serialize.Encoder;
 public class ComponentArtifactMetadataSerializer extends AbstractSerializer<ComponentArtifactMetadata> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
+    @Override
     public void write(Encoder encoder, ComponentArtifactMetadata value) throws Exception {
         if (value instanceof ModuleComponentArtifactMetadata) {
             ModuleComponentArtifactMetadata moduleComponentArtifactMetadata = (ModuleComponentArtifactMetadata) value;
@@ -44,6 +45,7 @@ public class ComponentArtifactMetadataSerializer extends AbstractSerializer<Comp
         }
     }
 
+    @Override
     public ComponentArtifactMetadata read(Decoder decoder) throws Exception {
         ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
         String artifactName = decoder.readString();

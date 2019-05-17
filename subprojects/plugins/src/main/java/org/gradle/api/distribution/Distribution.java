@@ -28,6 +28,7 @@ public interface Distribution extends Named {
     /**
      * The name of this distribution.
      */
+    @Override
     String getName();
 
     /**

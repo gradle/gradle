@@ -67,10 +67,12 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         return stdinPipe;
     }
 
+    @Override
     public String getStandardOutput() {
         return standardOutputCapturer.getOutputAsString();
     }
 
+    @Override
     public String getErrorOutput() {
         return errorOutputCapturer.getOutputAsString();
     }
@@ -158,11 +160,13 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         }
     }
 
+    @Override
     public GradleHandle abort() {
         getExecHandle().abort();
         return this;
     }
 
+    @Override
     public boolean isRunning() {
         ExecHandle execHandle = this.execHandleRef.get();
         return execHandle != null && execHandle.getState() == ExecHandleState.STARTED;
@@ -176,10 +180,12 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         return handle;
     }
 
+    @Override
     public ExecutionResult waitForFinish() {
         return waitForStop(false);
     }
 
+    @Override
     public ExecutionFailure waitForFailure() {
         return (ExecutionFailure) waitForStop(true);
     }

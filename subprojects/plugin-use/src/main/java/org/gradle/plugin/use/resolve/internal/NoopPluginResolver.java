@@ -34,6 +34,7 @@ public class NoopPluginResolver implements PluginResolver {
         this.pluginRegistry = pluginRegistry;
     }
 
+    @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest.getId().equals(NOOP_PLUGIN_ID)) {
             result.found("noop resolver", new SimplePluginResolution(DefaultPotentialPluginWithId.of(NOOP_PLUGIN_ID, pluginRegistry.inspect(NoopPlugin.class))));
@@ -41,6 +42,7 @@ public class NoopPluginResolver implements PluginResolver {
     }
 
     public static class NoopPlugin implements Plugin<Object> {
+        @Override
         public void apply(Object target) {
             // do nothing
         }

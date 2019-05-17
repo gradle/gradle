@@ -44,6 +44,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         this.loggingManager = loggingManager;
     }
 
+    @Override
     public BuildActionResult execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters, ServiceRegistry contextServices) {
         if (Boolean.TRUE.equals(actionParameters.isColorOutput(null)) && actionParameters.getStandardOutput() != null) {
             loggingManager.attachConsole(actionParameters.getStandardOutput(), notNull(actionParameters.getStandardError()), ConsoleOutput.Rich);
@@ -76,6 +77,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
             this.progressListener = progressListener;
         }
 
+        @Override
         public void onOutput(OutputEvent event) {
             if (event instanceof ProgressStartEvent) {
                 ProgressStartEvent startEvent = (ProgressStartEvent) event;

@@ -31,6 +31,7 @@ public abstract class PublishOperation implements Runnable {
 
     protected abstract void publish() throws Exception;
 
+    @Override
     public void run() {
         try {
             publish();

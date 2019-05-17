@@ -121,6 +121,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '%' is a key that matches a `fromConfiguration` value that is not matched by any of the other keys.
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
+    @Override
     public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationMetadata> targets = Lists.newLinkedList();
@@ -239,6 +240,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return dependencyArtifacts;
     }
 
+    @Override
     public ImmutableList<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
         if (dependencyArtifacts.isEmpty()) {
             return ImmutableList.of();

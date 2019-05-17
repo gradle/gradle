@@ -31,6 +31,7 @@ import java.util.List;
 @NotThreadSafe
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
+    @Override
     public ComponentSelectionReason read(Decoder decoder) throws IOException {
         ComponentSelectionDescriptor[] descriptions = readDescriptions(decoder);
         return ComponentSelectionReasons.of(descriptions);
@@ -57,6 +58,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
         return decoder.readString();
     }
 
+    @Override
     public void write(Encoder encoder, ComponentSelectionReason value) throws IOException {
         List<ComponentSelectionDescriptor> descriptions = value.getDescriptions();
         encoder.writeSmallInt(descriptions.size());

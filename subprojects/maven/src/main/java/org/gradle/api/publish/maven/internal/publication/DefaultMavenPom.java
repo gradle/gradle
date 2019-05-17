@@ -79,10 +79,12 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         this.properties = objectFactory.mapProperty(String.class, String.class);
     }
 
+    @Override
     public void withXml(Action<? super XmlProvider> action) {
         xmlAction.add(new UserCodeAction<XmlProvider>("Could not apply withXml() to generated POM", action));
     }
 
+    @Override
     public Action<XmlProvider> getXmlAction() {
         return xmlAction;
     }
@@ -97,6 +99,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return mavenPublication.writeGradleMetadataMarker();
     }
 
+    @Override
     public String getPackaging() {
         if (packaging == null) {
             return mavenPublication.determinePackagingFromArtifacts();
@@ -104,6 +107,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return packaging;
     }
 
+    @Override
     public void setPackaging(String packaging) {
         this.packaging = packaging;
     }
@@ -258,6 +262,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return properties;
     }
 
+    @Override
     public MavenProjectIdentity getProjectIdentity() {
         return mavenPublication.getMavenProjectIdentity();
     }
@@ -272,6 +277,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return mavenPublication.getOptionalDependencies();
     }
 
+    @Override
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return mavenPublication.getRuntimeDependencies();
     }

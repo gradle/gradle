@@ -30,12 +30,14 @@ public class ResolvedConfigurationIdentifierSerializer implements Serializer<Res
         idSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
     }
 
+    @Override
     public ResolvedConfigurationIdentifier read(Decoder decoder) throws IOException {
         ModuleVersionIdentifier id = idSerializer.read(decoder);
         String configuration = decoder.readString();
         return new ResolvedConfigurationIdentifier(id, configuration);
     }
 
+    @Override
     public void write(Encoder encoder, ResolvedConfigurationIdentifier value) throws IOException {
         idSerializer.write(encoder, value.getId());
         encoder.writeString(value.getConfiguration());

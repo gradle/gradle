@@ -58,6 +58,7 @@ class ImplementationDependencyRelocator extends Remapper {
         prefixes = readPrefixes(type);
     }
 
+    @Override
     public String map(String name) {
         String value = name;
 

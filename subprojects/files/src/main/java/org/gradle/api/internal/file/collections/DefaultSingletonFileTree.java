@@ -38,6 +38,7 @@ public class DefaultSingletonFileTree extends AbstractSingletonFileTree {
         this.file = file;
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("file '%s'", file);
     }
@@ -57,6 +58,7 @@ public class DefaultSingletonFileTree extends AbstractSingletonFileTree {
         return file;
     }
 
+    @Override
     public MinimalFileTree filter(PatternFilterable patterns) {
         return new DefaultSingletonFileTree(file, filterPatternSet(patterns));
     }

@@ -38,6 +38,7 @@ public class DependencyConstraintProjectNotationConverter implements NotationCon
         visitor.candidate("Projects").example("project(':some:project:path')");
     }
 
+    @Override
     public void convert(Project notation, NotationConvertResult<? super DependencyConstraint> result) throws TypeConversionException {
         result.converted(new DefaultProjectDependencyConstraint(factory.create(notation)));
     }

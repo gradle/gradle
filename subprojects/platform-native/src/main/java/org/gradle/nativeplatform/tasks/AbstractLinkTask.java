@@ -191,6 +191,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * Adds a set of object files to be linked. The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
+    @Override
     public void source(Object source) {
         this.source.from(source);
     }

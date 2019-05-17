@@ -70,6 +70,7 @@ public class IdeaScalaConfigurer {
 
     public void configure() {
         rootProject.getGradle().addBuildListener(new BuildAdapter() {
+            @Override
             public void projectsEvaluated(Gradle gradle) {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;

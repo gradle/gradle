@@ -50,6 +50,7 @@ public class EnvJsPlugin implements Plugin<Project> {
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(RhinoPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
@@ -60,12 +61,14 @@ public class EnvJsPlugin implements Plugin<Project> {
         final Configuration configuration = addConfiguration(project.getConfigurations(), project.getDependencies(), envJsExtension);
         final ConventionMapping conventionMapping = ((IConventionAware) envJsExtension).getConventionMapping();
         conventionMapping.map("js", new Callable<Configuration>() {
+            @Override
             public Configuration call() {
                 return configuration;
             }
 
         });
         conventionMapping.map("version", new Callable<String>() {
+            @Override
             public String call() {
                 return EnvJsExtension.DEFAULT_DEPENDENCY_VERSION;
             }
@@ -74,12 +77,15 @@ public class EnvJsPlugin implements Plugin<Project> {
         final RhinoExtension rhinoExtension = ((ExtensionAware) jsExtension).getExtensions().getByType(RhinoExtension.class);
 
         project.getTasks().withType(BrowserEvaluate.class, new Action<BrowserEvaluate>() {
+            @Override
             public void execute(BrowserEvaluate task) {
                 ((IConventionAware) task).getConventionMapping().map("evaluator", new Callable<EnvJsBrowserEvaluator>() {
+                    @Override
                     public EnvJsBrowserEvaluator call() {
                         RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
                         File workDir = project.getProjectDir();
                         Factory<File> envJsFactory = new Factory<File>() {
+                            @Override
                             public File create() {
                                 return envJsExtension.getJs().getSingleFile();
                             }

@@ -31,6 +31,7 @@ public class ReturnResult implements DaemonCommandAction {
 
     private static final Logger LOGGER = Logging.getLogger(ReturnResult.class);
 
+    @Override
     public void execute(DaemonCommandExecution execution) {
         execution.proceed();
 

@@ -26,10 +26,12 @@ public class ReflectionEqualsMatcher<T> extends BaseMatcher<T> {
         this.toMatch = toMatch;
     }
 
+    @Override
     public boolean matches(Object o) {
         return EqualsBuilder.reflectionEquals(toMatch, o);
     }
 
+    @Override
     public void describeTo(Description description) {
         description.appendText("an Object with the same fields as " + toMatch);
     }

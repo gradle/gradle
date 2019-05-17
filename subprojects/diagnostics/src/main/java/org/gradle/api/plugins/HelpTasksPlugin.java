@@ -142,6 +142,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
             new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
+                @Override
                 public Object call() {
                     BuildableJavaComponent javaProject = ((ProjectInternal) task.getProject()).getServices().get(ComponentRegistry.class).getMainComponent();
                     return javaProject == null ? null : javaProject.getCompileDependencies();

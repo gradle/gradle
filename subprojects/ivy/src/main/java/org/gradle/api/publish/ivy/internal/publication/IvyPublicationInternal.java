@@ -32,6 +32,7 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
 
     IvyPublicationIdentity getIdentity();
 
+    @Override
     IvyModuleDescriptorSpecInternal getDescriptor();
 
     void setIvyDescriptorGenerator(Task descriptorGenerator);

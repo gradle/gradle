@@ -19,6 +19,7 @@ import org.codehaus.groovy.control.CompilationUnit;
 import org.gradle.groovy.scripts.Transformer;
 
 public abstract class AbstractScriptTransformer extends CompilationUnit.SourceUnitOperation implements Transformer {
+    @Override
     public void register(CompilationUnit compilationUnit) {
         compilationUnit.addPhaseOperation(this, getPhase());
     }

@@ -36,6 +36,7 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         this.loader = loader;
     }
 
+    @Override
     public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
         ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters.getGradleUserHomeDir(), cancellationToken);
 
@@ -48,6 +49,7 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         return connection;
     }
 
+    @Override
     public void close() {
         try {
             CompositeStoppable.stoppable(connections.values()).stop();

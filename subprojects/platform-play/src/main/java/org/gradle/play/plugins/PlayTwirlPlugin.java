@@ -130,14 +130,17 @@ public class PlayTwirlPlugin extends RuleSource {
         @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
+                @Override
                 public String getTaskPrefix() {
                     return "compile";
                 }
 
+                @Override
                 public Class<? extends DefaultTask> getTaskType() {
                     return TwirlCompile.class;
                 }
 
+                @Override
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
                     TwirlSourceSet twirlSourceSet = (TwirlSourceSet) sourceSet;

@@ -201,6 +201,7 @@ public abstract class AstUtils {
     @Nullable
     public static ScriptBlock detectScriptBlock(Statement statement, final Collection<String> names) {
         return detectScriptBlock(statement, new Predicate<ScriptBlock>() {
+            @Override
             public boolean apply(ScriptBlock input) {
                 return names.contains(input.getName());
             }

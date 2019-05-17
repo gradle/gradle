@@ -86,6 +86,7 @@ class DaemonRegistryUpdater implements Stoppable {
         daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, daemonContext.getPid(), status, reason));
     }
 
+    @Override
     public void stop() {
         LOGGER.debug("Removing our presence to clients, eg. removing this address from the registry: {}", connectorAddress);
         try {

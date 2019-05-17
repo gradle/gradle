@@ -36,6 +36,7 @@ public class FailsWithMessageExtension extends AbstractAnnotationDrivenExtension
             this.annotation = annotation;
         }
 
+        @Override
         public void intercept(IMethodInvocation invocation) throws Throwable {
             try {
                 invocation.proceed();

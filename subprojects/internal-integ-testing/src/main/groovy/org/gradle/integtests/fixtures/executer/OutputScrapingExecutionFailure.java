@@ -154,11 +154,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return builder.toString();
     }
 
+    @Override
     public ExecutionFailure assertHasLineNumber(int lineNumber) {
         assertThat(this.lineNumbers, hasItem(equalTo(String.valueOf(lineNumber))));
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasFileName(String filename) {
         assertThat(this.fileNames, hasItem(equalTo(filename)));
         return this;
@@ -175,11 +177,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasCause(String description) {
         assertThatCause(startsWith(description));
         return this;
     }
 
+    @Override
     public ExecutionFailure assertThatCause(Matcher<String> matcher) {
         for (String cause : causes) {
             if (matcher.matches(cause)) {
@@ -190,6 +194,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasResolution(String resolution) {
         assertThat(this.resolution, containsString(resolution));
         return this;
@@ -206,16 +211,19 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasNoCause() {
         assertThat(causes, isEmpty());
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasDescription(String context) {
         assertThatDescription(startsWith(context));
         return this;
     }
 
+    @Override
     public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
         for (String description : descriptions) {
             if (matcher.matches(description)) {
@@ -226,11 +234,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
     public ExecutionFailure assertTestsFailed() {
         new DetailedExecutionFailure(this).assertTestsFailed();
         return this;
     }
 
+    @Override
     public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
         return new DependencyResolutionFailure(this, configurationPath);
     }

@@ -37,10 +37,12 @@ public class SynchronizedLogging implements LoggingProvider {
         this.buildOperationIdFactory = buildOperationIdFactory;
     }
 
+    @Override
     public ListenerManager getListenerManager() {
         return services().listenerManager;
     }
 
+    @Override
     public ProgressLoggerFactory getProgressLoggerFactory() {
         return services().progressLoggerFactory;
     }

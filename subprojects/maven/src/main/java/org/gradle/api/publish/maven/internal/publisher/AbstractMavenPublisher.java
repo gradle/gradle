@@ -33,6 +33,7 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
+    @Override
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         if (artifactRepository == null) {
             LOGGER.info("Publishing to maven local repository");

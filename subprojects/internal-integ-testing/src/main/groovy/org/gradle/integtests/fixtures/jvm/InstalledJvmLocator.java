@@ -72,6 +72,7 @@ public class InstalledJvmLocator {
 
         List<JvmInstallation> result = new ArrayList<JvmInstallation>(installs.values());
         Collections.sort(result, new Comparator<JvmInstallation>() {
+            @Override
             public int compare(JvmInstallation o1, JvmInstallation o2) {
                 return o2.getVersion().compareTo(o1.getVersion());
             }

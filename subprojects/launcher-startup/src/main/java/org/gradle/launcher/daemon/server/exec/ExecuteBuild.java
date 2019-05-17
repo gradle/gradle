@@ -48,6 +48,7 @@ public class ExecuteBuild extends BuildCommandOnly {
         this.contextServices = contextServices;
     }
 
+    @Override
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
         LOGGER.debug(DaemonMessages.STARTED_BUILD);
         LOGGER.debug("Executing build with daemon context: {}", execution.getDaemonContext());

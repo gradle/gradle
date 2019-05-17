@@ -40,6 +40,7 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
         this(JavaVersion.current(), FileSystems.getDefault());
     }
 
+    @Override
     public DirectoryWalker create() {
         return instance;
     }

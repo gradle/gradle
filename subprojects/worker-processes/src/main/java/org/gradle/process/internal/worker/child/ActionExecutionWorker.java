@@ -43,23 +43,28 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
         this.displayName = displayName;
     }
 
+    @Override
     public void execute(final WorkerContext workerContext) {
         final ObjectConnection clientConnection = workerContext.getServerConnection();
         final ServiceRegistry serviceRegistry = workerContext.getServiceRegistry();
         LOGGER.debug("Starting {}.", displayName);
         WorkerProcessContext context = new WorkerProcessContext() {
+            @Override
             public ObjectConnection getServerConnection() {
                 return clientConnection;
             }
 
+            @Override
             public ClassLoader getApplicationClassLoader() {
                 return workerContext.getApplicationClassLoader();
             }
 
+            @Override
             public Object getWorkerId() {
                 return workerId;
             }
 
+            @Override
             public String getDisplayName() {
                 return displayName;
             }

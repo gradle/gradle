@@ -27,10 +27,12 @@ public class DefaultUnresolvedDependency implements UnresolvedDependency {
         this.problem = problem;
     }
 
+    @Override
     public ModuleVersionSelector getSelector() {
         return selector;
     }
 
+    @Override
     public Throwable getProblem() {
         return problem;
     }

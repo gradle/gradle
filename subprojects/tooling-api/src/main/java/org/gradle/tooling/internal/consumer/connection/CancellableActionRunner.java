@@ -41,6 +41,7 @@ class CancellableActionRunner implements ActionRunner {
         this.versionDetails = versionDetails;
     }
 
+    @Override
     public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
         throws UnsupportedOperationException, IllegalStateException {
 

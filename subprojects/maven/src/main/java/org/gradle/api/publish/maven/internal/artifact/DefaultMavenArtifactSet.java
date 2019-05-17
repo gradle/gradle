@@ -46,18 +46,21 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
         this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());
     }
 
+    @Override
     public MavenArtifact artifact(Object source) {
         MavenArtifact artifact = mavenArtifactParser.parseNotation(source);
         add(artifact);
         return artifact;
     }
 
+    @Override
     public MavenArtifact artifact(Object source, Action<? super MavenArtifact> config) {
         MavenArtifact artifact = artifact(source);
         config.execute(artifact);
         return artifact;
     }
 
+    @Override
     public FileCollection getFiles() {
         return files;
     }

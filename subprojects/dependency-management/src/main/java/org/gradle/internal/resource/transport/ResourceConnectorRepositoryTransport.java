@@ -55,14 +55,17 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
         resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, fileResourceRepository);
     }
 
+    @Override
     public ExternalResourceRepository getRepository() {
         return repository;
     }
 
+    @Override
     public CacheAwareExternalResourceAccessor getResourceAccessor() {
         return resourceAccessor;
     }
 
+    @Override
     public boolean isLocal() {
         return false;
     }

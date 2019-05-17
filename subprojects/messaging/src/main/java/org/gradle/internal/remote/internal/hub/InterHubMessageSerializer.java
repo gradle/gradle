@@ -59,6 +59,7 @@ public class InterHubMessageSerializer implements StatefulSerializer<InterHubMes
             this.payloadReader = payloadReader;
         }
 
+        @Override
         public InterHubMessage read() throws Exception {
             switch (decoder.readByte()) {
                 case CHANNEL_MESSAGE:
@@ -94,6 +95,7 @@ public class InterHubMessageSerializer implements StatefulSerializer<InterHubMes
             this.payloadWriter = payloadWriter;
         }
 
+        @Override
         public void write(InterHubMessage message) throws Exception {
             if (message instanceof ChannelMessage) {
                 ChannelMessage channelMessage = (ChannelMessage) message;

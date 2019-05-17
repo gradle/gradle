@@ -37,6 +37,7 @@ public class DefaultIvyExtraInfo implements IvyExtraInfo {
         this.extraInfo = extraInfo;
     }
 
+    @Override
     public String get(String name) {
         List<Map.Entry<NamespaceId, String>> foundEntries = new ArrayList<Map.Entry<NamespaceId, String>>();
         for (Map.Entry<NamespaceId, String> entry : extraInfo.entrySet()) {
@@ -46,6 +47,7 @@ public class DefaultIvyExtraInfo implements IvyExtraInfo {
         }
         if (foundEntries.size() > 1) {
             String allNamespaces = Joiner.on(", ").join(CollectionUtils.collect(foundEntries, new Transformer<String, Map.Entry<NamespaceId, String>>() {
+                @Override
                 public String transform(Map.Entry<NamespaceId, String> original) {
                     return original.getKey().getNamespace();
                 }
@@ -55,10 +57,12 @@ public class DefaultIvyExtraInfo implements IvyExtraInfo {
         return foundEntries.size() == 0 ? null : foundEntries.get(0).getValue();
     }
 
+    @Override
     public String get(String namespace, String name) {
         return extraInfo.get(new NamespaceId(namespace, name));
     }
 
+    @Override
     public Map<QName, String> asMap() {
         Map<QName, String> map = new LinkedHashMap<QName, String>();
         for (Map.Entry<NamespaceId, String> entry : extraInfo.entrySet()) {

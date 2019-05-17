@@ -34,6 +34,7 @@ public class DefaultRuleActionAdapter implements RuleActionAdapter {
         this.context = context;
     }
 
+    @Override
     public <T> RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure) {
         try {
             return ruleActionValidator.validate(new ClosureBackedRuleAction<T>(subjectType, closure));
@@ -42,6 +43,7 @@ public class DefaultRuleActionAdapter implements RuleActionAdapter {
         }
     }
 
+    @Override
     public <T> RuleAction<? super T> createFromAction(Action<? super T> action) {
         try {
             return ruleActionValidator.validate(new NoInputsRuleAction<T>(action));
@@ -50,6 +52,7 @@ public class DefaultRuleActionAdapter implements RuleActionAdapter {
         }
     }
 
+    @Override
     public <T> RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Object ruleSource) {
         try {
             return ruleActionValidator.validate(RuleSourceBackedRuleAction.create(ModelType.of(subjectType), ruleSource));

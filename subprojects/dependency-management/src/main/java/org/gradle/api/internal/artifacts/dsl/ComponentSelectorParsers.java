@@ -69,10 +69,12 @@ public class ComponentSelectorParsers {
     }
 
     static class StringConverter implements NotationConverter<String, ComponentSelector> {
+        @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.example("String or CharSequence values, e.g. 'org.gradle:gradle-core:1.0'.");
         }
 
+        @Override
         public void convert(String notation, NotationConvertResult<? super ComponentSelector> result) throws TypeConversionException {
             ParsedModuleStringNotation parsed;
             try {

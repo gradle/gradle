@@ -121,6 +121,7 @@ public class DependencyGraphsRenderer {
 
     private void renderNode(final RenderableDependency node, final boolean isLast, final boolean isDuplicate, final NodeRenderer dependenciesRenderer) {
         renderer.visit(new Action<StyledTextOutput>() {
+            @Override
             public void execute(StyledTextOutput output) {
                 dependenciesRenderer.renderNode(output, node, isDuplicate);
             }

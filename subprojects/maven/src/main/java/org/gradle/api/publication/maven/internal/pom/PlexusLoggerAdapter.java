@@ -24,78 +24,97 @@ public class PlexusLoggerAdapter implements Logger {
         this.logger = logger;
     }
 
+    @Override
     public void debug(String s) {
         logger.debug(s);
     }
 
+    @Override
     public void debug(String s, Throwable throwable) {
         logger.debug(s, throwable);
     }
 
+    @Override
     public boolean isDebugEnabled() {
         return logger.isDebugEnabled();
     }
 
+    @Override
     public void info(String s) {
         logger.info(s);
     }
 
+    @Override
     public void info(String s, Throwable throwable) {
         logger.info(s, throwable);
     }
 
+    @Override
     public boolean isInfoEnabled() {
         return logger.isInfoEnabled();
     }
 
+    @Override
     public void warn(String s) {
         logger.warn(s);
     }
 
+    @Override
     public void warn(String s, Throwable throwable) {
         logger.warn(s, throwable);
     }
 
+    @Override
     public boolean isWarnEnabled() {
         return logger.isWarnEnabled();
     }
 
+    @Override
     public void error(String s) {
         logger.error(s);
     }
 
+    @Override
     public void error(String s, Throwable throwable) {
         logger.error(s, throwable);
     }
 
+    @Override
     public boolean isErrorEnabled() {
         return logger.isErrorEnabled();
     }
 
+    @Override
     public void fatalError(String s) {
         logger.error(s);
     }
 
+    @Override
     public void fatalError(String s, Throwable throwable) {
         logger.error(s, throwable);
     }
 
+    @Override
     public boolean isFatalErrorEnabled() {
         return logger.isErrorEnabled();
     }
 
+    @Override
     public Logger getChildLogger(String s) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public int getThreshold() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void setThreshold(int arg0) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public String getName() {
         return logger.getName();
     }

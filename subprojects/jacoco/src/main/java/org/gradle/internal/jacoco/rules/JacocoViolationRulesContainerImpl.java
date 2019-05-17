@@ -35,10 +35,12 @@ public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesCo
         this.instantiator = instantiator;
     }
 
+    @Override
     public void setFailOnViolation(boolean failOnViolation) {
         this.failOnViolation = failOnViolation;
     }
 
+    @Override
     public boolean isFailOnViolation() {
         return failOnViolation;
     }

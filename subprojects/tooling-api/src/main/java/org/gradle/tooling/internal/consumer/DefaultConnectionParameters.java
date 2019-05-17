@@ -111,30 +111,37 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         return projectDir;
     }
 
+    @Override
     public File getDaemonBaseDir() {
         return daemonBaseDir;
     }
 
+    @Override
     public File getGradleUserHomeDir() {
         return gradleUserHomeDir;
     }
 
+    @Override
     public Boolean isEmbedded() {
         return embedded;
     }
 
+    @Override
     public Integer getDaemonMaxIdleTimeValue() {
         return daemonMaxIdleTimeValue;
     }
 
+    @Override
     public TimeUnit getDaemonMaxIdleTimeUnits() {
         return daemonMaxIdleTimeUnits;
     }
 
+    @Override
     public String getConsumerVersion() {
         return GradleVersion.current().getVersion();
     }
 
+    @Override
     public boolean getVerboseLogging() {
         return verboseLogging;
     }

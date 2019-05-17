@@ -19,6 +19,7 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
 public class NoOpDaemonCommandAction implements DaemonCommandAction {
+    @Override
     public void execute(DaemonCommandExecution execution) {
         execution.proceed();
     }

@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class DefaultExecutorServiceFactory implements ExecutorServiceFactory {
+    @Override
     public ExecutorService create() {
         return Executors.newSingleThreadExecutor();
     }

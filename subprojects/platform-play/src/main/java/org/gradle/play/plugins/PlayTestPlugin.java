@@ -58,6 +58,7 @@ public class PlayTestPlugin extends RuleSource {
             final FileCollection testSources = ImmutableFileCollection.of(testSourceDir).getAsFileTree().matching(new PatternSet().include("**/*.scala", "**/*.java"));
             final File testClassesDir = new File(buildDir, binary.getProjectScopedName() + "/testClasses");
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
+                @Override
                 public void execute(PlatformScalaCompile scalaCompile) {
                     scalaCompile.setDescription("Compiles the scala and java test sources for the " + binary.getDisplayName() + ".");
 
@@ -80,6 +81,7 @@ public class PlayTestPlugin extends RuleSource {
             final String testTaskName = binary.getTasks().taskName("test");
             final File binaryBuildDir = new File(buildDir, binary.getProjectScopedName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
+                @Override
                 public void execute(Test test) {
                     test.setDescription("Runs " + WordUtils.uncapitalize(binary.getDisplayName() + "."));
 

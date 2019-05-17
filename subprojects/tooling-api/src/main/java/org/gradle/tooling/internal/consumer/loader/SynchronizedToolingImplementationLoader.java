@@ -37,6 +37,7 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
         this.delegate = delegate;
     }
 
+    @Override
     public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
         if (lock.tryLock()) {
             try {
@@ -57,6 +58,7 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
         }
     }
 
+    @Override
     public void close() {
         lock.lock();
         try {

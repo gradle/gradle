@@ -24,11 +24,13 @@ public class DefaultProcessMetaDataProvider implements ProcessMetaDataProvider {
         this.environment = environment;
     }
 
+    @Override
     public String getProcessIdentifier() {
         Long pid = environment.maybeGetPid();
         return pid == null ? "gradle" : String.valueOf(pid);
     }
 
+    @Override
     public String getProcessDisplayName() {
         return "gradle";
     }

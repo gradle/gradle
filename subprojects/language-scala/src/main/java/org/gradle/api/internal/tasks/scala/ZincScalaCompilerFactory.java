@@ -84,6 +84,7 @@ public class ZincScalaCompilerFactory {
 
     private static Compiler createCompiler(final Setup setup, final PersistentCache zincCache, final xsbti.Logger logger) {
         return Compiler.compilerCache().get(setup, new scala.runtime.AbstractFunction0<Compiler>() {
+            @Override
             public Compiler apply() {
                 ScalaInstance instance = Compiler.scalaInstance(setup);
                 File interfaceJar = getCompilerInterface(setup, instance, zincCache, logger);
@@ -130,6 +131,7 @@ public class ZincScalaCompilerFactory {
             }
 
             return zincCache.useCache(new Factory<File>() {
+                @Override
                 public File create() {
                     // Another process may have already copied the compiler interface JAR
                     // Avoid copying over same existing file to avoid locking problems
@@ -144,6 +146,7 @@ public class ZincScalaCompilerFactory {
         } catch (IOException e) {
             // fall back to the default logic
             return zincCache.useCache(new Factory<File>() {
+                @Override
                 public File create() {
                     return Compiler.compilerInterface(setup, instance, logger);
                 }

@@ -30,6 +30,7 @@ import java.util.List;
 public class Specs {
 
     public static final Spec<Object> SATISFIES_ALL = new Spec<Object>() {
+        @Override
         public boolean isSatisfiedBy(Object element) {
             return true;
         }
@@ -40,6 +41,7 @@ public class Specs {
     }
 
     public static final Spec<Object> SATISFIES_NONE = new Spec<Object>() {
+        @Override
         public boolean isSatisfiedBy(Object element) {
             return false;
         }

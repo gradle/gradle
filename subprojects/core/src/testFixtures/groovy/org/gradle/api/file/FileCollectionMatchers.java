@@ -34,6 +34,7 @@ public class FileCollectionMatchers {
     @Factory
     public static <T extends FileCollection> Matcher<T> sameCollection(final FileCollection expected) {
         return new BaseMatcher<T>() {
+            @Override
             public boolean matches(Object o) {
                 FileCollection actual = (FileCollection) o;
                 List<? extends FileCollection> actualCollections = unpack(actual);
@@ -64,6 +65,7 @@ public class FileCollectionMatchers {
                 throw new RuntimeException("Cannot get children of " + expected);
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("same file collection as ").appendValue(expected);
             }

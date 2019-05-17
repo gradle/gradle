@@ -36,6 +36,7 @@ import java.util.concurrent.Callable;
 public class ForwardClientInput implements DaemonCommandAction {
     private static final Logger LOGGER = Logging.getLogger(ForwardClientInput.class);
 
+    @Override
     public void execute(final DaemonCommandExecution execution) {
         final PipedOutputStream inputSource = new PipedOutputStream();
         final PipedInputStream replacementStdin;
@@ -46,6 +47,7 @@ public class ForwardClientInput implements DaemonCommandAction {
         }
 
         execution.getConnection().onStdin(new StdinHandler() {
+            @Override
             public void onInput(ForwardInput input) {
                 LOGGER.debug("Writing forwarded input on daemon's stdin.");
                 try {
@@ -55,6 +57,7 @@ public class ForwardClientInput implements DaemonCommandAction {
                 }
             }
 
+            @Override
             public void onEndOfInput() {
                 LOGGER.info("Closing daemon's stdin at end of input.");
                 try {
@@ -70,6 +73,7 @@ public class ForwardClientInput implements DaemonCommandAction {
         try {
             try {
                 new StdinSwapper().swap(replacementStdin, new Callable<Void>() {
+                    @Override
                     public Void call() {
                         execution.proceed();
                         return null;

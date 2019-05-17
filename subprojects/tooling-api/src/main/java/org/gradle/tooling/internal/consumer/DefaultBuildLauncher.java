@@ -43,25 +43,30 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
         return this;
     }
 
+    @Override
     public BuildLauncher forTasks(String... tasks) {
         operationParamsBuilder.setTasks(Arrays.asList(tasks));
         return this;
     }
 
+    @Override
     public BuildLauncher forTasks(Task... tasks) {
         forTasks(Arrays.asList(tasks));
         return this;
     }
 
+    @Override
     public BuildLauncher forTasks(Iterable<? extends Task> tasks) {
         forLaunchables(tasks);
         return this;
     }
 
+    @Override
     public BuildLauncher forLaunchables(Launchable... launchables) {
         return forLaunchables(Arrays.asList(launchables));
     }
 
+    @Override
     public BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables) {
         preprocessLaunchables(launchables);
         operationParamsBuilder.setLaunchables(launchables);
@@ -71,19 +76,23 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
     protected void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
     }
 
+    @Override
     public void run() {
         BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
         run(handler);
         handler.getResult();
     }
 
+    @Override
     public void run(final ResultHandler<? super Void> handler) {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         connection.run(new ConsumerAction<Void>() {
+            @Override
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
 
+            @Override
             public Void run(ConsumerConnection connection) {
                 Void sink = connection.run(Void.class, operationParameters);
                 return sink;

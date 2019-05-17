@@ -44,6 +44,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
         return testDescriptors;
     }
 
+    @Override
     public Collection<String> getTestClassNames() {
         return testClassNames;
     }

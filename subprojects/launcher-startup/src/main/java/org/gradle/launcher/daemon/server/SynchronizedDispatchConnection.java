@@ -37,6 +37,7 @@ public class SynchronizedDispatchConnection<T> implements RemoteConnection<T> {
         this.delegate = delegate;
     }
 
+    @Override
     public void dispatch(final T message) {
         if (!(message instanceof OutputMessage)) {
             LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
@@ -62,6 +63,7 @@ public class SynchronizedDispatchConnection<T> implements RemoteConnection<T> {
         }
     }
 
+    @Override
     public T receive() {
         //in case one wants to synchronize this method,
         //bear in mind that it is blocking so it cannot share the same lock as others
@@ -70,6 +72,7 @@ public class SynchronizedDispatchConnection<T> implements RemoteConnection<T> {
         return result;
     }
 
+    @Override
     public void stop() {
         LOGGER.debug("thread {}: stopping connection", Thread.currentThread().getId());
         delegate.stop();

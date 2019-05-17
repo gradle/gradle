@@ -92,16 +92,19 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return new StoreSet() {
             int storeSetId = storeSetBaseId.getAndIncrement();
             int binaryStoreId;
+            @Override
             public DefaultBinaryStore nextBinaryStore() {
                 //one binary store per id+threadId
                 String storeKey = Thread.currentThread().getId() + "-" + binaryStoreId++;
                 return createBinaryStore(storeKey);
             }
 
+            @Override
             public Store<ResolvedComponentResult> newModelCache() {
                 return getNewModelCache().createCachedStore(storeSetId);
             }
 
+            @Override
             public Store<TransientConfigurationResults> oldModelCache() {
                 return getOldModelCache().createCachedStore(storeSetId);
             }
@@ -116,6 +119,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return store.getSize() > maxSize;
     }
 
+    @Override
     public void close() {
         try {
             Timer clock = Time.startTimer();

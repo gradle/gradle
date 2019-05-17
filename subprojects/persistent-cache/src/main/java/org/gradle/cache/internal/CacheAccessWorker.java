@@ -73,6 +73,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         }
     }
 
+    @Override
     public <T> T read(final Factory<T> task) {
         FutureTask<T> futureTask = new FutureTask<T>(new Callable<T>() {
             @Override
@@ -207,6 +208,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         }
     }
 
+    @Override
     public synchronized void stop() {
         if (!closed && !workerCompleted) {
             closed = true;

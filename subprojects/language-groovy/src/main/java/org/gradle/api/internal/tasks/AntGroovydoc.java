@@ -61,6 +61,7 @@ public class AntGroovydoc {
         FileOperations fileOperations = ((ProjectInternal) project).getFileOperations();
         fileOperations.delete(tmpDir);
         fileOperations.copy(new Action<CopySpec>() {
+            @Override
             public void execute(CopySpec copySpec) {
                 copySpec.from(source).into(tmpDir);
             }

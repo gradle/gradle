@@ -36,10 +36,12 @@ public class CheckstyleReportsImpl extends TaskReportContainer<SingleFileReport>
         add(TaskGeneratedSingleFileReport.class, "xml", task);
     }
 
+    @Override
     public CustomizableHtmlReport getHtml() {
         return withType(CustomizableHtmlReport.class).getByName("html");
     }
 
+    @Override
     public SingleFileReport getXml() {
         return getByName("xml");
     }

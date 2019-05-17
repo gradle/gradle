@@ -294,10 +294,12 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public long getStartTime() {
         return startTime;
     }
 
+    @Override
     public boolean getVerboseLogging() {
         return parameters.getVerboseLogging();
     }
@@ -305,6 +307,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public File getGradleUserHomeDir() {
         return parameters.getGradleUserHomeDir();
     }
@@ -312,6 +315,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public File getProjectDir() {
         return parameters.getProjectDir();
     }
@@ -319,6 +323,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public Boolean isSearchUpwards() {
         return parameters.isSearchUpwards();
     }
@@ -326,6 +331,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public Boolean isEmbedded() {
         return parameters.isEmbedded();
     }
@@ -333,6 +339,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public TimeUnit getDaemonMaxIdleTimeUnits() {
         return parameters.getDaemonMaxIdleTimeUnits();
     }
@@ -340,6 +347,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public Integer getDaemonMaxIdleTimeValue() {
         return parameters.getDaemonMaxIdleTimeValue();
     }
@@ -354,6 +362,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public OutputStream getStandardOutput() {
         return stdout;
     }
@@ -361,6 +370,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public OutputStream getStandardError() {
         return stderr;
     }
@@ -372,6 +382,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return colorOutput;
     }
 
+    @Override
     public InputStream getStandardInput() {
         return stdin;
     }
@@ -392,6 +403,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return arguments;
     }
 
+    @Override
     public List<String> getTasks() {
         return tasks;
     }
@@ -413,6 +425,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     /**
      * @since 1.0-milestone-3
      */
+    @Override
     public ProgressListenerVersion1 getProgressListener() {
         return progressListener;
     }

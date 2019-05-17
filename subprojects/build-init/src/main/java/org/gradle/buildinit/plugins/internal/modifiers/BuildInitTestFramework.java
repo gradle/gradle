@@ -45,6 +45,7 @@ public enum BuildInitTestFramework implements WithIdentifier {
         this.displayName = displayName;
     }
 
+    @Override
     public String getId() {
         return Names.idFor(this);
     }

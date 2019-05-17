@@ -484,6 +484,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (isUseDaemon() && !gradleInvocation.buildJvmArgs.isEmpty()) {
             // Pass build JVM args through to daemon via system property on the launcher JVM
             String quotedArgs = join(" ", collect(gradleInvocation.buildJvmArgs, new Transformer<String, String>() {
+                @Override
                 public String transform(String input) {
                     return String.format("'%s'", input);
                 }
@@ -771,6 +772,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    @Override
     public GradleExecuter withStacktraceDisabled() {
         showStacktrace = false;
         return this;

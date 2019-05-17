@@ -70,9 +70,11 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         }
     }
 
+    @Override
     public void report(final CrossVersionPerformanceResults results) {
         try {
             db.withConnection(new ConnectionAction<Void>() {
+                @Override
                 public Void execute(Connection connection) throws SQLException {
                     long testId;
                     PreparedStatement statement = null;
@@ -147,6 +149,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     public List<String> getTestNames() {
         try {
             return db.withConnection(new ConnectionAction<List<String>>() {
+                @Override
                 public List<String> execute(Connection connection) throws SQLException {
                     List<String> testNames = new ArrayList<String>();
                     Statement statement = null;
@@ -181,9 +184,11 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     public CrossVersionPerformanceTestHistory getTestResults(final String testName, final int mostRecentN, final int maxDaysOld, final String channel) {
         try {
             return db.withConnection(new ConnectionAction<CrossVersionPerformanceTestHistory>() {
+                @Override
                 public CrossVersionPerformanceTestHistory execute(Connection connection) throws SQLException {
                     Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
                     Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
+                        @Override
                         public int compare(String o1, String o2) {
                             return resolveGradleVersion(o1).compareTo(resolveGradleVersion(o2));
                         }
@@ -285,6 +290,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         return gradleVersion;
     }
 
+    @Override
     public void close() {
         db.close();
     }

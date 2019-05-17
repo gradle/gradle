@@ -125,6 +125,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @return The reports container
      */
+    @Override
     @Nested
     public FindBugsReports getReports() {
         return reports;
@@ -148,6 +149,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @param closure The configuration
      * @return The reports container
      */
+    @Override
     public FindBugsReports reports(Closure closure) {
         return reports(new ClosureBackedAction<FindBugsReports>(closure));
     }
@@ -171,6 +173,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @param configureAction The configuration
      * @return The reports container
      */
+    @Override
     public FindBugsReports reports(Action<? super FindBugsReports> configureAction) {
         configureAction.execute(reports);
         return reports;
@@ -448,6 +451,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Whether to allow the build to continue if there are warnings.
      */
+    @Override
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }

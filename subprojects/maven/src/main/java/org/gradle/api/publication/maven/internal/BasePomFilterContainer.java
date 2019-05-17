@@ -40,26 +40,32 @@ public class BasePomFilterContainer implements PomFilterContainer {
         this.mavenPomFactory = mavenPomFactory;
     }
 
+    @Override
     public PublishFilter getFilter() {
         return getDefaultPomFilter().getFilter();
     }
 
+    @Override
     public void setFilter(PublishFilter defaultFilter) {
         getDefaultPomFilter().setFilter(defaultFilter);
     }
 
+    @Override
     public MavenPom getPom() {
         return getDefaultPomFilter().getPomTemplate();
     }
 
+    @Override
     public void setPom(MavenPom defaultPom) {
         getDefaultPomFilter().setPomTemplate(defaultPom);
     }
 
+    @Override
     public void filter(Closure filter) {
         setFilter(toFilter(filter));
     }
 
+    @Override
     public MavenPom addFilter(String name, Closure filter) {
         return addFilter(name, toFilter(filter));
     }
@@ -68,10 +74,12 @@ public class BasePomFilterContainer implements PomFilterContainer {
         return (PublishFilter) DefaultGroovyMethods.asType(filter, PublishFilter.class);
     }
 
+    @Override
     public MavenPom pom(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getPom());
     }
 
+    @Override
     public MavenPom pom(String name, Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, pom(name));
     }
@@ -90,6 +98,7 @@ public class BasePomFilterContainer implements PomFilterContainer {
         return pom;
     }
 
+    @Override
     public MavenPom addFilter(String name, PublishFilter publishFilter) {
         if (name == null || publishFilter == null) {
             throw new InvalidUserDataException("Name and Filter must not be null.");
@@ -99,6 +108,7 @@ public class BasePomFilterContainer implements PomFilterContainer {
         return pom;
     }
 
+    @Override
     public PublishFilter filter(String name) {
         if (name == null) {
             throw new InvalidUserDataException("Name must not be null.");
@@ -106,6 +116,7 @@ public class BasePomFilterContainer implements PomFilterContainer {
         return pomFilters.get(name).getFilter();
     }
 
+    @Override
     public MavenPom pom(String name) {
         if (name == null) {
             throw new InvalidUserDataException("Name must not be null.");
@@ -113,6 +124,7 @@ public class BasePomFilterContainer implements PomFilterContainer {
         return pomFilters.get(name).getPomTemplate();
     }
 
+    @Override
     public Iterable<PomFilter> getActivePomFilters() {
         Iterable<PomFilter> activeArtifactPoms;
         if (pomFilters.size() == 0 && getDefaultPomFilter() != null) {

@@ -74,10 +74,12 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         session.setLocalRepositoryManager(new SimpleLocalRepositoryManager(localMavenRepository));
     }
 
+    @Override
     public void setPomArtifact(File file) {
         pomArtifact = pomArtifact.setFile(file);
     }
 
+    @Override
     public void setMainArtifact(File file) {
         mainArtifact = mainArtifact.setFile(file);
     }
@@ -87,6 +89,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         attached.add(createTypedArtifact(type, classifier).setFile(file));
     }
 
+    @Override
     public void publish() {
         List<Artifact> artifacts = new ArrayList<Artifact>();
         if (mainArtifact.getFile() != null) {

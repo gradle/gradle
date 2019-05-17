@@ -50,14 +50,17 @@ public class DetachedComponentResult implements ResolvedGraphComponent {
         return resultId;
     }
 
+    @Override
     public ModuleVersionIdentifier getModuleVersion() {
         return id;
     }
 
+    @Override
     public ComponentSelectionReason getSelectionReason() {
         return reason;
     }
 
+    @Override
     public ComponentIdentifier getComponentId() {
         return componentIdentifier;
     }

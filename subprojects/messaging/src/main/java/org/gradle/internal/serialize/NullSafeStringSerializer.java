@@ -16,10 +16,12 @@
 package org.gradle.internal.serialize;
 
 public class NullSafeStringSerializer implements Serializer<String> {
+    @Override
     public String read(Decoder decoder) throws Exception {
         return decoder.readNullableString();
     }
 
+    @Override
     public void write(Encoder encoder, String value) throws Exception {
         encoder.writeNullableString(value);
     }

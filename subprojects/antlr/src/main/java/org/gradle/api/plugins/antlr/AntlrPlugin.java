@@ -48,6 +48,7 @@ public class AntlrPlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
@@ -68,8 +69,10 @@ public class AntlrPlugin implements Plugin<Project> {
 
         // Wire the antlr configuration into all antlr tasks
         project.getTasks().withType(AntlrTask.class).configureEach(new Action<AntlrTask>() {
+            @Override
             public void execute(AntlrTask antlrTask) {
                 antlrTask.getConventionMapping().map("antlrClasspath", new Callable<Object>() {
+                    @Override
                     public Object call() throws Exception {
                         return project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME);
                     }
@@ -79,6 +82,7 @@ public class AntlrPlugin implements Plugin<Project> {
 
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(
                 new Action<SourceSet>() {
+                    @Override
                     public void execute(final SourceSet sourceSet) {
                         // for each source set we will:
                         // 1) Add a new 'antlr' virtual directory mapping

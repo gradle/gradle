@@ -41,6 +41,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
     /**
      * Stops all actors.
      */
+    @Override
     public void stop() {
         synchronized (lock) {
             try {
@@ -51,6 +52,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
         }
     }
 
+    @Override
     public Actor createActor(Object target) {
         if (target instanceof NonBlockingActor) {
             return (NonBlockingActor) target;
@@ -68,6 +70,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
         }
     }
 
+    @Override
     public Actor createBlockingActor(Object target) {
         synchronized (lock) {
             if (nonBlockingActors.containsKey(target)) {
@@ -103,10 +106,12 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
             dispatch = new ReflectionDispatch(target);
         }
 
+        @Override
         public <T> T getProxy(Class<T> type) {
             return new ProxyDispatchAdapter<T>(this, type, ThreadSafe.class).getSource();
         }
 
+        @Override
         public void stop() throws DispatchException {
             synchronized (lock) {
                 stopped = true;
@@ -114,6 +119,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
             stopped(this);
         }
 
+        @Override
         public void dispatch(MethodInvocation message) {
             synchronized (lock) {
                 if (stopped) {
@@ -138,10 +144,12 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
                             failureHandler), Integer.MAX_VALUE);
         }
 
+        @Override
         public <T> T getProxy(Class<T> type) {
             return new ProxyDispatchAdapter<T>(this, type, ThreadSafe.class).getSource();
         }
 
+        @Override
         public void stop() {
             try {
                 CompositeStoppable.stoppable(dispatch, executor, failureHandler).stop();
@@ -150,6 +158,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
             }
         }
 
+        @Override
         public void dispatch(MethodInvocation message) {
             dispatch.dispatch(message);
         }

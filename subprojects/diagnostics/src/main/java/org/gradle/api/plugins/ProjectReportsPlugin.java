@@ -47,11 +47,13 @@ public class ProjectReportsPlugin implements Plugin<Project> {
         TaskReportTask taskReportTask = project.getTasks().create(TASK_REPORT, TaskReportTask.class);
         taskReportTask.setDescription("Generates a report about your tasks.");
         taskReportTask.conventionMapping("outputFile", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return new File(convention.getProjectReportDir(), "tasks.txt");
             }
         });
         taskReportTask.conventionMapping("projects", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return convention.getProjects();
             }
@@ -60,11 +62,13 @@ public class ProjectReportsPlugin implements Plugin<Project> {
         PropertyReportTask propertyReportTask = project.getTasks().create(PROPERTY_REPORT, PropertyReportTask.class);
         propertyReportTask.setDescription("Generates a report about your properties.");
         propertyReportTask.conventionMapping("outputFile", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return new File(convention.getProjectReportDir(), "properties.txt");
             }
         });
         propertyReportTask.conventionMapping("projects", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return convention.getProjects();
             }
@@ -74,11 +78,13 @@ public class ProjectReportsPlugin implements Plugin<Project> {
                 DependencyReportTask.class);
         dependencyReportTask.setDescription("Generates a report about your library dependencies.");
         dependencyReportTask.conventionMapping("outputFile", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return new File(convention.getProjectReportDir(), "dependencies.txt");
             }
         });
         dependencyReportTask.conventionMapping("projects", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return convention.getProjects();
             }
@@ -88,11 +94,13 @@ public class ProjectReportsPlugin implements Plugin<Project> {
                 HtmlDependencyReportTask.class);
         htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
         new DslObject(htmlDependencyReportTask.getReports().getHtml()).getConventionMapping().map("destination", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return new File(convention.getProjectReportDir(), "dependencies");
             }
         });
         htmlDependencyReportTask.conventionMapping("projects", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return convention.getProjects();
             }

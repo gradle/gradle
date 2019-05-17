@@ -36,6 +36,7 @@ import org.gradle.plugins.javascript.rhino.RhinoPlugin;
 import java.util.concurrent.Callable;
 
 public class CoffeeScriptBasePlugin implements Plugin<Project> {
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(RhinoPlugin.class);
 
@@ -65,11 +66,13 @@ public class CoffeeScriptBasePlugin implements Plugin<Project> {
             @Override
             public void execute(CoffeeScriptCompile task) {
                 task.getConventionMapping().map("rhinoClasspath", new Callable<FileCollection>() {
+                    @Override
                     public FileCollection call() {
                         return rhinoExtension.getClasspath();
                     }
                 });
                 task.getConventionMapping().map("coffeeScriptJs", new Callable<FileCollection>() {
+                    @Override
                     public FileCollection call() {
                         return csExtension.getJs();
                     }

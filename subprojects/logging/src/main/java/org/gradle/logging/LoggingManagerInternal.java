@@ -28,34 +28,45 @@ import java.io.OutputStream;
  */
 @Deprecated
 public interface LoggingManagerInternal extends LoggingManager, StandardOutputCapture {
+    @Override
     LogLevel getLevel();
 
     LoggingManagerInternal setLevel(LogLevel logLevel);
 
+    @Override
     LoggingManagerInternal start();
 
+    @Override
     LoggingManagerInternal stop();
 
     LoggingManagerInternal captureSystemSources();
 
+    @Override
     LoggingManagerInternal captureStandardOutput(LogLevel level);
 
+    @Override
     LoggingManagerInternal captureStandardError(LogLevel level);
 
+    @Override
     LogLevel getStandardErrorCaptureLevel();
 
+    @Override
     LogLevel getStandardOutputCaptureLevel();
 
     void addStandardOutputListener(OutputStream outputStream);
 
     void addStandardErrorListener(OutputStream outputStream);
 
+    @Override
     void addStandardOutputListener(StandardOutputListener listener);
 
+    @Override
     void addStandardErrorListener(StandardOutputListener listener);
 
+    @Override
     void removeStandardOutputListener(StandardOutputListener listener);
 
+    @Override
     void removeStandardErrorListener(StandardOutputListener listener);
 
     void attachAnsiConsole(OutputStream outputStream);

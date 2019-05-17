@@ -55,6 +55,7 @@ public class HtmlToXmlJavadocLexer implements JavadocLexer {
         blockContent.add("dl");
     }
 
+    @Override
     public void visit(TokenVisitor visitor) {
         lexer.visit(new VisitorImpl(visitor));
     }

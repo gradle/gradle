@@ -60,6 +60,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         this.attributesSchema = (AttributesSchemaInternal) attributesSchema;
     }
 
+    @Override
     public ComponentResolveMetadata selectNewestComponent(ComponentResolveMetadata one, ComponentResolveMetadata two) {
         if (one == null || two == null) {
             return two == null ? one : two;
@@ -81,6 +82,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return componentResolveMetadata.isMissing();
     }
 
+    @Override
     public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector requestedVersionMatcher, VersionSelector rejectedVersionSelector, ImmutableAttributes consumerAttributes) {
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
@@ -213,6 +215,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         }
     }
 
+    @Override
     public RejectedByRuleVersion isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
         return isRejectedByRule(candidateIdentifier, componentSelectionRules.getRules(), metadataProvider);
     }

@@ -76,14 +76,17 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 return modelNode.getPath();
             }
 
+            @Override
             public ModelType<M> getType() {
                 return ManagedModelProjection.this.getType();
             }
 
+            @Override
             public M getInstance() {
                 return proxyFactory.createProxy(new State(), schema, bindings, typeConverter);
             }
 
+            @Override
             public void close() {
                 state.close();
             }

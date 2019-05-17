@@ -34,6 +34,7 @@ public class SocketInetAddress implements InetEndpoint {
         this.port = port;
     }
 
+    @Override
     public String getDisplayName() {
         return address + ":" + port;
     }
@@ -60,6 +61,7 @@ public class SocketInetAddress implements InetEndpoint {
         return address.hashCode() ^ port;
     }
 
+    @Override
     public List<InetAddress> getCandidates() {
         return Collections.singletonList(address);
     }
@@ -68,6 +70,7 @@ public class SocketInetAddress implements InetEndpoint {
         return address;
     }
 
+    @Override
     public int getPort() {
         return port;
     }

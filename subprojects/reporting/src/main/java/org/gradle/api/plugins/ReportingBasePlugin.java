@@ -31,6 +31,7 @@ import org.gradle.api.reporting.ReportingExtension;
  * </ul>
  */
 public class ReportingBasePlugin implements Plugin<ProjectInternal> {
+    @Override
     public void apply(ProjectInternal project) {
         project.getExtensions().create(ReportingExtension.NAME, ReportingExtension.class, project);
     }

@@ -41,6 +41,7 @@ public class RedirectStdOutAndErr implements MethodRule {
     private PrintStream stdOutPrintStream = new PrintStream(new TeeOutputStream(stdoutContent, stdOutRouter));
     private PrintStream stdErrPrintStream = new PrintStream(new TeeOutputStream(stderrContent, stdErrRouter));
 
+    @Override
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         return new Statement() {
             @Override

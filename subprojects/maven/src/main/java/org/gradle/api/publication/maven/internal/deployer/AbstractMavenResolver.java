@@ -80,6 +80,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
+    @Override
     public ConfiguredModuleComponentRepository createResolver() {
         throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
@@ -89,12 +90,14 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies, and don't have repository details available.");
     }
 
+    @Override
     public ModuleVersionPublisher createPublisher() {
         return this;
     }
 
     protected abstract MavenPublishAction createPublishAction(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
+    @Override
     public void publish(IvyModulePublishMetadata moduleVersion) {
         for (IvyModuleArtifactPublishMetadata artifactMetadata : moduleVersion.getArtifacts()) {
             IvyArtifactName artifact = artifactMetadata.getArtifactName();
@@ -151,6 +154,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         return artifactPomContainer;
     }
 
+    @Override
     public Object getSettings() {
         try {
             return mavenSettingsProvider.buildSettings();
@@ -159,46 +163,57 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         }
     }
 
+    @Override
     public PublishFilter getFilter() {
         return pomFilterContainer.getFilter();
     }
 
+    @Override
     public void setFilter(PublishFilter defaultFilter) {
         pomFilterContainer.setFilter(defaultFilter);
     }
 
+    @Override
     public MavenPom getPom() {
         return pomFilterContainer.getPom();
     }
 
+    @Override
     public void setPom(MavenPom defaultPom) {
         pomFilterContainer.setPom(defaultPom);
     }
 
+    @Override
     public MavenPom addFilter(String name, PublishFilter publishFilter) {
         return pomFilterContainer.addFilter(name, publishFilter);
     }
 
+    @Override
     public MavenPom addFilter(String name, Closure filter) {
         return pomFilterContainer.addFilter(name, filter);
     }
 
+    @Override
     public void filter(Closure filter) {
         pomFilterContainer.filter(filter);
     }
 
+    @Override
     public PublishFilter filter(String name) {
         return pomFilterContainer.filter(name);
     }
 
+    @Override
     public MavenPom pom(String name) {
         return pomFilterContainer.pom(name);
     }
 
+    @Override
     public MavenPom pom(Closure configureClosure) {
         return pomFilterContainer.pom(configureClosure);
     }
 
+    @Override
     public MavenPom pom(String name, Closure configureClosure) {
         return pomFilterContainer.pom(name, configureClosure);
     }
@@ -213,6 +228,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         return pomFilterContainer.pom(name, configureAction);
     }
 
+    @Override
     public Iterable<PomFilter> getActivePomFilters() {
         return pomFilterContainer.getActivePomFilters();
     }
@@ -221,10 +237,12 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         return pomFilterContainer;
     }
 
+    @Override
     public void beforeDeployment(Action<? super MavenDeployment> action) {
         beforeDeploymentActions.add(action);
     }
 
+    @Override
     public void beforeDeployment(Closure action) {
         beforeDeploymentActions.add(ConfigureUtil.configureUsing(action));
     }

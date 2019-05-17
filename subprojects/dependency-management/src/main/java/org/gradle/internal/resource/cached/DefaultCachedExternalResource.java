@@ -40,26 +40,32 @@ public class DefaultCachedExternalResource implements CachedExternalResource, Se
         this.externalResourceMetaData = null;
     }
 
+    @Override
     public boolean isMissing() {
         return cachedFile == null;
     }
 
+    @Override
     public File getCachedFile() {
         return cachedFile;
     }
 
+    @Override
     public long getCachedAt() {
         return cachedAt;
     }
 
+    @Override
     public ExternalResourceMetaData getExternalResourceMetaData() {
         return externalResourceMetaData;
     }
 
+    @Override
     public Date getExternalLastModified() {
         return externalResourceMetaData != null ? externalResourceMetaData.getLastModified() : null;
     }
 
+    @Override
     public long getContentLength() {
         return isMissing() ? -1 : cachedFile.length();
     }

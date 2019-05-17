@@ -87,6 +87,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     @Override
     public void finish(final DependencyGraphNode root) {
         store.write(new BinaryStore.WriteAction() {
+            @Override
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(ROOT);
                 encoder.writeSmallLong(root.getOwner().getResultId());
@@ -99,6 +100,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         final DependencyGraphComponent component = node.getOwner();
         if (visitedComponents.add(component.getResultId())) {
             store.write(new BinaryStore.WriteAction() {
+                @Override
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(COMPONENT);
                     componentResultSerializer.write(encoder, component);
@@ -127,6 +129,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             .collect(Collectors.toList());
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
+                @Override
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(DEPENDENCY);
                     encoder.writeSmallLong(fromComponent);
@@ -167,12 +170,15 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             this.extraFailures = extraFailures;
         }
 
+        @Override
         public ResolvedComponentResult create() {
             synchronized (lock) {
                 return cache.load(new Factory<ResolvedComponentResult>() {
+                    @Override
                     public ResolvedComponentResult create() {
                         try {
                             return data.read(new BinaryStore.ReadAction<ResolvedComponentResult>() {
+                                @Override
                                 public ResolvedComponentResult read(Decoder decoder) throws IOException {
                                     return deserialize(decoder);
                                 }

@@ -55,6 +55,7 @@ public abstract class ParallelResolveArtifactSet {
             this.buildOperationProcessor = buildOperationProcessor;
         }
 
+        @Override
         public void visit(final ArtifactVisitor visitor) {
             // Start preparing the result
             StartVisitAction visitAction = new StartVisitAction(visitor);

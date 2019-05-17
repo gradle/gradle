@@ -38,6 +38,7 @@ public class BuildDashboardPlugin implements Plugin<Project> {
 
     public static final String BUILD_DASHBOARD_TASK_NAME = "buildDashboard";
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
 
@@ -50,6 +51,7 @@ public class BuildDashboardPlugin implements Plugin<Project> {
                 DirectoryReport htmlReport = buildDashboardTask.getReports().getHtml();
                 ConventionMapping htmlReportConventionMapping = new DslObject(htmlReport).getConventionMapping();
                 htmlReportConventionMapping.map("destination", new Callable<Object>() {
+                    @Override
                     public Object call() throws Exception {
                         return project.getExtensions().getByType(ReportingExtension.class).file("buildDashboard");
                     }
@@ -59,6 +61,7 @@ public class BuildDashboardPlugin implements Plugin<Project> {
 
         for (Project aProject : project.getAllprojects()) {
             aProject.getTasks().configureEach(new Action<Task>() {
+                @Override
                 public void execute(Task task) {
                     if (!(task instanceof Reporting)) {
                         return;

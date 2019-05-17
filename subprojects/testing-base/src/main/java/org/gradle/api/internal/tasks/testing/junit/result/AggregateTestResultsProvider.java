@@ -49,6 +49,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         final AtomicLong newIdCounter = new AtomicLong(0L);
         for (final TestResultsProvider provider : providers) {
             provider.visitClasses(new Action<TestClassResult>() {
+                @Override
                 public void execute(final TestClassResult classResult) {
                     OverlaidIdProxyingTestClassResult newTestResult = aggregatedTestResults.get(classResult.getClassName());
                     if (newTestResult != null) {
@@ -102,6 +103,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         return Iterables.any(
                 classOutputProviders.get(id),
                 new Predicate<DelegateProvider>() {
+                    @Override
                     public boolean apply(DelegateProvider delegateProvider) {
                         return delegateProvider.provider.hasOutput(delegateProvider.id, destination);
                     }
@@ -118,6 +120,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     @Override
     public boolean isHasResults() {
         return any(providers, new Spec<TestResultsProvider>() {
+            @Override
             public boolean isSatisfiedBy(TestResultsProvider element) {
                 return element.isHasResults();
             }

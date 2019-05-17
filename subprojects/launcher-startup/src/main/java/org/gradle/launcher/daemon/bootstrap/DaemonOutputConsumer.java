@@ -39,6 +39,7 @@ public class DaemonOutputConsumer implements StreamsHandler {
         processStdOutput = process.getInputStream();
     }
 
+    @Override
     public void start() {
         if (processStdOutput == null) {
             throw new IllegalStateException("Cannot start consuming daemon output because streams have not been connected first.");
@@ -71,6 +72,7 @@ public class DaemonOutputConsumer implements StreamsHandler {
         return processOutput;
     }
 
+    @Override
     public void stop() {
     }
 

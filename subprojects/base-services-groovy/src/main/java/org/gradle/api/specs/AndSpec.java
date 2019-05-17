@@ -41,6 +41,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
         super(specs);
     }
 
+    @Override
     public boolean isSatisfiedBy(T object) {
         Spec<? super T>[] specs = getSpecsArray();
         for (Spec<? super T> spec : specs) {

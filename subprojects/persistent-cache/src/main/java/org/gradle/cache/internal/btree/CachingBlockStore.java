@@ -36,22 +36,26 @@ public class CachingBlockStore implements BlockStore {
         this.cacheableBlockTypes = ImmutableSet.copyOf(cacheableBlockTypes);
     }
 
+    @Override
     public void open(Runnable initAction, Factory factory) {
         store.open(initAction, factory);
     }
 
+    @Override
     public void close() {
         flush();
         indexBlockCache.invalidateAll();
         store.close();
     }
 
+    @Override
     public void clear() {
         dirty.clear();
         indexBlockCache.invalidateAll();
         store.clear();
     }
 
+    @Override
     public void flush() {
         Iterator<BlockPayload> iterator = dirty.values().iterator();
         while (iterator.hasNext()) {
@@ -62,10 +66,12 @@ public class CachingBlockStore implements BlockStore {
         store.flush();
     }
 
+    @Override
     public void attach(BlockPayload block) {
         store.attach(block);
     }
 
+    @Override
     public void remove(BlockPayload block) {
         dirty.remove(block.getPos());
         if (isCacheable(block)) {
@@ -74,12 +80,14 @@ public class CachingBlockStore implements BlockStore {
         store.remove(block);
     }
 
+    @Override
     public <T extends BlockPayload> T readFirst(Class<T> payloadType) {
         T block = store.readFirst(payloadType);
         maybeCache(block);
         return block;
     }
 
+    @Override
     public <T extends BlockPayload> T read(BlockPointer pos, Class<T> payloadType) {
         T block = payloadType.cast(dirty.get(pos));
         if (block != null) {
@@ -102,6 +110,7 @@ public class CachingBlockStore implements BlockStore {
         return null;
     }
 
+    @Override
     public void write(BlockPayload block) {
         store.attach(block);
         maybeCache(block);

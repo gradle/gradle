@@ -55,6 +55,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         return "Http " + method + " Resource: " + source;
     }
 
+    @Override
     public ExternalResourceMetaData getMetaData() {
         return metaData;
     }
@@ -100,6 +101,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         return false;
     }
 
+    @Override
     public InputStream openStream() throws IOException {
         if (wasOpened) {
             throw new IOException("Unable to open Stream as it was opened before.");

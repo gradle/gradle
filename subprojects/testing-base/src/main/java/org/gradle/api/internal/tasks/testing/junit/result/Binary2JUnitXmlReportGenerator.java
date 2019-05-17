@@ -78,6 +78,7 @@ public class Binary2JUnitXmlReportGenerator {
             @Override
             public void execute(final BuildOperationQueue<JUnitXmlReportFileGenerator> queue) {
                 testResultsProvider.visitClasses(new Action<TestClassResult>() {
+                    @Override
                     public void execute(final TestClassResult result) {
                         final File reportFile = new File(testResultsDir, getReportFileName(result));
                         queue.add(new JUnitXmlReportFileGenerator(result, reportFile, xmlWriter));

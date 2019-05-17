@@ -36,6 +36,7 @@ public class CorePluginResolver implements PluginResolver {
         this.pluginRegistry = pluginRegistry;
     }
 
+    @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
         PluginId id = pluginRequest.getId();
         if (!isCorePluginRequest(id)) {

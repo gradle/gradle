@@ -214,22 +214,27 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return new DefaultMutableMavenModuleResolveMetadata(this, objectInstantiator);
     }
 
+    @Override
     public String getPackaging() {
         return packaging;
     }
 
+    @Override
     public boolean isRelocated() {
         return relocated;
     }
 
+    @Override
     public boolean isPomPackaging() {
         return POM_PACKAGING.equals(packaging);
     }
 
+    @Override
     public boolean isKnownJarPackaging() {
         return JAR_PACKAGINGS.contains(packaging);
     }
 
+    @Override
     @Nullable
     public String getSnapshotTimestamp() {
         return snapshotTimestamp;

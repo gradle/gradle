@@ -37,6 +37,7 @@ public interface PersistentCache extends CacheAccess, Closeable, CleanableStore 
     /**
      * Returns the base directory for this cache.
      */
+    @Override
     File getBaseDir();
 
     /**
@@ -60,5 +61,6 @@ public interface PersistentCache extends CacheAccess, Closeable, CleanableStore 
     /**
      * Closes this cache, blocking until all operations are complete.
      */
+    @Override
     void close();
 }

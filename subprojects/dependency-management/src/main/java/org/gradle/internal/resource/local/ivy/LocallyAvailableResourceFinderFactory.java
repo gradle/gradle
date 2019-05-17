@@ -53,6 +53,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         this.fileStore = fileStore;
     }
 
+    @Override
     public LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> create() {
         List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new LinkedList<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>>();
 
@@ -142,6 +143,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
             this.ex = ex;
         }
 
+        @Override
         public LocallyAvailableResourceCandidates findCandidates(ModuleComponentArtifactMetadata criterion) {
             if(!logged){
                 LOGGER.warn("Unable to locate local Maven repository.");
@@ -149,10 +151,12 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
                 logged = true;
             }
             return new LocallyAvailableResourceCandidates() {
+                @Override
                 public boolean isNone() {
                     return true;
                 }
 
+                @Override
                 public LocallyAvailableResource findByHashValue(HashValue hashValue) {
                     return null;
                 }

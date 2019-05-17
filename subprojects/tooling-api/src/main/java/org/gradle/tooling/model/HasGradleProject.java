@@ -25,6 +25,7 @@ public interface HasGradleProject extends ProjectModel {
      * Returns the identifier for the project that this model is associated with.
      * @since 3.3
      */
+    @Override
     ProjectIdentifier getProjectIdentifier();
 
     /**

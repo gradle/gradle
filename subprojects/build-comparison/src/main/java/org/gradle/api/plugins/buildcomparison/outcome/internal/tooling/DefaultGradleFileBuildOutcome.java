@@ -31,10 +31,12 @@ public class DefaultGradleFileBuildOutcome extends DefaultGradleBuildOutcome imp
         this.typeIdentifier = typeIdentifier;
     }
 
+    @Override
     public File getFile() {
         return file;
     }
 
+    @Override
     public String getTypeIdentifier() {
         return typeIdentifier;
     }

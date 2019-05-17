@@ -19,5 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 
 public interface RootGraphNode extends DependencyGraphNode {
+    @Override
     RootConfigurationMetadata getMetadata();
 }

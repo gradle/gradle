@@ -23,6 +23,7 @@ import java.io.InputStream;
 public abstract class AbstractDecoder implements Decoder {
     private DecoderStream stream;
 
+    @Override
     public InputStream getInputStream() {
         if (stream == null) {
             stream = new DecoderStream();
@@ -30,10 +31,12 @@ public abstract class AbstractDecoder implements Decoder {
         return stream;
     }
 
+    @Override
     public void readBytes(byte[] buffer) throws IOException {
         readBytes(buffer, 0, buffer.length);
     }
 
+    @Override
     public byte[] readBinary() throws EOFException, IOException {
         int size = readSmallInt();
         byte[] result = new byte[size];
@@ -41,14 +44,17 @@ public abstract class AbstractDecoder implements Decoder {
         return result;
     }
 
+    @Override
     public int readSmallInt() throws EOFException, IOException {
         return readInt();
     }
 
+    @Override
     public long readSmallLong() throws EOFException, IOException {
         return readLong();
     }
 
+    @Override
     public String readNullableString() throws EOFException, IOException {
         if (readBoolean()) {
             return readString();
@@ -57,6 +63,7 @@ public abstract class AbstractDecoder implements Decoder {
         }
     }
 
+    @Override
     public void skipBytes(long count) throws EOFException, IOException {
         long remaining = count;
         while (remaining > 0) {

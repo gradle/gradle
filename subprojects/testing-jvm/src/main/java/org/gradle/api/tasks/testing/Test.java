@@ -579,6 +579,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         }
     }
 
+    @Override
     @TaskAction
     public void executeTests() {
         JavaVersion javaVersion = getJavaVersion();

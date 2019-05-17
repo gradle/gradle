@@ -69,6 +69,7 @@ public class BasePlugin implements Plugin<Project> {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
@@ -85,17 +86,20 @@ public class BasePlugin implements Plugin<Project> {
 
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(new Action<AbstractArchiveTask>() {
+            @Override
             public void execute(AbstractArchiveTask task) {
 
                 Callable<String> destinationDir;
                 if (task instanceof Jar) {
                     destinationDir = new Callable<String>() {
+                        @Override
                         public String call() {
                             return pluginConvention.getLibsDirName();
                         }
                     };
                 } else {
                     destinationDir = new Callable<String>() {
+                        @Override
                         public String call() {
                             return pluginConvention.getDistsDirName();
                         }
@@ -104,6 +108,7 @@ public class BasePlugin implements Plugin<Project> {
                 task.getDestinationDirectory().convention(project.getLayout().getBuildDirectory().dir(project.provider(destinationDir)));
 
                 task.getArchiveVersion().convention(project.provider(new Callable<String>() {
+                    @Override
                     @Nullable
                     public String call() {
                         return project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString();
@@ -111,6 +116,7 @@ public class BasePlugin implements Plugin<Project> {
                 }));
 
                 task.getArchiveBaseName().convention(project.provider(new Callable<String>() {
+                    @Override
                     public String call() {
                         return pluginConvention.getArchivesBaseName();
                     }
@@ -129,6 +135,7 @@ public class BasePlugin implements Plugin<Project> {
 
     private void configureUploadArchivesTask() {
         configurationActionContainer.add(new Action<ProjectInternal>() {
+            @Override
             public void execute(ProjectInternal project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(UPLOAD_ARCHIVES_TASK_NAME);
                 if (uploadArchives == null) {
@@ -163,9 +170,11 @@ public class BasePlugin implements Plugin<Project> {
         );
 
         configurations.all(new Action<Configuration>() {
+            @Override
             public void execute(final Configuration configuration) {
                 if (!configuration.equals(archivesConfiguration)) {
                     configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
+                        @Override
                         public void execute(PublishArtifact artifact) {
                             if (configuration.isVisible()) {
                                 defaultArtifacts.addCandidate(artifact);

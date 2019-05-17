@@ -25,6 +25,7 @@ public class DefaultBuildOutcomeComparatorFactory implements BuildOutcomeCompara
 
     Map<Class<? extends BuildOutcome>, BuildOutcomeComparator<?, ?>> comparators = new HashMap<Class<? extends BuildOutcome>, BuildOutcomeComparator<?, ?>>();
 
+    @Override
     public <T extends BuildOutcome> BuildOutcomeComparator<T, ?> getComparator(Class<T> outcomeType) {
         BuildOutcomeComparator<?, ?> comparator = comparators.get(outcomeType);
         if (comparator != null) {

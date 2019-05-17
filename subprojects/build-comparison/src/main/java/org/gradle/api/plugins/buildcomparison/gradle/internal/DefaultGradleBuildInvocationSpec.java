@@ -41,10 +41,12 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         this.projectDir = projectDir;
     }
 
+    @Override
     public File getProjectDir() {
         return fileResolver.resolve(projectDir);
     }
 
+    @Override
     public void setProjectDir(Object projectDir) {
         if (projectDir == null) {
             throw new IllegalArgumentException("projectDir cannot be null");
@@ -52,10 +54,12 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         this.projectDir = projectDir;
     }
 
+    @Override
     public String getGradleVersion() {
         return gradleVersion;
     }
 
+    @Override
     public void setGradleVersion(String gradleVersion) {
         if (gradleVersion == null) {
             throw new IllegalArgumentException("gradleVersion cannot be null");
@@ -64,18 +68,22 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         this.gradleVersion = version.getVersion();
     }
 
+    @Override
     public List<String> getTasks() {
         return tasks;
     }
 
+    @Override
     public void setTasks(Iterable<String> tasks) {
         this.tasks = tasks == null ? new LinkedList<String>() : Lists.newLinkedList(tasks);
     }
 
+    @Override
     public List<String> getArguments() {
         return arguments;
     }
 
+    @Override
     public void setArguments(Iterable<String> arguments) {
         this.arguments = arguments == null ? new LinkedList<String>() : Lists.newLinkedList(arguments);
     }

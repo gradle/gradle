@@ -30,8 +30,10 @@ public class ContextualizingIvyPublisher implements IvyPublisher {
         this.ivyContextManager = ivyContextManager;
     }
 
+    @Override
     public void publish(final IvyNormalizedPublication publication, final PublicationAwareRepository repository) {
         ivyContextManager.withIvy(new Action<Ivy>() {
+            @Override
             public void execute(Ivy ivy) {
                 ivyPublisher.publish(publication, repository);
             }

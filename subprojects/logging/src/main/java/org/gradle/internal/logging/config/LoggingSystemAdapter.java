@@ -30,6 +30,7 @@ public class LoggingSystemAdapter implements LoggingSourceSystem {
         this.configurer = configurer;
     }
 
+    @Override
     public Snapshot snapshot() {
         return new SnapshotImpl(enabled, logLevel);
     }
@@ -56,6 +57,7 @@ public class LoggingSystemAdapter implements LoggingSourceSystem {
         return snapshot;
     }
 
+    @Override
     public void restore(Snapshot state) {
         SnapshotImpl snapshot = (SnapshotImpl) state;
         logLevel = snapshot.level;

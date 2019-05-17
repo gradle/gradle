@@ -32,6 +32,7 @@ public class DefaultRuleActionValidator implements RuleActionValidator {
         this.validInputTypes = validInputTypes;
     }
 
+    @Override
     public <T> RuleAction<? super T> validate(RuleAction<? super T> ruleAction) {
         validateInputTypes(ruleAction);
         return ruleAction;
@@ -58,6 +59,7 @@ public class DefaultRuleActionValidator implements RuleActionValidator {
     }
 
     private static class ClassNameTransformer implements Transformer<String, Class<?>> {
+        @Override
         public String transform(Class<?> aClass) {
             return className(aClass);
         }

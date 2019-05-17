@@ -41,6 +41,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
         this.delegate = delegate;
     }
 
+    @Override
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         validateIdentity(publication);
         validateArtifacts(publication);

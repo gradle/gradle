@@ -118,6 +118,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     /**
      * Creates a new daemon context, based on the current state of this builder.
      */
+    @Override
     public DaemonContext create() {
         if (daemonRegistryDir == null) {
             throw new IllegalStateException("Registry dir must be specified.");

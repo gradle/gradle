@@ -84,9 +84,11 @@ public class DefaultClasspathEntrySnapshotter {
             this.hashes = hashes;
         }
 
+        @Override
         public void visitDir(FileVisitDetails dirDetails) {
         }
 
+        @Override
         public void visitFile(FileVisitDetails fileDetails) {
             if (!fileDetails.getName().endsWith(".class")) {
                 return;

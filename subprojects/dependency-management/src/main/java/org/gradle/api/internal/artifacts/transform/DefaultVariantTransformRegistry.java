@@ -121,6 +121,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
+    @Override
     public List<ArtifactTransformRegistration> getTransforms() {
         return transforms;
     }
