@@ -101,9 +101,26 @@ class ValidatingMavenPublisherTest extends Specification {
 
         where:
         groupId     | artifactId     | version       | message
-        "group-mod" | "artifact"     | "version"     | "supplied groupId does not match POM file (cannot edit groupId directly in the POM file)."
-        "group"     | "artifact-mod" | "version"     | "supplied artifactId does not match POM file (cannot edit artifactId directly in the POM file)."
-        "group"     | "artifact"     | "version-mod" | "supplied version does not match POM file (cannot edit version directly in the POM file)."
+        "group-mod" | "artifact"     | "version"     | "supplied groupId (group) does not match value from POM file (group-mod). Cannot edit groupId directly in the POM file."
+        "group"     | "artifact-mod" | "version"     | "supplied artifactId (artifact) does not match value from POM file (artifact-mod). Cannot edit artifactId directly in the POM file."
+        "group"     | "artifact"     | "version-mod" | "supplied version (version) does not match value from POM file (version-mod). Cannot edit version directly in the POM file."
+    }
+
+    def "ignores project coordinates missing from POM file that could be taken from parent POM file"() {
+        given:
+        def projectIdentity = makeProjectIdentity("group", "artifact", "version")
+        def pomFile = createPomFile(makeProjectIdentity(null, "artifact", null), new Action<XmlProvider>() {
+            void execute(XmlProvider xml) {
+                xml.asNode().appendNode("parent")
+            }
+        })
+        def publication = new MavenNormalizedPublication("pub-name", projectIdentity, "pom", pomFile, null, emptySet())
+
+        when:
+        publisher.publish(publication, repository)
+
+        then:
+        delegate.publish(publication, repository)
     }
 
     def "validates artifact attributes"() {
