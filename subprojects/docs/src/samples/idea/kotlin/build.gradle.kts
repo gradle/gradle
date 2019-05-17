@@ -57,7 +57,7 @@ idea.project.ipr {
     withXml(Action<XmlProvider> {
         fun Element.firstElement(predicate: (Element.() -> Boolean)) =
             childNodes
-                .let { children -> (0..children.length).map { children.item(it) } }
+                .run { (0 until length).map(::item) }
                 .filterIsInstance<Element>()
                 .first { it.predicate() }
 
