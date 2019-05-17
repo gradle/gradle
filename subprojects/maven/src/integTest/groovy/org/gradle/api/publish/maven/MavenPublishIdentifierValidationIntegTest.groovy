@@ -140,4 +140,39 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         failure.assertHasCause "Failed to publish publication 'maven' to repository 'maven'"
         failure.assertHasCause "Invalid publication 'maven': groupId cannot be empty"
     }
+
+    @Unroll
+    def "fails with reasonable error message for invalid #invalidComponent name"() {
+        settingsFile << "rootProject.name = 'invalid'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'org.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { 
+                        name '${repoName}'
+                        url "${mavenRepo.uri}" 
+                    }
+                }
+                publications {
+                    "${publicationName}"(MavenPublication)
+                }
+            }
+        """
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription "A problem occurred configuring root project 'invalid'"
+        failure.assertHasCause "${invalidComponent} name 'bad:name' is not valid for publication. Must match regex [A-Za-z0-9_\\-.]+"
+
+        where:
+        invalidComponent | repoName    | publicationName
+        "Repository"     | "bad:name"  | "mavenPub"
+        "Publication"    | "mavenRepo" | "bad:name"
+    }
 }
