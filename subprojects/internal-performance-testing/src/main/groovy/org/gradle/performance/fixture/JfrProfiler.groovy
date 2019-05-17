@@ -98,6 +98,13 @@ class JfrProfiler extends Profiler implements Stoppable {
     }
 
     void start(BuildExperimentSpec spec) {
+        // Remove any profiles created during warmup
+        def jfrOutputDir = getJfrOutputDirectory(spec)
+        jfrOutputDir.listFiles()
+            .findAll { it.name.endsWith(".jfr") }
+            .forEach { File file ->
+                file.delete()
+            }
         if (useDaemon(spec)) {
             jCmd.execute(pid.pid, "JFR.start", "name=profile", "settings=$config")
         }
