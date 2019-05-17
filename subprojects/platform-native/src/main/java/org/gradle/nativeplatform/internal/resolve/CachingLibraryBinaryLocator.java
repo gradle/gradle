@@ -25,14 +25,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
-    private static DomainObjectSet<NativeLibraryBinary> NULL_RESULT;
+    private static DomainObjectSet<NativeLibraryBinary> nullResult;
     private final LibraryBinaryLocator delegate;
     private final Map<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>> libraries = new HashMap<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>>();
 
     public CachingLibraryBinaryLocator(LibraryBinaryLocator delegate, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.delegate = delegate;
-        if (NULL_RESULT == null) {
-            NULL_RESULT = domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);
+        if (nullResult == null) {
+            nullResult = domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);
         }
     }
 
@@ -43,10 +43,10 @@ public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
         if (libraryBinaries == null) {
             libraryBinaries = delegate.getBinaries(library);
             if (libraryBinaries == null) {
-                libraryBinaries = NULL_RESULT;
+                libraryBinaries = nullResult;
             }
             libraries.put(library, libraryBinaries);
         }
-        return libraryBinaries == NULL_RESULT ? null : libraryBinaries;
+        return libraryBinaries == nullResult ? null : libraryBinaries;
     }
 }
