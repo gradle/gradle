@@ -16,12 +16,17 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.initialization.Settings
+import org.gradle.api.invocation.Gradle
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Ignore
+import spock.lang.Unroll
 
 class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
@@ -159,6 +164,39 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         then:
         result.groupedOutput.task(":a:b:help").output == firstRunOutput.task(":a:b:help").output
         result.groupedOutput.task(":a:c:help").output == firstRunOutput.task(":a:c:help").output
+    }
+
+    @Unroll
+    def "warns when task instance references an object of type #type"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                private final ${type} badReference
+                
+                SomeTask() {
+                    badReference = ${reference}
+                }
+
+                @TaskAction
+                void run() {
+                    println "reference = " + badReference
+                }
+            }
+
+            task broken(type: SomeTask)
+        """
+
+        when:
+        instantRun "broken"
+
+        then:
+        outputContains("instant-execution > Cannot serialize object of type ${type} as these are not supported with instant execution.")
+
+        where:
+        type          | reference
+        Project.name  | "project"
+        Gradle.name   | "project.gradle"
+        Settings.name | "project.gradle.settings"
+        Task.name     | "this"
     }
 
     @Ignore

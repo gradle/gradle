@@ -16,8 +16,11 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.DefaultCompositeFileTree
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -30,6 +33,7 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -38,13 +42,12 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.ListSerializer
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
-
+import org.slf4j.LoggerFactory
 import java.io.File
-
 import java.lang.reflect.Modifier
-
 import java.util.ArrayList
 import java.util.LinkedHashSet
+import kotlin.reflect.KClass
 
 
 class StateSerialization(
@@ -107,7 +110,17 @@ class StateSerialization(
             }
             is DefaultCopySpec -> defaultCopySpecSerializerFor(value)
             is DestinationRootCopySpec -> destinationRootCopySpecSerializerFor(value)
+            is Project -> projectStateType(Project::class)
+            is Gradle -> projectStateType(Gradle::class)
+            is Settings -> projectStateType(Settings::class)
+            is Task -> projectStateType(Task::class)
             else -> if (isBean(value.javaClass)) beanSerializerFor(value) else null
+        }
+
+        private
+        fun projectStateType(type: KClass<*>): ValueSerializer? {
+            LoggerFactory.getLogger(StateSerialization::class.java).warn("instant-execution > Cannot serialize object of type ${type.java.name} as these are not supported with instant execution.")
+            return null
         }
 
         private
