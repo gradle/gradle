@@ -25,7 +25,6 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
@@ -195,38 +194,7 @@ class DefaultInstantExecution(
             writeString(it.path)
         }
 
-        for (field in relevantStateOf(taskType)) {
-            val fieldValue = field.getFieldValue(task)
-            val conventionalValue = fieldValue ?: conventionalValueOf(task, field.name)
-            val finalValue = unpack(conventionalValue) ?: continue
-            val valueSerializer = stateSerializer.serializerFor(finalValue)
-            if (valueSerializer == null) {
-                logFieldWarning("serialize", task.path, taskType.name, field.name, "there's no serializer for type '${finalValue.javaClass.name}'")
-                continue
-            }
-            writeString(field.name)
-            try {
-                valueSerializer(this)
-            } catch (e: Exception) {
-                throw GradleException("Could not save the value of field '${taskType.name}.${field.name}' of task ${task.path}.", e)
-            }
-            logFieldSerialization("serialize", task.path, taskType.name, field.name, finalValue)
-        }
-        writeString("")
-    }
-
-    private
-    fun conventionalValueOf(task: Task, fieldName: String): Any? =
-        (task as IConventionAware).conventionMapping.getConventionValue(null, fieldName, false)
-
-    private
-    fun unpack(fieldValue: Any?) = when (fieldValue) {
-        is DirectoryProperty -> fieldValue.asFile.orNull
-        is RegularFileProperty -> fieldValue.asFile.orNull
-        is Property<*> -> fieldValue.orNull
-        is Supplier<*> -> fieldValue.get()
-        is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
-        else -> fieldValue
+        BeanFieldSerializer(task, relevantStateOf(taskType), stateSerializer).invoke(this, SerializationListener(task, logger))
     }
 
     private
@@ -245,6 +213,7 @@ class DefaultInstantExecution(
         val task = build.createTask(projectPath, taskName, taskClass)
         val taskDependencies = decoder.deserializeStrings()
         val deserializer = host.deserializerFor(taskClassLoader)
+        val listener = SerializationListener(task, logger)
         while (true) {
             val fieldName = decoder.readString()
             if (fieldName.isEmpty()) {
@@ -253,7 +222,7 @@ class DefaultInstantExecution(
             try {
                 val value = deserializer.read(decoder) ?: continue
                 val field = taskFieldsByName.getValue(fieldName)
-                logFieldSerialization("deserialize", task.path, typeName, fieldName, value)
+                listener.logFieldSerialization("deserialize", taskClass, fieldName, value)
                 @Suppress("unchecked_cast")
                 when (field.type) {
                     DirectoryProperty::class.java -> (field.getFieldValue(task) as? DirectoryProperty)?.set(value as File)
@@ -265,7 +234,7 @@ class DefaultInstantExecution(
                         if (field.type.isAssignableFrom(value.javaClass)) {
                             field.setValue(task, value)
                         } else {
-                            logFieldWarning("deserialize", "$projectPath:$taskName", typeName, fieldName, "${field.type} != ${value.javaClass}")
+                            listener.logFieldWarning("deserialize", taskClass, fieldName, "${field.type} != ${value.javaClass}")
                         }
                     }
                 }
@@ -317,20 +286,6 @@ class DefaultInstantExecution(
         AbstractTask::class.java,
         ConventionTask::class.java
     )
-
-    private
-    fun logFieldSerialization(actionName: String, taskPath: String, taskType: String, fieldName: String?, value: Any?) =
-        logger.info(
-            "instant-execution > task '{}' field '{}.{}' {}d value '{}'",
-            taskPath, taskType, fieldName, actionName, value
-        )
-
-    private
-    fun logFieldWarning(actionName: String, taskPath: String, taskType: String, fieldName: String?, reason: String) =
-        logger.warn(
-            "instant-execution > task '{}' field '{}.{}' cannot be {}d because {}.",
-            taskPath, taskType, fieldName, actionName, reason
-        )
 
     private
     val isInstantExecutionEnabled: Boolean

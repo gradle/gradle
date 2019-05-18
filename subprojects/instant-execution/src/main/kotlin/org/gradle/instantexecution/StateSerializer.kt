@@ -25,7 +25,7 @@ interface StateSerializer {
 }
 
 
-typealias ValueSerializer = (Encoder) -> Unit
+typealias ValueSerializer = (Encoder, SerializationListener) -> Unit
 
 
 interface StateDeserializer {

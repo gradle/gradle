@@ -39,7 +39,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
-import org.gradle.internal.serialize.ListSerializer
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
 import org.slf4j.LoggerFactory
@@ -73,39 +72,26 @@ class StateSerialization(
         DefaultStateDeserializer(beanClassLoader)
 
     private
-    inner class DefaultStateSerializer : StateSerializer, Serializer<Any> {
-
-        private
-        val listSerializer = ListSerializer(this)
-
-        override fun write(encoder: Encoder, value: Any?) {
-            val serializer = serializerFor(value)
-            require(serializer != null) {
-                "No serializer for $value found."
-            }
-            serializer(encoder)
-        }
+    inner class DefaultStateSerializer : StateSerializer {
 
         override fun serializerFor(value: Any?): ValueSerializer? = when (value) {
-            null -> { encoder ->
+            null -> { encoder, _ ->
                 encoder.writeByte(NULL_VALUE)
             }
-            is String -> { encoder ->
+            is String -> { encoder, _ ->
                 encoder.writeWithTag(STRING_TYPE, stringSerializer, value)
             }
-            is FileTreeInternal -> { encoder ->
+            is FileTreeInternal -> { encoder, _ ->
                 encoder.writeWithTag(FILE_TREE_TYPE, fileTreeSerializer, value)
             }
-            is File -> { encoder ->
+            is File -> { encoder, _ ->
                 encoder.writeWithTag(FILE_TYPE, BaseSerializerFactory.FILE_SERIALIZER, value)
             }
-            is FileCollection -> { encoder ->
+            is FileCollection -> { encoder, _ ->
                 encoder.writeWithTag(FILE_COLLECTION_TYPE, fileSetSerializer, value.files)
             }
-            is List<*> -> { encoder ->
-                encoder.writeWithTag(LIST_TYPE, listSerializer, value)
-            }
-            is ArtifactCollection -> { encoder ->
+            is List<*> -> listSerializerFor(value)
+            is ArtifactCollection -> { encoder, _ ->
                 encoder.writeByte(ARTIFACT_COLLECTION_TYPE)
             }
             is DefaultCopySpec -> defaultCopySpecSerializerFor(value)
@@ -124,42 +110,49 @@ class StateSerialization(
         }
 
         private
-        fun defaultCopySpecSerializerFor(value: DefaultCopySpec): (Encoder) -> Unit = { encoder ->
+        fun defaultCopySpecSerializerFor(value: DefaultCopySpec): ValueSerializer = { encoder, listener ->
             val allSourcePaths = ArrayList<File>()
             collectSourcePathsFrom(value, allSourcePaths)
             encoder.writeByte(DEFAULT_COPY_SPEC)
-            write(encoder, allSourcePaths)
+            write(encoder, listener, allSourcePaths)
         }
 
         private
-        fun destinationRootCopySpecSerializerFor(value: DestinationRootCopySpec): (Encoder) -> Unit = { encoder ->
+        fun destinationRootCopySpecSerializerFor(value: DestinationRootCopySpec): ValueSerializer = { encoder, listener ->
             encoder.writeByte(DESTINATION_ROOT_COPY_SPEC)
-            write(encoder, value.destinationDir)
-            write(encoder, value.delegate)
+            write(encoder, listener, value.destinationDir)
+            write(encoder, listener, value.delegate)
         }
 
         private
-        fun beanSerializerFor(value: Any): ValueSerializer = { encoder ->
+        fun beanSerializerFor(value: Any): ValueSerializer = { encoder, _ ->
             encoder.writeByte(BEAN)
             encoder.writeString(value.javaClass.name)
         }
 
         private
+        fun listSerializerFor(value: List<*>): ValueSerializer = { encoder, listener ->
+            encoder.writeByte(LIST_TYPE)
+            encoder.writeSmallInt(value.size)
+            for (item in value) {
+                write(encoder, listener, item)
+            }
+        }
+
+        private
+        fun write(encoder: Encoder, listener: SerializationListener, value: Any?) {
+            serializerFor(value)!!.invoke(encoder, listener)
+        }
+
+        private
         fun isBean(type: Class<*>) =
             !Modifier.isAbstract(type.modifiers) && type.declaredConstructors.any { it.parameterCount == 0 }
-
-        override fun read(decoder: Decoder): Any? = throw UnsupportedOperationException()
     }
 
     private
     inner class DefaultStateDeserializer(
         private val beanClassLoader: ClassLoader
-    ) : StateDeserializer, Serializer<Any> {
-
-        private
-        val listSerializer by lazy(LazyThreadSafetyMode.NONE) {
-            ListSerializer(this)
-        }
+    ) : StateDeserializer {
 
         override fun read(decoder: Decoder): Any? = when (decoder.readByte()) {
             NULL_VALUE -> null
@@ -167,7 +160,7 @@ class StateSerialization(
             FILE_TREE_TYPE -> fileTreeSerializer.read(decoder)
             FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(decoder)
             FILE_COLLECTION_TYPE -> fileCollectionFactory.fixed(fileSetSerializer.read(decoder))
-            LIST_TYPE -> listSerializer.read(decoder)
+            LIST_TYPE -> deserializeList(decoder)
             ARTIFACT_COLLECTION_TYPE -> EmptyArtifactCollection(ImmutableFileCollection.of())
             DEFAULT_COPY_SPEC -> deserializeDefaultCopySpec(decoder, this)
             DESTINATION_ROOT_COPY_SPEC -> deserializeDestinationRootCopySpec(decoder, this)
@@ -182,6 +175,16 @@ class StateSerialization(
                 isAccessible = true
                 newInstance()
             }
+        }
+
+        private
+        fun deserializeList(decoder: Decoder): List<Any?> {
+            val size = decoder.readSmallInt()
+            val items = ArrayList<Any?>(size)
+            for (i in 1..size) {
+                items.add(read(decoder))
+            }
+            return items
         }
 
         private
@@ -201,8 +204,6 @@ class StateSerialization(
             copySpec.from(sourceFiles)
             return copySpec
         }
-
-        override fun write(encoder: Encoder, value: Any?) = throw UnsupportedOperationException()
     }
 
     private
