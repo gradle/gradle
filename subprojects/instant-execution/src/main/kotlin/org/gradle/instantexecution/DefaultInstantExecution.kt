@@ -20,14 +20,11 @@ import groovy.lang.GroovyObject
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Task
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
-import org.gradle.api.provider.Property
 import org.gradle.initialization.InstantExecution
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
@@ -45,7 +42,6 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.nio.file.Files
 import java.util.SortedSet
-import java.util.function.Supplier
 
 
 class DefaultInstantExecution(
@@ -116,7 +112,11 @@ class DefaultInstantExecution(
             val relevantClassPath = classPathFor(scheduledTasks)
             encoder.serializeClassPath(relevantClassPath)
             encoder.serializeCollection(scheduledTasks) { task ->
-                encoder.saveStateOf(task, build)
+                try {
+                    encoder.saveStateOf(task, build)
+                } catch (e: Exception) {
+                    throw GradleException("Could not save state of $task.", e)
+                }
             }
         }
     }
@@ -193,13 +193,7 @@ class DefaultInstantExecution(
             writeString(it.path)
         }
 
-        BeanFieldSerializer(task, relevantStateOf(taskType), stateSerializer).invoke(this, SerializationListener(task, logger))
-    }
-
-    private
-    fun Field.getFieldValue(task: Task): Any? {
-        isAccessible = true
-        return get(task)
+        BeanFieldSerializer(task, taskType, stateSerializer).invoke(this, SerializationListener(task, logger))
     }
 
     private
@@ -208,83 +202,17 @@ class DefaultInstantExecution(
         val taskName = decoder.readString()
         val typeName = decoder.readString()
         val taskClass = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
-        val taskFieldsByName = relevantStateOf(taskClass).associateBy { it.name }
         val task = build.createTask(projectPath, taskName, taskClass)
         val taskDependencies = decoder.deserializeStrings()
         val deserializer = host.deserializerFor(taskClassLoader)
         val listener = SerializationListener(task, logger)
-        while (true) {
-            val fieldName = decoder.readString()
-            if (fieldName.isEmpty()) {
-                break
-            }
-            try {
-                val value = deserializer.read(decoder) ?: continue
-                val field = taskFieldsByName.getValue(fieldName)
-                listener.logFieldSerialization("deserialize", taskClass, fieldName, value)
-                @Suppress("unchecked_cast")
-                when (field.type) {
-                    DirectoryProperty::class.java -> (field.getFieldValue(task) as? DirectoryProperty)?.set(value as File)
-                    RegularFileProperty::class.java -> (field.getFieldValue(task) as? RegularFileProperty)?.set(value as File)
-                    Property::class.java -> (field.getFieldValue(task) as? Property<Any>)?.set(value)
-                    Supplier::class.java -> field.setValue(task, Supplier { value })
-                    Function0::class.java -> field.setValue(task, { value })
-                    else -> {
-                        if (field.type.isAssignableFrom(value.javaClass)) {
-                            field.setValue(task, value)
-                        } else {
-                            listener.logFieldWarning("deserialize", taskClass, fieldName, "${field.type} != ${value.javaClass}")
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                throw GradleException("Could not load value of field '$typeName.$fieldName' of task ${task.path}.", e)
-            }
-        }
+        BeanFieldDeserializer(task, taskClass, deserializer).deserialize(decoder, listener)
         return task to taskDependencies
     }
 
     private
     fun InstantExecutionBuild.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
         getProject(projectPath).tasks.create(taskName, taskClass)
-
-    private
-    fun Field.setValue(task: Task, value: Any) {
-        isAccessible = true
-        set(task, value)
-    }
-
-    private
-    fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
-        relevantTypeHierarchyOf(taskType).flatMap { type ->
-            type.declaredFields.asSequence().filterNot { field ->
-                Modifier.isStatic(field.modifiers) || Modifier.isTransient(field.modifiers)
-            }
-        }
-
-    private
-    fun relevantTypeHierarchyOf(taskType: Class<*>): Sequence<Class<*>> = sequence {
-        var current = taskType
-        while (isRelevantDeclaringClass(current)) {
-            yield(current)
-            current = current.superclass
-        }
-    }
-
-    private
-    fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
-        declaringClass !in irrelevantDeclaringClasses
-
-    private
-    val irrelevantDeclaringClasses = setOf(
-        Object::class.java,
-        GroovyObject::class.java,
-        Task::class.java,
-        TaskInternal::class.java,
-        DefaultTask::class.java,
-        AbstractTask::class.java,
-        ConventionTask::class.java
-    )
 
     private
     val isInstantExecutionEnabled: Boolean
@@ -298,6 +226,42 @@ class DefaultInstantExecution(
         File(dir, cacheFileName)
     }
 }
+
+
+internal
+fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
+    relevantTypeHierarchyOf(taskType).flatMap { type ->
+        type.declaredFields.asSequence().filterNot { field ->
+            Modifier.isStatic(field.modifiers) || Modifier.isTransient(field.modifiers)
+        }
+    }
+
+
+private
+fun relevantTypeHierarchyOf(taskType: Class<*>): Sequence<Class<*>> = sequence {
+    var current = taskType
+    while (isRelevantDeclaringClass(current)) {
+        yield(current)
+        current = current.superclass
+    }
+}
+
+
+private
+fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
+    declaringClass !in irrelevantDeclaringClasses
+
+
+private
+val irrelevantDeclaringClasses = setOf(
+    Object::class.java,
+    GroovyObject::class.java,
+    Task::class.java,
+    TaskInternal::class.java,
+    DefaultTask::class.java,
+    AbstractTask::class.java,
+    ConventionTask::class.java
+)
 
 
 internal
