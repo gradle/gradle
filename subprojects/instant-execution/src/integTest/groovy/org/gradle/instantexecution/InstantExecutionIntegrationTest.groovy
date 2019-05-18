@@ -17,19 +17,13 @@
 package org.gradle.instantexecution
 
 import org.gradle.initialization.LoadProjectsBuildOperationType
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Ignore
 
-class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        executer.noDeprecationChecks()
-    }
+class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "instant execution for help on empty project"() {
         given:
@@ -104,70 +98,6 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":a")
     }
 
-    def "instant execution for compileJava on Java project with no dependencies"() {
-        given:
-        buildFile << """
-            plugins { id 'java' }
-            
-            println "running build script"
-        """
-        file("src/main/java/Thing.java") << """
-            class Thing {
-            }
-        """
-
-        expect:
-        instantRun "compileJava"
-        outputContains("running build script")
-        result.assertTasksExecuted(":compileJava")
-        def classFile = file("build/classes/java/main/Thing.class")
-        classFile.isFile()
-
-        when:
-        classFile.delete()
-        instantRun "compileJava"
-
-        then:
-        outputDoesNotContain("running build script")
-        result.assertTasksExecuted(":compileJava")
-        classFile.isFile()
-    }
-
-    def "instant execution for assemble on Java project with multiple source directories"() {
-        given:
-        buildFile << """
-            plugins { id 'java' }
-            
-            sourceSets.main.java.srcDir("src/common/java") 
-            
-            println "running build script"
-        """
-        file("src/common/java/OtherThing.java") << """
-            class OtherThing {
-            }
-        """
-        file("src/main/java/Thing.java") << """
-            class Thing extends OtherThing {
-            }
-        """
-
-        expect:
-        instantRun "assemble"
-        outputContains("running build script")
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
-        def classFile = file("build/classes/java/main/Thing.class")
-        classFile.isFile()
-
-        when:
-        classFile.delete()
-        instantRun "assemble"
-
-        then:
-        outputDoesNotContain("running build script")
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
-        classFile.isFile()
-    }
-
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -232,36 +162,6 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore
-    def "instant execution for compileGroovy on Groovy project with no dependencies"() {
-        given:
-        buildFile << """
-            plugins { id 'groovy' }
-            
-            println "running build script"
-        """
-        file("src/main/java/Thing.groovy") << """
-            class Thing {
-            }
-        """
-
-        expect:
-        instantRun "compileGroovy"
-        outputContains("running build script")
-        result.assertTasksExecuted(":compileGroovy")
-        def classFile = file("build/classes/java/main/Thing.class")
-        classFile.isFile()
-
-        when:
-        classFile.delete()
-        instantRun "compileGroovy"
-
-        then:
-        outputDoesNotContain("running build script")
-        result.assertTasksExecuted(":compileGroovy")
-        classFile.isFile()
-    }
-
-    @Ignore
     def "android"() {
 
         given:
@@ -271,44 +171,4 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         instantRun 'mainApkListPersistenceDebug', 'compileDebugAidl'
         instantRun 'mainApkListPersistenceDebug', 'compileDebugAidl'
     }
-
-    def "multi-project java build"() {
-        given:
-        settingsFile << """
-            include("a", "b")
-        """
-        buildFile << """
-            allprojects { apply plugin: 'java' }
-            project(":b") {
-                dependencies {
-                    implementation(project(":a"))
-                }
-            }
-        """
-        file("a/src/main/java/a/A.java") << """
-            package a;
-            public class A {}
-        """
-        file("b/src/main/java/b/B.java") << """
-            package b;
-            public class B extends a.A {}
-        """
-
-        when:
-        instantRun ":b:assemble", "-s"
-
-        and:
-        file("b/build/classes/java/main/b/B.class").delete()
-        instantRun ":b:assemble", "-s"
-
-        then:
-        new ZipTestFixture(file("b/build/libs/b.jar")).assertContainsFile("b/B.class")
-    }
-
-    private void instantRun(String... args) {
-        run(INSTANT_EXECUTION_PROPERTY, *args)
-    }
-
-    private static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution"
-
 }
