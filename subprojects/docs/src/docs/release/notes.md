@@ -15,6 +15,7 @@ Include only their name, impactful features should be called out separately belo
 [Evgeny Mandrikov](https://github.com/Godin),
 [Stefan M.](https://github.com/StefMa),
 [Igor Melnichenko](https://github.com/Myllyenko),
+[Björn Kautler](https://github.com/Vampire),
 [Roberto Perez Alcolea](https://github.com/rpalcolea) and
 [Christian Fränkel](https://github.com/fraenkelc)
 
