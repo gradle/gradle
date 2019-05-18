@@ -166,19 +166,61 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         result.groupedOutput.task(":a:c:help").output == firstRunOutput.task(":a:c:help").output
     }
 
+    def "restores fields whose value is a simple bean"() {
+        buildFile << """
+            class SomeBean {
+                String value 
+                SomeBean parent
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                
+                SomeTask() {
+                    bean.parent = new SomeBean()
+                    bean.value = "child"
+                    bean.parent.value = "parent"
+                }
+
+                @TaskAction
+                void run() {
+                    println "bean.value = " + bean.value
+                    println "bean.parent.value = " + bean.parent.value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("bean.value = child")
+        outputContains("bean.parent.value = parent")
+    }
+
     @Unroll
     def "warns when task instance references an object of type #type"() {
         buildFile << """
+            class SomeBean {
+                private ${type} badReference
+            }
+            
             class SomeTask extends DefaultTask {
                 private final ${type} badReference
+                private final bean = new SomeBean()
                 
                 SomeTask() {
                     badReference = ${reference}
+                    bean.badReference = ${reference}
                 }
 
                 @TaskAction
                 void run() {
                     println "reference = " + badReference
+                    println "bean.reference = " + bean.badReference
                 }
             }
 
@@ -190,6 +232,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         outputContains("instant-execution > Cannot serialize object of type ${type} as these are not supported with instant execution.")
+        outputContains("instant-execution > task ':broken' field 'SomeTask.badReference' cannot be serialized because there's no serializer for")
+        outputContains("instant-execution > task ':broken' field 'SomeBean.badReference' cannot be serialized because there's no serializer for")
 
         where:
         type          | reference

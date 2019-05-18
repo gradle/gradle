@@ -125,9 +125,10 @@ class StateSerialization(
         }
 
         private
-        fun beanSerializerFor(value: Any): ValueSerializer = { encoder, _ ->
+        fun beanSerializerFor(value: Any): ValueSerializer = { encoder, listener ->
             encoder.writeByte(BEAN)
             encoder.writeString(value.javaClass.name)
+            BeanFieldSerializer(value, value.javaClass, this).invoke(encoder, listener)
         }
 
         private
@@ -154,52 +155,54 @@ class StateSerialization(
         private val beanClassLoader: ClassLoader
     ) : StateDeserializer {
 
-        override fun read(decoder: Decoder): Any? = when (decoder.readByte()) {
+        override fun read(decoder: Decoder, listener: SerializationListener): Any? = when (decoder.readByte()) {
             NULL_VALUE -> null
             STRING_TYPE -> stringSerializer.read(decoder)
             FILE_TREE_TYPE -> fileTreeSerializer.read(decoder)
             FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(decoder)
             FILE_COLLECTION_TYPE -> fileCollectionFactory.fixed(fileSetSerializer.read(decoder))
-            LIST_TYPE -> deserializeList(decoder)
+            LIST_TYPE -> deserializeList(decoder, listener)
             ARTIFACT_COLLECTION_TYPE -> EmptyArtifactCollection(ImmutableFileCollection.of())
-            DEFAULT_COPY_SPEC -> deserializeDefaultCopySpec(decoder, this)
-            DESTINATION_ROOT_COPY_SPEC -> deserializeDestinationRootCopySpec(decoder, this)
-            BEAN -> deserializeBean(decoder, beanClassLoader)
+            DEFAULT_COPY_SPEC -> deserializeDefaultCopySpec(decoder, listener)
+            DESTINATION_ROOT_COPY_SPEC -> deserializeDestinationRootCopySpec(decoder, listener)
+            BEAN -> deserializeBean(decoder, listener, beanClassLoader)
             else -> throw UnsupportedOperationException()
         }
 
         private
-        fun deserializeBean(decoder: Decoder, loader: ClassLoader): Any {
+        fun deserializeBean(decoder: Decoder, listener: SerializationListener, loader: ClassLoader): Any {
             val beanTypeName = decoder.readString()
-            return loader.loadClass(beanTypeName).declaredConstructors.first { it.parameterCount == 0 }.run {
+            val bean = loader.loadClass(beanTypeName).declaredConstructors.first { it.parameterCount == 0 }.run {
                 isAccessible = true
                 newInstance()
             }
+            BeanFieldDeserializer(bean, bean.javaClass, this).deserialize(decoder, listener)
+            return bean
         }
 
         private
-        fun deserializeList(decoder: Decoder): List<Any?> {
+        fun deserializeList(decoder: Decoder, listener: SerializationListener): List<Any?> {
             val size = decoder.readSmallInt()
             val items = ArrayList<Any?>(size)
             for (i in 1..size) {
-                items.add(read(decoder))
+                items.add(read(decoder, listener))
             }
             return items
         }
 
         private
-        fun deserializeDestinationRootCopySpec(decoder: Decoder, read: StateDeserializer): DestinationRootCopySpec {
-            val destDir = read.read(decoder) as? File
-            val delegate = read.read(decoder) as CopySpecInternal
+        fun deserializeDestinationRootCopySpec(decoder: Decoder, listener: SerializationListener): DestinationRootCopySpec {
+            val destDir = read(decoder, listener) as? File
+            val delegate = read(decoder, listener) as CopySpecInternal
             val spec = DestinationRootCopySpec(fileResolver, delegate)
             destDir?.let(spec::into)
             return spec
         }
 
         private
-        fun deserializeDefaultCopySpec(decoder: Decoder, read: StateDeserializer): DefaultCopySpec {
+        fun deserializeDefaultCopySpec(decoder: Decoder, listener: SerializationListener): DefaultCopySpec {
             @Suppress("unchecked_cast")
-            val sourceFiles = read.read(decoder) as List<File>
+            val sourceFiles = read(decoder, listener) as List<File>
             val copySpec = DefaultCopySpec(fileResolver, instantiator)
             copySpec.from(sourceFiles)
             return copySpec

@@ -19,45 +19,45 @@ package org.gradle.instantexecution
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
 import org.gradle.internal.serialize.Encoder
-import java.lang.reflect.Field
 import java.util.function.Supplier
 
 
 /**
  * Serializes a bean by serializing the value of each of its fields.
  */
-class BeanFieldSerializer(private val bean: Any, private val fields: Sequence<Field>, private val stateSerializer: StateSerializer) : ValueSerializer {
+class BeanFieldSerializer(private val bean: Any, private val beanType: Class<*>, private val stateSerializer: StateSerializer) : ValueSerializer {
     override fun invoke(encoder: Encoder, listener: SerializationListener) {
         encoder.apply {
-            for (field in fields) {
+            for (field in relevantStateOf(beanType)) {
                 field.isAccessible = true
                 val fieldValue = field.get(bean)
                 val conventionalValue = fieldValue ?: conventionalValueOf(bean, field.name)
                 val finalValue = unpack(conventionalValue) ?: continue
                 val valueSerializer = stateSerializer.serializerFor(finalValue)
                 if (valueSerializer == null) {
-                    listener.logFieldWarning("serialize", bean.javaClass, field.name, "there's no serializer for type '${finalValue.javaClass.name}'")
+                    listener.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue).name}'")
                     continue
                 }
                 writeString(field.name)
                 try {
                     valueSerializer(this, listener)
                 } catch (e: Exception) {
-                    throw GradleException("Could not save the value of field '${bean.javaClass.name}.${field.name}'.", e)
+                    throw GradleException("Could not save the value of field '${beanType.name}.${field.name}'.", e)
                 }
-                listener.logFieldSerialization("serialize", bean.javaClass, field.name, finalValue)
+                listener.logFieldSerialization("serialize", beanType, field.name, finalValue)
             }
             writeString("")
         }
     }
 
     private
-    fun conventionalValueOf(task: Any, fieldName: String): Any? {
-        if (task is IConventionAware) {
-            return task.conventionMapping.getConventionValue(null, fieldName, false)
+    fun conventionalValueOf(bean: Any, fieldName: String): Any? {
+        if (bean is IConventionAware) {
+            return bean.conventionMapping.getConventionValue(null, fieldName, false)
         } else {
             return null
         }
