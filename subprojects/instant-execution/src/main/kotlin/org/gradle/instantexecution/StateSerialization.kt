@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import groovy.lang.GroovyObjectSupport
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ArtifactCollection
@@ -42,6 +43,7 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
 import org.slf4j.LoggerFactory
+import sun.reflect.ReflectionFactory
 import java.io.File
 import java.lang.reflect.Modifier
 import java.util.ArrayList
@@ -172,10 +174,13 @@ class StateSerialization(
         private
         fun deserializeBean(decoder: Decoder, listener: SerializationListener, loader: ClassLoader): Any {
             val beanTypeName = decoder.readString()
-            val bean = loader.loadClass(beanTypeName).declaredConstructors.first { it.parameterCount == 0 }.run {
-                isAccessible = true
-                newInstance()
+            val beanType = loader.loadClass(beanTypeName)
+            val constructor = if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
+                ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
+            } else {
+                ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, Object::class.java.getConstructor())
             }
+            val bean = constructor.newInstance()
             BeanFieldDeserializer(bean, bean.javaClass, this).deserialize(decoder, listener)
             return bean
         }

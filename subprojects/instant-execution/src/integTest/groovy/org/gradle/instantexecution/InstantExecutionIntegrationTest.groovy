@@ -171,6 +171,11 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             class SomeBean {
                 String value 
                 SomeBean parent
+                
+                SomeBean() {
+                    println("creating bean")
+                    value = "default"
+                }
             }
 
             class SomeTask extends DefaultTask {
@@ -194,9 +199,15 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         when:
         instantRun "ok"
+
+        then:
+        result.output.count("creating bean") == 2
+
+        when:
         instantRun "ok"
 
         then:
+        result.output.count("creating bean") == 2 // still running the task constructor, which creates values that are then discarded
         outputContains("bean.value = child")
         outputContains("bean.parent.value = parent")
     }
