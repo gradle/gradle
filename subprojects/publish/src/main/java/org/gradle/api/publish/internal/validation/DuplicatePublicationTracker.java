@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.publisher;
+package org.gradle.api.publish.internal.validation;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.internal.PublicationInternal;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 public class DuplicatePublicationTracker {
     private final static Logger LOG = Logging.getLogger(DuplicatePublicationTracker.class);
-    private final Multimap<String, MavenPublicationInternal> published = LinkedHashMultimap.create();
-    private final LocalMavenRepositoryLocator mavenRepositoryLocator;
+    private final Multimap<String, PublicationInternal> published = LinkedHashMultimap.create();
 
-    public DuplicatePublicationTracker(LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        this.mavenRepositoryLocator = mavenRepositoryLocator;
-    }
+    public synchronized void checkCanPublish(PublicationInternal publication, @Nullable URI repositoryLocation, String repositoryName) {
+        // Don't track publications to repositories configured without a base URL
+        if (repositoryLocation == null) {
+            return;
+        }
 
-    public synchronized void checkCanPublish(MavenPublicationInternal publication, URI repositoryLocation, String repositoryName) {
         String repositoryKey = normalizeLocation(repositoryLocation);
 
         if (published.get(repositoryKey).contains(publication)) {
@@ -45,17 +45,13 @@ public class DuplicatePublicationTracker {
         }
 
         ModuleVersionIdentifier projectIdentity = publication.getCoordinates();
-        for (MavenPublicationInternal previousPublication : published.get(repositoryKey)) {
+        for (PublicationInternal previousPublication : published.get(repositoryKey)) {
             if (previousPublication.getCoordinates().equals(projectIdentity)) {
                 throw new GradleException("Cannot publish multiple publications with coordinates '" + projectIdentity + "' to repository '" + repositoryName + "'");
             }
         }
 
         published.put(repositoryKey, publication);
-    }
-
-    public synchronized void checkCanPublishToMavenLocal(MavenPublicationInternal publication) {
-        checkCanPublish(publication, mavenRepositoryLocator.getLocalMavenRepository().toURI(), "mavenLocal");
     }
 
     private String normalizeLocation(URI location) {

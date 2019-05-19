@@ -148,4 +148,47 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    def "fails when multiple publications share the same coordinates"() {
+        given:
+        settingsFile << "rootProject.name = 'duplicate-publications'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java'
+
+            group = 'org.example'
+            version = '1.0'
+
+            task otherJar(type: Jar) {
+                classifier "other"
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    main(IvyPublication) {
+                        from components.java
+                    }
+                    other(IvyPublication) {
+                        artifact(otherJar)
+                    }
+                }
+            }
+        """
+
+        def module = ivyRepo.module('org.example', 'duplicate-publications', '1.0')
+
+        when:
+        succeeds 'publishMainPublicationToIvyRepository'
+
+        then:
+        module.assertPublished()
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate-publications:1.0' to repository 'ivy'")
+    }
 }
