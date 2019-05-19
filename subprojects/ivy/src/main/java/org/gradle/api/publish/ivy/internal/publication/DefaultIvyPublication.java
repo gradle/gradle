@@ -74,6 +74,7 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
@@ -127,7 +128,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private final FeaturePreviews featurePreviews;
     private IvyArtifact ivyDescriptorArtifact;
-    private Task moduleDescriptorGenerator;
+    private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
     private boolean alias;
@@ -149,9 +150,9 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.versionMappingStrategy = versionMappingStrategy;
         this.featurePreviews = featurePreviews;
         this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.metadataArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.derivedArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.publishableArtifacts = new CompositePublicationArtifactSet<IvyArtifact>(IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
+        this.metadataArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.derivedArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.publishableArtifacts = new CompositePublicationArtifactSet<>(IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
         this.ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
         this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this, instantiator, objectFactory);
     }
@@ -183,7 +184,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public void setIvyDescriptorGenerator(Task descriptorGenerator) {
+    public void setIvyDescriptorGenerator(TaskProvider<? extends Task> descriptorGenerator) {
         if (ivyDescriptorArtifact != null) {
             metadataArtifacts.remove(ivyDescriptorArtifact);
         }
@@ -193,7 +194,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public void setModuleDescriptorGenerator(Task descriptorGenerator) {
+    public void setModuleDescriptorGenerator(TaskProvider<? extends Task> descriptorGenerator) {
         moduleDescriptorGenerator = descriptorGenerator;
         if (gradleModuleDescriptorArtifact != null) {
             metadataArtifacts.remove(gradleModuleDescriptorArtifact);

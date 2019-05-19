@@ -202,8 +202,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                         .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS)));
             });
         });
-        // TODO: Make lazy
-        publication.setPomGenerator(generatorTask.get());
+        publication.setPomGenerator(generatorTask);
     }
 
     private void createGenerateMetadataTask(final TaskContainer tasks, final MavenPublicationInternal publication, final Set<? extends MavenPublicationInternal> publications, final DirectoryProperty buildDir) {
@@ -216,8 +215,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
             generateTask.getPublications().set(publications);
             generateTask.getOutputFile().convention(buildDir.file("publications/" + publication.getName() + "/module.json"));
         });
-        // TODO: Make lazy
-        publication.setModuleDescriptorGenerator(generatorTask.get());
+        publication.setModuleDescriptorGenerator(generatorTask);
     }
 
     private class MavenPublicationFactory implements NamedDomainObjectFactory<MavenPublication> {
