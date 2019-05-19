@@ -514,7 +514,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this.new DefaultCopySpecResolver(null);
     }
 
-    // TODO:instant-execution
+    // TODO:instant-execution - remove this
     public Set<File> resolveSourceFiles() {
         return fileResolver.resolveFiles(sourcePaths).getFiles();
     }

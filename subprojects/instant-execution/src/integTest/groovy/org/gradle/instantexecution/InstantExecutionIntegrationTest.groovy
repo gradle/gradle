@@ -28,6 +28,8 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Unroll
 
+import javax.inject.Inject
+
 class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "instant execution for help on empty project"() {
@@ -166,25 +168,24 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         result.groupedOutput.task(":a:c:help").output == firstRunOutput.task(":a:c:help").output
     }
 
-    def "restores fields whose value is a simple bean"() {
+    def "restores task fields whose value is a simple bean"() {
         buildFile << """
             class SomeBean {
                 String value 
                 SomeBean parent
                 
-                SomeBean() {
+                SomeBean(String value) {
                     println("creating bean")
-                    value = "default"
+                    this.value = value
                 }
             }
 
             class SomeTask extends DefaultTask {
-                private final SomeBean bean = new SomeBean()
+                final SomeBean bean
                 
                 SomeTask() {
-                    bean.parent = new SomeBean()
-                    bean.value = "child"
-                    bean.parent.value = "parent"
+                    bean = new SomeBean("default")
+                    bean.parent = new SomeBean("parent")
                 }
 
                 @TaskAction
@@ -194,7 +195,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
                 }
             }
 
-            task ok(type: SomeTask)
+            task ok(type: SomeTask) {
+                bean.value = "child"
+            }
         """
 
         when:
@@ -207,13 +210,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "ok"
 
         then:
-        result.output.count("creating bean") == 2 // still running the task constructor, which creates values that are then discarded
+        result.output.count("creating bean") == 2 // still running the task constructor, which creates values which are then discarded
         outputContains("bean.value = child")
         outputContains("bean.parent.value = parent")
     }
 
     @Unroll
-    def "restores fields whose value is #type"() {
+    def "restores task fields whose value is #type"() {
         buildFile << """
             class SomeBean {
                 ${type} value 
@@ -253,13 +256,70 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         boolean.name           | "true"                   | "true"
         Integer.name           | "12"                     | "12"
         int.name               | "12"                     | "12"
+        Long.name              | "12"                     | "12"
+        long.name              | "12"                     | "12"
         "List<String>"         | "['a', 'b', 'c']"        | "[a, b, c]"
         "Set<String>"          | "['a', 'b', 'c'] as Set" | "[a, b, c]"
         "Map<String, Integer>" | "[a: 1, b: 2]"           | "[a:1, b:2]"
     }
 
     @Unroll
-    def "warns when task instance references an object of type #type"() {
+    def "restores task fields whose value is property #type"() {
+        buildFile << """
+            import ${Inject.name}
+
+            class SomeBean {
+                final ${type} value
+
+                @Inject
+                SomeBean(ObjectFactory objects) {
+                    value = ${factory}
+                }
+            }
+
+            class SomeTask extends DefaultTask {
+                final SomeBean bean = project.objects.newInstance(SomeBean)
+                final ${type} value
+
+                @Inject
+                SomeTask(ObjectFactory objects) {
+                    value = ${factory}
+                }
+
+                @TaskAction
+                void run() {
+                    println "value = " + value.getOrNull()
+                    println "bean.value = " + bean.value.getOrNull()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = ${reference}
+                bean.value = ${reference}
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        def expected = output instanceof File ? file(output.path) : output
+        outputContains("value = ${expected}")
+        outputContains("bean.value = ${expected}")
+
+        where:
+        type                  | factory                       | reference     | output
+        "Property<String>"    | "objects.property(String)"    | "'value'"     | "value"
+        "Property<String>"    | "objects.property(String)"    | "null"        | "null"
+        "DirectoryProperty"   | "objects.directoryProperty()" | "file('abc')" | new File('abc')
+        "DirectoryProperty"   | "objects.directoryProperty()" | "null"        | "null"
+        "RegularFileProperty" | "objects.fileProperty()"      | "file('abc')" | new File('abc')
+        "RegularFileProperty" | "objects.fileProperty()"      | "null"        | "null"
+    }
+
+    @Unroll
+    def "warns when task field references an object of type #type"() {
         buildFile << """
             class SomeBean {
                 private ${type} badReference

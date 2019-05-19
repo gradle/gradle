@@ -30,7 +30,7 @@ class SerializationListener(private val owner: Task, private val logger: Logger)
 
     fun logFieldSerialization(action: String, type: Class<*>, fieldName: String, value: Any?) {
         logger.info(
-            "instant-execution > task '{}' field '{}.{}' {}d value '{}'",
+            "instant-execution > task '{}' field '{}.{}' {}d value {}",
             owner.path, type.name, fieldName, action, value
         )
     }

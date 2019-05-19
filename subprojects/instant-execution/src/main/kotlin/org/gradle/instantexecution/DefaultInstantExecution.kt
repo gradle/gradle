@@ -24,6 +24,7 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.InstantExecution
 import org.gradle.internal.classloader.ClasspathUtil
@@ -75,15 +76,14 @@ class DefaultInstantExecution(
     }
 
     override fun canExecuteInstantaneously(): Boolean {
-        if (!isInstantExecutionEnabled) {
+        return if (!isInstantExecutionEnabled) {
             return false
-        }
-        if (!instantExecutionStateFile.isFile) {
+        } else if (!instantExecutionStateFile.isFile) {
             logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
-            return false
+            false
         } else {
             logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
-            return true
+            true
         }
     }
 
@@ -173,6 +173,9 @@ class DefaultInstantExecution(
     }
 
     private
+    val filePropertyFactory = host.getService(FilePropertyFactory::class.java)
+
+    private
     fun classLoaderFor(classPath: ClassPath) =
         host.classLoaderFor(classPath)
 
@@ -207,7 +210,7 @@ class DefaultInstantExecution(
         val taskDependencies = decoder.deserializeStrings()
         val deserializer = host.deserializerFor(taskClassLoader)
         val listener = SerializationListener(task, logger)
-        BeanFieldDeserializer(task, taskClass, deserializer).deserialize(decoder, listener)
+        BeanFieldDeserializer(task, taskClass, deserializer, filePropertyFactory).deserialize(decoder, listener)
         return task to taskDependencies
     }
 

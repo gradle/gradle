@@ -23,6 +23,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -241,13 +242,17 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory) {
+    FilePropertyFactory createFilePropertyFactory(FileResolver fileResolver) {
+        return new DefaultFilePropertyFactory(fileResolver);
+    }
+
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory, FilePropertyFactory filePropertyFactory) {
         return new DefaultObjectFactory(
             instantiatorFactory.injectAndDecorate(services),
             NamedObjectInstantiator.INSTANCE,
             fileResolver,
             directoryFileTreeFactory,
-            new DefaultFilePropertyFactory(fileResolver),
+            filePropertyFactory,
             fileCollectionFactory);
     }
 
