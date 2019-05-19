@@ -36,10 +36,14 @@ class BeanFieldSerializer(private val bean: Any, private val beanType: Class<*>,
                 field.isAccessible = true
                 val fieldValue = field.get(bean)
                 val conventionalValue = fieldValue ?: conventionalValueOf(bean, field.name)
-                val finalValue = unpack(conventionalValue) ?: continue
+                val finalValue = unpack(conventionalValue)
                 val valueSerializer = stateSerializer.serializerFor(finalValue)
                 if (valueSerializer == null) {
-                    listener.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue).name}'")
+                    if (finalValue == null) {
+                        listener.logFieldWarning("serialize", beanType, field.name, "there's no serializer for null values")
+                    } else {
+                        listener.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue).name}'")
+                    }
                     continue
                 }
                 writeString(field.name)

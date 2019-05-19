@@ -22,6 +22,7 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderIds
@@ -31,16 +32,17 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.BuildLoader
+import org.gradle.initialization.BuildOperatingFiringSettingsPreparer
+import org.gradle.initialization.BuildOperatingFiringTaskExecutionPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.NotifyingBuildLoader
-import org.gradle.initialization.BuildOperatingFiringSettingsPreparer
-import org.gradle.initialization.BuildOperatingFiringTaskExecutionPreparer
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
@@ -81,7 +83,9 @@ class InstantExecutionHost internal constructor(
             getService(DirectoryFileTreeFactory::class.java),
             getService(FileCollectionFactory::class.java),
             getService(FileResolver::class.java),
-            getService(Instantiator::class.java)
+            getService(Instantiator::class.java),
+            getService(PatternSpecFactory::class.java),
+            getService(FilePropertyFactory::class.java)
         )
     }
 
@@ -133,7 +137,7 @@ class InstantExecutionHost internal constructor(
                 // Fire build operation required by build scan to determine startup duration and settings evaluated duration
                 val settingsPreparer = BuildOperatingFiringSettingsPreparer(SettingsPreparer {
                     // Nothing to do
-                    // TODO - instant-execution: instead, create and attach the settings object
+                    // TODO:instant-execution - instead, create and attach the settings object
                 }, getService(BuildOperationExecutor::class.java), getService(BuildDefinition::class.java).fromBuild)
                 settingsPreparer.prepareSettings(this)
 
@@ -238,7 +242,7 @@ class InstantExecutionHost internal constructor(
             // This might be better done as a new build operation type
             BuildOperatingFiringTaskExecutionPreparer(TaskExecutionPreparer {
                 // Nothing to do
-                // TODO - instant-execution: prehaps move this so it wraps loading tasks from cache file
+                // TODO:instant-execution - perhaps move this so it wraps loading tasks from cache file
             }, getService(BuildOperationExecutor::class.java)).prepareForTaskExecution(gradle)
         }
 

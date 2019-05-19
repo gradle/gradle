@@ -19,6 +19,8 @@ package org.gradle.instantexecution
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.internal.file.FilePropertyFactory
+import org.gradle.api.internal.provider.DefaultPropertyState
 import org.gradle.api.provider.Property
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.serialize.Decoder
@@ -26,7 +28,12 @@ import java.io.File
 import java.util.function.Supplier
 
 
-class BeanFieldDeserializer(private val bean: Any, private val beanType: Class<*>, private val deserializer: StateDeserializer) {
+class BeanFieldDeserializer(
+    private val bean: Any,
+    private val beanType: Class<*>,
+    private val deserializer: StateDeserializer,
+    private val filePropertyFactory: FilePropertyFactory
+) {
     fun deserialize(decoder: Decoder, listener: SerializationListener) {
         val fieldsByName = relevantStateOf(beanType).associateBy { it.name }
         while (true) {
@@ -35,23 +42,35 @@ class BeanFieldDeserializer(private val bean: Any, private val beanType: Class<*
                 break
             }
             try {
-                val value = deserializer.read(decoder, listener) ?: continue
+                val value = deserializer.read(decoder, listener)
                 val field = fieldsByName.getValue(fieldName)
                 field.isAccessible = true
                 listener.logFieldSerialization("deserialize", beanType, fieldName, value)
                 @Suppress("unchecked_cast")
                 when (field.type) {
-                    DirectoryProperty::class.java -> (field.get(bean) as? DirectoryProperty)?.set(value as File)
-                    RegularFileProperty::class.java -> (field.get(bean) as? RegularFileProperty)?.set(value as File)
-                    Property::class.java -> (field.get(bean) as? Property<Any>)?.set(value)
+                    DirectoryProperty::class.java -> {
+                        val dirProperty = filePropertyFactory.newDirectoryProperty()
+                        dirProperty.set(value as File?)
+                        field.set(bean, dirProperty)
+                    }
+                    RegularFileProperty::class.java -> {
+                        val fileProperty = filePropertyFactory.newFileProperty()
+                        fileProperty.set(value as File?)
+                        field.set(bean, fileProperty)
+                    }
+                    Property::class.java -> {
+                        val property = DefaultPropertyState<Any>(Any::class.java)
+                        property.set(value)
+                        field.set(bean, property)
+                    }
                     Supplier::class.java -> field.set(bean, Supplier { value })
                     Function0::class.java -> field.set(bean, { value })
                     else -> {
                         if (field.type.isInstance(value) || field.type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(field.type).isInstance(value)) {
                             field.set(bean, value)
-                        } else {
-                            listener.logFieldWarning("deserialize", beanType, fieldName, "${field.type} != ${value.javaClass}")
-                        }
+                        } else if (value != null) {
+                            listener.logFieldWarning("deserialize", beanType, fieldName, "value $value is not assignable to ${field.type}")
+                        } // else null value -> ignore
                     }
                 }
             } catch (e: Exception) {
