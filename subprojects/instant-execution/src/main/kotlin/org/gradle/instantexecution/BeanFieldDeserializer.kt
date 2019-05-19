@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.serialize.Decoder
 import java.io.File
 import java.util.function.Supplier
@@ -46,7 +47,7 @@ class BeanFieldDeserializer(private val bean: Any, private val beanType: Class<*
                     Supplier::class.java -> field.set(bean, Supplier { value })
                     Function0::class.java -> field.set(bean, { value })
                     else -> {
-                        if (field.type.isAssignableFrom(value.javaClass)) {
+                        if (field.type.isInstance(value) || field.type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(field.type).isInstance(value)) {
                             field.set(bean, value)
                         } else {
                             listener.logFieldWarning("deserialize", beanType, fieldName, "${field.type} != ${value.javaClass}")
