@@ -46,8 +46,6 @@ import org.slf4j.LoggerFactory
 import sun.reflect.ReflectionFactory
 import java.io.File
 import java.lang.reflect.Modifier
-import java.util.ArrayList
-import java.util.LinkedHashSet
 import kotlin.reflect.KClass
 
 
@@ -63,6 +61,12 @@ class StateSerialization(
 
     private
     val stringSerializer = BaseSerializerFactory.STRING_SERIALIZER
+
+    private
+    val integerSerializer = BaseSerializerFactory.INTEGER_SERIALIZER
+
+    private
+    val booleanSerializer = BaseSerializerFactory.BOOLEAN_SERIALIZER
 
     private
     val fileTreeSerializer = FileTreeSerializer()
@@ -83,6 +87,12 @@ class StateSerialization(
             is String -> { encoder, _ ->
                 encoder.writeWithTag(STRING_TYPE, stringSerializer, value)
             }
+            is Int -> { encoder, _ ->
+                encoder.writeWithTag(INT_TYPE, integerSerializer, value)
+            }
+            is Boolean -> { encoder, _ ->
+                encoder.writeWithTag(BOOLEAN_TYPE, booleanSerializer, value)
+            }
             is FileTreeInternal -> { encoder, _ ->
                 encoder.writeWithTag(FILE_TREE_TYPE, fileTreeSerializer, value)
             }
@@ -92,7 +102,9 @@ class StateSerialization(
             is FileCollection -> { encoder, _ ->
                 encoder.writeWithTag(FILE_COLLECTION_TYPE, fileSetSerializer, value.files)
             }
-            is List<*> -> listSerializerFor(value)
+            is List<*> -> collectionSerializerFor(LIST_TYPE, value)
+            is Set<*> -> collectionSerializerFor(SET_TYPE, value)
+            is Map<*, *> -> mapSerializerFor(value)
             is ArtifactCollection -> { encoder, _ ->
                 encoder.writeByte(ARTIFACT_COLLECTION_TYPE)
             }
@@ -134,11 +146,21 @@ class StateSerialization(
         }
 
         private
-        fun listSerializerFor(value: List<*>): ValueSerializer = { encoder, listener ->
-            encoder.writeByte(LIST_TYPE)
+        fun collectionSerializerFor(tag: Byte, value: Collection<*>): ValueSerializer = { encoder, listener ->
+            encoder.writeByte(tag)
             encoder.writeSmallInt(value.size)
             for (item in value) {
                 write(encoder, listener, item)
+            }
+        }
+
+        private
+        fun mapSerializerFor(value: Map<*, *>): ValueSerializer = { encoder, listener ->
+            encoder.writeByte(MAP_TYPE)
+            encoder.writeSmallInt(value.size)
+            for (entry in value.entries) {
+                write(encoder, listener, entry.key)
+                write(encoder, listener, entry.value)
             }
         }
 
@@ -160,10 +182,14 @@ class StateSerialization(
         override fun read(decoder: Decoder, listener: SerializationListener): Any? = when (decoder.readByte()) {
             NULL_VALUE -> null
             STRING_TYPE -> stringSerializer.read(decoder)
+            BOOLEAN_TYPE -> booleanSerializer.read(decoder)
+            INT_TYPE -> integerSerializer.read(decoder)
+            LIST_TYPE -> deserializeCollection(decoder, listener) { ArrayList<Any?>(it) }
+            SET_TYPE -> deserializeCollection(decoder, listener) { LinkedHashSet<Any?>(it) }
+            MAP_TYPE -> deserializeMap(decoder, listener)
             FILE_TREE_TYPE -> fileTreeSerializer.read(decoder)
             FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(decoder)
             FILE_COLLECTION_TYPE -> fileCollectionFactory.fixed(fileSetSerializer.read(decoder))
-            LIST_TYPE -> deserializeList(decoder, listener)
             ARTIFACT_COLLECTION_TYPE -> EmptyArtifactCollection(ImmutableFileCollection.of())
             DEFAULT_COPY_SPEC -> deserializeDefaultCopySpec(decoder, listener)
             DESTINATION_ROOT_COPY_SPEC -> deserializeDestinationRootCopySpec(decoder, listener)
@@ -186,11 +212,23 @@ class StateSerialization(
         }
 
         private
-        fun deserializeList(decoder: Decoder, listener: SerializationListener): List<Any?> {
+        fun <T : MutableCollection<Any?>> deserializeCollection(decoder: Decoder, listener: SerializationListener, factory: (Int) -> T): T {
             val size = decoder.readSmallInt()
-            val items = ArrayList<Any?>(size)
+            val items = factory(size)
             for (i in 1..size) {
                 items.add(read(decoder, listener))
+            }
+            return items
+        }
+
+        private
+        fun deserializeMap(decoder: Decoder, listener: SerializationListener): Map<Any?, Any?> {
+            val size = decoder.readSmallInt()
+            val items = LinkedHashMap<Any?, Any?>()
+            for (i in 1..size) {
+                val key = read(decoder, listener)
+                val value = read(decoder, listener)
+                items.put(key, value)
             }
             return items
         }
@@ -249,14 +287,20 @@ class StateSerialization(
     companion object {
         const val NULL_VALUE: Byte = 0
         const val STRING_TYPE: Byte = 1
-        const val FILE_TREE_TYPE: Byte = 2
-        const val FILE_TYPE: Byte = 3
-        const val FILE_COLLECTION_TYPE: Byte = 4
-        const val LIST_TYPE: Byte = 5
-        const val ARTIFACT_COLLECTION_TYPE: Byte = 6
-        const val DEFAULT_COPY_SPEC: Byte = 7
-        const val DESTINATION_ROOT_COPY_SPEC: Byte = 8
-        const val BEAN: Byte = 9
+        const val BOOLEAN_TYPE: Byte = 2
+        const val INT_TYPE: Byte = 3
+        const val LIST_TYPE: Byte = 4
+        const val SET_TYPE: Byte = 5
+        const val MAP_TYPE: Byte = 6
+        const val BEAN: Byte = 7
+
+        // Gradle types
+        const val FILE_TREE_TYPE: Byte = 8
+        const val FILE_TYPE: Byte = 9
+        const val FILE_COLLECTION_TYPE: Byte = 10
+        const val ARTIFACT_COLLECTION_TYPE: Byte = 11
+        const val DEFAULT_COPY_SPEC: Byte = 12
+        const val DESTINATION_ROOT_COPY_SPEC: Byte = 13
     }
 }
 

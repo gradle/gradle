@@ -213,6 +213,52 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
+    def "restores fields whose value is #type"() {
+        buildFile << """
+            class SomeBean {
+                ${type} value 
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                private final ${type} value
+                
+                SomeTask() {
+                    value = ${reference}
+                    bean.value = ${reference}
+                }
+
+                @TaskAction
+                void run() {
+                    println "value = " + value
+                    println "bean.value = " + bean.value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("value = ${output}")
+        outputContains("bean.value = ${output}")
+
+        where:
+        type                   | reference                | output
+        String.name            | "'value'"                | "value"
+        Boolean.name           | "true"                   | "true"
+        boolean.name           | "true"                   | "true"
+        Integer.name           | "12"                     | "12"
+        int.name               | "12"                     | "12"
+        "List<String>"         | "['a', 'b', 'c']"        | "[a, b, c]"
+        "Set<String>"          | "['a', 'b', 'c'] as Set" | "[a, b, c]"
+        "Map<String, Integer>" | "[a: 1, b: 2]"           | "[a:1, b:2]"
+    }
+
+    @Unroll
     def "warns when task instance references an object of type #type"() {
         buildFile << """
             class SomeBean {
