@@ -21,7 +21,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.options.Option;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutor;
@@ -64,11 +63,6 @@ public class WorkerTask extends DefaultTask {
     @Input
     public int getOutputSize() {
         return outputSize;
-    }
-
-    @Option(option="outputSize", description="set the number of output files")
-    public void setOutputSize(String outputSize) {
-        setOutputSize(Integer.valueOf(outputSize));
     }
 
     public void setOutputSize(int outputSize) {

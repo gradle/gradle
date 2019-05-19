@@ -23,7 +23,7 @@ import org.gradle.workers.IsolationMode;
 
 public class WorkerPlugin implements Plugin<Project> {
     @Override
-    public void apply(Project project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply("base");
         project.getTasks().create("noIsolation", WorkerTask.class);
 
@@ -38,6 +38,14 @@ public class WorkerPlugin implements Plugin<Project> {
             @Override
             public void execute(WorkerTask workerTask) {
                 workerTask.setIsolationMode(IsolationMode.PROCESS);
+            }
+        });
+
+        project.getTasks().withType(WorkerTask.class, new Action<WorkerTask>() {
+            @Override
+            public void execute(WorkerTask workerTask) {
+                int outputSize = Integer.valueOf(project.property("outputSize").toString());
+                workerTask.setOutputSize(outputSize);
             }
         });
     }
