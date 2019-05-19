@@ -166,8 +166,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 descriptorTask.setDestination(buildDir.file("publications/" + publicationName + "/ivy.xml"));
             }
         });
-        // TODO: Make lazy
-        publication.setIvyDescriptorGenerator(generatorTask.get());
+        publication.setIvyDescriptorGenerator(generatorTask);
     }
 
     private void createGenerateMetadataTask(final TaskContainer tasks, final IvyPublicationInternal publication, final Set<IvyPublicationInternal> publications, final DirectoryProperty buildDir) {
@@ -180,8 +179,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
             generateTask.getPublications().set(publications);
             generateTask.getOutputFile().convention(buildDir.file("publications/" + publicationName + "/module.json"));
         });
-        // TODO: Make lazy
-        publication.setModuleDescriptorGenerator(generatorTask.get());
+        publication.setModuleDescriptorGenerator(generatorTask);
     }
 
     private class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {

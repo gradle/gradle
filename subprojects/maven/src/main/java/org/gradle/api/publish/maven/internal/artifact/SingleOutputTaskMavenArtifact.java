@@ -16,29 +16,30 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.tasks.TaskProvider;
 
 import java.io.File;
 
 public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
-    private final Task generator;
+    private final TaskProvider<? extends Task> generator;
     private final String extension;
     private final String classifier;
-    private final DefaultTaskDependency buildDependencies;
+    private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskMavenArtifact(Task generator, String extension, String classifier) {
+    public SingleOutputTaskMavenArtifact(TaskProvider<? extends Task> generator, String extension, String classifier) {
         this.generator = generator;
         this.extension = extension;
         this.classifier = classifier;
-        this.buildDependencies = new DefaultTaskDependency(null, ImmutableSet.<Object>of(generator));
+        this.buildDependencies = new GeneratorTaskDependency();
     }
 
     @Override
     public File getFile() {
-        return generator.getOutputs().getFiles().getSingleFile();
+        return generator.get().getOutputs().getFiles().getSingleFile();
     }
 
     @Override
@@ -57,6 +58,13 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     }
 
     public boolean isEnabled() {
-        return generator.getEnabled();
+        return generator.get().getEnabled();
+    }
+
+    private class GeneratorTaskDependency extends AbstractTaskDependency {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(generator.get());
+        }
     }
 }

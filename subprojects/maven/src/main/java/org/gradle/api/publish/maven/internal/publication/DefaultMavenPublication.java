@@ -76,6 +76,7 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInterna
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -143,7 +144,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private MavenArtifact pomArtifact;
     private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
-    private Task moduleDescriptorGenerator;
+    private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
     private boolean alias;
@@ -162,9 +163,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
         this.mainArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.metadataArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        derivedArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        publishableArtifacts = new CompositePublicationArtifactSet<MavenArtifact>(MavenArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
+        this.metadataArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
+        derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
+        publishableArtifacts = new CompositePublicationArtifactSet<>(MavenArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
         pom = instantiator.newInstance(DefaultMavenPom.class, this, instantiator, objectFactory);
         this.featurePreviews = featurePreviews;
     }
@@ -196,7 +197,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public void setPomGenerator(Task pomGenerator) {
+    public void setPomGenerator(TaskProvider<? extends Task> pomGenerator) {
         if (pomArtifact != null) {
             metadataArtifacts.remove(pomArtifact);
         }
@@ -205,7 +206,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public void setModuleDescriptorGenerator(Task descriptorGenerator) {
+    public void setModuleDescriptorGenerator(TaskProvider<? extends Task> descriptorGenerator) {
         moduleDescriptorGenerator = descriptorGenerator;
         if (moduleMetadataArtifact != null) {
             metadataArtifacts.remove(moduleMetadataArtifact);
