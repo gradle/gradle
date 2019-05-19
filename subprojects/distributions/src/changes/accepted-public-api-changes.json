@@ -39,10 +39,10 @@
             ]
         },
         {
-          "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
-          "member": "Method org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getDuplicatePublicationTracker()",
-          "acceptation": "Injected service",
-          "changes": []
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getDuplicatePublicationTracker()",
+            "acceptation": "Injected service",
+            "changes": []
         }
     ]
 }

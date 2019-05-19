@@ -20,13 +20,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.DuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
-
-import javax.inject.Inject;
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to a {@link MavenArtifactRepository}.
@@ -67,6 +64,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
 
+        getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
         doPublish(publicationInternal, repository);
     }
 
@@ -74,16 +72,10 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         new PublishOperation(publication, repository.getName()) {
             @Override
             protected void publish() {
-                getDuplicatePublicationTracker().checkCanPublish(publication, repository);
                 MavenPublisher remotePublisher = getMavenPublishers().getRemotePublisher(getTemporaryDirFactory());
                 remotePublisher = new ValidatingMavenPublisher(remotePublisher);
                 remotePublisher.publish(publication.asNormalisedPublication(), repository);
             }
         }.run();
-    }
-
-    @Inject
-    protected DuplicatePublicationTracker getDuplicatePublicationTracker() {
-        throw new UnsupportedOperationException();
     }
 }

@@ -185,6 +185,12 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate-publications:1.0' to repository 'maven'")
+
+        when:
+        fails 'publishToMavenLocal'
+
+        then:
+        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate-publications:1.0' to repository 'mavenLocal'")
     }
 
     def "fails when publications in different projects share the same coordinates"() {

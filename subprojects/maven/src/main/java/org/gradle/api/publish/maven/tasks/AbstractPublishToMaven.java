@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.maven.internal.publisher.DuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitivity;
@@ -107,6 +108,11 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
 
     @Inject
     protected MavenPublishers getMavenPublishers() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected DuplicatePublicationTracker getDuplicatePublicationTracker() {
         throw new UnsupportedOperationException();
     }
 

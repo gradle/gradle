@@ -59,7 +59,7 @@ public class MavenPublishServices extends AbstractPluginServiceRegistry {
         }
 
         public DuplicatePublicationTracker createDuplicatePublicationTracker() {
-            return new DuplicatePublicationTracker();
+            return new DuplicatePublicationTracker(mavenRepositoryLocator);
         }
     }
 }

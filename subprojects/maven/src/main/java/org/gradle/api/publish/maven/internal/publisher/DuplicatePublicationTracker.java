@@ -20,7 +20,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
@@ -30,27 +30,35 @@ import java.net.URI;
 public class DuplicatePublicationTracker {
     private final static Logger LOG = Logging.getLogger(DuplicatePublicationTracker.class);
     private final Multimap<String, MavenPublicationInternal> published = LinkedHashMultimap.create();
+    private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public synchronized void checkCanPublish(MavenPublicationInternal publication, MavenArtifactRepository repository) {
-        String repositoryKey = getRepositoryLocation(repository);
+    public DuplicatePublicationTracker(LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        this.mavenRepositoryLocator = mavenRepositoryLocator;
+    }
+
+    public synchronized void checkCanPublish(MavenPublicationInternal publication, URI repositoryLocation, String repositoryName) {
+        String repositoryKey = normalizeLocation(repositoryLocation);
 
         if (published.get(repositoryKey).contains(publication)) {
-            LOG.warn("Publication '" + publication.getCoordinates() + "' is published multiple times to the same location. It is likely that repository '" + repository.getName() + "' is duplicated.");
+            LOG.warn("Publication '" + publication.getCoordinates() + "' is published multiple times to the same location. It is likely that repository '" + repositoryName + "' is duplicated.");
             return;
         }
 
         ModuleVersionIdentifier projectIdentity = publication.getCoordinates();
         for (MavenPublicationInternal previousPublication : published.get(repositoryKey)) {
             if (previousPublication.getCoordinates().equals(projectIdentity)) {
-                throw new GradleException("Cannot publish multiple publications with coordinates '" + projectIdentity + "' to repository '" + repository.getName() + "'");
+                throw new GradleException("Cannot publish multiple publications with coordinates '" + projectIdentity + "' to repository '" + repositoryName + "'");
             }
         }
 
         published.put(repositoryKey, publication);
     }
 
-    private String getRepositoryLocation(MavenArtifactRepository repository) {
-        URI location = repository.getUrl();
+    public synchronized void checkCanPublishToMavenLocal(MavenPublicationInternal publication) {
+        checkCanPublish(publication, mavenRepositoryLocator.getLocalMavenRepository().toURI(), "mavenLocal");
+    }
+
+    private String normalizeLocation(URI location) {
         String repoUrl = location.toString();
         if (!repoUrl.endsWith("/")) {
             return repoUrl + "/";

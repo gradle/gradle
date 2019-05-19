@@ -37,6 +37,8 @@ public class PublishToMavenLocal extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
 
+        getDuplicatePublicationTracker().checkCanPublishToMavenLocal(publication);
+
         new PublishOperation(publication, "mavenLocal") {
             @Override
             protected void publish() {
