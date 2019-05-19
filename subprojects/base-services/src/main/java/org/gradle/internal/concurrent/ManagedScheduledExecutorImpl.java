@@ -31,21 +31,21 @@ public class ManagedScheduledExecutorImpl extends ManagedExecutorImpl implements
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        return executor.schedule(trackedCommand(command), delay, unit);
+        return executor.schedule(new TrackedRunnable(command), delay, unit);
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        return executor.schedule(trackedCommand(callable), delay, unit);
+        return executor.schedule(new TrackedCallable<V>(callable), delay, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        return executor.scheduleAtFixedRate(trackedCommand(command), initialDelay, period, unit);
+        return executor.scheduleAtFixedRate(new TrackedRunnable(command), initialDelay, period, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        return executor.scheduleWithFixedDelay(trackedCommand(command), initialDelay, delay, unit);
+        return executor.scheduleWithFixedDelay(new TrackedRunnable(command), initialDelay, delay, unit);
     }
 }

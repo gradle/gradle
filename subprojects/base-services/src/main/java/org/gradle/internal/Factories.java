@@ -20,22 +20,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class Factories {
     public static <T> Factory<T> toFactory(final Runnable runnable) {
-        return new Factory<T>() {
-            @Override
-            public T create() {
-                runnable.run();
-                return null;
-            }
-        };
+        return new RunnableFactory<T>(runnable);
     }
 
     public static <T> Factory<T> constant(final T item) {
-        return new Factory<T>() {
-            @Override
-            public T create() {
-                return item;
-            }
-        };
+        return new ConstantFactory<T>(item);
     }
 
     public static <T> Factory<T> softReferenceCache(Factory<T> factory) {
@@ -59,6 +48,33 @@ public abstract class Factories {
                 cachedReference.set(new SoftReference<T>(value));
             }
             return value;
+        }
+    }
+
+    private static class RunnableFactory<T> implements Factory<T> {
+        private final Runnable runnable;
+
+        public RunnableFactory(Runnable runnable) {
+            this.runnable = runnable;
+        }
+
+        @Override
+        public T create() {
+            runnable.run();
+            return null;
+        }
+    }
+
+    private static class ConstantFactory<T> implements Factory<T> {
+        private final T item;
+
+        public ConstantFactory(T item) {
+            this.item = item;
+        }
+
+        @Override
+        public T create() {
+            return item;
         }
     }
 }

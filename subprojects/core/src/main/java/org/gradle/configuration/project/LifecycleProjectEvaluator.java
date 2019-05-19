@@ -54,8 +54,8 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LifecycleProjectEvaluator.class);
 
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final ProjectEvaluator delegate;
+    final BuildOperationExecutor buildOperationExecutor;
+    final ProjectEvaluator delegate;
 
     public LifecycleProjectEvaluator(BuildOperationExecutor buildOperationExecutor, ProjectEvaluator delegate) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -69,7 +69,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         }
     }
 
-    private static void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e, BuildOperationContext ctx) {
+    static void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e, BuildOperationContext ctx) {
         ProjectConfigurationException exception = wrapException(project, e);
         ctx.failed(exception);
         state.failed(exception);
@@ -83,46 +83,17 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
     private class EvaluateProject implements RunnableBuildOperation {
 
-        private final ProjectInternal project;
-        private final ProjectStateInternal state;
+        final ProjectInternal project;
+        final ProjectStateInternal state;
 
-        private EvaluateProject(ProjectInternal project, ProjectStateInternal state) {
+        EvaluateProject(ProjectInternal project, ProjectStateInternal state) {
             this.project = project;
             this.state = state;
         }
 
         @Override
-        public void run(final BuildOperationContext context) {
-            project.getMutationState().withMutableState(new Runnable() {
-                @Override
-                public void run() {
-                    // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
-                    try {
-                        state.toBeforeEvaluate();
-                        buildOperationExecutor.run(new NotifyBeforeEvaluate(project, state));
-
-                        if (!state.hasFailure()) {
-                            state.toEvaluate();
-                            try {
-                                delegate.evaluate(project, state);
-                            } catch (Exception e) {
-                                addConfigurationFailure(project, state, e, context);
-                            } finally {
-                                state.toAfterEvaluate();
-                                buildOperationExecutor.run(new NotifyAfterEvaluate(project, state));
-                            }
-                        }
-
-                        if (state.hasFailure()) {
-                            state.rethrowFailure();
-                        } else {
-                            context.setResult(ConfigureProjectBuildOperationType.RESULT);
-                        }
-                    } finally {
-                        state.configured();
-                    }
-                }
-            });
+        public void run(BuildOperationContext context) {
+            project.getMutationState().withMutableState(new ContextRunnable(context));
         }
 
         @Override
@@ -140,6 +111,43 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
                 .progressDisplayName(progressDisplayName)
                 .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath(), project.getRootDir()));
         }
+
+        private class ContextRunnable implements Runnable {
+            private final BuildOperationContext context;
+
+            public ContextRunnable(BuildOperationContext context) {
+                this.context = context;
+            }
+
+            @Override
+            public void run() {
+                // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
+                try {
+                    state.toBeforeEvaluate();
+                    buildOperationExecutor.run(new NotifyBeforeEvaluate(project, state));
+
+                    if (!state.hasFailure()) {
+                        state.toEvaluate();
+                        try {
+                            delegate.evaluate(project, state);
+                        } catch (Exception e) {
+                            addConfigurationFailure(project, state, e, context);
+                        } finally {
+                            state.toAfterEvaluate();
+                            buildOperationExecutor.run(new NotifyAfterEvaluate(project, state));
+                        }
+                    }
+
+                    if (state.hasFailure()) {
+                        state.rethrowFailure();
+                    } else {
+                        context.setResult(ConfigureProjectBuildOperationType.RESULT);
+                    }
+                } finally {
+                    state.configured();
+                }
+            }
+        }
     }
 
     private static class NotifyBeforeEvaluate implements RunnableBuildOperation {
@@ -147,7 +155,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         private final ProjectInternal project;
         private final ProjectStateInternal state;
 
-        private NotifyBeforeEvaluate(ProjectInternal project, ProjectStateInternal state) {
+        NotifyBeforeEvaluate(ProjectInternal project, ProjectStateInternal state) {
             this.project = project;
             this.state = state;
         }
@@ -174,10 +182,10 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
     private static class NotifyAfterEvaluate implements RunnableBuildOperation {
 
-        private final ProjectInternal project;
-        private final ProjectStateInternal state;
+        final ProjectInternal project;
+        final ProjectStateInternal state;
 
-        private NotifyAfterEvaluate(ProjectInternal project, ProjectStateInternal state) {
+        NotifyAfterEvaluate(ProjectInternal project, ProjectStateInternal state) {
             this.project = project;
             this.state = state;
         }

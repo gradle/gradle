@@ -16,6 +16,7 @@
 package org.gradle.util;
 
 import org.gradle.api.Action;
+
 import java.util.concurrent.Callable;
 
 /**
@@ -31,11 +32,11 @@ public class Swapper<T> {
         this.setter = setter;
     }
 
-    public <Y extends T, N> N swap(Y value, Callable<N> whileSwapped) throws Exception {
+    public void swap(T value, Runnable whileSwapped) throws Exception {
         T originalValue = getter.call();
         setter.execute(value);
         try {
-            return whileSwapped.call();
+            whileSwapped.run();
         } finally {
             setter.execute(originalValue);
         }

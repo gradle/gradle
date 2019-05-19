@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
@@ -28,64 +27,64 @@ import org.gradle.util.StdinSwapper;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.concurrent.Callable;
 
 /**
  * Listens for ForwardInput commands during the execution and sends that to a piped input stream that we install.
  */
 public class ForwardClientInput implements DaemonCommandAction {
-    private static final Logger LOGGER = Logging.getLogger(ForwardClientInput.class);
+    static final Logger LOGGER = Logging.getLogger(ForwardClientInput.class);
+    private static final StdinSwapper STDIN_SWAPPER = new StdinSwapper();
 
     @Override
     public void execute(final DaemonCommandExecution execution) {
-        final PipedOutputStream inputSource = new PipedOutputStream();
+        try (PipedOutputStream inputSource = new PipedOutputStream();
+             PipedInputStream replacementStdin = getReplacementStdin(inputSource)) {
+            execution.getConnection().onStdin(new Handler(inputSource));
+            STDIN_SWAPPER.swap(replacementStdin, execution::proceed);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            execution.getConnection().onStdin(null);
+        }
+    }
+
+    private PipedInputStream getReplacementStdin(PipedOutputStream inputSource) {
         final PipedInputStream replacementStdin;
         try {
             replacementStdin = new PipedInputStream(inputSource);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+        return replacementStdin;
+    }
 
-        execution.getConnection().onStdin(new StdinHandler() {
-            @Override
-            public void onInput(ForwardInput input) {
-                LOGGER.debug("Writing forwarded input on daemon's stdin.");
-                try {
-                    inputSource.write(input.getBytes());
-                } catch (IOException e) {
-                    LOGGER.warn("Received exception trying to forward client input.", e);
-                }
-            }
+    private static class Handler implements StdinHandler {
+        private final PipedOutputStream inputSource;
 
-            @Override
-            public void onEndOfInput() {
-                LOGGER.info("Closing daemon's stdin at end of input.");
-                try {
-                    inputSource.close();
-                } catch (IOException e) {
-                    LOGGER.warn("Problem closing output stream connected to replacement stdin", e);
-                } finally {
-                    LOGGER.info("The daemon will no longer process any standard input.");
-                }
-            }
-        });
+        public Handler(PipedOutputStream inputSource) {
+            this.inputSource = inputSource;
+        }
 
-        try {
+        @Override
+        public void onInput(ForwardInput input) {
+            LOGGER.debug("Writing forwarded input on daemon's stdin.");
             try {
-                new StdinSwapper().swap(replacementStdin, new Callable<Void>() {
-                    @Override
-                    public Void call() {
-                        execution.proceed();
-                        return null;
-                    }
-                });
-            } finally {
-                execution.getConnection().onStdin(null);
-                IoActions.closeQuietly(replacementStdin);
-                IoActions.closeQuietly(inputSource);
+                inputSource.write(input.getBytes());
+            } catch (IOException e) {
+                LOGGER.warn("Received exception trying to forward client input.", e);
             }
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        @Override
+        public void onEndOfInput() {
+            LOGGER.info("Closing daemon's stdin at end of input.");
+            try {
+                inputSource.close();
+            } catch (IOException e) {
+                LOGGER.warn("Problem closing output stream connected to replacement stdin", e);
+            } finally {
+                LOGGER.info("The daemon will no longer process any standard input.");
+            }
         }
     }
 }

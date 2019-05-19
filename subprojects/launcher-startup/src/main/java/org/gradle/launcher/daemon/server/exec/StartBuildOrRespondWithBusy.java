@@ -31,8 +31,8 @@ import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
  * Updates the daemon idle/busy status, sending a DaemonUnavailable result back to the client if the daemon is busy.
  */
 public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
-    
-    private static final Logger LOGGER = Logging.getLogger(StartBuildOrRespondWithBusy.class);
+
+    static final Logger LOGGER = Logging.getLogger(StartBuildOrRespondWithBusy.class);
     private final DaemonDiagnostics diagnostics;
 
     public StartBuildOrRespondWithBusy(DaemonDiagnostics diagnostics) {
@@ -44,21 +44,31 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
         DaemonStateControl stateCoordinator = execution.getDaemonStateControl();
 
         try {
-            Runnable command = new Runnable() {
-                @Override
-                public void run() {
-                    LOGGER.info("Daemon is about to start building {}. Dispatching build started information...", build);
-                    execution.getConnection().buildStarted(new BuildStarted(diagnostics));
-                    execution.proceed();
-                }
-            };
-
-            stateCoordinator.runCommand(command, execution.toString());
+            stateCoordinator.runCommand(new StartBuildRunnable(build, execution, diagnostics), execution.toString());
         } catch (DaemonUnavailableException e) {
             LOGGER.info("Daemon will not handle the command {} because is unavailable: {}", build, e.getMessage());
             execution.getConnection().daemonUnavailable(new DaemonUnavailable(e.getMessage()));
         } catch (DaemonStoppedException e) {
             execution.getConnection().completed(new Failure(e));
+        }
+    }
+
+    private static class StartBuildRunnable implements Runnable {
+        private final Build build;
+        private final DaemonCommandExecution execution;
+        private final DaemonDiagnostics diagnostics;
+
+        public StartBuildRunnable(Build build, DaemonCommandExecution execution, DaemonDiagnostics diagnostics) {
+            this.build = build;
+            this.execution = execution;
+            this.diagnostics = diagnostics;
+        }
+
+        @Override
+        public void run() {
+            LOGGER.info("Daemon is about to start building {}. Dispatching build started information...", build);
+            execution.getConnection().buildStarted(new BuildStarted(diagnostics));
+            execution.proceed();
         }
     }
 }

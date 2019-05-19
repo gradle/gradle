@@ -33,21 +33,33 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
         execute(gradle, 0, failures);
     }
 
-    private void execute(final GradleInternal gradle, final int index, final Collection<? super Throwable> taskFailures) {
+    void execute(final GradleInternal gradle, final int index, final Collection<? super Throwable> taskFailures) {
         if (index >= executionActions.size()) {
             return;
         }
-        executionActions.get(index).execute(new BuildExecutionContext() {
-            @Override
-            public GradleInternal getGradle() {
-                return gradle;
-            }
+        executionActions.get(index).execute(new Context(gradle, index, taskFailures), taskFailures);
+    }
 
-            @Override
-            public void proceed() {
-                execute(gradle, index + 1, taskFailures);
-            }
+    private class Context implements BuildExecutionContext {
+        private final GradleInternal gradle;
+        private final int index;
+        private final Collection<? super Throwable> taskFailures;
 
-        }, taskFailures);
+        public Context(GradleInternal gradle, int index, Collection<? super Throwable> taskFailures) {
+            this.gradle = gradle;
+            this.index = index;
+            this.taskFailures = taskFailures;
+        }
+
+        @Override
+        public GradleInternal getGradle() {
+            return gradle;
+        }
+
+        @Override
+        public void proceed() {
+            execute(gradle, index + 1, taskFailures);
+        }
+
     }
 }

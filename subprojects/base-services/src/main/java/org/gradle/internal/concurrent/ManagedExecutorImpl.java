@@ -25,8 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements ManagedExecutor {
     private final ExecutorService executor;
-    private final ThreadLocal<Object> executing = new ThreadLocal<Object>();
-    private final ExecutorPolicy executorPolicy;
+    final ThreadLocal<Object> executing = new ThreadLocal<Object>();
+    final ExecutorPolicy executorPolicy;
 
     ManagedExecutorImpl(ExecutorService executor, ExecutorPolicy executorPolicy) {
         super(executor);
@@ -36,35 +36,7 @@ class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements M
 
     @Override
     public void execute(final Runnable command) {
-        executor.execute(trackedCommand(command));
-    }
-
-    protected Runnable trackedCommand(final Runnable command) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                executing.set(command);
-                try {
-                    executorPolicy.onExecute(command);
-                } finally {
-                    executing.set(null);
-                }
-            }
-        };
-    }
-
-    protected <V> Callable<V> trackedCommand(final Callable<V> command) {
-        return new Callable<V>() {
-            @Override
-            public V call() throws Exception {
-                executing.set(command);
-                try {
-                    return executorPolicy.onExecute(command);
-                } finally {
-                    executing.set(null);
-                }
-            }
-        };
+        executor.execute(new TrackedRunnable(command));
     }
 
     @Override
@@ -114,9 +86,45 @@ class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements M
     @Override
     public void setKeepAlive(int timeout, TimeUnit timeUnit) {
         if (executor instanceof ThreadPoolExecutor) {
-            ((ThreadPoolExecutor)executor).setKeepAliveTime(timeout, timeUnit);
+            ((ThreadPoolExecutor) executor).setKeepAliveTime(timeout, timeUnit);
         } else {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    protected class TrackedRunnable implements Runnable {
+        private final Runnable command;
+
+        public TrackedRunnable(Runnable command) {
+            this.command = command;
+        }
+
+        @Override
+        public void run() {
+            executing.set(command);
+            try {
+                executorPolicy.onExecute(command);
+            } finally {
+                executing.set(null);
+            }
+        }
+    }
+
+    protected class TrackedCallable<V> implements Callable<V> {
+        private final Callable<V> command;
+
+        public TrackedCallable(Callable<V> command) {
+            this.command = command;
+        }
+
+        @Override
+        public V call() throws Exception {
+            executing.set(command);
+            try {
+                return executorPolicy.onExecute(command);
+            } finally {
+                executing.set(null);
+            }
         }
     }
 }

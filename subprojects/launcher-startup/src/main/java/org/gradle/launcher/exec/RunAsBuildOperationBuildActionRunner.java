@@ -31,39 +31,51 @@ import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroad
  * An {@link BuildActionRunner} that wraps all work in a build operation.
  */
 public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
-    private final BuildActionRunner delegate;
-    private static final RunBuildBuildOperationType.Details DETAILS = new RunBuildBuildOperationType.Details() {};
-    private static final RunBuildBuildOperationType.Result RESULT = new RunBuildBuildOperationType.Result() {};
+    final BuildActionRunner delegate;
+    static final RunBuildBuildOperationType.Details DETAILS = new RunBuildBuildOperationType.Details() {
+    };
+    static final RunBuildBuildOperationType.Result RESULT = new RunBuildBuildOperationType.Result() {
+    };
 
     public RunAsBuildOperationBuildActionRunner(BuildActionRunner delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public Result run(final BuildAction action, final BuildController buildController) {
+    public Result run(BuildAction action, BuildController buildController) {
         BuildOperationExecutor buildOperationExecutor = buildController.getGradle().getServices().get(BuildOperationExecutor.class);
-        return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
-            @Override
-            public Result call(BuildOperationContext context) {
-                checkDeprecations((StartParameterInternal)buildController.getGradle().getStartParameter());
-                buildController.getGradle().getServices().get(IncludedBuildControllers.class).rootBuildOperationStarted();
-                buildController.getGradle().getServices().get(LoggingBuildOperationProgressBroadcaster.class).rootBuildOperationStarted();
-                Result result = delegate.run(action, buildController);
-                context.setResult(RESULT);
-                if (result.getBuildFailure() != null) {
-                    context.failed(result.getBuildFailure());
-                }
-                return result;
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Run build").details(DETAILS);
-            }
-        });
+        return buildOperationExecutor.call(new ResultCallableBuildOperation(buildController, action));
     }
 
-    private void checkDeprecations(StartParameterInternal startParameter) {
+    void checkDeprecations(StartParameterInternal startParameter) {
         startParameter.checkDeprecation();
+    }
+
+    private class ResultCallableBuildOperation implements CallableBuildOperation<Result> {
+        private final BuildController buildController;
+        private final BuildAction action;
+
+        public ResultCallableBuildOperation(BuildController buildController, BuildAction action) {
+            this.buildController = buildController;
+            this.action = action;
+        }
+
+        @Override
+        public Result call(BuildOperationContext context) {
+            checkDeprecations((StartParameterInternal) buildController.getGradle().getStartParameter());
+            buildController.getGradle().getServices().get(IncludedBuildControllers.class).rootBuildOperationStarted();
+            buildController.getGradle().getServices().get(LoggingBuildOperationProgressBroadcaster.class).rootBuildOperationStarted();
+            Result result = delegate.run(action, buildController);
+            context.setResult(RESULT);
+            if (result.getBuildFailure() != null) {
+                context.failed(result.getBuildFailure());
+            }
+            return result;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Run build").details(DETAILS);
+        }
     }
 }

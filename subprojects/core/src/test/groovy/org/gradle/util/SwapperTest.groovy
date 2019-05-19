@@ -15,48 +15,37 @@
  */
 package org.gradle.util
 
-import spock.lang.*
 import org.gradle.api.Action
+import spock.lang.Specification
+
 import java.util.concurrent.Callable
 
 class SwapperTest extends Specification {
 
     def originalValue = 1
-    def value = originalValue
-    def getter = { value }
-    def setter = { this.value = it }
+    def newValue = 2
 
-    def swap(newValue, whileSwapped) {
-        new Swapper(getter as Callable, setter as Action).swap(newValue, whileSwapped as Callable)
+    def value = originalValue
+    Callable getter = { value }
+    Action setter = { this.value = it }
+
+    void swap(newValue, Runnable whileSwapped) {
+        new Swapper(getter, setter)
+            .swap(newValue, whileSwapped)
     }
-    
+
     def "can swap values"() {
-        given:
-        def newValue = 2
-        def returnValue = 3
-        
         expect:
-        returnValue == swap(newValue) { 
-            assert value == newValue
-            returnValue
-        } 
-        
-        and:
+        swap(newValue) { assert value == newValue }
         value == originalValue
     }
-    
-    def "value is swapped back when exception thrown"() {        
+
+    def "value is swapped back when exception thrown"() {
         when:
-        swap(2) { 
-            throw new IllegalStateException()
-        } 
-        
+        swap(newValue) { throw new IllegalStateException() }
+
         then:
         value == originalValue
-        
-        and:
         thrown IllegalStateException
-        
     }
-    
 }

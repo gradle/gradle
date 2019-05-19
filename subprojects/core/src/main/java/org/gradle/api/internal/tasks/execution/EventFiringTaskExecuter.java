@@ -34,9 +34,9 @@ import org.gradle.internal.operations.CallableBuildOperation;
 
 public class EventFiringTaskExecuter implements TaskExecuter {
 
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final TaskExecutionListener taskExecutionListener;
-    private final TaskExecuter delegate;
+    final BuildOperationExecutor buildOperationExecutor;
+    final TaskExecutionListener taskExecutionListener;
+    final TaskExecuter delegate;
 
     public EventFiringTaskExecuter(BuildOperationExecutor buildOperationExecutor, TaskExecutionListener taskExecutionListener, TaskExecuter delegate) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -46,61 +46,73 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
-        return buildOperationExecutor.call(new CallableBuildOperation<TaskExecuterResult>() {
-            @Override
-            public TaskExecuterResult call(BuildOperationContext operationContext) {
-                TaskExecuterResult result = executeTask(operationContext);
-                operationContext.setStatus(state.getFailure() != null ? "FAILED" : state.getSkipMessage());
-                operationContext.failed(state.getFailure());
-                return result;
+        return buildOperationExecutor.call(new TaskExecuterResultCallableBuildOperation(state, task, context));
+    }
+
+    private class TaskExecuterResultCallableBuildOperation implements CallableBuildOperation<TaskExecuterResult> {
+        private final TaskStateInternal state;
+        private final TaskInternal task;
+        private final TaskExecutionContext context;
+
+        public TaskExecuterResultCallableBuildOperation(TaskStateInternal state, TaskInternal task, TaskExecutionContext context) {
+            this.state = state;
+            this.task = task;
+            this.context = context;
+        }
+
+        @Override
+        public TaskExecuterResult call(BuildOperationContext operationContext) {
+            TaskExecuterResult result = executeTask(operationContext);
+            operationContext.setStatus(state.getFailure() != null ? "FAILED" : state.getSkipMessage());
+            operationContext.failed(state.getFailure());
+            return result;
+        }
+
+        private TaskExecuterResult executeTask(BuildOperationContext operationContext) {
+            Logger logger = task.getLogger();
+            ContextAwareTaskLogger contextAwareTaskLogger = null;
+            try {
+                taskExecutionListener.beforeExecute(task);
+                BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
+                if (logger instanceof ContextAwareTaskLogger) {
+                    contextAwareTaskLogger = (ContextAwareTaskLogger) logger;
+                    contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
+                }
+            } catch (Throwable t) {
+                state.setOutcome(new TaskExecutionException(task, t));
+                return TaskExecuterResult.WITHOUT_OUTPUTS;
             }
 
-            private TaskExecuterResult executeTask(BuildOperationContext operationContext) {
-                Logger logger = task.getLogger();
-                ContextAwareTaskLogger contextAwareTaskLogger = null;
-                try {
-                    taskExecutionListener.beforeExecute(task);
-                    BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
-                    if (logger instanceof ContextAwareTaskLogger) {
-                        contextAwareTaskLogger = (ContextAwareTaskLogger) logger;
-                        contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
-                    }
-                } catch (Throwable t) {
-                    state.setOutcome(new TaskExecutionException(task, t));
-                    return TaskExecuterResult.WITHOUT_OUTPUTS;
-                }
+            TaskExecuterResult result = delegate.execute(task, state, context);
 
-                TaskExecuterResult result = delegate.execute(task, state, context);
+            if (contextAwareTaskLogger != null) {
+                contextAwareTaskLogger.setFallbackBuildOperationId(null);
+            }
+            operationContext.setResult(new ExecuteTaskBuildOperationResult(
+                state,
+                result.getCachingState(),
+                result.getReusedOutputOriginMetadata().orElse(null),
+                result.executedIncrementally(),
+                result.getExecutionReasons()
+            ));
 
-                if (contextAwareTaskLogger != null) {
-                    contextAwareTaskLogger.setFallbackBuildOperationId(null);
-                }
-                operationContext.setResult(new ExecuteTaskBuildOperationResult(
-                    state,
-                    result.getCachingState(),
-                    result.getReusedOutputOriginMetadata().orElse(null),
-                    result.executedIncrementally(),
-                    result.getExecutionReasons()
-                ));
-
-                try {
-                    taskExecutionListener.afterExecute(task, state);
-                } catch (Throwable t) {
-                    state.addFailure(new TaskExecutionException(task, t));
-                }
-
-                return result;
+            try {
+                taskExecutionListener.afterExecute(task, state);
+            } catch (Throwable t) {
+                state.addFailure(new TaskExecutionException(task, t));
             }
 
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(context.getLocalTaskNode());
-                return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
-                    .name(task.getIdentityPath().toString())
-                    .progressDisplayName(task.getIdentityPath().toString())
-                    .operationType(BuildOperationCategory.TASK)
-                    .details(taskOperation);
-            }
-        });
+            return result;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(context.getLocalTaskNode());
+            return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
+                .name(task.getIdentityPath().toString())
+                .progressDisplayName(task.getIdentityPath().toString())
+                .operationType(BuildOperationCategory.TASK)
+                .details(taskOperation);
+        }
     }
 }

@@ -60,12 +60,12 @@ import java.util.List;
  */
 @NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
-    private static final PatternSet EMPTY_PATTERN_SET = new PatternSet();
+    static final PatternSet EMPTY_PATTERN_SET = new PatternSet();
 
-    private final FileHasher hasher;
-    private final StringInterner stringInterner;
+    final FileHasher hasher;
+    final StringInterner stringInterner;
     private final FileSystem fileSystem;
-    private final FileSystemMirror fileSystemMirror;
+    final FileSystemMirror fileSystemMirror;
     private final ProducerGuard<String> producingSnapshots = ProducerGuard.striped();
     private final DirectorySnapshotter directorySnapshotter;
 
@@ -78,7 +78,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public HashCode getRegularFileContentHash(final File file) {
+    public HashCode getRegularFileContentHash(File file) {
         final String absolutePath = file.getAbsolutePath();
         FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath);
         if (metadata != null) {
@@ -90,32 +90,15 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 return snapshot.getHash();
             }
         }
-        return producingSnapshots.guardByKey(absolutePath, new Factory<HashCode>() {
-            @Nullable
-            @Override
-            public HashCode create() {
-                InternableString internableAbsolutePath = new InternableString(absolutePath);
-                FileMetadataSnapshot metadata = statAndCache(internableAbsolutePath, file);
-                if (metadata.getType() != FileType.RegularFile) {
-                    return null;
-                }
-                FileSystemLocationSnapshot snapshot = snapshotAndCache(internableAbsolutePath, file, metadata, null);
-                return snapshot.getHash();
-            }
-        });
+        return producingSnapshots.guardByKey(absolutePath, new HashCodeFactory(absolutePath, file));
     }
 
     @Override
-    public FileSystemLocationSnapshot snapshot(final File file) {
+    public FileSystemLocationSnapshot snapshot(File file) {
         final String absolutePath = file.getAbsolutePath();
         FileSystemLocationSnapshot result = fileSystemMirror.getSnapshot(absolutePath);
         if (result == null) {
-            result = producingSnapshots.guardByKey(absolutePath, new Factory<FileSystemLocationSnapshot>() {
-                @Override
-                public FileSystemLocationSnapshot create() {
-                    return snapshotAndCache(file, null);
-                }
-            });
+            result = producingSnapshots.guardByKey(absolutePath, new FileSystemLocationSnapshotFactory(file));
         }
         return result;
     }
@@ -127,13 +110,13 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return visitor.getRoots();
     }
 
-    private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable PatternSet patternSet) {
+    FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable PatternSet patternSet) {
         InternableString absolutePath = new InternableString(file.getAbsolutePath());
         FileMetadataSnapshot metadata = statAndCache(absolutePath, file);
         return snapshotAndCache(absolutePath, file, metadata, patternSet);
     }
 
-    private FileMetadataSnapshot statAndCache(InternableString absolutePath, File file) {
+    FileMetadataSnapshot statAndCache(InternableString absolutePath, File file) {
         FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath.asNonInterned());
         if (metadata == null) {
             metadata = fileSystem.stat(file);
@@ -142,7 +125,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return metadata;
     }
 
-    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable PatternSet patternSet) {
+    FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable PatternSet patternSet) {
         FileSystemLocationSnapshot fileSystemLocationSnapshot = fileSystemMirror.getSnapshot(absolutePath.asNonInterned());
         if (fileSystemLocationSnapshot == null) {
             MutableBoolean hasBeenFiltered = new MutableBoolean(false);
@@ -187,21 +170,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (snapshot != null) {
             return filterSnapshot(snapshot, patterns);
         }
-        return producingSnapshots.guardByKey(path, new Factory<FileSystemSnapshot>() {
-            @Override
-            public FileSystemSnapshot create() {
-                FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
-                if (snapshot == null) {
-                    snapshot = snapshotAndCache(root, patterns);
-                    return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, patterns) : filterSnapshot(snapshot, EMPTY_PATTERN_SET);
-                } else {
-                    return filterSnapshot(snapshot, patterns);
-                }
-            }
-        });
+        return producingSnapshots.guardByKey(path, new FileSystemSnapshotFactory(path, root, patterns));
     }
 
-    private FileSystemSnapshot snapshotFileTree(final FileTreeInternal tree) {
+    FileSystemSnapshot snapshotFileTree(final FileTreeInternal tree) {
         final FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner);
         tree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
@@ -221,7 +193,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return builder.build();
     }
 
-    private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, PatternSet patterns) {
+    FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, PatternSet patterns) {
         if (snapshot.getType() == FileType.Missing) {
             return FileSystemSnapshot.EMPTY;
         }
@@ -234,6 +206,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     private class FileCollectionLeafVisitorImpl implements FileCollectionLeafVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
+
+        FileCollectionLeafVisitorImpl() {
+        }
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
@@ -275,6 +250,64 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
         public String asNonInterned() {
             return string;
+        }
+    }
+
+    private class HashCodeFactory implements Factory<HashCode> {
+        private final String absolutePath;
+        private final File file;
+
+        public HashCodeFactory(String absolutePath, File file) {
+            this.absolutePath = absolutePath;
+            this.file = file;
+        }
+
+        @Nullable
+        @Override
+        public HashCode create() {
+            InternableString internableAbsolutePath = new InternableString(absolutePath);
+            FileMetadataSnapshot metadata = statAndCache(internableAbsolutePath, file);
+            if (metadata.getType() != FileType.RegularFile) {
+                return null;
+            }
+            FileSystemLocationSnapshot snapshot = snapshotAndCache(internableAbsolutePath, file, metadata, null);
+            return snapshot.getHash();
+        }
+    }
+
+    private class FileSystemLocationSnapshotFactory implements Factory<FileSystemLocationSnapshot> {
+        private final File file;
+
+        public FileSystemLocationSnapshotFactory(File file) {
+            this.file = file;
+        }
+
+        @Override
+        public FileSystemLocationSnapshot create() {
+            return snapshotAndCache(file, null);
+        }
+    }
+
+    private class FileSystemSnapshotFactory implements Factory<FileSystemSnapshot> {
+        private final String path;
+        private final File root;
+        private final PatternSet patterns;
+
+        public FileSystemSnapshotFactory(String path, File root, PatternSet patterns) {
+            this.path = path;
+            this.root = root;
+            this.patterns = patterns;
+        }
+
+        @Override
+        public FileSystemSnapshot create() {
+            FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
+            if (snapshot == null) {
+                snapshot = snapshotAndCache(root, patterns);
+                return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, patterns) : filterSnapshot(snapshot, EMPTY_PATTERN_SET);
+            } else {
+                return filterSnapshot(snapshot, patterns);
+            }
         }
     }
 }

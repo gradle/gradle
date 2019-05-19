@@ -290,17 +290,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void runCommand(final Runnable command, String commandDisplayName) throws DaemonUnavailableException {
         onStartCommand(commandDisplayName);
         try {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        command.run();
-                        onCommandSuccessful();
-                    } catch (Throwable t) {
-                        onCommandFailed(t);
-                    }
-                }
-            });
+            executor.execute(new TryRunnable(command));
             waitForCommandCompletion();
         } finally {
             onFinishCommand();
@@ -337,7 +327,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    private void onCommandFailed(Throwable failure) {
+    void onCommandFailed(Throwable failure) {
         lock.lock();
         try {
             result = failure;
@@ -347,7 +337,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    private void onCommandSuccessful() {
+    void onCommandSuccessful() {
         lock.lock();
         try {
             result = this;
@@ -452,5 +442,23 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     @Override
     public State getState() {
         return state;
+    }
+
+    private class TryRunnable implements Runnable {
+        private final Runnable command;
+
+        public TryRunnable(Runnable command) {
+            this.command = command;
+        }
+
+        @Override
+        public void run() {
+            try {
+                command.run();
+                onCommandSuccessful();
+            } catch (Throwable t) {
+                onCommandFailed(t);
+            }
+        }
     }
 }

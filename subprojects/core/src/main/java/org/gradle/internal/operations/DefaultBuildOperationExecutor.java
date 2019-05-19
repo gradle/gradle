@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.SystemProperties;
@@ -47,11 +46,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 //TODO move to base-services once the ProgressLogger dependency is removed
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable, ParallelismConfigurationListener {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
-    private final BuildOperationListener listener;
-    private final Clock clock;
+    final BuildOperationListener listener;
+    final Clock clock;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
@@ -153,81 +152,75 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    private <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+    <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
         BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
-        execute(descriptorBuilder, defaultParent, new BuildOperationExecution<BuildOperation>() {
-            @Override
-            public BuildOperation execute(BuildOperationDescriptor descriptor, DefaultBuildOperationContext context, BuildOperationExecutionListener listener) {
-                Throwable failure = null;
+        execute(descriptorBuilder, defaultParent, (descriptor, context, listener) -> {
+            Throwable failure = null;
+            try {
+                listener.start();
                 try {
-                    listener.start();
-                    try {
-                        worker.execute(buildOperation, context);
-                    } catch (Throwable t) {
-                        context.thrown(t);
-                        failure = t;
-                    }
-                    listener.stop();
-                    if (failure != null) {
-                        throw UncheckedException.throwAsUncheckedException(failure, true);
-                    }
-                    return buildOperation;
-                } finally {
-                    listener.close();
+                    worker.execute(buildOperation, context);
+                } catch (Throwable t) {
+                    context.thrown(t);
+                    failure = t;
                 }
+                listener.stop();
+                if (failure != null) {
+                    throw UncheckedException.throwAsUncheckedException(failure, true);
+                }
+                return buildOperation;
+            } finally {
+                listener.close();
             }
         });
     }
 
     private ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
-        return execute(descriptorBuilder, defaultParent, new BuildOperationExecution<ExecutingBuildOperation>() {
-            @Override
-            public ExecutingBuildOperation execute(final BuildOperationDescriptor descriptor, final DefaultBuildOperationContext context, final BuildOperationExecutionListener listener) {
-                listener.start();
-                return new ExecutingBuildOperation() {
-                    private boolean finished;
+        return execute(descriptorBuilder, defaultParent, (BuildOperationExecution<ExecutingBuildOperation>) (descriptor, context, listener) -> {
+            listener.start();
+            return new ExecutingBuildOperation() {
+                private boolean finished;
 
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return descriptorBuilder;
-                    }
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return descriptorBuilder;
+                }
 
-                    @Override
-                    public void failed(@Nullable Throwable failure) {
-                        assertNotFinished();
-                        context.failed(failure);
-                        finish();
-                    }
+                @Override
+                public void failed(@Nullable Throwable failure) {
+                    assertNotFinished();
+                    context.failed(failure);
+                    finish();
+                }
 
-                    @Override
-                    public void setResult(Object result) {
-                        assertNotFinished();
-                        context.setResult(result);
-                        finish();
-                    }
+                @Override
+                public void setResult(Object result) {
+                    assertNotFinished();
+                    context.setResult(result);
+                    finish();
+                }
 
-                    @Override
-                    public void setStatus(String status) {
-                        assertNotFinished();
-                        context.setStatus(status);
-                    }
+                @Override
+                public void setStatus(String status) {
+                    assertNotFinished();
+                    context.setStatus(status);
+                }
 
-                    private void finish() {
-                        finished = true;
-                        try {
-                            listener.stop();
-                        } finally {
-                            listener.close();
-                        }
+                private void finish() {
+                    finished = true;
+                    try {
+                        listener.stop();
+                    } finally {
+                        listener.close();
                     }
+                }
 
-                    private void assertNotFinished() {
-                        if (finished) {
-                            throw new IllegalStateException(String.format("Operation (%s) has already finished.", descriptor));
-                        }
+                private void assertNotFinished() {
+                    if (finished) {
+                        throw new IllegalStateException(String.format("Operation (%s) has already finished.", descriptor));
                     }
-                };
-            }
+                }
+            };
         });
     }
 
@@ -302,20 +295,20 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         return descriptorBuilder.build(id, current == null ? null : current.getDescription().getId());
     }
 
-    private void assertParentRunning(String message, BuildOperationDescriptor child, BuildOperationState parent) {
+    void assertParentRunning(String message, BuildOperationDescriptor child, BuildOperationState parent) {
         if (parent != null && !parent.isRunning()) {
             String parentName = parent.getDescription().getDisplayName();
             throw new IllegalStateException(String.format(message, child.getDisplayName(), parentName));
         }
     }
 
-    private ProgressLogger createProgressLogger(BuildOperationState currentOperation) {
+    ProgressLogger createProgressLogger(BuildOperationState currentOperation) {
         BuildOperationDescriptor descriptor = currentOperation.getDescription();
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor);
         return progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
     }
 
-    private BuildOperationState maybeStartUnmanagedThreadOperation(BuildOperationState parentState) {
+    BuildOperationState maybeStartUnmanagedThreadOperation(BuildOperationState parentState) {
         if (parentState == null && !GradleThread.isManaged()) {
             parentState = UnmanagedThreadOperation.create(clock);
             parentState.setRunning(true);
@@ -350,12 +343,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private static String formatMultipleFailureMessage(List<GradleException> failures) {
-        return StringUtils.join(CollectionUtils.collect(failures, new Transformer<String, GradleException>() {
-            @Override
-            public String transform(GradleException e) {
-                return e.getMessage();
-            }
-        }), LINE_SEPARATOR + "AND" + LINE_SEPARATOR);
+        return StringUtils.join(CollectionUtils.collect(failures, e -> e.getMessage()), LINE_SEPARATOR + "AND" + LINE_SEPARATOR);
     }
 
     @Override
@@ -367,7 +355,10 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private static class DefaultBuildOperationContext implements BuildOperationContext {
         Throwable failure;
         Object result;
-        private String status;
+        String status;
+
+        DefaultBuildOperationContext() {
+        }
 
         @Override
         public void failed(Throwable t) {
@@ -392,6 +383,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private static class RunnableBuildOperationWorker implements BuildOperationWorker<RunnableBuildOperation> {
+        RunnableBuildOperationWorker() {
+        }
+
         @Override
         public String getDisplayName() {
             return "runnable build operation";
@@ -405,6 +399,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
         private T returnValue;
+
+        CallableBuildOperationWorker() {
+        }
 
         @Override
         public String getDisplayName() {
@@ -429,7 +426,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         private BuildOperationState parent;
         private BuildOperationWorker<? super O> worker;
 
-        private ParentPreservingQueueWorker(BuildOperationWorker<? super O> worker) {
+        ParentPreservingQueueWorker(BuildOperationWorker<? super O> worker) {
             this.parent = maybeStartUnmanagedThreadOperation(getCurrentBuildOperation());
             this.worker = worker;
         }
@@ -445,11 +442,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    private void setCurrentBuildOperation(BuildOperationState parentState) {
+    void setCurrentBuildOperation(BuildOperationState parentState) {
         currentBuildOperationRef.set(parentState);
     }
 
-    private BuildOperationState getCurrentBuildOperation() {
+    BuildOperationState getCurrentBuildOperation() {
         return (BuildOperationState) currentBuildOperationRef.get();
     }
 
@@ -458,7 +455,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         private final AtomicBoolean running = new AtomicBoolean();
         private final long startTime;
 
-        private BuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
+        BuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
             this.startTime = startTime;
             this.description = descriptor;
         }
@@ -498,7 +495,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
         private static final AtomicLong UNMANAGED_THREAD_OPERATION_COUNTER = new AtomicLong(-1);
 
-        private static UnmanagedThreadOperation create(Clock clock) {
+        static UnmanagedThreadOperation create(Clock clock) {
             // TODO:pm Move this to WARN level once we fixed maven-publish, see gradle/gradle#1662
             LOGGER.debug("WARNING No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
             OperationIdentifier id = new OperationIdentifier(UNMANAGED_THREAD_OPERATION_COUNTER.getAndDecrement());
