@@ -21,7 +21,9 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultPropertyState
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.serialize.Decoder
 import java.io.File
@@ -62,6 +64,14 @@ class BeanFieldDeserializer(
                         val property = DefaultPropertyState<Any>(Any::class.java)
                         property.set(value)
                         field.set(bean, property)
+                    }
+                    Provider::class.java -> {
+                        val provider = if (value == null) {
+                            Providers.notDefined()
+                        } else {
+                            Providers.of(value)
+                        }
+                        field.set(bean, provider)
                     }
                     Supplier::class.java -> field.set(bean, Supplier { value })
                     Function0::class.java -> field.set(bean, { value })

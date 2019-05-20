@@ -76,6 +76,9 @@ class StateSerialization(
     val longSerializer = BaseSerializerFactory.LONG_SERIALIZER
 
     private
+    val byteSerializer = BaseSerializerFactory.BYTE_SERIALIZER
+
+    private
     val booleanSerializer = BaseSerializerFactory.BOOLEAN_SERIALIZER
 
     private
@@ -105,6 +108,9 @@ class StateSerialization(
             }
             is Long -> { encoder, _ ->
                 encoder.writeWithTag(LONG_TYPE, longSerializer, value)
+            }
+            is Byte -> { encoder, _ ->
+                encoder.writeWithTag(BYTE_TYPE, byteSerializer, value)
             }
             is FileTreeInternal -> { encoder, _ ->
                 encoder.writeWithTag(FILE_TREE_TYPE, fileTreeSerializer, value)
@@ -214,6 +220,7 @@ class StateSerialization(
             BOOLEAN_TYPE -> booleanSerializer.read(decoder)
             INT_TYPE -> integerSerializer.read(decoder)
             LONG_TYPE -> longSerializer.read(decoder)
+            BYTE_TYPE -> byteSerializer.read(decoder)
             FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(decoder)
             CLASS_TYPE -> beanClassLoader.loadClass(decoder.readString())
             LIST_TYPE -> deserializeCollection(decoder, listener) { ArrayList<Any?>(it) }
@@ -327,29 +334,30 @@ class StateSerialization(
         const val NULL_VALUE: Byte = 0
         const val STRING_TYPE: Byte = 1
         const val BOOLEAN_TYPE: Byte = 2
-        const val INT_TYPE: Byte = 3
-        const val LONG_TYPE: Byte = 4
-        const val LIST_TYPE: Byte = 5
-        const val SET_TYPE: Byte = 6
-        const val MAP_TYPE: Byte = 7
-        const val FILE_TYPE: Byte = 8
-        const val CLASS_TYPE: Byte = 9
-        const val BEAN: Byte = 10
+        const val BYTE_TYPE: Byte = 3
+        const val INT_TYPE: Byte = 4
+        const val LONG_TYPE: Byte = 5
+        const val LIST_TYPE: Byte = 6
+        const val SET_TYPE: Byte = 7
+        const val MAP_TYPE: Byte = 8
+        const val FILE_TYPE: Byte = 9
+        const val CLASS_TYPE: Byte = 10
+        const val BEAN: Byte = 11
 
         // Logging type
-        const val LOGGER_TYPE: Byte = 11
+        const val LOGGER_TYPE: Byte = 12
 
         // Gradle types
-        const val FILE_TREE_TYPE: Byte = 12
-        const val FILE_COLLECTION_TYPE: Byte = 13
-        const val ARTIFACT_COLLECTION_TYPE: Byte = 14
-        const val OBJECT_FACTORY_TYPE: Byte = 15
+        const val FILE_TREE_TYPE: Byte = 13
+        const val FILE_COLLECTION_TYPE: Byte = 14
+        const val ARTIFACT_COLLECTION_TYPE: Byte = 15
+        const val OBJECT_FACTORY_TYPE: Byte = 16
 
         // Internal Gradle types
-        const val FILE_RESOLVER_TYPE: Byte = 16
-        const val PATTERN_SPEC_FACTORY_TYPE: Byte = 17
-        const val DEFAULT_COPY_SPEC: Byte = 18
-        const val DESTINATION_ROOT_COPY_SPEC: Byte = 19
+        const val FILE_RESOLVER_TYPE: Byte = 17
+        const val PATTERN_SPEC_FACTORY_TYPE: Byte = 18
+        const val DEFAULT_COPY_SPEC: Byte = 19
+        const val DESTINATION_ROOT_COPY_SPEC: Byte = 20
     }
 }
 
