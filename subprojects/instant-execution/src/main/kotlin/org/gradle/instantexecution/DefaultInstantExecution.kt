@@ -77,7 +77,7 @@ class DefaultInstantExecution(
 
     override fun canExecuteInstantaneously(): Boolean {
         return if (!isInstantExecutionEnabled) {
-            return false
+            false
         } else if (!instantExecutionStateFile.isFile) {
             logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
             false
