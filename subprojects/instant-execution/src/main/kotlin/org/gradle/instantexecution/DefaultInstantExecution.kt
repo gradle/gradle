@@ -77,7 +77,7 @@ class DefaultInstantExecution(
 
     override fun canExecuteInstantaneously(): Boolean {
         return if (!isInstantExecutionEnabled) {
-            return false
+            false
         } else if (!instantExecutionStateFile.isFile) {
             logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
             false
@@ -166,7 +166,7 @@ class DefaultInstantExecution(
 
         build.registerProjects()
 
-        return decoder.deserializeCollectionInto({ count -> ArrayList(count) }) { container ->
+        return decoder.deserializeCollectionInto({ size -> ArrayList(size) }) { container ->
             val task = loadTaskFor(build, decoder, taskClassLoader)
             container.add(task)
         }
@@ -299,7 +299,7 @@ fun Encoder.serializeClassPath(classPath: ClassPath) {
 private
 fun Decoder.deserializeClassPath(): ClassPath =
     DefaultClassPath.of(
-        deserializeCollectionInto({ count -> LinkedHashSet<File>(count) }) { container ->
+        deserializeCollectionInto({ size -> LinkedHashSet<File>(size) }) { container ->
             container.add(readFile())
         }
     )
@@ -318,7 +318,7 @@ fun Decoder.readFile(): File =
 
 private
 fun Decoder.deserializeStrings(): List<String> =
-    deserializeCollectionInto({ count -> ArrayList(count) }) { container ->
+    deserializeCollectionInto({ size -> ArrayList(size) }) { container ->
         container.add(readString())
     }
 
@@ -334,8 +334,8 @@ fun <T> Encoder.serializeCollection(elements: Collection<T>, serializeElement: (
 
 private
 fun Decoder.deserializeCollection(deserializeElement: () -> Unit) {
-    val count = readSmallInt()
-    for (i in 0 until count) {
+    val size = readSmallInt()
+    for (i in 0 until size) {
         deserializeElement()
     }
 }
@@ -343,9 +343,9 @@ fun Decoder.deserializeCollection(deserializeElement: () -> Unit) {
 
 private
 inline fun <T> Decoder.deserializeCollectionInto(containerSupplier: (Int) -> T, deserializeElement: (T) -> Unit): T {
-    val count = readSmallInt()
-    val container = containerSupplier(count)
-    for (i in 0 until count) {
+    val size = readSmallInt()
+    val container = containerSupplier(size)
+    for (i in 0 until size) {
         deserializeElement(container)
     }
     return container

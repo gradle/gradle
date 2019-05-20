@@ -230,7 +230,7 @@ class StateSerialization(
         fun <T : MutableCollection<Any?>> deserializeCollection(decoder: Decoder, listener: SerializationListener, factory: (Int) -> T): T {
             val size = decoder.readSmallInt()
             val items = factory(size)
-            for (i in 1..size) {
+            for (i in 0 until size) {
                 items.add(read(decoder, listener))
             }
             return items
@@ -240,10 +240,10 @@ class StateSerialization(
         fun deserializeMap(decoder: Decoder, listener: SerializationListener): Map<Any?, Any?> {
             val size = decoder.readSmallInt()
             val items = LinkedHashMap<Any?, Any?>()
-            for (i in 1..size) {
+            for (i in 0 until size) {
                 val key = read(decoder, listener)
                 val value = read(decoder, listener)
-                items.put(key, value)
+                items[key] = value
             }
             return items
         }
