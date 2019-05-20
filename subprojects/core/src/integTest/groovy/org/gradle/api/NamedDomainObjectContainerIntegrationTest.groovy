@@ -16,6 +16,8 @@
 
 package org.gradle.api
 
+import spock.lang.Issue
+
 class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     @Override
     String getContainerStringRepresentation() {
@@ -60,5 +62,37 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
 
         expect:
         succeeds "verify"
+    }
+
+
+    def "chained lookup of testContainer.withType.matching"() {
+        buildFile << """
+            testContainer.withType(testContainer.type).matching({ it.name.endsWith("foo") }).all { element ->
+                assert element.name in ['foo', 'barfoo']
+            }
+            
+            testContainer.register("foo")
+            testContainer.register("bar")
+            testContainer.register("foobar")
+            testContainer.register("barfoo")
+        """
+        expect:
+        succeeds "help"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9446")
+    def "chained lookup of testContainer.matching.withType"() {
+        buildFile << """
+            testContainer.matching({ it.name.endsWith("foo") }).withType(testContainer.type).all { element ->
+                assert element.name in ['foo', 'barfoo']
+            }
+            
+            testContainer.register("foo")
+            testContainer.register("bar")
+            testContainer.register("foobar")
+            testContainer.register("barfoo")
+        """
+        expect:
+        succeeds "help"
     }
 }
