@@ -17,14 +17,20 @@
 package org.gradle.java.compile
 
 import spock.lang.Issue
+import spock.lang.Unroll
 
-abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends AbstractJavaCompileAvoidanceIntegrationSpec {
-    def setup() {
-        useJar()
+abstract class AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
+    boolean useJar = true
+
+    @Override
+    List<Language> getSupportedLanguages() {
+        return [Language.JAVA, Language.GROOVY]
     }
 
+    @Unroll
     def "doesn't recompile when implementation manifest is changed"() {
         given:
+        beforeEach(language)
         buildFile << """
             project(':b') {
                 dependencies {
@@ -32,20 +38,20 @@ abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends Abs
                 }
             }
         """
-        def sourceFile = file("a/src/main/java/ToolImpl.java")
+        def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl { public void execute() { int i = 12; } }
         """
-        file("b/src/main/java/Main.java") << """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
             public class Main { ToolImpl t = new ToolImpl(); }
         """
 
         when:
-        succeeds ':b:compileJava'
+        succeeds ":b:${language.compileTaskName}"
 
         then:
-        executedAndNotSkipped ':a:compileJava'
-        executedAndNotSkipped ':b:compileJava'
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        executedAndNotSkipped ":b:${language.compileTaskName}"
 
         when:
         buildFile << """
@@ -55,14 +61,19 @@ abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends Abs
 """
 
         then:
-        succeeds ':b:compileJava'
+        succeeds ":b:${language.compileTaskName}"
         executedAndNotSkipped ':a:jar'
-        skipped ':b:compileJava'
+        skipped ":b:${language.compileTaskName}"
+
+        where:
+        language << getSupportedLanguages()
     }
 
     @Issue("gradle/gradle#1457")
+    @Unroll
     def "doesn't fail when jar is missing"() {
         given:
+        beforeEach(language)
         buildFile << """
             project(':b') {
                 dependencies {
@@ -73,15 +84,18 @@ abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends Abs
                 jar.enabled = false
             }
         """
-        file("b/src/main/java/Main.java") << """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
             public class Main { }
         """
 
         when:
-        succeeds ':b:compileJava'
+        succeeds ":b:${language.compileTaskName}"
 
         then:
         noExceptionThrown()
+
+        where:
+        language << getSupportedLanguages()
     }
 
 }

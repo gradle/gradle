@@ -58,7 +58,7 @@ class GroovySecurityManagerIssuesIntegrationTest extends AbstractIntegrationSpec
                     public void testSecurityManager() {
                         for (int i = 0; i < 2; i++) {
                             System.out.println("ROUND" + i);
-                            setUp();
+                            beforeEach();
                             System.out.println("Complete" + i);
                         }
                     }
@@ -69,7 +69,7 @@ class GroovySecurityManagerIssuesIntegrationTest extends AbstractIntegrationSpec
                 private SecurityManager securityManager;
 
                 //This usually need to be called called more than once to reproduce the bug
-                protected void setUp() {
+                protected void beforeEach() {
                     securityManager = System.getSecurityManager();
                     System.out.println("-----------Setting new security manager");
                     System.setSecurityManager(new SecurityManager());
