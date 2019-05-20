@@ -210,7 +210,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == []
     }
 
-    def "mix file contents with same name (NormalizedPathFingerprintCompareStrategy)"() {
+    def "detects no change when swapping contents between files with same normalized path (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["a/input": fingerprint("input", 2), "b/input": fingerprint("input", 0)],
@@ -218,7 +218,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == []
     }
 
-    def "file move should be detected if no collisions occur (NormalizedPathFingerprintCompareStrategy)"() {
+    def "file move is ignored when normalized path is the same (NormalizedPathFingerprintCompareStrategy)"() {
         changes(NORMALIZED, true,
             ["moved/input": fingerprint("input", 1),
              "unchangedFile": fingerprint("unchangedFile", 2),
@@ -230,7 +230,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [modified("changedFile")]
     }
 
-    def "change file content to other content with same name (NormalizedPathFingerprintCompareStrategy)"() {
+    def "change file content to match content of another file with same normalized path (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true,
             ["a/input": fingerprint("input", 1), "b/input": fingerprint("input", 1)],
@@ -238,7 +238,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [modified("a/input": "input")]
     }
 
-    def "should only show modified if absolute path is the same (NormalizedPathFingerprintCompareStrategy)"() {
+    def "should only detect modification when absolute path is the same (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true, [
             "a/input": fingerprint("input", 0),
