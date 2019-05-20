@@ -190,6 +190,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
                     bean = new SomeBean("default")
                     bean.parent = new SomeBean("parent")
                     bean.parent.child = bean
+                    bean.parent.parent = bean.parent
                 }
 
                 @TaskAction
@@ -267,6 +268,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         int.name               | "12"                     | "12"
         Long.name              | "12"                     | "12"
         long.name              | "12"                     | "12"
+        Double.name            | "12.1"                   | "12.1"
+        double.name            | "12.1"                   | "12.1"
         Class.name             | "SomeBean"               | "class SomeBean"
         "List<String>"         | "['a', 'b', 'c']"        | "[a, b, c]"
         "Set<String>"          | "['a', 'b', 'c'] as Set" | "[a, b, c]"
