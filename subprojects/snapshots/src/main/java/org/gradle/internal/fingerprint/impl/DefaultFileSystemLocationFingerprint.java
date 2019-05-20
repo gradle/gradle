@@ -17,14 +17,19 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-public class DefaultFileSystemLocationFingerprint extends AbstractFileSystemLocationFingerprint {
+public class DefaultFileSystemLocationFingerprint implements FileSystemLocationFingerprint {
+    private final FileType type;
+    private final HashCode normalizedContentHash;
     private final String normalizedPath;
 
     public DefaultFileSystemLocationFingerprint(String normalizedPath, FileType type, HashCode contentHash) {
-        super(type, hashForType(type, contentHash));
+        this.type = type;
+        this.normalizedContentHash = hashForType(type, contentHash);
         this.normalizedPath = normalizedPath;
     }
 
@@ -46,7 +51,72 @@ public class DefaultFileSystemLocationFingerprint extends AbstractFileSystemLoca
     }
 
     @Override
+    public final void appendToHasher(Hasher hasher) {
+        hasher.putString(getNormalizedPath());
+        hasher.putHash(getNormalizedContentHash());
+    }
+
+    @Override
+    public FileType getType() {
+        return type;
+    }
+
+    @Override
     public String getNormalizedPath() {
         return normalizedPath;
+    }
+
+    @Override
+    public HashCode getNormalizedContentHash() {
+        return normalizedContentHash;
+    }
+
+    @Override
+    public final int compareTo(FileSystemLocationFingerprint o) {
+        int result = getNormalizedPath().compareTo(o.getNormalizedPath());
+        if (result == 0) {
+            result = getNormalizedContentHash().compareTo(o.getNormalizedContentHash());
+        }
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultFileSystemLocationFingerprint that = (DefaultFileSystemLocationFingerprint) o;
+
+        if (type != that.type) {
+            return false;
+        }
+        if (!normalizedContentHash.equals(that.normalizedContentHash)) {
+            return false;
+        }
+        return normalizedPath.equals(that.normalizedPath);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = type.hashCode();
+        result = 31 * result + normalizedContentHash.hashCode();
+        result = 31 * result + normalizedPath.hashCode();
+        return result;
+    }
+
+    @Override
+    public final String toString() {
+        return String.format("'%s' / %s",
+            getNormalizedPath(),
+            type == FileType.Directory
+                ? "DIR"
+                : type == FileType.Missing
+                    ? "MISSING"
+                    : normalizedContentHash
+        );
     }
 }
