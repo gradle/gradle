@@ -257,6 +257,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         String.name            | "null"                   | "null"
         Boolean.name           | "true"                   | "true"
         boolean.name           | "true"                   | "true"
+        Byte.name              | "12"                     | "12"
+        byte.name              | "12"                     | "12"
         Integer.name           | "12"                     | "12"
         int.name               | "12"                     | "12"
         Long.name              | "12"                     | "12"
@@ -302,6 +304,48 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         type               | reference | invocation
         Logger.name        | "logger"  | "info('hi')"
         ObjectFactory.name | "objects" | "newInstance(SomeBean)"
+    }
+
+    @Unroll
+    def "restores task fields whose value is provider of type #type"() {
+        buildFile << """
+            import ${Inject.name}
+
+            class SomeBean {
+                ${type} value
+            }
+
+            class SomeTask extends DefaultTask {
+                final SomeBean bean = project.objects.newInstance(SomeBean)
+                ${type} value
+
+                @TaskAction
+                void run() {
+                    println "value = " + value.getOrNull()
+                    println "bean.value = " + bean.value.getOrNull()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = ${reference}
+                bean.value = ${reference}
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("value = ${output}")
+        outputContains("bean.value = ${output}")
+
+        where:
+        type               | reference                                 | output
+        "Provider<String>" | "providers.provider { 'value' }"          | "value"
+        "Provider<String>" | "providers.provider { null }"             | "null"
+        "Provider<String>" | "objects.property(String).value('value')" | "value"
+        "Provider<String>" | "objects.property(String)"                | "null"
     }
 
     @Unroll

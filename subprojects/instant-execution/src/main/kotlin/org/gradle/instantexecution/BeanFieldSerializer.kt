@@ -22,6 +22,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.internal.serialize.Encoder
 import java.util.function.Supplier
 
@@ -72,6 +73,7 @@ class BeanFieldSerializer(private val bean: Any, private val beanType: Class<*>,
         is DirectoryProperty -> fieldValue.asFile.orNull
         is RegularFileProperty -> fieldValue.asFile.orNull
         is Property<*> -> fieldValue.orNull
+        is Provider<*> -> fieldValue.orNull
         is Supplier<*> -> fieldValue.get()
         is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
         is Lazy<*> -> fieldValue.value
