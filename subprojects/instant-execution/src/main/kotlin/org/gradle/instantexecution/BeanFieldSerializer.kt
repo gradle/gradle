@@ -74,6 +74,7 @@ class BeanFieldSerializer(private val bean: Any, private val beanType: Class<*>,
         is Property<*> -> fieldValue.orNull
         is Supplier<*> -> fieldValue.get()
         is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
+        is Lazy<*> -> fieldValue.value
         else -> fieldValue
     }
 }

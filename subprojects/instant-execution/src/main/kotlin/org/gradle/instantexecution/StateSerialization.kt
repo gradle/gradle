@@ -37,6 +37,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.internal.reflect.Instantiator
@@ -45,6 +46,7 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import sun.reflect.ReflectionFactory
 import java.io.File
@@ -56,6 +58,7 @@ class StateSerialization(
     private val fileCollectionFactory: FileCollectionFactory,
     private val fileResolver: FileResolver,
     private val instantiator: Instantiator,
+    private val objectFactory: ObjectFactory,
     private val patternSpecFactory: PatternSpecFactory,
     private val filePropertyFactory: FilePropertyFactory
 ) {
@@ -109,19 +112,33 @@ class StateSerialization(
             is File -> { encoder, _ ->
                 encoder.writeWithTag(FILE_TYPE, BaseSerializerFactory.FILE_SERIALIZER, value)
             }
-            is FileCollection -> { encoder, _ ->
-                encoder.writeWithTag(FILE_COLLECTION_TYPE, fileSetSerializer, value.files)
+            is Class<*> -> { encoder, _ ->
+                encoder.writeByte(CLASS_TYPE)
+                encoder.writeString(value.name)
             }
             is List<*> -> collectionSerializerFor(LIST_TYPE, value)
             is Set<*> -> collectionSerializerFor(SET_TYPE, value)
-            // Only specific implementations, as some custom types extend Map (eg DefaultManifest)
+            // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
             is HashMap<*, *> -> mapSerializerFor(value)
             is LinkedHashMap<*, *> -> mapSerializerFor(value)
+            is Logger -> { encoder, _ ->
+                encoder.writeByte(LOGGER_TYPE)
+                encoder.writeString(value.name)
+            }
+            is FileCollection -> { encoder, _ ->
+                encoder.writeWithTag(FILE_COLLECTION_TYPE, fileSetSerializer, value.files)
+            }
             is ArtifactCollection -> { encoder, _ ->
                 encoder.writeByte(ARTIFACT_COLLECTION_TYPE)
             }
+            is ObjectFactory -> { encoder, _ ->
+                encoder.writeByte(OBJECT_FACTORY_TYPE)
+            }
             is PatternSpecFactory -> { encoder, _ ->
                 encoder.writeByte(PATTERN_SPEC_FACTORY_TYPE)
+            }
+            is FileResolver -> { encoder, _ ->
+                encoder.writeByte(FILE_RESOLVER_TYPE)
             }
             is DefaultCopySpec -> defaultCopySpecSerializerFor(value)
             is DestinationRootCopySpec -> destinationRootCopySpecSerializerFor(value)
@@ -197,13 +214,19 @@ class StateSerialization(
             BOOLEAN_TYPE -> booleanSerializer.read(decoder)
             INT_TYPE -> integerSerializer.read(decoder)
             LONG_TYPE -> longSerializer.read(decoder)
+            FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(decoder)
+            CLASS_TYPE -> beanClassLoader.loadClass(decoder.readString())
             LIST_TYPE -> deserializeCollection(decoder, listener) { ArrayList<Any?>(it) }
             SET_TYPE -> deserializeCollection(decoder, listener) { LinkedHashSet<Any?>(it) }
             MAP_TYPE -> deserializeMap(decoder, listener)
+            LOGGER_TYPE -> {
+                LoggerFactory.getLogger(decoder.readString())
+            }
             FILE_TREE_TYPE -> fileTreeSerializer.read(decoder)
-            FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(decoder)
             FILE_COLLECTION_TYPE -> fileCollectionFactory.fixed(fileSetSerializer.read(decoder))
             ARTIFACT_COLLECTION_TYPE -> EmptyArtifactCollection(ImmutableFileCollection.of())
+            OBJECT_FACTORY_TYPE -> objectFactory
+            FILE_RESOLVER_TYPE -> fileResolver
             PATTERN_SPEC_FACTORY_TYPE -> patternSpecFactory
             DEFAULT_COPY_SPEC -> deserializeDefaultCopySpec(decoder, listener)
             DESTINATION_ROOT_COPY_SPEC -> deserializeDestinationRootCopySpec(decoder, listener)
@@ -300,6 +323,7 @@ class StateSerialization(
     }
 
     companion object {
+        // JVM types
         const val NULL_VALUE: Byte = 0
         const val STRING_TYPE: Byte = 1
         const val BOOLEAN_TYPE: Byte = 2
@@ -308,16 +332,24 @@ class StateSerialization(
         const val LIST_TYPE: Byte = 5
         const val SET_TYPE: Byte = 6
         const val MAP_TYPE: Byte = 7
-        const val BEAN: Byte = 8
+        const val FILE_TYPE: Byte = 8
+        const val CLASS_TYPE: Byte = 9
+        const val BEAN: Byte = 10
+
+        // Logging type
+        const val LOGGER_TYPE: Byte = 11
 
         // Gradle types
-        const val FILE_TREE_TYPE: Byte = 9
-        const val FILE_TYPE: Byte = 10
-        const val FILE_COLLECTION_TYPE: Byte = 11
-        const val ARTIFACT_COLLECTION_TYPE: Byte = 12
-        const val PATTERN_SPEC_FACTORY_TYPE: Byte = 13
-        const val DEFAULT_COPY_SPEC: Byte = 14
-        const val DESTINATION_ROOT_COPY_SPEC: Byte = 15
+        const val FILE_TREE_TYPE: Byte = 12
+        const val FILE_COLLECTION_TYPE: Byte = 13
+        const val ARTIFACT_COLLECTION_TYPE: Byte = 14
+        const val OBJECT_FACTORY_TYPE: Byte = 15
+
+        // Internal Gradle types
+        const val FILE_RESOLVER_TYPE: Byte = 16
+        const val PATTERN_SPEC_FACTORY_TYPE: Byte = 17
+        const val DEFAULT_COPY_SPEC: Byte = 18
+        const val DESTINATION_ROOT_COPY_SPEC: Byte = 19
     }
 }
 

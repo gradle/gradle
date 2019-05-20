@@ -32,6 +32,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.groovy.scripts.StringScriptSource
@@ -84,6 +85,7 @@ class InstantExecutionHost internal constructor(
             getService(FileCollectionFactory::class.java),
             getService(FileResolver::class.java),
             getService(Instantiator::class.java),
+            getService(ObjectFactory::class.java),
             getService(PatternSpecFactory::class.java),
             getService(FilePropertyFactory::class.java)
         )
