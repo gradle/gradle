@@ -115,7 +115,7 @@ class DefaultInstantExecution(
             encoder.serializeCollection(scheduledTasks) { task ->
                 try {
                     encoder.saveStateOf(task, build)
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     throw GradleException("Could not save state of $task.", e)
                 }
             }

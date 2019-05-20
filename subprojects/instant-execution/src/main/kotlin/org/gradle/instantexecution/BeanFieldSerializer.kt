@@ -50,8 +50,8 @@ class BeanFieldSerializer(private val bean: Any, private val beanType: Class<*>,
                 writeString(field.name)
                 try {
                     valueSerializer(this, listener)
-                } catch (e: Exception) {
-                    throw GradleException("Could not save the value of field '${beanType.name}.${field.name}'.", e)
+                } catch (e: Throwable) {
+                    throw GradleException("Could not save the value of field '${beanType.name}.${field.name}' with type ${finalValue?.javaClass?.name}.", e)
                 }
                 listener.logFieldSerialization("serialize", beanType, field.name, finalValue)
             }
