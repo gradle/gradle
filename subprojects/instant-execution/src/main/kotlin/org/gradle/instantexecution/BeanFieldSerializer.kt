@@ -31,7 +31,7 @@ import java.util.function.Supplier
  * Serializes a bean by serializing the value of each of its fields.
  */
 class BeanFieldSerializer(private val bean: Any, private val beanType: Class<*>, private val stateSerializer: StateSerializer) : ValueSerializer {
-    override fun invoke(encoder: Encoder, listener: SerializationListener) {
+    override fun invoke(encoder: Encoder, listener: SerializationContext) {
         encoder.apply {
             for (field in relevantStateOf(beanType)) {
                 field.isAccessible = true

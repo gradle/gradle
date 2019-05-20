@@ -197,7 +197,7 @@ class DefaultInstantExecution(
             writeString(it.path)
         }
 
-        BeanFieldSerializer(task, taskType, stateSerializer).invoke(this, SerializationListener(task, logger))
+        BeanFieldSerializer(task, taskType, stateSerializer).invoke(this, SerializationContext(task, logger))
     }
 
     private
@@ -209,8 +209,8 @@ class DefaultInstantExecution(
         val task = build.createTask(projectPath, taskName, taskClass)
         val taskDependencies = decoder.deserializeStrings()
         val deserializer = host.deserializerFor(taskClassLoader)
-        val listener = SerializationListener(task, logger)
-        BeanFieldDeserializer(task, taskClass, deserializer, filePropertyFactory).deserialize(decoder, listener)
+        val context = DeserializationContext(task, logger)
+        BeanFieldDeserializer(task, taskClass, deserializer, filePropertyFactory).deserialize(decoder, context)
         return task to taskDependencies
     }
 

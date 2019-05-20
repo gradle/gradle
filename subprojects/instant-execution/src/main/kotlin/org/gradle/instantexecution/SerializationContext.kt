@@ -18,20 +18,18 @@ package org.gradle.instantexecution
 
 import org.gradle.api.Task
 import org.slf4j.Logger
+import java.util.IdentityHashMap
 
 
-class SerializationListener(private val owner: Task, private val logger: Logger) {
-    fun logFieldWarning(action: String, type: Class<*>, fieldName: String, message: String) {
-        logger.warn(
-            "instant-execution > task '{}' field '{}.{}' cannot be {}d because {}.",
-            owner.path, type.name, fieldName, action, message
-        )
-    }
+class SerializationContext(owner: Task, logger: Logger) : StateContext(owner, logger) {
+    private
+    val instanceIds = IdentityHashMap<Any, Int>()
 
-    fun logFieldSerialization(action: String, type: Class<*>, fieldName: String, value: Any?) {
-        logger.info(
-            "instant-execution > task '{}' field '{}.{}' {}d value {}",
-            owner.path, type.name, fieldName, action, value
-        )
+    fun getId(instance: Any) = instanceIds[instance]
+
+    fun putInstance(instance: Any): Int {
+        val id = instanceIds.size
+        instanceIds[instance] = id
+        return id
     }
 }
