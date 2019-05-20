@@ -34,7 +34,7 @@ public class UnitOfWork implements Runnable {
     @Override
     public void run() {
         try (FileWriter fw = new FileWriter(outputFile)) {
-            fw.append("index is " + index);
+            fw.append("index is " + index + "\n");
         } catch (IOException e) {
             throw new RuntimeException("could not write to " + outputFile);
         }
