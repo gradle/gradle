@@ -65,6 +65,7 @@ class BeanFieldDeserializer(
                     }
                     Supplier::class.java -> field.set(bean, Supplier { value })
                     Function0::class.java -> field.set(bean, { value })
+                    Lazy::class.java -> field.set(bean, lazyOf(value))
                     else -> {
                         if (field.type.isInstance(value) || field.type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(field.type).isInstance(value)) {
                             field.set(bean, value)

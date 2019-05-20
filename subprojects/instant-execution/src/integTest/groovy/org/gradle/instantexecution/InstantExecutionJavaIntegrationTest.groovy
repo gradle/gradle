@@ -23,8 +23,11 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         executer.noDeprecationChecks()
     }
 
-    def "instant execution for compileJava on Java project with no dependencies"() {
+    def "assemble on Java build with no dependencies"() {
         given:
+        settingsFile << """
+            rootProject.name = 'somelib'
+        """
         buildFile << """
             plugins { id 'java' }
             
@@ -36,24 +39,31 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         """
 
         expect:
-        instantRun "compileJava"
+        instantRun "assemble"
         outputContains("running build script")
-        result.assertTasksExecuted(":compileJava")
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
+        def jarFile = file("build/libs/somelib.jar")
+        jarFile.isFile()
 
         when:
         classFile.delete()
-        instantRun "compileJava"
+        jarFile.delete()
+        instantRun "assemble"
 
         then:
         outputDoesNotContain("running build script")
-        result.assertTasksExecuted(":compileJava")
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         classFile.isFile()
+        new ZipTestFixture(jarFile).assertContainsFile("Thing.class")
     }
 
-    def "instant execution for assemble on Java project with multiple source directories"() {
+    def "assemble on Java build with multiple source directories"() {
         given:
+        settingsFile << """
+            rootProject.name = 'somelib'
+        """
         buildFile << """
             plugins { id 'java' }
             
@@ -76,18 +86,23 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
+        def jarFile = file("build/libs/somelib.jar")
+        jarFile.isFile()
 
         when:
         classFile.delete()
+        jarFile.delete()
         instantRun "assemble"
 
         then:
         outputDoesNotContain("running build script")
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         classFile.isFile()
+        new ZipTestFixture(jarFile).assertContainsFile("Thing.class")
+        new ZipTestFixture(jarFile).assertContainsFile("OtherThing.class")
     }
 
-    def "multi-project java build"() {
+    def "assemble on specific project of multi-project Java build"() {
         given:
         settingsFile << """
             include("a", "b")
@@ -110,13 +125,52 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         """
 
         when:
-        instantRun ":b:assemble", "-s"
+        instantRun ":b:assemble"
 
         and:
         file("b/build/classes/java/main/b/B.class").delete()
-        instantRun ":b:assemble", "-s"
+        def jarFile = file("b/build/libs/b.jar")
+        jarFile.delete()
+
+        and:
+        instantRun ":b:assemble"
 
         then:
-        new ZipTestFixture(file("b/build/libs/b.jar")).assertContainsFile("b/B.class")
+        new ZipTestFixture(jarFile).assertContainsFile("b/B.class")
+    }
+
+    def "assemble on Java application build with no dependencies"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'somelib'
+        """
+        buildFile << """
+            plugins { id 'application' }
+            println "running build script"
+            application.mainClassName = 'Thing'
+        """
+        file("src/main/java/Thing.java") << """
+            class Thing {
+            }
+        """
+
+        expect:
+        instantRun "assemble"
+        outputContains("running build script")
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble")
+        def classFile = file("build/classes/java/main/Thing.class")
+        classFile.isFile()
+        def jarFile = file("build/libs/somelib.jar")
+        jarFile.delete()
+
+        when:
+        classFile.delete()
+        instantRun "assemble"
+
+        then:
+        outputDoesNotContain("running build script")
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble")
+        classFile.isFile()
+        jarFile.isFile()
     }
 }

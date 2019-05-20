@@ -20,11 +20,13 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import org.slf4j.Logger
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -216,7 +218,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
-    def "restores task fields whose value is #type"() {
+    def "restores task fields whose value is instance of #type"() {
         buildFile << """
             class SomeBean {
                 ${type} value 
@@ -252,19 +254,58 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         where:
         type                   | reference                | output
         String.name            | "'value'"                | "value"
+        String.name            | "null"                   | "null"
         Boolean.name           | "true"                   | "true"
         boolean.name           | "true"                   | "true"
         Integer.name           | "12"                     | "12"
         int.name               | "12"                     | "12"
         Long.name              | "12"                     | "12"
         long.name              | "12"                     | "12"
+        Class.name             | "SomeBean"               | "class SomeBean"
         "List<String>"         | "['a', 'b', 'c']"        | "[a, b, c]"
         "Set<String>"          | "['a', 'b', 'c'] as Set" | "[a, b, c]"
         "Map<String, Integer>" | "[a: 1, b: 2]"           | "[a:1, b:2]"
     }
 
     @Unroll
-    def "restores task fields whose value is property #type"() {
+    def "restores task fields whose value is service of type #type"() {
+        buildFile << """
+            class SomeBean {
+                ${type} value 
+            }
+
+            class SomeTask extends DefaultTask {
+                final SomeBean bean = new SomeBean()
+                ${type} value
+
+                @TaskAction
+                void run() {
+                    value.${invocation}
+                    bean.value.${invocation}
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = ${reference}
+                bean.value = ${reference}
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        type               | reference | invocation
+        Logger.name        | "logger"  | "info('hi')"
+        ObjectFactory.name | "objects" | "newInstance(SomeBean)"
+    }
+
+    @Unroll
+    def "restores task fields whose value is property of type #type"() {
         buildFile << """
             import ${Inject.name}
 
