@@ -125,26 +125,35 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "non-trivial modification (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true,
-            ["new/one": fingerprint("one"), "new/two": fingerprint("two", 0x9876cafe)],
-            ["old/one": fingerprint("one"), "old/two": fingerprint("two", 0xface1234)]
-        ) == [removed("old/two": "two"), added("new/two": "two")]
+        changes(NORMALIZED, true, [
+            "new/one": fingerprint("one"),
+            "new/two": fingerprint("two", 0x9876cafe)
+        ], [
+            "old/one": fingerprint("one"),
+            "old/two": fingerprint("two", 0xface1234)
+        ]) == [removed("old/two": "two"), added("new/two": "two")]
     }
 
     def "non-trivial modification with re-ordering and same normalized paths (UNORDERED, NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true,
-            ["new/two": fingerprint("", 0x9876cafe), "new/one": fingerprint("")],
-            ["old/one": fingerprint(""), "old/two": fingerprint("", 0xface1234)]
-        )*.toString() == [removed("old/two": "two"), added("new/two": "two")]*.toString()
+        changes(NORMALIZED, true, [
+            "new/two": fingerprint("", 0x9876cafe),
+            "new/one": fingerprint("")
+        ], [
+            "old/one": fingerprint(""),
+            "old/two": fingerprint("", 0xface1234)
+        ])*.toString() == [removed("old/two": "two"), added("new/two": "two")]*.toString()
     }
 
     def "non-trivial modification with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
-        changes(strategy, includeAdded,
-            ["one": fingerprint("one"), "two": fingerprint("two", 0x9876cafe)],
-            ["one": fingerprint("one"), "two": fingerprint("two", 0xface1234)]
-        ) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
+        changes(strategy, includeAdded, [
+            "one": fingerprint("one"),
+            "two": fingerprint("two", 0x9876cafe)
+        ], [
+            "one": fingerprint("one"),
+            "two": fingerprint("two", 0xface1234)
+        ]) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
 
         where:
         strategy | includeAdded
@@ -162,18 +171,28 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "non-trivial replacement (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true,
-            ["new/one": fingerprint("one"), "new/two": fingerprint("two"), "new/four": fingerprint("four")],
-            ["old/one": fingerprint("one"), "old/three": fingerprint("three"), "old/four": fingerprint("four")]
-        ) == [removed("old/three": "three"), added("new/two": "two")]
+        changes(NORMALIZED, true, [
+            "new/one": fingerprint("one"),
+            "new/two": fingerprint("two"),
+            "new/four": fingerprint("four")
+        ], [
+            "old/one": fingerprint("one"),
+            "old/three": fingerprint("three"),
+            "old/four": fingerprint("four")
+        ]) == [removed("old/three": "three"), added("new/two": "two")]
     }
 
     def "non-trivial replacement with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
-        changes(strategy, includeAdded,
-            ["one": fingerprint("one"), "two": fingerprint("two"), "four": fingerprint("four")],
-            ["one": fingerprint("one"), "three": fingerprint("three"), "four": fingerprint("four")]
-        ) == results
+        changes(strategy, includeAdded, [
+            "one": fingerprint("one"),
+            "two": fingerprint("two"),
+            "four": fingerprint("four")
+        ], [
+            "one": fingerprint("one"),
+            "three": fingerprint("three"),
+            "four": fingerprint("four")
+        ]) == results
 
         where:
         strategy | includeAdded | results
@@ -183,18 +202,28 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "reordering (NormalizedPathFingerprintCompareStrategy, include added: true)"() {
         expect:
-        changes(NORMALIZED, true,
-            ["new/one": fingerprint("one"), "new/two": fingerprint("two"), "new/three": fingerprint("three")],
-            ["old/one": fingerprint("one"), "old/three": fingerprint("three"), "old/two": fingerprint("two")]
-        ) == []
+        changes(NORMALIZED, true, [
+            "new/one": fingerprint("one"),
+            "new/two": fingerprint("two"),
+            "new/three": fingerprint("three")
+        ], [
+            "old/one": fingerprint("one"),
+            "old/three": fingerprint("three"),
+            "old/two": fingerprint("two")
+        ]) == []
     }
 
     def "reordering with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
         expect:
-        changes(strategy, includeAdded,
-            ["one": fingerprint("one"), "two": fingerprint("two"), "three": fingerprint("three")],
-            ["one": fingerprint("one"), "three": fingerprint("three"), "two": fingerprint("two")]
-        ) == results
+        changes(strategy, includeAdded, [
+            "one": fingerprint("one"),
+            "two": fingerprint("two"),
+            "three": fingerprint("three")
+        ], [
+            "one": fingerprint("one"),
+            "three": fingerprint("three"),
+            "two": fingerprint("two")
+        ]) == results
 
         where:
         strategy | includeAdded | results
@@ -204,18 +233,26 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "handling duplicates (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true,
-            ["new/one-1": fingerprint("one"), "new/one-2": fingerprint("one"), "new/two": fingerprint("two")],
-            ["old/one-1": fingerprint("one"), "old/one-2": fingerprint("one"), "old/two": fingerprint("two")]
-        ) == []
+        changes(NORMALIZED, true, [
+            "new/one-1": fingerprint("one"),
+            "new/one-2": fingerprint("one"),
+            "new/two": fingerprint("two")
+        ], [
+            "old/one-1": fingerprint("one"),
+            "old/one-2": fingerprint("one"),
+            "old/two": fingerprint("two")
+        ]) == []
     }
 
     def "detects no change when swapping contents between files with same normalized path (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true,
-            ["a/input": fingerprint("input", 2), "b/input": fingerprint("input", 0)],
-            ["a/input": fingerprint("input", 0), "b/input": fingerprint("input", 2)]
-        ) == []
+        changes(NORMALIZED, true, [
+            "a/input": fingerprint("input", 2),
+            "b/input": fingerprint("input", 0)
+        ], [
+            "a/input": fingerprint("input", 0),
+            "b/input": fingerprint("input", 2)
+        ]) == []
     }
 
     def "file move is ignored when normalized path is the same (NormalizedPathFingerprintCompareStrategy)"() {
@@ -232,32 +269,34 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "change file content to match content of another file with same normalized path (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true,
-            ["a/input": fingerprint("input", 1), "b/input": fingerprint("input", 1)],
-            ["a/input": fingerprint("input", 0), "b/input": fingerprint("input", 1)]
-        ) == [modified("a/input": "input")]
+        changes(NORMALIZED, true, [
+            "modified-with-collision/input": fingerprint("input", 1),
+            "unmodified/input": fingerprint("input", 1)
+        ], [
+            "modified-with-collision/input": fingerprint("input", 0),
+            "unmodified/input": fingerprint("input", 1)
+        ]) == [modified("modified-with-collision/input": "input")]
     }
 
     def "should only detect modification when absolute path is the same (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true, [
-            "a/input": fingerprint("input", 0),
-            "aa/input": fingerprint("input", 0),
-            "c/input": fingerprint("input", 2),
-            "d/input": fingerprint("input", 3),
-            "e/input2": fingerprint("input", 3)
+            "modified-with-collision/input": fingerprint("input", 0),
+            "added/input": fingerprint("input", 0),
+            "modified/input": fingerprint("input", 2),
+            "unmodified/input": fingerprint("input", 3),
+            "moved/old/input": fingerprint("input", 3)
         ], [
-            "a/input": fingerprint("input", 1),
-            "b/input": fingerprint("input", 1),
-            "c/input": fingerprint("input", 1),
-            "d/input": fingerprint("input", 3),
-            "e/input1": fingerprint("input", 3)
-        ],
-        ) == [
-            modified("a/input": "input"),
-            removed("b/input": "input"),
-            modified("c/input": "input"),
-            added("aa/input": "input")
+            "modified-with-collision/input": fingerprint("input", 1),
+            "removed/input": fingerprint("input", 1),
+            "modified/input": fingerprint("input", 1),
+            "unmodified/input": fingerprint("input", 3),
+            "moved/new/input": fingerprint("input", 3)
+        ]) == [
+            modified("modified-with-collision/input": "input"),
+            removed("removed/input": "input"),
+            modified("modified/input": "input"),
+            added("added/input": "input")
         ]
     }
 

@@ -109,7 +109,6 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         return true;
     }
 
-    // There might be multiple files with the same normalized path, here we choose one of them (favoring absolute path matches)
     private static boolean wasModified(ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath, String normalizedPath, FilePathWithType pathWithType) {
         return addedFilesByNormalizedPath.get(normalizedPath)
             .removeIf(file ->
@@ -126,14 +125,14 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
             .hashKeys(previousFingerprints.size())
             .linkedListValues()
             .build();
-        for (Entry<String, FileSystemLocationFingerprint> entry : previousFingerprints.entrySet()) {
+        for (Entry<String, FileSystemLocationFingerprint> previousEntry : previousFingerprints.entrySet()) {
             // skip exact matches
-            if (currentFingerprints.entrySet().contains(entry)) {
+            if (currentFingerprints.entrySet().contains(previousEntry)) {
                 continue;
             }
 
-            String absolutePath = entry.getKey();
-            FileSystemLocationFingerprint previousFingerprint = entry.getValue();
+            String absolutePath = previousEntry.getKey();
+            FileSystemLocationFingerprint previousFingerprint = previousEntry.getValue();
             FileType previousFingerprintType = previousFingerprint.getType();
 
             results.put(previousFingerprint, new FilePathWithType(absolutePath, previousFingerprintType));
@@ -148,16 +147,16 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
     ) {
         ListMultimap<String, FilePathWithType> results = MultimapBuilder
             .linkedHashKeys()
-            .arrayListValues()
+            .arrayListValues(1)
             .build();
-        for (Entry<String, FileSystemLocationFingerprint> entry : currentFingerprints.entrySet()) {
+        for (Entry<String, FileSystemLocationFingerprint> currentEntry : currentFingerprints.entrySet()) {
             // skip exact matches
-            if (previousFingerprints.entrySet().contains(entry)) {
+            if (previousFingerprints.entrySet().contains(currentEntry)) {
                 continue;
             }
 
-            String absolutePath = entry.getKey();
-            FileSystemLocationFingerprint currentFingerprint = entry.getValue();
+            String absolutePath = currentEntry.getKey();
+            FileSystemLocationFingerprint currentFingerprint = currentEntry.getValue();
             List<FilePathWithType> previousFilesForFingerprint = unaccountedForPreviousFiles.get(currentFingerprint);
             FileType fingerprintType = currentFingerprint.getType();
 
