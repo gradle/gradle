@@ -16,18 +16,18 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.Encoder
+import org.gradle.api.Task
+import org.slf4j.Logger
+import java.util.IdentityHashMap
 
 
-interface StateSerializer {
-    fun serializerFor(value: Any?): ValueSerializer?
-}
+class DeserializationContext(owner: Task, logger: Logger) : StateContext(owner, logger) {
+    private
+    val instanceIds = IdentityHashMap<Int, Any>()
 
+    fun getInstance(id: Int) = instanceIds[id]
 
-typealias ValueSerializer = (Encoder, SerializationContext) -> Unit
-
-
-interface StateDeserializer {
-    fun read(decoder: Decoder, context: DeserializationContext): Any?
+    fun putInstance(id: Int, instance: Any) {
+        instanceIds[id] = instance
+    }
 }

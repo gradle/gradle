@@ -170,11 +170,12 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         result.groupedOutput.task(":a:c:help").output == firstRunOutput.task(":a:c:help").output
     }
 
-    def "restores task fields whose value is a simple bean"() {
+    def "restores task fields whose value is an object graph with cycles"() {
         buildFile << """
             class SomeBean {
                 String value 
                 SomeBean parent
+                SomeBean child
                 
                 SomeBean(String value) {
                     println("creating bean")
@@ -188,12 +189,14 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
                 SomeTask() {
                     bean = new SomeBean("default")
                     bean.parent = new SomeBean("parent")
+                    bean.parent.child = bean
                 }
 
                 @TaskAction
                 void run() {
                     println "bean.value = " + bean.value
                     println "bean.parent.value = " + bean.parent.value
+                    println "same reference = " + (bean.parent.child == bean)
                 }
             }
 
@@ -215,6 +218,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         result.output.count("creating bean") == 2 // still running the task constructor, which creates values which are then discarded
         outputContains("bean.value = child")
         outputContains("bean.parent.value = parent")
+        outputContains("same reference = true")
     }
 
     @Unroll
