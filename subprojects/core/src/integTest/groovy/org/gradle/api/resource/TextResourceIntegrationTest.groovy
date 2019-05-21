@@ -114,7 +114,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             task uriText(type: MyTask) {
-                config = resources.text.fromUri("http://localhost:$server.port/myConfig-${uuid}.txt")
+                config = resources.text.fromUri("http://localhost:$server.port/myConfig-${uuid}.txt", true)
                 output = project.file("output.txt")
             }
 """
@@ -130,20 +130,6 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skippedTasks == [":uriText"] as Set
-    }
-
-    def "redirect testing"() {
-        executer.startBuildProcessInDebugger(true)
-        given:
-        buildFile << """
-            resources.text.fromUri("https://plugins.gradle.org/m2/net/swiftzer/semver/semver/1.1.1/semver-1.1.1.pom").asString()
-        """
-        when:
-        executer.expectDeprecationWarning()
-        run("uriText")
-
-        then:
-        executedTasks == [":uriText"]
     }
 
 }

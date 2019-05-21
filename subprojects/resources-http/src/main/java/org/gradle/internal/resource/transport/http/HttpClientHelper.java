@@ -147,10 +147,15 @@ public class HttpClientHelper implements Closeable {
     }
 
     private void validateUrl(URI url) {
+        /*
+         * For security purposes this intentionally requires a user to opt-in to http on case by case basis.
+         * We do not want to have a system/gradle property that allows a universal disable of this check.
+         */
         if (settings.allowInsecureProtocol()) return;
 
-        if ("http".equalsIgnoreCase(url.getScheme())) {
-            DeprecationLogger.nagUserOfDeprecated("Resolving content over insecure protocol 'http'");
+        final String scheme = url.getScheme();
+        if (!"https".equalsIgnoreCase(scheme)) {
+            DeprecationLogger.nagUserOfDeprecated("Resolving content over insecure protocol '" + scheme + "'");
         }
     }
 

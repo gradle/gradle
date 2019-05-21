@@ -128,7 +128,18 @@ public class HttpBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Specifies whether it is acceptable to communicate with an HTTP build cache backend over an insecure HTTP connection.
+     * Specifies whether it is acceptable to communicate with a build cache over an insecure HTTP connection.
+     * <p>
+     * For security purposes this intentionally requires a user to opt-in to using insecure protocols on case by case basis.
+     * <p>
+     * Gradle intentionally does not offer a global system/gradle property that allows a universal disable of this check.
+     * <p>
+     * <b>Allowing communication over insecure protocols allows for a man-in-the-middle to impersonate the intended server,
+     * and gives an attacker the ability to
+     * <a href="https://max.computer/blog/how-to-take-over-the-computer-of-any-java-or-clojure-or-scala-developer/">
+     *     serve malicious executable code onto the system.
+     * </a>
+     * </b>
      *
      * @since 5.5
      */
@@ -137,7 +148,18 @@ public class HttpBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Specifies whether it is acceptable to communicate with an HTTP build cache backend over an insecure HTTP connection.
+     * Specifies whether it is acceptable to communicate with a build cache over an insecure HTTP connection.
+     * <p>
+     * For security purposes this intentionally requires a user to opt-in to using insecure protocols on case by case basis.
+     * <p>
+     * Gradle intentionally does not offer a global system/gradle property that allows a universal disable of this check.
+     * <p>
+     * <b>Allowing communication over insecure protocols allows for a man-in-the-middle to impersonate the intended server,
+     * and gives an attacker the ability to
+     * <a href="https://max.computer/blog/how-to-take-over-the-computer-of-any-java-or-clojure-or-scala-developer/">
+     *     serve malicious executable code onto the system.
+     * </a>
+     * </b>
      *
      * @since 5.5
      */
