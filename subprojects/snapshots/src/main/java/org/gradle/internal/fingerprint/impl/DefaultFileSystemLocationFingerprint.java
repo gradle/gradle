@@ -23,12 +23,10 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 public class DefaultFileSystemLocationFingerprint implements FileSystemLocationFingerprint {
-    private final FileType type;
     private final HashCode normalizedContentHash;
     private final String normalizedPath;
 
     public DefaultFileSystemLocationFingerprint(String normalizedPath, FileType type, HashCode contentHash) {
-        this.type = type;
         this.normalizedContentHash = hashForType(type, contentHash);
         this.normalizedPath = normalizedPath;
     }
@@ -58,7 +56,13 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
 
     @Override
     public FileType getType() {
-        return type;
+        if (normalizedContentHash == DIR_SIGNATURE) {
+            return FileType.Directory;
+        } else if (normalizedContentHash == MISSING_FILE_SIGNATURE) {
+            return FileType.Missing;
+        } else {
+            return FileType.RegularFile;
+        }
     }
 
     @Override
@@ -91,9 +95,6 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
 
         DefaultFileSystemLocationFingerprint that = (DefaultFileSystemLocationFingerprint) o;
 
-        if (type != that.type) {
-            return false;
-        }
         if (!normalizedContentHash.equals(that.normalizedContentHash)) {
             return false;
         }
@@ -102,21 +103,27 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
 
     @Override
     public int hashCode() {
-        int result = type.hashCode();
-        result = 31 * result + normalizedContentHash.hashCode();
+        int result = normalizedContentHash.hashCode();
         result = 31 * result + normalizedPath.hashCode();
         return result;
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         return String.format("'%s' / %s",
             getNormalizedPath(),
-            type == FileType.Directory
-                ? "DIR"
-                : type == FileType.Missing
-                    ? "MISSING"
-                    : normalizedContentHash
+            getHashOrTypeToDisplay()
         );
+    }
+
+    private Object getHashOrTypeToDisplay() {
+        switch (getType()) {
+            case Directory:
+                return "DIR";
+            case Missing:
+                return "MISSING";
+            default:
+                return normalizedContentHash;
+        }
     }
 }
