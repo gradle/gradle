@@ -1,4 +1,4 @@
-// Copyright 2018 the original author or authors.
+// Copyright 2019 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -65,8 +65,7 @@ You can find a list of them in the <<plugin_reference.adoc#native_languages,nati
 [[sec:cpp_source_sets]]
 == Declaring your source files
 
-// TODO: Add DSL link to application and library script block
-Gradle’s C++ support uses a `ConfigurableFileCollection` directly from the `application` or `library` script block to configure the set of sources to compile.
+Gradle’s C++ support uses a `ConfigurableFileCollection` directly from the link:{groovyDslPath}/org.gradle.language.cpp.CppApplication.html[application] or link:{groovyDslPath}/org.gradle.language.cpp.CppLibrary.html[library] script block to configure the set of sources to compile.
 
 Libraries make a distinction between private (implementation details) and public (exported to consumer) headers. 
 
@@ -75,7 +74,7 @@ You can also configure sources for each binary build for those cases where sourc
 .Sources and C++ compilation
 image::cpp-sourcesets-compilation.png[]
 
-Test sources are configured on each test suite script block. See <<cpp_testing.adoc,Testing C++ projects>> chapter.
+Test sources are configured on each test suite script block. See <<cpp_testing.adoc#,Testing C++ projects>> chapter.
 
 [[sec:cpp_dependency_management_overview]]
 == Managing your dependencies
@@ -118,7 +117,7 @@ As far as configurations go, the main ones of interest are:
 
 You can learn more about these and how they relate to one another in the native plugin reference chapter.
 
-Be aware that the <<cpp_library_plugin.adoc,C++ Library Plugin>> creates an additional configuration - `api` - for dependencies that are required for compiling and linking both the module and any modules that depend on it.
+Be aware that the <<cpp_library_plugin.adoc#,C++ Library Plugin>> creates an additional configuration - `api` - for dependencies that are required for compiling and linking both the module and any modules that depend on it.
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you’re comfortable with the basics of building C++ projects with Gradle.
 
@@ -157,7 +156,6 @@ In the future, Gradle will consider source and ABI compatibility when selecting 
 Gradle has general support for the three major tool chains on major operating system: Clang footnote:[Installed with Xcode on macOS], GCC footnote:[Installed through Cygwin and MinGW for 32- and 64-bits architecture on Windows] and Visual C++ footnote:[Installed with Visual Studio 2010 to 2017] (Windows-only).
 GCC and Clang installed using Macports and Homebrew have been reported to work fine, but this isn’t tested continuously.
 
-// TODO: Check to see if we use any headers
 ==== Windows
 
 To build on Windows, install a compatible version of Visual Studio[4].
@@ -258,19 +256,17 @@ The unique aspect of library projects is that they are used (or "consumed") by o
 That means the dependency metadata published with the binaries and headers - in the form of a Gradle Metadata - is crucial.
 In particular, consumers of your library should be able to distinguish between two different types of dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
 
-Gradle manages this distinction via the <<cpp_library_plugin.adoc,C++ Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ once covered in this chapter.
+Gradle manages this distinction via the <<cpp_library_plugin.adoc#,C++ Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ once covered in this chapter.
 If the types from a dependency appear as unresolved symbols of the static library or within the public headers then that dependency is exposed via your library’s public API and should, therefore, be added to the _api_ configuration.
 Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
-// FIXME: Ensure the difference between API and implementation is explained
-If you’re unsure of the difference between an API and implementation dependency, the <<cpp_library_plugin.adoc,C\++ Library Plugin>> chapter has a detailed explanation.
+If you’re unsure of the difference between an API and implementation dependency, the <<cpp_library_plugin.adoc#sec:cpp_library_api_vs_implementation,C\++ Library Plugin>> chapter has a detailed explanation.
 In addition, you can see a basic, practical example of building a C++ library in the corresponding link:{guidesUrl}/building-cpp-libraries[guide].
 
 [[sec:building_cpp_applications]]
 == Building C++ applications
 
-// TODO: link to C++ application plugin reference chapter
-See the C++ Application Plugin chapter for more details, but here’s a quick summary of what you get:
+See the <<cpp_application_plugin.adoc#,C++ Application Plugin>> chapter for more details, but here’s a quick summary of what you get:
 
  * `install` create a directory containing everything needed to run it
  * Shell and Windows Batch scripts to start the application

@@ -115,7 +115,7 @@ Sometimes it is desirable to publish the _resolved_ version instead.
 Example use cases:
 
 * A project uses dynamic versions for dependencies but prefers exposing the resolved version for a given release to its consumers.
-* In combination with <<dependency_locking.adoc,dependency locking>>, you want to publish the locked versions.
+* In combination with <<dependency_locking.adoc#,dependency locking>>, you want to publish the locked versions.
 * A project leverages the rich versions constraints of Gradle, which have a lossy conversion to Maven.
 Instead of relying on the conversion, it publishes the resolved versions.
 

@@ -206,7 +206,7 @@ include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/kotlin",files
 [NOTE]
 .Prefer creating a task with constructor arguments using the TaskContainer
 ====
-It's recommended to use the <<task_configuration_avoidance.adoc,Task Configuration Avoidance>> APIs to improve configuration time.
+It's recommended to use the <<task_configuration_avoidance.adoc#,Task Configuration Avoidance>> APIs to improve configuration time.
 ====
 
 In all circumstances, the values passed as constructor arguments must be non-null.
