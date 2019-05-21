@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * Marker interface for parameter objects to {@link TransformAction}s.
  *
  * <p>
- *     Parameter types should use be interfaces, only declaring getters for {@link org.gradle.api.provider.Property} like objects.
+ *     Parameter types should be interfaces, only declaring getters for {@link org.gradle.api.provider.Property}-like objects.
  *     All getters need to be annotated one of the input annotations {@link org.gradle.api.tasks.Console}, {@link org.gradle.api.tasks.Input}, {@link org.gradle.api.tasks.InputDirectory}, {@link org.gradle.api.tasks.InputFile}, {@link org.gradle.api.tasks.InputFiles}, {@link org.gradle.api.tasks.Internal} or {@link org.gradle.api.model.ReplacedBy}.
  *     Normalization annotations such as {@link org.gradle.api.tasks.PathSensitive} or {@link org.gradle.api.tasks.Classpath} can be used as well.
  *     Example:
