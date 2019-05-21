@@ -99,6 +99,7 @@ class DefaultInstantExecution(
             val build = host.createBuild(rootProjectName)
             loadRelevantProjects(decoder, build)
             build.autoApplyPlugins()
+            build.registerProjects()
             build.scheduleTasks(loadTasksFor(decoder, build))
         }
     }
@@ -163,9 +164,6 @@ class DefaultInstantExecution(
     fun loadTasksWithDependenciesFor(decoder: Decoder, build: InstantExecutionBuild): List<Pair<Task, List<String>>> {
         val classPath = decoder.deserializeClassPath()
         val taskClassLoader = classLoaderFor(classPath)
-
-        build.registerProjects()
-
         return decoder.deserializeCollectionInto({ size -> ArrayList(size) }) { container ->
             val task = loadTaskFor(build, decoder, taskClassLoader)
             container.add(task)
