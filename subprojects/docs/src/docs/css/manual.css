@@ -1350,7 +1350,7 @@ div.screenshot {
 }
 
 .site-header .site-header-version {
-    align-self: center;
+    align-self: flex-end;
     color: #1da2bd;
     font-size: 20px;
     padding-left: 1px;
