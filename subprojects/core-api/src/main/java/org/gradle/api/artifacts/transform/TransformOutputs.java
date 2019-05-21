@@ -48,7 +48,7 @@ public interface TransformOutputs {
      * </pre>
      *
      * <p>
-     *     For a relative path, a location for the output directory is provided by Gradle, so that the {@link TransformAction} can produce its outputs at that location.
+     *     For a <strong>relative path</strong>, a location for the output directory is provided by Gradle, so that the {@link TransformAction} can produce its outputs at that location.
      *     The directory is created automatically when calling the method.
      *     Example:
      * </p>
