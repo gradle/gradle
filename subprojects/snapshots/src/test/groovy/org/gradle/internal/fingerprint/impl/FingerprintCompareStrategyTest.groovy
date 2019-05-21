@@ -231,15 +231,15 @@ class FingerprintCompareStrategyTest extends Specification {
         ABSOLUTE | false        | []
     }
 
-    def "handling duplicates (NormalizedPathFingerprintCompareStrategy)"() {
+    def "detects no change when only absolute path changes (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
         changes(NORMALIZED, true, [
-            "new/one-1": fingerprint("one"),
-            "new/one-2": fingerprint("one"),
+            "new-1/one": fingerprint("one"),
+            "new-2/one": fingerprint("one"),
             "new/two": fingerprint("two")
         ], [
-            "old/one-1": fingerprint("one"),
-            "old/one-2": fingerprint("one"),
+            "old-1/one": fingerprint("one"),
+            "old-2/one": fingerprint("one"),
             "old/two": fingerprint("two")
         ]) == []
     }
@@ -256,15 +256,15 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     def "file move is ignored when normalized path is the same (NormalizedPathFingerprintCompareStrategy)"() {
-        changes(NORMALIZED, true,
-            ["moved/input": fingerprint("input", 1),
+        changes(NORMALIZED, true, [
+            "moved/input": fingerprint("input", 1),
              "unchangedFile": fingerprint("unchangedFile", 2),
-             "changedFile": fingerprint("changedFile", 4)],
-
-            ["original/input": fingerprint("input", 1),
+             "changedFile": fingerprint("changedFile", 4)
+        ], [
+            "original/input": fingerprint("input", 1),
              "unchangedFile": fingerprint("unchangedFile", 2),
-             "changedFile": fingerprint("changedFile", 3)]
-        ) == [modified("changedFile")]
+             "changedFile": fingerprint("changedFile", 3)
+        ]) == [modified("changedFile")]
     }
 
     def "change file content to match content of another file with same normalized path (NormalizedPathFingerprintCompareStrategy)"() {

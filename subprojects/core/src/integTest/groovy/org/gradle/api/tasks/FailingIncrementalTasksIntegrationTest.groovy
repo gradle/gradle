@@ -166,7 +166,7 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
             class IncrementalTask extends DefaultTask {
                 @InputFiles
                 @PathSensitive(PathSensitivity.NAME_ONLY)
-                def inputFiles = project.files(${asFileList(inputs)}, '${renamedInput}')
+                def inputFiles = project.files(${asFileList(inputs)}, '${normalizePath(renamedInput)}')
             
                 @TaskAction
                 def action(${taskChangeType.name} changes) {}
