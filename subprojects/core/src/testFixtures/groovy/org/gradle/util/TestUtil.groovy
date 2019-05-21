@@ -17,7 +17,11 @@ package org.gradle.util
 
 
 import org.gradle.api.Task
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
+import org.gradle.api.internal.MutationGuards
+import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -33,6 +37,7 @@ import org.gradle.internal.instantiation.DefaultInstantiatorFactory
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.ProjectBuilder
@@ -44,6 +49,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
     private static InstantiatorFactory instantiatorFactory
+    private static ServiceRegistry services
 
     private final File rootDir
 
@@ -61,6 +67,10 @@ class TestUtil {
         return instantiatorFactory
     }
 
+    static DomainObjectCollectionFactory domainObjectCollectionFactory() {
+        return new DefaultDomainObjectCollectionFactory(instantiatorFactory(), services(), CollectionCallbackActionDecorator.NOOP, MutationGuards.identity())
+    }
+
     static ObjectFactory objectFactory() {
         return objFactory(TestFiles.resolver())
     }
@@ -70,10 +80,16 @@ class TestUtil {
     }
 
     private static ObjectFactory objFactory(FileResolver fileResolver) {
-        DefaultServiceRegistry services = new DefaultServiceRegistry()
-        services.add(ProviderFactory, new DefaultProviderFactory())
-        services.add(InstantiatorFactory, instantiatorFactory())
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory())
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory(), domainObjectCollectionFactory())
+    }
+
+    private static ServiceRegistry services() {
+        if (services == null) {
+            services = new DefaultServiceRegistry()
+            services.add(ProviderFactory, new DefaultProviderFactory())
+            services.add(InstantiatorFactory, instantiatorFactory())
+        }
+        return services
     }
 
     static NamedObjectInstantiator objectInstantiator() {

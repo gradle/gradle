@@ -16,8 +16,11 @@
 
 package org.gradle.api.model;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
@@ -98,6 +101,42 @@ public interface ObjectFactory {
     ConfigurableFileCollection fileCollection();
 
     /**
+     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.</p>
+     *
+     * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
+     *
+     * @param elementType The type of objects for the container to contain.
+     * @param <T> The type of objects for the container to contain.
+     * @return The container. Never returns null.
+     * @since 5.5
+     */
+    <T> NamedDomainObjectContainer<T> container(Class<T> elementType);
+
+    /**
+     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The given factory is used to create object instances.</p>
+     *
+     * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
+     *
+     *
+     * @param elementType The type of objects for the container to contain.
+     * @param factory The factory to use to create object instances.
+     * @param <T> The type of objects for the container to contain.
+     * @return The container. Never returns null.
+     * @since 5.5
+     */
+    <T> NamedDomainObjectContainer<T> container(Class<T> elementType,  NamedDomainObjectFactory<T> factory);
+
+    /**
+     * Creates a new {@link DomainObjectSet} for managing objects of the specified type.
+     *
+     * @param elementType The type of objects for the domain object set to contain.
+     * @param <T> The type of objects for the domain object set to contain.
+     * @return The domain object set. Never returns null.
+     * @since 5.5
+     */
+    <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType);
+
+    /**
      * Creates a {@link Property} implementation to hold values of the given type. The property has no initial value.
      *
      * <p>For certain types, there are more specialized property factory methods available:</p>
@@ -122,7 +161,7 @@ public interface ObjectFactory {
      *
      * @param elementType The type of element.
      * @param <T> The type of element.
-     * @return The property. Never returns null;
+     * @return The property. Never returns null.
      * @since 4.3
      */
     <T> ListProperty<T> listProperty(Class<T> elementType);
@@ -134,7 +173,7 @@ public interface ObjectFactory {
      *
      * @param elementType The type of element.
      * @param <T> The type of element.
-     * @return The property. Never returns null;
+     * @return The property. Never returns null.
      * @since 4.5
      */
     <T> SetProperty<T> setProperty(Class<T> elementType);

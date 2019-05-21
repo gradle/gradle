@@ -93,6 +93,7 @@ import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -463,7 +464,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ProjectStateRegistry projectStateRegistry,
                                                                     DocumentationRegistry documentationRegistry,
                                                                     CollectionCallbackActionDecorator callbackDecorator,
-                                                                    UserCodeApplicationContext userCodeApplicationContext) {
+                                                                    UserCodeApplicationContext userCodeApplicationContext,
+                                                                    DomainObjectCollectionFactory domainObjectCollectionFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -486,7 +488,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 projectStateRegistry,
                 documentationRegistry,
                 callbackDecorator,
-                userCodeApplicationContext
+                userCodeApplicationContext,
+                domainObjectCollectionFactory
             );
         }
 

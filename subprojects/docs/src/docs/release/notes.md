@@ -51,6 +51,10 @@ The `init` task can now generate simple Gradle plugins. You can use these as a s
 
 See the [User manual](userguide/build_init_plugin.html) for more details.
 
+### New factory method for creating `NamedDomainObjectContainer` and `DomainObjectSet`
+
+The `ObjectFactory` can now be used for creating `NamedDomainObjectContainer` and `DomainObjectSet`.
+
 ## Define organization-wide properties with a custom Gradle Distribution
 
 Gradle now looks for a `gradle.properties` file in the Gradle distribution used by the build.  This file has the [lowest precedence of any `gradle.properties`](userguide/build_environment.html#sec:gradle_configuration_properties) and properties defined in other locations will override values defined here.
