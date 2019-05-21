@@ -37,6 +37,23 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
+## Transforming dependency artifacts on resolution
+
+A dependency’s artifacts can take many forms, some of which will be published but others may not be.
+As an example, imagine you have a dependency on a JavaScript package.
+Its producer publishes two variants: normal and minified.
+As a consumer, you want to use the normal package for development.
+But for production, you want to use an obfuscated version of the package rather than the simple minified version that’s published.
+
+Let’s say you want to get hold of the obfuscated version of a JavaScript package, but it’s not available in any repository.
+Why not just retrieve the minified version and obfuscate it yourself?
+
+Gradle now allows you to register an _artifact transform_ to do just that, by hooking into the dependency management resolution engine.
+You can specify that whenever an obfuscated JS package is requested but can’t be found, Gradle should run an artifact transform that performs the obfuscation and makes the resulting artifact available to the build.
+The build won’t even be aware that the artifact transform has run.
+ 
+For more information have a look at the [user manual](userguide/dependency_management_attribute_based_matching.htmpl#sec:abm_artifact_transforms).
+
 ## Build init plugin improvements
 
 ### Support for JUnit Jupiter
