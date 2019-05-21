@@ -58,7 +58,7 @@ public interface TransformOutputs {
      * </pre>
      *
      * <p>
-     *     The registered directory needs to exist when the {@link TransformAction#transform(TransformOutputs)} method finishes.
+     *     <strong>Note:</strong> it is an error if the registered directory does not exist when the {@link TransformAction#transform(TransformOutputs)} method finishes.
      * </p>
      *
      * @param path path of the output directory
