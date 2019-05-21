@@ -51,7 +51,7 @@ The `init` task can now generate simple Gradle plugins. You can use these as a s
 
 See the [User manual](userguide/build_init_plugin.html) for more details.
 
-### New factory method for creating `NamedDomainObjectContainer` and `DomainObjectSet`
+## New factory methods for creating `NamedDomainObjectContainer` and `DomainObjectSet`
 
 The `ObjectFactory` can now be used for creating `NamedDomainObjectContainer` and `DomainObjectSet`.
 
@@ -69,6 +69,12 @@ non-Gradle projects that conflict with project names in the imported project.
 The upcoming 3.1.1 version of Buildship is required to take advantage of this behavior.
 
 Contributed by [Christian Fränkel](https://github.com/fraenkelc)
+
+## Building native software with Gradle
+
+All new C++ documentations including new user manual chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects, [DSL reference for C++ components](dsl/index.html#N10808), [C++ plugins reference chapters](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins reference chapters](userguide/plugin_reference.html#ide_integration).
+The [C++ guides](https://gradle.org/guides/?q=Native) were also improved to reflect all the new features available to C++ developers.
+See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
