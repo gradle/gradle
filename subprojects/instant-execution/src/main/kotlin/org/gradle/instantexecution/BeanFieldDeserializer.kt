@@ -36,7 +36,7 @@ class BeanFieldDeserializer(
     private val deserializer: StateDeserializer,
     private val filePropertyFactory: FilePropertyFactory
 ) {
-    fun deserialize(decoder: Decoder, listener: DeserializationContext) {
+    fun deserialize(decoder: Decoder, context: DeserializationContext) {
         val fieldsByName = relevantStateOf(beanType).associateBy { it.name }
         while (true) {
             val fieldName = decoder.readString()
@@ -44,10 +44,10 @@ class BeanFieldDeserializer(
                 break
             }
             try {
-                val value = deserializer.read(decoder, listener)
+                val value = deserializer.read(decoder, context)
                 val field = fieldsByName.getValue(fieldName)
                 field.isAccessible = true
-                listener.logFieldSerialization("deserialize", beanType, fieldName, value)
+                context.logFieldSerialization("deserialize", beanType, fieldName, value)
                 @Suppress("unchecked_cast")
                 when (field.type) {
                     DirectoryProperty::class.java -> {
@@ -61,7 +61,7 @@ class BeanFieldDeserializer(
                         field.set(bean, fileProperty)
                     }
                     Property::class.java -> {
-                        val property = DefaultPropertyState<Any>(Any::class.java)
+                        val property = DefaultPropertyState(Any::class.java)
                         property.set(value)
                         field.set(bean, property)
                     }
@@ -80,7 +80,7 @@ class BeanFieldDeserializer(
                         if (field.type.isInstance(value) || field.type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(field.type).isInstance(value)) {
                             field.set(bean, value)
                         } else if (value != null) {
-                            listener.logFieldWarning("deserialize", beanType, fieldName, "value $value is not assignable to ${field.type}")
+                            context.logFieldWarning("deserialize", beanType, fieldName, "value $value is not assignable to ${field.type}")
                         } // else null value -> ignore
                     }
                 }
