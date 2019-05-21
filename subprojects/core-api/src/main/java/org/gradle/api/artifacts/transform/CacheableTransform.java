@@ -24,7 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to an {@link TransformAction} type to indicate that the build cache should be used for artifact transforms of this type.
+ * Attached to a {@link TransformAction} type it indicates that the build cache should be used for artifact transforms of this type.
  *
  * <p>Only an artifact transform that produces reproducible and relocatable outputs should be marked with {@code CacheableTransform}.</p>
  *
