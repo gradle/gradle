@@ -50,7 +50,7 @@ Why not just retrieve the un-obfuscated JAR and obfuscate it yourself?
 
 Gradle now allows you to register an _artifact transform_ to do just that, by hooking into the dependency management resolution engine.
 You can specify that whenever an obfuscated JAR is requested but can’t be found, Gradle should run an artifact transform that performs the obfuscation and makes the resulting artifact available to the build.
-The build won’t even be aware that the artifact transform has run.
+The build won’t even be aware that the artifact was transformed.
  
 For more information have a look at the [user manual](userguide/dependency_management_attribute_based_matching.htmpl#sec:abm_artifact_transforms).
 
