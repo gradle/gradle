@@ -16,27 +16,30 @@
 
 package org.gradle.instantexecution
 
-
 import spock.lang.Ignore
+
 
 class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     @Ignore
     def "instant execution for compileGroovy on Groovy project with no dependencies"() {
+
+        def operations = newBuildOperationsFixture()
+
         given:
         buildFile << """
             plugins { id 'groovy' }
-            
-            println "running build script"
         """
         file("src/main/java/Thing.groovy") << """
             class Thing {
             }
         """
 
-        expect:
+        when:
         instantRun "compileGroovy"
-        outputContains("running build script")
+
+        then:
+        assertInstantExecutionStateStored(operations)
         result.assertTasksExecuted(":compileGroovy")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -46,7 +49,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         instantRun "compileGroovy"
 
         then:
-        outputDoesNotContain("running build script")
+        assertInstantExecutionStateLoaded(operations)
         result.assertTasksExecuted(":compileGroovy")
         classFile.isFile()
     }
