@@ -164,14 +164,6 @@ class DaemonForkOptionsTest extends Specification {
         !settings1.isCompatibleWith(settings2)
     }
 
-    def "unspecified classloader structure uses default structure with empty classpath"() {
-        when:
-        def options = daemonForkOptionsBuilder().build()
-
-        then:
-        options.classLoaderStructure == IsolatedClassLoaderUtil.getDefaultClassLoaderStructure([])
-    }
-
     def "unspecified keepAlive mode defaults to DAEMON"() {
         when:
         def options = daemonForkOptionsBuilder().build()

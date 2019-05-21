@@ -21,13 +21,12 @@ import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.JavaForkOptionsInternal;
 
 import java.io.File;
-import java.util.Collections;
 
 public class DaemonForkOptionsBuilder {
     private final JavaForkOptionsInternal javaForkOptions;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private KeepAliveMode keepAliveMode = KeepAliveMode.DAEMON;
-    private ClassLoaderStructure classLoaderStructure = IsolatedClassLoaderUtil.getDefaultClassLoaderStructure(Collections.<File>emptyList());
+    private ClassLoaderStructure classLoaderStructure = null;
 
     public DaemonForkOptionsBuilder(JavaForkOptionsFactory forkOptionsFactory) {
         this.forkOptionsFactory = forkOptionsFactory;

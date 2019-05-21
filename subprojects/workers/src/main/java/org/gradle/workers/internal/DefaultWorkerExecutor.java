@@ -169,7 +169,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 return o.getClass();
             }
         });
-        return toDaemonOptions(actionClass, paramTypes, configuration.getForkOptions(), configuration.getClasspath());
+        return toDaemonOptions(actionClass, paramTypes, configuration.getForkOptions(), configuration.getClasspath(), configuration.getIsolationMode());
     }
 
     private void validateWorkerConfiguration(WorkerConfiguration configuration) {
@@ -206,31 +206,35 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
-    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> classpath) {
-        ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
-
-        if (classpath != null) {
-            classpathBuilder.addAll(classpath);
-        }
-
-        addVisibilityFor(actionClass, classpathBuilder);
-
-        for (Class<?> paramClass : paramClasses) {
-            addVisibilityFor(paramClass, classpathBuilder);
-        }
-
-        Iterable<File> daemonClasspath = classpathBuilder.build();
-
+    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> classpath, IsolationMode isolationMode) {
         JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         userForkOptions.copyTo(forkOptions);
         forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
 
-        return new DaemonForkOptionsBuilder(forkOptionsFactory)
+        DaemonForkOptionsBuilder builder = new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(forkOptions)
-            .classpath(daemonClasspath)
-            .keepAliveMode(KeepAliveMode.DAEMON)
-            .build();
-    }
+            .keepAliveMode(KeepAliveMode.DAEMON);
+
+        if (isolationMode != IsolationMode.NONE) {
+            ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
+
+            if (classpath != null) {
+                classpathBuilder.addAll(classpath);
+            }
+
+            addVisibilityFor(actionClass, classpathBuilder);
+
+            for (Class<?> paramClass : paramClasses) {
+                addVisibilityFor(paramClass, classpathBuilder);
+            }
+
+            Iterable<File> daemonClasspath = classpathBuilder.build();
+
+            builder.classpath(daemonClasspath);
+        }
+
+        return builder.build();
+}
 
     private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder) {
         if (visibleClass.getClassLoader() != null) {
