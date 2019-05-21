@@ -21,6 +21,7 @@ import org.slf4j.Logger
 
 
 open class StateContext(val owner: Task, private val logger: Logger) {
+
     fun logFieldWarning(action: String, type: Class<*>, fieldName: String, message: String) {
         logger.warn(
             "instant-execution > task '{}' field '{}.{}' cannot be {}d because {}.",
