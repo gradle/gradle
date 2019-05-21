@@ -72,7 +72,15 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         given:
         buildFile << """
             println "running build script"
-            task a {}
+            
+            class SomeTask extends DefaultTask {
+                SomeTask() {
+                    println("create task")
+                }
+            }
+            task a(type: SomeTask) {
+                println("configure task")
+            }
             task b {
                 dependsOn a
             }
@@ -83,6 +91,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         outputContains("running build script")
+        outputContains("create task")
+        outputContains("configure task")
         result.assertTasksExecuted(":a")
 
         when:
@@ -90,6 +100,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         outputDoesNotContain("running build script")
+        outputDoesNotContain("create task")
+        outputDoesNotContain("configure task")
         result.assertTasksExecuted(":a")
 
         when:
@@ -97,6 +109,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         outputContains("running build script")
+        outputContains("create task")
+        outputContains("configure task")
         result.assertTasksExecuted(":a", ":b")
 
         when:
@@ -104,6 +118,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         outputDoesNotContain("running build script")
+        outputDoesNotContain("create task")
+        outputDoesNotContain("configure task")
         result.assertTasksExecuted(":a")
     }
 
@@ -216,7 +232,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "ok"
 
         then:
-        result.output.count("creating bean") == 2 // still running the task constructor, which creates values which are then discarded
+        outputDoesNotContain("creating bean")
         outputContains("bean.value = child")
         outputContains("bean.parent.value = parent")
         outputContains("same reference = true")
@@ -240,7 +256,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
                 @TaskAction
                 void run() {
-                    println "value = " + value
+                    println "this.value = " + value
                     println "bean.value = " + bean.value
                 }
             }
@@ -253,7 +269,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "ok"
 
         then:
-        outputContains("value = ${output}")
+        outputContains("this.value = ${output}")
         outputContains("bean.value = ${output}")
 
         where:
@@ -328,7 +344,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
                 @TaskAction
                 void run() {
-                    println "value = " + value.getOrNull()
+                    println "this.value = " + value.getOrNull()
                     println "bean.value = " + bean.value.getOrNull()
                 }
             }
@@ -344,7 +360,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "ok"
 
         then:
-        outputContains("value = ${output}")
+        outputContains("this.value = ${output}")
         outputContains("bean.value = ${output}")
 
         where:
@@ -380,7 +396,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
                 @TaskAction
                 void run() {
-                    println "value = " + value.getOrNull()
+                    println "this.value = " + value.getOrNull()
                     println "bean.value = " + bean.value.getOrNull()
                 }
             }
@@ -397,7 +413,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         def expected = output instanceof File ? file(output.path) : output
-        outputContains("value = ${expected}")
+        outputContains("this.value = ${expected}")
         outputContains("bean.value = ${expected}")
 
         where:
@@ -428,7 +444,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
                 @TaskAction
                 void run() {
-                    println "reference = " + badReference
+                    println "this.reference = " + badReference
                     println "bean.reference = " + bean.badReference
                 }
             }
@@ -443,6 +459,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("instant-execution > Cannot serialize object of type ${type} as these are not supported with instant execution.")
         outputContains("instant-execution > task ':broken' field 'SomeTask.badReference' cannot be serialized because there's no serializer for")
         outputContains("instant-execution > task ':broken' field 'SomeBean.badReference' cannot be serialized because there's no serializer for")
+
+        when:
+        instantRun "broken"
+
+        then:
+        outputContains("this.reference = null")
+        outputContains("bean.reference = null")
 
         where:
         type          | reference

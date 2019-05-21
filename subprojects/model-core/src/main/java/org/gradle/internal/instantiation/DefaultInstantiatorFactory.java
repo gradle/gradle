@@ -57,7 +57,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator inject(ServiceLookup services) {
-        return injectOnlyScheme.withServices(services);
+        return injectOnlyScheme.withServices(services).instantiator();
     }
 
     @Override
@@ -94,7 +94,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator injectLenient(ServiceLookup services) {
-        return injectOnlyLenientScheme.withServices(services);
+        return injectOnlyLenientScheme.withServices(services).instantiator();
     }
 
     @Override
@@ -104,7 +104,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator injectAndDecorateLenient(ServiceLookup services) {
-        return decoratingLenientScheme.withServices(services);
+        return decoratingLenientScheme.withServices(services).instantiator();
     }
 
     @Override
@@ -114,7 +114,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator injectAndDecorate(ServiceLookup services) {
-        return decoratingScheme.withServices(services);
+        return decoratingScheme.withServices(services).instantiator();
     }
 
     private void assertKnownAnnotation(Class<? extends Annotation> annotation) {

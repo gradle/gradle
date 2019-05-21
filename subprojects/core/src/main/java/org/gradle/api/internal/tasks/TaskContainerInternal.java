@@ -58,4 +58,11 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
      * Adds a previously constructed task into the container.  For internal use with software model bridging.
      */
     boolean addAllInternal(Collection<? extends Task> task);
+
+    /**
+     * Creates an instance of the given task type without invoking its constructors. This is used to recreate a task instance from the instant execution cache.
+     *
+     * TODO:instant-execution - review this
+     */
+    <T extends Task> T createWithoutConstructor(String name, Class<T> type);
 }
