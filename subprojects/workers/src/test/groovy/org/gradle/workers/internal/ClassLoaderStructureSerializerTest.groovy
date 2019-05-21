@@ -55,7 +55,9 @@ class ClassLoaderStructureSerializerTest extends Specification {
         def decodedClassloaderStructure = serializer.read(decoder)
 
         then:
-        decodedClassloaderStructure == classLoaderStructure
+        decodedClassloaderStructure.flat
+        decodedClassloaderStructure.parent == null
+        decodedClassloaderStructure.spec == null
     }
 
     def filteringClassloaderSpec() {
