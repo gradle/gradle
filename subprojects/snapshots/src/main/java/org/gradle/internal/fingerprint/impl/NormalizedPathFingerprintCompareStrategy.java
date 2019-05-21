@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Map.Entry.comparingByKey;
 
@@ -77,8 +78,8 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         Map<String, FileSystemLocationFingerprint> previousFingerprints,
         String propertyTitle
     ) {
-        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = getUnaccountedForPreviousFingerprints(previousFingerprints, currentFingerprints);
-        ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = getAddedFilesByNormalizedPath(currentFingerprints, unaccountedForPreviousFiles, previousFingerprints);
+        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = getUnaccountedForPreviousFingerprints(previousFingerprints, currentFingerprints.entrySet());
+        ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = getAddedFilesByNormalizedPath(currentFingerprints, unaccountedForPreviousFiles, previousFingerprints.entrySet());
 
         Iterator<Entry<FileSystemLocationFingerprint, FilePathWithType>> iterator = unaccountedForPreviousFiles.entries().stream().sorted(comparingByKey()).iterator();
         while (iterator.hasNext()) {
@@ -123,7 +124,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
 
     private static ListMultimap<FileSystemLocationFingerprint, FilePathWithType> getUnaccountedForPreviousFingerprints(
         Map<String, FileSystemLocationFingerprint> previousFingerprints,
-        Map<String, FileSystemLocationFingerprint> currentFingerprints
+        Set<Entry<String, FileSystemLocationFingerprint>> currentEntries
     ) {
         ListMultimap<FileSystemLocationFingerprint, FilePathWithType> results = MultimapBuilder
             .hashKeys(previousFingerprints.size())
@@ -131,7 +132,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
             .build();
         for (Entry<String, FileSystemLocationFingerprint> previousEntry : previousFingerprints.entrySet()) {
             // skip exact matches
-            if (currentFingerprints.entrySet().contains(previousEntry)) {
+            if (currentEntries.contains(previousEntry)) {
                 continue;
             }
 
@@ -147,7 +148,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
     private static ListMultimap<String, FilePathWithType> getAddedFilesByNormalizedPath(
         Map<String, FileSystemLocationFingerprint> currentFingerprints,
         ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles,
-        Map<String, FileSystemLocationFingerprint> previousFingerprints
+        Set<Entry<String, FileSystemLocationFingerprint>> previousEntries
     ) {
         ListMultimap<String, FilePathWithType> results = MultimapBuilder
             .linkedHashKeys()
@@ -155,7 +156,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
             .build();
         for (Entry<String, FileSystemLocationFingerprint> currentEntry : currentFingerprints.entrySet()) {
             // skip exact matches
-            if (previousFingerprints.entrySet().contains(currentEntry)) {
+            if (previousEntries.contains(currentEntry)) {
                 continue;
             }
 
