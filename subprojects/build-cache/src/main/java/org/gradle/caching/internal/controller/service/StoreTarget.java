@@ -41,8 +41,8 @@ public class StoreTarget implements BuildCacheEntryWriter {
             if (stored) {
                 throw new IllegalStateException("Build cache entry has already been stored");
             }
-            stored = true;
             Files.asByteSource(file).copyTo(output);
+            stored = true;
         } catch (Exception e) {
             throw closer.rethrow(e);
         } finally {
