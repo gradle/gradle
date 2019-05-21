@@ -38,7 +38,7 @@ public interface TransformOutputs {
      *
      * <p>
      *     For an absolute path, the location is registered as an output directory of the {@link TransformAction}.
-     *     The path is required to point to the {@link InputArtifact} or be inside it if the input artifact is a directory.
+     *     The path is required to point to the {@link InputArtifact}, or point inside the input artifact if it is a directory.
      *     Example:
      * </p>
      * <pre>
