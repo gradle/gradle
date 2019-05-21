@@ -46,6 +46,9 @@ import java.nio.file.Files
 import java.util.SortedSet
 
 
+inline fun <reified T> DefaultInstantExecution.Host.service(): T = getService(T::class.java)
+
+
 class DefaultInstantExecution(
     private val host: Host
 ) : InstantExecution {
@@ -171,7 +174,7 @@ class DefaultInstantExecution(
     }
 
     private
-    val filePropertyFactory = host.getService(FilePropertyFactory::class.java)
+    val filePropertyFactory = host.service<FilePropertyFactory>()
 
     private
     fun classLoaderFor(classPath: ClassPath) =
