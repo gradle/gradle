@@ -296,7 +296,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return doCreate(name, type, constructorArgs, Actions.doNothing());
     }
 
-    private <T extends Task> T doCreate(final String name, final Class<T> type, final Object[] constructorArgs, final Action<? super T> configureAction) throws InvalidUserDataException {
+    /**
+     * @param constructorArgs null == do not invoke constructor, empty == invoke constructor with no args, non-empty = invoke constructor with args
+     */
+    private <T extends Task> T doCreate(final String name, final Class<T> type, @Nullable final Object[] constructorArgs, final Action<? super T> configureAction) throws InvalidUserDataException {
         final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
             @Override
@@ -320,10 +323,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         });
     }
 
-    private <T extends Task> T createTask(TaskIdentity<T> identity, Object[] constructorArgs) throws InvalidUserDataException {
-        for (int i = 0; i < constructorArgs.length; i++) {
-            if (constructorArgs[i] == null) {
-                throw new NullPointerException(String.format("Received null for %s constructor argument #%s", identity.type.getName(), i + 1));
+    private <T extends Task> T createTask(TaskIdentity<T> identity, @Nullable Object[] constructorArgs) throws InvalidUserDataException {
+        if (constructorArgs != null) {
+            for (int i = 0; i < constructorArgs.length; i++) {
+                if (constructorArgs[i] == null) {
+                    throw new NullPointerException(String.format("Received null for %s constructor argument #%s", identity.type.getName(), i + 1));
+                }
             }
         }
         return taskFactory.create(identity, constructorArgs);
@@ -441,7 +446,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             @Override
             public T call(BuildOperationContext context) {
                 try {
-                    T task = taskFactory.create(identity);
+                    T task = taskFactory.create(identity, NO_ARGS);
                     addTask(task, true);
                     context.setResult(REALIZE_RESULT);
                     return task;
@@ -455,6 +460,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 return realizeDescriptor(identity, true, true);
             }
         });
+    }
+
+    @Override
+    public <T extends Task> T createWithoutConstructor(String name, Class<T> type) {
+        assertMutable("createWithoutConstructor(String, Class, Object...)");
+        return doCreate(name, type, null, Actions.doNothing());
     }
 
     @Override

@@ -58,6 +58,9 @@ interface ClassGenerator {
          */
         boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation);
 
+        //TODO:instant-execution: remove this
+        Class<?> getGeneratedClass();
+
         Class<?>[] getParameterTypes();
 
         Type[] getGenericParameterTypes();

@@ -411,6 +411,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
+            public Class<?> getGeneratedClass() {
+                return constructor.getDeclaringClass();
+            }
+
+            @Override
             public Class<?>[] getParameterTypes() {
                 return constructor.getParameterTypes();
             }

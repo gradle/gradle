@@ -23,16 +23,22 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.TaskInstantiationException
+import org.gradle.internal.instantiation.DeserializationInstantiator
+import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TaskFactoryTest extends AbstractProjectBuilderSpec {
-    final Instantiator instantiator = Mock()
+    def instantiationScheme = Mock(InstantiationScheme)
+    def instantiator = Mock(Instantiator)
+    def deserializeInstantiator = Mock(DeserializationInstantiator)
     ITaskFactory taskFactory
 
     def setup() {
-        taskFactory = new TaskFactory().createChild(project, instantiator)
+        taskFactory = new TaskFactory().createChild(project, instantiationScheme)
+        _ * instantiationScheme.instantiator() >> instantiator
+        _ * instantiationScheme.deserializationInstantiator() >> deserializeInstantiator
         _ * instantiator.newInstance(_) >> { args -> JavaReflectionUtil.newInstance(args[0]) }
     }
 
@@ -62,6 +68,15 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
         where:
         type << [Task, TaskInternal, AbstractTask, DefaultTask]
+    }
+
+    void testCreateTaskForDeserialization() {
+        when:
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, null, null, 12), (Object[]) null)
+
+        then:
+        1 * deserializeInstantiator.newInstance(TestDefaultTask, AbstractTask) >> { new TestDefaultTask() }
+        task instanceof TestDefaultTask
     }
 
     void testCreateTaskForTypeWhichDoesNotImplementTask() {

@@ -216,7 +216,7 @@ class DefaultInstantExecution(
 
     private
     fun InstantExecutionBuild.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
-        getProject(projectPath).tasks.create(taskName, taskClass)
+        getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass)
 
     private
     val isInstantExecutionEnabled: Boolean
