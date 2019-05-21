@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import static java.util.Map.Entry.comparingByKey;
 
@@ -85,16 +86,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
             FileSystemLocationFingerprint previousFingerprint = entry.getKey();
             FilePathWithType pathWithType = entry.getValue();
 
-            String normalizedPath = previousFingerprint.getNormalizedPath();
-            FileType previousFingerprintType = previousFingerprint.getType();
-
-            Change change;
-            if (wasModified(addedFilesByNormalizedPath, normalizedPath, pathWithType)) {
-                change = modified(propertyTitle, previousFingerprintType, normalizedPath, pathWithType);
-            } else {
-                change = removed(propertyTitle, normalizedPath, pathWithType);
-            }
-
+            Change change = getChange(propertyTitle, addedFilesByNormalizedPath, previousFingerprint, pathWithType);
             if (!visitor.visitChange(change)) {
                 return false;
             }
@@ -109,12 +101,24 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         return true;
     }
 
-    private static boolean wasModified(ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath, String normalizedPath, FilePathWithType pathWithType) {
-        return addedFilesByNormalizedPath.get(normalizedPath)
-            .removeIf(file ->
-                file.getFileType() != FileType.Missing
-                    && pathWithType.getAbsolutePath().equals(file.getAbsolutePath())
-            );
+    private Change getChange(
+        String propertyTitle,
+        ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath,
+        FileSystemLocationFingerprint previousFingerprint,
+        FilePathWithType pathWithType
+    ) {
+        String normalizedPath = previousFingerprint.getNormalizedPath();
+        FileType previousFingerprintType = previousFingerprint.getType();
+        String absolutePath = pathWithType.getAbsolutePath();
+
+        List<FilePathWithType> filePathWithTypes = addedFilesByNormalizedPath.get(normalizedPath);
+        Optional<FilePathWithType> match = filePathWithTypes.stream().filter(file -> absolutePath.equals(file.getAbsolutePath())).findFirst();
+        return match
+            .map(filePathWithType -> {
+                filePathWithTypes.remove(filePathWithType);
+                return modified(propertyTitle, previousFingerprintType, normalizedPath, filePathWithType);
+            })
+            .orElseGet(() -> removed(propertyTitle, normalizedPath, pathWithType));
     }
 
     private static ListMultimap<FileSystemLocationFingerprint, FilePathWithType> getUnaccountedForPreviousFingerprints(
