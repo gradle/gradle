@@ -198,7 +198,10 @@ class DefaultInstantExecution(
             writeString(it.path)
         }
 
-        BeanFieldSerializer(task, taskType, stateSerializer).invoke(this, SerializationContext(task, logger))
+        BeanFieldSerializer(task, taskType, stateSerializer).invoke(
+            this,
+            SerializationContext(task, logger)
+        )
     }
 
     private
@@ -206,12 +209,14 @@ class DefaultInstantExecution(
         val projectPath = decoder.readString()
         val taskName = decoder.readString()
         val typeName = decoder.readString()
+        val taskDependencies = decoder.deserializeStrings()
         val taskClass = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
         val task = build.createTask(projectPath, taskName, taskClass)
-        val taskDependencies = decoder.deserializeStrings()
         val deserializer = host.deserializerFor(taskClassLoader)
-        val context = DeserializationContext(task, logger)
-        BeanFieldDeserializer(task, taskClass, deserializer, filePropertyFactory).deserialize(decoder, context)
+        BeanFieldDeserializer(task, taskClass, deserializer, filePropertyFactory).deserialize(
+            decoder,
+            DeserializationContext(task, logger)
+        )
         return task to taskDependencies
     }
 
@@ -225,10 +230,11 @@ class DefaultInstantExecution(
 
     private
     val instantExecutionStateFile by lazy {
-        val dir = File(host.rootDir, ".instant-execution-state/${GradleVersion.current().version}").absoluteFile
+        val currentGradleVersion = GradleVersion.current().version
+        val cacheDir = File(host.rootDir, ".instant-execution-state/$currentGradleVersion").absoluteFile
         val baseName = HashUtil.createCompactMD5(host.requestedTaskNames.joinToString("/"))
         val cacheFileName = "$baseName.bin"
-        File(dir, cacheFileName)
+        File(cacheDir, cacheFileName)
     }
 }
 
