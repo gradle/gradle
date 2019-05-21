@@ -165,7 +165,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         private final File workerDirectory;
         private PrintStream ps;
 
-        private PrintUnrecoverableErrorToFileHandler(WorkerDirectoryProvider workerDirectoryProvider) {
+        PrintUnrecoverableErrorToFileHandler(WorkerDirectoryProvider workerDirectoryProvider) {
             this.workerDirectory = workerDirectoryProvider.getWorkingDirectory();
         }
 
@@ -185,7 +185,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             }
         }
 
-        private void close() {
+        void close() {
             if (ps != null) {
                 ps.close();
             }

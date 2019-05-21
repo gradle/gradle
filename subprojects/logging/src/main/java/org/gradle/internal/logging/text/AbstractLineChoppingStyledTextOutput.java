@@ -23,10 +23,10 @@ import org.gradle.internal.SystemProperties;
  * A {@link StyledTextOutput} that breaks text up into lines.
  */
 public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyledTextOutput {
-    private final char[] eolChars;
-    private final String eol;
-    private int seenCharsFromEol;
-    private State currentState = INITIAL_STATE;
+    final char[] eolChars;
+    final String eol;
+    int seenCharsFromEol;
+    State currentState = INITIAL_STATE;
 
     protected AbstractLineChoppingStyledTextOutput() {
         eol = SystemProperties.getInstance().getLineSeparator();
@@ -67,9 +67,9 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         private int pos;
         private int max;
         private int start;
-        private int seenCharsFromEol = AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol;
-        private final char[] eolChars = AbstractLineChoppingStyledTextOutput.this.eolChars;
-        private final String eol = AbstractLineChoppingStyledTextOutput.this.eol;
+        int seenCharsFromEol = AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol;
+        final char[] eolChars = AbstractLineChoppingStyledTextOutput.this.eolChars;
+        final String eol = AbstractLineChoppingStyledTextOutput.this.eol;
 
         StateContext(String text) {
             this.text = text;
@@ -164,9 +164,9 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         }
     };
 
-    private static final State INITIAL_STATE = SYSTEM_EOL_PARSING_STATE;
+    static final State INITIAL_STATE = SYSTEM_EOL_PARSING_STATE;
 
-    private static final State WELL_KNOWN_EOL_PARSING_STATE = new State() {
+    static final State WELL_KNOWN_EOL_PARSING_STATE = new State() {
         @Override
         public void execute(StateContext context) {
             if (context.isCurrentCharEquals('\r')) {
@@ -185,7 +185,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         }
     };
 
-    private static final State WINDOWS_EOL_PARSING_ODDITY_STATE = new State() {
+    static final State WINDOWS_EOL_PARSING_ODDITY_STATE = new State() {
         @Override
         public void execute(StateContext context) {
             if (context.isCurrentCharEquals('\n')) {
@@ -204,7 +204,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         }
     };
 
-    private static final State START_LINE_STATE = new State() {
+    static final State START_LINE_STATE = new State() {
         @Override
         public void execute(StateContext context) {
             context.flushStartLine();

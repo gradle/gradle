@@ -37,9 +37,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultListenerManager implements ListenerManager {
     private final Map<Object, ListenerDetails> allListeners = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<Object, ListenerDetails>();
-    private final Map<Class<?>, EventBroadcast> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast>();
+    final Map<Class<?>, EventBroadcast> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast>();
     private final Object lock = new Object();
-    private final DefaultListenerManager parent;
+    final DefaultListenerManager parent;
 
     public DefaultListenerManager() {
         this(null);
@@ -103,7 +103,7 @@ public class DefaultListenerManager implements ListenerManager {
         return broadcast;
     }
 
-    private <T> EventBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
+    <T> EventBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
         synchronized (lock) {
             EventBroadcast<T> broadcaster = broadcasters.get(listenerClass);
             if (broadcaster == null) {
@@ -134,7 +134,7 @@ public class DefaultListenerManager implements ListenerManager {
         private final ListenerDispatch dispatchNoLogger;
 
         private volatile ProxyDispatchAdapter<T> source;
-        private final Set<ListenerDetails> listeners = new LinkedHashSet<ListenerDetails>();
+        final Set<ListenerDetails> listeners = new LinkedHashSet<ListenerDetails>();
         private final List<Runnable> queuedOperations = new LinkedList<Runnable>();
         private final ReentrantLock broadcasterLock = new ReentrantLock();
         private ListenerDetails logger;
@@ -242,14 +242,14 @@ public class DefaultListenerManager implements ListenerManager {
             }
         }
 
-        private void doSetLogger(ListenerDetails candidate) {
+        void doSetLogger(ListenerDetails candidate) {
             if (logger == null && parent != null) {
                 parentDispatch = parent.getBroadcasterInternal(type).getDispatch(false);
             }
             logger = candidate;
         }
 
-        private List<Dispatch<MethodInvocation>> startNotification(boolean includeLogger) {
+        List<Dispatch<MethodInvocation>> startNotification(boolean includeLogger) {
             takeOwnership();
 
             // Take a snapshot while holding lock
@@ -309,7 +309,7 @@ public class DefaultListenerManager implements ListenerManager {
             return result;
         }
 
-        private void endNotification(List<Dispatch<MethodInvocation>> dispatchers) {
+        void endNotification(List<Dispatch<MethodInvocation>> dispatchers) {
             for (Dispatch<MethodInvocation> dispatcher : dispatchers) {
                 if (dispatcher instanceof ListenerDetails) {
                     ListenerDetails listener = (ListenerDetails) dispatcher;

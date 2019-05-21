@@ -47,9 +47,9 @@ class CompositeConflictResolver<T> implements ModuleConflictResolver<T> {
 
     private static class CompositeDetails<T> implements ConflictResolverDetails<T> {
         private final ConflictResolverDetails<T> delegate;
-        private boolean hasResult;
+        boolean hasResult;
 
-        private CompositeDetails(ConflictResolverDetails<T> delegate) {
+        CompositeDetails(ConflictResolverDetails<T> delegate) {
             this.delegate = delegate;
         }
 

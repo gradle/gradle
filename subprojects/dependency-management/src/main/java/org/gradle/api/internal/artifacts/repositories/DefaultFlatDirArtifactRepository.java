@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -41,6 +40,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
 import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
@@ -167,6 +167,9 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     }
 
     private static class NoOpRepositoryResourceAccessor implements RepositoryResourceAccessor, ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {
+        NoOpRepositoryResourceAccessor() {
+        }
+
         @Override
         public void withResource(String relativePath, Action<? super InputStream> action) {
             // No-op

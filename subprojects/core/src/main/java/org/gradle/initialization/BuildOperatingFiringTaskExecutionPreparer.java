@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionPreparer {
-    private final TaskExecutionPreparer delegate;
+    final TaskExecutionPreparer delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public BuildOperatingFiringTaskExecutionPreparer(TaskExecutionPreparer delegate, BuildOperationExecutor buildOperationExecutor) {
@@ -46,7 +46,7 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
     }
 
     private class CalculateTaskGraph implements RunnableBuildOperation {
-        private final GradleInternal gradle;
+        final GradleInternal gradle;
 
         public CalculateTaskGraph(GradleInternal gradle) {
             this.gradle = gradle;

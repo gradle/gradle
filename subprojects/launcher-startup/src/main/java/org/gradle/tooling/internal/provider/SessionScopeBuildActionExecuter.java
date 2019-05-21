@@ -37,7 +37,7 @@ import org.gradle.launcher.exec.BuildExecuter;
  */
 public class SessionScopeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
-    private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
+    final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 
     public SessionScopeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
         this.delegate = delegate;

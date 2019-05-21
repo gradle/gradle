@@ -44,7 +44,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     private final Class<T> elementType;
     private final ProviderFactory providerFactory;
-    private final Set<T> elements = new LinkedHashSet<T>();
+    final Set<T> elements = new LinkedHashSet<T>();
     private List<SingleElementProvider<?>> pending = new LinkedList<SingleElementProvider<?>>();
     private State state = State.Collecting;
     private ImmutableActionSet<T> knownActions = ImmutableActionSet.empty();
@@ -173,7 +173,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
     private class SingleElementProvider<S> extends AbstractReadOnlyProvider<S> implements BinaryProvider<S> {
         private final Class<S> type;
         private Spec<? super S> spec;
-        private S match;
+        S match;
         private boolean ambiguous;
 
         SingleElementProvider(Class<S> type, Spec<? super S> spec) {

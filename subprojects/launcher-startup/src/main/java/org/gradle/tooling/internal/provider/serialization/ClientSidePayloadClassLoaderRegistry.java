@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.Sets;
-import javax.annotation.concurrent.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
@@ -40,9 +40,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private static final short CLIENT_CLASS_LOADER_ID = 1;
     private final PayloadClassLoaderRegistry delegate;
-    private final ClasspathInferer classpathInferer;
-    private final ClassLoaderCache classLoaderCache;
-    private final Lock lock = new ReentrantLock(); // protects the following state
+    final ClasspathInferer classpathInferer;
+    final ClassLoaderCache classLoaderCache;
+    final Lock lock = new ReentrantLock(); // protects the following state
     // Contains only application owned ClassLoaders
     private final Map<UUID, LocalClassLoaderMapping> classLoaders = new LinkedHashMap<UUID, LocalClassLoaderMapping>();
 
@@ -128,7 +128,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         };
     }
 
-    private Set<ClassLoader> getClassLoaders(UUID uuid) {
+    Set<ClassLoader> getClassLoaders(UUID uuid) {
         LocalClassLoaderMapping localClassLoaderMapping = classLoaders.get(uuid);
         if (localClassLoaderMapping == null) {
             return null;
@@ -143,7 +143,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         return candidates;
     }
 
-    private UUID getUuidForLocalClassLoaders(Set<ClassLoader> candidates) {
+    UUID getUuidForLocalClassLoaders(Set<ClassLoader> candidates) {
         for (LocalClassLoaderMapping localClassLoaderMapping : new ArrayList<LocalClassLoaderMapping>(classLoaders.values())) {
             Set<ClassLoader> localCandidates = new LinkedHashSet<ClassLoader>();
             for (WeakReference<ClassLoader> reference : localClassLoaderMapping.classLoaders) {
@@ -170,10 +170,10 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
     }
 
     private static class LocalClassLoaderMapping {
-        private final Set<WeakReference<ClassLoader>> classLoaders = Sets.newLinkedHashSet();
-        private final UUID uuid;
+        final Set<WeakReference<ClassLoader>> classLoaders = Sets.newLinkedHashSet();
+        final UUID uuid;
 
-        private LocalClassLoaderMapping(UUID uuid) {
+        LocalClassLoaderMapping(UUID uuid) {
             this.uuid = uuid;
         }
     }

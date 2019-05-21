@@ -37,17 +37,17 @@ public class DaemonRegistryContent implements Serializable {
 
     public static final org.gradle.internal.serialize.Serializer<DaemonRegistryContent> SERIALIZER = new Serializer();
 
-    private static final MultiChoiceAddressSerializer MULTI_CHOICE_ADDRESS_SERIALIZER = new MultiChoiceAddressSerializer();
+    static final MultiChoiceAddressSerializer MULTI_CHOICE_ADDRESS_SERIALIZER = new MultiChoiceAddressSerializer();
 
-    private final Map<Address, DaemonInfo> infosMap;
-    private final List<DaemonStopEvent> stopEvents;
+    final Map<Address, DaemonInfo> infosMap;
+    final List<DaemonStopEvent> stopEvents;
 
     public DaemonRegistryContent() {
         infosMap = new HashMap<Address, DaemonInfo>();
         stopEvents = new ArrayList<DaemonStopEvent>();
     }
 
-    private DaemonRegistryContent(Map<Address, DaemonInfo> infosMap, List<DaemonStopEvent> stopEvents) {
+    DaemonRegistryContent(Map<Address, DaemonInfo> infosMap, List<DaemonStopEvent> stopEvents) {
         this.infosMap = infosMap;
         this.stopEvents = stopEvents;
     }
@@ -110,6 +110,9 @@ public class DaemonRegistryContent implements Serializable {
      * 4 - stop events
      */
     private static class Serializer implements org.gradle.internal.serialize.Serializer<DaemonRegistryContent> {
+
+        Serializer() {
+        }
 
         @Override
         public DaemonRegistryContent read(Decoder decoder) throws Exception {

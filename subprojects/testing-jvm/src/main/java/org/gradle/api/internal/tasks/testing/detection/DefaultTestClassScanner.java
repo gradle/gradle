@@ -31,10 +31,10 @@ import java.util.regex.Pattern;
  * a detection or filename scan is performed to find test classes.
  */
 public class DefaultTestClassScanner implements Runnable {
-    private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
+    static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private final FileTree candidateClassFiles;
-    private final TestFrameworkDetector testFrameworkDetector;
-    private final TestClassProcessor testClassProcessor;
+    final TestFrameworkDetector testFrameworkDetector;
+    final TestClassProcessor testClassProcessor;
 
     public DefaultTestClassScanner(FileTree candidateClassFiles, TestFrameworkDetector testFrameworkDetector,
                                    TestClassProcessor testClassProcessor) {
@@ -73,6 +73,9 @@ public class DefaultTestClassScanner implements Runnable {
     }
 
     private abstract class ClassFileVisitor extends EmptyFileVisitor {
+        ClassFileVisitor() {
+        }
+
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
             if (isClass(fileDetails) && !isAnonymousClass(fileDetails)) {
@@ -91,7 +94,7 @@ public class DefaultTestClassScanner implements Runnable {
         }
     }
 
-    private String getClassName(FileVisitDetails fileDetails) {
+    String getClassName(FileVisitDetails fileDetails) {
         return fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
     }
 }

@@ -49,7 +49,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
  * A {@link DataReporter} implementation that stores results in an H2 relational database.
  */
 public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore {
-    private final long ignoreV17Before;
+    final long ignoreV17Before;
     private final PerformanceDatabase db;
     private final Map<String, GradleVersion> gradleVersionCache = new HashMap<String, GradleVersion>();
 
@@ -136,7 +136,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         }
     }
 
-    private void addOperations(PreparedStatement statement, long testId, String version, MeasuredOperationList operations) throws SQLException {
+    void addOperations(PreparedStatement statement, long testId, String version, MeasuredOperationList operations) throws SQLException {
         for (MeasuredOperation operation : operations) {
             statement.setLong(1, testId);
             statement.setString(2, version);
@@ -296,6 +296,9 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     }
 
     private class CrossVersionResultsSchemaInitializer implements ConnectionAction<Void> {
+        CrossVersionResultsSchemaInitializer() {
+        }
+
         @Override
         public Void execute(Connection connection) throws SQLException {
             Statement statement = null;
@@ -347,13 +350,13 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         }
     }
 
-    private void closeStatement(Statement statement) throws SQLException {
+    void closeStatement(Statement statement) throws SQLException {
         if (statement != null) {
             statement.close();
         }
     }
 
-    private void closeResultSet(ResultSet resultSet) throws SQLException {
+    void closeResultSet(ResultSet resultSet) throws SQLException {
         if (resultSet != null) {
             resultSet.close();
         }

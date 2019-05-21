@@ -32,8 +32,8 @@ import java.util.Set;
 
 public class WebApplication implements SoftwareComponentInternal {
     private final UsageContext webArchiveUsage;
-    private final PublishArtifact warArtifact;
-    private final String variantName;
+    final PublishArtifact warArtifact;
+    final String variantName;
 
     @Inject
     public WebApplication(PublishArtifact warArtifact, String variantName) {

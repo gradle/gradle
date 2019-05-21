@@ -51,10 +51,10 @@ import java.util.Set;
 
 public class EclipseDependenciesCreator {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
-    private final EclipseClasspath classpath;
-    private final ProjectDependencyBuilder projectDependencyBuilder;
-    private final ProjectComponentIdentifier currentProjectId;
+    static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
+    final EclipseClasspath classpath;
+    final ProjectDependencyBuilder projectDependencyBuilder;
+    final ProjectComponentIdentifier currentProjectId;
 
     public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, ProjectStateRegistry projectRegistry) {
         this.classpath = classpath;

@@ -85,7 +85,7 @@ public class MavenPomFileGenerator {
         }
     };
 
-    private final Model model = new Model();
+    final Model model = new Model();
     private final XmlTransformer xmlTransformer = new XmlTransformer();
     private final VersionRangeMapper versionRangeMapper;
     private final VersionMappingStrategyInternal versionMappingStrategy;
@@ -111,11 +111,11 @@ public class MavenPomFileGenerator {
         }
     }
 
-    private static String xmlComments(String[] lines) {
+    static String xmlComments(String[] lines) {
         return Joiner.on("  ").join(Iterables.transform(Arrays.asList(lines), MavenPomFileGenerator::xmlComment));
     }
 
-    private static String xmlComment(String content) {
+    static String xmlComment(String content) {
         return "<!-- " + content + " -->\n";
     }
 

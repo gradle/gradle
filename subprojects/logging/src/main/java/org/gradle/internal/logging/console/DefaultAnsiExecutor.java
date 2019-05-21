@@ -29,9 +29,9 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
     private final Appendable target;
     private final ColorMap colorMap;
     private final AnsiFactory factory;
-    private final ConsoleMetaData consoleMetaData;
-    private final NewLineListener listener;
-    private final Cursor writeCursor;
+    final ConsoleMetaData consoleMetaData;
+    final NewLineListener listener;
+    final Cursor writeCursor;
 
     public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, ConsoleMetaData consoleMetaData, Cursor writeCursor, NewLineListener listener) {
         this.target = target;
@@ -57,12 +57,12 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         write(ansi);
     }
 
-    private void charactersWritten(Cursor cursor, int count) {
+    void charactersWritten(Cursor cursor, int count) {
         writeCursor.col += count;
         cursor.copyFrom(writeCursor);
     }
 
-    private void newLineWritten(Cursor cursor) {
+    void newLineWritten(Cursor cursor) {
         writeCursor.col = 0;
 
         // On any line except the bottom most one, a new line simply move the cursor to the next row.
@@ -75,7 +75,7 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         cursor.copyFrom(writeCursor);
     }
 
-    private void positionCursorAt(Cursor position, Ansi ansi) {
+    void positionCursorAt(Cursor position, Ansi ansi) {
         if (writeCursor.row == position.row) {
             if (writeCursor.col == position.col) {
                 return;

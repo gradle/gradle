@@ -49,10 +49,10 @@ import java.util.Set;
  */
 @NonNullApi
 public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependencyResolveContext {
-    private final Deque<Object> queue = new ArrayDeque<Object>();
+    final Deque<Object> queue = new ArrayDeque<Object>();
     private final CachingDirectedGraphWalker<Object, T> walker;
     private final Collection<? extends WorkDependencyResolver<T>> workResolvers;
-    private Task task;
+    Task task;
 
     public CachingTaskDependencyResolveContext(Collection<? extends WorkDependencyResolver<T>> workResolvers) {
         this.walker = new CachingDirectedGraphWalker<Object, T>(new TaskGraphImpl(workResolvers));
@@ -88,7 +88,7 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         queue.add(dependency);
     }
 
-    private void attachFinalizerTo(T value, Action<? super Task> action) {
+    void attachFinalizerTo(T value, Action<? super Task> action) {
         for (WorkDependencyResolver<T> resolver : workResolvers) {
             if (resolver.attachActionTo(value, action)) {
                 break;

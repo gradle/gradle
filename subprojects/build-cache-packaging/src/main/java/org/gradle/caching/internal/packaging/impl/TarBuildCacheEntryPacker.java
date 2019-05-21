@@ -83,7 +83,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern TREE_PATH = Pattern.compile("(missing-)?tree-([^/]+)(?:/(.*))?");
     private static final int BUFFER_SIZE = 64 * 1024;
-    private static final ThreadLocal<byte[]> COPY_BUFFERS = new ThreadLocal<byte[]>() {
+    static final ThreadLocal<byte[]> COPY_BUFFERS = new ThreadLocal<byte[]>() {
         @Override
         protected byte[] initialValue() {
             return new byte[BUFFER_SIZE];
@@ -145,7 +145,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         return packingVisitor.finish();
     }
 
-    private static void createTarEntry(String path, long size, int mode, TarArchiveOutputStream tarOutput) throws IOException {
+    static void createTarEntry(String path, long size, int mode, TarArchiveOutputStream tarOutput) throws IOException {
         TarArchiveEntry entry = new TarArchiveEntry(path, true);
         entry.setSize(size);
         entry.setMode(mode);
@@ -325,7 +325,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         fileSystem.chmod(file, entry.getMode() & UnixPermissions.PERM_MASK);
     }
 
-    private static String escape(String name) {
+    static String escape(String name) {
         try {
             return URLEncoder.encode(name, "utf-8");
         } catch (UnsupportedEncodingException ignored) {

@@ -21,7 +21,7 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
 public class WatchForDisconnection implements DaemonCommandAction {
-    private static final Logger LOGGER = Logging.getLogger(WatchForDisconnection.class);
+    static final Logger LOGGER = Logging.getLogger(WatchForDisconnection.class);
     public static final String EXPIRATION_REASON = "client disconnected";
 
     @Override

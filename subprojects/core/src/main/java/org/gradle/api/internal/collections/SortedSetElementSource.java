@@ -29,8 +29,8 @@ import java.util.Iterator;
 import java.util.TreeSet;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
-    private final TreeSet<T> values;
-    private final PendingSource<T> pending = new DefaultPendingSource<T>();
+    final TreeSet<T> values;
+    final PendingSource<T> pending = new DefaultPendingSource<T>();
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {

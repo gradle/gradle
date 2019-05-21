@@ -74,11 +74,11 @@ import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_REL
  * for a lock might change without acquiring the lock if several Lock Requester compete for the same lock.
  */
 public class DefaultFileLockContentionHandler implements FileLockContentionHandler, Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockContentionHandler.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockContentionHandler.class);
     private static final int PING_DELAY = 1000;
-    private final Lock lock = new ReentrantLock();
+    final Lock lock = new ReentrantLock();
 
-    private final Map<Long, ContendedAction> contendedActions = new HashMap<Long, ContendedAction>();
+    final Map<Long, ContendedAction> contendedActions = new HashMap<Long, ContendedAction>();
     private final Map<Long, FileLockReleasedSignal> lockReleasedSignals = new HashMap<Long, FileLockReleasedSignal>();
     private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<Long, Integer>();
     private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<Long, Integer>();
@@ -86,7 +86,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final ExecutorFactory executorFactory;
     private final InetAddressFactory addressFactory;
 
-    private FileLockCommunicator communicator;
+    FileLockCommunicator communicator;
     private ManagedExecutor fileLockRequestListener;
     private ManagedExecutor unlockActionExecutor;
     private boolean stopped;
@@ -142,12 +142,12 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         };
     }
 
-    private void startLockReleaseAsLockHolder(ContendedAction contendedAction) {
+    void startLockReleaseAsLockHolder(ContendedAction contendedAction) {
         contendedAction.running = true;
         unlockActionExecutor.execute(contendedAction);
     }
 
-    private void acceptConfirmationAsLockRequester(FileLockPacketPayload payload, Integer port) {
+    void acceptConfirmationAsLockRequester(FileLockPacketPayload payload, Integer port) {
         long lockId = payload.getLockId();
         if (payload.getType() == LOCK_RELEASE_CONFIRMATION) {
             LOGGER.debug("Gradle process at port {} confirmed lock release for lock with id {}.", port, lockId);
@@ -270,12 +270,12 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private class ContendedAction implements Runnable {
         private final Lock lock = new ReentrantLock();
-        private final long lockId;
+        final long lockId;
         private final Action<FileLockReleasedSignal> action;
         private Set<SocketAddress> requesters = new LinkedHashSet<SocketAddress>();
-        private boolean running;
+        boolean running;
 
-        private ContendedAction(long lockId, Action<FileLockReleasedSignal> action) {
+        ContendedAction(long lockId, Action<FileLockReleasedSignal> action) {
             this.lockId = lockId;
             this.action = action;
         }
@@ -294,7 +294,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             });
         }
 
-        private void addRequester(SocketAddress contender) {
+        void addRequester(SocketAddress contender) {
             lock.lock();
             try {
                 if (requesters != null) {
@@ -305,7 +305,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             }
         }
 
-        private Set<SocketAddress> consumeRequesters() {
+        Set<SocketAddress> consumeRequesters() {
             lock.lock();
             try {
                 return requesters;

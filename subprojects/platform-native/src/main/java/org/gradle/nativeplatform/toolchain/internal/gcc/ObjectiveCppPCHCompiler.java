@@ -30,6 +30,9 @@ public class ObjectiveCppPCHCompiler extends GccCompatibleNativeCompiler<Objecti
     }
 
     private static class ObjectiveCppPCHCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCppPCHCompileSpec> {
+        ObjectiveCppPCHCompileArgsTransformer() {
+        }
+
         @Override
         protected String getLanguage() {
             return "objective-c++-header";

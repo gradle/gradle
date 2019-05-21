@@ -28,7 +28,7 @@ import java.io.File;
 
 public abstract class AbstractMavenArtifact implements MavenArtifact {
     private final TaskDependency allBuildDependencies;
-    private final DefaultTaskDependency additionalBuildDependencies;
+    final DefaultTaskDependency additionalBuildDependencies;
     private String extension;
     private String classifier;
 
@@ -82,6 +82,9 @@ public abstract class AbstractMavenArtifact implements MavenArtifact {
     }
 
     private class CompositeTaskDependency extends AbstractTaskDependency {
+
+        CompositeTaskDependency() {
+        }
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {

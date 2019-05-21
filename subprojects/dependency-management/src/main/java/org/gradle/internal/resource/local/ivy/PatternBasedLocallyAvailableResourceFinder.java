@@ -18,12 +18,12 @@ package org.gradle.internal.resource.local.ivy;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
-import org.gradle.internal.resource.local.AbstractLocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.resource.local.AbstractLocallyAvailableResourceFinder;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -56,7 +56,7 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
                 };
             }
 
-            private MinimalFileTree getMatchingFiles(ModuleComponentArtifactMetadata artifact) {
+            MinimalFileTree getMatchingFiles(ModuleComponentArtifactMetadata artifact) {
                 String patternString = pattern.getLocation(artifact).getPath();
                 return new SingleIncludePatternFileTree(baseDir, patternString);
             }

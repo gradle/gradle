@@ -41,20 +41,20 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryStore.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryStore.class);
 
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
 
     private final File dir;
     private final CacheBuilder.LockTarget lockTarget;
     private final LockOptions lockOptions;
-    private final CleanupAction cleanupAction;
+    final CleanupAction cleanupAction;
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final String displayName;
     protected final File propertiesFile;
-    private final File gcFile;
-    private final ProgressLoggerFactory progressLoggerFactory;
+    final File gcFile;
+    final ProgressLoggerFactory progressLoggerFactory;
     private CacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(File dir, String displayName, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, CleanupAction cleanupAction, FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
@@ -188,6 +188,9 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private class Cleanup implements CacheCleanupAction {
+        Cleanup() {
+        }
+
         @Override
         public boolean requiresCleanup() {
             if (cleanupAction != null) {

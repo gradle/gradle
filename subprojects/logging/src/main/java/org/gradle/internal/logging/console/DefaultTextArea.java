@@ -27,7 +27,7 @@ public class DefaultTextArea extends AbstractLineChoppingStyledTextOutput implem
         }
     };
     private static final int CHARS_PER_TAB_STOP = 8;
-    private final Cursor writePos = new Cursor();
+    final Cursor writePos = new Cursor();
     private final AnsiExecutor ansiExecutor;
 
     public DefaultTextArea(AnsiExecutor ansiExecutor) {

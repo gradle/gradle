@@ -34,8 +34,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, File> {
-    private Set<Report> reports;
-    private File outputFile;
+    Set<Report> reports;
+    File outputFile;
 
     @Override
     public void render(Collection<Report> reports, final File outputFile) {
@@ -57,7 +57,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
         }, outputFile);
     }
 
-    private void generate(final HtmlPageBuilder<Writer> builder) {
+    void generate(final HtmlPageBuilder<Writer> builder) {
         final String baseCssLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
         final String cssLink = builder.requireResource(getClass().getResource("style.css"));
         new Html(builder.getOutput()) {{
@@ -99,7 +99,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
         }};
     }
 
-    private File getHtmlLinkedFileFromReport(Report report) {
+    File getHtmlLinkedFileFromReport(Report report) {
         if (report instanceof DirectoryReport) {
             return ((DirectoryReport) report).getEntryPoint();
         } else {

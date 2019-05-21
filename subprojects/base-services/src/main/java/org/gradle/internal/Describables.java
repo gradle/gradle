@@ -83,7 +83,7 @@ public class Describables {
         return new MemoizingDescribable(describable);
     }
 
-    private static void appendDisplayName(Object src, StringBuilder stringBuilder) {
+    static void appendDisplayName(Object src, StringBuilder stringBuilder) {
         if (src instanceof Describable) {
             Describable describable = (Describable) src;
             stringBuilder.append(describable.getDisplayName());
@@ -92,7 +92,7 @@ public class Describables {
         }
     }
 
-    private static void appendCapDisplayName(Object src, StringBuilder stringBuilder) {
+    static void appendCapDisplayName(Object src, StringBuilder stringBuilder) {
         if (src instanceof DisplayName) {
             DisplayName displayName = (DisplayName) src;
             stringBuilder.append(displayName.getCapitalizedDisplayName());
@@ -109,6 +109,9 @@ public class Describables {
     }
 
     private static abstract class AbstractDescribable implements DisplayName {
+        AbstractDescribable() {
+        }
+
         @Override
         public String toString() {
             return getDisplayName();

@@ -38,7 +38,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
     public static final String DEFAULT_CHECKSTYLE_VERSION = "8.17";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
-    private CheckstyleExtension extension;
+    CheckstyleExtension extension;
 
     @Override
     protected String getToolName() {

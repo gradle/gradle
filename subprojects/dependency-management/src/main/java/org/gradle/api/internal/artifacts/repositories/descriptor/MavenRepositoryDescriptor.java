@@ -34,7 +34,7 @@ public final class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
 
     public final ImmutableList<URI> artifactUrls;
 
-    private MavenRepositoryDescriptor(
+    MavenRepositoryDescriptor(
         String name,
         URI url,
         ImmutableList<String> metadataSources,

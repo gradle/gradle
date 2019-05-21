@@ -54,7 +54,7 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private void configurePublishing(final Project project) {
+    void configurePublishing(final Project project) {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension publishing) {
@@ -69,13 +69,13 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private MavenPublication addMainPublication(PublishingExtension publishing, SoftwareComponent mainComponent) {
+    MavenPublication addMainPublication(PublishingExtension publishing, SoftwareComponent mainComponent) {
         MavenPublication publication = publishing.getPublications().maybeCreate("pluginMaven", MavenPublication.class);
         publication.from(mainComponent);
         return publication;
     }
 
-    private void addMarkerPublications(MavenPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
+    void addMarkerPublications(MavenPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
         for (PluginDeclaration declaration : pluginDevelopment.getPlugins()) {
             createMavenMarkerPublication(declaration, mainPublication, publishing.getPublications());
         }

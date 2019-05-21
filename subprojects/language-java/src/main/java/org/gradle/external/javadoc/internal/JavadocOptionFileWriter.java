@@ -16,9 +16,9 @@
 
 package org.gradle.external.javadoc.internal;
 
+import org.gradle.external.javadoc.JavadocOptionFileOption;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
-import org.gradle.external.javadoc.JavadocOptionFileOption;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class JavadocOptionFileWriter {
-    private final JavadocOptionFile optionFile;
+    final JavadocOptionFile optionFile;
 
     public JavadocOptionFileWriter(JavadocOptionFile optionFile) {
         if (optionFile == null) {

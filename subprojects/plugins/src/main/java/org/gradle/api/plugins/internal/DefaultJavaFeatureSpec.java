@@ -22,9 +22,9 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
@@ -50,24 +50,24 @@ import org.gradle.util.TextUtil;
 
 import java.util.List;
 
-import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
-import static org.gradle.api.attributes.Category.LIBRARY;
+import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
+import static org.gradle.api.attributes.Category.LIBRARY;
 import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
 
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
-    private final String name;
-    private final JavaPluginConvention javaPluginConvention;
+    final String name;
+    final JavaPluginConvention javaPluginConvention;
     private final ConfigurationContainer configurationContainer;
-    private final ObjectFactory objectFactory;
+    final ObjectFactory objectFactory;
     private final PluginManager pluginManager;
     private final SoftwareComponentContainer components;
     private final TaskContainer tasks;
     private final List<Capability> capabilities = Lists.newArrayListWithExpectedSize(2);
 
     private boolean overrideDefaultCapability = true;
-    private SourceSet sourceSet;
+    SourceSet sourceSet;
 
     public DefaultJavaFeatureSpec(String name,
                                   Capability defaultCapability,
@@ -207,7 +207,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         configuration.getArtifacts().add(new LazyPublishArtifact(jar));
     }
 
-    private AdhocComponentWithVariants findComponent() {
+    AdhocComponentWithVariants findComponent() {
         SoftwareComponent component = components.findByName("java");
         if (component instanceof AdhocComponentWithVariants) {
             return (AdhocComponentWithVariants) component;

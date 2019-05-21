@@ -88,7 +88,7 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
 
         private final Class<? extends AttributeDisambiguationRule<T>> rule;
 
-        private ExceptionHandler(Class<? extends AttributeDisambiguationRule<T>> rule) {
+        ExceptionHandler(Class<? extends AttributeDisambiguationRule<T>> rule) {
 
             this.rule = rule;
         }

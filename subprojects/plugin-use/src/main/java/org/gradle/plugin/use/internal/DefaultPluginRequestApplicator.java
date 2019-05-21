@@ -64,7 +64,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
     private final PluginRepositoriesProvider pluginRepositoriesProvider;
-    private final PluginResolutionStrategyInternal pluginResolutionStrategy;
+    final PluginResolutionStrategyInternal pluginResolutionStrategy;
     private final PluginInspector pluginInspector;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
@@ -253,7 +253,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         return new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request), e);
     }
 
-    private Result resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {
+    Result resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {
         Result result = new Result(request);
         try {
             effectivePluginResolver.resolve(request, result);
@@ -292,11 +292,11 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private static class NotFound {
-        private final String source;
-        private final String message;
-        private final String detail;
+        final String source;
+        final String message;
+        final String detail;
 
-        private NotFound(String source, String message, String detail) {
+        NotFound(String source, String message, String detail) {
             this.source = source;
             this.message = message;
             this.detail = detail;
@@ -304,9 +304,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private static class Result implements PluginResolutionResult {
-        private final List<NotFound> notFoundList = new LinkedList<NotFound>();
-        private final PluginRequestInternal request;
-        private PluginResolution found;
+        final List<NotFound> notFoundList = new LinkedList<NotFound>();
+        final PluginRequestInternal request;
+        PluginResolution found;
 
         public Result(PluginRequestInternal request) {
             this.request = request;

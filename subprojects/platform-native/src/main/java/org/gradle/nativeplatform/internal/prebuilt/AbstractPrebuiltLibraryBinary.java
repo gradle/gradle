@@ -88,7 +88,7 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
         private final String fileCollectionDisplayName;
         private final String fileDescription;
 
-        private ValidatingFileSet(File file, String fileCollectionDisplayName, String fileDescription) {
+        ValidatingFileSet(File file, String fileCollectionDisplayName, String fileDescription) {
             this.file = file;
             this.fileCollectionDisplayName = fileCollectionDisplayName;
             this.fileDescription = fileDescription;

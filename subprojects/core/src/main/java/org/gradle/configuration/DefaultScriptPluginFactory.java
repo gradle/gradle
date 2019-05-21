@@ -62,31 +62,31 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.ExecFactory;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
-    private final static StringInterner INTERNER = new StringInterner();
+    final static StringInterner INTERNER = new StringInterner();
     private static final String CLASSPATH_COMPILE_STAGE = "CLASSPATH";
     private static final String BODY_COMPILE_STAGE = "BODY";
 
-    private final ScriptCompilerFactory scriptCompilerFactory;
-    private final Factory<LoggingManagerInternal> loggingManagerFactory;
-    private final Instantiator instantiator;
-    private final ScriptHandlerFactory scriptHandlerFactory;
-    private final PluginRequestApplicator pluginRequestApplicator;
-    private final FileLookup fileLookup;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final DocumentationRegistry documentationRegistry;
-    private final ModelRuleSourceDetector modelRuleSourceDetector;
-    private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
-    private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
-    private final ProviderFactory providerFactory;
-    private final TextResourceLoader textResourceLoader;
-    private final ExecFactory execFactory;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final StreamHasher streamHasher;
-    private final FileHasher fileHasher;
-    private final AutoAppliedPluginHandler autoAppliedPluginHandler;
-    private final FileSystem fileSystem;
-    private final Clock clock;
-    private ScriptPluginFactory scriptPluginFactory;
+    final ScriptCompilerFactory scriptCompilerFactory;
+    final Factory<LoggingManagerInternal> loggingManagerFactory;
+    final Instantiator instantiator;
+    final ScriptHandlerFactory scriptHandlerFactory;
+    final PluginRequestApplicator pluginRequestApplicator;
+    final FileLookup fileLookup;
+    final DirectoryFileTreeFactory directoryFileTreeFactory;
+    final DocumentationRegistry documentationRegistry;
+    final ModelRuleSourceDetector modelRuleSourceDetector;
+    final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
+    final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
+    final ProviderFactory providerFactory;
+    final TextResourceLoader textResourceLoader;
+    final ExecFactory execFactory;
+    final FileCollectionFactory fileCollectionFactory;
+    final StreamHasher streamHasher;
+    final FileHasher fileHasher;
+    final AutoAppliedPluginHandler autoAppliedPluginHandler;
+    final FileSystem fileSystem;
+    final Clock clock;
+    ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,

@@ -29,13 +29,13 @@ import java.util.concurrent.locks.ReentrantLock;
  * closed, all threads blocked reading from the stream will receive an end-of-stream.
  */
 public class DisconnectableInputStream extends BulkReadInputStream {
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
-    private final byte[] buffer;
-    private int readPos;
-    private int writePos;
-    private boolean closed;
-    private boolean inputFinished;
+    final Lock lock = new ReentrantLock();
+    final Condition condition = lock.newCondition();
+    final byte[] buffer;
+    int readPos;
+    int writePos;
+    boolean closed;
+    boolean inputFinished;
 
     /*
         The song and dance with Action<Runnable> is to ease testing.

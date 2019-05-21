@@ -58,6 +58,9 @@ class GccLinker extends AbstractCompiler<LinkerSpec> {
     }
 
     private static class GccLinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
+        GccLinkerArgsTransformer() {
+        }
+
         @Override
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();

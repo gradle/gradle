@@ -54,9 +54,9 @@ import java.util.List;
  * </pre>
  */
 public class GroovyRuntime {
-    private static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
-    private static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
-    private final Project project;
+    static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
+    static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
+    final Project project;
 
     public GroovyRuntime(Project project) {
         this.project = project;
@@ -127,7 +127,7 @@ public class GroovyRuntime {
     }
 
     @Nullable
-    private static GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
+    static GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
         for (File file : classpath) {
             GroovyJarFile groovyJar = GroovyJarFile.parse(file);
             if (groovyJar != null) {

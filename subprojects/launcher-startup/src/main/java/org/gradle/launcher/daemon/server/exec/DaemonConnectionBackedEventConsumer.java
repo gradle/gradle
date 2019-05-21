@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
  * An event consumer that asynchronously dispatches events to the client.
  */
 class DaemonConnectionBackedEventConsumer implements BuildEventConsumer {
-    private final DaemonCommandExecution execution;
-    private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
+    final DaemonCommandExecution execution;
+    final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
     private final ForwardEvents forwarder = new ForwardEvents();
 
     public DaemonConnectionBackedEventConsumer(DaemonCommandExecution execution) {
@@ -48,6 +48,9 @@ class DaemonConnectionBackedEventConsumer implements BuildEventConsumer {
     private class ForwardEvents extends Thread {
         private volatile boolean stopped;
         private boolean ableToSend = true;
+
+        ForwardEvents() {
+        }
 
         @Override
         public void run() {

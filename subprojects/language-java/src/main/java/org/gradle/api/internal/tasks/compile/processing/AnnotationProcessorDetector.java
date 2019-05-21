@@ -53,8 +53,8 @@ public class AnnotationProcessorDetector {
     public static final String INCREMENTAL_PROCESSOR_DECLARATION = "META-INF/gradle/incremental.annotation.processors";
 
     private final FileContentCache<List<AnnotationProcessorDeclaration>> cache;
-    private final Logger logger;
-    private final boolean logStackTraces;
+    final Logger logger;
+    final boolean logStackTraces;
 
     public AnnotationProcessorDetector(FileContentCacheFactory cacheFactory, Logger logger, boolean logStackTraces) {
         this.cache = cacheFactory.newCache("annotation-processors", 20000, new ProcessorServiceLocator(), new ListSerializer<AnnotationProcessorDeclaration>(AnnotationProcessorDeclarationSerializer.INSTANCE));
@@ -80,6 +80,9 @@ public class AnnotationProcessorDetector {
      * which can deal with jars and folders the same way instead of duplicating code.
      */
     private class ProcessorServiceLocator implements FileContentCacheFactory.Calculator<List<AnnotationProcessorDeclaration>> {
+
+        ProcessorServiceLocator() {
+        }
 
         @Override
         public List<AnnotationProcessorDeclaration> calculate(File file, boolean isRegularFile) {
@@ -204,6 +207,9 @@ public class AnnotationProcessorDetector {
 
         private class MetadataLineProcessor implements LineProcessor<List<String>> {
             private List<String> lines = Lists.newArrayList();
+
+            MetadataLineProcessor() {
+            }
 
             @Override
             public boolean processLine(String line) {

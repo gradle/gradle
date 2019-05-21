@@ -35,7 +35,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     public static final FingerprintingStrategy INCLUDE_MISSING = new AbsolutePathFingerprintingStrategy(true);
     public static final FingerprintingStrategy IGNORE_MISSING = new AbsolutePathFingerprintingStrategy(false);
 
-    private final boolean includeMissing;
+    final boolean includeMissing;
 
     private AbsolutePathFingerprintingStrategy(boolean includeMissing) {
         super("ABSOLUTE_PATH", AbsolutePathFingerprintCompareStrategy.INSTANCE);

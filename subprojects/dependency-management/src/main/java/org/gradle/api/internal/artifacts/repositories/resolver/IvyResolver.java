@@ -123,6 +123,9 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     }
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
+        IvyLocalRepositoryAccess() {
+        }
+
         @Override
         protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
             result.resolved(new MetadataSourcedComponentArtifacts());
@@ -146,6 +149,9 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     }
 
     private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
+        IvyRemoteRepositoryAccess() {
+        }
+
         @Override
         protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
             // Configuration artifacts are determined locally

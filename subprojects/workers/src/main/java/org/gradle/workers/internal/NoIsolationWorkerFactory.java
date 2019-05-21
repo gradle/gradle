@@ -28,7 +28,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker workTracker;
     private final ServiceRegistry parent;
-    private DefaultServiceRegistry serviceRegistry;
+    DefaultServiceRegistry serviceRegistry;
     private WorkerExecutor workerExecutor;
 
     public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker workTracker, ServiceRegistry parent) {

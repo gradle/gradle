@@ -200,6 +200,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
     private static class ArtifactTransformResolutionGradleUserHomeServices {
 
+        ArtifactTransformResolutionGradleUserHomeServices() {
+        }
+
         ArtifactTransformListener createArtifactTransformListener() {
             return new ArtifactTransformListener() {
                 @Override
@@ -624,7 +627,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         private final ServiceRegistry services;
         private final DomainObjectContext domainObjectContext;
 
-        private DefaultDependencyResolutionServices(ServiceRegistry services, DomainObjectContext domainObjectContext) {
+        DefaultDependencyResolutionServices(ServiceRegistry services, DomainObjectContext domainObjectContext) {
             this.services = services;
             this.domainObjectContext = domainObjectContext;
         }

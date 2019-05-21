@@ -56,6 +56,9 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
     }
 
     private class LocalAccess implements ModuleComponentRepositoryAccess {
+        LocalAccess() {
+        }
+
         @Override
         public String toString() {
             return "local adapter > " + delegate.toString();
@@ -108,6 +111,9 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
     }
 
     private static class RemoteAccess implements ModuleComponentRepositoryAccess {
+        RemoteAccess() {
+        }
+
         @Override
         public String toString() {
             return "empty";

@@ -49,8 +49,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskMutator taskMutator;
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
-    private final List<TaskInputPropertyRegistration> registeredProperties = Lists.newArrayList();
-    private final FilePropertyContainer<TaskInputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
+    final List<TaskInputPropertyRegistration> registeredProperties = Lists.newArrayList();
+    final FilePropertyContainer<TaskInputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInputs deprecatedThis;
 
     public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
@@ -106,7 +106,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         });
     }
 
-    private static Object unpackVarargs(Object[] args) {
+    static Object unpackVarargs(Object[] args) {
         if (args.length == 1) {
             return args[0];
         }
@@ -204,12 +204,12 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private static class TaskInputUnionFileCollection extends CompositeFileCollection implements Describable {
-        private final boolean skipWhenEmptyOnly;
+        final boolean skipWhenEmptyOnly;
         private final String taskDisplayName;
         private final String type;
-        private final TaskInternal task;
+        final TaskInternal task;
         private final PropertyWalker propertyWalker;
-        private final FileCollectionFactory fileCollectionFactory;
+        final FileCollectionFactory fileCollectionFactory;
 
         TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
             this.taskDisplayName = taskDisplayName;
@@ -241,6 +241,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     private static class HasInputsVisitor extends PropertyVisitor.Adapter {
         private boolean hasInputs;
+
+        HasInputsVisitor() {
+        }
 
         public boolean hasInputs() {
             return hasInputs;

@@ -55,7 +55,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
     private final ExecutorFactory executorFactory;
-    private final StyledTextOutput logger;
+    final StyledTextOutput logger;
 
     public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileSystemChangeWaiterFactory changeWaiterFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
         this.delegate = delegate;
@@ -165,7 +165,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         buildStartedTime.reset(clock.getCurrentTime());
     }
 
-    private String determineExitHint(BuildRequestContext requestContext) {
+    String determineExitHint(BuildRequestContext requestContext) {
         if (requestContext.isInteractive()) {
             if (operatingSystem.isWindows()) {
                 return " (ctrl-d then enter to exit)";

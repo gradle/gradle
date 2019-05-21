@@ -34,20 +34,20 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         Working, Finishing, Cancelled, Done
     }
 
-    private final WorkerLeaseService workerLeases;
-    private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
+    final WorkerLeaseService workerLeases;
+    final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
     private final Executor executor;
-    private final QueueWorker<T> queueWorker;
+    final QueueWorker<T> queueWorker;
     private String logLocation;
 
     // Lock protects the following state, using an intentionally simple locking strategy
-    private final ReentrantLock lock = new ReentrantLock();
-    private final Condition workAvailable = lock.newCondition();
+    final ReentrantLock lock = new ReentrantLock();
+    final Condition workAvailable = lock.newCondition();
     private final Condition operationsComplete = lock.newCondition();
-    private QueueState queueState = QueueState.Working;
-    private int workerCount;
+    QueueState queueState = QueueState.Working;
+    int workerCount;
     private int pendingOperations;
-    private final Deque<T> workQueue = new LinkedList<T>();
+    final Deque<T> workQueue = new LinkedList<T>();
     private final LinkedList<Throwable> failures = new LinkedList<Throwable>();
 
     DefaultBuildOperationQueue(WorkerLeaseService workerLeases, Executor executor, QueueWorker<T> queueWorker) {
@@ -139,7 +139,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
-    private void addFailure(Throwable failure) {
+    void addFailure(Throwable failure) {
         lock.lock();
         try {
             failures.add(failure);
@@ -148,7 +148,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
-    private void completeOperations(int count) {
+    void completeOperations(int count) {
         lock.lock();
         try {
             pendingOperations = pendingOperations - count;
@@ -217,7 +217,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             );
         }
 
-        private T getNextOperation() {
+        T getNextOperation() {
             lock.lock();
             try {
                 return workQueue.pollFirst();
@@ -226,7 +226,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             }
         }
 
-        private void runOperation(T operation) {
+        void runOperation(T operation) {
             try {
                 queueWorker.execute(operation);
             } catch (Throwable t) {

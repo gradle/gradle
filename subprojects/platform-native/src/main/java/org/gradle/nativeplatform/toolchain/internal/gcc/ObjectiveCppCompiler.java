@@ -31,6 +31,9 @@ class ObjectiveCppCompiler extends GccCompatibleNativeCompiler<ObjectiveCppCompi
     }
 
     private static class ObjectiveCppCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCppCompileSpec> {
+        ObjectiveCppCompileArgsTransformer() {
+        }
+
         @Override
         protected String getLanguage() {
             return "objective-c++";

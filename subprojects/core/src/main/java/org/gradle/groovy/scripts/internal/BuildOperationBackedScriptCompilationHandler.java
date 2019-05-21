@@ -35,10 +35,10 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
 
     public static final String GROOVY_LANGUAGE = "GROOVY";
 
-    private static final CompileScriptBuildOperationType.Result RESULT = new CompileScriptBuildOperationType.Result() {
+    static final CompileScriptBuildOperationType.Result RESULT = new CompileScriptBuildOperationType.Result() {
     };
 
-    private final DefaultScriptCompilationHandler delegate;
+    final DefaultScriptCompilationHandler delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public BuildOperationBackedScriptCompilationHandler(DefaultScriptCompilationHandler delegate, BuildOperationExecutor buildOperationExecutor) {

@@ -168,11 +168,11 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
 
     private static class Details implements ResolutionDetails {
-        private final CapabilityConflict conflict;
-        private final Set<NodeState> evicted = Sets.newHashSet();
-        private NodeState selected;
+        final CapabilityConflict conflict;
+        final Set<NodeState> evicted = Sets.newHashSet();
+        NodeState selected;
 
-        private Details(CapabilityConflict conflict) {
+        Details(CapabilityConflict conflict) {
             this.conflict = conflict;
         }
 
@@ -221,7 +221,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             return candidates.build();
         }
 
-        private Collection<NodeState> conflictedNodes(NodeState node, Collection<NodeState> nodes) {
+        Collection<NodeState> conflictedNodes(NodeState node, Collection<NodeState> nodes) {
             List<NodeState> conflictedNodes = Lists.newArrayList(nodes);
             conflictedNodes.remove(node);
             return conflictedNodes;
@@ -251,10 +251,10 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private static class CapabilityConflict {
 
-        private final Collection<NodeState> nodes;
-        private final Set<Capability> descriptors;
+        final Collection<NodeState> nodes;
+        final Set<Capability> descriptors;
 
-        private CapabilityConflict(String group, String name, Collection<NodeState> nodes) {
+        CapabilityConflict(String group, String name, Collection<NodeState> nodes) {
             this.nodes = nodes;
             final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<Capability>();
             for (final NodeState node : nodes) {

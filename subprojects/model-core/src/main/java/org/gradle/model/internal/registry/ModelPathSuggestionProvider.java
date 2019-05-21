@@ -19,12 +19,12 @@ package org.gradle.model.internal.registry;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 
 @ThreadSafe
@@ -46,7 +46,7 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
     @ThreadSafe
     private static class Suggestion implements Comparable<Suggestion> {
 
-        private static final Transformer<ModelPath, Suggestion> EXTRACT_PATH = new Transformer<ModelPath, Suggestion>() {
+        static final Transformer<ModelPath, Suggestion> EXTRACT_PATH = new Transformer<ModelPath, Suggestion>() {
             @Override
             public ModelPath transform(Suggestion original) {
                 return original.path;
@@ -54,9 +54,9 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
         };
 
         private final int distance;
-        private final ModelPath path;
+        final ModelPath path;
 
-        private Suggestion(int distance, ModelPath path) {
+        Suggestion(int distance, ModelPath path) {
             this.distance = distance;
             this.path = path;
         }

@@ -93,7 +93,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
         return addOne(action);
     }
 
-    private static <T> ImmutableActionSet<T> plus(ImmutableActionSet<T> one, ImmutableActionSet<T> two) {
+    static <T> ImmutableActionSet<T> plus(ImmutableActionSet<T> one, ImmutableActionSet<T> two) {
         ImmutableSet.Builder<Action<? super T>> builder = ImmutableSet.builder();
         one.unpackInto(builder);
         two.unpackInto(builder);
@@ -101,7 +101,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
         return fromActions(set);
     }
 
-    private static <T> ImmutableActionSet<T> plus(ImmutableActionSet<T> one, Action<? super T> two) {
+    static <T> ImmutableActionSet<T> plus(ImmutableActionSet<T> one, Action<? super T> two) {
         ImmutableSet.Builder<Action<? super T>> builder = ImmutableSet.builder();
         one.unpackInto(builder);
         builder.add(two);
@@ -150,6 +150,9 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
     abstract ImmutableActionSet<T> addOne(Action<? super T> action);
 
     private static class EmptySet<T> extends ImmutableActionSet<T> {
+        EmptySet() {
+        }
+
         @Override
         ImmutableActionSet<T> addOne(Action<? super T> action) {
             return new SingletonSet<T>(action);
@@ -180,7 +183,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
     }
 
     private static class SingletonSet<T> extends ImmutableActionSet<T> {
-        private final Action<? super T> singleAction;
+        final Action<? super T> singleAction;
 
         SingletonSet(Action<? super T> singleAction) {
             this.singleAction = singleAction;
@@ -232,7 +235,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
     }
 
     private static class SetWithFewActions<T> extends ImmutableActionSet<T> {
-        private final Action<? super T> actions[];
+        final Action<? super T> actions[];
 
         SetWithFewActions(ImmutableSet<Action<? super T>> set) {
             actions = set.toArray(new Action[set.size()]);

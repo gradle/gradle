@@ -57,6 +57,9 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
     }
 
     private static class EmptyNativeDependencySet implements NativeDependencySet {
+        EmptyNativeDependencySet() {
+        }
+
         @Override
         public FileCollection getIncludeRoots() {
             return ImmutableFileCollection.of();
@@ -74,10 +77,10 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
     }
 
     private static class LanguageSourceSetNativeDependencySet extends EmptyNativeDependencySet {
-        private final HeaderExportingSourceSet sourceSet;
+        final HeaderExportingSourceSet sourceSet;
         private final FileCollectionFactory fileCollectionFactory;
 
-        private LanguageSourceSetNativeDependencySet(HeaderExportingSourceSet sourceSet, FileCollectionFactory fileCollectionFactory) {
+        LanguageSourceSetNativeDependencySet(HeaderExportingSourceSet sourceSet, FileCollectionFactory fileCollectionFactory) {
             this.sourceSet = sourceSet;
             this.fileCollectionFactory = fileCollectionFactory;
         }
@@ -88,6 +91,9 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
         }
 
         private class HeaderFileCollection implements MinimalFileSet, Buildable {
+            HeaderFileCollection() {
+            }
+
             @Override
             public String getDisplayName() {
                 return "Include roots of " + sourceSet.getName();

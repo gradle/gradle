@@ -37,7 +37,7 @@ import java.util.List;
  */
 @NonNullApi
 public class CompilationSourceDirs {
-    private static final Logger LOG = LoggerFactory.getLogger(CompilationSourceDirs.class);
+    static final Logger LOG = LoggerFactory.getLogger(CompilationSourceDirs.class);
 
     private final FileTreeInternal sources;
     private SourceRoots sourceRoots;
@@ -66,6 +66,9 @@ public class CompilationSourceDirs {
     private static class SourceRoots implements FileCollectionLeafVisitor {
         private boolean canInferSourceRoots = true;
         private List<File> sourceRoots = Lists.newArrayList();
+
+        SourceRoots() {
+        }
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {

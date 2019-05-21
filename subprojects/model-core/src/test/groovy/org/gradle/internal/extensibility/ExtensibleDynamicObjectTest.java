@@ -20,10 +20,10 @@ import groovy.lang.GroovyRuntimeException;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
@@ -880,10 +880,15 @@ public class ExtensibleDynamicObjectTest {
     }
 
     private static class DynamicJavaBean extends GroovyBean {
+        DynamicJavaBean() {
+        }
     }
 
     private static class ConventionBean {
         private String conventionProperty;
+
+        ConventionBean() {
+        }
 
         public String getConventionProperty() {
             return conventionProperty;

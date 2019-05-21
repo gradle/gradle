@@ -37,12 +37,12 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry {
-    private final WorkerLeaseService workerLeaseService;
+    final WorkerLeaseService workerLeaseService;
     private final Object lock = new Object();
-    private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
+    final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
-    private final static ThreadLocal<Boolean> LENIENT_MUTATION_STATE = new ThreadLocal<Boolean>() {
+    final static ThreadLocal<Boolean> LENIENT_MUTATION_STATE = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
             return Boolean.FALSE;
@@ -143,10 +143,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
     private class ProjectStateImpl implements ProjectState {
         private final String projectName;
-        private final ProjectComponentIdentifier identifier;
+        final ProjectComponentIdentifier identifier;
         private final BuildState owner;
-        private final Path projectIdentityPath;
-        private final ResourceLock projectLock;
+        final Path projectIdentityPath;
+        final ResourceLock projectLock;
 
         ProjectStateImpl(BuildState owner, Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier) {
             this.owner = owner;
@@ -223,7 +223,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             }
         }
 
-        private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> factory) {
+        <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> factory) {
             return workerLeaseService.withLocks(Collections.singleton(projectLock), factory);
         }
 
@@ -234,7 +234,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     private class SafeExclusiveLockImpl implements SafeExclusiveLock {
-        private final ReentrantLock lock = new ReentrantLock();
+        final ReentrantLock lock = new ReentrantLock();
+
+        SafeExclusiveLockImpl() {
+        }
 
         @Override
         public void withLock(final Runnable runnable) {

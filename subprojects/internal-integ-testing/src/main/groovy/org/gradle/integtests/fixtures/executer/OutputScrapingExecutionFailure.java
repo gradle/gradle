@@ -249,7 +249,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         final String description;
         final List<String> causes;
 
-        private Problem(String description, List<String> causes) {
+        Problem(String description, List<String> causes) {
             this.description = description;
             this.causes = causes;
         }

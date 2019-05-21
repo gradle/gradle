@@ -112,7 +112,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     private final ConfigurableFileCollection classes;
     private final ConfigurableFileCollection classpath;
     private final RegularFileProperty outputFile;
-    private boolean enableStricterValidation;
+    boolean enableStricterValidation;
     private boolean ignoreFailures;
     private boolean failOnWarning;
 

@@ -32,7 +32,7 @@ import java.util.concurrent.ExecutionException;
 public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> implements ResourceLockRegistry {
     private final Cache<K, T> resourceLocks = CacheBuilder.newBuilder().weakValues().build();
     private final Multimap<Long, ResourceLock> threadResourceLockMap = Multimaps.synchronizedListMultimap(ArrayListMultimap.<Long, ResourceLock>create());
-    private final ResourceLockCoordinationService coordinationService;
+    final ResourceLockCoordinationService coordinationService;
 
     public AbstractResourceLockRegistry(final ResourceLockCoordinationService coordinationService) {
         this.coordinationService = coordinationService;
@@ -67,7 +67,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         return false;
     }
 
-    private Action<ResourceLock> getLockAction() {
+    Action<ResourceLock> getLockAction() {
         return new Action<ResourceLock>() {
             @Override
             public void execute(ResourceLock resourceLock) {
@@ -76,7 +76,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         };
     }
 
-    private Action<ResourceLock> getUnlockAction() {
+    Action<ResourceLock> getUnlockAction() {
         return new Action<ResourceLock>() {
             @Override
             public void execute(ResourceLock resourceLock) {

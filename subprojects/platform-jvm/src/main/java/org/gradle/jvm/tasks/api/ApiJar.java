@@ -161,7 +161,7 @@ public class ApiJar extends SourceTask {
         );
     }
 
-    private boolean isClassFile(File file) {
+    boolean isClassFile(File file) {
         return hasExtension(file, ".class");
     }
 

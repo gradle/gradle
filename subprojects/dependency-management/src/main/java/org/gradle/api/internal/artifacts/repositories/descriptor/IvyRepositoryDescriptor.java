@@ -40,7 +40,7 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
     public final String layoutType;
     public final boolean m2Compatible;
 
-    private IvyRepositoryDescriptor(
+    IvyRepositoryDescriptor(
         String name,
         URI url,
         ImmutableList<String> metadataSources,

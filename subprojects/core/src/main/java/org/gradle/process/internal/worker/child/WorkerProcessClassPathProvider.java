@@ -66,7 +66,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class WorkerProcessClassPathProvider implements ClassPathProvider, Closeable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
     private final CacheRepository cacheRepository;
     private final Object lock = new Object();
     private ClassPath workerClassPath;
@@ -111,12 +111,15 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         }
     }
 
-    private static File jarFile(PersistentCache cache) {
+    static File jarFile(PersistentCache cache) {
         return new File(cache.getBaseDir(), "gradle-worker.jar");
     }
 
     private static class CacheInitializer implements Action<PersistentCache> {
         private final WorkerClassRemapper remapper = new WorkerClassRemapper();
+
+        CacheInitializer() {
+        }
 
         @Override
         public void execute(PersistentCache cache) {
@@ -193,6 +196,9 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         }
 
         private static class WorkerClassRemapper extends Remapper {
+            WorkerClassRemapper() {
+            }
+
             @Override
             public String map(String typeName) {
                 if (typeName.startsWith("org/gradle/")) {

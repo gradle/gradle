@@ -28,7 +28,7 @@ import java.util.Set;
 
 class DefaultInstantiationScheme implements InstantiationScheme {
     private final DependencyInjectingInstantiator instantiator;
-    private final ConstructorSelector constructorSelector;
+    final ConstructorSelector constructorSelector;
     private final Set<Class<? extends Annotation>> injectionAnnotations;
 
     public DefaultInstantiationScheme(ConstructorSelector constructorSelector, ServiceLookup defaultServices, Set<Class<? extends Annotation>> injectionAnnotations) {

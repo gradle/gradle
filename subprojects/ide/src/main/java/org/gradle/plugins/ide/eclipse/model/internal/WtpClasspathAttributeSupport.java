@@ -109,7 +109,7 @@ public class WtpClasspathAttributeSupport {
         private final EclipseClasspath classpath;
         private final Set<File> files = Sets.newLinkedHashSet();
 
-        private WtpClasspathAttributeDependencyVisitor(EclipseClasspath classpath) {
+        WtpClasspathAttributeDependencyVisitor(EclipseClasspath classpath) {
             this.classpath = classpath;
         }
 

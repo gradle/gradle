@@ -36,11 +36,11 @@ import java.util.Map;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DefaultClasspathEntrySnapshotter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClasspathEntrySnapshotter.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultClasspathEntrySnapshotter.class);
 
-    private final FileHasher fileHasher;
-    private final StreamHasher hasher;
-    private final ClassDependenciesAnalyzer analyzer;
+    final FileHasher fileHasher;
+    final StreamHasher hasher;
+    final ClassDependenciesAnalyzer analyzer;
     private final FileOperations fileOperations;
 
     public DefaultClasspathEntrySnapshotter(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {

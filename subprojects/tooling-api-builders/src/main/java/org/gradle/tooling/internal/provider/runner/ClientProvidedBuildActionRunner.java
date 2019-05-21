@@ -70,7 +70,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         return Result.of(listener.result);
     }
 
-    private void forceFullConfiguration(GradleInternal gradle) {
+    void forceFullConfiguration(GradleInternal gradle) {
         gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
             GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();

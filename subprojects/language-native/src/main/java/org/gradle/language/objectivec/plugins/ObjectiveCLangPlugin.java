@@ -66,6 +66,9 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
     }
 
     private static class ObjectiveC extends NativeLanguageTransform<ObjectiveCSourceSet> implements PchEnabledLanguageTransform<ObjectiveCSourceSet> {
+        ObjectiveC() {
+        }
+
         @Override
         public Class<ObjectiveCSourceSet> getSourceSetType() {
             return ObjectiveCSourceSet.class;

@@ -39,7 +39,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class LocalComponentInAnotherBuildProvider implements LocalComponentProvider {
     private final ProjectStateRegistry projectRegistry;
-    private final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
+    final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
     private final LoadingCache<ProjectComponentIdentifier, LocalComponentMetadata> projectMetadata = CacheBuilder.newBuilder().build(new CacheLoader<ProjectComponentIdentifier, LocalComponentMetadata>() {
         @Override
         public LocalComponentMetadata load(ProjectComponentIdentifier projectIdentifier) {
@@ -63,7 +63,7 @@ public class LocalComponentInAnotherBuildProvider implements LocalComponentProvi
         }
     }
 
-    private LocalComponentMetadata getRegisteredProject(final ProjectComponentIdentifier project) {
+    LocalComponentMetadata getRegisteredProject(final ProjectComponentIdentifier project) {
         ProjectState projectState = projectRegistry.stateFor(project);
         // TODO - this should work for any build, rather than just an included build
         final IncludedBuildState includedBuild = (IncludedBuildState) projectState.getOwner();

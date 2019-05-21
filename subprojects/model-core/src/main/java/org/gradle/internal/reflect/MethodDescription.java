@@ -74,7 +74,7 @@ public class MethodDescription {
                 .takes(constructor.getGenericParameterTypes());
     }
 
-    private String typeName(Type type) {
+    String typeName(Type type) {
         if (type == null) {
             return null;
         }

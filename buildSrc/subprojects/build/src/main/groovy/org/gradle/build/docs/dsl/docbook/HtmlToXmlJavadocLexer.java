@@ -15,15 +15,21 @@
  */
 package org.gradle.build.docs.dsl.docbook;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Normalises and cleans up HTML to convert it to XML semantics.
  */
 public class HtmlToXmlJavadocLexer implements JavadocLexer {
     private final JavadocLexer lexer;
-    private final Set<String> blockElements = new HashSet<String>();
-    private final Set<String> blockContent = new HashSet<String>();
+    final Set<String> blockElements = new HashSet<String>();
+    final Set<String> blockContent = new HashSet<String>();
 
     public HtmlToXmlJavadocLexer(JavadocLexer lexer) {
         this.lexer = lexer;

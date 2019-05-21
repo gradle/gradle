@@ -56,7 +56,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty installDirectory;
-    private final RegularFileProperty bundleBinaryFile;
+    final RegularFileProperty bundleBinaryFile;
 
     public InstallXCTestBundle() {
         ObjectFactory objectFactory = getProject().getObjects();

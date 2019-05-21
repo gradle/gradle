@@ -33,6 +33,9 @@ public class ScalaToolChainServiceRegistry extends AbstractPluginServiceRegistry
     }
 
     private static class ProjectScopeCompileServices {
+        ProjectScopeCompileServices() {
+        }
+
         ScalaToolChainInternal createScalaToolChain(GradleInternal gradle, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, JavaForkOptionsFactory forkOptionsFactory, WorkerDirectoryProvider workerDirectoryProvider) {
             return new DownloadingScalaToolChain(gradle.getGradleUserHomeDir(), workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, configurationContainer, dependencyHandler, forkOptionsFactory);
         }

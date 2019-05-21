@@ -24,8 +24,8 @@ import org.gradle.util.CollectionUtils;
 import java.util.List;
 
 public class DefaultBuildConfigurationActionExecuter implements BuildConfigurationActionExecuter {
-    private final List<BuildConfigurationAction> configurationActions;
-    private List<? extends BuildConfigurationAction> taskSelectors;
+    final List<BuildConfigurationAction> configurationActions;
+    List<? extends BuildConfigurationAction> taskSelectors;
     private final ProjectStateRegistry projectStateRegistry;
 
     public DefaultBuildConfigurationActionExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildConfigurationAction> defaultTaskSelectors, ProjectStateRegistry projectStateRegistry) {
@@ -51,7 +51,7 @@ public class DefaultBuildConfigurationActionExecuter implements BuildConfigurati
         this.taskSelectors = taskSelectors;
     }
 
-    private void configure(final List<BuildConfigurationAction> processingConfigurationActions, final GradleInternal gradle, final int index) {
+    void configure(final List<BuildConfigurationAction> processingConfigurationActions, final GradleInternal gradle, final int index) {
         if (index >= processingConfigurationActions.size()) {
             return;
         }

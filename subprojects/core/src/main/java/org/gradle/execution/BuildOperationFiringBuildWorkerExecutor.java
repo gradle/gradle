@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecutor {
-    private final BuildWorkExecutor delegate;
+    final BuildWorkExecutor delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public BuildOperationFiringBuildWorkerExecutor(BuildWorkExecutor delegate, BuildOperationExecutor buildOperationExecutor) {

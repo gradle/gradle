@@ -32,7 +32,7 @@ import java.util.Set;
  * An immutable composite {@link org.gradle.internal.dispatch.Dispatch} implementation. Optimized for a small number of elements, and for infrequent modification.
  */
 public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> {
-    private BroadcastDispatch(Class<T> type) {
+    BroadcastDispatch(Class<T> type) {
         super(type);
     }
 
@@ -148,7 +148,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
     }
 
     private static class SingletonDispatch<T> extends BroadcastDispatch<T> {
-        private final Object handler;
+        final Object handler;
         private final Dispatch<MethodInvocation> dispatch;
 
         SingletonDispatch(Class<T> type, Object handler, Dispatch<MethodInvocation> dispatch) {

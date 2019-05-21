@@ -122,6 +122,9 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         private boolean cache;
         private Object cachedValue;
 
+        MappedPropertyImpl() {
+        }
+
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
             if (!cache) {
                 return doGetValue(convention, conventionAwareObject);

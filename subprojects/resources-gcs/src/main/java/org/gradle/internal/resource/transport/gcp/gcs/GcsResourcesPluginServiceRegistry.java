@@ -28,6 +28,9 @@ public class GcsResourcesPluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class GlobalScopeServices {
+        GlobalScopeServices() {
+        }
+
         ResourceConnectorFactory createGcsConnectorFactory() {
             return new GcsConnectorFactory();
         }

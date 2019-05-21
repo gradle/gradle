@@ -32,7 +32,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
-    private final ManagedProxyClassGenerator proxyClassGenerator = new ManagedProxyClassGenerator();
+    final ManagedProxyClassGenerator proxyClassGenerator = new ManagedProxyClassGenerator();
     private final LoadingCache<CacheKey, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()
         .weakValues()
         .build(new CacheLoader<CacheKey, Class<?>>() {
@@ -81,11 +81,11 @@ public class ManagedProxyFactory {
     }
 
     private static class CacheKey {
-        private final Class<? extends GeneratedViewState> backingStateType;
-        private final StructSchema<?> schema;
-        private final StructBindings<?> structBindings;
+        final Class<? extends GeneratedViewState> backingStateType;
+        final StructSchema<?> schema;
+        final StructBindings<?> structBindings;
 
-        private CacheKey(Class<? extends GeneratedViewState> backingStateType, StructSchema<?> schema, StructBindings<?> structBindings) {
+        CacheKey(Class<? extends GeneratedViewState> backingStateType, StructSchema<?> schema, StructBindings<?> structBindings) {
             this.backingStateType = backingStateType;
             this.schema = schema;
             this.structBindings = structBindings;

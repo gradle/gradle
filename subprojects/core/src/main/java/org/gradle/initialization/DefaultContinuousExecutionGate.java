@@ -42,7 +42,7 @@ public class DefaultContinuousExecutionGate implements ContinuousExecutionGate {
         }
     }
 
-    private void open(GateKeeper gatekeeper) {
+    void open(GateKeeper gatekeeper) {
         lock.lock();
         try {
             // gate hasn't been opened yet
@@ -59,7 +59,7 @@ public class DefaultContinuousExecutionGate implements ContinuousExecutionGate {
         return openedBy == null;
     }
 
-    private void close(GateKeeper gatekeeper) {
+    void close(GateKeeper gatekeeper) {
         lock.lock();
         try {
             // The same gatekeeper that opened it must close it
@@ -96,7 +96,7 @@ public class DefaultContinuousExecutionGate implements ContinuousExecutionGate {
     private static class DefaultExecutionGateKeeper implements GateKeeper {
         private final DefaultContinuousExecutionGate continuousExecutionGate;
 
-        private DefaultExecutionGateKeeper(DefaultContinuousExecutionGate continuousExecutionGate) {
+        DefaultExecutionGateKeeper(DefaultContinuousExecutionGate continuousExecutionGate) {
             this.continuousExecutionGate = continuousExecutionGate;
         }
 

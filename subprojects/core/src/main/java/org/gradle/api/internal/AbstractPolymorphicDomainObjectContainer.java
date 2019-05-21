@@ -17,9 +17,9 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
@@ -115,6 +115,9 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
+        ContainerElementsDynamicObject() {
+        }
+
         @Override
         public String getDisplayName() {
             return AbstractPolymorphicDomainObjectContainer.this.getDisplayName();

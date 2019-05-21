@@ -47,12 +47,12 @@ import java.util.Set;
 
 public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata {
     private static final Transformer<String, String> VERSION_TRANSFORMER = new IvyVersionTransformer();
-    private final ModuleComponentIdentifier id;
+    final ModuleComponentIdentifier id;
     private final String status;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
     private final Map<String, Configuration> configurations = new LinkedHashMap<String, Configuration>();
-    private final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<LocalOriginDependencyMetadata>();
-    private final List<Pair<ExcludeMetadata, String>> excludes = Lists.newArrayList();
+    final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<LocalOriginDependencyMetadata>();
+    final List<Pair<ExcludeMetadata, String>> excludes = Lists.newArrayList();
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
@@ -95,7 +95,7 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
     /**
      * [1.0] is a valid version in maven, but not in Ivy: strip the surrounding '[' and ']' characters for ivy publish.
      */
-    private static LocalOriginDependencyMetadata normalizeVersionForIvy(LocalOriginDependencyMetadata dependency) {
+    static LocalOriginDependencyMetadata normalizeVersionForIvy(LocalOriginDependencyMetadata dependency) {
         if (dependency.getSelector() instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) dependency.getSelector();
             VersionConstraint versionConstraint = selector.getVersionConstraint();
@@ -147,7 +147,7 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
     private class ConfigurationMetadata implements BuildableLocalConfigurationMetadata {
         private final String configurationName;
 
-        private ConfigurationMetadata(String configurationName) {
+        ConfigurationMetadata(String configurationName) {
             this.configurationName = configurationName;
         }
 
@@ -179,6 +179,9 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
     }
 
     private static class IvyVersionTransformer implements Transformer<String, String> {
+        IvyVersionTransformer() {
+        }
+
         @Override
         public String transform(String version) {
             if (version != null && version.startsWith("[") && version.endsWith("]") && version.indexOf(',') == -1) {

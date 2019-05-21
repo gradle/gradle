@@ -45,9 +45,9 @@ public interface Tag {
         KNOWN_FLAKY("KNOWN-FLAKY", "badge badge-danger", "The scenario was marked as flaky in gradle-private issue tracker recently."),
         UNTAGGED("UNTAGGED", null, null);
 
-        private String name;
-        private String classAttr;
-        private String title;
+        String name;
+        String classAttr;
+        String title;
 
         FixedTag(String name, String classAttr, String title) {
             this.name = name;

@@ -51,7 +51,7 @@ import java.util.Set;
  */
 public class HierarchicalElementDeduplicator<T> {
 
-    private final HierarchicalElementAdapter<T> adapter;
+    final HierarchicalElementAdapter<T> adapter;
 
     public HierarchicalElementDeduplicator(HierarchicalElementAdapter<T> adapter) {
         this.adapter = adapter;
@@ -77,14 +77,14 @@ public class HierarchicalElementDeduplicator<T> {
         private final Map<T, String> newNames;
         private final Map<T, T> prefixes;
 
-        private StatefulDeduplicator(Iterable<? extends T> elements) {
+        StatefulDeduplicator(Iterable<? extends T> elements) {
             this.elements = Lists.newArrayList(elements);
             this.elementsByName = LinkedHashMultimap.create();
             this.newNames = Maps.newHashMap();
             this.prefixes = Maps.newHashMap();
         }
 
-        private Map<T, String> getNewNames() {
+        Map<T, String> getNewNames() {
             if (!elements.isEmpty() && newNames.isEmpty()) {
                 calculateNewNames();
             }
@@ -210,7 +210,7 @@ public class HierarchicalElementDeduplicator<T> {
             }
         }
 
-        private T getParent(T parent) {
+        T getParent(T parent) {
             return adapter.getParent(parent);
         }
 

@@ -60,7 +60,7 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
         final String title;
         final ReportRenderer<T, SimpleHtmlWriter> renderer;
 
-        private TabDefinition(String title, ReportRenderer<T, SimpleHtmlWriter> renderer) {
+        TabDefinition(String title, ReportRenderer<T, SimpleHtmlWriter> renderer) {
             this.title = title;
             this.renderer = renderer;
         }

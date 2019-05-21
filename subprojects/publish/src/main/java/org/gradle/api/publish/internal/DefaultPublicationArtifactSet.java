@@ -31,7 +31,7 @@ import java.util.Set;
 
 public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extends DefaultDomainObjectSet<T> implements PublicationArtifactSet<T> {
 
-    private final String name;
+    final String name;
     private final FileCollection files;
 
     public DefaultPublicationArtifactSet(Class<T> type, String name, FileCollectionFactory fileCollectionFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {

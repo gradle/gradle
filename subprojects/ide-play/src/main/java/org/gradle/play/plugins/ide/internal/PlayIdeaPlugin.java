@@ -113,7 +113,7 @@ public class PlayIdeaPlugin extends RuleSource {
         return new DslObject(module).getConventionMapping();
     }
 
-    private JavaVersion getTargetJavaVersion(PlayApplicationBinarySpec playApplicationBinarySpec) {
+    JavaVersion getTargetJavaVersion(PlayApplicationBinarySpec playApplicationBinarySpec) {
         return playApplicationBinarySpec.getTargetPlatform().getJavaPlatform().getTargetCompatibility();
     }
 

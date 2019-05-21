@@ -71,10 +71,10 @@ public class BuildModelActionRunner implements BuildActionRunner {
     private static class BuildResultAdapter extends InternalBuildAdapter {
         private final GradleInternal gradle;
         private final BuildModelAction buildModelAction;
-        private Object result;
-        private RuntimeException modelFailure;
+        Object result;
+        RuntimeException modelFailure;
 
-        private BuildResultAdapter(GradleInternal gradle, BuildModelAction buildModelAction) {
+        BuildResultAdapter(GradleInternal gradle, BuildModelAction buildModelAction) {
             this.gradle = gradle;
             this.buildModelAction = buildModelAction;
         }

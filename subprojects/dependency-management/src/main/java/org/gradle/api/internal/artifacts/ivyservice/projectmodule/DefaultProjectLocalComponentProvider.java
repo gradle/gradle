@@ -48,7 +48,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
     private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildIdentifier thisBuild;
-    private final Cache<ProjectComponentIdentifier, LocalComponentMetadata> projects = CacheBuilder.newBuilder().build();
+    final Cache<ProjectComponentIdentifier, LocalComponentMetadata> projects = CacheBuilder.newBuilder().build();
 
     public DefaultProjectLocalComponentProvider(ProjectStateRegistry projectStateRegistry, ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metadataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
         this.projectStateRegistry = projectStateRegistry;
@@ -106,7 +106,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         });
     }
 
-    private LocalComponentMetadata getLocalComponentMetadata(ProjectState projectState, ProjectInternal project) {
+    LocalComponentMetadata getLocalComponentMetadata(ProjectState projectState, ProjectInternal project) {
         Module module = project.getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();

@@ -50,16 +50,16 @@ public class PerformanceTest extends DistributionTest {
     // Baselines configured by command line `--baselines`
     private Property<String> configuredBaselines = getProject().getObjects().property(String.class);
     // Baselines determined by determineBaselines task
-    private Property<String> determinedBaselines = getProject().getObjects().property(String.class);
-    private String scenarios;
-    private String warmups;
-    private String runs;
-    private String checks;
-    private String channel;
+    Property<String> determinedBaselines = getProject().getObjects().property(String.class);
+    String scenarios;
+    String warmups;
+    String runs;
+    String checks;
+    String channel;
     private String reportGeneratorClass = "org.gradle.performance.results.DefaultReportGenerator";
-    private boolean flamegraphs;
+    boolean flamegraphs;
 
-    private final Map<String, String> databaseParameters = new HashMap<>();
+    final Map<String, String> databaseParameters = new HashMap<>();
 
     private File debugArtifactsDirectory = new File(getProject().getBuildDir(), getName());
 
@@ -198,6 +198,9 @@ public class PerformanceTest extends DistributionTest {
     }
 
     private class PerformanceTestJvmArgumentsProvider implements CommandLineArgumentProvider {
+        PerformanceTestJvmArgumentsProvider() {
+        }
+
         @Override
         public Iterable<String> asArguments() {
             List<String> result = new ArrayList<>();

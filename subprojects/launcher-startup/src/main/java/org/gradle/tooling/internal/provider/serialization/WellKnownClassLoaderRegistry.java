@@ -31,10 +31,10 @@ import java.util.UUID;
  * <p>Delegates to another {@link PayloadClassLoaderRegistry} for all other classes.
  */
 public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry {
-    private static final Set<ClassLoader> PLATFORM_CLASS_LOADERS;
-    private static final ClassLoader PLATFORM_CLASS_LOADER = ClassLoaderUtils.getPlatformClassLoader();
+    static final Set<ClassLoader> PLATFORM_CLASS_LOADERS;
+    static final ClassLoader PLATFORM_CLASS_LOADER = ClassLoaderUtils.getPlatformClassLoader();
     private static final short PLATFORM_CLASS_LOADER_ID = -1;
-    private static final ClassLoaderDetails PLATFORM_CLASS_LOADER_DETAILS = new ClassLoaderDetails(UUID.randomUUID(), new KnownClassLoaderSpec(PLATFORM_CLASS_LOADER_ID));
+    static final ClassLoaderDetails PLATFORM_CLASS_LOADER_DETAILS = new ClassLoaderDetails(UUID.randomUUID(), new KnownClassLoaderSpec(PLATFORM_CLASS_LOADER_ID));
     private final PayloadClassLoaderRegistry delegate;
 
     static {
@@ -94,7 +94,7 @@ public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry 
     }
 
     private static class KnownClassLoaderSpec extends ClassLoaderSpec {
-        private final short id;
+        final short id;
 
         KnownClassLoaderSpec(short id) {
             this.id = id;

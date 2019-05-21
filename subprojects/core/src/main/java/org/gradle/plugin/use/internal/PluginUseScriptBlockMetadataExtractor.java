@@ -45,7 +45,7 @@ public class PluginUseScriptBlockMetadataExtractor {
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
 
     private final DocumentationRegistry documentationRegistry;
-    private final PluginRequestCollector pluginRequestCollector;
+    final PluginRequestCollector pluginRequestCollector;
 
     public PluginUseScriptBlockMetadataExtractor(ScriptSource scriptSource, DocumentationRegistry documentationRegistry) {
         this.pluginRequestCollector = new PluginRequestCollector(scriptSource);

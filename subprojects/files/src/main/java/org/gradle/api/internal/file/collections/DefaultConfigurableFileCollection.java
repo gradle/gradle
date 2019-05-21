@@ -38,7 +38,7 @@ import java.util.Set;
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed {
     private final Set<Object> files;
     private final String displayName;
-    private final PathToFileResolver resolver;
+    final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {

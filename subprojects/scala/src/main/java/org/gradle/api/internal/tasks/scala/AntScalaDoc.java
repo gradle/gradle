@@ -33,8 +33,8 @@ import java.util.List;
  */
 public class AntScalaDoc {
     private final IsolatedAntBuilder antBuilder;
-    private final List<File> bootclasspathFiles;
-    private final List<File> extensionDirs;
+    final List<File> bootclasspathFiles;
+    final List<File> extensionDirs;
 
     public AntScalaDoc(IsolatedAntBuilder antBuilder) {
         this(antBuilder, ImmutableList.<File>of(), ImmutableList.<File>of());

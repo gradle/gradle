@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 
 @NonNullApi
 public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
-    private final List<OutputFilePropertySpec> specs = Lists.newArrayList();
+    final List<OutputFilePropertySpec> specs = Lists.newArrayList();
     private final String ownerDisplayName;
     private final FileCollectionFactory fileCollectionFactory;
     private ImmutableSortedSet<OutputFilePropertySpec> fileProperties;

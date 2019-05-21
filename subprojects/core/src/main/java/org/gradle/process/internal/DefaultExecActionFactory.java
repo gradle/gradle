@@ -49,7 +49,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     protected final FileCollectionFactory fileCollectionFactory;
     protected final BuildCancellationToken buildCancellationToken;
 
-    private DefaultExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken) {
+    DefaultExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken) {
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildCancellationToken = buildCancellationToken;

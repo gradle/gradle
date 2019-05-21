@@ -220,7 +220,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         resolution.println();
     }
 
-    private String getMessage(Throwable throwable) {
+    String getMessage(Throwable throwable) {
         String message = throwable.getMessage();
         if (GUtil.isTrue(message)) {
             return message;

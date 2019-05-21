@@ -96,18 +96,18 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             testClasses.add(klass);
         }
 
-        private void processAllTestClasses() {
+        void processAllTestClasses() {
             Launcher launcher = LauncherFactory.create();
             launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator));
             launcher.execute(createLauncherDiscoveryRequest(testClasses));
         }
     }
 
-    private boolean isInnerClass(Class<?> klass) {
+    boolean isInnerClass(Class<?> klass) {
         return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
     }
 
-    private Class<?> loadClass(String className) {
+    Class<?> loadClass(String className) {
         try {
             ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
             return Class.forName(className, false, applicationClassloader);
@@ -116,7 +116,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
+    LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
         List<DiscoverySelector> classSelectors = testClasses.stream()
             .map(DiscoverySelectors::selectClass)
             .collect(Collectors.toList());
@@ -159,7 +159,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     private static class ClassMethodNameFilter implements PostDiscoveryFilter {
         private final TestSelectionMatcher matcher;
 
-        private ClassMethodNameFilter(TestSelectionMatcher matcher) {
+        ClassMethodNameFilter(TestSelectionMatcher matcher) {
             this.matcher = matcher;
         }
 

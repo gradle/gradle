@@ -41,7 +41,7 @@ public class GnupgSignatory extends SignatorySupport {
     private final Project project;
     private final String name;
 
-    private final String executable;
+    final String executable;
     private final boolean useLegacyGpg;
     private final File homeDir;
     private final File optionsFile;

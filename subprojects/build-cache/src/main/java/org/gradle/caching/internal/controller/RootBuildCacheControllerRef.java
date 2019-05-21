@@ -44,7 +44,7 @@ public class RootBuildCacheControllerRef {
     private static class CloseShieldBuildCacheController implements BuildCacheController {
         private final BuildCacheController delegate;
 
-        private CloseShieldBuildCacheController(BuildCacheController delegate) {
+        CloseShieldBuildCacheController(BuildCacheController delegate) {
             this.delegate = delegate;
         }
 

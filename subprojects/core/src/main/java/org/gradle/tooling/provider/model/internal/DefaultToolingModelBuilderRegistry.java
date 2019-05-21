@@ -36,8 +36,8 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     private final ToolingModelBuilderRegistry parent;
 
     private final List<ToolingModelBuilder> builders = new ArrayList<ToolingModelBuilder>();
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final ProjectStateRegistry projectStateRegistry;
+    final BuildOperationExecutor buildOperationExecutor;
+    final ProjectStateRegistry projectStateRegistry;
 
     public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry) {
         this(buildOperationExecutor, projectStateRegistry, null);
@@ -81,9 +81,9 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     }
 
     private class BuildOperationWrappingToolingModelBuilder implements ToolingModelBuilder {
-        private final ToolingModelBuilder delegate;
+        final ToolingModelBuilder delegate;
 
-        private BuildOperationWrappingToolingModelBuilder(ToolingModelBuilder delegate) {
+        BuildOperationWrappingToolingModelBuilder(ToolingModelBuilder delegate) {
             this.delegate = delegate;
         }
 
@@ -116,9 +116,9 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     }
 
     private class ParameterizedBuildOperationWrappingToolingModelBuilder<T> extends BuildOperationWrappingToolingModelBuilder implements ParameterizedToolingModelBuilder<T> {
-        private final ParameterizedToolingModelBuilder<T> delegate;
+        final ParameterizedToolingModelBuilder<T> delegate;
 
-        private ParameterizedBuildOperationWrappingToolingModelBuilder(ParameterizedToolingModelBuilder delegate) {
+        ParameterizedBuildOperationWrappingToolingModelBuilder(ParameterizedToolingModelBuilder delegate) {
             super(delegate);
             this.delegate = delegate;
         }
@@ -157,6 +157,9 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     }
 
     private static class VoidToolingModelBuilder implements ToolingModelBuilder {
+        VoidToolingModelBuilder() {
+        }
+
         @Override
         public boolean canBuild(String modelName) {
             return modelName.equals(Void.class.getName());

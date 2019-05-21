@@ -74,7 +74,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class DefaultTransformerInvoker implements TransformerInvoker {
-    private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
+    static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
     private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
     private static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
@@ -84,11 +84,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
+    final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+    final FileCollectionFactory fileCollectionFactory;
+    final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ProjectFinder projectFinder;
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -155,7 +155,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         };
     }
 
-    private Try<ImmutableList<File>> doTransform(CachingTransformationWorkspaceProvider workspaceProvider, TransformationWorkspaceIdentity identity, Transformer transformer, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry, FileCollectionFingerprinter inputArtifactFingerprinter, FileSystemLocationSnapshot inputArtifactSnapshot, CurrentFileCollectionFingerprint dependenciesFingerprint, File inputArtifact, ArtifactTransformDependencies dependencies) {
+    Try<ImmutableList<File>> doTransform(CachingTransformationWorkspaceProvider workspaceProvider, TransformationWorkspaceIdentity identity, Transformer transformer, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry, FileCollectionFingerprinter inputArtifactFingerprinter, FileSystemLocationSnapshot inputArtifactSnapshot, CurrentFileCollectionFingerprint dependenciesFingerprint, File inputArtifact, ArtifactTransformDependencies dependencies) {
         return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> buildOperationExecutor.call(new CallableBuildOperation<Try<ImmutableList<File>>>() {
             @Override
             public Try<ImmutableList<File>> call(BuildOperationContext context) {
@@ -266,7 +266,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return projectFinder.findProject(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getProjectPath());
     }
 
-    private Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<Try<ImmutableList<File>>> execution) {
+    Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<Try<ImmutableList<File>>> execution) {
         artifactTransformListener.beforeTransformerInvocation(transformer, subject);
         try {
             return execution.get();
@@ -351,7 +351,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             UncheckedException.callUnchecked(() -> Files.write(resultsFile.toPath(), (Iterable<String>) relativePaths::iterator));
         }
 
-        private ImmutableList<File> loadResultsFile() {
+        ImmutableList<File> loadResultsFile() {
             Path transformerResultsPath = workspace.getResultsFile().toPath();
             try {
                 ImmutableList.Builder<File> builder = ImmutableList.builder();
@@ -461,7 +461,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
     }
 
-    private static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createInputFileFingerprints(
+    static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createInputFileFingerprints(
         CurrentFileCollectionFingerprint inputArtifactFingerprint,
         CurrentFileCollectionFingerprint dependenciesFingerprint
     ) {
@@ -471,14 +471,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return builder.build();
     }
 
-    private static ImmutableSortedMap<String, ValueSnapshot> snapshotInputs(Transformer transformer) {
+    static ImmutableSortedMap<String, ValueSnapshot> snapshotInputs(Transformer transformer) {
         return ImmutableSortedMap.of(
             // Emulate secondary inputs as a single property for now
             SECONDARY_INPUTS_HASH_PROPERTY_NAME, ImplementationSnapshot.of("secondary inputs", transformer.getSecondaryInputHash())
         );
     }
 
-    private static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs(FileCollectionFingerprinter outputFingerprinter, FileCollectionFactory fileCollectionFactory, TransformationWorkspace workspace) {
+    static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs(FileCollectionFingerprinter outputFingerprinter, FileCollectionFactory fileCollectionFactory, TransformationWorkspace workspace) {
         CurrentFileCollectionFingerprint outputFingerprint = outputFingerprinter.fingerprint(fileCollectionFactory.fixed(workspace.getOutputDirectory()));
         CurrentFileCollectionFingerprint resultsFileFingerprint = outputFingerprinter.fingerprint(fileCollectionFactory.fixed(workspace.getResultsFile()));
         return ImmutableSortedMap.of(

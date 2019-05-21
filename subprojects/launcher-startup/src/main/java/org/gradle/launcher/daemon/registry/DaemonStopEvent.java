@@ -32,13 +32,13 @@ import java.util.Date;
 public class DaemonStopEvent implements Serializable {
     public static final org.gradle.internal.serialize.Serializer<DaemonStopEvent> SERIALIZER = new Serializer();
 
-    private final Date timestamp;
+    final Date timestamp;
     @Nullable
-    private final Long pid;
+    final Long pid;
     @Nullable
-    private final DaemonExpirationStatus status;
+    final DaemonExpirationStatus status;
     @Nullable
-    private final String reason;
+    final String reason;
 
     public DaemonStopEvent(Date timestamp, @Nullable Long pid, @Nullable DaemonExpirationStatus status, @Nullable String reason) {
         this.timestamp = timestamp;
@@ -107,6 +107,9 @@ public class DaemonStopEvent implements Serializable {
     }
 
     private static class Serializer implements org.gradle.internal.serialize.Serializer<DaemonStopEvent> {
+
+        Serializer() {
+        }
 
         @Override
         public DaemonStopEvent read(Decoder decoder) throws EOFException, Exception {

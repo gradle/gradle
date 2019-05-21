@@ -50,12 +50,12 @@ import java.util.List;
 public class BTreePersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
     private final File cacheFile;
-    private final KeyHasher<K> keyHasher;
-    private final Serializer<V> serializer;
-    private final short maxChildIndexEntries;
-    private final int minIndexChildNodes;
-    private final StateCheckBlockStore store;
-    private HeaderBlock header;
+    final KeyHasher<K> keyHasher;
+    final Serializer<V> serializer;
+    final short maxChildIndexEntries;
+    final int minIndexChildNodes;
+    final StateCheckBlockStore store;
+    HeaderBlock header;
 
     public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this(cacheFile, keySerializer, valueSerializer, (short) 512, 512);
@@ -178,7 +178,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
-    private IndexBlock load(BlockPointer pos, IndexRoot root, IndexBlock parent, int index) {
+    IndexBlock load(BlockPointer pos, IndexRoot root, IndexBlock parent, int index) {
         IndexBlock block = store.read(pos, IndexBlock.class);
         block.root = root;
         block.parent = parent;
@@ -296,10 +296,10 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private class IndexRoot {
-        private BlockPointer rootPos = BlockPointer.start();
+        BlockPointer rootPos = BlockPointer.start();
         private HeaderBlock owner;
 
-        private IndexRoot(HeaderBlock owner) {
+        IndexRoot(HeaderBlock owner) {
             this.owner = owner;
         }
 
@@ -321,9 +321,9 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private class HeaderBlock extends BlockPayload {
-        private IndexRoot index;
+        IndexRoot index;
 
-        private HeaderBlock() {
+        HeaderBlock() {
             index = new IndexRoot(this);
         }
 
@@ -359,12 +359,15 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private class IndexBlock extends BlockPayload {
-        private final List<IndexEntry> entries = new ArrayList<IndexEntry>();
-        private BlockPointer tailPos = BlockPointer.start();
+        final List<IndexEntry> entries = new ArrayList<IndexEntry>();
+        BlockPointer tailPos = BlockPointer.start();
         // Transient fields
-        private IndexBlock parent;
-        private int parentEntryIndex;
-        private IndexRoot root;
+        IndexBlock parent;
+        int parentEntryIndex;
+        IndexRoot root;
+
+        IndexBlock() {
+        }
 
         @Override
         protected byte getType() {
@@ -471,7 +474,7 @@ public class BTreePersistentIndexedCache<K, V> {
             return find(checksum);
         }
 
-        private Lookup find(long hashCode) throws Exception {
+        Lookup find(long hashCode) throws Exception {
             int index = Collections.binarySearch(entries, new IndexEntry(hashCode));
             if (index >= 0) {
                 return new Lookup(this, entries.get(index));
@@ -620,10 +623,10 @@ public class BTreePersistentIndexedCache<K, V> {
         BlockPointer dataBlock;
         BlockPointer childIndexBlock;
 
-        private IndexEntry() {
+        IndexEntry() {
         }
 
-        private IndexEntry(long hashCode) {
+        IndexEntry(long hashCode) {
             this.hashCode = hashCode;
         }
 
@@ -643,7 +646,7 @@ public class BTreePersistentIndexedCache<K, V> {
         final IndexBlock indexBlock;
         final IndexEntry entry;
 
-        private Lookup(IndexBlock indexBlock, IndexEntry entry) {
+        Lookup(IndexBlock indexBlock, IndexEntry entry) {
             this.indexBlock = indexBlock;
             this.entry = entry;
         }
@@ -654,7 +657,7 @@ public class BTreePersistentIndexedCache<K, V> {
         private StreamByteBuffer buffer;
         private V value;
 
-        private DataBlock() {
+        DataBlock() {
         }
 
         public DataBlock(V value) throws Exception {

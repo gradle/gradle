@@ -40,12 +40,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
 
-    private final Class<K> keyType;
-    private final Class<V> valueType;
-    private final ValueCollector<K> keyCollector;
-    private final MapEntryCollector<K, V> entryCollector;
-    private MapCollector<K, V> value;
-    private final List<MapCollector<K, V>> collectors = new LinkedList<MapCollector<K, V>>();
+    final Class<K> keyType;
+    final Class<V> valueType;
+    final ValueCollector<K> keyCollector;
+    final MapEntryCollector<K, V> entryCollector;
+    MapCollector<K, V> value;
+    final List<MapCollector<K, V>> collectors = new LinkedList<MapCollector<K, V>>();
 
     public DefaultMapProperty(Class<K> keyType, Class<V> valueType) {
         applyDefaultValue();
@@ -342,6 +342,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     private class KeySetProvider extends AbstractReadOnlyProvider<Set<K>> {
+
+        KeySetProvider() {
+        }
 
         @Nullable
         @Override

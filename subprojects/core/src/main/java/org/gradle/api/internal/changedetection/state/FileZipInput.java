@@ -29,8 +29,8 @@ import java.util.zip.ZipFile;
 
 class FileZipInput implements ZipInput {
 
-    private final ZipFile file;
-    private final Enumeration<? extends java.util.zip.ZipEntry> entries;
+    final ZipFile file;
+    final Enumeration<? extends java.util.zip.ZipEntry> entries;
 
     public FileZipInput(File file) {
         try {

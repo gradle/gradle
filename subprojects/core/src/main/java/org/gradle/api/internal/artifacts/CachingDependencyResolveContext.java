@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CachingDependencyResolveContext implements DependencyResolveContext {
-    private final List<Object> queue = new ArrayList<Object>();
+    final List<Object> queue = new ArrayList<Object>();
     private final CachingDirectedGraphWalker<Object, FileCollection> walker = new CachingDirectedGraphWalker<Object, FileCollection>(new DependencyGraph());
     private final boolean transitive;
     private final Map<String, String> attributes;
@@ -62,6 +62,9 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
     }
 
     private class DependencyGraph implements DirectedGraph<Object, FileCollection> {
+        DependencyGraph() {
+        }
+
         @Override
         public void getNodeValues(Object node, Collection<? super FileCollection> values, Collection<? super Object> connectedNodes) {
             if (node instanceof FileCollection) {

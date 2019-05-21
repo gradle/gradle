@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.internal.Actions;
 
 class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDescriptor implements MavenRepositoryContentDescriptor {
-    private boolean snapshots = true;
-    private boolean releases = true;
+    boolean snapshots = true;
+    boolean releases = true;
 
     @Override
     public void releasesOnly() {

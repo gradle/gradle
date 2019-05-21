@@ -78,7 +78,7 @@ public class NamedObjectInstantiator implements Managed.Factory {
     // Currently retains strong references to types
     private final LoadingCache<Class<?>, LoadingCache<String, Object>> leakyValues = newValuesCache();
 
-    private LoadingCache<Class<?>, LoadingCache<String, Object>> newValuesCache() {
+    LoadingCache<Class<?>, LoadingCache<String, Object>> newValuesCache() {
         return CacheBuilder.newBuilder()
                 .build(new CacheLoader<Class<?>, LoadingCache<String, Object>>() {
                     @Override
@@ -112,7 +112,7 @@ public class NamedObjectInstantiator implements Managed.Factory {
         return named(Cast.uncheckedCast(type), (String) state);
     }
 
-    private ClassGeneratingLoader loaderFor(Class<?> publicClass) {
+    ClassGeneratingLoader loaderFor(Class<?> publicClass) {
         //
         // Generate implementation class
         //

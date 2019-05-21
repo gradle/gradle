@@ -84,8 +84,8 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements Styl
 
     @UsedByScanPlugin
     public static class Span implements StyledTextBuildOperationProgressDetails.Span {
-        private final String text;
-        private final StyledTextOutput.Style style;
+        final String text;
+        final StyledTextOutput.Style style;
 
         public Span(StyledTextOutput.Style style, String text) {
             this.style = style;

@@ -134,7 +134,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         final String signature;
         final LinkMetaData.Style style;
 
-        private MethodLinkMetaData(String name, String signature, LinkMetaData.Style style) {
+        MethodLinkMetaData(String name, String signature, LinkMetaData.Style style) {
             this.name = name;
             this.signature = signature;
             this.style = style;
@@ -155,7 +155,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
     }
 
     private static class BlockLinkMetaData extends MethodLinkMetaData {
-        private BlockLinkMetaData(String name, String signature) {
+        BlockLinkMetaData(String name, String signature) {
             super(name, signature, LinkMetaData.Style.Dsldoc);
         }
 
@@ -168,7 +168,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
     private static class PropertyLinkMetaData extends MethodLinkMetaData {
         private final String propertyName;
 
-        private PropertyLinkMetaData(String propertyName, String methodName, String signature) {
+        PropertyLinkMetaData(String propertyName, String methodName, String signature) {
             super(methodName, signature, LinkMetaData.Style.Dsldoc);
             this.propertyName = propertyName;
         }
@@ -180,7 +180,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
     }
 
     private static class EnumConstantLinkMetaData extends MethodLinkMetaData {
-        private EnumConstantLinkMetaData(String name, LinkMetaData.Style style) {
+        EnumConstantLinkMetaData(String name, LinkMetaData.Style style) {
             super(name, name, style);
         }
 

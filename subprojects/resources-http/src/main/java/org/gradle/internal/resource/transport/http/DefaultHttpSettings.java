@@ -46,7 +46,7 @@ public class DefaultHttpSettings implements HttpSettings {
         return new Builder();
     }
 
-    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, boolean followRedirects) {
+    DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, boolean followRedirects) {
         this.followRedirects = followRedirects;
         Preconditions.checkNotNull(authenticationSettings, "authenticationSettings");
         Preconditions.checkNotNull(sslContextFactory, "sslContextFactory");
@@ -134,14 +134,14 @@ public class DefaultHttpSettings implements HttpSettings {
         }
     }
 
-    private static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER = new HostnameVerifier() {
+    static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER = new HostnameVerifier() {
         @Override
         public boolean verify(String hostname, SSLSession session) {
             return true;
         }
     };
 
-    private static final SslContextFactory ALL_TRUSTING_SSL_CONTEXT_FACTORY = new SslContextFactory() {
+    static final SslContextFactory ALL_TRUSTING_SSL_CONTEXT_FACTORY = new SslContextFactory() {
         private final Supplier<SSLContext> sslContextSupplier = Suppliers.memoize(new Supplier<SSLContext>() {
             @Override
             public SSLContext get() {
@@ -160,7 +160,7 @@ public class DefaultHttpSettings implements HttpSettings {
             return sslContextSupplier.get();
         }
 
-        private final TrustManager[] allTrustingTrustManager = new TrustManager[]{
+        final TrustManager[] allTrustingTrustManager = new TrustManager[]{
             new X509TrustManager() {
                 @Override
                 public X509Certificate[] getAcceptedIssuers() {

@@ -36,7 +36,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     private final OutputEventListener listener;
 
     private final ScheduledExecutorService executor;
-    private final Clock clock;
+    final Clock clock;
     private final int throttleMs;
     private final Object lock = new Object();
 

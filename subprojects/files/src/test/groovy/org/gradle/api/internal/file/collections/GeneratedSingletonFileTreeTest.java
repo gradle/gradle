@@ -43,7 +43,7 @@ public class GeneratedSingletonFileTreeTest {
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-    private TestFile rootDir = tmpDir.getTestDirectory();
+    TestFile rootDir = tmpDir.getTestDirectory();
 
     private Factory<File> fileFactory = new Factory<File>() {
         public File create() {

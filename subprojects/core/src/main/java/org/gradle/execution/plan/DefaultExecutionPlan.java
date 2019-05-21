@@ -102,7 +102,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<Node> runningNodes = Sets.newIdentityHashSet();
     private final Set<Node> filteredNodes = Sets.newIdentityHashSet();
     private final Map<Node, MutationInfo> mutations = Maps.newIdentityHashMap();
-    private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
+    final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
     private final List<Node> dependenciesWhichRequireMonitoring = Lists.newArrayList();
     private boolean maybeNodesReady;
@@ -704,7 +704,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private void withDeadlockHandling(TaskNode task, String singular, String description, Runnable runnable) {
+    void withDeadlockHandling(TaskNode task, String singular, String description, Runnable runnable) {
         try {
             runnable.run();
         } catch (ResourceDeadlockException e) {
@@ -741,7 +741,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return !doesDestroyNotYetConsumedOutputOfAnotherNode(node, candidateNodeDestroyables);
     }
 
-    private static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
+    static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
         ImmutableSet.Builder<String> builder = ImmutableSet.builder();
         for (File file : files) {
             builder.add(canonicalizePath(file, cache));
@@ -1030,20 +1030,20 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private static class GraphEdge {
-        private final Node from;
-        private final Node to;
+        final Node from;
+        final Node to;
 
-        private GraphEdge(Node from, Node to) {
+        GraphEdge(Node from, Node to) {
             this.from = from;
             this.to = to;
         }
     }
 
     private static class NodeInVisitingSegment {
-        private final Node node;
-        private final int visitingSegment;
+        final Node node;
+        final int visitingSegment;
 
-        private NodeInVisitingSegment(Node node, int visitingSegment) {
+        NodeInVisitingSegment(Node node, int visitingSegment) {
             this.node = node;
             this.visitingSegment = visitingSegment;
         }
@@ -1068,6 +1068,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private static class NodeMapping extends AbstractCollection<Node> {
         private final Map<Task, LocalTaskNode> taskMapping = Maps.newLinkedHashMap();
         private final Set<Node> nodes = Sets.newLinkedHashSet();
+
+        NodeMapping() {
+        }
 
         @Override
         public boolean contains(Object o) {

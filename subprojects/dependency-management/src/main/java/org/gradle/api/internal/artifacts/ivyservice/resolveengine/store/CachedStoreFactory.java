@@ -58,9 +58,12 @@ public class CachedStoreFactory<T> implements Closeable {
     }
 
     private static class Stats {
-        private final AtomicLong diskReadsTotalMs = new AtomicLong();
-        private final AtomicLong readsFromCache = new AtomicLong();
-        private final AtomicLong readsFromDisk = new AtomicLong();
+        final AtomicLong diskReadsTotalMs = new AtomicLong();
+        final AtomicLong readsFromCache = new AtomicLong();
+        final AtomicLong readsFromDisk = new AtomicLong();
+
+        Stats() {
+        }
 
         public void readFromDisk(long duration) {
             readsFromDisk.incrementAndGet();

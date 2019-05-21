@@ -276,7 +276,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private static class BrokenService implements InvocationHandler {
         private final String type;
 
-        private BrokenService(String type) {
+        BrokenService(String type) {
             this.type = type;
         }
 

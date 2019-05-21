@@ -51,12 +51,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
-    private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
-    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
-    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
+    AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
+    List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
+    List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private FileCollection previousOutputFiles;
-    private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
-    private final TaskInternal task;
+    final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
+    final TaskInternal task;
     private final TaskMutator taskMutator;
 
     public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
@@ -210,7 +210,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Nullable
-    private static Object resolveSingleArray(@Nullable Object[] paths) {
+    static Object resolveSingleArray(@Nullable Object[] paths) {
         return (paths != null && paths.length == 1) ? paths[0] : paths;
     }
 
@@ -229,6 +229,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     private static class HasDeclaredOutputsVisitor extends PropertyVisitor.Adapter {
         boolean hasDeclaredOutputs;
+
+        HasDeclaredOutputsVisitor() {
+        }
 
         @Override
         public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {

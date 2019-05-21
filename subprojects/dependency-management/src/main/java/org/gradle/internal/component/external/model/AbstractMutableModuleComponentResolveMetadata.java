@@ -252,12 +252,12 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     protected static class MutableVariantImpl implements MutableComponentVariant {
-        private final String name;
-        private final ImmutableAttributes attributes;
-        private final List<DependencyImpl> dependencies = Lists.newArrayList();
-        private final List<DependencyConstraintImpl> dependencyConstraints = Lists.newArrayList();
-        private final List<FileImpl> files = Lists.newArrayList();
-        private final List<ImmutableCapability> capabilities = Lists.newArrayList();
+        final String name;
+        final ImmutableAttributes attributes;
+        final List<DependencyImpl> dependencies = Lists.newArrayList();
+        final List<DependencyConstraintImpl> dependencyConstraints = Lists.newArrayList();
+        final List<FileImpl> files = Lists.newArrayList();
+        final List<ImmutableCapability> capabilities = Lists.newArrayList();
 
         MutableVariantImpl(String name, ImmutableAttributes attributes) {
             this.name = name;

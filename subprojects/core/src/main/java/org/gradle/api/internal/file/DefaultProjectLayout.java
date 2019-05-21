@@ -35,7 +35,7 @@ import org.gradle.util.DeprecationLogger;
 import java.io.File;
 
 public class DefaultProjectLayout extends DefaultFilePropertyFactory implements ProjectLayout, TaskFileVarFactory {
-    private final FixedDirectory projectDir;
+    final FixedDirectory projectDir;
     private final DefaultDirectoryVar buildDir;
     private final TaskResolver taskResolver;
     private final FileCollectionFactory fileCollectionFactory;

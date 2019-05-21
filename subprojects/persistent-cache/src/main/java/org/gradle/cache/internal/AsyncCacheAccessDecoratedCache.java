@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
-    private final MultiProcessSafePersistentIndexedCache<K, V> persistentCache;
+    final MultiProcessSafePersistentIndexedCache<K, V> persistentCache;
 
     public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> persistentCache) {
         this.asyncCacheAccess = asyncCacheAccess;

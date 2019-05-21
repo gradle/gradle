@@ -17,11 +17,11 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.util.DisconnectableInputStream;
-import org.gradle.internal.io.LineBufferingOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,12 +38,12 @@ import java.util.concurrent.locks.ReentrantLock;
 public class InputForwarder implements Stoppable {
 
     private final InputStream input;
-    private final TextStream handler;
+    final TextStream handler;
     private final ExecutorFactory executorFactory;
-    private final int bufferSize;
+    final int bufferSize;
     private ManagedExecutor forwardingExecuter;
-    private DisconnectableInputStream disconnectableInput;
-    private LineBufferingOutputStream outputBuffer;
+    DisconnectableInputStream disconnectableInput;
+    LineBufferingOutputStream outputBuffer;
     private final Lock lifecycleLock = new ReentrantLock();
     private boolean started;
     private boolean stopped;

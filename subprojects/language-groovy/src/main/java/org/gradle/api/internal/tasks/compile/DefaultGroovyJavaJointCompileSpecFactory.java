@@ -39,8 +39,12 @@ public class DefaultGroovyJavaJointCompileSpecFactory extends AbstractJavaCompil
     }
 
     private static class DefaultCommandLineGroovyJavaJointCompileSpec extends DefaultGroovyJavaJointCompileSpec implements CommandLineJavaCompileSpec {
+        DefaultCommandLineGroovyJavaJointCompileSpec() {
+        }
     }
 
     private static class DefaultForkingGroovyJavaJointCompileSpec extends DefaultGroovyJavaJointCompileSpec implements ForkingJavaCompileSpec {
+        DefaultForkingGroovyJavaJointCompileSpec() {
+        }
     }
 }

@@ -42,21 +42,21 @@ import static org.gradle.configuration.internal.ExecuteListenerBuildOperationTyp
 
 public class DefaultListenerBuildOperationDecorator implements ListenerBuildOperationDecorator {
 
-    private static final ImmutableSet<Class<?>> SUPPORTED_INTERFACES = ImmutableSet.of(
+    static final ImmutableSet<Class<?>> SUPPORTED_INTERFACES = ImmutableSet.of(
         BuildListener.class,
         ProjectEvaluationListener.class,
         TaskExecutionGraphListener.class
     );
 
     // we don't decorate everything in BuildListener, just projectsLoaded/projectsEvaluated
-    private static final ImmutableSet<String> UNDECORATED_METHOD_NAMES = ImmutableSet.of(
+    static final ImmutableSet<String> UNDECORATED_METHOD_NAMES = ImmutableSet.of(
         "buildStarted",
         "settingsEvaluated",
         "buildFinished"
     );
 
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final UserCodeApplicationContext userCodeApplicationContext;
+    final BuildOperationExecutor buildOperationExecutor;
+    final UserCodeApplicationContext userCodeApplicationContext;
 
     public DefaultListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -133,11 +133,11 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     private class BuildOperationEmittingAction<T> implements Action<T> {
 
-        private final UserCodeApplicationId applicationId;
+        final UserCodeApplicationId applicationId;
         private final String registrationPoint;
-        private final Action<T> delegate;
+        final Action<T> delegate;
 
-        private BuildOperationEmittingAction(UserCodeApplicationId applicationId, String registrationPoint, Action<T> delegate) {
+        BuildOperationEmittingAction(UserCodeApplicationId applicationId, String registrationPoint, Action<T> delegate) {
             this.applicationId = applicationId;
             this.delegate = delegate;
             this.registrationPoint = registrationPoint;
@@ -162,11 +162,11 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     private class BuildOperationEmittingClosure<T> extends Closure<T> {
 
-        private final UserCodeApplicationId applicationId;
+        final UserCodeApplicationId applicationId;
         private final String registrationPoint;
-        private final Closure<T> delegate;
+        final Closure<T> delegate;
 
-        private BuildOperationEmittingClosure(UserCodeApplicationId application, String registrationPoint, Closure<T> delegate) {
+        BuildOperationEmittingClosure(UserCodeApplicationId application, String registrationPoint, Closure<T> delegate) {
             super(delegate.getOwner(), delegate.getThisObject());
             this.applicationId = application;
             this.delegate = delegate;
@@ -208,11 +208,11 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     private class BuildOperationEmittingInvocationHandler implements InvocationHandler {
 
-        private final UserCodeApplicationId applicationId;
+        final UserCodeApplicationId applicationId;
         private final String registrationPoint;
-        private final Object delegate;
+        final Object delegate;
 
-        private BuildOperationEmittingInvocationHandler(UserCodeApplicationId applicationId, String registrationPoint, Object delegate) {
+        BuildOperationEmittingInvocationHandler(UserCodeApplicationId applicationId, String registrationPoint, Object delegate) {
             this.applicationId = applicationId;
             this.registrationPoint = registrationPoint;
             this.delegate = delegate;

@@ -60,14 +60,14 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
  * Uses file system locks on a lock file per target file.
  */
 public class DefaultFileLockManager implements FileLockManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     public static final int DEFAULT_LOCK_TIMEOUT = 60000;
 
-    private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
-    private final ProcessMetaDataProvider metaDataProvider;
-    private final int lockTimeoutMs;
-    private final IdGenerator<Long> generator;
-    private final FileLockContentionHandler fileLockContentionHandler;
+    final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
+    final ProcessMetaDataProvider metaDataProvider;
+    final int lockTimeoutMs;
+    final IdGenerator<Long> generator;
+    final FileLockContentionHandler fileLockContentionHandler;
     private final int shortTimeoutMs = 10000;
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
@@ -124,15 +124,15 @@ public class DefaultFileLockManager implements FileLockManager {
 
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
         private final File lockFile;
-        private final File target;
+        final File target;
         private final LockMode mode;
-        private final String displayName;
+        final String displayName;
         private final String operationDisplayName;
-        private java.nio.channels.FileLock lock;
-        private LockFileAccess lockFileAccess;
+        java.nio.channels.FileLock lock;
+        LockFileAccess lockFileAccess;
         private LockState lockState;
-        private int port;
-        private final long lockId;
+        int port;
+        final long lockId;
 
         public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Action<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
@@ -337,7 +337,7 @@ public class DefaultFileLockManager implements FileLockManager {
             }
         }
 
-        private LockInfo readInformationRegion(ExponentialBackoff backoff) throws IOException, InterruptedException {
+        LockInfo readInformationRegion(ExponentialBackoff backoff) throws IOException, InterruptedException {
             // Can't acquire lock, get details of owner to include in the error message
             LockInfo out = new LockInfo();
             java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, backoff);
@@ -386,7 +386,7 @@ public class DefaultFileLockManager implements FileLockManager {
             });
         }
 
-        private java.nio.channels.FileLock lockInformationRegion(final LockMode lockMode, ExponentialBackoff backoff) throws IOException, InterruptedException {
+        java.nio.channels.FileLock lockInformationRegion(final LockMode lockMode, ExponentialBackoff backoff) throws IOException, InterruptedException {
             return backoff.retryUntil(new IOQuery<java.nio.channels.FileLock>() {
                 @Override
                 public java.nio.channels.FileLock run() throws IOException {
@@ -406,17 +406,17 @@ public class DefaultFileLockManager implements FileLockManager {
         private static final long SLOT_TIME = 25;
 
         private final Random random = new Random();
-        private final AwaitableFileLockReleasedSignal signal = new AwaitableFileLockReleasedSignal();
+        final AwaitableFileLockReleasedSignal signal = new AwaitableFileLockReleasedSignal();
 
         private final int timeoutMs;
-        private CountdownTimer timer;
+        CountdownTimer timer;
 
-        private ExponentialBackoff(int timeoutMs) {
+        ExponentialBackoff(int timeoutMs) {
             this.timeoutMs = timeoutMs;
             restartTimer();
         }
 
-        private void restartTimer() {
+        void restartTimer() {
             timer = Time.startCountdownTimer(timeoutMs);
         }
 

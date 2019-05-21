@@ -34,9 +34,9 @@ import java.util.Collection;
 
 public class TestArtifactSet implements ResolvedArtifactSet {
     public static final String DEFAULT_TEST_VARIANT = "test variant";
-    private final DisplayName variantName;
-    private final AttributeContainer variant;
-    private final ImmutableSet<ResolvedArtifact> artifacts;
+    final DisplayName variantName;
+    final AttributeContainer variant;
+    final ImmutableSet<ResolvedArtifact> artifacts;
 
     private TestArtifactSet(String variantName, AttributeContainer variant, Collection<? extends ResolvedArtifact> artifacts) {
         this.variantName = Describables.of(variantName);

@@ -37,7 +37,7 @@ public class CleanupActionFactory {
 
     private static class BuildOperationCacheCleanupDecorator implements CleanupAction {
         private final BuildOperationExecutor buildOperationExecutor;
-        private final CleanupAction delegate;
+        final CleanupAction delegate;
 
         public BuildOperationCacheCleanupDecorator(CleanupAction delegate, BuildOperationExecutor buildOperationExecutor) {
             this.buildOperationExecutor = buildOperationExecutor;

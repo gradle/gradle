@@ -87,7 +87,7 @@ public abstract class TypeOf<T> {
         return typeOf(parameterizedModelType.withArguments(modelTypeListFrom(typeArguments)));
     }
 
-    private final ModelType<T> type;
+    final ModelType<T> type;
 
     private TypeOf(ModelType<T> type) {
         this.type = type;
@@ -313,7 +313,7 @@ public abstract class TypeOf<T> {
         });
     }
 
-    private static <U> TypeOf<U> typeOf(ModelType<U> componentType) {
+    static <U> TypeOf<U> typeOf(ModelType<U> componentType) {
         return new TypeOf<U>(componentType) {
         };
     }

@@ -106,7 +106,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
     public static final String IVY_DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
     private final IvyModuleDescriptorConverter moduleDescriptorConverter;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
@@ -479,12 +479,12 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         /* how and what do we have to parse */
         private final DescriptorParseContext parseContext;
         private final RelativeUrlResolver relativeUrlResolver = new NormalRelativeUrlResolver();
-        private final URL descriptorURL;
+        final URL descriptorURL;
         private final IvyModuleDescriptorConverter moduleDescriptorConverter;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final IvyMutableModuleMetadataFactory metadataFactory;
 
-        private boolean validate = true;
+        boolean validate = true;
 
         /* Parsing state */
         private State state = State.NONE;
@@ -497,7 +497,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private StringBuffer buffer;
         private String descriptorVersion;
         private String[] publicationsDefaultConf;
-        private boolean hasGradleMetadataRedirect;
+        boolean hasGradleMetadataRedirect;
         final Map<String, String> properties;
 
         public Parser(DescriptorParseContext parseContext, IvyModuleDescriptorConverter moduleDescriptorConverter, ExternalResource res, URL descriptorURL, ImmutableModuleIdentifierFactory moduleIdentifierFactory, IvyMutableModuleMetadataFactory metadataFactory, Map<String, String> properties) {
@@ -1257,7 +1257,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             }
         }
 
-        private URL getSchemaURL() {
+        URL getSchemaURL() {
             URL resource = getClass().getClassLoader().getResource("org/apache/ivy/plugins/parser/xml/ivy.xsd");
             assert resource != null;
             return resource;

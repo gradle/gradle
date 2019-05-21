@@ -30,11 +30,11 @@ import java.io.File;
 import java.util.List;
 
 public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Compiler<T> {
-    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
+    final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<T> argsTransformer;
     private final CommandLineToolContext invocationContext;
     private final boolean useCommandFile;
-    private final BuildOperationExecutor buildOperationExecutor;
+    final BuildOperationExecutor buildOperationExecutor;
     private final WorkerLeaseService workerLeaseService;
 
     protected AbstractCompiler(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, boolean useCommandFile, WorkerLeaseService workerLeaseService) {

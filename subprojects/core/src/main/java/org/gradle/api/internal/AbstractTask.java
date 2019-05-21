@@ -98,15 +98,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private List<InputChangesAwareTaskAction> actions;
 
-    private boolean enabled = true;
+    boolean enabled = true;
 
-    private final DefaultTaskDependency dependencies;
+    final DefaultTaskDependency dependencies;
 
-    private final DefaultTaskDependency mustRunAfter;
+    final DefaultTaskDependency mustRunAfter;
 
-    private final DefaultTaskDependency finalizedBy;
+    final DefaultTaskDependency finalizedBy;
 
-    private final DefaultTaskDependency shouldRunAfter;
+    final DefaultTaskDependency shouldRunAfter;
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
@@ -116,7 +116,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final Property<Duration> timeout;
 
-    private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
+    AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
     private final ServiceRegistry services;
 
@@ -124,7 +124,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private Logger logger = new DefaultContextAwareTaskLogger(BUILD_LOGGER);
 
-    private final TaskMutator taskMutator;
+    final TaskMutator taskMutator;
     private ObservableList observableActionList;
     private boolean impliesSubProjects;
     private boolean hasCustomActions;
@@ -314,7 +314,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         });
     }
 
-    private AndSpec<Task> createNewOnlyIfSpec() {
+    AndSpec<Task> createNewOnlyIfSpec() {
         return new AndSpec<Task>(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
@@ -605,15 +605,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         };
     }
 
-    private InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
+    InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
         return new ClosureTaskAction(actionClosure, actionName);
     }
 
-    private InputChangesAwareTaskAction wrap(final Action<? super Task> action) {
+    InputChangesAwareTaskAction wrap(final Action<? super Task> action) {
         return wrap(action, "unnamed action");
     }
 
-    private InputChangesAwareTaskAction wrap(final Action<? super Task> action, String actionName) {
+    InputChangesAwareTaskAction wrap(final Action<? super Task> action, String actionName) {
         if (action instanceof InputChangesAwareTaskAction) {
             return (InputChangesAwareTaskAction) action;
         }
@@ -621,10 +621,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private static class TaskInfo {
-        private final TaskIdentity<?> identity;
-        private final ProjectInternal project;
+        final TaskIdentity<?> identity;
+        final ProjectInternal project;
 
-        private TaskInfo(TaskIdentity<?> identity, ProjectInternal project) {
+        TaskInfo(TaskIdentity<?> identity, ProjectInternal project) {
             this.identity = identity;
             this.project = project;
         }
@@ -634,7 +634,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         private final Closure closure;
         private final String actionName;
 
-        private ClosureTaskAction(Closure closure, String actionName) {
+        ClosureTaskAction(Closure closure, String actionName) {
             this.closure = closure;
             this.actionName = actionName;
         }
@@ -760,7 +760,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static String getActionClassName(Object action) {
+    static String getActionClassName(Object action) {
         if (action instanceof ScriptOrigin) {
             ScriptOrigin origin = (ScriptOrigin) action;
             return origin.getOriginalClassName() + "_" + origin.getContentHash();

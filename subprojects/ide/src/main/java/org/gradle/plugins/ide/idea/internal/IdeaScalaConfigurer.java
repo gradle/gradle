@@ -61,8 +61,8 @@ import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurat
 public class IdeaScalaConfigurer {
 
     // More information: http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/
-    private static final VersionNumber IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = VersionNumber.version(14);
-    private final Project rootProject;
+    static final VersionNumber IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = VersionNumber.version(14);
+    final Project rootProject;
 
     public IdeaScalaConfigurer(Project rootProject) {
         this.rootProject = rootProject;
@@ -110,7 +110,7 @@ public class IdeaScalaConfigurer {
         });
     }
 
-    private static Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects, final boolean useScalaSdk) {
+    static Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects, final boolean useScalaSdk) {
         Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newLinkedHashMap();
         for (final Project scalaProject : scalaProjects) {
             final IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
@@ -143,7 +143,7 @@ public class IdeaScalaConfigurer {
         return files;
     }
 
-    private static ProjectLibrary createScalaSdkLibrary(Project scalaProject, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
+    static ProjectLibrary createScalaSdkLibrary(Project scalaProject, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
         ScalaRuntime runtime = scalaProject.getExtensions().findByType(ScalaRuntime.class);
         if (runtime != null) {
             // Old Scala Plugin does not specify a ScalaPlatform
@@ -169,7 +169,7 @@ public class IdeaScalaConfigurer {
         return createProjectLibrary("scala-compiler-" + version, scalaClasspath);
     }
 
-    private void declareUniqueProjectLibraries(Set<ProjectLibrary> projectLibraries) {
+    void declareUniqueProjectLibraries(Set<ProjectLibrary> projectLibraries) {
         Set<ProjectLibrary> existingLibraries = rootProject.getExtensions().getByType(IdeaModel.class).getProject().getProjectLibraries();
         Set<ProjectLibrary> newLibraries = Sets.difference(projectLibraries, existingLibraries);
         for (ProjectLibrary newLibrary : newLibraries) {
@@ -191,7 +191,7 @@ public class IdeaScalaConfigurer {
         });
     }
 
-    private static void declareScalaSdk(ProjectLibrary scalaSdkLibrary, Node iml) {
+    static void declareScalaSdk(ProjectLibrary scalaSdkLibrary, Node iml) {
         // only define a Scala SDK for a module if we could create a scalaSdkLibrary
         if (scalaSdkLibrary != null) {
             Node newModuleRootManager = findOrCreateFirstChildWithAttributeValue(iml, "component", "name", "NewModuleRootManager");
@@ -202,7 +202,7 @@ public class IdeaScalaConfigurer {
         }
     }
 
-    private static void declareScalaFacet(ProjectLibrary scalaCompilerLibrary, Node iml) {
+    static void declareScalaFacet(ProjectLibrary scalaCompilerLibrary, Node iml) {
         Node facetManager = findOrCreateFirstChildWithAttributeValue(iml, "component", "name", "FacetManager");
 
         Node scalaFacet = findOrCreateFirstChildWithAttributeValue(facetManager, "facet", "type", "scala");
@@ -218,7 +218,7 @@ public class IdeaScalaConfigurer {
         libraryName.attributes().put("value", scalaCompilerLibrary.getName());
     }
 
-    private Collection<Project> findProjectsApplyingIdeaAndScalaPlugins() {
+    Collection<Project> findProjectsApplyingIdeaAndScalaPlugins() {
         return Collections2.filter(rootProject.getAllprojects(), new Predicate<Project>() {
             @Override
             public boolean apply(Project project) {
@@ -227,7 +227,7 @@ public class IdeaScalaConfigurer {
         });
     }
 
-    private VersionNumber findIdeaTargetVersion() {
+    VersionNumber findIdeaTargetVersion() {
         VersionNumber targetVersion = null;
         String targetVersionString = rootProject.getExtensions().getByType(IdeaModel.class).getTargetVersion();
         if (targetVersionString != null) {

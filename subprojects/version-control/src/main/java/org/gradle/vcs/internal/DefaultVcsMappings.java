@@ -75,7 +75,7 @@ public class DefaultVcsMappings implements VcsMappings {
         private final ModuleIdentifier moduleIdentifier;
         private final Action<? super VcsMapping> delegate;
 
-        private ModuleFilteredRule(ModuleIdentifier moduleIdentifier, Action<? super VcsMapping> delegate) {
+        ModuleFilteredRule(ModuleIdentifier moduleIdentifier, Action<? super VcsMapping> delegate) {
             this.moduleIdentifier = moduleIdentifier;
             this.delegate = delegate;
         }

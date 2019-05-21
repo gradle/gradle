@@ -34,5 +34,7 @@ public class LinkMachOBundle extends AbstractLinkTask {
     }
 
     private static class Spec extends DefaultLinkerSpec implements BundleLinkerSpec {
+        Spec() {
+        }
     }
 }

@@ -509,6 +509,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
+        ContainerElementsDynamicObject() {
+        }
+
         @Override
         public String getDisplayName() {
             return DefaultNamedDomainObjectCollection.this.getDisplayName();
@@ -810,7 +813,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractReadOnlyProvider<I> implements Named, NamedDomainObjectProvider<I> {
         private final String name;
-        private final Class<I> type;
+        final Class<I> type;
 
         protected AbstractNamedDomainObjectProvider(String name, Class<I> type) {
             this.name = name;
@@ -874,7 +877,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         private I object;
         private RuntimeException failure;
         protected ImmutableActionSet<I> onCreate;
-        private boolean removedBeforeRealized = false;
+        boolean removedBeforeRealized = false;
 
         public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
             super(name, type);
@@ -975,7 +978,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    private static RuntimeException domainObjectRemovedException(String name, Class<?> type) {
+    static RuntimeException domainObjectRemovedException(String name, Class<?> type) {
         return new IllegalStateException(String.format("The domain object '%s' (%s) for this provider is no longer present in its container.", name, type.getSimpleName()));
     }
 }

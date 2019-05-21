@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
@@ -44,6 +43,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,14 +54,14 @@ public class DefaultPluginManager implements PluginManagerInternal {
     public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + DefaultPluginId.SEPARATOR;
 
     private final Instantiator instantiator;
-    private final PluginTarget target;
+    final PluginTarget target;
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
     private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
     private final Map<Class<?>, Plugin> instances = Maps.newLinkedHashMap();
-    private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
+    final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    final BuildOperationExecutor buildOperationExecutor;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private DomainObjectCollectionFactory domainObjectCollectionFactory;
 
@@ -170,7 +170,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    private void addPlugin(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass) {
+    void addPlugin(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass) {
         boolean imperative = plugin.isImperative();
         if (imperative) {
             Plugin<?> pluginInstance = producePluginInstance(pluginClass);
@@ -263,7 +263,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         private final Class<?> pluginClass;
         private final UserCodeApplicationId applicationId;
 
-        private AddPluginBuildOperation(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass, UserCodeApplicationId applicationId) {
+        AddPluginBuildOperation(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass, UserCodeApplicationId applicationId) {
             this.adder = adder;
             this.plugin = plugin;
             this.pluginId = pluginId;
@@ -302,7 +302,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         private final ConfigurationTargetIdentifier targetIdentifier;
         private final UserCodeApplicationId applicationId;
 
-        private OperationDetails(PluginImplementation<?> pluginImplementation, ConfigurationTargetIdentifier targetIdentifier, UserCodeApplicationId applicationId) {
+        OperationDetails(PluginImplementation<?> pluginImplementation, ConfigurationTargetIdentifier targetIdentifier, UserCodeApplicationId applicationId) {
             this.pluginImplementation = pluginImplementation;
             this.targetIdentifier = targetIdentifier;
             this.applicationId = applicationId;
@@ -354,7 +354,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
+    static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
     };
 }
 

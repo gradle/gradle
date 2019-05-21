@@ -35,7 +35,7 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 import java.io.File;
 
 public class MavenArtifactNotationParserFactory implements Factory<NotationParser<Object, MavenArtifact>> {
-    private final Instantiator instantiator;
+    final Instantiator instantiator;
     private final FileResolver fileResolver;
 
     public MavenArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver) {
@@ -68,6 +68,9 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     }
 
     private class ArchiveTaskNotationConverter implements NotationConverter<AbstractArchiveTask, MavenArtifact> {
+        ArchiveTaskNotationConverter() {
+        }
+
         @Override
         public void convert(AbstractArchiveTask archiveTask, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             MavenArtifact artifact = instantiator.newInstance(ArchiveTaskBasedMavenArtifact.class, archiveTask);
@@ -81,6 +84,9 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     }
 
     private class PublishArtifactNotationConverter implements NotationConverter<PublishArtifact, MavenArtifact> {
+        PublishArtifactNotationConverter() {
+        }
+
         @Override
         public void convert(PublishArtifact publishArtifact, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             MavenArtifact artifact = instantiator.newInstance(PublishArtifactBasedMavenArtifact.class, publishArtifact);
@@ -96,7 +102,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     private class FileNotationConverter implements NotationConverter<Object, MavenArtifact> {
         private final NotationParser<Object, File> fileResolverNotationParser;
 
-        private FileNotationConverter(FileResolver fileResolver) {
+        FileNotationConverter(FileResolver fileResolver) {
             this.fileResolverNotationParser = fileResolver.asNotationParser();
         }
 
@@ -119,7 +125,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     private class MavenArtifactMapNotationConverter extends MapNotationConverter<MavenArtifact> {
         private final NotationParser<Object, MavenArtifact> sourceNotationParser;
 
-        private MavenArtifactMapNotationConverter(NotationParser<Object, MavenArtifact> sourceNotationParser) {
+        MavenArtifactMapNotationConverter(NotationParser<Object, MavenArtifact> sourceNotationParser) {
             this.sourceNotationParser = sourceNotationParser;
         }
 

@@ -46,15 +46,15 @@ import java.util.List;
 import java.util.Set;
 
 public class MessageHubBackedObjectConnection implements ObjectConnection {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedObjectConnection.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedObjectConnection.class);
     private final MessageHub hub;
-    private final List<Action<Throwable>> unrecoverableErrorHandlers = new ArrayList<Action<Throwable>>();
+    final List<Action<Throwable>> unrecoverableErrorHandlers = new ArrayList<Action<Throwable>>();
     private ConnectCompletion completion;
     private RemoteConnection<InterHubMessage> connection;
     //    private ClassLoader methodParamClassLoader;
     private List<SerializerRegistry> paramSerializers = new ArrayList<SerializerRegistry>();
     private Set<ClassLoader> methodParamClassLoaders = new HashSet<ClassLoader>();
-    private volatile boolean aborted;
+    volatile boolean aborted;
 
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
         Action<Throwable> errorHandler = new Action<Throwable>() {

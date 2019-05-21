@@ -135,7 +135,7 @@ public abstract class Units<Q> implements Comparable<Units<Q>> {
 
     private static class ScaledUnits<Q> extends Units<Q> {
         private final BaseUnits<Q> baseUnits;
-        private final BigDecimal factor;
+        final BigDecimal factor;
 
         public ScaledUnits(BaseUnits<Q> baseUnits, String displaySingular, String displayPlural, BigDecimal factor) {
             super(baseUnits.getType(), displaySingular, displayPlural);

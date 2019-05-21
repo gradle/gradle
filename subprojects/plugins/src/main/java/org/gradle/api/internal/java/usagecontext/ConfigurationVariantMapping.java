@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.Set;
 
 public class ConfigurationVariantMapping {
-    private final ConfigurationInternal outgoingConfiguration;
+    final ConfigurationInternal outgoingConfiguration;
     private final Action<? super ConfigurationVariantDetails> action;
 
     public ConfigurationVariantMapping(ConfigurationInternal outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
@@ -82,6 +82,9 @@ public class ConfigurationVariantMapping {
     }
 
     private class DefaultConfigurationVariant implements ConfigurationVariant {
+        DefaultConfigurationVariant() {
+        }
+
         @Override
         public PublishArtifactSet getArtifacts() {
             return outgoingConfiguration.getArtifacts();
@@ -120,7 +123,7 @@ public class ConfigurationVariantMapping {
         private String mavenScope = "compile";
         private boolean optional = false;
 
-        private DefaultConfigurationVariantDetails(ConfigurationVariant variant) {
+        DefaultConfigurationVariantDetails(ConfigurationVariant variant) {
             this.variant = variant;
         }
 

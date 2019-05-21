@@ -36,8 +36,8 @@ import java.io.File;
  */
 @Incubating
 public class PrefixHeaderFileGenerateTask extends DefaultTask {
-    private String header;
-    private File prefixHeaderFile;
+    String header;
+    File prefixHeaderFile;
     private final WorkerExecutor workerExecutor;
 
     /**

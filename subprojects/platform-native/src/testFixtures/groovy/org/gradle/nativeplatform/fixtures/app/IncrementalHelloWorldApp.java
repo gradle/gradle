@@ -39,7 +39,8 @@ public abstract class IncrementalHelloWorldApp extends CommonHeaderHelloWorldApp
             }
         };
     }
-    private SourceFile getAlternateLibraryHeader() {
+
+    SourceFile getAlternateLibraryHeader() {
         return getLibraryHeader();
     }
 

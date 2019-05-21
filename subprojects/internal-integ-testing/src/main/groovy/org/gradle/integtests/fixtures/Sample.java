@@ -35,11 +35,11 @@ import javax.annotation.Nullable;
  * test requires. If not found, uses the default sample provided in the constructor.
  */
 public class Sample implements TestRule {
-    private final Logger logger = LoggerFactory.getLogger(Sample.class);
+    final Logger logger = LoggerFactory.getLogger(Sample.class);
     private final String defaultSampleName;
     private final String testSampleDirName;
 
-    private String sampleName;
+    String sampleName;
     private TestFile sampleDir;
     private TestDirectoryProvider testDirectoryProvider;
 

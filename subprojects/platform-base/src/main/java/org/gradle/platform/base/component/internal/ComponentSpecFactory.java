@@ -79,7 +79,7 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     }
 
     @Nullable
-    private ComponentSpecIdentifier getId(@Nullable MutableModelNode ownerNode, String name) {
+    ComponentSpecIdentifier getId(@Nullable MutableModelNode ownerNode, String name) {
         if (ownerNode != null) {
             ComponentSpecInternal componentSpec = ownerNode.asImmutable(ModelType.of(ComponentSpecInternal.class), null).getInstance();
             return componentSpec.getIdentifier().child(name);
@@ -89,7 +89,7 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     }
 
     @Nullable
-    private MutableModelNode findOwner(MutableModelNode modelNode) {
+    MutableModelNode findOwner(MutableModelNode modelNode) {
         MutableModelNode grandparentNode = modelNode.getParent().getParent();
         if (grandparentNode != null && grandparentNode.canBeViewedAs(ModelType.of(ComponentSpecInternal.class))) {
             return grandparentNode;

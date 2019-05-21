@@ -22,7 +22,7 @@ import org.gradle.internal.Factory;
 
 public class FileIntegrityViolationSuppressingPersistentStateCacheDecorator<T> implements PersistentStateCache<T> {
 
-    private final PersistentStateCache<T> delegate;
+    final PersistentStateCache<T> delegate;
 
     public FileIntegrityViolationSuppressingPersistentStateCacheDecorator(PersistentStateCache<T> delegate) {
         this.delegate = delegate;

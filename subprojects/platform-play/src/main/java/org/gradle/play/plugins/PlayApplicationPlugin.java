@@ -226,7 +226,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             });
         }
 
-        private PlayPlatform resolveTargetPlatform(PlayApplicationSpecInternal componentSpec, final PlatformResolvers platforms) {
+        PlayPlatform resolveTargetPlatform(PlayApplicationSpecInternal componentSpec, final PlatformResolvers platforms) {
             PlatformRequirement targetPlatform = getTargetPlatform(componentSpec);
             return platforms.resolve(PlayPlatform.class, targetPlatform);
         }
@@ -239,7 +239,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             return playApplicationSpec.getTargetPlatforms().get(0);
         }
 
-        private void initialiseConfigurations(PlayPluginConfigurations configurations, PlayPlatform playPlatform) {
+        void initialiseConfigurations(PlayPluginConfigurations configurations, PlayPlatform playPlatform) {
             configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play"));
             configurations.getPlayTest().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-test"));
             configurations.getPlayRun().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-docs"));

@@ -35,7 +35,7 @@ import java.util.Map;
  * File names for root directories are ignored. For root files, the file name is used as normalized path.
  */
 public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
-    private final StringInterner stringInterner;
+    final StringInterner stringInterner;
 
     public RelativePathFingerprintingStrategy(StringInterner stringInterner) {
         super("RELATIVE_PATH", NormalizedPathFingerprintCompareStrategy.INSTANCE);

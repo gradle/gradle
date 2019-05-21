@@ -19,11 +19,11 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.configuration.InitScriptProcessor;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.BasicTextResourceLoader;
+import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
 import java.util.List;
@@ -32,7 +32,7 @@ import java.util.List;
  * Finds and executes all init scripts for a given build.
  */
 public class InitScriptHandler {
-    private final InitScriptProcessor processor;
+    final InitScriptProcessor processor;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public InitScriptHandler(InitScriptProcessor processor, BuildOperationExecutor buildOperationExecutor) {

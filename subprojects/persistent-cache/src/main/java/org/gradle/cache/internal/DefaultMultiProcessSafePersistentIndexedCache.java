@@ -25,8 +25,8 @@ import org.gradle.internal.Factory;
 
 public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
     private final FileAccess fileAccess;
-    private final Factory<BTreePersistentIndexedCache<K, V>> factory;
-    private BTreePersistentIndexedCache<K, V> cache;
+    final Factory<BTreePersistentIndexedCache<K, V>> factory;
+    BTreePersistentIndexedCache<K, V> cache;
 
     public DefaultMultiProcessSafePersistentIndexedCache(Factory<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
         this.factory = factory;

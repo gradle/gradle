@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class AntFileTreeBuilder implements AntBuilderAware {
 
-    private final Map<String, File> files;
+    final Map<String, File> files;
 
     public AntFileTreeBuilder(Map<String, File> files) {
         this.files = files;

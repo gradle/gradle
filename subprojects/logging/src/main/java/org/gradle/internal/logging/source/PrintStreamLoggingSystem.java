@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Generates a {@link LogLevelChangeEvent} when the log level for this {@code LoggingSystem} is changed.
  */
 abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
-    private final AtomicReference<StandardOutputListener> destination = new AtomicReference<StandardOutputListener>();
+    final AtomicReference<StandardOutputListener> destination = new AtomicReference<StandardOutputListener>();
     private final PrintStream outstr = new LinePerThreadBufferingOutputStream(new TextStream() {
         @Override
         public void text(String output) {
@@ -133,7 +133,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     }
 
     private static class PrintStreamDestination implements StandardOutputListener {
-        private final PrintStream originalStream;
+        final PrintStream originalStream;
 
         public PrintStreamDestination(PrintStream originalStream) {
             this.originalStream = originalStream;
@@ -146,8 +146,8 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     }
 
     private static class SnapshotImpl implements Snapshot {
-        private final boolean enabled;
-        private final LogLevel logLevel;
+        final boolean enabled;
+        final LogLevel logLevel;
 
         public SnapshotImpl(boolean enabled, LogLevel logLevel) {
             this.enabled = enabled;

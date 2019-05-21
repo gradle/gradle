@@ -66,8 +66,8 @@ public class LoggingSystemAdapter implements LoggingSourceSystem {
     }
 
     private class SnapshotImpl implements Snapshot {
-        private final boolean enabled;
-        private final LogLevel level;
+        final boolean enabled;
+        final LogLevel level;
 
         SnapshotImpl(boolean enabled, LogLevel level) {
             this.enabled = enabled;

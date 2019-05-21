@@ -255,37 +255,37 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String SERVICES_METHOD = "$gradleServices";
         private static final String FACTORY_FIELD = "_gr_factory_";
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = Type.getDescriptor(ConventionMapping.class);
-        private static final String META_CLASS_TYPE_DESCRIPTOR = Type.getDescriptor(MetaClass.class);
+        static final String META_CLASS_TYPE_DESCRIPTOR = Type.getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = Type.getType(MetaClass.class);
         private final static Type GENERATED_SUBCLASS_TYPE = Type.getType(GeneratedSubclass.class);
         private final static Type CONVENTION_AWARE_TYPE = Type.getType(IConventionAware.class);
-        private final static Type CONVENTION_AWARE_HELPER_TYPE = Type.getType(ConventionAwareHelper.class);
+        final static Type CONVENTION_AWARE_HELPER_TYPE = Type.getType(ConventionAwareHelper.class);
         private final static Type DYNAMIC_OBJECT_AWARE_TYPE = Type.getType(DynamicObjectAware.class);
         private final static Type EXTENSION_AWARE_TYPE = Type.getType(ExtensionAware.class);
         private final static Type HAS_CONVENTION_TYPE = Type.getType(HasConvention.class);
-        private final static Type DYNAMIC_OBJECT_TYPE = Type.getType(DynamicObject.class);
+        final static Type DYNAMIC_OBJECT_TYPE = Type.getType(DynamicObject.class);
         private final static Type CONVENTION_MAPPING_TYPE = Type.getType(ConventionMapping.class);
         private final static Type GROOVY_OBJECT_TYPE = Type.getType(GroovyObject.class);
         private final static Type CONVENTION_TYPE = Type.getType(Convention.class);
         private final static Type ASM_BACKED_CLASS_GENERATOR_TYPE = Type.getType(AsmBackedClassGenerator.class);
         private final static Type ABSTRACT_DYNAMIC_OBJECT_TYPE = Type.getType(AbstractDynamicObject.class);
-        private final static Type EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = Type.getType(MixInExtensibleDynamicObject.class);
+        final static Type EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = Type.getType(MixInExtensibleDynamicObject.class);
         private final static Type NON_EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = Type.getType(BeanDynamicObject.class);
-        private static final String JAVA_REFLECT_TYPE_DESCRIPTOR = Type.getDescriptor(java.lang.reflect.Type.class);
+        static final String JAVA_REFLECT_TYPE_DESCRIPTOR = Type.getDescriptor(java.lang.reflect.Type.class);
         private static final Type CONFIGURE_UTIL_TYPE = Type.getType(ConfigureUtil.class);
         private static final Type CLOSURE_TYPE = Type.getType(Closure.class);
         private static final Type SERVICE_REGISTRY_TYPE = Type.getType(ServiceRegistry.class);
-        private static final Type SERVICE_LOOKUP_TYPE = Type.getType(ServiceLookup.class);
-        private static final Type JAVA_LANG_REFLECT_TYPE = Type.getType(java.lang.reflect.Type.class);
-        private static final Type OBJECT_TYPE = Type.getType(Object.class);
-        private static final Type CLASS_TYPE = Type.getType(Class.class);
+        static final Type SERVICE_LOOKUP_TYPE = Type.getType(ServiceLookup.class);
+        static final Type JAVA_LANG_REFLECT_TYPE = Type.getType(java.lang.reflect.Type.class);
+        static final Type OBJECT_TYPE = Type.getType(Object.class);
+        static final Type CLASS_TYPE = Type.getType(Class.class);
         private static final Type METHOD_TYPE = Type.getType(Method.class);
-        private static final Type STRING_TYPE = Type.getType(String.class);
+        static final Type STRING_TYPE = Type.getType(String.class);
         private static final Type CLASS_ARRAY_TYPE = Type.getType(Class[].class);
-        private static final Type GROOVY_SYSTEM_TYPE = Type.getType(GroovySystem.class);
-        private static final Type META_CLASS_REGISTRY_TYPE = Type.getType(MetaClassRegistry.class);
+        static final Type GROOVY_SYSTEM_TYPE = Type.getType(GroovySystem.class);
+        static final Type META_CLASS_REGISTRY_TYPE = Type.getType(MetaClassRegistry.class);
         private static final Type BOOLEAN_TYPE = Type.getType(Boolean.TYPE);
-        private static final Type OBJECT_ARRAY_TYPE = Type.getType(Object[].class);
+        static final Type OBJECT_ARRAY_TYPE = Type.getType(Object[].class);
         private static final Type ACTION_TYPE = Type.getType(Action.class);
         private static final Type PROPERTY_INTERNAL_TYPE = Type.getType(PropertyInternal.class);
         private static final Type INSTANTIATOR_TYPE = Type.getType(Instantiator.class);
@@ -304,27 +304,27 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT_SERVICE_LOOKUP = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE, SERVICE_LOOKUP_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, Type.BOOLEAN_TYPE);
-        private static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
+        static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
         private static final String RETURN_BOOLEAN = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
         private static final String RETURN_VOID = Type.getMethodDescriptor(Type.VOID_TYPE);
-        private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = Type.getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
-        private static final String RETURN_CONVENTION = Type.getMethodDescriptor(CONVENTION_TYPE);
+        static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = Type.getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
+        static final String RETURN_CONVENTION = Type.getMethodDescriptor(CONVENTION_TYPE);
         private static final String RETURN_CONVENTION_MAPPING = Type.getMethodDescriptor(CONVENTION_MAPPING_TYPE);
         private static final String RETURN_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE);
         private static final String RETURN_EXTENSION_CONTAINER = Type.getMethodDescriptor(EXTENSION_CONTAINER_TYPE);
-        private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
+        static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
-        private static final String RETURN_VOID_FROM_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
-        private static final String RETURN_DYNAMIC_OBJECT = Type.getMethodDescriptor(DYNAMIC_OBJECT_TYPE);
-        private static final String RETURN_META_CLASS_FROM_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE, CLASS_TYPE);
+        static final String RETURN_VOID_FROM_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
+        static final String RETURN_DYNAMIC_OBJECT = Type.getMethodDescriptor(DYNAMIC_OBJECT_TYPE);
+        static final String RETURN_META_CLASS_FROM_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_BOOLEAN_FROM_STRING = Type.getMethodDescriptor(BOOLEAN_TYPE, STRING_TYPE);
-        private static final String RETURN_META_CLASS_REGISTRY = Type.getMethodDescriptor(META_CLASS_REGISTRY_TYPE);
+        static final String RETURN_META_CLASS_REGISTRY = Type.getMethodDescriptor(META_CLASS_REGISTRY_TYPE);
         private static final String RETURN_SERVICE_REGISTRY = Type.getMethodDescriptor(SERVICE_REGISTRY_TYPE);
         private static final String RETURN_SERVICE_LOOKUP = Type.getMethodDescriptor(SERVICE_LOOKUP_TYPE);
         private static final String RETURN_META_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE);
         private static final String RETURN_VOID_FROM_META_CLASS = Type.getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = Type.getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
-        private static final String RETURN_OBJECT_FROM_TYPE = Type.getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
+        static final String RETURN_OBJECT_FROM_TYPE = Type.getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
         private static final String RETURN_CONFIGURABLE_FILE_COLLECTION = Type.getMethodDescriptor(CONFIGURABLE_FILE_COLLECTION_TYPE);
         private static final String RETURN_REGULAR_FILE_PROPERTY = Type.getMethodDescriptor(REGULAR_FILE_PROPERTY_TYPE);
         private static final String RETURN_DIRECTORY_PROPERTY = Type.getMethodDescriptor(DIRECTORY_PROPERTY_TYPE);
@@ -339,7 +339,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final ClassWriter visitor;
         private final Class<?> type;
         private final boolean managed;
-        private final Type generatedType;
+        final Type generatedType;
         private final Type superclassType;
         private final Map<java.lang.reflect.Type, ReturnTypeEntry> genericReturnTypeConstantsIndex = Maps.newHashMap();
         private final AsmClassGenerator classGenerator;
@@ -350,7 +350,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean providesOwnDynamicObject;
         private final boolean requiresServicesMethod;
 
-        private ClassBuilderImpl(Class<?> type, boolean decorated, String suffix, boolean extensible, boolean conventionAware, boolean managed, boolean providesOwnDynamicObject, boolean requiresServicesMethod) {
+        ClassBuilderImpl(Class<?> type, boolean decorated, String suffix, boolean extensible, boolean conventionAware, boolean managed, boolean providesOwnDynamicObject, boolean requiresServicesMethod) {
             this.type = type;
             this.managed = managed;
             classGenerator = new AsmClassGenerator(type, suffix);
@@ -530,7 +530,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // END
         }
 
-        private void generateCreateDynamicObject(MethodVisitor visitor) {
+        void generateCreateDynamicObject(MethodVisitor visitor) {
             if (extensible) {
 
                 // GENERATE new MixInExtensibleDynamicObject(this, getClass().getSuperClass(), super.getAsDynamicObject(), this.services())
@@ -912,7 +912,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             });
         }
 
-        private void putServiceRegistryOnStack(MethodVisitor methodVisitor) {
+        void putServiceRegistryOnStack(MethodVisitor methodVisitor) {
             if (requiresServicesMethod) {
                 // this.<services_method>()
                 methodVisitor.visitVarInsn(ALOAD, 0);
@@ -929,7 +929,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             applyServiceInjectionToSetter(property, setter);
         }
 
-        private String getConstantNameForGenericReturnType(java.lang.reflect.Type genericReturnType, String getterName) {
+        String getConstantNameForGenericReturnType(java.lang.reflect.Type genericReturnType, String getterName) {
             ReturnTypeEntry entry = genericReturnTypeConstantsIndex.get(genericReturnType);
             if (entry == null) {
                 String fieldName = "_GENERIC_RETURN_TYPE_" + genericReturnTypeConstantsIndex.size();
@@ -1504,10 +1504,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private final static class ReturnTypeEntry {
-            private final String fieldName;
-            private final String getterName;
+            final String fieldName;
+            final String getterName;
 
-            private ReturnTypeEntry(String fieldName, String getterName) {
+            ReturnTypeEntry(String fieldName, String getterName) {
                 this.fieldName = fieldName;
                 this.getterName = getterName;
             }

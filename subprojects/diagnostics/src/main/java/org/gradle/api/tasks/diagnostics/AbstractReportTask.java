@@ -86,7 +86,7 @@ public abstract class AbstractReportTask extends ConventionTask {
         reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
     }
 
-    private boolean shouldCreateReportFile() {
+    boolean shouldCreateReportFile() {
         return getOutputFile() != null;
     }
 

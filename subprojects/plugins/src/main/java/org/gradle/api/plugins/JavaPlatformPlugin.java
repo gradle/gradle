@@ -179,7 +179,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         });
     }
 
-    private void checkNoDependencies(Project project) {
+    void checkNoDependencies(Project project) {
         checkNoDependencies(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME), Sets.<Configuration>newHashSet());
     }
 

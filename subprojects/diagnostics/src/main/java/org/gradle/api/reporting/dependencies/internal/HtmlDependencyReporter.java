@@ -75,13 +75,13 @@ public class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
         }, outputDirectory);
     }
 
-    private void generateJsFile(Project project, String fileName) {
+    void generateJsFile(Project project, String fileName) {
         String json = renderer.render(project);
         String content = "var projectDependencyReport = " + json + ";";
         GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8");
     }
 
-    private Transformer<String, Project> projectNamingScheme(final String extension) {
+    Transformer<String, Project> projectNamingScheme(final String extension) {
         return new Transformer<String, Project>() {
             @Override
             public String transform(Project project) {
@@ -91,7 +91,7 @@ public class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
         };
     }
 
-    private String toFileName(Project project, String extension) {
+    String toFileName(Project project, String extension) {
         String name = project.getPath();
         if (name.equals(":")) {
             return "root" + extension;

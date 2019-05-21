@@ -40,10 +40,10 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style;
  * progress of operations.
  */
 public class ProgressLogEventGenerator implements OutputEventListener {
-    private static final String EOL = SystemProperties.getInstance().getLineSeparator();
+    static final String EOL = SystemProperties.getInstance().getLineSeparator();
 
-    private final OutputEventListener listener;
-    private final Map<OperationIdentifier, Operation> operations = new LinkedHashMap<OperationIdentifier, Operation>();
+    final OutputEventListener listener;
+    final Map<OperationIdentifier, Operation> operations = new LinkedHashMap<OperationIdentifier, Operation>();
 
     public ProgressLogEventGenerator(OutputEventListener listener) {
         this.listener = listener;
@@ -94,11 +94,11 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         private final String loggingHeader;
         private final long startTime;
         private final boolean hasLoggingHeader;
-        private String status = "";
+        String status = "";
         private State state = State.None;
-        private long completeTime;
+        long completeTime;
 
-        private Operation(String category, String loggingHeader, long startTime, OperationIdentifier buildOperationIdentifier) {
+        Operation(String category, String loggingHeader, long startTime, OperationIdentifier buildOperationIdentifier) {
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.startTime = startTime;

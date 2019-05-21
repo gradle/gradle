@@ -88,7 +88,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
         }
     }
 
-    private GradleDistributionTool versionedToolFrom(GradleDistribution distribution) {
+    GradleDistributionTool versionedToolFrom(GradleDistribution distribution) {
         if (!distribution.worksWith(Jvm.current())) {
             return new GradleDistributionTool(distribution, "does not work with current JVM");
         } else if (!distribution.worksWith(OperatingSystem.current())) {
@@ -120,7 +120,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
         private final GradleDistribution distribution;
         private final String why;
 
-        private IgnoredVersion(GradleDistribution distribution, String why) {
+        IgnoredVersion(GradleDistribution distribution, String why) {
             this.distribution = distribution;
             this.why = why;
         }

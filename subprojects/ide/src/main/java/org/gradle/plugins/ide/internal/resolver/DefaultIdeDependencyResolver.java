@@ -35,7 +35,7 @@ import java.util.Set;
  */
 public class DefaultIdeDependencyResolver {
 
-    private static final Spec<ComponentIdentifier> IS_A_MODULE_ID = new Spec<ComponentIdentifier>() {
+    static final Spec<ComponentIdentifier> IS_A_MODULE_ID = new Spec<ComponentIdentifier>() {
         @Override
         public boolean isSatisfiedBy(ComponentIdentifier id) {
             return id instanceof ModuleComponentIdentifier;

@@ -26,7 +26,7 @@ import java.util.List;
 @NonNullApi
 public class DefaultTaskLocalState implements TaskLocalStateInternal {
     private final TaskMutator taskMutator;
-    private final List<Object> registeredPaths = Lists.newArrayList();
+    final List<Object> registeredPaths = Lists.newArrayList();
 
     public DefaultTaskLocalState(TaskMutator taskMutator) {
         this.taskMutator = taskMutator;

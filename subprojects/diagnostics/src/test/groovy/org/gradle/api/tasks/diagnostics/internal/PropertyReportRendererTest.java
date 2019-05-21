@@ -21,7 +21,7 @@ import org.junit.Test;
 import static org.gradle.util.Matchers.containsLine;
 
 public class PropertyReportRendererTest {
-    private final TestStyledTextOutput out = new TestStyledTextOutput();
+    final TestStyledTextOutput out = new TestStyledTextOutput();
     private final PropertyReportRenderer renderer = new PropertyReportRenderer(){{
         setOutput(out);
     }};

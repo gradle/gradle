@@ -67,17 +67,17 @@ import java.util.Collection;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private SettingsInternal settings;
-    private ProjectInternal rootProject;
+    ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private final GradleInternal parent;
     private final StartParameter startParameter;
-    private final ServiceRegistry services;
+    final ServiceRegistry services;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private Collection<IncludedBuild> includedBuilds;
-    private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
-    private boolean projectsLoaded;
+    MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
+    boolean projectsLoaded;
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
     private BuildType buildType = BuildType.NONE;

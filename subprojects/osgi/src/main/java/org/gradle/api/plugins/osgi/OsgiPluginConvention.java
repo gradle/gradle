@@ -36,7 +36,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  */
 @Deprecated
 public class OsgiPluginConvention {
-    private final ProjectInternal project;
+    final ProjectInternal project;
 
     /**
      * Creates an {@link OsgiPluginConvention} instance.

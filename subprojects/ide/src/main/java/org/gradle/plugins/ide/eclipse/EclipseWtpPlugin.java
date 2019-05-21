@@ -338,15 +338,15 @@ public class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(EarPlugin.class, action);
     }
 
-    private boolean hasWarOrEarPlugin(Project project) {
+    boolean hasWarOrEarPlugin(Project project) {
         return project.getPlugins().hasPlugin(WarPlugin.class) || project.getPlugins().hasPlugin(EarPlugin.class);
     }
 
-    private Set<File> getMainSourceDirs(Project project) {
+    Set<File> getMainSourceDirs(Project project) {
         return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main").getAllSource().getSrcDirs();
     }
 
-    private String toJavaFacetVersion(JavaVersion version) {
+    String toJavaFacetVersion(JavaVersion version) {
         if (version.equals(JavaVersion.VERSION_1_5)) {
             return "5.0";
         }

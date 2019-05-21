@@ -133,7 +133,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
             return value;
         }
 
-        private void assertStoredIn(PersistentIndexedCache<HashCode, V> store) {
+        void assertStoredIn(PersistentIndexedCache<HashCode, V> store) {
             if (this.contentCache != store) {
                 throw new IllegalStateException("Cache " + name + " cannot be recreated with different parameters");
             }

@@ -59,12 +59,12 @@ import java.util.Set;
  */
 @Incubating
 public class BaseBinarySpec extends AbstractBuildableComponentSpec implements BinarySpecInternal {
-    private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
+    static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
     private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE = ModelType.of(LanguageSourceSet.class);
 
     private static final ThreadLocal<BinaryInfo> NEXT_BINARY_INFO = new ThreadLocal<BinaryInfo>();
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets;
-    private final BinaryTasksCollection tasks;
+    final BinaryTasksCollection tasks;
     private final MutableModelNode componentNode;
     private final MutableModelNode sources;
     private final Class<? extends BinarySpec> publicType;
@@ -216,16 +216,16 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     }
 
     private static class BinaryInfo {
-        private final Class<? extends BinarySpec> publicType;
-        private final MutableModelNode modelNode;
-        private final MutableModelNode componentNode;
-        private final NamedEntityInstantiator<Task> taskInstantiator;
-        private final Instantiator instantiator;
-        private final ComponentSpecIdentifier componentId;
-        private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-        private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+        final Class<? extends BinarySpec> publicType;
+        final MutableModelNode modelNode;
+        final MutableModelNode componentNode;
+        final NamedEntityInstantiator<Task> taskInstantiator;
+        final Instantiator instantiator;
+        final ComponentSpecIdentifier componentId;
+        final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+        final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-        private BinaryInfo(ComponentSpecIdentifier componentId, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, NamedEntityInstantiator<Task> taskInstantiator, Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+        BinaryInfo(ComponentSpecIdentifier componentId, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, NamedEntityInstantiator<Task> taskInstantiator, Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
             this.componentId = componentId;
             this.publicType = publicType;
             this.modelNode = modelNode;

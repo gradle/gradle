@@ -30,10 +30,10 @@ import java.io.File;
 import java.util.List;
 
 public class PreviousCompilationData {
-    private final File destinationDir;
-    private final AnnotationProcessingData annotationProcessingData;
-    private final ClasspathSnapshotData classpathSnapshot;
-    private final List<File> annotationProcessorPath;
+    final File destinationDir;
+    final AnnotationProcessingData annotationProcessingData;
+    final ClasspathSnapshotData classpathSnapshot;
+    final List<File> annotationProcessorPath;
 
     public PreviousCompilationData(File destinationDir, AnnotationProcessingData annotationProcessingData, ClasspathSnapshotData classpathSnapshot, List<File> annotationProcessorPath) {
         this.destinationDir = destinationDir;

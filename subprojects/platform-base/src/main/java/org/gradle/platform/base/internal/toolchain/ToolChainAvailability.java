@@ -63,7 +63,7 @@ public class ToolChainAvailability implements ToolSearchResult {
     private static class FixedMessageToolSearchResult implements ToolSearchResult {
         private final String message;
 
-        private FixedMessageToolSearchResult(String message) {
+        FixedMessageToolSearchResult(String message) {
             this.message = message;
         }
 

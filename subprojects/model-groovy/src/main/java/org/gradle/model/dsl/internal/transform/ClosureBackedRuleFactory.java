@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ClosureBackedRuleFactory {
-    private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
+    static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
     private final Transformer<SourceLocation, TransformedClosure> ruleLocationExtractor;
 
     public ClosureBackedRuleFactory(RelativeFilePathResolver relativeFilePathResolver) {

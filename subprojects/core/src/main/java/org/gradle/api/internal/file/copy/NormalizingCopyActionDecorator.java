@@ -30,7 +30,12 @@ import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import java.io.File;
 import java.io.FilterReader;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A {@link CopyAction} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy
@@ -39,7 +44,7 @@ import java.util.*;
 public class NormalizingCopyActionDecorator implements CopyAction {
 
     private final CopyAction delegate;
-    private final Chmod chmod;
+    final Chmod chmod;
 
     public NormalizingCopyActionDecorator(CopyAction delegate, Chmod chmod) {
         this.delegate = delegate;
@@ -84,7 +89,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
                 pendingDirs.clear();
             }
 
-            private void maybeVisit(RelativePath path, boolean includeEmptyDirs, CopyActionProcessingStreamAction delegateAction) {
+            void maybeVisit(RelativePath path, boolean includeEmptyDirs, CopyActionProcessingStreamAction delegateAction) {
                 if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
                     return;
                 }
@@ -111,7 +116,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         private final boolean includeEmptyDirs;
         private long lastModified = System.currentTimeMillis();
 
-        private StubbedFileCopyDetails(RelativePath path, boolean includeEmptyDirs, Chmod chmod) {
+        StubbedFileCopyDetails(RelativePath path, boolean includeEmptyDirs, Chmod chmod) {
             super(chmod);
             this.path = path;
             this.includeEmptyDirs = includeEmptyDirs;

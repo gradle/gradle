@@ -16,15 +16,19 @@
 package org.gradle.internal.graph;
 
 import org.gradle.api.Action;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
 public class DirectedGraphRenderer<N> {
-    private final GraphNodeRenderer<N> nodeRenderer;
+    final GraphNodeRenderer<N> nodeRenderer;
     private final DirectedGraph<N, ?> graph;
     private boolean omittedDetails;
 

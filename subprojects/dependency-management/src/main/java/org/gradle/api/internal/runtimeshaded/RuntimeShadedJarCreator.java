@@ -26,10 +26,10 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -135,8 +135,8 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private void processFiles(ZipOutputStream outputStream, Iterable<? extends File> files, byte[] buffer, HashSet<String> seenPaths, Map<String, List<String>> services,
-                              ProgressLogger progressLogger) throws Exception {
+    void processFiles(ZipOutputStream outputStream, Iterable<? extends File> files, byte[] buffer, HashSet<String> seenPaths, Map<String, List<String>> services,
+                      ProgressLogger progressLogger) throws Exception {
         PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
 
         for (File file : files) {
@@ -225,7 +225,7 @@ class RuntimeShadedJarCreator {
         });
     }
 
-    private void processEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
+    void processEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
         String name = zipEntry.getName();
         if (zipEntry.isDirectory() || name.equals("META-INF/MANIFEST.MF")) {
             return;
@@ -390,7 +390,7 @@ class RuntimeShadedJarCreator {
 
     private static class ShadingClassRemapper extends ClassRemapper {
         Map<String, String> remappedClassLiterals;
-        private final ImplementationDependencyRelocator remapper;
+        final ImplementationDependencyRelocator remapper;
 
         public ShadingClassRemapper(ClassWriter classWriter, ImplementationDependencyRelocator remapper) {
             super(classWriter, remapper);

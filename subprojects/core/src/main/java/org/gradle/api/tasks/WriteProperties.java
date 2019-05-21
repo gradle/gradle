@@ -223,7 +223,7 @@ public class WriteProperties extends DefaultTask {
         }
     }
 
-    private static void checkForNullValue(String key, Object value) {
+    static void checkForNullValue(String key, Object value) {
         Preconditions.checkNotNull(value, "Property '%s' is not allowed to have a null value.", key);
     }
 }

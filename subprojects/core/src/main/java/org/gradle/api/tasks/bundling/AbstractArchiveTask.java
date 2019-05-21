@@ -48,11 +48,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private final DirectoryProperty archiveDestinationDirectory;
     private final RegularFileProperty archiveFile;
     private final Property<String> archiveName;
-    private final Property<String> archiveBaseName;
-    private final Property<String> archiveAppendix;
-    private final Property<String> archiveVersion;
-    private final Property<String> archiveExtension;
-    private final Property<String> archiveClassifier;
+    final Property<String> archiveBaseName;
+    final Property<String> archiveAppendix;
+    final Property<String> archiveVersion;
+    final Property<String> archiveExtension;
+    final Property<String> archiveClassifier;
     private final Property<Boolean> archivePreserveFileTimestamps;
     private final Property<Boolean> archiveReproducibleFileOrder;
 
@@ -89,7 +89,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).value(false);
     }
 
-    private static String maybe(@Nullable String prefix, @Nullable String value) {
+    static String maybe(@Nullable String prefix, @Nullable String value) {
         if (GUtil.isTrue(value)) {
             if (GUtil.isTrue(prefix)) {
                 return "-".concat(value);

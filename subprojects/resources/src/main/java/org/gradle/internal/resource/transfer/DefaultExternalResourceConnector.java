@@ -142,6 +142,9 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
         private final AtomicInteger listCount = new AtomicInteger();
         private final AtomicInteger uploadCount = new AtomicInteger();
 
+        CountingStats() {
+        }
+
         @Override
         public void resource(URI location) {
             resourceCount.incrementAndGet();
@@ -186,6 +189,9 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
         private final Map<URI, Integer> metadata = new HashMap<URI, Integer>();
         private final Map<URI, Integer> lists = new HashMap<URI, Integer>();
         private final Map<URI, Integer> uploads = new HashMap<URI, Integer>();
+
+        MemoizingStats() {
+        }
 
         private synchronized void record(Map<URI, Integer> container, URI uri) {
             Integer count = container.get(uri);

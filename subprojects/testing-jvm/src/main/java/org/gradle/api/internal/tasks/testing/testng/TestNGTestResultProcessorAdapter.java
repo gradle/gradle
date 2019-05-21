@@ -301,8 +301,8 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
 
     static class TestClassInfo {
 
-        private final Object id;
-        private int startedCount = 1;
+        final Object id;
+        int startedCount = 1;
 
         TestClassInfo(Object id) {
             this.id = id;

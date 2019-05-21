@@ -55,7 +55,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributes selectionAttributes;
 
-    private DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes) {
+    DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes) {
         this.componentIdentifier = componentIdentifier;
         this.schema = schema;
         this.selectionAttributes = selectionAttributes;
@@ -172,7 +172,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         private final ModuleSource moduleSource;
         private final ComponentArtifactMetadata artifact;
 
-        private LazyArtifactSource(ComponentArtifactMetadata artifact, ModuleSource moduleSource, ArtifactResolver artifactResolver) {
+        LazyArtifactSource(ComponentArtifactMetadata artifact, ModuleSource moduleSource, ArtifactResolver artifactResolver) {
             this.artifact = artifact;
             this.artifactResolver = artifactResolver;
             this.moduleSource = moduleSource;

@@ -58,10 +58,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultLocalComponentMetadata implements LocalComponentMetadata, BuildableLocalComponentMetadata {
-    private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newLinkedHashMap();
-    private final Multimap<String, LocalComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
-    private final SetMultimap<String, DefaultVariantMetadata> allVariants = LinkedHashMultimap.create();
-    private final ComponentIdentifier componentId;
+    final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newLinkedHashMap();
+    final Multimap<String, LocalComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
+    final SetMultimap<String, DefaultVariantMetadata> allVariants = LinkedHashMultimap.create();
+    final ComponentIdentifier componentId;
     private final ModuleVersionIdentifier moduleVersionId;
     private final String status;
     private final AttributesSchemaInternal attributesSchema;
@@ -264,22 +264,22 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
     protected class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, BuildableLocalConfigurationMetadata {
         private final String name;
-        private final String description;
-        private final boolean transitive;
-        private final boolean visible;
-        private final ImmutableSet<String> hierarchy;
-        private final Set<String> extendsFrom;
-        private final ImmutableAttributes attributes;
-        private final boolean canBeConsumed;
-        private final boolean canBeResolved;
-        private final ImmutableCapabilities capabilities;
+        final String description;
+        final boolean transitive;
+        final boolean visible;
+        final ImmutableSet<String> hierarchy;
+        final Set<String> extendsFrom;
+        final ImmutableAttributes attributes;
+        final boolean canBeConsumed;
+        final boolean canBeResolved;
+        final ImmutableCapabilities capabilities;
 
-        private ConfigurationInternal backingConfiguration;
-        private LocalConfigurationMetadataBuilder configurationMetadataBuilder;
+        ConfigurationInternal backingConfiguration;
+        LocalConfigurationMetadataBuilder configurationMetadataBuilder;
 
-        private List<LocalOriginDependencyMetadata> definedDependencies = Lists.newArrayList();
-        private List<ExcludeMetadata> definedExcludes = Lists.newArrayList();
-        private List<LocalFileDependencyMetadata> definedFiles= Lists.newArrayList();
+        List<LocalOriginDependencyMetadata> definedDependencies = Lists.newArrayList();
+        List<ExcludeMetadata> definedExcludes = Lists.newArrayList();
+        List<LocalFileDependencyMetadata> definedFiles = Lists.newArrayList();
 
         private ImmutableList<LocalOriginDependencyMetadata> configurationDependencies;
         private ImmutableSet<LocalFileDependencyMetadata> configurationFileDependencies;

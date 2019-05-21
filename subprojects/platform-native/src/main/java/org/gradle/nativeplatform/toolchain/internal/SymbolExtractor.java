@@ -50,6 +50,9 @@ public class SymbolExtractor extends AbstractCompiler<SymbolExtractorSpec> {
     protected void addOptionsFileArgs(List<String> args, File tempDir) { }
 
     private static class SymbolExtractorArgsTransformer implements ArgsTransformer<SymbolExtractorSpec> {
+        SymbolExtractorArgsTransformer() {
+        }
+
         @Override
         public List<String> transform(SymbolExtractorSpec spec) {
             SymbolExtractorOsConfig symbolExtractorOsConfig = SymbolExtractorOsConfig.current();

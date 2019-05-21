@@ -63,19 +63,19 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
     private static final ModelType<VariantComponentSpec> VARIANT_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(VariantComponentSpec.class);
 
     private static class ComponentTypeRegistrationInfo {
-        private final String modelName;
-        private final ModelType<? extends ComponentSpec> baseInterface;
-        private final List<Class<?>> requiredPlugins;
+        final String modelName;
+        final ModelType<? extends ComponentSpec> baseInterface;
+        final List<Class<?>> requiredPlugins;
 
-        private ComponentTypeRegistrationInfo(String modelName, ModelType<? extends ComponentSpec> baseInterface, Class<?> requiredPlugins) {
+        ComponentTypeRegistrationInfo(String modelName, ModelType<? extends ComponentSpec> baseInterface, Class<?> requiredPlugins) {
             this.modelName = modelName;
             this.baseInterface = baseInterface;
             this.requiredPlugins = ImmutableList.<Class<?>>of(requiredPlugins);
         }
     }
 
-    private final ModelSchemaStore schemaStore;
-    private final ModelReference<ComponentSpecFactory> registryRef;
+    final ModelSchemaStore schemaStore;
+    final ModelReference<ComponentSpecFactory> registryRef;
 
     public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
@@ -137,7 +137,7 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
         return null;
     }
 
-    private ModelType<?> determineImplementationType(TypeBuilderInternal<?> builder) {
+    ModelType<?> determineImplementationType(TypeBuilderInternal<?> builder) {
         validateInternalViewsAreInterfaces(builder);
 
         Class<?> implementation = builder.getDefaultImplementation();
@@ -157,8 +157,8 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
     }
 
     private class ExtractedTypeRule extends AbstractExtractedModelRule {
-        private final ComponentTypeRegistrationInfo info;
-        private final ModelType<? extends ComponentSpec> modelType;
+        final ComponentTypeRegistrationInfo info;
+        final ModelType<? extends ComponentSpec> modelType;
 
         public ExtractedTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ComponentTypeRegistrationInfo info, ModelType<? extends ComponentSpec> modelType) {
             super(ruleDefinition);

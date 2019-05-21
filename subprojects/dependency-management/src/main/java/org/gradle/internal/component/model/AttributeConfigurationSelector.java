@@ -219,7 +219,7 @@ public abstract class AttributeConfigurationSelector {
         MATCHES_ALL(true),
         EXACT_MATCH(true);
 
-        private final boolean matches;
+        final boolean matches;
 
         MatchResult(boolean match) {
             this.matches = match;

@@ -54,22 +54,22 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Adapts some source object to some target view type.
  */
 public class ProtocolToModelAdapter implements ObjectGraphAdapter {
-    private static final ViewDecoration NO_OP_MAPPER = new NoOpDecoration();
+    static final ViewDecoration NO_OP_MAPPER = new NoOpDecoration();
     private static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
         @Override
         public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
             return initialTargetType;
         }
     };
-    private static final ReflectionMethodInvoker REFLECTION_METHOD_INVOKER = new ReflectionMethodInvoker();
+    static final ReflectionMethodInvoker REFLECTION_METHOD_INVOKER = new ReflectionMethodInvoker();
     private static final TypeInspector TYPE_INSPECTOR = new TypeInspector();
     private static final CollectionMapper COLLECTION_MAPPER = new CollectionMapper();
-    private static final Object[] EMPTY = new Object[0];
-    private static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
-    private static final Method EQUALS_METHOD;
-    private static final Method HASHCODE_METHOD;
+    static final Object[] EMPTY = new Object[0];
+    static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
+    static final Method EQUALS_METHOD;
+    static final Method HASHCODE_METHOD;
 
-    private final TargetTypeProvider targetTypeProvider;
+    final TargetTypeProvider targetTypeProvider;
 
     static {
         Method equalsMethod;
@@ -129,7 +129,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         return new DefaultViewBuilder<T>(viewType);
     }
 
-    private static <T> T createView(Class<T> targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
+    static <T> T createView(Class<T> targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
         if (sourceObject == null) {
             return null;
         }
@@ -180,7 +180,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
     }
 
-    private static Object convert(Type targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
+    static Object convert(Type targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
         if (targetType instanceof ParameterizedType) {
             ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
             if (parameterizedTargetType.getRawType() instanceof Class) {
@@ -251,8 +251,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private static class ViewGraphDetails implements Serializable {
         // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
-        private transient Map<ViewKey, Object> views = new HashMap<ViewKey, Object>();
-        private final TargetTypeProvider typeProvider;
+        transient Map<ViewKey, Object> views = new HashMap<ViewKey, Object>();
+        final TargetTypeProvider typeProvider;
 
         ViewGraphDetails(TargetTypeProvider typeProvider) {
             this.typeProvider = typeProvider;
@@ -289,7 +289,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private static class InvocationHandlerImpl implements InvocationHandler, Serializable {
         private final Class<?> targetType;
-        private final Object sourceObject;
+        final Object sourceObject;
         private final ViewDecoration decoration;
         private final ViewGraphDetails graphDetails;
         private Object proxy;
@@ -373,7 +373,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class ChainedMethodInvoker implements MethodInvoker {
         private final MethodInvoker[] invokers;
 
-        private ChainedMethodInvoker(List<MethodInvoker> invokers) {
+        ChainedMethodInvoker(List<MethodInvoker> invokers) {
             this.invokers = invokers.toArray(new MethodInvoker[0]);
         }
 
@@ -391,7 +391,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private final ViewGraphDetails graphDetails;
         private final MethodInvoker next;
 
-        private AdaptingMethodInvoker(ViewDecoration decoration, ViewGraphDetails graphDetails, MethodInvoker next) {
+        AdaptingMethodInvoker(ViewDecoration decoration, ViewGraphDetails graphDetails, MethodInvoker next) {
             this.decoration = decoration;
             this.graphDetails = graphDetails;
             this.next = next;
@@ -418,13 +418,16 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         private CountdownTimer cleanupTimer = Time.startCountdownTimer(MINIMAL_CLEANUP_INTERVAL);
 
+        MethodInvocationCache() {
+        }
+
         private static class MethodInvocationKey {
             private final SoftReference<Class<?>> lookupClass;
             private final String methodName;
             private final SoftReference<Class<?>[]> parameterTypes;
             private final int hashCode;
 
-            private MethodInvocationKey(Class<?> lookupClass, String methodName, Class<?>[] parameterTypes) {
+            MethodInvocationKey(Class<?> lookupClass, String methodName, Class<?>[] parameterTypes) {
                 this.lookupClass = new SoftReference<Class<?>>(lookupClass);
                 this.methodName = methodName;
                 this.parameterTypes = new SoftReference<Class<?>[]>(parameterTypes);
@@ -586,6 +589,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class ReflectionMethodInvoker implements MethodInvoker {
         private final MethodInvocationCache lookupCache = new MethodInvocationCache();
 
+        ReflectionMethodInvoker() {
+        }
+
         @Override
         public void invoke(MethodInvocation invocation) throws Throwable {
             Method targetMethod = locateMethod(invocation);
@@ -613,7 +619,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private final Set<String> unknown = new HashSet<String>();
         private final MethodInvoker next;
 
-        private PropertyCachingMethodInvoker(MethodInvoker next) {
+        PropertyCachingMethodInvoker(MethodInvoker next) {
             this.next = next;
         }
 
@@ -646,7 +652,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class SafeMethodInvoker implements MethodInvoker {
         private final MethodInvoker next;
 
-        private SafeMethodInvoker(MethodInvoker next) {
+        SafeMethodInvoker(MethodInvoker next) {
             this.next = next;
         }
 
@@ -670,7 +676,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class SupportedPropertyInvoker implements MethodInvoker {
         private final MethodInvoker next;
 
-        private SupportedPropertyInvoker(MethodInvoker next) {
+        SupportedPropertyInvoker(MethodInvoker next) {
             this.next = next;
         }
 
@@ -769,6 +775,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class NoOpDecoration implements ViewDecoration, Serializable {
+        NoOpDecoration() {
+        }
+
         @Override
         public void collectInvokers(Object sourceObject, Class<?> viewType, List<MethodInvoker> invokers) {
         }

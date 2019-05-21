@@ -33,7 +33,7 @@ import static org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile
  * This is intended to be temporary, until more metadata can be published and the dependency resolution engine can deal with it. As such, it's not particularly performant or robust.
  */
 public class NativeDependencyCache implements Stoppable {
-    private final PersistentCache cache;
+    final PersistentCache cache;
 
     public NativeDependencyCache(CacheRepository cacheRepository) {
         cache = cacheRepository.cache("native-dep").withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None)).open();

@@ -84,7 +84,7 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
 
         private final Class<? extends AttributeCompatibilityRule<T>> rule;
 
-        private ExceptionHandler(Class<? extends AttributeCompatibilityRule<T>> rule) {
+        ExceptionHandler(Class<? extends AttributeCompatibilityRule<T>> rule) {
             this.rule = rule;
         }
 

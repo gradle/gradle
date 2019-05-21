@@ -208,6 +208,9 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     private static class DefaultTransportConfigCallback implements TransportConfigCallback {
+        DefaultTransportConfigCallback() {
+        }
+
         @Override
         public void configure(Transport transport) {
             if (transport instanceof SshTransport) {

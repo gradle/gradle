@@ -95,6 +95,9 @@ public class LinkSharedLibrary extends AbstractLinkTask {
         private String installName;
         private File importLibrary;
 
+        Spec() {
+        }
+
         @Override
         public String getInstallName() {
             return installName;

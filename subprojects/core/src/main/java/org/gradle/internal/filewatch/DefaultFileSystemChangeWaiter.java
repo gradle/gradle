@@ -34,10 +34,10 @@ import java.util.concurrent.locks.ReentrantLock;
 class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
     private final long quietPeriodMillis;
     private final BuildCancellationToken cancellationToken;
-    private final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
-    private final AtomicLong lastChangeAt = new AtomicLong(0);
+    final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
+    final Lock lock = new ReentrantLock();
+    final Condition condition = lock.newCondition();
+    final AtomicLong lastChangeAt = new AtomicLong(0);
     private final FileWatcher watcher;
     private final Action<Throwable> onError;
     private boolean watching;
@@ -45,11 +45,11 @@ class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
     private final Collection<FileWatcherEvent> eventsBeforeListening = new ArrayList<FileWatcherEvent>();
     private final Lock eventDeliveryLock = new ReentrantLock();
 
-    private static long monotonicClockMillis() {
+    static long monotonicClockMillis() {
         return System.nanoTime() / 1000000L;
     }
 
-    private static void signal(Lock lock, Condition condition, Runnable runnable) {
+    static void signal(Lock lock, Condition condition, Runnable runnable) {
         boolean interrupted = Thread.interrupted();
         lock.lock();
         try {
@@ -63,7 +63,7 @@ class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
         }
     }
 
-    private static void signal(Lock lock, Condition condition) {
+    static void signal(Lock lock, Condition condition) {
         signal(lock, condition, new Runnable() {
             @Override
             public void run() {
@@ -156,7 +156,7 @@ class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
         return error.get() == null && shouldKeepWaitingForQuietPeriod(lastChangeAtValue);
     }
 
-    private void deliverEvent(FileWatcherEvent event) {
+    void deliverEvent(FileWatcherEvent event) {
         eventDeliveryLock.lock();
         try {
             if (eventListener != null) {

@@ -88,7 +88,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         return metadata;
     }
 
-    private static ModuleComponentResolveMetadata realizeMetadata(ModuleComponentResolveMetadata metadata) {
+    static ModuleComponentResolveMetadata realizeMetadata(ModuleComponentResolveMetadata metadata) {
         if (metadata instanceof DefaultIvyModuleResolveMetadata) {
             metadata = RealisedIvyModuleResolveMetadata.transform((DefaultIvyModuleResolveMetadata) metadata);
         } else if (metadata instanceof DefaultMavenModuleResolveMetadata) {
@@ -126,10 +126,10 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         return metadata;
     }
 
-    private final Instantiator instantiator;
-    private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
-    private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
-    private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
+    final Instantiator instantiator;
+    final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
+    final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
+    final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataRuleExecutor ruleExecutor;
     private final MetadataResolutionContext metadataResolutionContext;
@@ -299,6 +299,9 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     private static class ExceptionHandler implements InstantiatingAction.ExceptionHandler<ComponentMetadataContext> {
+
+        ExceptionHandler() {
+        }
 
         @Override
         public void handleException(ComponentMetadataContext context, Throwable throwable) {

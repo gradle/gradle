@@ -143,7 +143,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private MavenArtifact pomArtifact;
-    private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
+    SingleOutputTaskMavenArtifact moduleMetadataArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
@@ -631,11 +631,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         });
     }
 
-    private boolean hasNoClassifier(MavenArtifact element) {
+    boolean hasNoClassifier(MavenArtifact element) {
         return element.getClassifier() == null || element.getClassifier().length() == 0;
     }
 
-    private boolean hasExtension(MavenArtifact element) {
+    boolean hasExtension(MavenArtifact element) {
         return element.getExtension() != null && element.getExtension().length() > 0;
     }
 

@@ -25,7 +25,7 @@ import java.io.File;
 
 public class GrowlNotifyBackedAnnouncer extends Growl {
     private final ProcessOperations processOperations;
-    private final IconProvider iconProvider;
+    final IconProvider iconProvider;
 
     public GrowlNotifyBackedAnnouncer(ProcessOperations processOperations, IconProvider iconProvider) {
         this.processOperations = processOperations;

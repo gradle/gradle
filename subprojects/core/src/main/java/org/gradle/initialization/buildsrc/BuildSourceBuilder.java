@@ -44,18 +44,18 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
-    private static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
+    static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
     };
     public static final String BUILD_SRC = "buildSrc";
 
     private final BuildState currentBuild;
     private final ClassLoaderScope classLoaderScope;
-    private final FileLockManager fileLockManager;
+    final FileLockManager fileLockManager;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final CachedClasspathTransformer cachedClasspathTransformer;
-    private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
+    final CachedClasspathTransformer cachedClasspathTransformer;
+    final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
     private final BuildStateRegistry buildRegistry;
-    private final PublicBuildPath publicBuildPath;
+    final PublicBuildPath publicBuildPath;
 
     public BuildSourceBuilder(BuildState currentBuild, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
         this.currentBuild = currentBuild;
@@ -113,7 +113,7 @@ public class BuildSourceBuilder {
         });
     }
 
-    private ClassPath buildBuildSrc(final BuildDefinition buildDefinition) {
+    ClassPath buildBuildSrc(final BuildDefinition buildDefinition) {
         StandAloneNestedBuild nestedBuild = buildRegistry.addNestedBuild(buildDefinition, currentBuild);
         return nestedBuild.run(new Transformer<ClassPath, BuildController>() {
             @Override
@@ -129,5 +129,5 @@ public class BuildSourceBuilder {
         });
     }
 
-    private static final LockOptions LOCK_OPTIONS = mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation();
+    static final LockOptions LOCK_OPTIONS = mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation();
 }

@@ -22,12 +22,12 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
@@ -59,12 +59,12 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final static byte SELECTOR = 4;
     private final static byte DEPENDENCY = 5;
 
-    private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<ComponentSelector, ModuleVersionResolveException>();
+    final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<ComponentSelector, ModuleVersionResolveException>();
     private final BinaryStore store;
-    private final ComponentResultSerializer componentResultSerializer;
+    final ComponentResultSerializer componentResultSerializer;
     private final Store<ResolvedComponentResult> cache;
-    private final ComponentSelectorSerializer componentSelectorSerializer;
-    private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
+    final ComponentSelectorSerializer componentSelectorSerializer;
+    final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
     private final Set<Long> visitedComponents = new HashSet<Long>();
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer) {
@@ -152,7 +152,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private final static Logger LOG = Logging.getLogger(RootFactory.class);
         private final ComponentResultSerializer componentResultSerializer;
 
-        private final BinaryStore.BinaryData data;
+        final BinaryStore.BinaryData data;
         private final Map<ComponentSelector, ModuleVersionResolveException> failures;
         private final Store<ResolvedComponentResult> cache;
         private final Object lock = new Object();
@@ -195,7 +195,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             }
         }
 
-        private ResolvedComponentResult deserialize(Decoder decoder) {
+        ResolvedComponentResult deserialize(Decoder decoder) {
             int valuesRead = 0;
             byte type = -1;
             Timer clock = Time.startTimer();

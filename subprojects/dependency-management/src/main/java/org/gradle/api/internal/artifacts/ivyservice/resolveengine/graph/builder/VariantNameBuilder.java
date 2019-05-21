@@ -58,7 +58,7 @@ public class VariantNameBuilder {
     private static class MultipleVariantName implements DisplayName {
         private final List<String> parts;
 
-        private MultipleVariantName(List<String> parts) {
+        MultipleVariantName(List<String> parts) {
             this.parts = parts;
         }
 

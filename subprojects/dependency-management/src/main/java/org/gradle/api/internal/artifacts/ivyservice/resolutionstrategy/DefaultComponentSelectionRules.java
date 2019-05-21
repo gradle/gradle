@@ -154,7 +154,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     static class ComponentSelectionMatchingSpec implements Spec<ComponentSelection> {
         final ModuleIdentifier target;
 
-        private ComponentSelectionMatchingSpec(ModuleIdentifier target) {
+        ComponentSelectionMatchingSpec(ModuleIdentifier target) {
             this.target = target;
         }
 

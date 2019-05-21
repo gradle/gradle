@@ -48,7 +48,7 @@ public class DefaultComponentTypeRegistry implements ComponentTypeRegistry {
         private final Class<? extends Component> componentType;
         private final Map<Class<? extends Artifact>, ArtifactType> typeRegistrations = Maps.newHashMap();
 
-        private DefaultComponentTypeRegistration(Class<? extends Component> componentType) {
+        DefaultComponentTypeRegistration(Class<? extends Component> componentType) {
             this.componentType = componentType;
         }
 

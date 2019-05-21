@@ -43,12 +43,12 @@ public class WatchServiceFileWatcherBacking {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchServiceFileWatcherBacking.class);
 
     private final AtomicBoolean started = new AtomicBoolean();
-    private final AtomicBoolean running = new AtomicBoolean();
-    private final AtomicBoolean stopped = new AtomicBoolean();
-    private final AtomicReference<SoftReference<Thread>> pollerThreadReference = new AtomicReference<SoftReference<Thread>>();
+    final AtomicBoolean running = new AtomicBoolean();
+    final AtomicBoolean stopped = new AtomicBoolean();
+    final AtomicReference<SoftReference<Thread>> pollerThreadReference = new AtomicReference<SoftReference<Thread>>();
 
-    private final Action<? super Throwable> onError;
-    private final WatchServiceRegistrar watchServiceRegistrar;
+    final Action<? super Throwable> onError;
+    final WatchServiceRegistrar watchServiceRegistrar;
     private final WatchService watchService;
     private final WatchServicePoller poller;
 
@@ -124,7 +124,7 @@ public class WatchServiceFileWatcherBacking {
         }
     }
 
-    private void pumpEvents() throws InterruptedException {
+    void pumpEvents() throws InterruptedException {
         while (isRunning()) {
             try {
                 List<FileWatcherEvent> events = poller.takeEvents();
@@ -155,7 +155,7 @@ public class WatchServiceFileWatcherBacking {
         return running.get() && !Thread.currentThread().isInterrupted();
     }
 
-    private void stop() {
+    void stop() {
         if (stopped.compareAndSet(false, true)) {
             if (running.compareAndSet(true, false)) {
                 LOGGER.debug("Stopping file watching");

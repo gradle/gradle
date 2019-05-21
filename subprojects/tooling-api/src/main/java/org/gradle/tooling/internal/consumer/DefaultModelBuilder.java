@@ -29,8 +29,8 @@ import org.gradle.tooling.model.internal.Exceptions;
 import java.util.List;
 
 public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<DefaultModelBuilder<T>> implements ModelBuilder<T> {
-    private final Class<T> modelType;
-    private final AsyncConsumerActionExecutor connection;
+    final Class<T> modelType;
+    final AsyncConsumerActionExecutor connection;
 
     public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);

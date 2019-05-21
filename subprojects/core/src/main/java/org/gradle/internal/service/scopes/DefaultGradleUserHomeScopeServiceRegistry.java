@@ -127,8 +127,8 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
     }
 
     private static class Services {
-        private final ServiceRegistry registry;
-        private int count;
+        final ServiceRegistry registry;
+        int count;
 
         public Services(ServiceRegistry registry) {
             this.registry = registry;

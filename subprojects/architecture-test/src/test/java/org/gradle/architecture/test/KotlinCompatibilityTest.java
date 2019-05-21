@@ -32,12 +32,12 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.junit.runner.RunWith;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
@@ -157,7 +157,7 @@ public class KotlinCompatibilityTest {
         };
     }
 
-    private static Map<String, List<Accessor>> findAccessors(Set<JavaMethod> methods) {
+    static Map<String, List<Accessor>> findAccessors(Set<JavaMethod> methods) {
         return methods.stream().map(Accessor::from).filter(Objects::nonNull).collect(groupingBy(Accessor::getPropertyName));
     }
 
@@ -199,8 +199,8 @@ public class KotlinCompatibilityTest {
     }
 
     private static class Accessors {
-        private final JavaClass owningClass;
-        private final String propertyName;
+        final JavaClass owningClass;
+        final String propertyName;
         private final Set<JavaMethod> getters;
         private final Set<JavaMethod> setters;
 
@@ -261,7 +261,7 @@ public class KotlinCompatibilityTest {
         }
     }
 
-    private static boolean isGetter(JavaMethod m, PropertyAccessorType accessorType) {
+    static boolean isGetter(JavaMethod m, PropertyAccessorType accessorType) {
         // We avoid using reflect, since that leads to class loading exceptions
         return !m.getModifiers().contains(JavaModifier.STATIC)
             && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
@@ -269,7 +269,7 @@ public class KotlinCompatibilityTest {
             && (accessorType != PropertyAccessorType.IS_GETTER || m.getReturnType().isEquivalentTo(Boolean.TYPE) || m.getReturnType().isEquivalentTo(Boolean.class));
     }
 
-    private static boolean isSetter(JavaMethod m, PropertyAccessorType accessorType) {
+    static boolean isSetter(JavaMethod m, PropertyAccessorType accessorType) {
         return !m.getModifiers().contains(JavaModifier.STATIC)
             && accessorType == PropertyAccessorType.SETTER
             && m.getParameters().size() == 1;

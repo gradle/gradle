@@ -26,8 +26,8 @@ import java.util.List;
 public class SocketInetAddress implements InetEndpoint {
     public static final org.gradle.internal.serialize.Serializer<SocketInetAddress> SERIALIZER = new Serializer();
 
-    private final InetAddress address;
-    private final int port;
+    final InetAddress address;
+    final int port;
 
     public SocketInetAddress(InetAddress address, int port) {
         this.address = address;
@@ -76,6 +76,9 @@ public class SocketInetAddress implements InetEndpoint {
     }
 
     private static class Serializer implements org.gradle.internal.serialize.Serializer<SocketInetAddress> {
+
+        Serializer() {
+        }
 
         @Override
         public SocketInetAddress read(Decoder decoder) throws Exception {

@@ -25,9 +25,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class BuildOperatingFiringProjectsPreparer implements ProjectsPreparer {
-    private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {
+    static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {
     };
-    private final ProjectsPreparer delegate;
+    final ProjectsPreparer delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public BuildOperatingFiringProjectsPreparer(ProjectsPreparer delegate, BuildOperationExecutor buildOperationExecutor) {
@@ -41,7 +41,7 @@ public class BuildOperatingFiringProjectsPreparer implements ProjectsPreparer {
     }
 
     private class ConfigureBuild implements RunnableBuildOperation {
-        private final GradleInternal gradle;
+        final GradleInternal gradle;
 
         public ConfigureBuild(GradleInternal gradle) {
             this.gradle = gradle;

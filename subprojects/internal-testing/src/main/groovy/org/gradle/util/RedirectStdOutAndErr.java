@@ -32,14 +32,14 @@ import java.io.PrintStream;
  * of the test.
  */
 public class RedirectStdOutAndErr implements MethodRule {
-    private PrintStream originalStdOut;
-    private PrintStream originalStdErr;
-    private ByteArrayOutputStream stdoutContent = new ByteArrayOutputStream();
-    private ByteArrayOutputStream stderrContent = new ByteArrayOutputStream();
-    private RedirectingOutputStream stdOutRouter = new RedirectingOutputStream(new NullOutputStream());
-    private RedirectingOutputStream stdErrRouter = new RedirectingOutputStream(new NullOutputStream());
-    private PrintStream stdOutPrintStream = new PrintStream(new TeeOutputStream(stdoutContent, stdOutRouter));
-    private PrintStream stdErrPrintStream = new PrintStream(new TeeOutputStream(stderrContent, stdErrRouter));
+    PrintStream originalStdOut;
+    PrintStream originalStdErr;
+    ByteArrayOutputStream stdoutContent = new ByteArrayOutputStream();
+    ByteArrayOutputStream stderrContent = new ByteArrayOutputStream();
+    RedirectingOutputStream stdOutRouter = new RedirectingOutputStream(new NullOutputStream());
+    RedirectingOutputStream stdErrRouter = new RedirectingOutputStream(new NullOutputStream());
+    PrintStream stdOutPrintStream = new PrintStream(new TeeOutputStream(stdoutContent, stdOutRouter));
+    PrintStream stdErrPrintStream = new PrintStream(new TeeOutputStream(stderrContent, stdErrRouter));
 
     @Override
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {

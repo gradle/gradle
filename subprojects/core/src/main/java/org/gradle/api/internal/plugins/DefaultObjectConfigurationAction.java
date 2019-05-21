@@ -107,7 +107,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    private void applyScript(Object script) {
+    void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
         TextResource resource = resourceLoader.loadUri("script", scriptUri);
         ScriptSource scriptSource = new TextResourceScriptSource(resource);
@@ -119,11 +119,11 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         }
     }
 
-    private void applyPlugin(Class<? extends Plugin> pluginClass) {
+    void applyPlugin(Class<? extends Plugin> pluginClass) {
         applyType(pluginClass);
     }
 
-    private void applyType(String pluginId) {
+    void applyType(String pluginId) {
         for (Object target : targets) {
             if (target instanceof PluginAware) {
                 ((PluginAware) target).getPluginManager().apply(pluginId);
@@ -133,7 +133,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         }
     }
 
-    private void applyType(Class<?> pluginClass) {
+    void applyType(Class<?> pluginClass) {
         for (Object target : targets) {
             if (target instanceof PluginAware) {
                 ((PluginAware) target).getPluginManager().apply(pluginClass);

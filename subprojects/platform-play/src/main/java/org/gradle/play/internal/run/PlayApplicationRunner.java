@@ -32,7 +32,7 @@ import java.io.File;
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
-    private final ClasspathFingerprinter fingerprinter;
+    final ClasspathFingerprinter fingerprinter;
 
     public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathFingerprinter fingerprinter) {
         this.workerFactory = workerFactory;
@@ -57,7 +57,7 @@ public class PlayApplicationRunner {
         private final FileCollection applicationClasspath;
         private HashCode classpathHash;
 
-        private PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec) {
+        PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec) {
             this.delegate = delegate;
             this.applicationClasspath = collectApplicationClasspath(runSpec);
         }

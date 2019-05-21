@@ -19,8 +19,14 @@ package org.gradle.internal.resource.transport.sftp;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.jcraft.jsch.*;
-import javax.annotation.concurrent.ThreadSafe;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.HostKey;
+import com.jcraft.jsch.HostKeyRepository;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UserInfo;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -28,12 +34,13 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
 import java.util.List;
 
 @ThreadSafe
 public class SftpClientFactory implements Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SftpClientFactory.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(SftpClientFactory.class);
 
     private SftpClientCreator sftpClientCreator = new SftpClientCreator();
     private final Object lock = new Object();
@@ -88,6 +95,9 @@ public class SftpClientFactory implements Stoppable {
 
     private static class SftpClientCreator {
         private JSch jsch;
+
+        SftpClientCreator() {
+        }
 
         public LockableSftpClient createNewClient(SftpHost sftpHost) {
             try {
@@ -184,7 +194,7 @@ public class SftpClientFactory implements Stoppable {
         final ChannelSftp channelSftp;
         final Session session;
 
-        private DefaultLockableSftpClient(SftpHost host, ChannelSftp channelSftp, Session session) {
+        DefaultLockableSftpClient(SftpHost host, ChannelSftp channelSftp, Session session) {
             this.host = host;
             this.channelSftp = channelSftp;
             this.session = session;

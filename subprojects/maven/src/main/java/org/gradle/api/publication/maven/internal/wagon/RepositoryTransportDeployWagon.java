@@ -23,14 +23,19 @@ import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.authentication.AuthenticationException;
 import org.apache.maven.wagon.authentication.AuthenticationInfo;
 import org.apache.maven.wagon.authorization.AuthorizationException;
-import org.apache.maven.wagon.events.*;
+import org.apache.maven.wagon.events.SessionEvent;
+import org.apache.maven.wagon.events.SessionEventSupport;
+import org.apache.maven.wagon.events.SessionListener;
+import org.apache.maven.wagon.events.TransferEvent;
+import org.apache.maven.wagon.events.TransferEventSupport;
+import org.apache.maven.wagon.events.TransferListener;
 import org.apache.maven.wagon.proxy.ProxyInfo;
 import org.apache.maven.wagon.proxy.ProxyInfoProvider;
 import org.apache.maven.wagon.repository.Repository;
 import org.apache.maven.wagon.resource.Resource;
 import org.gradle.api.GradleException;
-import org.gradle.internal.resource.local.FileReadableContent;
 import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.resource.local.FileReadableContent;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,8 +43,15 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
-import static org.apache.maven.wagon.events.SessionEvent.*;
-import static org.apache.maven.wagon.events.TransferEvent.*;
+import static org.apache.maven.wagon.events.SessionEvent.SESSION_DISCONNECTING;
+import static org.apache.maven.wagon.events.SessionEvent.SESSION_LOGGED_IN;
+import static org.apache.maven.wagon.events.SessionEvent.SESSION_LOGGED_OFF;
+import static org.apache.maven.wagon.events.SessionEvent.SESSION_OPENED;
+import static org.apache.maven.wagon.events.TransferEvent.REQUEST_GET;
+import static org.apache.maven.wagon.events.TransferEvent.REQUEST_PUT;
+import static org.apache.maven.wagon.events.TransferEvent.TRANSFER_COMPLETED;
+import static org.apache.maven.wagon.events.TransferEvent.TRANSFER_INITIATED;
+import static org.apache.maven.wagon.events.TransferEvent.TRANSFER_STARTED;
 
 /**
  * A maven wagon intended to work with {@link org.apache.maven.artifact.manager.DefaultWagonManager} Maven uses reflection to initialize instances of this wagon see: {@link
@@ -51,7 +63,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
     private static final ThreadLocal<RepositoryTransportWagonAdapter> CURRENT_DELEGATE = new InheritableThreadLocal<RepositoryTransportWagonAdapter>();
 
     private SessionEventSupport sessionEventSupport = new SessionEventSupport();
-    private TransferEventSupport transferEventSupport = new TransferEventSupport();
+    TransferEventSupport transferEventSupport = new TransferEventSupport();
     private Repository mutatingRepository;
 
     public static void contextualize(RepositoryTransportWagonAdapter adapter) {
@@ -247,7 +259,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
         throw new GradleException("This wagon does not yet support the method:" + s);
     }
 
-    private TransferEvent transferEvent(Resource resource, int eventType, int requestType) {
+    TransferEvent transferEvent(Resource resource, int eventType, int requestType) {
         TransferEvent transferEvent = new TransferEvent(this, resource, eventType, requestType);
         transferEvent.setTimestamp(new Date().getTime());
         return transferEvent;
@@ -260,7 +272,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
     private class MavenTransferLoggingFileResource extends FileReadableContent {
         private final Resource resource;
 
-        private MavenTransferLoggingFileResource(File file, Resource resource) {
+        MavenTransferLoggingFileResource(File file, Resource resource) {
             super(file);
             this.resource = resource;
         }

@@ -28,7 +28,7 @@ import java.io.File;
 
 public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshotter {
 
-    private final DefaultClasspathEntrySnapshotter snapshotter;
+    final DefaultClasspathEntrySnapshotter snapshotter;
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final ClasspathEntrySnapshotCache cache;
 

@@ -45,5 +45,7 @@ class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
     }
 
     private static class AssemblerArgsTransformer extends VisualCppCompilerArgsTransformer<AssembleSpec> {
+        AssemblerArgsTransformer() {
+        }
     }
 }

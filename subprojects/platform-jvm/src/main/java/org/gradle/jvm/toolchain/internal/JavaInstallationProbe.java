@@ -66,7 +66,7 @@ public class JavaInstallationProbe {
         RUNTIME("java.runtime.name"),
         Z_ERROR("Internal"); // This line MUST be last!
 
-        private final String sysProp;
+        final String sysProp;
 
         SysProp(String sysProp) {
             this.sysProp = sysProp;
@@ -148,7 +148,7 @@ public class JavaInstallationProbe {
         return ProbeResult.success(InstallType.IS_JRE, metadata);
     }
 
-    private EnumMap<SysProp, String> getCurrentJvmMetadata() {
+    EnumMap<SysProp, String> getCurrentJvmMetadata() {
         EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
         for (SysProp type : SysProp.values()) {
             if (type != SysProp.Z_ERROR) {
@@ -158,7 +158,7 @@ public class JavaInstallationProbe {
         return result;
     }
 
-    private EnumMap<SysProp, String> getMetadataInternal(File jdkPath) {
+    EnumMap<SysProp, String> getMetadataInternal(File jdkPath) {
         JavaExecAction exec = factory.newJavaExecAction();
         exec.executable(javaExe(jdkPath, "java"));
         File workingDir = Files.createTempDir();
@@ -189,7 +189,7 @@ public class JavaInstallationProbe {
         }
     }
 
-    private static String computeJdkName(InstallType result, EnumMap<SysProp, String> metadata) {
+    static String computeJdkName(InstallType result, EnumMap<SysProp, String> metadata) {
         String basename = result == InstallType.IS_JDK ? "JDK" : "JRE";
         String vendor = metadata.get(JavaInstallationProbe.SysProp.VENDOR);
         if (vendor == null) {

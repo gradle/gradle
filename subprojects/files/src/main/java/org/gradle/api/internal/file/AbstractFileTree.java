@@ -178,7 +178,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     private static class FilteredFileTreeImpl extends AbstractFileTree {
         private final AbstractFileTree fileTree;
-        private final Spec<FileTreeElement> spec;
+        final Spec<FileTreeElement> spec;
 
         public FilteredFileTreeImpl(AbstractFileTree fileTree, Spec<FileTreeElement> spec) {
             this.fileTree = fileTree;

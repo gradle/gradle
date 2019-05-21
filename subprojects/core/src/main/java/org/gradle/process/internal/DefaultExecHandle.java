@@ -83,8 +83,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
      * The variables to set in the environment the executable is run in.
      */
     private final Map<String, String> environment;
-    private final StreamsHandler outputHandler;
-    private final StreamsHandler inputHandler;
+    final StreamsHandler outputHandler;
+    final StreamsHandler inputHandler;
     private final boolean redirectErrorStream;
     private final ProcessLauncher processLauncher;
     private int timeoutMillis;
@@ -426,6 +426,9 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     private class CompositeStreamsHandler implements StreamsHandler {
+        CompositeStreamsHandler() {
+        }
+
         @Override
         public void connectStreams(Process process, String processName, Executor executor) {
             inputHandler.connectStreams(process, processName, executor);

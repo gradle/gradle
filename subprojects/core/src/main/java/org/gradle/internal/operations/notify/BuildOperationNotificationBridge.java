@@ -42,32 +42,35 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class BuildOperationNotificationBridge {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
-    private final BuildOperationListenerManager buildOperationListenerManager;
-    private final ListenerManager listenerManager;
+    final BuildOperationListenerManager buildOperationListenerManager;
+    final ListenerManager listenerManager;
 
     private class State {
-        private ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
-        private BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
-        private BuildOperationNotificationListener notificationListener;
+        ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
+        BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
+        BuildOperationNotificationListener notificationListener;
 
-        private void assignSingleListener(BuildOperationNotificationListener notificationListener) {
+        State() {
+        }
+
+        void assignSingleListener(BuildOperationNotificationListener notificationListener) {
             if (this.notificationListener != null) {
                 throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
             }
             this.notificationListener = notificationListener;
         }
 
-        private void stop() {
+        void stop() {
             buildOperationListenerManager.removeListener(state.buildOperationListener);
             listenerManager.removeListener(buildListener);
         }
     }
 
-    private State state;
+    State state;
 
-    private final BuildOperationNotificationValve valve = new BuildOperationNotificationValve() {
+    final BuildOperationNotificationValve valve = new BuildOperationNotificationValve() {
         @Override
         public void start() {
             if (state != null) {
@@ -91,7 +94,7 @@ public class BuildOperationNotificationBridge {
     // Listen for the end of configuration of the root project of the root build,
     // and discard buffered notifications if no listeners have yet appeared.
     // This avoids buffering until the end of the build when no listener comes.
-    private final BuildListener buildListener = new InternalBuildAdapter() {
+    final BuildListener buildListener = new InternalBuildAdapter() {
         @Override
         public void buildStarted(@SuppressWarnings("NullableProblems") Gradle gradle) {
             if (gradle.getParent() == null) {
@@ -160,7 +163,7 @@ public class BuildOperationNotificationBridge {
         private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
         private final Map<OperationIdentifier, Object> active = new ConcurrentHashMap<OperationIdentifier, Object>();
 
-        private Adapter(BuildOperationNotificationListener notificationListener) {
+        Adapter(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;
         }
 
@@ -247,7 +250,10 @@ public class BuildOperationNotificationBridge {
 
     private static class RecordingListener implements BuildOperationNotificationListener {
 
-        private final Queue<Object> storedEvents = new ConcurrentLinkedQueue<Object>();
+        final Queue<Object> storedEvents = new ConcurrentLinkedQueue<Object>();
+
+        RecordingListener() {
+        }
 
         @Override
         public void started(BuildOperationStartedNotification notification) {
@@ -275,7 +281,10 @@ public class BuildOperationNotificationBridge {
         private boolean needLock = true;
         private final Lock lock = new ReentrantLock();
 
-        private void attach(BuildOperationNotificationListener realListener) {
+        ReplayAndAttachListener() {
+        }
+
+        void attach(BuildOperationNotificationListener realListener) {
             lock.lock();
             try {
                 for (Object storedEvent : recordingListener.storedEvents) {
@@ -351,7 +360,7 @@ public class BuildOperationNotificationBridge {
         private final OperationIdentifier parentId;
         private final Object details;
 
-        private Started(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details) {
+        Started(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
@@ -431,7 +440,7 @@ public class BuildOperationNotificationBridge {
         private final Object result;
         private final Throwable failure;
 
-        private Finished(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details, Object result, Throwable failure) {
+        Finished(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details, Object result, Throwable failure) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;

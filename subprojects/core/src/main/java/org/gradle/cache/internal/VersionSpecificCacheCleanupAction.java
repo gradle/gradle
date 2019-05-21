@@ -45,8 +45,8 @@ public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction
     private static final long CLEANUP_INTERVAL_IN_HOURS = 24;
 
     private final VersionSpecificCacheDirectoryScanner versionSpecificCacheDirectoryScanner;
-    private final long maxUnusedDaysForReleases;
-    private final long maxUnusedDaysForSnapshots;
+    final long maxUnusedDaysForReleases;
+    final long maxUnusedDaysForSnapshots;
 
     public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleasesAndSnapshots) {
         this(cacheBaseDir, maxUnusedDaysForReleasesAndSnapshots, maxUnusedDaysForReleasesAndSnapshots);

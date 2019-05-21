@@ -63,7 +63,7 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
     private static class ModuleKeySerializer extends AbstractSerializer<ModuleAtRepositoryKey> {
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-        private ModuleKeySerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        ModuleKeySerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             this.moduleIdentifierFactory = moduleIdentifierFactory;
         }
 
@@ -84,6 +84,9 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
     }
 
     private static class ModuleVersionsCacheEntrySerializer extends AbstractSerializer<ModuleVersionsCacheEntry> {
+
+        ModuleVersionsCacheEntrySerializer() {
+        }
 
         @Override
         public void write(Encoder encoder, ModuleVersionsCacheEntry value) throws Exception {

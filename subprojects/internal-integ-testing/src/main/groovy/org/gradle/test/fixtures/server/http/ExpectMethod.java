@@ -39,9 +39,9 @@ class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, Resourc
             responseBody.writeTo(requestId, exchange);
         }
     };
-    private ResponseProducer responseBody = new SendFixedContent(200, "hi");
+    ResponseProducer responseBody = new SendFixedContent(200, "hi");
     private BlockingRequest blockingRequest;
-    private WaitPrecondition precondition;
+    WaitPrecondition precondition;
 
     ExpectMethod(String method, String path, int timeoutMs, Lock lock) {
         this.method = method;

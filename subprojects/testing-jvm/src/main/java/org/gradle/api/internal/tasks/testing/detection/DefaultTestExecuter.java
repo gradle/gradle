@@ -52,14 +52,14 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultTestExecuter.class);
 
-    private final WorkerProcessFactory workerFactory;
+    final WorkerProcessFactory workerFactory;
     private final ActorFactory actorFactory;
-    private final ModuleRegistry moduleRegistry;
+    final ModuleRegistry moduleRegistry;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final int maxWorkerCount;
     private final Clock clock;
-    private final DocumentationRegistry documentationRegistry;
+    final DocumentationRegistry documentationRegistry;
     private final DefaultTestFilter testFilter;
     private TestClassProcessor processor;
 

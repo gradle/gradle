@@ -21,12 +21,19 @@ import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,7 +41,7 @@ import java.util.Map;
 public class TestOutputStore {
 
     private final File resultsDir;
-    private final Charset messageStorageCharset;
+    final Charset messageStorageCharset;
 
     public TestOutputStore(File resultsDir) {
         this.resultsDir = resultsDir;
@@ -53,12 +60,12 @@ public class TestOutputStore {
         long start;
         long stop;
 
-        private Region() {
+        Region() {
             start = -1;
             stop = -1;
         }
 
-        private Region(long start, long stop) {
+        Region(long start, long stop) {
             this.start = start;
             this.stop = stop;
         }
@@ -67,6 +74,9 @@ public class TestOutputStore {
     private static class TestCaseRegion {
         Region stdOutRegion = new Region();
         Region stdErrRegion = new Region();
+
+        TestCaseRegion() {
+        }
     }
 
     public class Writer implements Closeable {
@@ -176,13 +186,13 @@ public class TestOutputStore {
         final Region stdOut;
         final Region stdErr;
 
-        private Index(Region stdOut, Region stdErr) {
+        Index(Region stdOut, Region stdErr) {
             this.children = ImmutableMap.of();
             this.stdOut = stdOut;
             this.stdErr = stdErr;
         }
 
-        private Index(ImmutableMap<Long, Index> children, Region stdOut, Region stdErr) {
+        Index(ImmutableMap<Long, Index> children, Region stdOut, Region stdErr) {
             this.children = children;
             this.stdOut = stdOut;
             this.stdErr = stdErr;
@@ -194,6 +204,9 @@ public class TestOutputStore {
         final Region stdErr = new Region();
 
         private final ImmutableMap.Builder<Long, Index> children = ImmutableMap.builder();
+
+        IndexBuilder() {
+        }
 
         void add(long key, Index index) {
             if (stdOut.start < 0) {

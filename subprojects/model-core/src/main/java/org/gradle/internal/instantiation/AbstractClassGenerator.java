@@ -344,8 +344,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private class GeneratedClassImpl implements GeneratedClass<Object> {
         private final Class<?> generatedClass;
         private final Class<?> outerType;
-        private final List<Class<?>> injectedServices;
-        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
+        final List<Class<?>> injectedServices;
+        final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
         private final List<GeneratedConstructor<Object>> constructors;
 
         public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
@@ -503,7 +503,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     protected static class MethodMetadata {
-        private final Method method;
+        final Method method;
         private final Type returnType;
 
         public MethodMetadata(Method method, Type returnType) {
@@ -538,14 +538,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected static class PropertyMetadata {
         private final String name;
-        private final List<MethodMetadata> getters = new ArrayList<>();
+        final List<MethodMetadata> getters = new ArrayList<>();
         private final List<MethodMetadata> overridableGetters = new ArrayList<>();
         private final List<Method> overridableSetters = new ArrayList<Method>();
-        private final List<Method> setters = new ArrayList<Method>();
-        private final List<Method> setMethods = new ArrayList<Method>();
-        private MethodMetadata mainGetter;
+        final List<Method> setters = new ArrayList<Method>();
+        final List<Method> setMethods = new ArrayList<Method>();
+        MethodMetadata mainGetter;
 
-        private PropertyMetadata(String name) {
+        PropertyMetadata(String name) {
             this.name = name;
         }
 
@@ -792,7 +792,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private boolean conventionAware;
         private boolean extensible;
         private boolean hasExtensionAwareImplementation;
-        private final List<PropertyMetadata> conventionProperties = new ArrayList<PropertyMetadata>();
+        final List<PropertyMetadata> conventionProperties = new ArrayList<PropertyMetadata>();
+
+        ExtensibleTypePropertyHandler() {
+        }
 
         @Override
         void startType(Class<?> type) {
@@ -874,6 +877,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
         private boolean hasFields;
 
+        ManagedTypeHandler() {
+        }
+
         @Override
         public void hasFields() {
             hasFields = true;
@@ -953,6 +959,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static class PropertyTypePropertyHandler extends ClassGenerationHandler {
         private final List<PropertyMetadata> propertyTyped = new ArrayList<PropertyMetadata>();
+
+        PropertyTypePropertyHandler() {
+        }
 
         @Override
         void visitProperty(PropertyMetadata property) {
@@ -1074,6 +1083,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static class ServicesPropertyHandler extends ClassGenerationHandler {
         private boolean hasServicesProperty;
+
+        ServicesPropertyHandler() {
+        }
 
         @Override
         public boolean claimPropertyImplementation(PropertyMetadata property) {

@@ -37,6 +37,9 @@ public class OptionValueNotationParserFactory {
     }
 
     private static class NoDescriptionValuesJustReturningParser implements NotationParser<CharSequence, String> {
+        NoDescriptionValuesJustReturningParser() {
+        }
+
         @Override
         public String parseNotation(CharSequence notation) {
             return notation.toString();

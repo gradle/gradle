@@ -68,7 +68,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
     private final BuildOperationTrace buildOperationTrace;
     private final BuildOperationNotificationBridge buildOperationNotificationBridge;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
-    private final BuildOperationListenerManager buildOperationListenerManager;
+    final BuildOperationListenerManager buildOperationListenerManager;
 
     private final Services services;
 

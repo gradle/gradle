@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class ValueSanitizers {
-    private static final ValueSanitizer<Object> STRING_VALUE_SANITIZER = new ValueSanitizer<Object>() {
+    static final ValueSanitizer<Object> STRING_VALUE_SANITIZER = new ValueSanitizer<Object>() {
         @Override
         @Nullable
         public Object sanitize(@Nullable Object value) {

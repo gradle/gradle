@@ -268,7 +268,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    private <I extends T> boolean doAddRealized(I toAdd, Action<? super I> notification) {
+    <I extends T> boolean doAddRealized(I toAdd, Action<? super I> notification) {
         if (getStore().addRealized(toAdd)) {
             didAdd(toAdd);
             notification.execute(toAdd);

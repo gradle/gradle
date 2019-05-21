@@ -23,7 +23,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -32,6 +31,7 @@ import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
@@ -46,11 +46,11 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final ComponentAttributeMatcher componentAttributeMatcher;
     private final InstantiatorFactory instantiatorFactory;
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
-    private final Map<String, Attribute<?>> attributesByName = Maps.newHashMap();
+    final Map<String, Attribute<?>> attributesByName = Maps.newHashMap();
 
     private final DefaultAttributeMatcher matcher;
     private final IsolatableFactory isolatableFactory;
-    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
+    final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
@@ -296,7 +296,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         private final ImmutableAttributes requestedAttributes;
         private final int hashCode;
 
-        private ExtraAttributesEntry(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requestedAttributes) {
+        ExtraAttributesEntry(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requestedAttributes) {
             this.candidateAttributeSets = candidateAttributeSets;
             this.requestedAttributes = requestedAttributes;
             int hash = Arrays.hashCode(candidateAttributeSets);

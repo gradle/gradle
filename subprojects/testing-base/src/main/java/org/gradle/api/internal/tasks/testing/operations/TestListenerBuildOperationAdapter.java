@@ -23,12 +23,12 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.time.Clock;
@@ -112,7 +112,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     private static class OutputProgress implements ExecuteTestBuildOperationType.Output {
         private final TestOutputEvent event;
 
-        private OutputProgress(TestOutputEvent event) {
+        OutputProgress(TestOutputEvent event) {
             this.event = event;
         }
 

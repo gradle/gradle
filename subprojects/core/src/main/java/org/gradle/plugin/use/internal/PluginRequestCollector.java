@@ -45,19 +45,19 @@ import static org.gradle.util.CollectionUtils.collect;
  */
 public class PluginRequestCollector {
 
-    private final ScriptSource scriptSource;
+    final ScriptSource scriptSource;
 
     public PluginRequestCollector(ScriptSource scriptSource) {
         this.scriptSource = scriptSource;
     }
 
     private static class DependencySpecImpl implements PluginDependencySpec {
-        private final PluginId id;
-        private String version;
-        private boolean apply;
-        private final int lineNumber;
+        final PluginId id;
+        String version;
+        boolean apply;
+        final int lineNumber;
 
-        private DependencySpecImpl(String id, int lineNumber) {
+        DependencySpecImpl(String id, int lineNumber) {
             this.id = DefaultPluginId.of(id);
             this.apply = true;
             this.lineNumber = lineNumber;
@@ -76,7 +76,7 @@ public class PluginRequestCollector {
         }
     }
 
-    private final List<DependencySpecImpl> specs = new LinkedList<DependencySpecImpl>();
+    final List<DependencySpecImpl> specs = new LinkedList<DependencySpecImpl>();
 
     public PluginDependenciesSpec createSpec(final int lineNumber) {
         return new PluginDependenciesSpec() {

@@ -75,11 +75,11 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
     }
 
     private static class SourceSetInfo {
-        private final ComponentSpecIdentifier identifier;
-        private final Class<? extends LanguageSourceSet> publicType;
-        private final ObjectFactory objectFactory;
+        final ComponentSpecIdentifier identifier;
+        final Class<? extends LanguageSourceSet> publicType;
+        final ObjectFactory objectFactory;
 
-        private SourceSetInfo(ComponentSpecIdentifier identifier, Class<? extends LanguageSourceSet> publicType, ObjectFactory objectFactory) {
+        SourceSetInfo(ComponentSpecIdentifier identifier, Class<? extends LanguageSourceSet> publicType, ObjectFactory objectFactory) {
             this.identifier = identifier;
             this.publicType = publicType;
             this.objectFactory = objectFactory;

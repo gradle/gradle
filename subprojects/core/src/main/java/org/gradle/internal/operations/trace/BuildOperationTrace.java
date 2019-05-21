@@ -92,11 +92,11 @@ public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
-    private static final byte[] NEWLINE = "\n".getBytes();
-    private static final byte[] INDENT = "    ".getBytes();
+    static final byte[] NEWLINE = "\n".getBytes();
+    static final byte[] INDENT = "    ".getBytes();
 
     private final String basePath;
-    private final OutputStream logOutputStream;
+    final OutputStream logOutputStream;
 
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final ListenerManager listenerManager;
@@ -375,9 +375,12 @@ public class BuildOperationTrace implements Stoppable {
         // This is not guaranteed to hold into the future.
         // A proper solution would be to change the operation details/results to be
         // truly immutable and convey values known at the time.
-        private boolean buffering = true;
-        private final Lock bufferLock = new ReentrantLock();
-        private final Queue<Entry> buffer = new ConcurrentLinkedQueue<Entry>();
+        boolean buffering = true;
+        final Lock bufferLock = new ReentrantLock();
+        final Queue<Entry> buffer = new ConcurrentLinkedQueue<Entry>();
+
+        LoggingListener() {
+        }
 
         @Override
         public void projectsLoaded(@SuppressWarnings("NullableProblems") Gradle gradle) {
@@ -419,7 +422,7 @@ public class BuildOperationTrace implements Stoppable {
             new Entry(new SerializedOperationFinish(buildOperation, finishEvent), false).add();
         }
 
-        private void stopBuffering() {
+        void stopBuffering() {
             if (buffering) {
                 bufferLock.lock();
                 try {
@@ -463,7 +466,7 @@ public class BuildOperationTrace implements Stoppable {
             }
 
             @SuppressWarnings("ConstantConditions")
-            private void write() {
+            void write() {
                 String json = JsonOutput.toJson(operation.toMap());
                 try {
                     synchronized (logOutputStream) {

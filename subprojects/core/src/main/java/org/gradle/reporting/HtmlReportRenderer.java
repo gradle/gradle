@@ -17,9 +17,9 @@ package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -79,7 +79,7 @@ public class HtmlReportRenderer {
         final URL source;
         final String path;
 
-        private Resource(URL source, String path) {
+        Resource(URL source, String path) {
             this.source = source;
             this.path = path;
         }
@@ -87,7 +87,7 @@ public class HtmlReportRenderer {
 
     private static class DefaultHtmlReportContext implements HtmlReportBuilder {
         private final File outputDirectory;
-        private final Map<String, Resource> resources = new HashMap<String, Resource>();
+        final Map<String, Resource> resources = new HashMap<String, Resource>();
 
         public DefaultHtmlReportContext(File outputDirectory) {
             this.outputDirectory = outputDirectory;
@@ -139,7 +139,7 @@ public class HtmlReportRenderer {
             });
         }
 
-        private String prefix(String name) {
+        String prefix(String name) {
             StringBuilder builder = new StringBuilder();
             int pos = 0;
             while (pos < name.length()) {

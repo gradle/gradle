@@ -28,7 +28,7 @@ import java.io.Writer;
 import java.util.Date;
 
 public class ProjectPageRenderer extends ReportRenderer<Project, HtmlPageBuilder<Writer>> {
-    private final Transformer<String, Project> namingScheme;
+    final Transformer<String, Project> namingScheme;
 
     public ProjectPageRenderer(Transformer<String, Project> namingScheme) {
         this.namingScheme = namingScheme;

@@ -47,6 +47,9 @@ public class DefaultPluginRequests implements PluginRequests {
 
     private static class EmptyPluginRequests implements PluginRequests {
 
+        EmptyPluginRequests() {
+        }
+
         @Override
         public boolean isEmpty() {
             return true;

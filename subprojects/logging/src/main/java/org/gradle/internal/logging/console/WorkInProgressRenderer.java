@@ -41,7 +41,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
     private final ProgressOperations operations = new ProgressOperations();
     private final BuildProgressArea progressArea;
-    private final DefaultWorkInProgressFormatter labelFormatter;
+    final DefaultWorkInProgressFormatter labelFormatter;
     private final ConsoleLayoutCalculator consoleLayoutCalculator;
 
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();

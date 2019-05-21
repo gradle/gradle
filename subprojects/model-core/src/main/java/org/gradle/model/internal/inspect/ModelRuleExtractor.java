@@ -23,7 +23,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -56,6 +55,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -118,7 +118,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private <T> CachedRuleSource doExtract(final Class<T> source) {
+    <T> CachedRuleSource doExtract(final Class<T> source) {
         final ModelType<T> type = ModelType.of(source);
         FormattingValidationProblemCollector problems = new FormattingValidationProblemCollector("rule source", type);
         DefaultMethodModelRuleExtractionContext context = new DefaultMethodModelRuleExtractionContext(this, problems);
@@ -434,7 +434,7 @@ public class ModelRuleExtractor {
             return target.getPath();
         }
 
-        private void mapInputs(List<ModelReference<?>> inputs, ModelPath targetPath) {
+        void mapInputs(List<ModelReference<?>> inputs, ModelPath targetPath) {
             for (int i = 0; i < inputs.size(); i++) {
                 ModelReference<?> input = inputs.get(i);
                 if (input.getPath() != null) {
@@ -445,7 +445,7 @@ public class ModelRuleExtractor {
             }
         }
 
-        private ModelReference<?> mapSubject(ModelReference<?> subject, ModelPath targetPath) {
+        ModelReference<?> mapSubject(ModelReference<?> subject, ModelPath targetPath) {
             if (subject.getPath() == null) {
                 return subject.inScope(targetPath);
             } else {

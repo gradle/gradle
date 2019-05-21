@@ -97,6 +97,9 @@ public class DefaultTypeConverter implements TypeConverter {
     }
 
     private static class StringConverter implements NotationConverter<Object, String> {
+        StringConverter() {
+        }
+
         @Override
         public void convert(Object notation, NotationConvertResult<? super String> result) throws TypeConversionException {
             if (notation instanceof CharSequence || notation instanceof Number || notation instanceof Boolean || notation instanceof Character || notation instanceof File) {

@@ -216,6 +216,9 @@ public class DynamicVersionResolver {
     private static class AttemptCollector implements Action<ResourceAwareResolveResult> {
         private final List<String> attempts = new ArrayList<String>();
 
+        AttemptCollector() {
+        }
+
         @Override
         public void execute(ResourceAwareResolveResult resourceAwareResolveResult) {
             attempts.addAll(resourceAwareResolveResult.getAttempted());
@@ -237,12 +240,12 @@ public class DynamicVersionResolver {
      */
     private static class RepositoryResolveState implements ComponentSelectionContext {
         private final VersionedComponentChooser versionedComponentChooser;
-        private final BuildableModuleComponentMetaDataResolveResult resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult();
+        final BuildableModuleComponentMetaDataResolveResult resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult();
         private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<String, CandidateResult>();
         private final Set<String> unmatchedVersions = Sets.newLinkedHashSet();
         private final Set<RejectedVersion> rejectedVersions = Sets.newLinkedHashSet();
         private final VersionListResult versionListingResult;
-        private final ModuleComponentRepository repository;
+        final ModuleComponentRepository repository;
         private final AttemptCollector attemptCollector;
         private final ModuleDependencyMetadata dependency;
         private final VersionSelector versionSelector;
@@ -385,7 +388,7 @@ public class DynamicVersionResolver {
             }
         }
 
-        private void registerAttempts(BuildableComponentIdResolveResult target) {
+        void registerAttempts(BuildableComponentIdResolveResult target) {
             versionListingResult.applyTo(target);
             attemptCollector.applyTo(target);
             target.unmatched(unmatchedVersions);
@@ -487,7 +490,7 @@ public class DynamicVersionResolver {
          *
          * @param target where to put metadata
          */
-        private void tryResolveMetadata(BuildableModuleComponentMetaDataResolveResult target) {
+        void tryResolveMetadata(BuildableModuleComponentMetaDataResolveResult target) {
             BuildableModuleComponentMetaDataResolveResult result = resolve();
             switch (result.getState()) {
                 case Resolved:
@@ -509,7 +512,7 @@ public class DynamicVersionResolver {
     }
 
     private static class VersionListResult {
-        private final DefaultBuildableModuleVersionListingResolveResult result = new DefaultBuildableModuleVersionListingResolveResult();
+        final DefaultBuildableModuleVersionListingResolveResult result = new DefaultBuildableModuleVersionListingResolveResult();
         private final ModuleComponentRepository repository;
         private final ModuleDependencyMetadata dependency;
 

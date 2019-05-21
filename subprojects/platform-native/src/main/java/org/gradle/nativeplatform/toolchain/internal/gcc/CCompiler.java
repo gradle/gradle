@@ -31,6 +31,9 @@ class CCompiler extends GccCompatibleNativeCompiler<CCompileSpec> {
     }
 
     private static class CCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {
+        CCompileArgsTransformer() {
+        }
+
         @Override
         protected String getLanguage() {
             return "c";

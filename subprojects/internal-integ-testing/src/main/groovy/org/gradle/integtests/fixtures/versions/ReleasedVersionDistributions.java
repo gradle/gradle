@@ -38,7 +38,7 @@ import static org.gradle.util.CollectionUtils.sort;
  */
 public class ReleasedVersionDistributions {
 
-    private final IntegrationTestBuildContext buildContext;
+    final IntegrationTestBuildContext buildContext;
 
     private final Factory<Properties> versionsFactory;
     private Properties properties;

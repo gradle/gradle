@@ -31,8 +31,8 @@ import java.io.File;
 @ThreadSafe
 public class OncePerBuildInvocationVcsVersionWorkingDirResolver implements VcsVersionWorkingDirResolver {
     private final ProducerGuard<String> perRepoGuard = ProducerGuard.adaptive();
-    private final VcsVersionSelectionCache inMemoryCache;
-    private final VcsVersionWorkingDirResolver delegate;
+    final VcsVersionSelectionCache inMemoryCache;
+    final VcsVersionWorkingDirResolver delegate;
 
     public OncePerBuildInvocationVcsVersionWorkingDirResolver(VcsVersionSelectionCache inMemoryCache, VcsVersionWorkingDirResolver delegate) {
         this.inMemoryCache = inMemoryCache;

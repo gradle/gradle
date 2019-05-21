@@ -56,6 +56,9 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     private static class RepositoryNamer implements Namer<ArtifactRepository> {
+        RepositoryNamer() {
+        }
+
         @Override
         public String determineName(ArtifactRepository r) {
             return r.getName();

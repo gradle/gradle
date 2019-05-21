@@ -116,7 +116,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {
-        private static final EmptyResults INSTANCE = new EmptyResults();
+        static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
         public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
@@ -133,6 +133,9 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {
+
+        EmptyResolvedConfiguration() {
+        }
 
         @Override
         public boolean hasError() {

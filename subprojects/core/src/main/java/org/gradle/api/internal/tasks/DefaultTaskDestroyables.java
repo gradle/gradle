@@ -26,7 +26,7 @@ import java.util.List;
 @NonNullApi
 public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     private final TaskMutator taskMutator;
-    private final List<Object> registeredPaths = Lists.newArrayList();
+    final List<Object> registeredPaths = Lists.newArrayList();
 
     public DefaultTaskDestroyables(TaskMutator taskMutator) {
         this.taskMutator = taskMutator;

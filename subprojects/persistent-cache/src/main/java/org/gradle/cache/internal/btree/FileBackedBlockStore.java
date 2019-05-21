@@ -25,12 +25,12 @@ import java.io.RandomAccessFile;
 
 public class FileBackedBlockStore implements BlockStore {
     private final File cacheFile;
-    private RandomAccessFile file;
-    private ByteOutput output;
-    private ByteInput input;
+    RandomAccessFile file;
+    ByteOutput output;
+    ByteInput input;
     private long nextBlock;
     private Factory factory;
-    private long currentFileSize;
+    long currentFileSize;
 
     public FileBackedBlockStore(File cacheFile) {
         this.cacheFile = cacheFile;
@@ -128,7 +128,7 @@ public class FileBackedBlockStore implements BlockStore {
         }
     }
 
-    private long alloc(long length) {
+    long alloc(long length) {
         long pos = nextBlock;
         nextBlock += length;
         return pos;
@@ -141,7 +141,7 @@ public class FileBackedBlockStore implements BlockStore {
         private BlockPointer pos;
         private int payloadSize;
 
-        private BlockImpl(BlockPayload payload, BlockPointer pos) {
+        BlockImpl(BlockPayload payload, BlockPointer pos) {
             this(payload);
             setPos(pos);
         }

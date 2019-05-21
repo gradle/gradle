@@ -34,8 +34,8 @@ import java.util.Set;
 
 class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleRequestWorkerProcessBuilder<PROTOCOL> {
     private final Class<PROTOCOL> protocolType;
-    private final Class<? extends PROTOCOL> workerImplementation;
-    private final DefaultWorkerProcessBuilder builder;
+    final Class<? extends PROTOCOL> workerImplementation;
+    final DefaultWorkerProcessBuilder builder;
 
     public DefaultSingleRequestWorkerProcessBuilder(Class<PROTOCOL> protocolType, Class<? extends PROTOCOL> workerImplementation, DefaultWorkerProcessBuilder builder) {
         this.protocolType = protocolType;

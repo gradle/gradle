@@ -64,8 +64,8 @@ public class UriTextResource implements TextResource {
             javaVendorVersion);
     }
 
-    private final File sourceFile;
-    private final URI sourceUri;
+    final File sourceFile;
+    final URI sourceUri;
     private final String description;
     private String displayName;
 
@@ -308,6 +308,9 @@ public class UriTextResource implements TextResource {
     }
 
     private class UriResourceLocation implements ResourceLocation {
+        UriResourceLocation() {
+        }
+
         @Override
         public String getDisplayName() {
             return UriTextResource.this.getDisplayName();

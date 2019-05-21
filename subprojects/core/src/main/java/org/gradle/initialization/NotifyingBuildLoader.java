@@ -32,10 +32,10 @@ import java.util.Set;
 
 public class NotifyingBuildLoader implements BuildLoader {
 
-    private static final NotifyProjectsLoadedBuildOperationType.Result PROJECTS_LOADED_OP_RESULT = new NotifyProjectsLoadedBuildOperationType.Result() {
+    static final NotifyProjectsLoadedBuildOperationType.Result PROJECTS_LOADED_OP_RESULT = new NotifyProjectsLoadedBuildOperationType.Result() {
     };
 
-    private final BuildLoader buildLoader;
+    final BuildLoader buildLoader;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public NotifyingBuildLoader(BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor) {
@@ -85,7 +85,7 @@ public class NotifyingBuildLoader implements BuildLoader {
         });
     }
 
-    private BuildStructureOperationResult createOperationResult(GradleInternal gradle, String buildPath) {
+    BuildStructureOperationResult createOperationResult(GradleInternal gradle, String buildPath) {
         LoadProjectsBuildOperationType.Result.Project rootProject = convert(gradle.getRootProject());
         return new BuildStructureOperationResult(rootProject, buildPath);
     }

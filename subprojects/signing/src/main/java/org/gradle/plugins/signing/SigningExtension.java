@@ -69,7 +69,7 @@ public class SigningExtension {
     /**
      * The project that the settings are for
      */
-    private final Project project;
+    final Project project;
 
     /**
      * The configuration that signature artifacts will be placed into.
@@ -395,7 +395,7 @@ public class SigningExtension {
         return result;
     }
 
-    private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
+    <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
         final Sign signTask = project.getTasks().create(determineSignTaskNameForPublication(publicationToSign), Sign.class, new Action<Sign>() {
             @Override
             public void execute(Sign task) {
@@ -427,7 +427,7 @@ public class SigningExtension {
         return signTask;
     }
 
-    private String determineSignTaskNameForPublication(Publication publication) {
+    String determineSignTaskNameForPublication(Publication publication) {
         return "sign" + capitalize((CharSequence) publication.getName()) + "Publication";
     }
 

@@ -86,6 +86,9 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = Maps.newHashMap();
         private Class<? extends Project> projectClazz;
 
+        CachingPropertyApplicator() {
+        }
+
         void configureProperty(Project project, String name, Object value) {
             Class<? extends Project> clazz = project.getClass();
             if (clazz != projectClazz) {

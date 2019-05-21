@@ -35,7 +35,7 @@ import java.util.Map;
 
 public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<NativeToolChain> implements NativeToolChainRegistryInternal {
     private final Map<String, Class<? extends NativeToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends NativeToolChain>>();
-    private final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
+    final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
 
     public DefaultNativeToolChainRegistry(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(NativeToolChain.class, instantiator, collectionCallbackActionDecorator);
@@ -101,7 +101,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         private final NativePlatform targetPlatform;
         private final Map<String, PlatformToolProvider> candidates;
 
-        private AbstractUnavailabilityToolChainSearchDescription(NativeLanguage sourceLanguage, NativePlatform targetPlatform, Map<String, PlatformToolProvider> candidates) {
+        AbstractUnavailabilityToolChainSearchDescription(NativeLanguage sourceLanguage, NativePlatform targetPlatform, Map<String, PlatformToolProvider> candidates) {
             this.sourceLanguage = sourceLanguage;
             this.targetPlatform = targetPlatform;
             this.candidates = candidates;

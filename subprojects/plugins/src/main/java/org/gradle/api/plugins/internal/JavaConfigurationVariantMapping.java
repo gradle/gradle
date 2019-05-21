@@ -47,7 +47,7 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
     }
 
     private static class ArtifactTypeSpec implements Spec<ConfigurationVariant> {
-        private static final ArtifactTypeSpec INSTANCE = new ArtifactTypeSpec();
+        static final ArtifactTypeSpec INSTANCE = new ArtifactTypeSpec();
 
         @Override
         public boolean isSatisfiedBy(ConfigurationVariant element) {

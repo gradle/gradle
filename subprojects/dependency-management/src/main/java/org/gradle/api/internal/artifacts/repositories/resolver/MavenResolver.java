@@ -219,6 +219,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
+        MavenLocalRepositoryAccess() {
+        }
+
         @Override
         protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
             if (!module.getVariants().isEmpty()) {
@@ -243,6 +246,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
+        MavenRemoteRepositoryAccess() {
+        }
+
         @Override
         protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
             if (module.isPomPackaging()) {

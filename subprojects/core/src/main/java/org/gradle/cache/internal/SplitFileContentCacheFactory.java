@@ -56,7 +56,7 @@ public class SplitFileContentCacheFactory implements FileContentCacheFactory, Cl
         private final FileContentCache<V> localCache;
         private final WellKnownFileLocations wellKnownFileLocations;
 
-        private SplitFileContentCache(FileContentCache<V> globalCache, FileContentCache<V> localCache, WellKnownFileLocations wellKnownFileLocations) {
+        SplitFileContentCache(FileContentCache<V> globalCache, FileContentCache<V> localCache, WellKnownFileLocations wellKnownFileLocations) {
             this.globalCache = globalCache;
             this.localCache = localCache;
             this.wellKnownFileLocations = wellKnownFileLocations;

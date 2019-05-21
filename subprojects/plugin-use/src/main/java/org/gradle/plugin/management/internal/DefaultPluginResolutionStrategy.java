@@ -26,7 +26,7 @@ import org.gradle.plugin.management.PluginResolveDetails;
 public class DefaultPluginResolutionStrategy implements PluginResolutionStrategyInternal {
 
     private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
-    private boolean locked;
+    boolean locked;
 
     public DefaultPluginResolutionStrategy(ListenerManager listenerManager) {
         listenerManager.addListener(new InternalBuildAdapter(){

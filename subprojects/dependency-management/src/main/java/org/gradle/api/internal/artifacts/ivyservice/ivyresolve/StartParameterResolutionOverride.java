@@ -81,6 +81,9 @@ public class StartParameterResolutionOverride {
     }
 
     private static class FailedRemoteAccess implements ModuleComponentRepositoryAccess {
+        FailedRemoteAccess() {
+        }
+
         @Override
         public String toString() {
             return "offline remote";
@@ -137,6 +140,9 @@ public class StartParameterResolutionOverride {
     }
 
     private static class OfflineExternalResourceConnector implements ExternalResourceConnector {
+        OfflineExternalResourceConnector() {
+        }
+
         @Nullable
         @Override
         public ExternalResourceReadResponse openResource(URI location, boolean revalidate) throws ResourceException {

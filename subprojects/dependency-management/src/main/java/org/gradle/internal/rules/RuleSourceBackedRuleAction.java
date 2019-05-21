@@ -105,6 +105,9 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
     }
 
     private static class MultiMap<K, V> extends HashMap<K, List<V>> {
+        MultiMap() {
+        }
+
         @Override
         public List<V> get(Object key) {
             if (!containsKey(key)) {

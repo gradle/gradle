@@ -52,10 +52,10 @@ import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
     private static final ModelType<BinarySpec> BINARY_SPEC = ModelType.of(BinarySpec.class);
-    private static final ModelType<NamedEntityInstantiator<Task>> TASK_FACTORY = new ModelType<NamedEntityInstantiator<Task>>() {
+    static final ModelType<NamedEntityInstantiator<Task>> TASK_FACTORY = new ModelType<NamedEntityInstantiator<Task>>() {
     };
     private static final ModelType<Task> TASK = ModelType.of(Task.class);
-    private static final ModelReference<BinaryContainer> BINARIES_CONTAINER = ModelReference.of("binaries", ModelType.of(BinaryContainer.class));
+    static final ModelReference<BinaryContainer> BINARIES_CONTAINER = ModelReference.of("binaries", ModelType.of(BinaryContainer.class));
 
     @Nullable
     @Override

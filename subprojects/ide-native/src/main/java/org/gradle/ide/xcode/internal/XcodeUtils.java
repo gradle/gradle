@@ -39,7 +39,7 @@ public class XcodeUtils {
         }), ' ');
     }
 
-    private static String quote(String value) {
+    static String quote(String value) {
         return "\"" + value + "\"";
     }
 }

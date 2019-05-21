@@ -44,7 +44,7 @@ class KeyHasher<K> {
     private static class MessageDigestStream extends OutputStream {
         MessageDigest messageDigest;
 
-        private MessageDigestStream() {
+        MessageDigestStream() {
             try {
                 messageDigest = MessageDigest.getInstance("MD5");
             } catch (NoSuchAlgorithmException e) {

@@ -37,10 +37,10 @@ import java.io.File;
 import java.io.IOException;
 
 public abstract class IdePlugin implements Plugin<Project> {
-    private static final Logger LOGGER = Logging.getLogger(IdePlugin.class);
+    static final Logger LOGGER = Logging.getLogger(IdePlugin.class);
 
-    private TaskProvider<Task> lifecycleTask;
-    private TaskProvider<Delete> cleanTask;
+    TaskProvider<Task> lifecycleTask;
+    TaskProvider<Delete> cleanTask;
     protected Project project;
 
     /**

@@ -73,8 +73,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final int EMPTY_FLAG = 1;
     private static final int HAS_METHODS_FLAG = 2;
 
-    private final ClassLoaderCache classLoaderCache;
-    private final Map<String, List<String>> simpleNameToFQN;
+    final ClassLoaderCache classLoaderCache;
+    final Map<String, List<String>> simpleNameToFQN;
 
     public DefaultScriptCompilationHandler(ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         this.classLoaderCache = classLoaderCache;
@@ -226,7 +226,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private static class PackageStatementDetector extends CompilationUnit.SourceUnitOperation {
-        private boolean hasPackageStatement;
+        boolean hasPackageStatement;
+
+        PackageStatementDetector() {
+        }
 
         @Override
         public void call(SourceUnit source) throws CompilationFailedException {
@@ -237,6 +240,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static class EmptyScriptDetector extends CompilationUnit.SourceUnitOperation {
         private boolean emptyScript;
         private boolean hasMethods;
+
+        EmptyScriptDetector() {
+        }
 
         @Override
         public void call(SourceUnit source) {
@@ -268,6 +274,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private static class NoOpGroovyResourceLoader implements GroovyResourceLoader {
+        NoOpGroovyResourceLoader() {
+        }
+
         @Override
         public URL loadGroovySource(String filename) throws MalformedURLException {
             return null;

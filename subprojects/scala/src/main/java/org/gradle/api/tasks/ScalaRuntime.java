@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
 public class ScalaRuntime {
     private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar");
 
-    private final Project project;
+    final Project project;
 
     public ScalaRuntime(Project project) {
         this.project = project;

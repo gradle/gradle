@@ -54,9 +54,9 @@ import java.util.Map;
 class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
-    private final String objectFileExtension;
+    final String objectFileExtension;
     private final VersionNumber swiftCompilerVersion;
-    private final SwiftDepsHandler swiftDepsHandler;
+    final SwiftDepsHandler swiftDepsHandler;
 
     SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, WorkerLeaseService workerLeaseService, VersionNumber swiftCompilerVersion) {
         super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false, workerLeaseService);
@@ -166,6 +166,9 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     }
 
     private static class SwiftCompileArgsTransformer implements ArgsTransformer<SwiftCompileSpec> {
+        SwiftCompileArgsTransformer() {
+        }
+
         @Override
         public List<String> transform(SwiftCompileSpec swiftCompileSpec) {
             return swiftCompileSpec.getArgs();
@@ -174,6 +177,9 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
     private static class OutputFileMap {
         private Map<String, Entry> entries = new HashMap<String, Entry>();
+
+        OutputFileMap() {
+        }
 
         public Builder root() {
             return newEntry("");
@@ -235,11 +241,14 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
         }
 
         private static class Entry {
-            private String dependencies;
-            private String object;
-            private String swiftmodule;
-            private String swiftDependencies;
-            private String diagnostics;
+            String dependencies;
+            String object;
+            String swiftmodule;
+            String swiftDependencies;
+            String diagnostics;
+
+            Entry() {
+            }
         }
     }
 }

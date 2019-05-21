@@ -166,7 +166,7 @@ public class NativeComponents {
         }
     }
 
-    private static List<Task> getDependentTaskDependencies(String dependedOnBinaryTaskName, BinarySpecInternal binary, DependentBinariesResolver dependentsResolver, ProjectModelResolver projectModelResolver) {
+    static List<Task> getDependentTaskDependencies(String dependedOnBinaryTaskName, BinarySpecInternal binary, DependentBinariesResolver dependentsResolver, ProjectModelResolver projectModelResolver) {
         List<Task> dependencies = Lists.newArrayList();
         DependentBinariesResolvedResult result = dependentsResolver.resolve(binary).getRoot();
         for (DependentBinariesResolvedResult dependent : result.getChildren()) {

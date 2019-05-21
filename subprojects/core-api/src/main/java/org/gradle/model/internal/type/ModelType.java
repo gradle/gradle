@@ -18,10 +18,10 @@ package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -47,9 +47,9 @@ public abstract class ModelType<T> {
 
     public static final ModelType<Object> UNTYPED = ModelType.of(Object.class);
 
-    private final TypeWrapper wrapper;
+    final TypeWrapper wrapper;
 
-    private ModelType(TypeWrapper wrapper) {
+    ModelType(TypeWrapper wrapper) {
         this.wrapper = wrapper;
     }
 
@@ -293,7 +293,7 @@ public abstract class ModelType<T> {
 
     @SuppressWarnings("UnusedDeclaration")
     public abstract static class Parameter<T> {
-        private final TypeVariable<?> typeVariable;
+        final TypeVariable<?> typeVariable;
 
         public Parameter() {
             Type type = new TypeToken<T>(getClass()) {
@@ -309,7 +309,7 @@ public abstract class ModelType<T> {
     private static final TypeWrapper[] EMPTY_TYPE_WRAPPER_ARRAY = new TypeWrapper[0];
 
     @Nullable
-    private static TypeWrapper wrap(Type type) {
+    static TypeWrapper wrap(Type type) {
         if (type == null) {
             return null;
         } else if (type instanceof Class) {

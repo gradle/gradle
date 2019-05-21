@@ -29,8 +29,8 @@ import org.gradle.util.CollectionUtils;
 import java.util.Arrays;
 
 public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperation<DefaultPhasedBuildActionExecuter> implements BuildActionExecuter<Void> {
-    private final PhasedBuildAction phasedBuildAction;
-    private final AsyncConsumerActionExecutor connection;
+    final PhasedBuildAction phasedBuildAction;
+    final AsyncConsumerActionExecutor connection;
 
     DefaultPhasedBuildActionExecuter(PhasedBuildAction phasedBuildAction, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);

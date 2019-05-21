@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.ErroringAction;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.reporting.CodePanelRenderer;
 import org.gradle.util.GUtil;
@@ -31,7 +31,7 @@ import java.util.List;
 
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
-    private final TestResultsProvider resultsProvider;
+    final TestResultsProvider resultsProvider;
 
     public ClassPageRenderer(TestResultsProvider provider) {
         this.resultsProvider = provider;
@@ -47,7 +47,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
         .endElement();
     }
 
-    private void renderTests(SimpleHtmlWriter htmlWriter) throws IOException {
+    void renderTests(SimpleHtmlWriter htmlWriter) throws IOException {
         SimpleMarkupWriter writer = htmlWriter.startElement("table");
         renderTableHead(writer, determineTableHeaders());
 

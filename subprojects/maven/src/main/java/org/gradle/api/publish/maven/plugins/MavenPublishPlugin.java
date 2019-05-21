@@ -77,16 +77,16 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
-    private final InstantiatorFactory instantiatorFactory;
-    private final ObjectFactory objectFactory;
-    private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final FileResolver fileResolver;
-    private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final FeaturePreviews featurePreviews;
-    private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final ProviderFactory providerFactory;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+    final InstantiatorFactory instantiatorFactory;
+    final ObjectFactory objectFactory;
+    final DependencyMetaDataProvider dependencyMetaDataProvider;
+    final FileResolver fileResolver;
+    final ProjectDependencyPublicationResolver projectDependencyResolver;
+    final FileCollectionFactory fileCollectionFactory;
+    final FeaturePreviews featurePreviews;
+    final ImmutableAttributesFactory immutableAttributesFactory;
+    final ProviderFactory providerFactory;
+    CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
     public MavenPublishPlugin(InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
@@ -129,7 +129,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private void realizePublishingTasksLater(final Project project, final PublishingExtension extension) {
+    void realizePublishingTasksLater(final Project project, final PublishingExtension extension) {
         final NamedDomainObjectSet<MavenPublicationInternal> mavenPublications = extension.getPublications().withType(MavenPublicationInternal.class);
         final TaskContainer tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
@@ -151,11 +151,11 @@ public class MavenPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private String publishAllToSingleRepoTaskName(MavenArtifactRepository repository) {
+    String publishAllToSingleRepoTaskName(MavenArtifactRepository repository) {
         return "publishAllPublicationsTo" + capitalize(repository.getName()) + "Repository";
     }
 
-    private void createPublishTasksForEachMavenRepo(final TaskContainer tasks, final TaskProvider<Task> publishLifecycleTask, final MavenPublicationInternal publication, final NamedDomainObjectList<MavenArtifactRepository> repositories) {
+    void createPublishTasksForEachMavenRepo(final TaskContainer tasks, final TaskProvider<Task> publishLifecycleTask, final MavenPublicationInternal publication, final NamedDomainObjectList<MavenArtifactRepository> repositories) {
         final String publicationName = publication.getName();
         repositories.all(repository -> {
             final String repositoryName = repository.getName();
@@ -171,7 +171,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {
+    void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {
         final String publicationName = publication.getName();
         final String installTaskName = "publish" + capitalize(publicationName) + "PublicationToMavenLocal";
 
@@ -183,7 +183,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         publishLocalLifecycleTask.configure(task -> task.dependsOn(installTaskName));
     }
 
-    private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir, final Project project) {
+    void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir, final Project project) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generatePomFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateMavenPom> generatorTask = tasks.register(descriptorTaskName, GenerateMavenPom.class, generatePomTask -> {
@@ -204,7 +204,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         publication.setPomGenerator(generatorTask);
     }
 
-    private void createGenerateMetadataTask(final TaskContainer tasks, final MavenPublicationInternal publication, final Set<? extends MavenPublicationInternal> publications, final DirectoryProperty buildDir) {
+    void createGenerateMetadataTask(final TaskContainer tasks, final MavenPublicationInternal publication, final Set<? extends MavenPublicationInternal> publications, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, generateTask -> {
@@ -227,14 +227,14 @@ public class MavenPublishPlugin implements Plugin<Project> {
         private final ExtensionContainer extensionContainer;
         private final AttributesSchemaInternal attributesSchema;
 
-        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider,
-                                        Instantiator instantiator,
-                                        FileResolver fileResolver,
-                                        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                        ConfigurationContainer configurations,
-                                        PluginManager plugins,
-                                        ExtensionContainer extensionContainer,
-                                        AttributesSchemaInternal attributesSchema) {
+        MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider,
+                                Instantiator instantiator,
+                                FileResolver fileResolver,
+                                CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+                                ConfigurationContainer configurations,
+                                PluginManager plugins,
+                                ExtensionContainer extensionContainer,
+                                AttributesSchemaInternal attributesSchema) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.fileResolver = fileResolver;

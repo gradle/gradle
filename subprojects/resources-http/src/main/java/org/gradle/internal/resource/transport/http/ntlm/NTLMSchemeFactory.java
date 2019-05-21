@@ -15,8 +15,11 @@
  */
 package org.gradle.internal.resource.transport.http.ntlm;
 
-import java.io.IOException;
-
+import jcifs.ntlmssp.NtlmFlags;
+import jcifs.ntlmssp.Type1Message;
+import jcifs.ntlmssp.Type2Message;
+import jcifs.ntlmssp.Type3Message;
+import jcifs.util.Base64;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.impl.auth.NTLMEngine;
@@ -24,11 +27,7 @@ import org.apache.http.impl.auth.NTLMEngineException;
 import org.apache.http.impl.auth.NTLMScheme;
 import org.apache.http.protocol.HttpContext;
 
-import jcifs.ntlmssp.NtlmFlags;
-import jcifs.ntlmssp.Type1Message;
-import jcifs.ntlmssp.Type2Message;
-import jcifs.ntlmssp.Type3Message;
-import jcifs.util.Base64;
+import java.io.IOException;
 
 // Copied from http://hc.apache.org/httpcomponents-client-ga/ntlm.html
 public class NTLMSchemeFactory implements AuthSchemeProvider {
@@ -46,6 +45,9 @@ public class NTLMSchemeFactory implements AuthSchemeProvider {
                 NtlmFlags.NTLMSSP_NEGOTIATE_NTLM2 |
                 NtlmFlags.NTLMSSP_NEGOTIATE_ALWAYS_SIGN |
                 NtlmFlags.NTLMSSP_REQUEST_TARGET;
+
+        JCIFSEngine() {
+        }
 
         @Override
         public String generateType1Msg(final String domain, final String workstation) throws NTLMEngineException {

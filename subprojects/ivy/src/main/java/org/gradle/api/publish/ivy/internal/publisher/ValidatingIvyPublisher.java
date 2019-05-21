@@ -154,7 +154,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     }
 
     private static class IvyFieldValidator extends PublicationFieldValidator<IvyFieldValidator> {
-        private IvyFieldValidator(String publicationName, String name, String value) {
+        IvyFieldValidator(String publicationName, String name, String value) {
             super(IvyFieldValidator.class, publicationName, name, value);
         }
 

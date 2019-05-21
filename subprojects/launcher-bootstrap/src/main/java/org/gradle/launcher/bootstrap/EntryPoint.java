@@ -15,9 +15,9 @@
  */
 package org.gradle.launcher.bootstrap;
 
-import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.api.Action;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.text.StreamingStyledTextOutputFactory;
 
@@ -69,6 +69,9 @@ public abstract class EntryPoint {
 
     private static class RecordingExecutionListener implements ExecutionListener {
         private Throwable failure;
+
+        RecordingExecutionListener() {
+        }
 
         @Override
         public void onFailure(Throwable failure) {

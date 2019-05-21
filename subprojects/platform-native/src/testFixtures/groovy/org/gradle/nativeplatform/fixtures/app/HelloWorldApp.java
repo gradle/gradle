@@ -114,6 +114,9 @@ public abstract class HelloWorldApp extends TestApp {
     }
 
     private static class SingleQuotingTransformer implements Transformer<Object, String> {
+        SingleQuotingTransformer() {
+        }
+
         @Override
         public Object transform(String original) {
             return "'" + original + "'";

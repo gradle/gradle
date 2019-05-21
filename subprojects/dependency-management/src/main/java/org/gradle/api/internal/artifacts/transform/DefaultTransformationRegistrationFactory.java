@@ -172,7 +172,10 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     }
 
     private static class NormalizerCollectingVisitor extends PropertyVisitor.Adapter {
-        private Class<? extends FileNormalizer> normalizer;
+        Class<? extends FileNormalizer> normalizer;
+
+        NormalizerCollectingVisitor() {
+        }
 
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {

@@ -64,13 +64,13 @@ public class MultithreadedTestRule extends ExternalResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(MultithreadedTestRule.class);
     private static final int MAX_WAIT_TIME = 5000;
     private ExecutorImpl executor;
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
-    private final Set<Thread> active = new HashSet<Thread>();
-    private final Set<Thread> synching = new HashSet<Thread>();
+    final Lock lock = new ReentrantLock();
+    final Condition condition = lock.newCondition();
+    final Set<Thread> active = new HashSet<Thread>();
+    final Set<Thread> synching = new HashSet<Thread>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private final Map<Integer, ClockTickImpl> ticks = new HashMap<Integer, ClockTickImpl>();
-    private ClockTickImpl currentTick = getTick(0);
+    ClockTickImpl currentTick = getTick(0);
     private boolean stopped;
     private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure
             = new ThreadLocal<Matcher<? extends Throwable>>();
@@ -190,7 +190,7 @@ public class MultithreadedTestRule extends ExternalResource {
         }
     }
 
-    private void testThreadFinished(Thread thread, Throwable failure) {
+    void testThreadFinished(Thread thread, Throwable failure) {
         lock.lock();
         try {
             active.remove(thread);
@@ -287,7 +287,7 @@ public class MultithreadedTestRule extends ExternalResource {
         }
     }
 
-    private ClockTickImpl getTick(int tick) {
+    ClockTickImpl getTick(int tick) {
         ClockTickImpl clockTick = ticks.get(tick);
         if (clockTick == null) {
             clockTick = new ClockTickImpl(tick);
@@ -445,6 +445,9 @@ public class MultithreadedTestRule extends ExternalResource {
     private class ExecutorImpl extends AbstractExecutorService {
         private final Set<ThreadHandle> threads = new CopyOnWriteArraySet<ThreadHandle>();
 
+        ExecutorImpl() {
+        }
+
         @Override
         public void execute(Runnable command) {
             threads.add(start(command));
@@ -499,7 +502,7 @@ public class MultithreadedTestRule extends ExternalResource {
         private final int number;
         private int participants;
 
-        private ClockTickImpl(int number) {
+        ClockTickImpl(int number) {
             this.number = number;
         }
 
@@ -535,6 +538,9 @@ public class MultithreadedTestRule extends ExternalResource {
         private final Condition condition = lock.newCondition();
         private State state = State.Idle;
         private ThreadHandle blockingThread;
+
+        SyncPoint() {
+        }
 
         public void expectBlocks(Closure action) {
             try {

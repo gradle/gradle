@@ -40,7 +40,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.IMMEDIATE_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
 
 /**
  * A long-lived build server that accepts commands via a communication channel.
@@ -50,22 +52,22 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*;
  * See {@link org.gradle.launcher.daemon.client.DaemonClient} for a description of the daemon communication protocol.
  */
 public class Daemon implements Stoppable {
-    private static final Logger LOGGER = Logging.getLogger(Daemon.class);
+    static final Logger LOGGER = Logging.getLogger(Daemon.class);
 
     private final DaemonServerConnector connector;
-    private final DaemonRegistry daemonRegistry;
+    final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
     private final ScheduledExecutorService scheduledExecutorService;
     private final ExecutorFactory executorFactory;
     private final ListenerManager listenerManager;
 
-    private DaemonStateCoordinator stateCoordinator;
+    DaemonStateCoordinator stateCoordinator;
 
     private final Lock lifecycleLock = new ReentrantLock();
 
-    private Address connectorAddress;
-    private DaemonRegistryUpdater registryUpdater;
+    Address connectorAddress;
+    DaemonRegistryUpdater registryUpdater;
     private DefaultIncomingConnectionHandler connectionHandler;
 
     /**

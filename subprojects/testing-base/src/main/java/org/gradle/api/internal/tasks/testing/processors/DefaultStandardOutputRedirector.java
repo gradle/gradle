@@ -76,13 +76,19 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
     }
 
     private static class DiscardAction implements StandardOutputListener {
+        DiscardAction() {
+        }
+
         @Override
         public void onOutput(CharSequence output) {
         }
     }
 
     private static class WriteAction implements TextStream {
-        private StandardOutputListener destination;
+        StandardOutputListener destination;
+
+        WriteAction() {
+        }
 
         @Override
         public void text(String message) {

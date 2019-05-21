@@ -28,10 +28,10 @@ import java.util.List;
 
 public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serializable, GradleBuildIdentity {
 
-    private final File gradleUserHome;
-    private final String gradleVersion;
-    private final File javaHome;
-    private final List<String> jvmArguments;
+    final File gradleUserHome;
+    final String gradleVersion;
+    final File javaHome;
+    final List<String> jvmArguments;
     private DefaultBuildIdentifier buildIdentifier;
 
     public DefaultBuildEnvironment(DefaultBuildIdentifier buildIdentifier, File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments) {

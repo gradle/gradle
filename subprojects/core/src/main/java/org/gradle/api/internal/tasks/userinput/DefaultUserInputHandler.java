@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultUserInputHandler implements UserInputHandler {
-    private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
+    static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
     private final OutputEventListener outputEventBroadcaster;
     private final Clock clock;
     private final UserInputReader userInputReader;
@@ -165,7 +165,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
         }
     }
 
-    private void sendPrompt(String prompt) {
+    void sendPrompt(String prompt) {
         outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt));
     }
 
@@ -174,6 +174,9 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     private class BooleanParser implements Transformer<Boolean, String> {
+        BooleanParser() {
+        }
+
         @Override
         public Boolean transform(String value) {
             if (YES_NO_CHOICES.contains(value)) {

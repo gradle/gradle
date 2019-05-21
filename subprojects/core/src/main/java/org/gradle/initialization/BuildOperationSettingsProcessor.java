@@ -31,10 +31,10 @@ import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Detai
 import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Result;
 
 public class BuildOperationSettingsProcessor implements SettingsProcessor {
-    private static final Result RESULT = new Result() {
+    static final Result RESULT = new Result() {
     };
 
-    private final SettingsProcessor settingsProcessor;
+    final SettingsProcessor settingsProcessor;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public BuildOperationSettingsProcessor(SettingsProcessor settingsProcessor, BuildOperationExecutor buildOperationExecutor) {

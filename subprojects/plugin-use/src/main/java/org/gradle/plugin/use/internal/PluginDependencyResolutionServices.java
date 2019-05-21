@@ -115,7 +115,7 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         private final ArtifactRepositoryInternal delegate;
         private final ResolutionAwareRepository resolutionAwareDelegate;
 
-        private PluginArtifactRepository(ArtifactRepository delegate) {
+        PluginArtifactRepository(ArtifactRepository delegate) {
             this.delegate = (ArtifactRepositoryInternal) delegate;
             this.resolutionAwareDelegate = (ResolutionAwareRepository) delegate;
         }

@@ -19,8 +19,8 @@ package org.gradle.process.internal.health.memory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,23 +30,23 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultMemoryManager implements MemoryManager, Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MemoryManager.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(MemoryManager.class);
     public static final int STATUS_INTERVAL_SECONDS = 5;
     private static final double DEFAULT_MIN_FREE_MEMORY_PERCENTAGE = 0.1D; // 10%
     private static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024; // 384M
 
     private final double minFreeMemoryPercentage;
-    private final OsMemoryInfo osMemoryInfo;
-    private final JvmMemoryInfo jvmMemoryInfo;
+    final OsMemoryInfo osMemoryInfo;
+    final JvmMemoryInfo jvmMemoryInfo;
     private final ListenerManager listenerManager;
     private final ManagedScheduledExecutor scheduler;
-    private final JvmMemoryStatusListener jvmBroadcast;
-    private final OsMemoryStatusListener osBroadcast;
-    private final boolean osMemoryStatusSupported;
+    final JvmMemoryStatusListener jvmBroadcast;
+    final OsMemoryStatusListener osBroadcast;
+    final boolean osMemoryStatusSupported;
     private final Object holdersLock = new Object();
     private final Object memoryLock = new Object();
     private final List<MemoryHolder> holders = new ArrayList<MemoryHolder>();
-    private OsMemoryStatus currentOsMemoryStatus;
+    OsMemoryStatus currentOsMemoryStatus;
     private final OsMemoryStatusListener osMemoryStatusListener;
 
     public DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
@@ -139,6 +139,9 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     }
 
     private class MemoryCheck implements Runnable {
+        MemoryCheck() {
+        }
+
         @Override
         public void run() {
             try {
@@ -159,7 +162,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private class OsMemoryListener implements OsMemoryStatusListener {
         private final boolean autoFree;
 
-        private OsMemoryListener(boolean autoFree) {
+        OsMemoryListener(boolean autoFree) {
             this.autoFree = autoFree;
         }
 

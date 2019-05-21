@@ -31,8 +31,8 @@ import java.util.Collections;
 
 public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator, WithMutationGuard {
 
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final MutationGuard mutationGuard = new DefaultMutationGuard();
+    final BuildOperationExecutor buildOperationExecutor;
+    final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public BuildOperationCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -69,7 +69,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         });
     }
 
-    private void runProjectConfigureAction(final Project project, final Action<? super Project> configureAction) {
+    void runProjectConfigureAction(final Project project, final Action<? super Project> configureAction) {
         ((ProjectInternal)project).getMutationState().withMutableState(new Runnable() {
             @Override
             public void run() {
@@ -94,14 +94,14 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         private final static String SUBPROJECTS = "subprojects";
         private final static String ROOTPROJECT = "rootProject";
 
-        private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(ALLPROJECTS);
-        private final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(SUBPROJECTS);
-        private final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails(ROOTPROJECT);
+        final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(ALLPROJECTS);
+        final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(SUBPROJECTS);
+        final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails(ROOTPROJECT);
 
         private final BuildOperationDescriptor.Builder details;
         private final Iterable<Project> projects;
 
-        private BlockConfigureBuildOperation(BuildOperationDescriptor.Builder details, Iterable<Project> projects) {
+        BlockConfigureBuildOperation(BuildOperationDescriptor.Builder details, Iterable<Project> projects) {
             this.details = details;
             this.projects = projects;
         }
@@ -128,7 +128,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
     private static abstract class CrossConfigureProjectBuildOperation implements RunnableBuildOperation {
         private Project project;
 
-        private CrossConfigureProjectBuildOperation(Project project) {
+        CrossConfigureProjectBuildOperation(Project project) {
             this.project = project;
         }
 

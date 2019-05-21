@@ -115,7 +115,7 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
         scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).forEach(flakinessAnalyzer::report);
     }
 
-    private static boolean isFlaky(ScenarioBuildResultData scenario) {
+    static boolean isFlaky(ScenarioBuildResultData scenario) {
         return scenario.getExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
     }
 }

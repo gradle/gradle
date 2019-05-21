@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Also decorates each cache so that updates to the backing cache are made asynchronously.
  */
 public class InMemoryCacheDecoratorFactory {
-    private final static Logger LOG = LoggerFactory.getLogger(InMemoryCacheDecoratorFactory.class);
+    final static Logger LOG = LoggerFactory.getLogger(InMemoryCacheDecoratorFactory.class);
     private final boolean longLivingProcess;
     private final HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
     private final CrossBuildInMemoryCache<String, CacheDetails> caches;
@@ -50,7 +50,7 @@ public class InMemoryCacheDecoratorFactory {
         return new InMemoryCacheDecorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
     }
 
-    private <K, V> MultiProcessSafeAsyncPersistentIndexedCache<K, V> applyInMemoryCaching(String cacheId, MultiProcessSafeAsyncPersistentIndexedCache<K, V> backingCache, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
+    <K, V> MultiProcessSafeAsyncPersistentIndexedCache<K, V> applyInMemoryCaching(String cacheId, MultiProcessSafeAsyncPersistentIndexedCache<K, V> backingCache, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
         if (!longLivingProcess && !cacheInMemoryForShortLivedProcesses) {
             // Short lived process, don't cache in memory
             LOG.debug("Creating cache {} without in-memory store.", cacheId);
@@ -77,7 +77,7 @@ public class InMemoryCacheDecoratorFactory {
         return cacheDetails;
     }
 
-    private Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
+    Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
         LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
         final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
         Cache<Object, Object> inMemoryCache = cacheBuilder.build();
@@ -121,9 +121,9 @@ public class InMemoryCacheDecoratorFactory {
 
     private static class CacheDetails {
         private final String cacheId;
-        private final int maxEntries;
-        private final Cache<Object, Object> entries;
-        private final AtomicReference<FileLock.State> lockState;
+        final int maxEntries;
+        final Cache<Object, Object> entries;
+        final AtomicReference<FileLock.State> lockState;
 
         CacheDetails(String cacheId, int maxEntries, Cache<Object, Object> entries, AtomicReference<FileLock.State> lockState) {
             this.cacheId = cacheId;

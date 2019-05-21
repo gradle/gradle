@@ -35,6 +35,9 @@ public class ProfileReportRenderer {
     private static class ProfilePageRenderer extends TabbedPageRenderer<BuildProfile> {
         private static final URL STYLE_URL = ProfilePageRenderer.class.getResource("style.css");
 
+        ProfilePageRenderer() {
+        }
+
         @Override
         protected String getTitle() {
             return "Profile report";

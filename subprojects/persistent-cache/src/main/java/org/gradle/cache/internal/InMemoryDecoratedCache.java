@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final static Logger LOG = LoggerFactory.getLogger(InMemoryDecoratedCache.class);
-    private final static Object NULL = new Object();
-    private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate;
+    final static Object NULL = new Object();
+    final MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate;
     private final Cache<Object, Object> inMemoryCache;
     private final String cacheId;
     private final AtomicReference<FileLock.State> fileLockStateReference;

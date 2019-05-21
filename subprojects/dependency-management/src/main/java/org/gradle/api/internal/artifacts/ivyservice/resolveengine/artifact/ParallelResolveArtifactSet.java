@@ -41,13 +41,16 @@ public abstract class ParallelResolveArtifactSet {
     }
 
     private static class EmptySet extends ParallelResolveArtifactSet {
+        EmptySet() {
+        }
+
         @Override
         public void visit(ArtifactVisitor visitor) {
         }
     }
 
     private static class VisitingSet extends ParallelResolveArtifactSet {
-        private final ResolvedArtifactSet artifacts;
+        final ResolvedArtifactSet artifacts;
         private final BuildOperationExecutor buildOperationProcessor;
 
         VisitingSet(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {

@@ -270,6 +270,9 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     private class Intel32Architecture implements TargetPlatformConfiguration {
 
+        Intel32Architecture() {
+        }
+
         @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent() && targetPlatform.getArchitecture().isI386();
@@ -295,6 +298,9 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     private class Intel64Architecture implements TargetPlatformConfiguration {
+        Intel64Architecture() {
+        }
+
         @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()

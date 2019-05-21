@@ -72,7 +72,7 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
 
     private class OutputEventTextOutputImpl extends AbstractLineChoppingStyledTextOutput {
         private final StyledTextOutput textOutput;
-        private boolean atEndOfLine = true;
+        boolean atEndOfLine = true;
 
         public OutputEventTextOutputImpl(StyledTextOutput textOutput) {
             this.textOutput = textOutput;

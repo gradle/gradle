@@ -58,6 +58,9 @@ public class AssemblerLangPlugin implements Plugin<Project> {
     }
 
     private static class Assembler extends NativeLanguageTransform<AssemblerSourceSet> {
+        Assembler() {
+        }
+
         @Override
         public Class<AssemblerSourceSet> getSourceSetType() {
             return AssemblerSourceSet.class;

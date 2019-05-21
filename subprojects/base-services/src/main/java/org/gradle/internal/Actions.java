@@ -52,6 +52,9 @@ public abstract class Actions {
     }
 
     private static class NullAction<T> implements Action<T>, Serializable {
+        NullAction() {
+        }
+
         @Override
         public void execute(T t) {
         }
@@ -106,7 +109,7 @@ public abstract class Actions {
     private static class CompositeAction<T> implements Action<T> {
         private final List<? extends Action<? super T>> actions;
 
-        private CompositeAction(List<? extends Action<? super T>> actions) {
+        CompositeAction(List<? extends Action<? super T>> actions) {
             this.actions = actions;
         }
 
@@ -158,7 +161,7 @@ public abstract class Actions {
         private final Transformer<? extends T, ? super I> transformer;
         private final Action<? super T> action;
 
-        private TransformingActionAdapter(Transformer<? extends T, ? super I> transformer, Action<? super T> action) {
+        TransformingActionAdapter(Transformer<? extends T, ? super I> transformer, Action<? super T> action) {
             this.transformer = transformer;
             this.action = action;
         }
@@ -203,7 +206,7 @@ public abstract class Actions {
     private static class RunnableActionAdapter<T> implements Action<T> {
         private final Runnable runnable;
 
-        private RunnableActionAdapter(Runnable runnable) {
+        RunnableActionAdapter(Runnable runnable) {
             this.runnable = runnable;
         }
 

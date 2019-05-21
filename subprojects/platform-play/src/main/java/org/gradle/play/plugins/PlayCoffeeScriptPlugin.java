@@ -118,6 +118,9 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     }
 
     private static class CoffeeScript implements LanguageTransform<CoffeeScriptSourceSet, JavaScriptSourceCode> {
+        CoffeeScript() {
+        }
+
         @Override
         public String getLanguageName() {
             return "coffeeScript";

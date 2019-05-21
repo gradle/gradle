@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  */
 public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
     private final CrossProcessCacheAccess cacheAccess;
-    private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> target;
+    final MultiProcessSafeAsyncPersistentIndexedCache<K, V> target;
 
     public CrossProcessSynchronizingCache(MultiProcessSafeAsyncPersistentIndexedCache<K, V> target, CrossProcessCacheAccess cacheAccess) {
         this.target = target;

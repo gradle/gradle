@@ -103,7 +103,7 @@ public class PlayTestPlugin extends RuleSource {
         return ImmutableFileCollection.of(binary.getJarFile()).plus(configurations.getPlayTest().getAllArtifacts());
     }
 
-    private FileCollection getRuntimeClasspath(File testClassesDir, FileCollection testCompileClasspath) {
+    FileCollection getRuntimeClasspath(File testClassesDir, FileCollection testCompileClasspath) {
         return ImmutableFileCollection.of(testClassesDir).plus(testCompileClasspath);
     }
 

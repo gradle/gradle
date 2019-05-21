@@ -36,7 +36,7 @@ import java.util.Set;
 public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements PublishArtifactSet {
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
     private final FileCollection files;
-    private final Describable displayName;
+    final Describable displayName;
 
     public DefaultPublishArtifactSet(String displayName, DomainObjectSet<PublishArtifact> backingSet, FileCollectionFactory fileCollectionFactory) {
         this(Describables.of(displayName), backingSet, fileCollectionFactory);
@@ -64,6 +64,9 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
     }
 
     private class ArtifactsFileCollection implements MinimalFileSet {
+        ArtifactsFileCollection() {
+        }
+
         @Override
         public String getDisplayName() {
             return displayName.getDisplayName();
@@ -80,6 +83,9 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
     }
 
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
+        ArtifactsTaskDependency() {
+        }
+
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             for (PublishArtifact publishArtifact : DefaultPublishArtifactSet.this) {

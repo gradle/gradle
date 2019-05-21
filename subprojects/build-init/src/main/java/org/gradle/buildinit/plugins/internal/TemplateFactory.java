@@ -26,10 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TemplateFactory {
-    private final FileResolver fileResolver;
+    final FileResolver fileResolver;
     private final TemplateOperationFactory templateOperationFactory;
     private final InitSettings initSettings;
-    private final Language language;
+    final Language language;
 
     public TemplateFactory(InitSettings initSettings, Language language, FileResolver fileResolver, TemplateOperationFactory templateOperationFactory) {
         this.initSettings = initSettings;

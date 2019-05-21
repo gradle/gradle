@@ -147,7 +147,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
         private final Serializer<IncludeType> enumSerializer;
         private final Serializer<Expression> expressionSerializer;
 
-        private IncludeSerializer(Serializer<IncludeType> enumSerializer, Serializer<Expression> expressionSerializer) {
+        IncludeSerializer(Serializer<IncludeType> enumSerializer, Serializer<Expression> expressionSerializer) {
             this.enumSerializer = enumSerializer;
             this.expressionSerializer = expressionSerializer;
         }

@@ -150,14 +150,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean showStacktrace = true;
     private boolean renderWelcomeMessage;
 
-    private int expectedDeprecationWarnings;
+    int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
-    private boolean stackTraceChecksOn = true;
+    boolean stackTraceChecksOn = true;
 
     private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<GradleExecuter>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
 
-    private final TestDirectoryProvider testDirectoryProvider;
+    final TestDirectoryProvider testDirectoryProvider;
     protected final GradleVersion gradleVersion;
     private final GradleDistribution distribution;
 
@@ -170,7 +170,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean noExplicitTmpDir;
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace = true;
-    private boolean checkDeprecations = true;
+    boolean checkDeprecations = true;
 
     private TestFile tmpDir;
     private DurationMeasurement durationMeasurement;

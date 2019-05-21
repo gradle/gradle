@@ -92,7 +92,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 public class DependencyInsightReportTask extends DefaultTask {
 
     private Configuration configuration;
-    private Spec<DependencyResult> dependencySpec;
+    Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
 
     /**
@@ -271,7 +271,7 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
 
-    private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainer requestedAttributes) {
+    static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainer requestedAttributes) {
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
             if (requested.getName().equals(actualAttribute.getName())) {
@@ -294,11 +294,11 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     private static class AttributeMatchDetails {
-        private final MatchType matchType;
-        private final Attribute<?> requested;
-        private final Object requestedValue;
+        final MatchType matchType;
+        final Attribute<?> requested;
+        final Object requestedValue;
 
-        private AttributeMatchDetails(MatchType matchType, Attribute<?> requested, Object requestedValue) {
+        AttributeMatchDetails(MatchType matchType, Attribute<?> requested, Object requestedValue) {
             this.matchType = matchType;
             this.requested = requested;
             this.requestedValue = requestedValue;

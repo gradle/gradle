@@ -27,7 +27,8 @@ import java.util.List;
 public class CustomProjectsLoadedAction implements BuildAction<String>, Serializable {
     // Task graph is not calculated yet. Plugins can add tasks to it.
 
-    @Nullable private final List<String> tasks;
+    @Nullable
+    final List<String> tasks;
 
     public CustomProjectsLoadedAction(@Nullable List<String> tasks) {
         this.tasks = tasks;

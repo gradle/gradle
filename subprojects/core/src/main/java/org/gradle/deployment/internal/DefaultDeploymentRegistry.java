@@ -44,12 +44,12 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
 
     private final Lock lock = new ReentrantLock();
-    private final Map<String, RegisteredDeployment> deployments = Maps.newHashMap();
+    final Map<String, RegisteredDeployment> deployments = Maps.newHashMap();
     private final PendingChangesManager pendingChangesManager;
-    private final PendingChanges pendingChanges;
+    final PendingChanges pendingChanges;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ObjectFactory objectFactory;
-    private final ContinuousExecutionGate continuousExecutionGate = new DefaultContinuousExecutionGate();
+    final ObjectFactory objectFactory;
+    final ContinuousExecutionGate continuousExecutionGate = new DefaultContinuousExecutionGate();
     private boolean stopped;
     private boolean anyStarted;
 
@@ -187,6 +187,9 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
 
     private static class PendingChanges {
         private int pendingChanges = 1;
+
+        PendingChanges() {
+        }
 
         void changesMade() {
             pendingChanges++;

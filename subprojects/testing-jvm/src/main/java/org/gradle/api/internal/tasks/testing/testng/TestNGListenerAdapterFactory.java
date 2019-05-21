@@ -75,7 +75,7 @@ class TestNGListenerAdapterFactory {
 
         private final ITestListener delegate;
 
-        private AdaptedListener(ITestListener delegate) {
+        AdaptedListener(ITestListener delegate) {
             this.delegate = delegate;
         }
 

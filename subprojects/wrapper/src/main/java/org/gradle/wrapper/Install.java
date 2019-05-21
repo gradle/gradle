@@ -16,18 +16,30 @@
 
 package org.gradle.wrapper;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
-import java.util.*;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Formatter;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.security.MessageDigest;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
-    private final Logger logger;
-    private final IDownload download;
+    final Logger logger;
+    final IDownload download;
     private final PathAssembler pathAssembler;
     private final ExclusiveFileAccessManager exclusiveFileAccessManager = new ExclusiveFileAccessManager(120000, 200);
 
@@ -114,7 +126,7 @@ public class Install {
         return hexString.toString();
     }
 
-    private File getAndVerifyDistributionRoot(File distDir, String distributionDescription)
+    File getAndVerifyDistributionRoot(File distDir, String distributionDescription)
         throws Exception {
         List<File> dirs = listDirs(distDir);
         if (dirs.isEmpty()) {
@@ -126,7 +138,7 @@ public class Install {
         return dirs.get(0);
     }
 
-    private void verifyDownloadChecksum(String sourceUrl, File localZipFile, String expectedSum) throws Exception {
+    void verifyDownloadChecksum(String sourceUrl, File localZipFile, String expectedSum) throws Exception {
         if (expectedSum != null) {
             // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
             String actualSum = calculateSha256Sum(localZipFile);
@@ -149,7 +161,7 @@ public class Install {
         }
     }
 
-    private List<File> listDirs(File distDir) {
+    List<File> listDirs(File distDir) {
         List<File> dirs = new ArrayList<File>();
         if (distDir.exists()) {
             for (File file : distDir.listFiles()) {
@@ -161,7 +173,7 @@ public class Install {
         return dirs;
     }
 
-    private void setExecutablePermissions(File gradleHome) {
+    void setExecutablePermissions(File gradleHome) {
         if (isWindows()) {
             return;
         }
@@ -199,7 +211,7 @@ public class Install {
         return false;
     }
 
-    private boolean deleteDir(File dir) {
+    boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
             for (int i = 0; i < children.length; i++) {
@@ -214,7 +226,7 @@ public class Install {
         return dir.delete();
     }
 
-    private void unzip(File zip, File dest) throws IOException {
+    void unzip(File zip, File dest) throws IOException {
         Enumeration entries;
         ZipFile zipFile = new ZipFile(zip);
         try {

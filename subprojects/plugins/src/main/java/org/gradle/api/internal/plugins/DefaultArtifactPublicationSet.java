@@ -52,6 +52,9 @@ public class DefaultArtifactPublicationSet {
         private PublishArtifact currentDefault;
         private final ChangingValueHandler<Set<PublishArtifact>> changingValue = new ChangingValueHandler<Set<PublishArtifact>>();
 
+        DefaultArtifactProvider() {
+        }
+
         void addArtifact(PublishArtifact artifact) {
             if (artifacts == null) {
                 artifacts = Sets.newLinkedHashSet();

@@ -46,7 +46,7 @@ public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
         });
     }
 
-    private void createSignatoryFor(Project project, String name, Object[] args) {
+    void createSignatoryFor(Project project, String name, Object[] args) {
         switch (args.length) {
             case 3:
                 String keyId = args[0].toString();

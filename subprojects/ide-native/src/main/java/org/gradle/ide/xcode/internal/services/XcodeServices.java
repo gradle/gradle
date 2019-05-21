@@ -29,6 +29,9 @@ public class XcodeServices extends AbstractPluginServiceRegistry {
     }
 
     private static final class GlobalIdGeneratorServices {
+        GlobalIdGeneratorServices() {
+        }
+
         GidGenerator createGidGenerator() {
             return new GidGenerator(Collections.<String>emptySet());
         }

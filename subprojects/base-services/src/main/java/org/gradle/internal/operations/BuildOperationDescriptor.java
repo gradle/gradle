@@ -31,7 +31,7 @@ public final class BuildOperationDescriptor {
     private final BuildOperationCategory operationType;
     private final int totalProgress;
 
-    private BuildOperationDescriptor(OperationIdentifier id, OperationIdentifier parentId, String name, String displayName, String progressDisplayName, Object details, BuildOperationCategory operationType, int totalProgress) {
+    BuildOperationDescriptor(OperationIdentifier id, OperationIdentifier parentId, String name, String displayName, String progressDisplayName, Object details, BuildOperationCategory operationType, int totalProgress) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -111,7 +111,7 @@ public final class BuildOperationDescriptor {
         private BuildOperationCategory operationType = BuildOperationCategory.UNCATEGORIZED;
         private int totalProgress;
 
-        private Builder(String displayName) {
+        Builder(String displayName) {
             this.displayName = displayName;
             this.name = displayName;
         }

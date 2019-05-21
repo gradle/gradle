@@ -243,6 +243,9 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private static class ByteCountingOutputStream extends OutputStream {
         long size;
 
+        ByteCountingOutputStream() {
+        }
+
         @Override
         public void write(int b) throws IOException {
             size++;

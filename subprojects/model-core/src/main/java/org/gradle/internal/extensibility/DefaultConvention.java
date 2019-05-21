@@ -44,12 +44,12 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
-    private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
+    final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final Instantiator instantiator;
 
-    private Map<String, Object> plugins;
-    private Map<Object, BeanDynamicObject> dynamicObjects;
+    Map<String, Object> plugins;
+    Map<Object, BeanDynamicObject> dynamicObjects;
 
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
@@ -225,6 +225,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     private class ExtensionsDynamicObject extends AbstractDynamicObject {
+        ExtensionsDynamicObject() {
+        }
+
         @Override
         public String getDisplayName() {
             return "extensions";
@@ -355,18 +358,18 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
     }
 
-    private void checkExtensionIsNotReassigned(String name) {
+    void checkExtensionIsNotReassigned(String name) {
         if (extensionsStorage.hasExtension(name)) {
             throw new IllegalArgumentException(
                 format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
         }
     }
 
-    private boolean isConfigureExtensionMethod(String name, Object[] args) {
+    boolean isConfigureExtensionMethod(String name, Object[] args) {
         return args.length == 1 && args[0] instanceof Closure && extensionsStorage.hasExtension(name);
     }
 
-    private Object configureExtension(String name, Object[] args) {
+    Object configureExtension(String name, Object[] args) {
         Closure closure = (Closure) args[0];
         Action<Object> action = ConfigureUtil.configureUsing(closure);
         return extensionsStorage.configureExtension(name, action);

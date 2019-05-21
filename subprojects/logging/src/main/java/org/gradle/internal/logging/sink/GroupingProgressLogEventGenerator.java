@@ -47,18 +47,18 @@ import java.util.concurrent.TimeUnit;
  * <p>This listener forwards nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
-    private static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
-    private static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
-    private final OutputEventListener listener;
-    private final LogHeaderFormatter headerFormatter;
-    private final boolean verbose;
+    static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+    static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
+    final OutputEventListener listener;
+    final LogHeaderFormatter headerFormatter;
+    final boolean verbose;
 
     // Maintain a hierarchy of all progress operations in progress — heads up: this is a *forest*, not just 1 tree
     private final Map<OperationIdentifier, OperationState> operationsInProgress = new LinkedHashMap<OperationIdentifier, OperationState>();
 
-    private Object lastRenderedBuildOpId;
-    private boolean needHeaderSeparator;
-    private long currentTimePeriod;
+    Object lastRenderedBuildOpId;
+    boolean needHeaderSeparator;
+    long currentTimePeriod;
 
     public GroupingProgressLogEventGenerator(OutputEventListener listener, LogHeaderFormatter headerFormatter, boolean verbose) {
         this.listener = listener;
@@ -163,7 +163,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         return null;
     }
 
-    private static LogEvent spacerLine(long timestamp, String category) {
+    static LogEvent spacerLine(long timestamp, String category) {
         return new LogEvent(timestamp, category, LogLevel.LIFECYCLE, "", null);
     }
 
@@ -261,7 +261,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             return hasForeground() || (!bufferedLogs.isEmpty() && lastRenderedBuildOpId == null);
         }
 
-        private boolean hasForeground() {
+        boolean hasForeground() {
             return buildOpIdentifier.equals(lastRenderedBuildOpId);
         }
 
@@ -269,7 +269,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             return !status.equals(lastHeaderStatus);
         }
 
-        private void setStatus(String status, boolean failed) {
+        void setStatus(String status, boolean failed) {
             this.status = status;
             this.failed = failed;
         }

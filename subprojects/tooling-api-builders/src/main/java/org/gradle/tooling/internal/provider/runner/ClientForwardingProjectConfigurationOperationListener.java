@@ -119,6 +119,9 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
 
         private final Map<InternalPluginIdentifier, PluginApplicationResult> pluginApplicationResults = new ConcurrentHashMap<>();
 
+        ProjectConfigurationResult() {
+        }
+
         void increment(PluginApplication pluginApplication, long duration) {
             InternalPluginIdentifier plugin = pluginApplication.getPlugin();
             pluginApplicationResults

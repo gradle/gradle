@@ -46,8 +46,8 @@ public class WorkerDaemonClientsManager implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonClientsManager.class);
 
-    private final Object lock = new Object();
-    private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
+    final Object lock = new Object();
+    final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
     private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
     private final Action<WorkerProcess> workerProcessCleanupAction = new WorkerProcessCleanupAction();
 
@@ -59,7 +59,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final OutputEventListener logLevelChangeEventListener;
     private final WorkerDaemonExpiration workerDaemonExpiration;
     private final MemoryManager memoryManager;
-    private volatile LogLevel currentLogLevel;
+    volatile LogLevel currentLogLevel;
 
     public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager, MemoryManager memoryManager, OsMemoryInfo memoryInfo) {
         this.workerDaemonStarter = workerDaemonStarter;
@@ -159,7 +159,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    private void stopWorkers(List<WorkerDaemonClient> clientsToStop) {
+    void stopWorkers(List<WorkerDaemonClient> clientsToStop) {
         if (clientsToStop.size() > 0) {
             int clientCount = clientsToStop.size();
             LOGGER.debug("Stopping {} worker daemon(s).", clientCount);
@@ -186,6 +186,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
     }
 
     private class StopSessionScopedWorkers implements SessionLifecycleListener {
+        StopSessionScopedWorkers() {
+        }
+
         @Override
         public void afterStart() { }
 
@@ -204,6 +207,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
     }
 
     private class LogLevelChangeEventListener implements OutputEventListener {
+        LogLevelChangeEventListener() {
+        }
+
         @Override
         public void onOutput(OutputEvent event) {
             if (event instanceof LogLevelChangeEvent) {
@@ -214,6 +220,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
     }
 
     private class WorkerProcessCleanupAction implements Action<WorkerProcess> {
+        WorkerProcessCleanupAction() {
+        }
+
         @Override
         public void execute(WorkerProcess workerProcess) {
             synchronized (lock) {

@@ -20,8 +20,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
@@ -32,6 +30,8 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -92,11 +92,11 @@ public abstract class ModelRegistrations {
         private final DescriptorReference descriptorReference = new DescriptorReference();
         private boolean hidden;
 
-        private Builder(ModelPath path) {
+        Builder(ModelPath path) {
             this(path, null);
         }
 
-        private Builder(ModelPath path, NodeInitializer nodeInitializer) {
+        Builder(ModelPath path, NodeInitializer nodeInitializer) {
             this.reference = ModelReference.of(path);
             this.nodeInitializer = nodeInitializer;
         }
@@ -154,7 +154,10 @@ public abstract class ModelRegistrations {
         }
 
         private static class DescriptorReference {
-            private ModelRuleDescriptor descriptor;
+            ModelRuleDescriptor descriptor;
+
+            DescriptorReference() {
+            }
         }
 
         private static abstract class AbstractBuilderAction implements ModelAction {

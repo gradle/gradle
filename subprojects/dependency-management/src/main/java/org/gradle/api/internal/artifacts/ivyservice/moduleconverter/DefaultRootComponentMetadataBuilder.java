@@ -47,7 +47,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final ConfigurationsProvider configurationsProvider;
     private final MetadataHolder holder;
     private final ProjectStateRegistry projectStateRegistry;
-    private DependencyLockingProvider dependencyLockingProvider;
+    DependencyLockingProvider dependencyLockingProvider;
 
     public DefaultRootComponentMetadataBuilder(DependencyMetaDataProvider metadataProvider,
                                                ComponentIdentifierFactory componentIdentifierFactory,
@@ -97,7 +97,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         }
     }
 
-    private DefaultLocalComponentMetadata getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingHandler) {
+    DefaultLocalComponentMetadata getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingHandler) {
         DefaultLocalComponentMetadata metadata = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler);
         for (ConfigurationInternal configuration : configurationsProvider.getAll()) {
             addConfiguration(metadata, configuration);
@@ -124,7 +124,10 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     }
 
     private static class MetadataHolder implements MutationValidator {
-        private DefaultLocalComponentMetadata cachedValue;
+        DefaultLocalComponentMetadata cachedValue;
+
+        MetadataHolder() {
+        }
 
         @Override
         public void validateMutation(MutationType type) {

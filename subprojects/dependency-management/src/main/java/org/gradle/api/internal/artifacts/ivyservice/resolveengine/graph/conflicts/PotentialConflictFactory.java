@@ -40,7 +40,7 @@ class PotentialConflictFactory {
 
         private final Set<ModuleIdentifier> participants;
 
-        private HasConflict(Set<ModuleIdentifier> participants) {
+        HasConflict(Set<ModuleIdentifier> participants) {
             this.participants = participants;
         }
 
@@ -58,6 +58,9 @@ class PotentialConflictFactory {
     }
 
     private static class NoConflict implements PotentialConflict {
+        NoConflict() {
+        }
+
         @Override
         public void withParticipatingModules(Action<ModuleIdentifier> action) {
         }

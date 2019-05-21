@@ -298,9 +298,9 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     private static class FlattenOperationResult {
-        private static final FlattenOperationResult FAST_EXIT = new FlattenOperationResult(null, true);
-        private final Set<ExcludeSpec> result;
-        private final boolean fastExit;
+        static final FlattenOperationResult FAST_EXIT = new FlattenOperationResult(null, true);
+        final Set<ExcludeSpec> result;
+        final boolean fastExit;
 
         private FlattenOperationResult(Set<ExcludeSpec> result, boolean fastExit) {
             this.result = result;

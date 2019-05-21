@@ -106,6 +106,9 @@ public class MemInfoOsMemoryInfo implements OsMemoryInfo {
         private long reclaimable = -1;
         private long mapped = -1;
 
+        Meminfo() {
+        }
+
         public long getTotal() {
             return total;
         }

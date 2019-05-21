@@ -62,8 +62,8 @@ import java.util.concurrent.Callable;
 @Incubating
 public class WindowsResourceCompile extends DefaultTask {
 
-    private final Property<NativePlatform> targetPlatform;
-    private final Property<NativeToolChain> toolChain;
+    final Property<NativePlatform> targetPlatform;
+    final Property<NativeToolChain> toolChain;
     private File outputDir;
     private ConfigurableFileCollection includes;
     private ConfigurableFileCollection source;

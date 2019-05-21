@@ -93,9 +93,9 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         }
     }
 
-    private DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean embedded,
-                                        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
-                                        boolean verboseLogging, Boolean searchUpwards) {
+    DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean embedded,
+                                Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
+                                boolean verboseLogging, Boolean searchUpwards) {
         this.projectDir = projectDir;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.embedded = embedded;

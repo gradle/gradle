@@ -41,8 +41,8 @@ import java.util.List;
 import java.util.Set;
 
 public class WtpComponentFactory {
-    private final ProjectDependencyBuilder projectDependencyBuilder;
-    private final ProjectComponentIdentifier currentProjectId;
+    final ProjectDependencyBuilder projectDependencyBuilder;
+    final ProjectComponentIdentifier currentProjectId;
 
     public WtpComponentFactory(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry) {
         projectDependencyBuilder = new ProjectDependencyBuilder(artifactRegistry);
@@ -100,7 +100,7 @@ public class WtpComponentFactory {
 
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
 
-        private WtpDependenciesVisitor(Project project, EclipseWtpComponent wtp, String deployPath) {
+        WtpDependenciesVisitor(Project project, EclipseWtpComponent wtp, String deployPath) {
             this.project = project;
             this.wtp = wtp;
             this.deployPath = deployPath;

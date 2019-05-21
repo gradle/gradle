@@ -48,7 +48,7 @@ public abstract class DependencyResultSorter {
         private final VersionComparator versionComparator;
         private final VersionParser versionParser;
 
-        private DependencyComparator(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
+        DependencyComparator(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
             this.versionSelectorScheme = versionSelectorScheme;
             this.versionComparator = versionComparator;
             this.versionParser = versionParser;

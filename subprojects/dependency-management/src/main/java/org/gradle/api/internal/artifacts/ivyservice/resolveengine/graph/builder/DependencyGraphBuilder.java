@@ -89,7 +89,7 @@ public class DependencyGraphBuilder {
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final ImmutableAttributesFactory attributesFactory;
-    private final CapabilitiesConflictHandler capabilitiesConflictHandler;
+    final CapabilitiesConflictHandler capabilitiesConflictHandler;
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;

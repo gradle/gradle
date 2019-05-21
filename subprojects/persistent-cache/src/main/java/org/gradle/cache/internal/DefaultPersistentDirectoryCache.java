@@ -36,10 +36,10 @@ import java.util.Properties;
 
 public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
 
-    private final Properties properties = new Properties();
-    private final Action<? super PersistentCache> initAction;
+    final Properties properties = new Properties();
+    final Action<? super PersistentCache> initAction;
 
     public DefaultPersistentDirectoryCache(File dir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, CleanupAction cleanupAction, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         super(dir, displayName, lockTarget, lockOptions, cleanupAction, lockManager, executorFactory, progressLoggerFactory);
@@ -57,6 +57,9 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     }
 
     private class Initializer implements CacheInitializationAction {
+        Initializer() {
+        }
+
         @Override
         public boolean requiresInitialization(FileLock lock) {
             if (!lock.getUnlockedCleanly()) {

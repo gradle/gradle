@@ -36,7 +36,7 @@ import static org.gradle.util.CollectionUtils.any;
 
 public class AggregateTestResultsProvider implements TestResultsProvider {
     private final Iterable<TestResultsProvider> providers;
-    private Multimap<Long, DelegateProvider> classOutputProviders;
+    Multimap<Long, DelegateProvider> classOutputProviders;
 
     public AggregateTestResultsProvider(Iterable<TestResultsProvider> providers) {
         this.providers = providers;
@@ -69,10 +69,10 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     }
 
     private static class DelegateProvider {
-        private final long id;
-        private final TestResultsProvider provider;
+        final long id;
+        final TestResultsProvider provider;
 
-        private DelegateProvider(long id, TestResultsProvider provider) {
+        DelegateProvider(long id, TestResultsProvider provider) {
             this.id = id;
             this.provider = provider;
         }

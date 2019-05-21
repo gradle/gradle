@@ -16,11 +16,11 @@
 
 package org.gradle.model.internal.registry;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,7 +34,7 @@ public class RuleBinder {
     private final List<BindingPredicate> inputReferences;
     private final Collection<RuleBinder> binders;
 
-    private int inputsBound;
+    int inputsBound;
     private final List<ModelBinding> inputBindings;
 
     public RuleBinder(BindingPredicate subjectReference, List<BindingPredicate> inputReferences, ModelAction action, Collection<RuleBinder> binders) {
@@ -119,7 +119,7 @@ public class RuleBinder {
         return action.getDescriptor();
     }
 
-    private void maybeFire() {
+    void maybeFire() {
         if (isBound()) {
             binders.remove(this);
         }

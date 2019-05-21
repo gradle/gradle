@@ -32,7 +32,7 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     // which requires atomically getting an iterator and the size.
     // Moreover, we iterate this list far more often that we mutate,
     // making a (albeit home grown) copy-on-write strategy more appealing.
-    private List<ProgressShieldingBuildOperationListener> listeners = Collections.emptyList();
+    List<ProgressShieldingBuildOperationListener> listeners = Collections.emptyList();
     private final Lock listenersLock = new ReentrantLock();
 
     private final BuildOperationListener broadcaster = new BuildOperationListener() {
@@ -103,9 +103,9 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     private static class ProgressShieldingBuildOperationListener implements BuildOperationListener {
 
         private final Set<OperationIdentifier> active = Sets.newConcurrentHashSet();
-        private final BuildOperationListener delegate;
+        final BuildOperationListener delegate;
 
-        private ProgressShieldingBuildOperationListener(BuildOperationListener delegate) {
+        ProgressShieldingBuildOperationListener(BuildOperationListener delegate) {
             this.delegate = delegate;
         }
 

@@ -81,7 +81,7 @@ class JfrToStacksConverter {
         }
     }
 
-    private static IMCStackTrace getStackTrace(IItem event) {
+    static IMCStackTrace getStackTrace(IItem event) {
         return ItemToolkit.getItemType(event).getAccessor(JfrAttributes.EVENT_STACKTRACE.getKey()).getMember(event);
     }
 
@@ -133,7 +133,7 @@ class JfrToStacksConverter {
     }
 
     public static class Options {
-        private final EventType eventType;
+        final EventType eventType;
         private final boolean showArguments;
         private final boolean showLineNumbers;
 

@@ -231,6 +231,9 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     }
 
     private static class DescendingResolveResultComparator implements Comparator<ComponentIdResolveResult> {
+        DescendingResolveResultComparator() {
+        }
+
         @Override
         public int compare(ComponentIdResolveResult o1, ComponentIdResolveResult o2) {
             return o2.getModuleVersionId().getVersion().compareTo(o1.getModuleVersionId().getVersion());

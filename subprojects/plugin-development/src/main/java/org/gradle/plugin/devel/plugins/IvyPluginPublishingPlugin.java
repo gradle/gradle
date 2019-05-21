@@ -57,7 +57,7 @@ class IvyPluginPublishingPlugin implements Plugin<Project> {
         });
     }
 
-    private void configurePublishing(final Project project) {
+    void configurePublishing(final Project project) {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension publishing) {
@@ -72,13 +72,13 @@ class IvyPluginPublishingPlugin implements Plugin<Project> {
         });
     }
 
-    private IvyPublication addMainPublication(PublishingExtension publishing, SoftwareComponent mainComponent) {
+    IvyPublication addMainPublication(PublishingExtension publishing, SoftwareComponent mainComponent) {
         IvyPublication publication = publishing.getPublications().maybeCreate("pluginIvy", IvyPublication.class);
         publication.from(mainComponent);
         return publication;
     }
 
-    private void addMarkerPublications(IvyPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
+    void addMarkerPublications(IvyPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
         for (PluginDeclaration declaration : pluginDevelopment.getPlugins()) {
             createIvyMarkerPublication(declaration, mainPublication, publishing.getPublications());
         }

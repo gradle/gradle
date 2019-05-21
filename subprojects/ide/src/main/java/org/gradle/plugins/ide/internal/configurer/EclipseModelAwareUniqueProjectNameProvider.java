@@ -90,9 +90,9 @@ public class EclipseModelAwareUniqueProjectNameProvider implements UniqueProject
     }
 
     private static class ProjectStateWrapper {
-        private final String name;
-        private final ProjectState project;
-        private final ProjectState parent;
+        final String name;
+        final ProjectState project;
+        final ProjectState parent;
 
         public ProjectStateWrapper(String name, ProjectState project, ProjectState parent) {
             this.name = name;

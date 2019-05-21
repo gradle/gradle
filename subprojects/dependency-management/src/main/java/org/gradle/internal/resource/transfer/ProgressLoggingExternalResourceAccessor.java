@@ -54,7 +54,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         private final ExternalResourceReadResponse resource;
         private final ResourceOperation downloadOperation;
 
-        private ProgressLoggingExternalResource(URI location, ExternalResourceReadResponse resource) {
+        ProgressLoggingExternalResource(URI location, ExternalResourceReadResponse resource) {
             this.resource = resource;
             downloadOperation = createResourceOperation(location, ResourceOperation.Type.download, getClass(), resource.getMetaData().getContentLength());
         }

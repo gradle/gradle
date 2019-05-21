@@ -67,7 +67,7 @@ import java.util.Set;
  */
 @Incubating
 public class GenerateModuleMetadata extends DefaultTask {
-    private final Property<Publication> publication;
+    final Property<Publication> publication;
     private final ListProperty<Publication> publications;
     private final RegularFileProperty outputFile;
 
@@ -177,6 +177,9 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     private class VariantFiles implements MinimalFileSet, Buildable {
+        VariantFiles() {
+        }
+
         @Override
         public TaskDependency getBuildDependencies() {
             PublicationInternal publication = (PublicationInternal) GenerateModuleMetadata.this.publication.get();

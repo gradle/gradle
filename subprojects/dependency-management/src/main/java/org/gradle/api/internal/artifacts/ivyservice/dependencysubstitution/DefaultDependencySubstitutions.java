@@ -52,7 +52,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private final Set<Action<? super DependencySubstitution>> substitutionRules;
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
     private final NotationParser<Object, ComponentSelector> projectSelectorNotationParser;
-    private final ComponentSelectionDescriptor reason;
+    final ComponentSelectionDescriptor reason;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private boolean hasDependencySubstitutionRule;
@@ -104,7 +104,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         return Actions.composite(substitutionRules);
     }
 
-    private void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
+    void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
         addRule(rule);
         if (projectInvolved) {
             hasDependencySubstitutionRule = true;
@@ -192,7 +192,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private static class ProjectPathConverter implements NotationConverter<String, ProjectComponentSelector> {
         private final ComponentIdentifierFactory componentIdentifierFactory;
 
-        private ProjectPathConverter(ComponentIdentifierFactory componentIdentifierFactory) {
+        ProjectPathConverter(ComponentIdentifierFactory componentIdentifierFactory) {
             this.componentIdentifierFactory = componentIdentifierFactory;
         }
 
@@ -210,7 +210,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private static class CompositeProjectPathConverter implements NotationConverter<String, ProjectComponentSelector> {
         private final IncludedBuildState build;
 
-        private CompositeProjectPathConverter(IncludedBuildState build) {
+        CompositeProjectPathConverter(IncludedBuildState build) {
             this.build = build;
         }
 

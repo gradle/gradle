@@ -37,12 +37,12 @@ import java.util.concurrent.CountDownLatch;
 public class LogToClient extends BuildCommandOnly {
 
     public static final String DISABLE_OUTPUT = "org.gradle.daemon.disable-output";
-    private static final Logger LOGGER = Logging.getLogger(LogToClient.class);
+    static final Logger LOGGER = Logging.getLogger(LogToClient.class);
 
-    private final LoggingOutputInternal loggingOutput;
+    final LoggingOutputInternal loggingOutput;
     private final DaemonDiagnostics diagnostics;
 
-    private volatile AsynchronousLogDispatcher dispatcher;
+    volatile AsynchronousLogDispatcher dispatcher;
 
     public LogToClient(LoggingOutputInternal loggingOutput, DaemonDiagnostics diagnostics) {
         this.loggingOutput = loggingOutput;
@@ -74,7 +74,7 @@ public class LogToClient extends BuildCommandOnly {
         private volatile boolean shouldStop;
         private boolean unableToSend;
 
-        private AsynchronousLogDispatcher(DaemonConnection conn, final LogLevel buildLogLevel) {
+        AsynchronousLogDispatcher(DaemonConnection conn, final LogLevel buildLogLevel) {
             super("Asynchronous log dispatcher for " + conn);
             this.connection = conn;
             this.listener = new OutputEventListener() {

@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 
 public class DefaultDependencyConstraintHandler implements DependencyConstraintHandler, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
-    private final DependencyFactory dependencyFactory;
+    final DependencyFactory dependencyFactory;
     private final DynamicAddDependencyMethods dynamicMethods;
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final Category platform;
@@ -123,6 +123,9 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     private class DependencyConstraintAdder implements DynamicAddDependencyMethods.DependencyAdder<DependencyConstraint> {
+        DependencyConstraintAdder() {
+        }
+
         @Override
         public DependencyConstraint add(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
             DependencyConstraint dependencyConstraint = ConfigureUtil.configure(configureClosure, dependencyFactory.createDependencyConstraint(dependencyNotation));

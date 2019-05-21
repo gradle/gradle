@@ -30,12 +30,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class AnnotationProcessingData {
-    private final Map<String, Set<String>> generatedTypesByOrigin;
-    private final Set<String> aggregatedTypes;
-    private final Set<String> generatedTypesDependingOnAllOthers;
-    private final Map<String, Set<GeneratedResource>> generatedResourcesByOrigin;
-    private final Set<GeneratedResource> generatedResourcesDependingOnAllOthers;
-    private final String fullRebuildCause;
+    final Map<String, Set<String>> generatedTypesByOrigin;
+    final Set<String> aggregatedTypes;
+    final Set<String> generatedTypesDependingOnAllOthers;
+    final Map<String, Set<GeneratedResource>> generatedResourcesByOrigin;
+    final Set<GeneratedResource> generatedResourcesDependingOnAllOthers;
+    final String fullRebuildCause;
 
     public AnnotationProcessingData() {
         this(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), ImmutableMap.<String, Set<GeneratedResource>>of(), ImmutableSet.<GeneratedResource>of(), null);

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements StaticLibraryBinary, StaticLibraryBinarySpecInternal {
-    private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
+    final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private File staticLibraryFile;
 
@@ -87,6 +87,9 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     }
 
     private class StaticLibraryLinkOutputs extends LibraryOutputs {
+        StaticLibraryLinkOutputs() {
+        }
+
         @Override
         public String getDisplayName() {
             return "Link files for " + DefaultStaticLibraryBinarySpec.this.getDisplayName();

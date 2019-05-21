@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 
 public class S3ResourceResolver {
 
-    private static final Pattern FILENAME_PATTERN = Pattern.compile("[^/]+\\.*$");
+    static final Pattern FILENAME_PATTERN = Pattern.compile("[^/]+\\.*$");
 
     private static final Function<S3ObjectSummary, String> EXTRACT_FILE_NAME = new Function<S3ObjectSummary, String>() {
         @Override

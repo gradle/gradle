@@ -56,7 +56,7 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
         private final ChangeVisitor visitor;
         private boolean consumeMore = true;
 
-        private TrackingVisitor(ChangeVisitor visitor) {
+        TrackingVisitor(ChangeVisitor visitor) {
             this.visitor = visitor;
         }
 
@@ -84,7 +84,7 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
         private final Map<String, FileSystemLocationFingerprint> previousSnapshots;
         private final String propertyTitle;
 
-        private ChangeState(String propertyTitle, boolean includeAdded, ChangeVisitor changeConsumer, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots) {
+        ChangeState(String propertyTitle, boolean includeAdded, ChangeVisitor changeConsumer, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots) {
             this.propertyTitle = propertyTitle;
             this.includeAdded = includeAdded;
             this.changeConsumer = changeConsumer;

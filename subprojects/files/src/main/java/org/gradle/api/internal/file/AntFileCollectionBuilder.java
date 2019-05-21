@@ -27,7 +27,7 @@ import java.util.Collections;
 
 public class AntFileCollectionBuilder implements AntBuilderAware {
 
-    private final FileCollection files;
+    final FileCollection files;
 
     public AntFileCollectionBuilder(FileCollection files) {
         this.files = files;

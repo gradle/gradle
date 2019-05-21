@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 
 public class FileTransport extends AbstractRepositoryTransport {
-    private final FileResourceRepository repository;
+    final FileResourceRepository repository;
     private final FileCacheAwareExternalResourceAccessor resourceAccessor;
 
     public FileTransport(String name, FileResourceRepository repository, CachedExternalResourceIndex<String> cachedExternalResourceIndex, TemporaryFileProvider temporaryFileProvider, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ProducerGuard<ExternalResourceName> producerGuard) {

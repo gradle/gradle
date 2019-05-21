@@ -26,7 +26,12 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
 
 public class VariantsMatcher {
     private static final Comparator<VariantValue> SPEC_COMPARATOR = new Comparator<VariantValue>() {
@@ -118,7 +123,7 @@ public class VariantsMatcher {
         final Object value;
         final BinarySpec spec;
 
-        private VariantValue(Object value, BinarySpec spec) {
+        VariantValue(Object value, BinarySpec spec) {
             this.value = value;
             this.spec = spec;
         }

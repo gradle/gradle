@@ -1092,7 +1092,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class Bean {
-        private String prop;
+        String prop;
 
         public String getProp() {
             return prop;
@@ -1174,7 +1174,7 @@ public class AsmBackedClassGeneratorTest {
             return "protected";
         }
 
-        private String getPrivate() {
+        String getPrivate() {
             return "private";
         }
     }
@@ -1234,7 +1234,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class BeanWithDslMethods extends Bean {
-        private String prop;
+        String prop;
         private FileCollection files;
         private List<Object> things;
 
@@ -1430,7 +1430,7 @@ public class AsmBackedClassGeneratorTest {
         private int primitive;
         private boolean bool;
         private String finalGetter;
-        private Integer writeOnly;
+        Integer writeOnly;
         private String overloaded;
 
         public int getPrimitive() {

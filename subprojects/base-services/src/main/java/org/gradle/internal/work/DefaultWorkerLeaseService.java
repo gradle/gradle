@@ -57,15 +57,15 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISH
 
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ParallelismConfigurationListener {
     public static final String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
 
-    private volatile int maxWorkerCount;
+    volatile int maxWorkerCount;
     private int counter = 1;
-    private final Root root = new Root();
+    final Root root = new Root();
 
-    private final ResourceLockCoordinationService coordinationService;
-    private final ProjectLockRegistry projectLockRegistry;
-    private final WorkerLeaseLockRegistry workerLeaseLockRegistry;
+    final ResourceLockCoordinationService coordinationService;
+    final ProjectLockRegistry projectLockRegistry;
+    final WorkerLeaseLockRegistry workerLeaseLockRegistry;
     private final ParallelismConfigurationManager parallelismConfigurationManager;
     private final ProjectLockStatisticsImpl projectLockStatistics = new ProjectLockStatisticsImpl();
 
@@ -99,7 +99,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         return (DefaultWorkerLease) operations.toArray()[operations.size() - 1];
     }
 
-    private synchronized DefaultWorkerLease getWorkerLease(LeaseHolder parent) {
+    synchronized DefaultWorkerLease getWorkerLease(LeaseHolder parent) {
         int workerId = counter++;
         Thread ownerThread = Thread.currentThread();
         return workerLeaseLockRegistry.getResourceLock(parent, workerId, ownerThread);
@@ -336,6 +336,9 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     private class Root implements LeaseHolder {
         int leasesInUse;
 
+        Root() {
+        }
+
         @Override
         public String getDisplayName() {
             return "root";
@@ -449,6 +452,9 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
 
     private static class ProjectLockStatisticsImpl implements ProjectLockStatistics {
         private final AtomicLong total = new AtomicLong(-1);
+
+        ProjectLockStatisticsImpl() {
+        }
 
         @Override
         public void measure(Runnable runnable) {

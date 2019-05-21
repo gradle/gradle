@@ -41,7 +41,7 @@ import java.io.File;
 public class TestingBasePlugin implements Plugin<Project> {
     public static final String TEST_RESULTS_DIR_NAME = "test-results";
     public static final String TESTS_DIR_NAME = "tests";
-    private static final Transformer<File, Directory> TO_FILE_TRANSFORMER = new Transformer<File, Directory>() {
+    static final Transformer<File, Directory> TO_FILE_TRANSFORMER = new Transformer<File, Directory>() {
         @Override
         public File transform(Directory directory) {
             return directory.getAsFile();
@@ -66,11 +66,11 @@ public class TestingBasePlugin implements Plugin<Project> {
         });
     }
 
-    private Provider<Directory> getTestResultsDir(Project project, AbstractTestTask test) {
+    Provider<Directory> getTestResultsDir(Project project, AbstractTestTask test) {
         return project.getLayout().getBuildDirectory().dir(TEST_RESULTS_DIR_NAME + "/" + test.getName());
     }
 
-    private Provider<Directory> getTestReportsDir(Project project, final AbstractTestTask test) {
+    Provider<Directory> getTestReportsDir(Project project, final AbstractTestTask test) {
         DirectoryProperty baseDirectory = project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory();
         return baseDirectory.dir(TESTS_DIR_NAME + "/" + test.getName());
     }

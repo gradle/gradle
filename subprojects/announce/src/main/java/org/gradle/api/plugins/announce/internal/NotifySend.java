@@ -27,7 +27,7 @@ import java.io.File;
  * This class wraps the Ubuntu Notify Send functionality.
  */
 public class NotifySend implements Announcer {
-    private final IconProvider iconProvider;
+    final IconProvider iconProvider;
     private final ProcessOperations processOperations;
 
     public NotifySend(ProcessOperations processOperations, IconProvider iconProvider) {

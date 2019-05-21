@@ -30,20 +30,20 @@ import java.io.File;
 import java.util.concurrent.locks.Lock;
 
 class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandCrossProcessCacheAccess.class);
-    private final String cacheDisplayName;
+    static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandCrossProcessCacheAccess.class);
+    final String cacheDisplayName;
     private final File lockTarget;
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
-    private final Lock stateLock;
+    final Lock stateLock;
     private final Action<FileLock> onOpen;
     private final Action<FileLock> onClose;
     private final Runnable unlocker;
     private final Action<FileLockReleasedSignal> whenContended;
-    private int lockCount;
-    private FileLock fileLock;
-    private CacheInitializationAction initAction;
-    private FileLockReleasedSignal lockReleaseSignal;
+    int lockCount;
+    FileLock fileLock;
+    CacheInitializationAction initAction;
+    FileLockReleasedSignal lockReleaseSignal;
 
     /**
      * Actions are notified when lock is opened or closed. Actions are called while holding state lock, so that no other threads are working with cache while these are running.
@@ -126,7 +126,7 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
         }
     }
 
-    private void decrementLockCount() {
+    void decrementLockCount() {
         stateLock.lock();
         try {
             if (lockCount <= 0 || fileLock == null) {
@@ -141,7 +141,7 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
         }
     }
 
-    private void releaseLockIfHeld() {
+    void releaseLockIfHeld() {
         if (fileLock == null) {
             return;
         }
@@ -170,6 +170,9 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
     }
 
     private class ContendedAction implements Action<FileLockReleasedSignal> {
+        ContendedAction() {
+        }
+
         @Override
         public void execute(FileLockReleasedSignal signal) {
             stateLock.lock();
@@ -190,6 +193,9 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
     }
 
     private class UnlockAction implements Runnable {
+        UnlockAction() {
+        }
+
         @Override
         public void run() {
             decrementLockCount();

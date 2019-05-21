@@ -110,7 +110,7 @@ public class ComponentResolversChain {
     private static class ArtifactResolverChain implements ArtifactResolver {
         private final List<ArtifactResolver> resolvers;
 
-        private ArtifactResolverChain(List<ArtifactResolver> resolvers) {
+        ArtifactResolverChain(List<ArtifactResolver> resolvers) {
             this.resolvers = resolvers;
         }
 

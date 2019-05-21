@@ -105,7 +105,7 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
         private final String usage;
         private final int hashCode;
 
-        private ComponentTypeEntry(ImmutableAttributes source, String componentType, String usage) {
+        ComponentTypeEntry(ImmutableAttributes source, String componentType, String usage) {
             this.source = source;
             this.componentType = componentType;
             this.usage = usage;

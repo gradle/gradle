@@ -75,10 +75,10 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final ResolveContext resolveContext;
     private final AttributesSchemaInternal attributesSchema;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final BuildIdentifier thisBuild;
+    final BuildIdentifier thisBuild;
 
     private final String descriptor;
-    private ResolveResult resolveResult;
+    ResolveResult resolveResult;
 
     public DependencyResolvingClasspath(
         BinarySpecInternal binarySpec,
@@ -153,7 +153,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         };
     }
 
-    private void ensureResolved(boolean failFast) {
+    void ensureResolved(boolean failFast) {
         if (resolveResult == null) {
             resolveResult = resolve();
         }

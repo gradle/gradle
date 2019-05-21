@@ -36,10 +36,10 @@ import java.util.Set;
 public class ClassSetAnalysisData {
     public static final String PACKAGE_INFO = "package-info";
 
-    private final Set<String> classes;
-    private final Map<String, DependentsSet> dependents;
-    private final Map<String, IntSet> classesToConstants;
-    private final String fullRebuildCause;
+    final Set<String> classes;
+    final Map<String, DependentsSet> dependents;
+    final Map<String, IntSet> classesToConstants;
+    final String fullRebuildCause;
 
     public ClassSetAnalysisData(Set<String> classes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, String fullRebuildCause) {
         this.classes = classes;

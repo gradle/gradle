@@ -36,12 +36,18 @@ public class S3ResourcesPluginServiceRegistry extends AbstractPluginServiceRegis
     }
 
     private static class GlobalScopeServices {
+        GlobalScopeServices() {
+        }
+
         ResourceConnectorFactory createS3ConnectorFactory() {
             return new S3ConnectorFactory();
         }
     }
 
     private static class AuthenticationSchemeAction {
+        AuthenticationSchemeAction() {
+        }
+
         public void configure(ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
             authenticationSchemeRegistry.registerScheme(AwsImAuthentication.class, DefaultAwsImAuthentication.class);
         }

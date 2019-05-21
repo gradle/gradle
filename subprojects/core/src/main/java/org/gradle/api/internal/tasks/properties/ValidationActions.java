@@ -108,7 +108,7 @@ public enum ValidationActions implements ValidationAction {
         }
     };
 
-    private static void validateNotInReservedFileSystemLocation(TaskValidationContext context, File location) {
+    static void validateNotInReservedFileSystemLocation(TaskValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {
             context.visitError(String.format("The output %s must not be in a reserved location.", location));
         }
@@ -131,18 +131,18 @@ public enum ValidationActions implements ValidationAction {
         }
     }
 
-    private static File toDirectory(TaskValidationContext context, Object value) {
+    static File toDirectory(TaskValidationContext context, Object value) {
         if (value instanceof ConfigurableFileTree) {
             return ((ConfigurableFileTree) value).getDir();
         }
         return toFile(context, value);
     }
 
-    private static File toFile(TaskValidationContext context, Object value) {
+    static File toFile(TaskValidationContext context, Object value) {
         return context.getResolver().resolve(value);
     }
 
-    private static Iterable<? extends File> toFiles(TaskValidationContext context, Object value) {
+    static Iterable<? extends File> toFiles(TaskValidationContext context, Object value) {
         if (value instanceof Map) {
             return toFiles(context, ((Map) value).values());
         } else if (value instanceof FileCollection) {

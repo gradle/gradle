@@ -48,7 +48,7 @@ public class GnupgSignatoryProvider implements SignatoryProvider<GnupgSignatory>
         });
     }
 
-    private void createSignatoryFor(Project project, String name, Object[] args) {
+    void createSignatoryFor(Project project, String name, Object[] args) {
         if (args.length != 0) {
             throw new IllegalArgumentException("Invalid args (" + name + ": " + String.valueOf(args) + ")");
         }

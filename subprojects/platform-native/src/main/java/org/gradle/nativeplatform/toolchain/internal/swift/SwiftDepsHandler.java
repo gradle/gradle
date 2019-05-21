@@ -109,7 +109,7 @@ class SwiftDepsHandler {
         private String version;
         private String options;
         private List<Long> build_time;
-        private Map<String, List> inputs;
+        Map<String, List> inputs;
 
         public String getVersion() {
             return version;

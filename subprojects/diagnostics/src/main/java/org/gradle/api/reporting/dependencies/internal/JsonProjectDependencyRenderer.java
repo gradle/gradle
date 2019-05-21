@@ -160,7 +160,7 @@ public class JsonProjectDependencyRenderer {
         });
     }
 
-    private List createDependencies(Configuration configuration) {
+    List createDependencies(Configuration configuration) {
         if (configuration.isCanBeResolved()) {
             ResolutionResult result = configuration.getIncoming().getResolutionResult();
             RenderableDependency root = new RenderableModuleResult(result.getRoot());
@@ -170,7 +170,7 @@ public class JsonProjectDependencyRenderer {
         }
     }
 
-    private List createDependencyChildren(RenderableDependency dependency, final Set<Object> visited) {
+    List createDependencyChildren(RenderableDependency dependency, final Set<Object> visited) {
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
         return CollectionUtils.collect(children, new Transformer<Map, RenderableDependency>() {
             @Override
@@ -195,7 +195,7 @@ public class JsonProjectDependencyRenderer {
         });
     }
 
-    private ModuleIdentifier getModuleIdentifier(RenderableDependency renderableDependency) {
+    ModuleIdentifier getModuleIdentifier(RenderableDependency renderableDependency) {
         if (renderableDependency.getId() instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) renderableDependency.getId();
             return id.getModuleIdentifier();
@@ -203,7 +203,7 @@ public class JsonProjectDependencyRenderer {
         return null;
     }
 
-    private List createModuleInsights(final Configuration configuration) {
+    List createModuleInsights(final Configuration configuration) {
         Iterable<ModuleIdentifier> modules = collectModules(configuration);
         return CollectionUtils.collect(modules, new Transformer<Object, ModuleIdentifier>() {
             @Override
@@ -241,7 +241,7 @@ public class JsonProjectDependencyRenderer {
         }
     }
 
-    private Map createModuleInsight(ModuleIdentifier module, Configuration configuration) {
+    Map createModuleInsight(ModuleIdentifier module, Configuration configuration) {
         LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(2);
         map.put("module", module.toString());
         map.put("insight", createInsight(module, configuration));
@@ -279,7 +279,7 @@ public class JsonProjectDependencyRenderer {
         });
     }
 
-    private List createInsightDependencyChildren(RenderableDependency dependency, final Set<Object> visited, final Configuration configuration) {
+    List createInsightDependencyChildren(RenderableDependency dependency, final Set<Object> visited, final Configuration configuration) {
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
         return CollectionUtils.collect(children, new Transformer<Object, RenderableDependency>() {
             @Override
@@ -306,7 +306,7 @@ public class JsonProjectDependencyRenderer {
         });
     }
 
-    private String replaceArrow(String name) {
+    String replaceArrow(String name) {
         return name.replace(" -> ", " \u27A1 ");
     }
 

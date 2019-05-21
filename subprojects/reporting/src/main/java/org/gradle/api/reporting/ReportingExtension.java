@@ -50,7 +50,7 @@ public class ReportingExtension {
      */
     public static final String DEFAULT_REPORTS_DIR_NAME = "reports";
 
-    private final ProjectInternal project;
+    final ProjectInternal project;
     private final DirectoryProperty baseDirectory;
 
 

@@ -36,6 +36,9 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
 
     private static class BuildScopeToolingServices {
 
+        BuildScopeToolingServices() {
+        }
+
         protected UniqueProjectNameProvider createBuildProjectRegistry(ProjectStateRegistry projectRegistry) {
             return new DefaultUniqueProjectNameProvider(projectRegistry);
         }

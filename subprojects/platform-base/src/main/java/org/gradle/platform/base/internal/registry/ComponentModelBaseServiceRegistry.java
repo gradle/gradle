@@ -40,12 +40,18 @@ public class ComponentModelBaseServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class BuildScopeServices {
+        BuildScopeServices() {
+        }
+
         ProjectModelResolver createProjectLocator(final ProjectRegistry<ProjectInternal> projectRegistry) {
             return new DefaultProjectModelResolver(projectRegistry);
         }
     }
 
     private static class GlobalScopeServices {
+        GlobalScopeServices() {
+        }
+
         MethodModelRuleExtractor createComponentModelPluginInspector(ModelSchemaStore schemaStore) {
             return new ComponentTypeModelRuleExtractor(schemaStore);
         }

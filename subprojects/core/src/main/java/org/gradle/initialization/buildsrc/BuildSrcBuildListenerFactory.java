@@ -54,11 +54,11 @@ public class BuildSrcBuildListenerFactory {
      * On build completion, makes the runtime classpath of the main `buildSrc` component available.
      */
     public static class Listener extends InternalBuildAdapter implements ModelConfigurationListener {
-        private FileCollection classpath;
+        FileCollection classpath;
         private ProjectState rootProjectState;
         private final Action<ProjectInternal> rootProjectConfiguration;
 
-        private Listener(Action<ProjectInternal> rootProjectConfiguration) {
+        Listener(Action<ProjectInternal> rootProjectConfiguration) {
             this.rootProjectConfiguration = rootProjectConfiguration;
         }
 

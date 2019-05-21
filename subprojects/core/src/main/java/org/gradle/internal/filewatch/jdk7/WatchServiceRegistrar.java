@@ -48,7 +48,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 class WatchServiceRegistrar implements FileWatcherListener {
-    private final static Logger LOG = LoggerFactory.getLogger(WatchServiceRegistrar.class);
+    final static Logger LOG = LoggerFactory.getLogger(WatchServiceRegistrar.class);
     private static final boolean FILE_TREE_WATCHING_SUPPORTED = OperatingSystem.current().isWindows() && !JavaVersion.current().isJava9Compatible();
     private static final WatchEvent.Modifier[] WATCH_MODIFIERS = instantiateWatchModifiers();
     private static final WatchEvent.Kind[] WATCH_KINDS = new WatchEvent.Kind[]{StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY};

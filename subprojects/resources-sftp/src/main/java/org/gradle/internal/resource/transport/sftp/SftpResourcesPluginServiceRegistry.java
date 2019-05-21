@@ -28,6 +28,9 @@ public class SftpResourcesPluginServiceRegistry extends AbstractPluginServiceReg
     }
 
     private static class GlobalScopeServices {
+        GlobalScopeServices() {
+        }
+
         SftpClientFactory createSftpClientFactory() {
             return new SftpClientFactory();
         }

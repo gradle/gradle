@@ -37,9 +37,9 @@ import java.io.FilenameFilter;
 
 public class Binary2JUnitXmlReportGenerator {
 
-    private final File testResultsDir;
-    private final TestResultsProvider testResultsProvider;
-    private JUnitXmlResultWriter xmlWriter;
+    final File testResultsDir;
+    final TestResultsProvider testResultsProvider;
+    JUnitXmlResultWriter xmlWriter;
     private final BuildOperationExecutor buildOperationExecutor;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
@@ -90,7 +90,7 @@ public class Binary2JUnitXmlReportGenerator {
         LOG.info("Finished generating test XML results ({}) into: {}", clock.getElapsed(), testResultsDir);
     }
 
-    private String getReportFileName(TestClassResult result) {
+    String getReportFileName(TestClassResult result) {
         return "TEST-" + FileUtils.toSafeFileName(result.getClassName()) + ".xml";
     }
 

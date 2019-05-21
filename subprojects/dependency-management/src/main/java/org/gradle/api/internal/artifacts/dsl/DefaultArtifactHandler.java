@@ -36,7 +36,7 @@ import java.util.List;
 
 public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
-    private final ConfigurationContainer configurationContainer;
+    final ConfigurationContainer configurationContainer;
     private final NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory;
     private final DynamicMethods dynamicMethods;
 
@@ -46,12 +46,12 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
         dynamicMethods = new DynamicMethods();
     }
 
-    private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
+    PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
         Action<Object> configureAction = ConfigureUtil.configureUsing(configureClosure);
         return pushArtifact(configuration, notation, configureAction);
     }
 
-    private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
+    PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
@@ -79,6 +79,9 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     private class DynamicMethods implements MethodAccess {
+        DynamicMethods() {
+        }
+
         @Override
         public boolean hasMethod(String name, Object... arguments) {
             return arguments.length > 0 && configurationContainer.findByName(name) != null;

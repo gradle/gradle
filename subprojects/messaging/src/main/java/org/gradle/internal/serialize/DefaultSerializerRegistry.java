@@ -99,7 +99,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         final boolean useForSubtypes;
         final Serializer serializer;
 
-        private TypeInfo(int tag, boolean useForSubtypes, Serializer serializer) {
+        TypeInfo(int tag, boolean useForSubtypes, Serializer serializer) {
             this.tag = tag;
             this.useForSubtypes = useForSubtypes;
             this.serializer = serializer;
@@ -193,6 +193,9 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
     }
 
     private static final class HierarchySerializerMatcher implements SerializerClassMatcherStrategy {
+        HierarchySerializerMatcher() {
+        }
+
         @Override
         public boolean matches(Class<?> baseType, Class<?> candidate) {
             return baseType.isAssignableFrom(candidate);
@@ -200,6 +203,9 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
     }
 
     private static class StrictSerializerMatcher implements SerializerClassMatcherStrategy {
+        StrictSerializerMatcher() {
+        }
+
         @Override
         public boolean matches(Class<?> baseType, Class<?> candidate) {
             return baseType.equals(candidate);

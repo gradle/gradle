@@ -33,7 +33,7 @@ public class PatternSets {
     private static final class PatternSetFactory implements Factory<PatternSet> {
         private final PatternSpecFactory patternSpecFactory;
 
-        private PatternSetFactory(PatternSpecFactory patternSpecFactory) {
+        PatternSetFactory(PatternSpecFactory patternSpecFactory) {
             this.patternSpecFactory = patternSpecFactory;
         }
 

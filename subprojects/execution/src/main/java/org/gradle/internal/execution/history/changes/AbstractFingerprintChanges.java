@@ -26,7 +26,7 @@ import java.util.SortedMap;
 public abstract class AbstractFingerprintChanges implements ChangeContainer {
     protected final SortedMap<String, FileCollectionFingerprint> previous;
     protected final SortedMap<String, CurrentFileCollectionFingerprint> current;
-    private final String title;
+    final String title;
 
     protected AbstractFingerprintChanges(SortedMap<String, FileCollectionFingerprint> previous, SortedMap<String, CurrentFileCollectionFingerprint> current, String title) {
         this.previous = previous;

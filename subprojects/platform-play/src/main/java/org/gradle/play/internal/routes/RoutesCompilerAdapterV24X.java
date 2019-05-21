@@ -150,7 +150,7 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
         private final JavaMethod<Object, Object> columnMethod;
         private final JavaMethod<Object, Object> getMethod;
 
-        private RoutesCompilationErrorAdapter(Class<?> routesCompilationError, Class<?> option) {
+        RoutesCompilationErrorAdapter(Class<?> routesCompilationError, Class<?> option) {
             this.sourceMethod = Cast.uncheckedCast(JavaMethod.of(routesCompilationError, File.class, "source"));
             this.messageMethod = Cast.uncheckedCast(JavaMethod.of(routesCompilationError, String.class, "message"));
             this.lineMethod = Cast.uncheckedCast(JavaMethod.of(routesCompilationError, Object.class, "line"));
@@ -181,7 +181,7 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
         private final int line;
         private final int col;
 
-        private RoutesCompilationError(File source, String message, int line, int col) {
+        RoutesCompilationError(File source, String message, int line, int col) {
             this.source = source;
             this.message = message;
             this.line = line;

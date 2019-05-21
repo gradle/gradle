@@ -40,9 +40,9 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 import java.io.File;
 
 public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
-    private final Instantiator instantiator;
-    private final DependencyMetaDataProvider metaDataProvider;
-    private final TaskResolver taskResolver;
+    final Instantiator instantiator;
+    final DependencyMetaDataProvider metaDataProvider;
+    final TaskResolver taskResolver;
 
     public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, TaskResolver taskResolver) {
         this.instantiator = instantiator;
@@ -65,7 +65,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     }
 
     private class DecoratingConverter extends TypedNotationConverter<PublishArtifact, ConfigurablePublishArtifact> {
-        private DecoratingConverter() {
+        DecoratingConverter() {
             super(PublishArtifact.class);
         }
 
@@ -76,7 +76,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     }
 
     private class ArchiveTaskNotationConverter extends TypedNotationConverter<AbstractArchiveTask, ConfigurablePublishArtifact> {
-        private ArchiveTaskNotationConverter() {
+        ArchiveTaskNotationConverter() {
             super(AbstractArchiveTask.class);
         }
 
@@ -94,7 +94,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     private static class FileMapNotationConverter extends MapNotationConverter<ConfigurablePublishArtifact> {
         private final FileNotationConverter fileConverter;
 
-        private FileMapNotationConverter(FileNotationConverter fileConverter) {
+        FileMapNotationConverter(FileNotationConverter fileConverter) {
             this.fileConverter = fileConverter;
         }
 
@@ -146,7 +146,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     }
 
     private class FileNotationConverter extends TypedNotationConverter<File, ConfigurablePublishArtifact> {
-        private FileNotationConverter() {
+        FileNotationConverter() {
             super(File.class);
         }
 

@@ -82,7 +82,7 @@ public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpe
     // of the old tests do not have requirements, we assume the tests require a "C" like tool chain (GCC, Clang, MSVC).
     //
     // In the future... we want to go back to old tests and annotate them with tool chains requirements.
-    private boolean canUseToolChain(AvailableToolChains.ToolChainCandidate toolChain) {
+    boolean canUseToolChain(AvailableToolChains.ToolChainCandidate toolChain) {
         RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
         if (toolChainRequirement != null) {
             return toolChain.meets(toolChainRequirement.value());

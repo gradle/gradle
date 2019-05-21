@@ -93,7 +93,7 @@ public class TaskNameResolver {
         return selected;
     }
 
-    private static void discoverTasks(ProjectInternal project) {
+    static void discoverTasks(ProjectInternal project) {
         try {
             project.getTasks().discoverTasks();
         } catch (Throwable e) {
@@ -105,11 +105,11 @@ public class TaskNameResolver {
         return project.getTasks().getNames();
     }
 
-    private static boolean hasTask(String taskName, ProjectInternal project) {
+    static boolean hasTask(String taskName, ProjectInternal project) {
         return project.getTasks().getNames().contains(taskName) || project.getTasks().findByName(taskName) != null;
     }
 
-    private static TaskInternal getExistingTask(ProjectInternal project, String taskName) {
+    static TaskInternal getExistingTask(ProjectInternal project, String taskName) {
         try {
             return (TaskInternal) project.getTasks().getByName(taskName);
         } catch (Throwable e) {

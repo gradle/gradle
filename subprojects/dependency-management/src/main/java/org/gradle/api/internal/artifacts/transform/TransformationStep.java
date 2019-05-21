@@ -52,7 +52,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     private final DomainObjectProjectStateHandler projectStateHandler;
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
     private final WorkNodeAction isolateAction;
-    private final ProjectInternal owningProject;
+    final ProjectInternal owningProject;
     private final FileCollectionFingerprinterRegistry globalFingerprinterRegistry;
     private final AtomicReference<FileCollectionFingerprinterRegistry> usedFingerprinterRegistry = new AtomicReference<>();
 
@@ -143,7 +143,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         }
     }
 
-    private void isolateExclusively(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+    void isolateExclusively(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         isolationLock.withLock(() -> {
             if (!transformer.isIsolated()) {
                 transformer.isolateParameters(fingerprinterRegistry);

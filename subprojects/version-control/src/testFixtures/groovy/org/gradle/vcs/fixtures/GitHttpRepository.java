@@ -37,7 +37,7 @@ import java.util.zip.GZIPInputStream;
 
 public class GitHttpRepository implements TestRule, GitRepository {
     private final BlockingHttpServer server;
-    private final GitFileRepository backingRepo;
+    final GitFileRepository backingRepo;
 
     public GitHttpRepository(BlockingHttpServer server, String name, File parentDirectory) {
         this.server = server;

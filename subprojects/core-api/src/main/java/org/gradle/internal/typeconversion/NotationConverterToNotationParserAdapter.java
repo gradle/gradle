@@ -41,8 +41,11 @@ public class NotationConverterToNotationParserAdapter<N, T> implements NotationP
     }
 
     private static class ResultImpl<T> implements NotationConvertResult<T> {
-        private boolean hasResult;
-        private T result;
+        boolean hasResult;
+        T result;
+
+        ResultImpl() {
+        }
 
         @Override
         public boolean hasResult() {

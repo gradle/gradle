@@ -57,8 +57,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     public static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
-    private final PersistentCache cache;
-    private final Transformer<File, File> jarFileTransformer;
+    final PersistentCache cache;
+    final Transformer<File, File> jarFileTransformer;
 
     public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, FileAccessTimeJournal fileAccessTimeJournal, List<CachedJarFileStore> fileStores, UsedGradleVersions usedGradleVersions) {
         this.cache = cacheRepository
@@ -106,8 +106,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private class CachedJarFileTransformer implements Transformer<File, File> {
-        private final JarCache jarCache;
-        private final Factory<File> baseDir;
+        final JarCache jarCache;
+        final Factory<File> baseDir;
         private final List<String> prefixes;
 
         CachedJarFileTransformer(JarCache jarCache, List<CachedJarFileStore> fileStores) {

@@ -50,7 +50,7 @@ public class IncrementalCompilerFactory {
 
     private final FileOperations fileOperations;
     private final StreamHasher streamHasher;
-    private final GeneralCompileCaches generalCompileCaches;
+    final GeneralCompileCaches generalCompileCaches;
     private final BuildOperationExecutor buildOperationExecutor;
     private final StringInterner interner;
     private final FileSystemSnapshotter fileSystemSnapshotter;

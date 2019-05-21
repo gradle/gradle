@@ -66,7 +66,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     final LocalBuildCacheServiceHandle local;
 
     private final BuildCacheTempFileStore tmp;
-    private final BuildOperationExecutor buildOperationExecutor;
+    final BuildOperationExecutor buildOperationExecutor;
     private final boolean emitDebugLogging;
 
     private boolean closed;
@@ -161,11 +161,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     private class Unpack<T> implements Action<File> {
-        private final BuildCacheLoadCommand<T> command;
+        final BuildCacheLoadCommand<T> command;
 
-        private BuildCacheLoadCommand.Result<T> result;
+        BuildCacheLoadCommand.Result<T> result;
 
-        private Unpack(BuildCacheLoadCommand<T> command) {
+        Unpack(BuildCacheLoadCommand<T> command) {
             this.command = command;
         }
 
@@ -226,9 +226,9 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
     private class Pack implements Action<File> {
 
-        private final BuildCacheStoreCommand command;
+        final BuildCacheStoreCommand command;
 
-        private Pack(BuildCacheStoreCommand command) {
+        Pack(BuildCacheStoreCommand command) {
             this.command = command;
         }
 

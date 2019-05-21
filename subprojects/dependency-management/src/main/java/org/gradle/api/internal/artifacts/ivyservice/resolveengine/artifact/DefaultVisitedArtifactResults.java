@@ -59,7 +59,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
 
     private static class NoArtifactResults implements SelectedArtifactResults {
 
-        private static final NoArtifactResults INSTANCE = new NoArtifactResults();
+        static final NoArtifactResults INSTANCE = new NoArtifactResults();
 
         @Override
         public ResolvedArtifactSet getArtifacts() {

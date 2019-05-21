@@ -38,7 +38,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
-    private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
+    static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
     private final Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
     private final File gradleUserHome;
@@ -113,6 +113,9 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     }
 
     private static class SbtLoggerAdapter implements xsbti.Logger {
+        SbtLoggerAdapter() {
+        }
+
         @Override
         public void error(xsbti.F0<String> msg) {
             LOGGER.error(msg.apply());

@@ -85,6 +85,9 @@ public abstract class AbstractDecoder implements Decoder {
     private class DecoderStream extends InputStream {
         byte[] buffer = new byte[1];
 
+        DecoderStream() {
+        }
+
         @Override
         public long skip(long n) throws IOException {
             return maybeSkip(n);

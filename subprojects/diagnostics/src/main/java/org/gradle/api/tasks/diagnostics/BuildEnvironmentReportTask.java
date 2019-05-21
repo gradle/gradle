@@ -49,7 +49,7 @@ public class BuildEnvironmentReportTask extends DefaultTask {
 
     public static final String TASK_NAME = "buildEnvironment";
 
-    private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
+    DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
     public BuildEnvironmentReportTask() {
         getOutputs().upToDateWhen(new Spec<Task>() {

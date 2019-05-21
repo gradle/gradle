@@ -521,10 +521,10 @@ public class GradleModuleMetadataWriter {
     }
 
     private static class ComponentData {
-        private final ModuleVersionIdentifier coordinates;
-        private final ImmutableAttributes attributes;
+        final ModuleVersionIdentifier coordinates;
+        final ImmutableAttributes attributes;
 
-        private ComponentData(ModuleVersionIdentifier coordinates, ImmutableAttributes attributes) {
+        ComponentData(ModuleVersionIdentifier coordinates, ImmutableAttributes attributes) {
             this.coordinates = coordinates;
             this.attributes = attributes;
         }

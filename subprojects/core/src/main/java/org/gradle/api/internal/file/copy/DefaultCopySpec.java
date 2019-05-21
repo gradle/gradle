@@ -57,22 +57,22 @@ import java.util.regex.Pattern;
 
 @NonExtensible
 public class DefaultCopySpec implements CopySpecInternal {
-    private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
+    static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
     protected final FileResolver fileResolver;
-    private final Set<Object> sourcePaths = new LinkedHashSet<Object>();
-    private Object destDir;
-    private final PatternSet patternSet;
+    final Set<Object> sourcePaths = new LinkedHashSet<Object>();
+    Object destDir;
+    final PatternSet patternSet;
     private final List<CopySpecInternal> childSpecs = new LinkedList<CopySpecInternal>();
     private final List<CopySpecInternal> childSpecsInAdditionOrder = new LinkedList<CopySpecInternal>();
     protected final Instantiator instantiator;
-    private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<Action<? super FileCopyDetails>>();
+    final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<Action<? super FileCopyDetails>>();
     private boolean hasCustomActions;
-    private Integer dirMode;
-    private Integer fileMode;
-    private Boolean caseSensitive;
-    private Boolean includeEmptyDirs;
-    private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
-    private String filteringCharset;
+    Integer dirMode;
+    Integer fileMode;
+    Boolean caseSensitive;
+    Boolean includeEmptyDirs;
+    DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
+    String filteringCharset;
     private final List<CopySpecListener> listeners = Lists.newLinkedList();
 
     public DefaultCopySpec(FileResolver resolver, Instantiator instantiator) {
@@ -190,7 +190,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         });
     }
 
-    private void fireChildSpecListeners(CopySpecAddress path, CopySpecInternal spec) {
+    void fireChildSpecListeners(CopySpecAddress path, CopySpecInternal spec) {
         for (CopySpecListener listener : listeners) {
             listener.childSpecAdded(path, spec);
         }
@@ -539,7 +539,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         // Not marked as @Nullable because of Groovy compiler bug: https://issues.apache.org/jira/browse/GROOVY-8505
         @SuppressWarnings("NullableProblems")
-        private DefaultCopySpecResolver(/* @Nullable */ CopySpecResolver parent) {
+        DefaultCopySpecResolver(/* @Nullable */ CopySpecResolver parent) {
             this.parentResolver = parent;
         }
 

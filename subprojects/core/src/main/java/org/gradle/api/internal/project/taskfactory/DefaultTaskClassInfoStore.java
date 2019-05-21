@@ -55,7 +55,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         return classInfos.get(type, taskClassInfoFactory);
     }
 
-    private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
+    TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
         boolean cacheable = type.isAnnotationPresent(CacheableTask.class);
         boolean incremental = false;
         Map<String, Class<?>> processedMethods = Maps.newHashMap();

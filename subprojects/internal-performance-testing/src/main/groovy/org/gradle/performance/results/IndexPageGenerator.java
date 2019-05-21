@@ -243,7 +243,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
         };
     }
 
-    private static boolean isFlaky(ScenarioBuildResultData scenario) {
+    static boolean isFlaky(ScenarioBuildResultData scenario) {
         if (scenario.getRawData().size() < 1) {
             return false;
         }

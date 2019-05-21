@@ -101,6 +101,9 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     }
 
     private static class CachedArtifactSerializer implements Serializer<CachedArtifact> {
+        CachedArtifactSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, CachedArtifact value) throws Exception {
             encoder.writeBoolean(value.isMissing());

@@ -117,9 +117,9 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     }
 
     private static class SnapshotImpl implements Snapshot {
-        private final boolean installed;
-        private final java.util.logging.Level javaUtilLevel;
-        private final LogLevel requestedLevel;
+        final boolean installed;
+        final java.util.logging.Level javaUtilLevel;
+        final LogLevel requestedLevel;
 
         SnapshotImpl(boolean installed, Level javaUtilLevel, LogLevel requestedLevel) {
             this.installed = installed;

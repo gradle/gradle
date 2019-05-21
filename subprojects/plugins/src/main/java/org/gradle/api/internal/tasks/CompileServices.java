@@ -47,6 +47,9 @@ public class CompileServices extends AbstractPluginServiceRegistry {
     }
 
     private static class GradleScopeCompileServices {
+        GradleScopeCompileServices() {
+        }
+
         void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
             // Hackery
             initializer.initializeJdkTools();
@@ -58,6 +61,9 @@ public class CompileServices extends AbstractPluginServiceRegistry {
     }
 
     private class UserHomeScopeServices {
+        UserHomeScopeServices() {
+        }
+
         DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner interner) {
             return new DefaultUserHomeScopedCompileCaches(fileSystemSnapshotter, cacheRepository, inMemoryCacheDecoratorFactory, interner);
         }

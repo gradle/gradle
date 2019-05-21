@@ -98,7 +98,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         return cache.get(type, typeMetadataFactory);
     }
 
-    private <T> TypeMetadata createTypeMetadata(Class<T> type) {
+    <T> TypeMetadata createTypeMetadata(Class<T> type) {
         Class<?> publicType = GeneratedSubclasses.unpack(type);
         RecordingValidationContext validationContext = new RecordingValidationContext();
         TypeAnnotationMetadata annotationMetadata = typeAnnotationMetadataStore.getTypeAnnotationMetadata(publicType);
@@ -170,6 +170,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private static class RecordingValidationContext implements ParameterValidationContext {
         private ImmutableList.Builder<ValidationProblem> builder = ImmutableList.builder();
+
+        RecordingValidationContext() {
+        }
 
         ImmutableList<ValidationProblem> getProblems() {
             return builder.build();

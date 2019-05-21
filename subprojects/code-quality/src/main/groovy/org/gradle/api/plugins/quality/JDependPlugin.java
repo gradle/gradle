@@ -44,7 +44,7 @@ import java.util.concurrent.Callable;
 public class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
 
     public static final String DEFAULT_JDEPEND_VERSION = "2.9.1";
-    private JDependExtension extension;
+    JDependExtension extension;
 
     @Override
     protected void beforeApply() {

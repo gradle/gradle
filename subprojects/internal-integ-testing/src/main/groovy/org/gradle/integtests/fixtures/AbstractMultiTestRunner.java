@@ -132,7 +132,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         executions.add(execution);
     }
 
-    private static UnrollAwareSuite createRunnerFor(List<? extends Class<?>> targetClasses, final List<Filter> filters, Execution execution) throws InitializationError {
+    static UnrollAwareSuite createRunnerFor(List<? extends Class<?>> targetClasses, final List<Filter> filters, Execution execution) throws InitializationError {
         RunnerBuilder runnerBuilder = new RunnerBuilder() {
             @Override
             public Runner runnerForClass(Class<?> testClass) throws Throwable {
@@ -222,7 +222,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         private Description templateDescription;
         private final Map<Description, Description> descriptionTranslations = new HashMap<Description, Description>();
         private final Set<Description> enabledTests = new LinkedHashSet<Description>();
-        private final Set<Description> disabledTests = new LinkedHashSet<Description>();
+        final Set<Description> disabledTests = new LinkedHashSet<Description>();
         private final List<Filter> filters = new LinkedList<Filter>();
 
         final boolean hasAnyEnabledTests() {
@@ -292,7 +292,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             runner.run(nested);
         }
 
-        private Description translateDescription(Description description) {
+        Description translateDescription(Description description) {
             return descriptionTranslations.containsKey(description) ? descriptionTranslations.get(description) : description;
         }
 
@@ -450,7 +450,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         private final Description parent;
         private final Description test;
 
-        private TestDescriptionBackedTestDetails(Description parent, Description test) {
+        TestDescriptionBackedTestDetails(Description parent, Description test) {
             this.parent = parent;
             this.test = test;
         }

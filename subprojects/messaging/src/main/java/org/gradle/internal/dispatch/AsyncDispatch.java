@@ -78,7 +78,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
         executor.execute(new CurrentBuildOperationPreservingRunnable(dispatcher));
     }
 
-    private void dispatchMessages(Dispatch<? super T> dispatch) {
+    void dispatchMessages(Dispatch<? super T> dispatch) {
         while (true) {
             T message = waitForNextMessage();
             if (message == null) {
@@ -125,7 +125,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
         }
     }
 
-    private void onDispatchThreadExit(Dispatch<? super T> dispatch) {
+    void onDispatchThreadExit(Dispatch<? super T> dispatch) {
         lock.lock();
         try {
             dispatchers.remove(dispatch);

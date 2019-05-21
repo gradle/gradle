@@ -478,7 +478,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Finds the end of an identifier.
      */
-    private static int consumeIdentifier(CharSequence value, int startOffset) {
+    static int consumeIdentifier(CharSequence value, int startOffset) {
         int pos = startOffset;
         while (pos < value.length()) {
             char ch = value.charAt(pos);
@@ -493,7 +493,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Finds the end of a sequence of whitespace characters.
      */
-    private static int consumeWhitespace(CharSequence value, int startOffset) {
+    static int consumeWhitespace(CharSequence value, int startOffset) {
         int pos = startOffset;
         while (pos < value.length()) {
             char ch = value.charAt(pos);
@@ -508,6 +508,9 @@ public class RegexBackedCSourceParser implements CSourceParser {
     private static class Buffer {
         final StringBuilder value = new StringBuilder();
         int pos = 0;
+
+        Buffer() {
+        }
 
         @Override
         public String toString() {

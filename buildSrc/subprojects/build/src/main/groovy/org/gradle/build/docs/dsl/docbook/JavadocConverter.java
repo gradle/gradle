@@ -25,7 +25,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,9 +39,9 @@ import java.util.regex.Pattern;
  * Converts raw javadoc comments into docbook.
  */
 public class JavadocConverter {
-    private static final Pattern HEADER_PATTERN = Pattern.compile("h(\\d)", Pattern.CASE_INSENSITIVE);
+    static final Pattern HEADER_PATTERN = Pattern.compile("h(\\d)", Pattern.CASE_INSENSITIVE);
     private static final Pattern ACCESSOR_COMMENT_PATTERN = Pattern.compile("(?:returns|sets)\\s+(the|whether)\\s+", Pattern.CASE_INSENSITIVE);
-    private final Document document;
+    final Document document;
     private final JavadocLinkConverter linkConverter;
 
     public JavadocConverter(Document document, JavadocLinkConverter linkConverter) {
@@ -254,7 +260,7 @@ public class JavadocConverter {
         private final Document document;
         private final GenerationListener listener;
 
-        private UnknownJavadocTagHandler(DocBookBuilder nodes, Document document, GenerationListener listener) {
+        UnknownJavadocTagHandler(DocBookBuilder nodes, Document document, GenerationListener listener) {
             this.nodes = nodes;
             this.document = document;
             this.listener = listener;
@@ -275,7 +281,7 @@ public class JavadocConverter {
         private final Document document;
         private final GenerationListener listener;
 
-        private UnknownHtmlElementHandler(DocBookBuilder nodes, Document document, GenerationListener listener) {
+        UnknownHtmlElementHandler(DocBookBuilder nodes, Document document, GenerationListener listener) {
             this.nodes = nodes;
             this.document = document;
             this.listener = listener;
@@ -307,7 +313,7 @@ public class JavadocConverter {
         private final Document document;
         private final Map<String, String> tagToElementMap = new HashMap<String, String>();
 
-        private JavadocTagToElementTranslatingHandler(DocBookBuilder nodes, Document document) {
+        JavadocTagToElementTranslatingHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
             tagToElementMap.put("code", "literal");
@@ -331,7 +337,7 @@ public class JavadocConverter {
         private final Document document;
         private final Map<String, String> elementToElementMap = new HashMap<String, String>();
 
-        private HtmlElementTranslatingHandler(DocBookBuilder nodes, Document document) {
+        HtmlElementTranslatingHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
             elementToElementMap.put("p", "para");
@@ -371,7 +377,7 @@ public class JavadocConverter {
         private final DocBookBuilder nodes;
         private final Document document;
 
-        private PreElementHandler(DocBookBuilder nodes, Document document) {
+        PreElementHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
         }
@@ -406,7 +412,7 @@ public class JavadocConverter {
         final Document document;
         int sectionDepth;
 
-        private HeaderHandler(DocBookBuilder nodes, Document document) {
+        HeaderHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
         }
@@ -512,7 +518,7 @@ public class JavadocConverter {
         private final Document document;
         private final ClassMetaData classMetaData;
 
-        private AnchorElementHandler(DocBookBuilder nodes, Document document, ClassMetaData classMetaData) {
+        AnchorElementHandler(DocBookBuilder nodes, Document document, ClassMetaData classMetaData) {
             this.nodes = nodes;
             this.document = document;
             this.classMetaData = classMetaData;
@@ -544,7 +550,7 @@ public class JavadocConverter {
         private final Document document;
         private final ClassMetaData classMetaData;
 
-        private AToLinkTranslatingHandler(DocBookBuilder nodes, Document document, ClassMetaData classMetaData) {
+        AToLinkTranslatingHandler(DocBookBuilder nodes, Document document, ClassMetaData classMetaData) {
             this.nodes = nodes;
             this.document = document;
             this.classMetaData = classMetaData;
@@ -581,7 +587,7 @@ public class JavadocConverter {
         private final DocBookBuilder nodes;
         private final Document document;
 
-        private AToUlinkTranslatingHandler(DocBookBuilder nodes, Document document) {
+        AToUlinkTranslatingHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
         }
@@ -704,7 +710,7 @@ public class JavadocConverter {
     private static class LiteralTagHandler implements JavadocTagHandler {
         private final DocBookBuilder nodes;
 
-        private LiteralTagHandler(DocBookBuilder nodes) {
+        LiteralTagHandler(DocBookBuilder nodes) {
             this.nodes = nodes;
         }
 
@@ -724,8 +730,8 @@ public class JavadocConverter {
         private final ClassMetaData classMetaData;
         private final GenerationListener listener;
 
-        private LinkHandler(DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
-                            GenerationListener listener) {
+        LinkHandler(DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
+                    GenerationListener listener) {
             this.nodes = nodes;
             this.linkConverter = linkConverter;
             this.classMetaData = classMetaData;
@@ -746,7 +752,7 @@ public class JavadocConverter {
         private final CommentSource source;
         private final DocBookBuilder nodeStack;
 
-        private InheritDocHandler(DocBookBuilder nodeStack, CommentSource source) {
+        InheritDocHandler(DocBookBuilder nodeStack, CommentSource source) {
             this.nodeStack = nodeStack;
             this.source = source;
         }
@@ -768,6 +774,9 @@ public class JavadocConverter {
     }
 
     private static class NoOpCommentSource implements CommentSource {
+        NoOpCommentSource() {
+        }
+
         @Override
         public List<? extends Node> getCommentText() {
             throw new UnsupportedOperationException();

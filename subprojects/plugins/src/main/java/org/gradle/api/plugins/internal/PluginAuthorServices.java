@@ -29,6 +29,9 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     }
 
     private static class GlobalcopeServices {
+        GlobalcopeServices() {
+        }
+
         SoftwareComponentFactory createSoftwareComponentFactory() {
             return new DefaultSoftwareComponentFactory();
         }

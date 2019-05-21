@@ -31,7 +31,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 public class DependentComponentsGraphRenderer {
 
     private final GraphRenderer renderer;
-    private final DependentBinaryNodeRenderer nodeRenderer;
+    final DependentBinaryNodeRenderer nodeRenderer;
     private final ShowDependentPredicate showDependentPredicate;
 
     public DependentComponentsGraphRenderer(GraphRenderer renderer, boolean showNonBuildable, boolean showTestSuites) {
@@ -82,7 +82,10 @@ public class DependentComponentsGraphRenderer {
 
     private static class DependentBinaryNodeRenderer implements NodeRenderer {
 
-        private boolean seenTestSuite;
+        boolean seenTestSuite;
+
+        DependentBinaryNodeRenderer() {
+        }
 
         @Override
         public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
@@ -104,10 +107,10 @@ public class DependentComponentsGraphRenderer {
         private final boolean showNonBuildable;
         private final boolean showTestSuites;
 
-        private boolean hiddenNonBuildable;
-        private boolean hiddenTestSuite;
+        boolean hiddenNonBuildable;
+        boolean hiddenTestSuite;
 
-        private ShowDependentPredicate(boolean showNonBuildable, boolean showTestSuites) {
+        ShowDependentPredicate(boolean showNonBuildable, boolean showTestSuites) {
             this.showNonBuildable = showNonBuildable;
             this.showTestSuites = showTestSuites;
         }

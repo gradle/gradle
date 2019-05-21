@@ -17,15 +17,15 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.nativeplatform.TargetMachineBuilder;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineBuilder;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 public class DefaultTargetMachineFactory implements TargetMachineFactory {
-    private final ObjectFactory objectFactory;
+    final ObjectFactory objectFactory;
 
     public DefaultTargetMachineFactory(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;

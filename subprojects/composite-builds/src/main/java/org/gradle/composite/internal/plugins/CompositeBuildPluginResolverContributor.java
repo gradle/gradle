@@ -39,10 +39,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CompositeBuildPluginResolverContributor implements PluginResolverContributor {
-    private final BuildStateRegistry buildRegistry;
-    private final BuildState consumingBuild;
-    private static final Resolution UNKNOWN = new Resolution(null);
-    private final Map<PluginId, Resolution> results = new HashMap<PluginId, Resolution>();
+    final BuildStateRegistry buildRegistry;
+    final BuildState consumingBuild;
+    static final Resolution UNKNOWN = new Resolution(null);
+    final Map<PluginId, Resolution> results = new HashMap<PluginId, Resolution>();
 
     public CompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
         this.buildRegistry = buildRegistry;
@@ -55,6 +55,9 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
     }
 
     private class CompositeBuildPluginResolver implements PluginResolver {
+        CompositeBuildPluginResolver() {
+        }
+
         @Override
         public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
             Resolution resolution = results.get(pluginRequest.getId());

@@ -65,10 +65,10 @@ import static org.gradle.internal.FileUtils.withExtension;
 @NonNullApi
 class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
-    private final VisualStudioInstall visualStudio;
-    private final VisualCpp visualCpp;
+    final VisualStudioInstall visualStudio;
+    final VisualCpp visualCpp;
     private final WindowsSdk sdk;
-    private final WindowsSdkLibraries libraries;
+    final WindowsSdkLibraries libraries;
     private final ExecActionFactory execActionFactory;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final WorkerLeaseService workerLeaseService;
@@ -248,7 +248,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         return libraries;
     }
 
-    private <T extends NativeCompileSpec> Transformer<T, T> addDefinitions(Class<T> type) {
+    <T extends NativeCompileSpec> Transformer<T, T> addDefinitions(Class<T> type) {
         return new Transformer<T, T>() {
             @Override
             public T transform(T original) {

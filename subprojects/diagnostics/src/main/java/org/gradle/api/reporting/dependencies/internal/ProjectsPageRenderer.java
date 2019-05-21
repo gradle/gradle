@@ -29,7 +29,7 @@ import java.util.Date;
 import java.util.Set;
 
 public class ProjectsPageRenderer extends ReportRenderer<Set<Project>, HtmlPageBuilder<Writer>> {
-    private final Transformer<String, Project> namingScheme;
+    final Transformer<String, Project> namingScheme;
 
     public ProjectsPageRenderer(Transformer<String, Project> namingScheme) {
         this.namingScheme = namingScheme;

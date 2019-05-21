@@ -52,10 +52,10 @@ import java.net.URI;
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
 public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, Closeable {
-    private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-    private final ScriptCompilationHandler scriptCompilationHandler;
-    private final ProgressLoggerFactory progressLoggerFactory;
-    private final CacheRepository cacheRepository;
+    static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+    final ScriptCompilationHandler scriptCompilationHandler;
+    final ProgressLoggerFactory progressLoggerFactory;
+    final CacheRepository cacheRepository;
     private final ClassLoaderCache classLoaderCache;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
@@ -122,11 +122,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     public void close() {
     }
 
-    private File classesDir(PersistentCache cache) {
+    File classesDir(PersistentCache cache) {
         return new File(cache.getBaseDir(), "classes");
     }
 
-    private File metadataDir(PersistentCache cache) {
+    File metadataDir(PersistentCache cache) {
         return new File(cache.getBaseDir(), "metadata");
     }
 
@@ -289,7 +289,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return remapped;
         }
 
-        private String remap(String name) {
+        String remap(String name) {
             if (name == null) {
                 return null;
             }
@@ -303,7 +303,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return name.replaceAll(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
         }
 
-        private Object remap(Object o) {
+        Object remap(Object o) {
             if (o instanceof Type) {
                 return Type.getType(remap(((Type) o).getDescriptor()));
             }
@@ -313,7 +313,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return o;
         }
 
-        private Object[] remap(int count, Object[] original) {
+        Object[] remap(int count, Object[] original) {
             if (count == 0) {
                 return EMPTY_OBJECT_ARRAY;
             }

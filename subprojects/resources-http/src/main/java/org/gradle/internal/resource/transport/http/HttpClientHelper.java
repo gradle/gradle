@@ -185,12 +185,12 @@ public class HttpClientHelper implements Closeable {
     private static class FailureFromRedirectLocation extends IOException {
         private final URI lastRedirectLocation;
 
-        private FailureFromRedirectLocation(URI lastRedirectLocation, Throwable cause) {
+        FailureFromRedirectLocation(URI lastRedirectLocation, Throwable cause) {
             super(cause);
             this.lastRedirectLocation = lastRedirectLocation;
         }
 
-        private URI getLastRedirectLocation() {
+        URI getLastRedirectLocation() {
             return lastRedirectLocation;
         }
     }

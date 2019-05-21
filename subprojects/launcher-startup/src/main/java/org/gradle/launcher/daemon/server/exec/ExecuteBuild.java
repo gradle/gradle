@@ -36,7 +36,7 @@ import org.gradle.launcher.exec.BuildActionResult;
  */
 public class ExecuteBuild extends BuildCommandOnly {
 
-    private static final Logger LOGGER = Logging.getLogger(ExecuteBuild.class);
+    static final Logger LOGGER = Logging.getLogger(ExecuteBuild.class);
 
     final private BuildActionExecuter<BuildActionParameters> actionExecuter;
     private final DaemonRunningStats runningStats;

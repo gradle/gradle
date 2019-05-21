@@ -426,11 +426,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
-        private DefaultRepositories(Instantiator instantiator,
-                                    ObjectFactory objectFactory,
-                                    Action<PrebuiltLibrary> binaryFactory,
-                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                    DomainObjectCollectionFactory domainObjectCollectionFactory) {
+        DefaultRepositories(Instantiator instantiator,
+                            ObjectFactory objectFactory,
+                            Action<PrebuiltLibrary> binaryFactory,
+                            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+                            DomainObjectCollectionFactory domainObjectCollectionFactory) {
             super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer(), collectionCallbackActionDecorator);
             registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
                 @Override

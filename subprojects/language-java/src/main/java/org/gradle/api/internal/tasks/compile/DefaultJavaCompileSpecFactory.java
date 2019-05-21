@@ -39,8 +39,12 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
     }
 
     private static class DefaultCommandLineJavaSpec extends DefaultJavaCompileSpec implements CommandLineJavaCompileSpec {
+        DefaultCommandLineJavaSpec() {
+        }
     }
 
     private static class DefaultForkingJavaCompileSpec extends DefaultJavaCompileSpec implements ForkingJavaCompileSpec {
+        DefaultForkingJavaCompileSpec() {
+        }
     }
 }

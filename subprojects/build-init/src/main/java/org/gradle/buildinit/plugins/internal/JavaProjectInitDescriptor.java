@@ -134,10 +134,10 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
     }
 
     protected static class Description {
-        private final String projectType;
-        private final String chapterName;
-        private final String userguideId;
-        private final String pluginName;
+        final String projectType;
+        final String chapterName;
+        final String userguideId;
+        final String pluginName;
 
         public Description(String projectType, String chapterName, String userguideId, String pluginName) {
             this.projectType = projectType;

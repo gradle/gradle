@@ -19,8 +19,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
@@ -38,7 +38,7 @@ import org.gradle.util.BuildCommencedTimeProvider;
 public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
-    private final ModuleMetadataStore moduleMetadataStore;
+    final ModuleMetadataStore moduleMetadataStore;
     private final ArtifactCacheLockingManager artifactCacheLockingManager;
 
     public PersistentModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
@@ -54,7 +54,7 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
         this.artifactCacheLockingManager = artifactCacheLockingManager;
     }
 
-    private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
+    PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
         }
@@ -108,6 +108,9 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
     private static class RevisionKeySerializer extends AbstractSerializer<ModuleComponentAtRepositoryKey> {
         private final ComponentIdentifierSerializer componentIdSerializer = new ComponentIdentifierSerializer();
+
+        RevisionKeySerializer() {
+        }
 
         @Override
         public void write(Encoder encoder, ModuleComponentAtRepositoryKey value) throws Exception {

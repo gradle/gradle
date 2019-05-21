@@ -25,7 +25,7 @@ import java.lang.reflect.Modifier;
 
 class Jsr330ConstructorSelector implements ConstructorSelector {
     private final CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache;
-    private final ClassGenerator classGenerator;
+    final ClassGenerator classGenerator;
 
     public Jsr330ConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache) {
         this.constructorCache = constructorCache;
@@ -67,7 +67,7 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
         return Cast.uncheckedCast(constructor.getConstructor());
     }
 
-    private static <T> void validateType(Class<T> type) {
+    static <T> void validateType(Class<T> type) {
         if (!type.isInterface() && type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(type);

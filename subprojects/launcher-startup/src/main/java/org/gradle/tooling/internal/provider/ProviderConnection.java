@@ -302,7 +302,7 @@ public class ProviderConnection {
     private static final class BuildProgressListenerInvokingBuildEventConsumer implements BuildEventConsumer {
         private final InternalBuildProgressListener buildProgressListener;
 
-        private BuildProgressListenerInvokingBuildEventConsumer(InternalBuildProgressListener buildProgressListener) {
+        BuildProgressListenerInvokingBuildEventConsumer(InternalBuildProgressListener buildProgressListener) {
             this.buildProgressListener = buildProgressListener;
         }
 
@@ -326,9 +326,9 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
             .build();
 
-        private final BuildClientSubscriptions clientSubscriptions;
-        private final FailsafeBuildProgressListenerAdapter failsafeWrapper;
-        private final BuildEventConsumer buildEventConsumer;
+        final BuildClientSubscriptions clientSubscriptions;
+        final FailsafeBuildProgressListenerAdapter failsafeWrapper;
+        final BuildEventConsumer buildEventConsumer;
 
         ProgressListenerConfiguration(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer, FailsafeBuildProgressListenerAdapter failsafeWrapper) {
             this.clientSubscriptions = clientSubscriptions;

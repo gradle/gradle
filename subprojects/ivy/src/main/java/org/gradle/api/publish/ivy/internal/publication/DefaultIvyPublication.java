@@ -129,7 +129,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final FeaturePreviews featurePreviews;
     private IvyArtifact ivyDescriptorArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
-    private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
+    SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
     private boolean alias;
     private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();

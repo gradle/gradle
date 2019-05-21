@@ -21,13 +21,13 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.collections.DirectoryTrees;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -42,8 +42,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @ThreadSafe
 public class FileSystemSubset {
 
-    private final ImmutableCollection<File> files;
-    private final ImmutableCollection<ImmutableDirectoryTree> trees;
+    final ImmutableCollection<File> files;
+    final ImmutableCollection<ImmutableDirectoryTree> trees;
 
     public static Builder builder() {
         return new Builder();
@@ -104,7 +104,7 @@ public class FileSystemSubset {
         private final ImmutableSet.Builder<ImmutableDirectoryTree> trees = ImmutableSet.builder();
         private final Lock lock = new ReentrantLock();
 
-        private Builder() {
+        Builder() {
         }
 
         public Builder add(FileSystemSubset fileSystemSubset) {

@@ -31,7 +31,7 @@ import java.util.Map;
 public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
     private IndexedStringSet strings;
 
-    private final Output output;
+    final Output output;
 
     public StringDeduplicatingKryoBackedEncoder(OutputStream outputStream) {
         this(outputStream, 4096);
@@ -137,7 +137,10 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     private class IndexedStringSet {
 
         private final StringSetBucket[] buckets = new StringSetBucket[256];
-        private int count;
+        int count;
+
+        IndexedStringSet() {
+        }
 
         public void register(String value) {
             int bucketId = value.hashCode() & 0xFF;
@@ -156,7 +159,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
         private class SingleEntryStringSet implements StringSetBucket {
             private final IndexedString indexed;
 
-            private SingleEntryStringSet(String value) {
+            SingleEntryStringSet(String value) {
                 this.indexed = new IndexedString(value, count);
                 output.writeInt(count, true);
                 output.writeString(value);
@@ -221,7 +224,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
         private class MultiMapStringSet implements StringSetBucket {
             private final Map<String, Integer> map;
 
-            private MultiMapStringSet(List<IndexedString> strings) {
+            MultiMapStringSet(List<IndexedString> strings) {
                 map = Maps.newHashMapWithExpectedSize(strings.size() << 1);
                 for (IndexedString indexedString : strings) {
                     map.put(indexedString.value, indexedString.index);
@@ -265,10 +268,10 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
      * Associates a unique integer to a string.
      */
     private static class IndexedString {
-        private final String value;
-        private final int index;
+        final String value;
+        final int index;
 
-        private IndexedString(String value, int index) {
+        IndexedString(String value, int index) {
             this.value = value;
             this.index = index;
         }

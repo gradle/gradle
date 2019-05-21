@@ -52,7 +52,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final MessagingServer server;
     private final IdGenerator<?> idGenerator;
     private final ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory;
-    private final OutputEventListener outputEventListener;
+    final OutputEventListener outputEventListener;
     private final JavaExecHandleBuilder javaCommand;
     private final Set<String> packages = new HashSet<String>();
     private final Set<File> applicationClasspath = new LinkedHashSet<File>();
@@ -63,7 +63,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private File gradleUserHomeDir;
     private int connectTimeoutSeconds;
     private List<URL> implementationClassPath;
-    private boolean shouldPublishJvmMemoryInfo;
+    boolean shouldPublishJvmMemoryInfo;
 
     DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<?> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager) {
         this.javaCommand = execHandleFactory.newJavaExec();
@@ -222,7 +222,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         private final MemoryManager memoryResourceManager;
         private final long memoryAmount;
 
-        private MemoryRequestingWorkerProcess(WorkerProcess delegate, MemoryManager memoryResourceManager, long memoryAmount) {
+        MemoryRequestingWorkerProcess(WorkerProcess delegate, MemoryManager memoryResourceManager, long memoryAmount) {
             this.delegate = delegate;
             this.memoryResourceManager = memoryResourceManager;
             this.memoryAmount = memoryAmount;

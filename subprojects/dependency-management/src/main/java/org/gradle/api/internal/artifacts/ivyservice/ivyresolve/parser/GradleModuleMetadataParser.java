@@ -61,7 +61,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 public class GradleModuleMetadataParser {
-    private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
+    final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
 
     public static final String FORMAT_VERSION = "1.0";
     private final ImmutableAttributesFactory attributesFactory;
@@ -110,7 +110,7 @@ public class GradleModuleMetadataParser {
         });
     }
 
-    private void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
+    void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
             switch (name) {
@@ -572,7 +572,7 @@ public class GradleModuleMetadataParser {
         final String name;
         final String version;
 
-        private VariantCapability(String group, String name, String version) {
+        VariantCapability(String group, String name, String version) {
             this.group = group;
             this.name = name;
             this.version = version;

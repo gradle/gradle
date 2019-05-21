@@ -82,7 +82,7 @@ public class ZincScalaCompilerFactory {
         return compiler;
     }
 
-    private static Compiler createCompiler(final Setup setup, final PersistentCache zincCache, final xsbti.Logger logger) {
+    static Compiler createCompiler(final Setup setup, final PersistentCache zincCache, final xsbti.Logger logger) {
         return Compiler.compilerCache().get(setup, new scala.runtime.AbstractFunction0<Compiler>() {
             @Override
             public Compiler apply() {
@@ -96,7 +96,7 @@ public class ZincScalaCompilerFactory {
     }
 
     // parallel safe version of Compiler.compilerInterface()
-    private static File getCompilerInterface(final Setup setup, final ScalaInstance instance, PersistentCache zincCache, final xsbti.Logger logger) {
+    static File getCompilerInterface(final Setup setup, final ScalaInstance instance, PersistentCache zincCache, final xsbti.Logger logger) {
         final String sbtInterfaceFileName = Compiler.interfaceId(instance.actualVersion()) + ".jar";
         final File compilerInterface = new File(setup.cacheDir(), sbtInterfaceFileName);
         if (compilerInterface.exists()) {
@@ -154,7 +154,7 @@ public class ZincScalaCompilerFactory {
         }
     }
 
-    private static Setup createZincSetup(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
+    static Setup createZincSetup(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
         ScalaLocation scalaLocation = ScalaLocation.fromPath(Lists.newArrayList(scalaClasspath));
         SbtJars sbtJars = SbtJars.fromPath(Lists.newArrayList(zincClasspath));
         Setup setup = Setup.create(scalaLocation, sbtJars, Jvm.current().getJavaHome(), true);

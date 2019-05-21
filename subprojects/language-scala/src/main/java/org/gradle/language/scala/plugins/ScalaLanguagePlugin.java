@@ -87,6 +87,9 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
 
     private static class Scala implements LanguageTransform<ScalaLanguageSourceSet, JvmByteCode> {
+        Scala() {
+        }
+
         @Override
         public String getLanguageName() {
             return "scala";

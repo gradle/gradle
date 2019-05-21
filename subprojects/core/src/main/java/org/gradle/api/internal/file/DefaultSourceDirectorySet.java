@@ -51,7 +51,7 @@ import java.util.Set;
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final List<Object> source = new ArrayList<Object>();
     private final String name;
-    private final String displayName;
+    final String displayName;
     private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final PatternSet patterns;
@@ -275,6 +275,9 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     private class SourceDirectories implements MinimalFileSet, Buildable {
+        SourceDirectories() {
+        }
+
         @Override
         public TaskDependency getBuildDependencies() {
             return DefaultSourceDirectorySet.this.getBuildDependencies();

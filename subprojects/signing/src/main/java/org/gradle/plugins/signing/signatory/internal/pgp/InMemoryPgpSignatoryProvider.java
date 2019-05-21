@@ -82,7 +82,7 @@ public class InMemoryPgpSignatoryProvider implements SignatoryProvider<PgpSignat
         });
     }
 
-    private void createSignatoryFor(String name, Object[] args) {
+    void createSignatoryFor(String name, Object[] args) {
         if (args.length != 2) {
             throw new IllegalArgumentException("Invalid args (" + name + ": " + Arrays.toString(args) + ")");
         }

@@ -27,8 +27,8 @@ import org.gradle.internal.logging.events.OutputEventListener;
  * on top of OutputEventRenderer noticeably degraded performance.
  */
 public class OutputEventListenerManager {
-    private final OutputEventListener renderer;
-    private OutputEventListener other;
+    final OutputEventListener renderer;
+    OutputEventListener other;
 
     private final OutputEventListener broadcaster = new OutputEventListener() {
         @Override

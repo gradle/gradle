@@ -177,6 +177,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     private static class DefaultResolveContextToComponentResolver implements ResolveContextToComponentResolver {
+        DefaultResolveContextToComponentResolver() {
+        }
+
         @Override
         public void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result) {
             result.resolved(resolveContext.toRootComponentMetaData());

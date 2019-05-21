@@ -210,6 +210,9 @@ public abstract class IncrementalElement {
     }
 
     private class OriginalElement extends SourceElement {
+        OriginalElement() {
+        }
+
         @Override
         public List<SourceFile> getFiles() {
             List<SourceFile> result = new ArrayList<SourceFile>();
@@ -226,6 +229,9 @@ public abstract class IncrementalElement {
     }
 
     private class AlternateElement extends SourceElement {
+        AlternateElement() {
+        }
+
         @Override
         public List<SourceFile> getFiles() {
             List<SourceFile> result = new ArrayList<SourceFile>();

@@ -29,8 +29,8 @@ import java.io.File;
  */
 public class JacocoAgentJar {
 
-    private static final VersionNumber V_0_6_2_0 = VersionNumber.parse("0.6.2.0");
-    private static final VersionNumber V_0_7_6_0 = VersionNumber.parse("0.7.6.0");
+    static final VersionNumber V_0_6_2_0 = VersionNumber.parse("0.6.2.0");
+    static final VersionNumber V_0_7_6_0 = VersionNumber.parse("0.7.6.0");
 
     private final Project project;
     private FileCollection agentConf;

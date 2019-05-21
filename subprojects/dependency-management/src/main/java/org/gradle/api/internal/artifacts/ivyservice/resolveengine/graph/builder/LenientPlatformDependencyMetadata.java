@@ -46,10 +46,10 @@ import java.util.List;
 import java.util.Set;
 
 class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
-    private final ResolveState resolveState;
-    private final NodeState from;
+    final ResolveState resolveState;
+    final NodeState from;
     private final ModuleComponentSelector cs;
-    private final ModuleComponentIdentifier componentId;
+    final ModuleComponentIdentifier componentId;
     private final ComponentIdentifier platformId; // just for reporting
     private final boolean force;
     private final boolean transitive;

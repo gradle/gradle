@@ -78,6 +78,9 @@ public class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchi
     }
 
     private static class ArchiverSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
+        ArchiverSpecToArguments() {
+        }
+
         @Override
         public List<String> transform(StaticLibraryArchiverSpec spec) {
             List<String> args = new ArrayList<String>();

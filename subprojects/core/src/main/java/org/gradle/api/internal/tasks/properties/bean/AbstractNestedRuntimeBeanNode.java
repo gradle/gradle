@@ -65,8 +65,8 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
     }
 
     private static class BeanPropertyValue implements PropertyValue {
-        private final Method method;
-        private final Object bean;
+        final Method method;
+        final Object bean;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
             @Override
             @Nullable

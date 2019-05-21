@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * A simple in-memory cache, used by the testing fixtures.
  */
 public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
-    private final Map<Object, byte[]> entries = new ConcurrentHashMap<Object, byte[]>();
+    final Map<Object, byte[]> entries = new ConcurrentHashMap<Object, byte[]>();
     private final ProducerGuard<K> producerGuard = ProducerGuard.serial();
     private final Serializer<V> valueSerializer;
 

@@ -32,8 +32,8 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
     private static final int KEY_CODE_CTRL_D = 4;
 
     private final ExecutorService executorService;
-    private final DisconnectableInputStream input;
-    private final BuildCancellationToken cancellationToken;
+    final DisconnectableInputStream input;
+    final BuildCancellationToken cancellationToken;
 
     public DefaultCancellableOperationManager(ExecutorService executorService, DisconnectableInputStream input, BuildCancellationToken cancellationToken) {
         this.executorService = executorService;
@@ -84,7 +84,7 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
         }
     }
 
-    private static boolean isCancellation(int c) {
+    static boolean isCancellation(int c) {
         return c == KEY_CODE_CTRL_D || c == EOF;
     }
 }

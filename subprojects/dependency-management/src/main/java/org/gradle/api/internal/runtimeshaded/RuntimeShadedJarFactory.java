@@ -35,9 +35,9 @@ public class RuntimeShadedJarFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarFactory.class);
 
     private final GeneratedGradleJarCache cache;
-    private final ProgressLoggerFactory progressLoggerFactory;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final BuildOperationExecutor executor;
+    final ProgressLoggerFactory progressLoggerFactory;
+    final DirectoryFileTreeFactory directoryFileTreeFactory;
+    final BuildOperationExecutor executor;
 
     public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, DirectoryFileTreeFactory directoryFileTreeFactory, BuildOperationExecutor executor) {
         this.cache = cache;

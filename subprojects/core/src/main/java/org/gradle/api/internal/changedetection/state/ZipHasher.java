@@ -128,7 +128,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
 
         private final ZipEntry zipEntry;
 
-        private ZipEntryRelativePath(ZipEntry zipEntry) {
+        ZipEntryRelativePath(ZipEntry zipEntry) {
             this.zipEntry = zipEntry;
         }
 

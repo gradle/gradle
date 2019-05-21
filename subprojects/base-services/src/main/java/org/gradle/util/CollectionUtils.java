@@ -643,7 +643,7 @@ public abstract class CollectionUtils {
 
     public static <T> Iterable<? extends T> unpack(final Iterable<? extends Factory<? extends T>> factories) {
         return new Iterable<T>() {
-            private final Iterator<? extends Factory<? extends T>> delegate = factories.iterator();
+            final Iterator<? extends Factory<? extends T>> delegate = factories.iterator();
 
             @Override
             public Iterator<T> iterator() {

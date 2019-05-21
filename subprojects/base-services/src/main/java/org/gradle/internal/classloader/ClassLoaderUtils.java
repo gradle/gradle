@@ -144,7 +144,7 @@ public abstract class ClassLoaderUtils {
     private static class ReflectionClassDefiner implements ClassDefiner {
         private final JavaMethod<ClassLoader, Class> defineClassMethod;
 
-        private ReflectionClassDefiner() {
+        ReflectionClassDefiner() {
             defineClassMethod = JavaMethod.of(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, int.class, int.class);
         }
 

@@ -46,7 +46,7 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
     protected void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) {
     }
 
-    private void renderPackages(SimpleHtmlWriter htmlWriter) throws IOException {
+    void renderPackages(SimpleHtmlWriter htmlWriter) throws IOException {
         htmlWriter.startElement("table");
         htmlWriter.startElement("thead");
         htmlWriter.startElement("tr");
@@ -75,7 +75,7 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
         htmlWriter.endElement();
     }
 
-    private void renderClasses(SimpleHtmlWriter htmlWriter) throws IOException {
+    void renderClasses(SimpleHtmlWriter htmlWriter) throws IOException {
         htmlWriter.startElement("table");
         htmlWriter.startElement("thead");
         htmlWriter.startElement("tr");

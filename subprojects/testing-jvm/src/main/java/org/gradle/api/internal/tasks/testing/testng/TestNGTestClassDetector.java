@@ -16,16 +16,16 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
 class TestNGTestClassDetector extends TestClassVisitor {
-    private static final Set<String> TEST_METHOD_ANNOTATIONS =
+    static final Set<String> TEST_METHOD_ANNOTATIONS =
         ImmutableSet.<String>builder()
         .add("Lorg/testng/annotations/Test;")
         .add("Lorg/testng/annotations/BeforeSuite;")
@@ -64,7 +64,7 @@ class TestNGTestClassDetector extends TestClassVisitor {
     }
 
     private class TestNGTestMethodDetector extends MethodVisitor {
-        private TestNGTestMethodDetector() {
+        TestNGTestMethodDetector() {
             super(AsmConstants.ASM_LEVEL);
 
         }

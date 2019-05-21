@@ -45,7 +45,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
-    private static final Object[] NO_PARAMETERS = new Object[0];
+    static final Object[] NO_PARAMETERS = new Object[0];
     private final List<ArtifactTransformRegistration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final ServiceRegistry services;

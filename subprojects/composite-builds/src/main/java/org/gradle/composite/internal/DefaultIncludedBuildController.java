@@ -48,7 +48,7 @@ import static org.gradle.composite.internal.IncludedBuildTaskResource.State.WAIT
 
 class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBuildController {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildController.class);
-    private final IncludedBuildState includedBuild;
+    final IncludedBuildState includedBuild;
     private final ResourceLockCoordinationService coordinationService;
 
     private enum State {
@@ -200,7 +200,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
     }
 
-    private void taskCompleted(String task, Throwable failure) {
+    void taskCompleted(String task, Throwable failure) {
         lock.lock();
         try {
             TaskState taskState = tasks.get(task);
@@ -288,6 +288,9 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private static class TaskState {
         public BuildResult result;
         public TaskStatus status = TaskStatus.QUEUED;
+
+        TaskState() {
+        }
     }
 
     private class IncludedBuildExecutionListener implements TaskExecutionGraphListener, TaskExecutionListener {

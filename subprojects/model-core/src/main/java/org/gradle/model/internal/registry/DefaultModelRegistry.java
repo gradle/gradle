@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
@@ -47,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,15 +65,19 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.gradle.model.internal.core.ModelNode.State.*;
+import static org.gradle.model.internal.core.ModelNode.State.Created;
+import static org.gradle.model.internal.core.ModelNode.State.Discovered;
+import static org.gradle.model.internal.core.ModelNode.State.GraphClosed;
+import static org.gradle.model.internal.core.ModelNode.State.Registered;
+import static org.gradle.model.internal.core.ModelNode.State.SelfClosed;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistryInternal {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
-    private final String projectPath;
-    private final ModelGraph modelGraph;
-    private final RuleBindings ruleBindings;
+    final String projectPath;
+    final ModelGraph modelGraph;
+    final RuleBindings ruleBindings;
     private final ModelRuleExtractor ruleExtractor;
     // Use of a LinkedList for 2 reasons: `Set` proved to have a significant negative impact on performance
     // And list will see a lot of removals, which ArrayList isn't very well suited for.
@@ -330,7 +334,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         }
     }
 
-    private UnboundModelRulesException unbound(Iterable<? extends RuleBinder> binders) {
+    UnboundModelRulesException unbound(Iterable<? extends RuleBinder> binders) {
         ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(modelGraph.getFlattened().keySet());
         List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
         return new UnboundModelRulesException(unboundRules);
@@ -469,7 +473,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         transitionTo(goalGraph, goalGraph.nodeAtState(new NodeAtState(node.getPath(), desired)));
     }
 
-    private void fireAction(RuleBinder boundMutator) {
+    void fireAction(RuleBinder boundMutator) {
         final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
         ModelBinding subjectBinding = boundMutator.getSubjectBinding();
         final ModelNodeInternal node = subjectBinding.getNode();
@@ -538,6 +542,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     private class GoalGraph {
         private final Map<NodeAtState, ModelGoal> nodeStates = new HashMap<NodeAtState, ModelGoal>();
+
+        GoalGraph() {
+        }
 
         public ModelGoal nodeAtState(NodeAtState goal) {
             ModelGoal node = nodeStates.get(goal);

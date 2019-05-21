@@ -110,7 +110,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         return LoggingServiceRegistry.newCommandLineProcessLogging();
     }
 
-    private static void showUsage(PrintStream out, CommandLineParser parser) {
+    static void showUsage(PrintStream out, CommandLineParser parser) {
         out.println();
         out.print("USAGE: ");
         clientMetaData().describeCommand(out, "[option...]", "[task...]");
@@ -220,6 +220,9 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     private static class BuiltInActions implements CommandLineAction {
+        BuiltInActions() {
+        }
+
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
             parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
@@ -270,6 +273,9 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     private static class ShowVersionAction implements Runnable {
+        ShowVersionAction() {
+        }
+
         @Override
         public void run() {
             GradleVersion currentVersion = GradleVersion.current();
@@ -377,7 +383,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         private final ServiceRegistry loggingServices;
         private final List<String> args;
 
-        private ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args) {
+        ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args) {
             this.loggingServices = loggingServices;
             this.args = args;
         }

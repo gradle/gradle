@@ -41,7 +41,7 @@ import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MA
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultArtifactCacheLockingManager implements ArtifactCacheLockingManager, Closeable {
-    private final PersistentCache cache;
+    final PersistentCache cache;
 
     public DefaultArtifactCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal,
                                               UsedGradleVersions usedGradleVersions) {
@@ -102,7 +102,7 @@ public class DefaultArtifactCacheLockingManager implements ArtifactCacheLockingM
     }
 
     private class CacheLockingPersistentCache<K, V> implements PersistentIndexedCache<K, V> {
-        private final PersistentIndexedCache<K, V> persistentCache;
+        final PersistentIndexedCache<K, V> persistentCache;
 
         public CacheLockingPersistentCache(PersistentIndexedCache<K, V> persistentCache) {
             this.persistentCache = persistentCache;

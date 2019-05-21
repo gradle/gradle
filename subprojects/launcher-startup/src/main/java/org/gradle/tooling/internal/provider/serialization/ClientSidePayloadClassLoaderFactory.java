@@ -95,9 +95,9 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         private static class AnnotationDetector extends ClassVisitor {
             private static final String ANNOTATION_DESCRIPTOR = Type.getType(LegacyConsumerInterface.class).getDescriptor();
             String interfaceName;
-            private boolean found;
+            boolean found;
 
-            private AnnotationDetector() {
+            AnnotationDetector() {
                 super(AsmConstants.ASM_LEVEL);
             }
 

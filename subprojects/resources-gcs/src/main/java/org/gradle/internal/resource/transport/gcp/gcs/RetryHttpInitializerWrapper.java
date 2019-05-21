@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  */
 final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
 
-    private static final Logger LOG = Logging.getLogger(RetryHttpInitializerWrapper.class);
+    static final Logger LOG = Logging.getLogger(RetryHttpInitializerWrapper.class);
     private static final long DEFAULT_READ_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(2);
 
     private final Supplier<Credential> credentialSupplier;

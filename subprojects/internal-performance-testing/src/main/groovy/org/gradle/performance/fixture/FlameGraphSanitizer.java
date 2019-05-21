@@ -44,8 +44,8 @@ import static java.util.Collections.singletonList;
  * Simplifies stacks to make flame graphs more readable.
  */
 public class FlameGraphSanitizer {
-    private static final Splitter STACKTRACE_SPLITTER = Splitter.on(";").omitEmptyStrings();
-    private static final Joiner STACKTRACE_JOINER = Joiner.on(";");
+    static final Splitter STACKTRACE_SPLITTER = Splitter.on(";").omitEmptyStrings();
+    static final Joiner STACKTRACE_JOINER = Joiner.on(";");
 
     public static final SanitizeFunction COLLAPSE_BUILD_SCRIPTS = new ReplaceRegex(
         ImmutableMap.of(
@@ -69,7 +69,7 @@ public class FlameGraphSanitizer {
 
     public static final SanitizeFunction SIMPLE_NAMES = new ToSimpleName();
 
-    private final SanitizeFunction sanitizeFunction;
+    final SanitizeFunction sanitizeFunction;
 
     public FlameGraphSanitizer(SanitizeFunction... sanitizeFunctions) {
         ImmutableList<SanitizeFunction> functions = ImmutableList.<SanitizeFunction>builder()
@@ -117,11 +117,11 @@ public class FlameGraphSanitizer {
 
         private final List<SanitizeFunction> sanitizeFunctions;
 
-        private CompositeSanitizeFunction(SanitizeFunction... sanitizeFunctions) {
+        CompositeSanitizeFunction(SanitizeFunction... sanitizeFunctions) {
             this(Arrays.asList(sanitizeFunctions));
         }
 
-        private CompositeSanitizeFunction(Collection<SanitizeFunction> sanitizeFunctions) {
+        CompositeSanitizeFunction(Collection<SanitizeFunction> sanitizeFunctions) {
             this.sanitizeFunctions = ImmutableList.copyOf(sanitizeFunctions);
         }
 
@@ -152,7 +152,7 @@ public class FlameGraphSanitizer {
         private final Collection<String> keyWords;
         private final String replacement;
 
-        private ReplaceContainment(Collection<String> keyWords, String replacement) {
+        ReplaceContainment(Collection<String> keyWords, String replacement) {
             this.keyWords = keyWords;
             this.replacement = replacement;
         }
@@ -171,7 +171,7 @@ public class FlameGraphSanitizer {
     private static class ReplaceRegex extends FrameWiseSanitizeFunction {
         private final Map<Pattern, String> replacements;
 
-        private ReplaceRegex(Map<Pattern, String> replacements) {
+        ReplaceRegex(Map<Pattern, String> replacements) {
             this.replacements = replacements;
         }
 
@@ -194,6 +194,9 @@ public class FlameGraphSanitizer {
     }
 
     private static class CollapseDuplicateFrames implements SanitizeFunction {
+        CollapseDuplicateFrames() {
+        }
+
         @Override
         public List<String> map(List<String> stack) {
             List<String> result = Lists.newArrayList(stack);
@@ -213,7 +216,7 @@ public class FlameGraphSanitizer {
     private static class ChopPrefix implements SanitizeFunction {
         private final String stopToken;
 
-        private ChopPrefix(String stopToken) {
+        ChopPrefix(String stopToken) {
             this.stopToken = stopToken;
         }
 
@@ -230,6 +233,9 @@ public class FlameGraphSanitizer {
     }
 
     private static class NormalizeLambda extends FrameWiseSanitizeFunction {
+        NormalizeLambda() {
+        }
+
         @Override
         protected String mapFrame(String frame) {
             // Lambdas contain a name that's based on an index + timestamp at runtime and changes build-to-build.
@@ -240,6 +246,9 @@ public class FlameGraphSanitizer {
     }
 
     private static class ToSimpleName extends FrameWiseSanitizeFunction {
+
+        ToSimpleName() {
+        }
 
         @Override
         protected String mapFrame(String frame) {

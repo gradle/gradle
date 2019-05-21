@@ -131,7 +131,7 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
         return new XcodeSchemeFile(getXmlTransformer());
     }
 
-    private XcodeSchemeFile.BuildableReference toBuildableReference(XcodeTarget target) {
+    XcodeSchemeFile.BuildableReference toBuildableReference(XcodeTarget target) {
         XcodeSchemeFile.BuildableReference buildableReference = new XcodeSchemeFile.BuildableReference();
         buildableReference.setBuildableIdentifier("primary");
         buildableReference.setBlueprintIdentifier(target.getId());

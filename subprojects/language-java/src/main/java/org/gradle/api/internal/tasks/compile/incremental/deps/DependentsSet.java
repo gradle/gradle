@@ -69,7 +69,7 @@ public abstract class DependentsSet {
     }
 
     private static class EmptyDependentsSet extends DependentsSet {
-        private static final EmptyDependentsSet INSTANCE = new EmptyDependentsSet();
+        static final EmptyDependentsSet INSTANCE = new EmptyDependentsSet();
 
         @Override
         public Set<String> getDependentClasses() {
@@ -98,7 +98,7 @@ public abstract class DependentsSet {
         private final Set<String> dependentClasses;
         private final Set<GeneratedResource> dependentResources;
 
-        private DefaultDependentsSet(Set<String> dependentClasses, Set<GeneratedResource> dependentResources) {
+        DefaultDependentsSet(Set<String> dependentClasses, Set<GeneratedResource> dependentResources) {
             this.dependentClasses = dependentClasses;
             this.dependentResources = dependentResources;
         }
@@ -125,11 +125,11 @@ public abstract class DependentsSet {
     }
 
     private static class DependencyToAll extends DependentsSet {
-        private static final DependencyToAll INSTANCE = new DependencyToAll();
+        static final DependencyToAll INSTANCE = new DependencyToAll();
 
         private final String reason;
 
-        private DependencyToAll(String reason) {
+        DependencyToAll(String reason) {
             this.reason = reason;
         }
 

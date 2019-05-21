@@ -89,7 +89,7 @@ public class NativeTestSuites {
         });
     }
 
-    private static void createRunTask(final NativeTestSuiteBinarySpecInternal testBinary, String name) {
+    static void createRunTask(final NativeTestSuiteBinarySpecInternal testBinary, String name) {
         testBinary.getTasks().create(name, RunTestExecutable.class, new Action<RunTestExecutable>() {
             @Override
             public void execute(RunTestExecutable runTask) {

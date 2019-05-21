@@ -46,7 +46,7 @@ public abstract class GradleProvider {
     private static final class InstallationGradleProvider extends GradleProvider {
         private final File gradleHome;
 
-        private InstallationGradleProvider(File gradleHome) {
+        InstallationGradleProvider(File gradleHome) {
             this.gradleHome = gradleHome;
         }
 

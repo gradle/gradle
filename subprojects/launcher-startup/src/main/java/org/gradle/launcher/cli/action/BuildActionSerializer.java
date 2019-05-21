@@ -207,6 +207,9 @@ public class BuildActionSerializer {
     }
 
     private static class NullableFileSerializer implements Serializer<File> {
+        NullableFileSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, File value) throws Exception {
             if (value == null) {

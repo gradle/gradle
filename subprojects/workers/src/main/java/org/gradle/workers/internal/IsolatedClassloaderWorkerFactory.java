@@ -76,7 +76,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         return IsolationMode.CLASSLOADER;
     }
 
-    private DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
+    DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
         ClassLoader workerInfrastructureClassloader = spec.getClass().getClassLoader();
 
         ClassLoaderStructure classLoaderStructure;
@@ -173,7 +173,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         private final ActionExecutionSpec spec;
         private ServiceRegistry serviceRegistry;
 
-        private WorkerCallable(ActionExecutionSpec spec) {
+        WorkerCallable(ActionExecutionSpec spec) {
             this.spec = spec;
         }
 

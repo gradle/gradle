@@ -77,16 +77,16 @@ import java.util.function.Function;
  * A {@link TaskExecuter} which executes the actions of a task.
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExecuteActionsTaskExecuter.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(ExecuteActionsTaskExecuter.class);
 
-    private final boolean buildCacheEnabled;
-    private final boolean scanPluginApplied;
-    private final TaskFingerprinter taskFingerprinter;
+    final boolean buildCacheEnabled;
+    final boolean scanPluginApplied;
+    final TaskFingerprinter taskFingerprinter;
     private final ExecutionHistoryStore executionHistoryStore;
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final AsyncWorkTracker asyncWorkTracker;
-    private final TaskActionListener actionListener;
-    private final TaskCacheabilityResolver taskCacheabilityResolver;
+    final BuildOperationExecutor buildOperationExecutor;
+    final AsyncWorkTracker asyncWorkTracker;
+    final TaskActionListener actionListener;
+    final TaskCacheabilityResolver taskCacheabilityResolver;
     private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
 
     public ExecuteActionsTaskExecuter(
@@ -187,7 +187,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     private class TaskExecution implements UnitOfWork {
         private final TaskInternal task;
-        private final TaskExecutionContext context;
+        final TaskExecutionContext context;
         private final ExecutionHistoryStore executionHistoryStore;
 
         public TaskExecution(TaskInternal task, TaskExecutionContext context, ExecutionHistoryStore executionHistoryStore) {
@@ -365,7 +365,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
+    void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
         for (InputChangesAwareTaskAction action : new ArrayList<InputChangesAwareTaskAction>(task.getTaskActions())) {
             task.getState().setDidWork(true);
             task.getStandardOutputCapture().start();

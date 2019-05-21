@@ -77,7 +77,7 @@ public class EclipsePlugin extends IdePlugin {
     public static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt";
 
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
-    private final IdeArtifactRegistry artifactRegistry;
+    final IdeArtifactRegistry artifactRegistry;
 
     @Inject
     public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry) {
@@ -235,7 +235,7 @@ public class EclipsePlugin extends IdePlugin {
         });
     }
 
-    private static void configureJavaClasspath(final Project project, final TaskProvider<GenerateEclipseClasspath> task, final EclipseModel model) {
+    static void configureJavaClasspath(final Project project, final TaskProvider<GenerateEclipseClasspath> task, final EclipseModel model) {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
@@ -260,7 +260,7 @@ public class EclipsePlugin extends IdePlugin {
         });
     }
 
-    private static void configureScalaDependencies(final Project project, final EclipseModel model) {
+    static void configureScalaDependencies(final Project project, final EclipseModel model) {
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
             public void execute(ScalaBasePlugin scalaBasePlugin) {
@@ -339,7 +339,7 @@ public class EclipsePlugin extends IdePlugin {
         });
     }
 
-    private static String eclipseJavaRuntimeNameFor(JavaVersion version) {
+    static String eclipseJavaRuntimeNameFor(JavaVersion version) {
         // Default Eclipse JRE paths:
         // https://github.com/eclipse/eclipse.jdt.debug/blob/master/org.eclipse.jdt.launching/plugin.xml#L241-L303
         String eclipseJavaVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(version);

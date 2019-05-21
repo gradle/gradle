@@ -59,7 +59,7 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
     }
 
     protected class RuleMethodDataCollector {
-        private HashMap<ModelType<?>, ModelType<?>> parameterTypes = new HashMap<ModelType<?>, ModelType<?>>();
+        HashMap<ModelType<?>, ModelType<?>> parameterTypes = new HashMap<ModelType<?>, ModelType<?>>();
 
         @SuppressWarnings("unchecked")
         public <S, R extends S> ModelType<R> getParameterType(ModelType<S> baseClass) {

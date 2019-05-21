@@ -180,14 +180,14 @@ public class CachingDirectedGraphWalker<N, T> {
     }
 
     private static class NodeDetails<N, T> {
-        private final int component;
-        private final N node;
-        private Set<T> values = new LinkedHashSet<T>();
-        private List<N> successors = new ArrayList<N>();
-        private Set<NodeDetails<N, T>> componentMembers = new LinkedHashSet<NodeDetails<N, T>>();
-        private int minSeen;
-        private boolean stronglyConnected;
-        private boolean finished;
+        final int component;
+        final N node;
+        Set<T> values = new LinkedHashSet<T>();
+        List<N> successors = new ArrayList<N>();
+        Set<NodeDetails<N, T>> componentMembers = new LinkedHashSet<NodeDetails<N, T>>();
+        int minSeen;
+        boolean stronglyConnected;
+        boolean finished;
 
         public NodeDetails(N node, int component) {
             this.node = node;

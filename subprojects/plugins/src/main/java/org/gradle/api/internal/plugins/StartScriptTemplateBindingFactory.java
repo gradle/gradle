@@ -124,7 +124,7 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         }
     }
 
-    private String escapeWindowsJvmOpt(String jvmOpts) {
+    String escapeWindowsJvmOpt(String jvmOpts) {
         boolean wasOnBackslash = false;
         StringBuilder escapedJvmOpt = new StringBuilder();
         CharacterIterator it = new StringCharacterIterator(jvmOpts);

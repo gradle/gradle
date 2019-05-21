@@ -27,7 +27,7 @@ import java.util.List;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class InjectedPluginResolver {
-    private final ClassLoaderScope classLoaderScope;
+    final ClassLoaderScope classLoaderScope;
 
     public InjectedPluginResolver(ClassLoaderScope classLoaderScope) {
         this.classLoaderScope = classLoaderScope;

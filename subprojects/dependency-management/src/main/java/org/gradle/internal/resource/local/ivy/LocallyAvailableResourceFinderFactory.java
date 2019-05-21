@@ -40,11 +40,11 @@ import java.util.List;
 import java.util.Set;
 
 public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LocallyAvailableResourceFinderFactory.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(LocallyAvailableResourceFinderFactory.class);
 
     private final File rootCachesDirectory;
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
-    private final FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore;
+    final FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore;
 
     public LocallyAvailableResourceFinderFactory(
         ArtifactCacheMetadata artifactCacheMetadata, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore) {

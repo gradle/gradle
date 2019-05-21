@@ -35,8 +35,8 @@ import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
 
-    private final ModelType<T> elementType;
-    private final ModelRuleDescriptor descriptor;
+    final ModelType<T> elementType;
+    final ModelRuleDescriptor descriptor;
     private final MutableModelNode modelNode;
     private final ModelViewState state;
     private final ChildNodeInitializerStrategy<T> creatorStrategy;

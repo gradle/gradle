@@ -37,7 +37,7 @@ import java.util.concurrent.Callable;
 public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final IdeArtifactStore store;
     private final ProjectStateRegistry projectRegistry;
-    private final FileOperations fileOperations;
+    final FileOperations fileOperations;
     private final ProjectComponentIdentifier currentProject;
 
     public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectStateRegistry projectRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildState currentBuild) {

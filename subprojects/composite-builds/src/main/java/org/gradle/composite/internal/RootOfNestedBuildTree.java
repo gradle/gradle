@@ -43,7 +43,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     private final Path identityPath;
     private final BuildState owner;
     private final GradleLauncher gradleLauncher;
-    private String buildName;
+    String buildName;
 
     public RootOfNestedBuildTree(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier, Path identityPath, BuildState owner) {
         this.buildIdentifier = buildIdentifier;

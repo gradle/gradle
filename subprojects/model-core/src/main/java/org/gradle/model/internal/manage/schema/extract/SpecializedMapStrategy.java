@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutionException;
  * Currently only handles interfaces with no type parameters that directly extend ModelMap.
  */
 public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
-    private final ManagedCollectionProxyClassGenerator generator = new ManagedCollectionProxyClassGenerator();
+    final ManagedCollectionProxyClassGenerator generator = new ManagedCollectionProxyClassGenerator();
     private final LoadingCache<ModelType<?>, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()
         .weakValues()
         .build(new CacheLoader<ModelType<?>, Class<?>>() {

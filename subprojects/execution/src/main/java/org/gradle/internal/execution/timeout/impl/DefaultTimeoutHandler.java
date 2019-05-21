@@ -48,7 +48,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
         private final ScheduledFuture<?> timeoutTask;
         private final InterruptOnTimeout interrupter;
 
-        private DefaultTimeout(ScheduledFuture<?> timeoutTask, InterruptOnTimeout interrupter) {
+        DefaultTimeout(ScheduledFuture<?> timeoutTask, InterruptOnTimeout interrupter) {
             this.timeoutTask = timeoutTask;
             this.interrupter = interrupter;
         }
@@ -62,9 +62,9 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
 
     private static class InterruptOnTimeout implements Runnable {
         private final Thread thread;
-        private volatile boolean interrupted;
+        volatile boolean interrupted;
 
-        private InterruptOnTimeout(Thread thread) {
+        InterruptOnTimeout(Thread thread) {
             this.thread = thread;
         }
 

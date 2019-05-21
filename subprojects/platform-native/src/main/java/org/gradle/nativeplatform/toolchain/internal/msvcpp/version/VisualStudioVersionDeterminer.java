@@ -142,7 +142,7 @@ public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvid
         return null;
     }
 
-    private static File getNthParent(File file, int n) {
+    static File getNthParent(File file, int n) {
         if (n == 0) {
             return file;
         } else {

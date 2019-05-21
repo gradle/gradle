@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 
 public class ContextualizingIvyPublisher implements IvyPublisher {
-    private final IvyPublisher ivyPublisher;
+    final IvyPublisher ivyPublisher;
     private final IvyContextManager ivyContextManager;
 
     public ContextualizingIvyPublisher(IvyPublisher ivyPublisher, IvyContextManager ivyContextManager) {

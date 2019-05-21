@@ -43,7 +43,7 @@ public class Trie implements Comparable<Trie> {
         return new Trie.Builder();
     }
 
-    private Trie(char c, boolean terminal, Trie[] transitions) {
+    Trie(char c, boolean terminal, Trie[] transitions) {
         this.c = c;
         this.terminal = terminal;
         this.transitions = transitions;

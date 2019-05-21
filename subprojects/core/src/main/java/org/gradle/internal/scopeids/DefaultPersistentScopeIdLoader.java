@@ -37,7 +37,7 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
 
     private final ProjectCacheDir projectCacheDir;
     private final CacheScopeMapping cacheScopeMapping;
-    private final Factory<UniqueId> generator;
+    final Factory<UniqueId> generator;
     private final PersistentScopeIdStoreFactory storeFactory;
 
     DefaultPersistentScopeIdLoader(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, PersistentScopeIdStoreFactory storeFactory, Factory<UniqueId> generator) {
@@ -95,11 +95,11 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
     }
 
     private static class ScopeParams {
-        private final Object cacheScopeMarker;
-        private final String fileName;
-        private final String description;
+        final Object cacheScopeMarker;
+        final String fileName;
+        final String description;
 
-        private ScopeParams(Object cacheScopeMarker, String fileName, String description) {
+        ScopeParams(Object cacheScopeMarker, String fileName, String description) {
             this.cacheScopeMarker = cacheScopeMarker;
             this.fileName = fileName;
             this.description = description;

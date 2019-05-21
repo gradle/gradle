@@ -84,12 +84,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     };
 
     private final Set<Class<? extends Annotation>> recordedTypeAnnotations;
-    private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
+    final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
     private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
     private final Set<String> potentiallyIgnoredMethodNames;
     private final Set<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
     private final Set<Class<?>> mutableNonFinalClasses;
-    private final Class<? extends Annotation> ignoredMethodAnnotation;
+    final Class<? extends Annotation> ignoredMethodAnnotation;
     private final Predicate<? super Method> generatedMethodDetector;
 
     /**
@@ -397,7 +397,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     }
 
-    private static String simpleAnnotationNames(Stream<Class<? extends Annotation>> annotationTypes) {
+    static String simpleAnnotationNames(Stream<Class<? extends Annotation>> annotationTypes) {
         return annotationTypes
             .map(annotationType -> "@" + annotationType.getSimpleName())
             .collect(joining(", "));
@@ -421,7 +421,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private class PropertyAnnotationMetadataBuilder implements Comparable<PropertyAnnotationMetadataBuilder> {
         private final String propertyName;
-        private Method method;
+        Method method;
         private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = ArrayListMultimap.create();
         private final SetMultimap<AnnotationCategory, Annotation> inheritedAnnotations = HashMultimap.create();
         private final ImmutableList.Builder<String> problems = ImmutableList.builder();

@@ -123,6 +123,9 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     }
 
     private static class AbsentValue implements PropertyValue {
+        AbsentValue() {
+        }
+
         @Nullable
         @Override
         public Object call() {

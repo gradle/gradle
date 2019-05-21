@@ -75,10 +75,10 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
-    private final VcsResolver vcsResolver;
-    private final VersionSelectorScheme versionSelectorScheme;
-    private final ProjectDependencyPublicationResolver publicationResolver;
-    private final VersionParser versionParser;
+    final VcsResolver vcsResolver;
+    final VersionSelectorScheme versionSelectorScheme;
+    final ProjectDependencyPublicationResolver publicationResolver;
+    final VersionParser versionParser;
 
     @Inject
     public SwiftPackageManagerExportPlugin(VcsResolver vcsResolver, VersionSelectorScheme versionSelectorScheme, ProjectDependencyPublicationResolver publicationResolver, VersionParser versionParser) {

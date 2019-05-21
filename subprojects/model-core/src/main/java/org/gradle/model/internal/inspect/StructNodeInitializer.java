@@ -21,13 +21,30 @@ import com.google.common.collect.Multimap;
 import org.gradle.api.Named;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.typeconversion.TypeConverter;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.DirectNodeInputUsingModelAction;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
+import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.binding.ManagedProperty;
 import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
-import org.gradle.model.internal.manage.schema.*;
+import org.gradle.model.internal.manage.schema.CollectionSchema;
+import org.gradle.model.internal.manage.schema.ManagedImplSchema;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
+import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Arrays;
@@ -86,13 +103,13 @@ public class StructNodeInitializer<T> implements NodeInitializer {
     protected void initializePrivateData(MutableModelNode modelNode) {
     }
 
-    private <V> void addProjection(MutableModelNode modelNode, StructSchema<V> viewSchema, ManagedProxyFactory proxyFactory, TypeConverter typeConverter) {
+    <V> void addProjection(MutableModelNode modelNode, StructSchema<V> viewSchema, ManagedProxyFactory proxyFactory, TypeConverter typeConverter) {
         modelNode.addProjection(new ManagedModelProjection<V>(viewSchema, bindings, proxyFactory, typeConverter));
     }
 
-    private void addPropertyLinks(MutableModelNode modelNode,
-                                  ModelSchemaStore schemaStore,
-                                  NodeInitializerRegistry nodeInitializerRegistry
+    void addPropertyLinks(MutableModelNode modelNode,
+                          ModelSchemaStore schemaStore,
+                          NodeInitializerRegistry nodeInitializerRegistry
     ) {
         for (ManagedProperty<?> property : bindings.getManagedProperties().values()) {
             addPropertyLink(modelNode, property, schemaStore, nodeInitializerRegistry);

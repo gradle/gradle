@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierarchyHasher {
-    private final Map<ClassLoader, byte[]> knownClassLoaders;
-    private final ClassLoaderHasher classLoaderHasher;
+    final Map<ClassLoader, byte[]> knownClassLoaders;
+    final ClassLoaderHasher classLoaderHasher;
 
     public ConfigurableClassLoaderHierarchyHasher(Map<ClassLoader, String> knownClassLoaders, ClassLoaderHasher classLoaderHasher) {
         this.classLoaderHasher = classLoaderHasher;

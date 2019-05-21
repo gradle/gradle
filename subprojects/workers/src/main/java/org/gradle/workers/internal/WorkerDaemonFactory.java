@@ -16,17 +16,18 @@
 
 package org.gradle.workers.internal;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.workers.IsolationMode;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Controls the lifecycle of the worker daemon and provides access to it.
  */
 @ThreadSafe
 public class WorkerDaemonFactory implements WorkerFactory {
-    private final WorkerDaemonClientsManager clientsManager;
+    final WorkerDaemonClientsManager clientsManager;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationExecutor buildOperationExecutor) {

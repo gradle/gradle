@@ -82,7 +82,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
         private final ResolvableArtifact artifact;
-        private volatile Throwable failure;
+        volatile Throwable failure;
 
         SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
             this.variantName = variantName;

@@ -24,7 +24,7 @@ import java.io.File;
 
 public class FileCopyAction implements CopyAction {
 
-    private final PathToFileResolver fileResolver;
+    final PathToFileResolver fileResolver;
 
     public FileCopyAction(PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
@@ -38,7 +38,10 @@ public class FileCopyAction implements CopyAction {
     }
 
     private class FileCopyDetailsInternalAction implements CopyActionProcessingStreamAction {
-        private boolean didWork;
+        boolean didWork;
+
+        FileCopyDetailsInternalAction() {
+        }
 
         @Override
         public void processFile(FileCopyDetailsInternal details) {

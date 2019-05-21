@@ -32,7 +32,7 @@ import java.util.Set;
 
 public class ClasspathSnapshotFactory {
 
-    private final ClasspathEntrySnapshotter classpathEntrySnapshotter;
+    final ClasspathEntrySnapshotter classpathEntrySnapshotter;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public ClasspathSnapshotFactory(ClasspathEntrySnapshotter classpathEntrySnapshotter, BuildOperationExecutor buildOperationExecutor) {
@@ -83,10 +83,10 @@ public class ClasspathSnapshotFactory {
     }
 
     private class CreateSnapshot implements RunnableBuildOperation {
-        private final File entry;
-        private ClasspathEntrySnapshot snapshot;
+        final File entry;
+        ClasspathEntrySnapshot snapshot;
 
-        private CreateSnapshot(File entry) {
+        CreateSnapshot(File entry) {
             this.entry = entry;
         }
 

@@ -40,7 +40,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.split;
 public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> implements ResultsStore, DataReporter<R>, Closeable {
 
     private final PerformanceDatabase db;
-    private final String resultType;
+    final String resultType;
 
     public BaseCrossBuildResultsStore(String resultType) {
         this.db = new PerformanceDatabase("cross-build-results", new CrossBuildResultsSchemaInitializer());
@@ -93,7 +93,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         }
     }
 
-    private void addOperations(PreparedStatement statement, long executionId, BuildDisplayInfo displayInfo, MeasuredOperationList operations) throws SQLException {
+    void addOperations(PreparedStatement statement, long executionId, BuildDisplayInfo displayInfo, MeasuredOperationList operations) throws SQLException {
         for (MeasuredOperation operation : operations) {
             statement.setLong(1, executionId);
             statement.setString(2, displayInfo.getProjectName());
@@ -223,7 +223,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         return false;
     }
 
-    private List<String> toList(Object object) {
+    List<String> toList(Object object) {
         Object[] value = (Object[]) object;
         if (value == null) {
             return null;
@@ -236,6 +236,9 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     private class CrossBuildResultsSchemaInitializer implements ConnectionAction<Void> {
+        CrossBuildResultsSchemaInitializer() {
+        }
+
         @Override
         public Void execute(Connection connection) throws SQLException {
             Statement statement = connection.createStatement();

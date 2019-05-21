@@ -67,7 +67,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
 
     private boolean resolvedDependencySubstitutions;
 
-    private final GradleLauncher gradleLauncher;
+    final GradleLauncher gradleLauncher;
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 

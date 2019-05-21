@@ -111,6 +111,9 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
     private static class ConvertMethodCache extends ReflectionCache<ConvertMethod> {
 
+        ConvertMethodCache() {
+        }
+
         @Override
         protected ConvertMethod create(Class<?> key, Class<?>[] params) {
             Method convertMethod = findConvertMethod(key);
@@ -159,10 +162,10 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         private final static ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
         public static final Class[] EMPTY = new Class[0];
 
-        private final String[] keyNames;
-        private final boolean[] optional;
+        final String[] keyNames;
+        final boolean[] optional;
 
-        private ConvertMethod(Method method, String[] keyNames, boolean[] optional) {
+        ConvertMethod(Method method, String[] keyNames, boolean[] optional) {
             super(method);
             this.keyNames = keyNames;
             this.optional = optional;

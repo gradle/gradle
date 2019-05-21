@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 
 public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal {
     private final String name;
-    private final SolutionFile solutionFile;
+    final SolutionFile solutionFile;
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private final IdeArtifactRegistry ideArtifactRegistry;
     private final Provider<RegularFile> location;

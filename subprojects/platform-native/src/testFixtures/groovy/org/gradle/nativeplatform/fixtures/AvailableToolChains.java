@@ -314,7 +314,7 @@ public class AvailableToolChains {
         CYGWIN_GCC("gcc cygwin"),
         SWIFTC("swiftc");
 
-        private final String displayName;
+        final String displayName;
 
         ToolFamily(String displayName) {
             this.displayName = displayName;
@@ -762,7 +762,7 @@ public class AvailableToolChains {
     public static class InstalledXcode {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class);
         private final File xcodeDir;
-        private final VersionNumber version;
+        final VersionNumber version;
         private String originalDeveloperDir;
 
         public InstalledXcode(File xcodeDir, VersionNumber version) {
@@ -770,23 +770,23 @@ public class AvailableToolChains {
             this.version = version;
         }
 
-        private List<String> getRuntimeEnv() {
+        List<String> getRuntimeEnv() {
             return ImmutableList.of("DEVELOPER_DIR=" + xcodeDir.getAbsolutePath());
         }
 
-        private void initialiseEnvironment() {
+        void initialiseEnvironment() {
             originalDeveloperDir = System.getenv("DEVELOPER_DIR");
             System.out.println(String.format("Using DEVELOPER_DIR %s", xcodeDir.getAbsolutePath()));
             PROCESS_ENVIRONMENT.setEnvironmentVariable("DEVELOPER_DIR", xcodeDir.getAbsolutePath());
         }
 
-        private void resetEnvironment() {
+        void resetEnvironment() {
             if (originalDeveloperDir != null) {
                 PROCESS_ENVIRONMENT.setEnvironmentVariable("DEVELOPER_DIR", xcodeDir.getAbsolutePath());
             }
         }
 
-        private void configureExecuter(GradleExecuter executer) {
+        void configureExecuter(GradleExecuter executer) {
             executer.withEnvironmentVars(ImmutableMap.of("DEVELOPER_DIR", xcodeDir.getAbsolutePath()));
         }
 

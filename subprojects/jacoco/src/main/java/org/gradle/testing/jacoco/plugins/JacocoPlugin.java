@@ -58,7 +58,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
     private final Instantiator instantiator;
-    private Project project;
+    Project project;
 
     @Inject
     public JacocoPlugin(Instantiator instantiator) {
@@ -216,7 +216,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         };
     }
 
-    private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
+    void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
         reportTask.getReports().all(new Action<ConfigurableReport>() {
             @Override
             public void execute(final ConfigurableReport report) {
@@ -247,7 +247,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void addDefaultReportTask(final JacocoPluginExtension extension, final TaskProvider<Task> testTaskProvider) {
+    void addDefaultReportTask(final JacocoPluginExtension extension, final TaskProvider<Task> testTaskProvider) {
         project.getTasks().register(
             "jacoco" + StringUtils.capitalize(testTaskProvider.getName()) + "Report",
             JacocoReport.class,
@@ -289,7 +289,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
             });
     }
 
-    private void addDefaultCoverageVerificationTask(final TaskProvider<Task> testTaskProvider) {
+    void addDefaultCoverageVerificationTask(final TaskProvider<Task> testTaskProvider) {
         project.getTasks().register(
             "jacoco" + StringUtils.capitalize(testTaskProvider.getName()) + "CoverageVerification",
             JacocoCoverageVerification.class,

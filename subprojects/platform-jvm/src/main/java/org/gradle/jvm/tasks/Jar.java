@@ -44,7 +44,7 @@ import java.util.concurrent.Callable;
 public class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";
-    private String manifestContentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
+    String manifestContentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
     private Manifest manifest;
     private final CopySpecInternal metaInf;
 

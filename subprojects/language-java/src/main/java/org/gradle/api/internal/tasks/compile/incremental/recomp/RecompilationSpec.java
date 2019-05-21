@@ -58,6 +58,9 @@ public class RecompilationSpec {
     }
 
     private static class NormalizingClassNamesSet extends LinkedHashSet<String> {
+        NormalizingClassNamesSet() {
+        }
+
         @Override
         public boolean add(String className) {
             int idx = className.indexOf('$');

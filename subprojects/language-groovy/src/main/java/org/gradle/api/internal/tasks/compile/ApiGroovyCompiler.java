@@ -55,7 +55,7 @@ import java.util.Map;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
-    private final Compiler<JavaCompileSpec> javaCompiler;
+    final Compiler<JavaCompileSpec> javaCompiler;
 
     public ApiGroovyCompiler(Compiler<JavaCompileSpec> javaCompiler) {
         this.javaCompiler = javaCompiler;

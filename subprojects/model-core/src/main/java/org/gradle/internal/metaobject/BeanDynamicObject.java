@@ -53,19 +53,19 @@ import java.util.Map;
  * coercion and error reporting. Enjoy.
  */
 public class BeanDynamicObject extends AbstractDynamicObject {
-    private static final Method META_PROP_METHOD;
-    private static final Field MISSING_PROPERTY_GET_METHOD;
-    private static final Field MISSING_PROPERTY_SET_METHOD;
-    private static final Field MISSING_METHOD_METHOD;
-    private final Object bean;
-    private final boolean includeProperties;
+    static final Method META_PROP_METHOD;
+    static final Field MISSING_PROPERTY_GET_METHOD;
+    static final Field MISSING_PROPERTY_SET_METHOD;
+    static final Field MISSING_METHOD_METHOD;
+    final Object bean;
+    final boolean includeProperties;
     private final MetaClassAdapter delegate;
-    private final boolean implementsMissing;
+    final boolean implementsMissing;
     @Nullable
     private final Class<?> publicType;
 
-    private final MethodArgumentsTransformer argsTransformer;
-    private final PropertySetTransformer propertySetTransformer;
+    final MethodArgumentsTransformer argsTransformer;
+    final PropertySetTransformer propertySetTransformer;
 
     private BeanDynamicObject withNoProperties;
     private BeanDynamicObject withNoImplementsMissing;
@@ -153,7 +153,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         return !JavaPropertyReflectionUtil.hasDefaultToString(bean);
     }
 
-    private MetaClass getMetaClass() {
+    MetaClass getMetaClass() {
         if (bean instanceof GroovyObject) {
             return ((GroovyObject) bean).getMetaClass();
         } else {
@@ -192,6 +192,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     private class MetaClassAdapter {
+        MetaClassAdapter() {
+        }
+
         protected String getDisplayName() {
             return BeanDynamicObject.this.getDisplayName();
         }
@@ -545,6 +548,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     private class GroovyObjectAdapter extends MetaClassAdapter {
         private final GroovyObject groovyObject = (GroovyObject) bean;
 
+        GroovyObjectAdapter() {
+        }
+
         @Override
         protected DynamicInvokeResult getOpaqueProperty(String name) {
             try {
@@ -595,6 +601,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     private class MapAdapter extends MetaClassAdapter {
         Map<String, Object> map = (Map<String, Object>) bean;
+
+        MapAdapter() {
+        }
 
         @Override
         public boolean hasProperty(String name) {

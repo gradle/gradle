@@ -50,13 +50,13 @@ public class DistributionInstaller {
     private static final InternalBuildProgressListener NO_OP = new NoOpListener();
     private final ProgressLoggerFactory progressLoggerFactory;
     private final InternalBuildProgressListener buildProgressListener;
-    private final Clock clock;
-    private final AtomicReference<InternalBuildProgressListener> currentListener = new AtomicReference<InternalBuildProgressListener>(NO_OP);
+    final Clock clock;
+    final AtomicReference<InternalBuildProgressListener> currentListener = new AtomicReference<InternalBuildProgressListener>(NO_OP);
     // Protects the following state
-    private final Object lock = new Object();
-    private boolean completed;
+    final Object lock = new Object();
+    boolean completed;
     private boolean cancelled;
-    private Throwable failure;
+    Throwable failure;
 
     public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, Clock clock) {
         this.progressLoggerFactory = progressLoggerFactory;
@@ -82,7 +82,7 @@ public class DistributionInstaller {
         }
     }
 
-    private void doDownload(URI address, File destination) throws Exception {
+    void doDownload(URI address, File destination) throws Exception {
         String displayName = "Download " + address;
         OperationDescriptor descriptor = new ConsumerOperationDescriptor(displayName);
         long startTime = clock.getCurrentTime();
@@ -165,6 +165,9 @@ public class DistributionInstaller {
     }
 
     private static class NoOpListener implements InternalBuildProgressListener {
+        NoOpListener() {
+        }
+
         @Override
         public void onEvent(Object event) {
         }
@@ -192,6 +195,9 @@ public class DistributionInstaller {
     }
 
     private class AsyncDownload implements IDownload {
+        AsyncDownload() {
+        }
+
         @Override
         public void download(URI address, File destination) throws Exception {
             synchronized (lock) {

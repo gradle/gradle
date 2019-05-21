@@ -27,7 +27,7 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 
 public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements JavaSourceSet {
-    private final Classpath compileClasspath;
+    final Classpath compileClasspath;
 
     public DefaultJavaSourceSet(ComponentSpecIdentifier componentIdentifier, SourceDirectorySet source, Classpath compileClasspath) {
         super(componentIdentifier, JavaSourceSet.class, source);

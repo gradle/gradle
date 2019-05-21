@@ -42,8 +42,12 @@ public class DefaultScalaJavaJointCompileSpecFactory extends AbstractJavaCompile
     }
 
     private static class DefaultCommandLineScalaJavaJointCompileSpec extends DefaultScalaJavaJointCompileSpec implements CommandLineJavaCompileSpec {
+        DefaultCommandLineScalaJavaJointCompileSpec() {
+        }
     }
 
     private static class DefaultForkingScalaJavaJointCompileSpec extends DefaultScalaJavaJointCompileSpec implements ForkingJavaCompileSpec {
+        DefaultForkingScalaJavaJointCompileSpec() {
+        }
     }
 }

@@ -26,7 +26,7 @@ import org.gradle.model.internal.type.ModelTypes;
 public class ModelMaps {
 
     private static final ModelReference<NodeInitializerRegistry> NODE_INITIALIZER_REGISTRY_MODEL_REFERENCE = ModelReference.of(NodeInitializerRegistry.class);
-    private static final ModelType<ChildNodeInitializerStrategy<?>> CHILD_NODE_INITIALIZER_STRATEGY_MODEL_TYPE =
+    static final ModelType<ChildNodeInitializerStrategy<?>> CHILD_NODE_INITIALIZER_STRATEGY_MODEL_TYPE =
         Cast.uncheckedCast(ModelType.of(ChildNodeInitializerStrategy.class));
 
     public static <T> MutableModelNode addModelMapNode(MutableModelNode modelNode, ModelType<T> elementModelType, String name) {

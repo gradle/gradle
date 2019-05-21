@@ -53,16 +53,16 @@ import java.io.InputStream;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCacheAwareExternalResourceAccessor.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultCacheAwareExternalResourceAccessor.class);
 
-    private final ExternalResourceRepository delegate;
-    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
-    private final BuildCommencedTimeProvider timeProvider;
-    private final TemporaryFileProvider temporaryFileProvider;
+    final ExternalResourceRepository delegate;
+    final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
+    final BuildCommencedTimeProvider timeProvider;
+    final TemporaryFileProvider temporaryFileProvider;
     private final ArtifactCacheLockingManager artifactCacheLockingManager;
-    private final ExternalResourceCachePolicy externalResourceCachePolicy;
+    final ExternalResourceCachePolicy externalResourceCachePolicy;
     private final ProducerGuard<ExternalResourceName> producerGuard;
-    private final FileResourceRepository fileResourceRepository;
+    final FileResourceRepository fileResourceRepository;
 
     public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository) {
         this.delegate = delegate;
@@ -157,7 +157,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         });
     }
 
-    private HashValue getResourceSha1(ExternalResourceName location, boolean revalidate) {
+    HashValue getResourceSha1(ExternalResourceName location, boolean revalidate) {
         try {
             ExternalResourceName sha1Location = location.append(".sha1");
             ExternalResource resource = delegate.resource(sha1Location, revalidate);
@@ -179,7 +179,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyCandidateToCache(ExternalResourceName source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) throws IOException {
+    LocallyAvailableExternalResource copyCandidateToCache(ExternalResourceName source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) throws IOException {
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             Files.copy(local.getFile(), destination);
@@ -193,7 +193,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyToCache(final ExternalResourceName source, final ResourceFileStore fileStore, final ExternalResource resource) {
+    LocallyAvailableExternalResource copyToCache(final ExternalResourceName source, final ResourceFileStore fileStore, final ExternalResource resource) {
         // Download to temporary location
         DownloadAction downloadAction = new DownloadAction(source);
         try {
@@ -225,7 +225,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         });
     }
 
-    private long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
+    long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
         return timeProvider.getCurrentTime() - cached.getCachedAt();
     }
 

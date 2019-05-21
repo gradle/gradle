@@ -155,7 +155,7 @@ public class IvyDescriptorFileGenerator {
         return this;
     }
 
-    private void writeDescriptor(final Writer writer) throws IOException {
+    void writeDescriptor(final Writer writer) throws IOException {
         OptionalAttributeXmlWriter xmlWriter = new OptionalAttributeXmlWriter(writer, "  ", IVY_FILE_ENCODING);
         xmlWriter.startElement("ivy-module").attribute("version", "2.0");
         if (usesClassifier()) {
@@ -342,11 +342,11 @@ public class IvyDescriptorFileGenerator {
         }
     }
 
-    private static String xmlComments(String[] lines) {
+    static String xmlComments(String[] lines) {
         return Joiner.on("  ").join(Iterables.transform(Arrays.asList(lines), IvyDescriptorFileGenerator::xmlComment));
     }
 
-    private static String xmlComment(String content) {
+    static String xmlComment(String content) {
         return "<!-- " + content + " -->\n";
     }
 }

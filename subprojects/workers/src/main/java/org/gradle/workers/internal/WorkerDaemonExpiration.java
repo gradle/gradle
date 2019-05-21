@@ -28,10 +28,10 @@ import java.util.List;
 
 public class WorkerDaemonExpiration implements MemoryHolder {
 
-    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonExpiration.class);
+    static final Logger LOGGER = Logging.getLogger(WorkerDaemonExpiration.class);
 
     private final WorkerDaemonClientsManager clientsManager;
-    private final long osTotalMemory;
+    final long osTotalMemory;
 
     public WorkerDaemonExpiration(WorkerDaemonClientsManager clientsManager, long osTotalMemory) {
         this.clientsManager = clientsManager;

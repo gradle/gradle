@@ -22,10 +22,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class FreeListBlockStore implements BlockStore {
-    private final BlockStore store;
-    private final BlockStore freeListStore;
-    private final int maxBlockEntries;
-    private FreeListBlock freeListBlock;
+    final BlockStore store;
+    final BlockStore freeListStore;
+    final int maxBlockEntries;
+    FreeListBlock freeListBlock;
 
     public FreeListBlockStore(BlockStore store, int maxBlockEntries) {
         this.store = store;
@@ -131,9 +131,9 @@ public class FreeListBlockStore implements BlockStore {
     }
 
     public class FreeListBlock extends BlockPayload {
-        private List<FreeListEntry> entries = new ArrayList<FreeListEntry>();
-        private int largestInNextBlock;
-        private BlockPointer nextBlock = BlockPointer.start();
+        List<FreeListEntry> entries = new ArrayList<FreeListEntry>();
+        int largestInNextBlock;
+        BlockPointer nextBlock = BlockPointer.start();
         // Transient fields
         private FreeListBlock prev;
         private FreeListBlock next;
@@ -264,7 +264,7 @@ public class FreeListBlockStore implements BlockStore {
         final BlockPointer pos;
         final int size;
 
-        private FreeListEntry(BlockPointer pos, int size) {
+        FreeListEntry(BlockPointer pos, int size) {
             this.pos = pos;
             this.size = size;
         }

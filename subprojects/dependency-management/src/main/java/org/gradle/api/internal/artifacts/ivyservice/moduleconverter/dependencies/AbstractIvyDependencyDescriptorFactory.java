@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDependencyDescriptorFactory {
-    private ExcludeRuleConverter excludeRuleConverter;
+    ExcludeRuleConverter excludeRuleConverter;
 
     public AbstractIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         this.excludeRuleConverter = excludeRuleConverter;

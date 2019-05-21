@@ -42,7 +42,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
     public static final String FILE_ACCESS_PROPERTIES_FILE_NAME = FILE_ACCESS_CACHE_NAME + ".properties";
     public static final String INCEPTION_TIMESTAMP_KEY = "inceptionTimestamp";
 
-    private final PersistentCache cache;
+    final PersistentCache cache;
     private final PersistentIndexedCache<File, Long> store;
     private final long inceptionTimestamp;
 

@@ -26,7 +26,7 @@ import java.util.List;
 
 class ParamsMatchingConstructorSelector implements ConstructorSelector {
     private final CrossBuildInMemoryCache<Class<?>, ClassGenerator.GeneratedClass<?>> constructorCache;
-    private final ClassGenerator classGenerator;
+    final ClassGenerator classGenerator;
 
     public ParamsMatchingConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, ClassGenerator.GeneratedClass<?>> constructorCache) {
         this.constructorCache = constructorCache;

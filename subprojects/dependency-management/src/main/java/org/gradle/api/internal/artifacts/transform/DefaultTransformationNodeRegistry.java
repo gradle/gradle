@@ -95,7 +95,7 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final List<Equivalence.Wrapper<TransformationStep>> transformations;
 
-        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<Equivalence.Wrapper<TransformationStep>> transformations) {
+        ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<Equivalence.Wrapper<TransformationStep>> transformations) {
             this.artifactIdentifier = artifactIdentifier;
             this.transformations = transformations;
         }

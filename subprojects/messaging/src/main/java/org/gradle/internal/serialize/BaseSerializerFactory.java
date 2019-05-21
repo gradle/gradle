@@ -70,7 +70,7 @@ public class BaseSerializerFactory {
     private static class EnumSerializer<T extends Enum> extends AbstractSerializer<T> {
         private final Class<T> type;
 
-        private EnumSerializer(Class<T> type) {
+        EnumSerializer(Class<T> type) {
             this.type = type;
         }
 
@@ -101,6 +101,9 @@ public class BaseSerializerFactory {
     }
 
     private static class LongSerializer extends AbstractSerializer<Long> {
+        LongSerializer() {
+        }
+
         @Override
         public Long read(Decoder decoder) throws Exception {
             return decoder.readLong();
@@ -113,6 +116,9 @@ public class BaseSerializerFactory {
     }
 
     private static class StringSerializer extends AbstractSerializer<String> {
+        StringSerializer() {
+        }
+
         @Override
         public String read(Decoder decoder) throws Exception {
             return decoder.readString();
@@ -125,6 +131,9 @@ public class BaseSerializerFactory {
     }
 
     private static class FileSerializer extends AbstractSerializer<File> {
+        FileSerializer() {
+        }
+
         @Override
         public File read(Decoder decoder) throws Exception {
             return new File(decoder.readString());
@@ -137,6 +146,9 @@ public class BaseSerializerFactory {
     }
 
     private static class ByteArraySerializer extends AbstractSerializer<byte[]> {
+        ByteArraySerializer() {
+        }
+
         @Override
         public byte[] read(Decoder decoder) throws Exception {
             return decoder.readBinary();
@@ -149,6 +161,9 @@ public class BaseSerializerFactory {
     }
 
     private static class StringMapSerializer extends AbstractSerializer<Map<String, String>> {
+        StringMapSerializer() {
+        }
+
         @Override
         public Map<String, String> read(Decoder decoder) throws Exception {
             int pairs = decoder.readSmallInt();
@@ -170,6 +185,9 @@ public class BaseSerializerFactory {
     }
 
     private static class BooleanSerializer extends AbstractSerializer<Boolean> {
+        BooleanSerializer() {
+        }
+
         @Override
         public Boolean read(Decoder decoder) throws Exception {
             return decoder.readBoolean();
@@ -182,6 +200,9 @@ public class BaseSerializerFactory {
     }
 
     private static class ByteSerializer extends AbstractSerializer<Byte> {
+        ByteSerializer() {
+        }
+
         @Override
         public Byte read(Decoder decoder) throws Exception {
             return decoder.readByte();
@@ -194,6 +215,9 @@ public class BaseSerializerFactory {
     }
 
     private static class ShortSerializer extends AbstractSerializer<Short> {
+        ShortSerializer() {
+        }
+
         @Override
         public Short read(Decoder decoder) throws Exception {
             return (short) decoder.readInt();
@@ -206,6 +230,9 @@ public class BaseSerializerFactory {
     }
 
     private static class IntegerSerializer extends AbstractSerializer<Integer> {
+        IntegerSerializer() {
+        }
+
         @Override
         public Integer read(Decoder decoder) throws Exception {
             return decoder.readInt();
@@ -218,6 +245,9 @@ public class BaseSerializerFactory {
     }
 
     private static class FloatSerializer extends AbstractSerializer<Float> {
+        FloatSerializer() {
+        }
+
         @Override
         public Float read(Decoder decoder) throws Exception {
             byte[] bytes = new byte[4];
@@ -233,6 +263,9 @@ public class BaseSerializerFactory {
     }
 
     private static class DoubleSerializer extends AbstractSerializer<Double> {
+        DoubleSerializer() {
+        }
+
         @Override
         public Double read(Decoder decoder) throws Exception {
             byte[] bytes = new byte[8];
@@ -248,6 +281,9 @@ public class BaseSerializerFactory {
     }
 
     private static class ThrowableSerializer extends AbstractSerializer<Throwable> {
+        ThrowableSerializer() {
+        }
+
         @Override
         public Throwable read(Decoder decoder) throws Exception {
             return (Throwable) Message.receive(decoder.getInputStream(), getClass().getClassLoader());

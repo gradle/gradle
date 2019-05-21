@@ -836,8 +836,8 @@ public class TestFile extends File {
     }
 
     public class Snapshot {
-        private final long modTime;
-        private final HashCode hash;
+        final long modTime;
+        final HashCode hash;
 
         public Snapshot(long modTime, HashCode hash) {
             this.modTime = modTime;

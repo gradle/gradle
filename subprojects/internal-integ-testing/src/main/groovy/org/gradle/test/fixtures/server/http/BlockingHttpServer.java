@@ -49,13 +49,13 @@ import java.util.concurrent.locks.ReentrantLock;
 public class BlockingHttpServer extends ExternalResource {
     private static final AtomicInteger COUNTER = new AtomicInteger();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
-    private final Lock lock = new ReentrantLock();
-    private final HttpServer server;
+    final Lock lock = new ReentrantLock();
+    final HttpServer server;
     private HttpContext context;
     private final ChainingHttpHandler handler;
-    private final int timeoutMs;
-    private final int serverId;
-    private boolean running;
+    final int timeoutMs;
+    final int serverId;
+    boolean running;
     private int clientVarCounter;
 
     public BlockingHttpServer() throws IOException {
@@ -484,6 +484,9 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     private static class SendEmptyResponse extends ErroringAction<HttpExchange> {
+        SendEmptyResponse() {
+        }
+
         @Override
         protected void doExecute(HttpExchange httpExchange) throws Exception {
             httpExchange.sendResponseHeaders(200, 0);
@@ -491,6 +494,9 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     private class MustBeRunning implements WaitPrecondition {
+        MustBeRunning() {
+        }
+
         @Override
         public void assertCanWait() throws IllegalStateException {
             lock.lock();

@@ -52,11 +52,11 @@ import java.util.concurrent.Callable;
 public class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
-    private final ObjectFactory objectFactory;
-    private final ModuleRegistry moduleRegistry;
+    final ObjectFactory objectFactory;
+    final ModuleRegistry moduleRegistry;
 
-    private Project project;
-    private GroovyRuntime groovyRuntime;
+    Project project;
+    GroovyRuntime groovyRuntime;
 
     @Inject
     public GroovyBasePlugin(ObjectFactory objectFactory, ModuleRegistry moduleRegistry) {
@@ -187,7 +187,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
         });
     }
 
-    private JavaPluginConvention java(Convention convention) {
+    JavaPluginConvention java(Convention convention) {
         return convention.getPlugin(JavaPluginConvention.class);
     }
 }

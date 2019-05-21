@@ -111,11 +111,11 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         return alreadyPresent != null ? alreadyPresent : dependency;
     }
 
-    private List<File> getClassPath(DependencyFactory.ClassPathNotation notation) {
+    List<File> getClassPath(DependencyFactory.ClassPathNotation notation) {
         return Lists.newArrayList(classPathRegistry.getClassPath(notation.name()).getAsFiles());
     }
 
-    private FileCollectionInternal gradleApiFileCollection(Collection<File> apiClasspath) {
+    FileCollectionInternal gradleApiFileCollection(Collection<File> apiClasspath) {
         // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
         // Remove optional Kotlin DSL and Kotlin jars
@@ -141,7 +141,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         return files;
     }
 
-    private FileCollectionInternal gradleTestKitFileCollection(Collection<File> testKitClasspath) {
+    FileCollectionInternal gradleTestKitFileCollection(Collection<File> testKitClasspath) {
         List<File> gradleApi = getClassPath(GRADLE_API);
         testKitClasspath.removeAll(gradleApi);
 

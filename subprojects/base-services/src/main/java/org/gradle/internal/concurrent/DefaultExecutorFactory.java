@@ -25,7 +25,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
-    private final Set<ManagedExecutor> executors = new CopyOnWriteArraySet<ManagedExecutor>();
+    final Set<ManagedExecutor> executors = new CopyOnWriteArraySet<ManagedExecutor>();
 
     @Override
     public void stop() {

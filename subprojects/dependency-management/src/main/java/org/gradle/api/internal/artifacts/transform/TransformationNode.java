@@ -131,8 +131,8 @@ public abstract class TransformationNode extends Node {
     }
 
     private static class InitialTransformationNode extends TransformationNode {
-        private final ResolvableArtifact artifact;
-        private final ExecutionGraphDependenciesResolver dependenciesResolver;
+        final ResolvableArtifact artifact;
+        final ExecutionGraphDependenciesResolver dependenciesResolver;
 
         public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver) {
             super(transformationStep, dependenciesResolver);
@@ -175,7 +175,7 @@ public abstract class TransformationNode extends Node {
     }
 
     private static class ChainedTransformationNode extends TransformationNode {
-        private final TransformationNode previousTransformationNode;
+        final TransformationNode previousTransformationNode;
 
         public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver) {
             super(transformationStep, dependenciesResolver);
@@ -210,6 +210,9 @@ public abstract class TransformationNode extends Node {
     }
 
     private abstract class ArtifactTransformationStepBuildOperation implements CallableBuildOperation<Try<TransformationSubject>> {
+
+        ArtifactTransformationStepBuildOperation() {
+        }
 
         @Override
         public final BuildOperationDescriptor.Builder description() {

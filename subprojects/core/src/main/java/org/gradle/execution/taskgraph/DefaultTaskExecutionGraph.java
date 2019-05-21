@@ -76,11 +76,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final PlanExecutor planExecutor;
     private final ResourceLockCoordinationService coordinationService;
     private final List<NodeExecutor> nodeExecutors;
-    private final GradleInternal gradleInternal;
-    private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
+    final GradleInternal gradleInternal;
+    final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
-    private final DefaultExecutionPlan executionPlan;
-    private final BuildOperationExecutor buildOperationExecutor;
+    final DefaultExecutionPlan executionPlan;
+    final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private GraphState graphState = GraphState.EMPTY;
     private List<Task> allTasks;
@@ -389,7 +389,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         private final TaskExecutionGraphListener graphListener;
         private final GradleInternal gradleInternal;
 
-        private NotifyTaskGraphWhenReady(TaskExecutionGraph taskExecutionGraph, TaskExecutionGraphListener graphListener, GradleInternal gradleInternal) {
+        NotifyTaskGraphWhenReady(TaskExecutionGraph taskExecutionGraph, TaskExecutionGraphListener graphListener, GradleInternal gradleInternal) {
             this.taskExecutionGraph = taskExecutionGraph;
             this.graphListener = graphListener;
             this.gradleInternal = gradleInternal;

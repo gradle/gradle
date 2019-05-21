@@ -39,9 +39,9 @@ public final class DefaultCancellationTokenSource implements CancellationTokenSo
     }
 
     private static class CancellationTokenImpl implements CancellationToken, CancellationTokenInternal {
-        private final DefaultBuildCancellationToken token;
+        final DefaultBuildCancellationToken token;
 
-        private CancellationTokenImpl(DefaultBuildCancellationToken token) {
+        CancellationTokenImpl(DefaultBuildCancellationToken token) {
             this.token = token;
         }
 

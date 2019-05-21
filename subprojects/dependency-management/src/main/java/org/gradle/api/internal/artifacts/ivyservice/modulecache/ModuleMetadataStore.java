@@ -37,7 +37,7 @@ public class ModuleMetadataStore {
 
     private static final Joiner PATH_JOINER = Joiner.on("/");
     private final PathKeyFileStore metaDataStore;
-    private final ModuleMetadataSerializer moduleMetadataSerializer;
+    final ModuleMetadataSerializer moduleMetadataSerializer;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Interner<String> stringInterner;
 

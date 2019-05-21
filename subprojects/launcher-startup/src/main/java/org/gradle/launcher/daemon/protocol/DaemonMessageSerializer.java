@@ -110,6 +110,9 @@ public class DaemonMessageSerializer {
         private final Serializer<Object> javaSerializer = new DefaultSerializer<Object>();
         private final Serializer<SerializedPayload> payloadSerializer = new SerializedPayloadSerializer();
 
+        SuccessSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, Success success) throws Exception {
             if (success.getValue() == null) {
@@ -192,6 +195,9 @@ public class DaemonMessageSerializer {
     private static class BuildEventSerializer implements Serializer<BuildEvent> {
         private final Serializer<Object> payloadSerializer = new DefaultSerializer<Object>();
 
+        BuildEventSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, BuildEvent buildEvent) throws Exception {
             payloadSerializer.write(encoder, buildEvent.getPayload());
@@ -204,6 +210,9 @@ public class DaemonMessageSerializer {
     }
 
     private static class ForwardInputSerializer implements Serializer<ForwardInput> {
+        ForwardInputSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, ForwardInput message) throws Exception {
             encoder.writeBinary(message.getBytes());
@@ -216,6 +225,9 @@ public class DaemonMessageSerializer {
     }
 
     private static class CloseInputSerializer implements Serializer<CloseInput> {
+        CloseInputSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, CloseInput value) {
         }
@@ -248,7 +260,7 @@ public class DaemonMessageSerializer {
         private final Serializer<BuildAction> buildActionSerializer;
         private final Serializer<BuildActionParameters> buildActionParametersSerializer = new BuildActionParametersSerializer();
 
-        private BuildSerializer(Serializer<BuildAction> buildActionSerializer) {
+        BuildSerializer(Serializer<BuildAction> buildActionSerializer) {
             this.buildActionSerializer = buildActionSerializer;
         }
 
@@ -312,6 +324,9 @@ public class DaemonMessageSerializer {
     }
 
     private static class DaemonUnavailableSerializer implements Serializer<DaemonUnavailable> {
+        DaemonUnavailableSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, DaemonUnavailable value) throws Exception {
             encoder.writeNullableString(value.getReason());
@@ -324,6 +339,9 @@ public class DaemonMessageSerializer {
     }
 
     private static class CancelSerializer implements Serializer<Cancel> {
+        CancelSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, Cancel value) {
         }
@@ -335,6 +353,9 @@ public class DaemonMessageSerializer {
     }
 
     private static class BuildStartedSerializer implements Serializer<BuildStarted> {
+        BuildStartedSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, BuildStarted buildStarted) throws Exception {
             FILE_SERIALIZER.write(encoder, buildStarted.getDiagnostics().getDaemonLog());
@@ -359,6 +380,9 @@ public class DaemonMessageSerializer {
     }
 
     private static class FinishedSerializer implements Serializer<Finished> {
+        FinishedSerializer() {
+        }
+
         @Override
         public Finished read(Decoder decoder) {
             return new Finished();

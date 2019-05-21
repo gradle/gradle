@@ -129,7 +129,7 @@ public class TaskDetailPrinter {
         return tasksGroupedByType;
     }
 
-    private Class getDeclaredTaskType(Task original) {
+    Class getDeclaredTaskType(Task original) {
         Class clazz = new DslObject(original).getDeclaredType();
         if (clazz.equals(DefaultTask.class)) {
             return org.gradle.api.Task.class;

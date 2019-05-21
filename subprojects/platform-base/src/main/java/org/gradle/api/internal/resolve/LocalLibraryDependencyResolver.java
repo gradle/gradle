@@ -62,7 +62,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final VariantBinarySelector variantSelector;
-    private final LibraryResolutionErrorMessageBuilder errorMessageBuilder;
+    final LibraryResolutionErrorMessageBuilder errorMessageBuilder;
     private final LocalLibraryMetaDataAdapter libraryMetaDataAdapter;
     private final LocalLibraryResolver libraryResolver;
     private final Class<? extends Binary> binaryType;

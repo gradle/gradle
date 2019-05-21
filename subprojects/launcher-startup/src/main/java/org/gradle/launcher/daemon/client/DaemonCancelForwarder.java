@@ -24,7 +24,7 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.launcher.daemon.protocol.Cancel;
 
 public class DaemonCancelForwarder implements Stoppable {
-    private static final Logger LOGGER = Logging.getLogger(DaemonCancelForwarder.class);
+    static final Logger LOGGER = Logging.getLogger(DaemonCancelForwarder.class);
 
     private final Runnable cancellationCallback;
     private final BuildCancellationToken cancellationToken;

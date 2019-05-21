@@ -18,8 +18,19 @@ package org.gradle.internal.actor.internal;
 
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.concurrent.*;
-import org.gradle.internal.dispatch.*;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.concurrent.ThreadSafe;
+import org.gradle.internal.dispatch.AsyncDispatch;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.DispatchException;
+import org.gradle.internal.dispatch.ExceptionTrackingFailureHandler;
+import org.gradle.internal.dispatch.FailureHandlingDispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.ProxyDispatchAdapter;
+import org.gradle.internal.dispatch.ReflectionDispatch;
 import org.slf4j.LoggerFactory;
 
 import java.util.IdentityHashMap;
@@ -32,7 +43,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
     private final Map<Object, NonBlockingActor> nonBlockingActors = new IdentityHashMap<Object, NonBlockingActor>();
     private final Map<Object, BlockingActor> blockingActors = new IdentityHashMap<Object, BlockingActor>();
     private final Object lock = new Object();
-    private final ExecutorFactory executorFactory;
+    final ExecutorFactory executorFactory;
 
     public DefaultActorFactory(ExecutorFactory executorFactory) {
         this.executorFactory = executorFactory;
@@ -85,13 +96,13 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
         }
     }
 
-    private void stopped(NonBlockingActor actor) {
+    void stopped(NonBlockingActor actor) {
         synchronized (lock) {
             nonBlockingActors.values().remove(actor);
         }
     }
 
-    private void stopped(BlockingActor actor) {
+    void stopped(BlockingActor actor) {
         synchronized (lock) {
             blockingActors.values().remove(actor);
         }

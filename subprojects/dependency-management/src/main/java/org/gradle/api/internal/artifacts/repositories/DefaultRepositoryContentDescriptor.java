@@ -33,11 +33,11 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorInternal {
-    private Set<String> includedConfigurations;
-    private Set<String> excludedConfigurations;
+    Set<String> includedConfigurations;
+    Set<String> excludedConfigurations;
     private Set<ContentSpec> includeSpecs;
     private Set<ContentSpec> excludeSpecs;
-    private Map<Attribute<Object>, Set<Object>> requiredAttributes;
+    Map<Attribute<Object>, Set<Object>> requiredAttributes;
     private boolean locked;
 
     private Action<? super ArtifactResolutionDetails> cachedAction;
@@ -215,7 +215,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         private final String version;
         private final int hashCode;
 
-        private ContentSpec(boolean regex, String group, String module, String version) {
+        ContentSpec(boolean regex, String group, String module, String version) {
             this.regex = regex;
             this.group = group;
             this.module = module;
@@ -263,7 +263,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         private final String module;
         private final String version;
 
-        private SimpleSpecMatcher(String group, String module, String version) {
+        SimpleSpecMatcher(String group, String module, String version) {
             this.group = group;
             this.module = module;
             this.version = version;
@@ -288,7 +288,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         private final Pattern modulePattern;
         private final Pattern versionPattern;
 
-        private PatternSpecMatcher(String group, String module, String version) {
+        PatternSpecMatcher(String group, String module, String version) {
             this.groupPattern = Pattern.compile(group);
             this.modulePattern = module == null ? null : Pattern.compile(module);
             this.versionPattern = version == null ? null : Pattern.compile(version);

@@ -31,10 +31,10 @@ public class DaemonMemoryStatus {
     private static final String NON_HEAP = "non-heap";
 
     private final DaemonHealthStats stats;
-    private final int heapUsageThreshold;
-    private final double heapRateThreshold;
-    private final int nonHeapUsageThreshold;
-    private final double thrashingThreshold;
+    final int heapUsageThreshold;
+    final double heapRateThreshold;
+    final int nonHeapUsageThreshold;
+    final double thrashingThreshold;
 
     public DaemonMemoryStatus(DaemonHealthStats stats, int heapUsageThreshold, double heapRateThreshold, int nonHeapUsageThreshold, double thrashingThreshold) {
         this.stats = stats;

@@ -29,7 +29,7 @@ import java.util.Deque;
 import java.util.Iterator;
 
 public class SingleDepthFilesFinder implements FilesFinder {
-    private final int depth;
+    final int depth;
 
     public SingleDepthFilesFinder(int depth) {
         Preconditions.checkArgument(depth > 0, "depth must be > 0: %s", depth);

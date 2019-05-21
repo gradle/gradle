@@ -26,8 +26,8 @@ public class PropertyChanges implements ChangeContainer {
 
     private final ImmutableSortedMap<String, ?> previous;
     private final ImmutableSortedMap<String, ?> current;
-    private final String title;
-    private final Describable executable;
+    final String title;
+    final Describable executable;
 
     // TODO This should actually compare a SortedSet
     protected PropertyChanges(ImmutableSortedMap<String, ?> previous, ImmutableSortedMap<String, ?> current, String title, Describable executable) {

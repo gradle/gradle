@@ -16,8 +16,8 @@
 
 package org.gradle.platform.base.component.internal;
 
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
@@ -63,7 +63,7 @@ public class DefaultComponentSpec extends AbstractComponentSpec {
         public final MutableModelNode modelNode;
         public final Class<?> publicType;
 
-        private ComponentInfo(
+        ComponentInfo(
             ComponentSpecIdentifier componentIdentifier,
             MutableModelNode modelNode,
             Class<?> publicType

@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
  * An {@link Instantiator} that applies dependency injection, delegating to a {@link ConstructorSelector} to decide which constructor to use to create instances.
  */
 class DependencyInjectingInstantiator implements Instantiator {
-    private static final DefaultServiceRegistry NO_SERVICES = new DefaultServiceRegistry();
+    static final DefaultServiceRegistry NO_SERVICES = new DefaultServiceRegistry();
     private final ServiceLookup services;
     private final ConstructorSelector constructorSelector;
 
@@ -89,7 +89,7 @@ class DependencyInjectingInstantiator implements Instantiator {
         };
     }
 
-    private Object[] convertParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceLookup services, Object[] parameters) {
+    Object[] convertParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceLookup services, Object[] parameters) {
         constructorSelector.vetoParameters(constructor, parameters);
         Class<?>[] parameterTypes = constructor.getParameterTypes();
         if (parameterTypes.length < parameters.length) {

@@ -70,6 +70,9 @@ public class CppLangPlugin implements Plugin<Project> {
     }
 
     private static class Cpp extends NativeLanguageTransform<CppSourceSet> implements PchEnabledLanguageTransform<CppSourceSet> {
+        Cpp() {
+        }
+
         @Override
         public Class<CppSourceSet> getSourceSetType() {
             return CppSourceSet.class;

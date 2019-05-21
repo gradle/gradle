@@ -135,7 +135,7 @@ public class ToolSearchPath {
     private static class FoundTool implements CommandLineToolSearchResult {
         private final File tool;
 
-        private FoundTool(File tool) {
+        FoundTool(File tool) {
             this.tool = tool;
         }
 
@@ -159,7 +159,7 @@ public class ToolSearchPath {
         private final String exeName;
         private final List<File> path;
 
-        private MissingTool(ToolType type, String exeName, List<File> path) {
+        MissingTool(ToolType type, String exeName, List<File> path) {
             this.type = type;
             this.exeName = exeName;
             this.path = path;

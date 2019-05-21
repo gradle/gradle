@@ -24,12 +24,12 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class BuildOperatingFiringSettingsPreparer implements SettingsPreparer {
-    private static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {
+    static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {
     };
 
-    private final SettingsPreparer delegate;
+    final SettingsPreparer delegate;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final PublicBuildPath fromBuild;
+    final PublicBuildPath fromBuild;
 
     public BuildOperatingFiringSettingsPreparer(SettingsPreparer delegate, BuildOperationExecutor buildOperationExecutor, PublicBuildPath fromBuild) {
         this.delegate = delegate;
@@ -43,7 +43,7 @@ public class BuildOperatingFiringSettingsPreparer implements SettingsPreparer {
     }
 
     private class LoadBuild implements RunnableBuildOperation {
-        private final GradleInternal gradle;
+        final GradleInternal gradle;
 
         public LoadBuild(GradleInternal gradle) {
             this.gradle = gradle;

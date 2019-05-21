@@ -66,11 +66,11 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final FileResolver fileResolver;
-    private final ProjectPublicationRegistry publicationRegistry;
+    final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurationActionContainer configurationActionContainer;
     private final MavenSettingsProvider mavenSettingsProvider;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private Project project;
 
@@ -173,7 +173,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         return mavenConvention;
     }
 
-    private void configureJavaScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
+    void configureJavaScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
         mavenScopeMappings.addMapping(COMPILE_PRIORITY, configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.COMPILE);
         mavenScopeMappings.addMapping(RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME),
@@ -188,19 +188,19 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 Conf2ScopeMappingContainer.TEST);
     }
 
-    private void configureJavaLibraryScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
+    void configureJavaLibraryScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
         mavenScopeMappings.addMapping(COMPILE_PRIORITY, configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.COMPILE);
     }
 
-    private void configureWarScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
+    void configureWarScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
         mavenScopeMappings.addMapping(PROVIDED_COMPILE_PRIORITY, configurations.getByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.PROVIDED);
         mavenScopeMappings.addMapping(PROVIDED_RUNTIME_PRIORITY, configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.PROVIDED);
     }
 
-    private void configureInstall(Project project) {
+    void configureInstall(Project project) {
         Upload installUpload = project.getTasks().create(INSTALL_TASK_NAME, Upload.class);
         Configuration configuration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         installUpload.setConfiguration(configuration);

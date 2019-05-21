@@ -43,8 +43,8 @@ import java.util.List;
  *
  */
 public class ImplicitInputsCapturingInstantiator implements Instantiator {
-    private final ServiceRegistry serviceRegistry;
-    private final InstantiatorFactory factory;
+    final ServiceRegistry serviceRegistry;
+    final InstantiatorFactory factory;
 
     public ImplicitInputsCapturingInstantiator(ServiceRegistry serviceRegistry, InstantiatorFactory factory) {
         this.serviceRegistry = serviceRegistry;
@@ -82,7 +82,7 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
     private class DefaultCapturingServicesRegistry implements ServiceRegistry {
         private final ImplicitInputRecorder registrar;
 
-        private DefaultCapturingServicesRegistry(ImplicitInputRecorder registrar) {
+        DefaultCapturingServicesRegistry(ImplicitInputRecorder registrar) {
             this.registrar = registrar;
         }
 

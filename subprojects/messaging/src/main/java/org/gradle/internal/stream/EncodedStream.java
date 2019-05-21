@@ -25,7 +25,7 @@ import java.io.OutputStream;
  * Useful when streams are interpreted a text streams as it happens on IBM java for standard input.
  */
 public abstract class EncodedStream {
-    private final static char[] HEX_DIGIT = new char[] {
+    final static char[] HEX_DIGIT = new char[]{
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
     };
 

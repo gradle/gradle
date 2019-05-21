@@ -25,7 +25,12 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.remote.internal.Connection;
 import org.gradle.internal.remote.internal.RecoverableMessageIOException;
 import org.gradle.internal.remote.internal.RemoteConnection;
-import org.gradle.internal.remote.internal.hub.protocol.*;
+import org.gradle.internal.remote.internal.hub.protocol.ChannelIdentifier;
+import org.gradle.internal.remote.internal.hub.protocol.ChannelMessage;
+import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
+import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
+import org.gradle.internal.remote.internal.hub.protocol.RejectedMessage;
+import org.gradle.internal.remote.internal.hub.protocol.StreamFailureMessage;
 import org.gradle.internal.remote.internal.hub.queue.EndPointQueue;
 
 import java.util.ArrayList;
@@ -46,12 +51,12 @@ public class MessageHub implements AsyncStoppable {
 
     private static final Discard DISCARD = new Discard();
     private final ManagedExecutor workers;
-    private final String displayName;
-    private final Action<? super Throwable> errorHandler;
-    private final Lock lock = new ReentrantLock();
+    final String displayName;
+    final Action<? super Throwable> errorHandler;
+    final Lock lock = new ReentrantLock();
     private State state = State.Running;
     private final IncomingQueue incomingQueue = new IncomingQueue(lock);
-    private final OutgoingQueue outgoingQueue = new OutgoingQueue(incomingQueue, lock);
+    final OutgoingQueue outgoingQueue = new OutgoingQueue(incomingQueue, lock);
     private final ConnectionSet connections = new ConnectionSet(incomingQueue, outgoingQueue);
 
     /**
@@ -163,7 +168,7 @@ public class MessageHub implements AsyncStoppable {
         }
     }
 
-    private void assertRunning(String action) {
+    void assertRunning(String action) {
         if (state != State.Running) {
             throw new IllegalStateException(String.format("Cannot %s, as %s has been stopped.", action, displayName));
         }
@@ -232,6 +237,9 @@ public class MessageHub implements AsyncStoppable {
     }
 
     private static class Discard implements BoundedDispatch<Object>, RejectedMessageListener, StreamFailureHandler {
+        Discard() {
+        }
+
         @Override
         public void dispatch(Object message) {
         }
@@ -289,7 +297,7 @@ public class MessageHub implements AsyncStoppable {
         }
     }
 
-    private void addToIncoming(InterHubMessage message) {
+    void addToIncoming(InterHubMessage message) {
         lock.lock();
         try {
             incomingQueue.queue(message);
@@ -303,7 +311,7 @@ public class MessageHub implements AsyncStoppable {
         private final EndPointQueue queue;
         private final ConnectionState connectionState;
 
-        private ConnectionDispatch(ConnectionState connectionState) {
+        ConnectionDispatch(ConnectionState connectionState) {
             this.connection = connectionState.getConnection();
             this.queue = connectionState.getDispatchQueue();
             this.connectionState = connectionState;

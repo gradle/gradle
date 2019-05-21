@@ -57,10 +57,10 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idl
  * Provides the mechanics of connecting to a daemon, starting one via a given runnable if no suitable daemons are already available.
  */
 public class DefaultDaemonConnector implements DaemonConnector {
-    private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
+    static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
     public static final int CANCELED_WAIT_TIMEOUT = 3000;
-    private final DaemonRegistry daemonRegistry;
+    final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
     private final DaemonStartListener startListener;

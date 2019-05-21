@@ -238,7 +238,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         private final List<ImmutableAttributes> readIndex = Lists.newArrayList();
         private final AttributeContainerSerializer delegate;
 
-        private OptimizingAttributeContainerSerializer(AttributeContainerSerializer delegate) {
+        OptimizingAttributeContainerSerializer(AttributeContainerSerializer delegate) {
             this.delegate = delegate;
         }
 

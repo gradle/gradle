@@ -183,7 +183,7 @@ public class RepositoryTransportFactory {
     private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
         private final Collection<Authentication> authentications;
 
-        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications) {
+        DefaultResourceConnectorSpecification(Collection<Authentication> authentications) {
             this.authentications = authentications;
         }
 

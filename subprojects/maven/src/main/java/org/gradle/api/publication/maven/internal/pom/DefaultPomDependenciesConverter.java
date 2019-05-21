@@ -23,13 +23,25 @@ import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Strings.emptyToNull;
 
@@ -115,7 +127,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
         addMavenDependencies(dependenciesPriorityMap, dependency, dependency.getName(), null, scope, null, priority, configurations);
     }
 
-    private static Configuration getTargetConfiguration(ProjectDependency dependency) {
+    static Configuration getTargetConfiguration(ProjectDependency dependency) {
         // todo CC: check that it ok to do this if configurations have attributes
         String targetConfiguration = dependency.getTargetConfiguration();
         if (targetConfiguration == null) {

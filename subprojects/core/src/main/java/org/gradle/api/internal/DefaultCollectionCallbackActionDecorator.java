@@ -28,8 +28,8 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import javax.annotation.Nullable;
 
 public class DefaultCollectionCallbackActionDecorator implements CollectionCallbackActionDecorator {
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final UserCodeApplicationContext userCodeApplicationContext;
+    final BuildOperationExecutor buildOperationExecutor;
+    final UserCodeApplicationContext userCodeApplicationContext;
 
     public DefaultCollectionCallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -81,8 +81,8 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
 
     private class BuildOperationEmittingAction<T> implements Action<T> {
 
-        private final UserCodeApplicationId applicationId;
-        private final Action<T> delegate;
+        final UserCodeApplicationId applicationId;
+        final Action<T> delegate;
 
         BuildOperationEmittingAction(UserCodeApplicationId applicationId, Action<T> delegate) {
             this.applicationId = applicationId;

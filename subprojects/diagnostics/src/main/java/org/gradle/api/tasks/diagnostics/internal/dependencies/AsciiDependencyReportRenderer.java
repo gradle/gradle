@@ -81,7 +81,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
     }
 
-    private String getDescription(Configuration configuration) {
+    String getDescription(Configuration configuration) {
         return GUtil.isTrue(configuration.getDescription()) ? " - " + configuration.getDescription() : "";
     }
 
@@ -125,6 +125,9 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
     private class ConfigurationAction implements Action<StyledTextOutput> {
         private Configuration configuration;
+
+        ConfigurationAction() {
+        }
 
         @Override
         public void execute(StyledTextOutput styledTextOutput) {

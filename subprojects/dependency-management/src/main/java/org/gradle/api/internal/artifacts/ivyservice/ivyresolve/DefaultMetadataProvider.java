@@ -55,7 +55,7 @@ class DefaultMetadataProvider implements MetadataProvider {
             return details.getExecutionResult();
         }
     };
-    private final ModuleComponentResolveState resolveState;
+    final ModuleComponentResolveState resolveState;
     private BuildableModuleComponentMetaDataResolveResult cachedResult;
     private ComponentMetadata cachedComponentMetadata;
     private boolean computedMetadata;
@@ -143,12 +143,12 @@ class DefaultMetadataProvider implements MetadataProvider {
      */
     private static class SimpleComponentMetadataBuilder implements ComponentMetadataBuilder {
         private final ModuleVersionIdentifier id;
-        private boolean mutated; // used internally to determine if a rule effectively did something
+        boolean mutated; // used internally to determine if a rule effectively did something
 
         private List<String> statusScheme = ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
         private final AttributeContainerInternal attributes;
 
-        private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id, ImmutableAttributesFactory attributesFactory) {
+        SimpleComponentMetadataBuilder(ModuleVersionIdentifier id, ImmutableAttributesFactory attributesFactory) {
             this.id = id;
             this.attributes = attributesFactory.mutable();
             this.attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, MavenVersionUtils.inferStatusFromEffectiveVersion(id.getVersion()));
@@ -247,7 +247,7 @@ class DefaultMetadataProvider implements MetadataProvider {
         private final CachePolicy cachePolicy;
         private final Instantiator instantiator;
 
-        private DefaultMetadataResolutionContext(CachePolicy cachePolicy, Instantiator instantiator) {
+        DefaultMetadataResolutionContext(CachePolicy cachePolicy, Instantiator instantiator) {
             this.cachePolicy = cachePolicy;
             this.instantiator = instantiator;
         }

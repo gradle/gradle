@@ -50,8 +50,8 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     private final static Logger LOG = Logging.getLogger(DefaultIsolatedAntBuilder.class);
 
     private final ClassLoader antLoader;
-    private final ClassLoader baseAntLoader;
-    private final ClassPath libClasspath;
+    final ClassLoader baseAntLoader;
+    final ClassPath libClasspath;
     private final ClassLoader antAdapterLoader;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderFactory classLoaderFactory;
@@ -160,7 +160,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             });
     }
 
-    private Object newInstanceOf(String className) {
+    Object newInstanceOf(String className) {
         // we must use a String literal here, otherwise using things like Foo.class.name will trigger unnecessary
         // loading of classes in the classloader of the DefaultIsolatedAntBuilder, which is not what we want.
         try {

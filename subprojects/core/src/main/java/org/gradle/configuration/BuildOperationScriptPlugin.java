@@ -38,8 +38,8 @@ import java.net.URI;
  */
 public class BuildOperationScriptPlugin implements ScriptPlugin {
 
-    private final ScriptPlugin decorated;
-    private final BuildOperationExecutor buildOperationExecutor;
+    final ScriptPlugin decorated;
+    final BuildOperationExecutor buildOperationExecutor;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
     public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
@@ -95,7 +95,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
         private final ConfigurationTargetIdentifier identifier;
         private final UserCodeApplicationId applicationId;
 
-        private OperationDetails(File file, ResourceLocation resourceLocation, @Nullable ConfigurationTargetIdentifier identifier, UserCodeApplicationId applicationId) {
+        OperationDetails(File file, ResourceLocation resourceLocation, @Nullable ConfigurationTargetIdentifier identifier, UserCodeApplicationId applicationId) {
             this.file = file;
             this.resourceLocation = resourceLocation;
             this.identifier = identifier;
@@ -142,6 +142,6 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
     }
 
 
-    private static final ApplyScriptPluginBuildOperationType.Result OPERATION_RESULT = new ApplyScriptPluginBuildOperationType.Result() {
+    static final ApplyScriptPluginBuildOperationType.Result OPERATION_RESULT = new ApplyScriptPluginBuildOperationType.Result() {
     };
 }

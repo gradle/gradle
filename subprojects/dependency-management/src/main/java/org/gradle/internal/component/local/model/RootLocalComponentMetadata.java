@@ -40,7 +40,7 @@ import java.util.Collections;
 import java.util.Set;
 
 public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
-    private final DependencyLockingProvider dependencyLockingProvider;
+    final DependencyLockingProvider dependencyLockingProvider;
 
     public RootLocalComponentMetadata(ModuleVersionIdentifier moduleVersionIdentifier, ComponentIdentifier componentIdentifier, String status, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingProvider) {
         super(moduleVersionIdentifier, componentIdentifier, status, schema);

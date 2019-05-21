@@ -51,7 +51,7 @@ public class CreateOutputsStep<C extends Context, R extends Result> implements S
         return delegate.execute(context);
     }
 
-    private static void ensureOutput(String name, File outputRoot, TreeType type) {
+    static void ensureOutput(String name, File outputRoot, TreeType type) {
         switch (type) {
             case DIRECTORY:
                 LOGGER.debug("Ensuring directory exists for property {} at {}", name, outputRoot);

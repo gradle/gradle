@@ -65,7 +65,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     private static final String REGISTRY_ROOTPATH_KIT = "Microsoft\\Windows Kits\\Installed Roots";
     private static final String REGISTRY_KIT_10 = "KitsRoot10";
 
-    private final Pattern windowsKitVersionPattern = Pattern.compile("[0-9]+(\\.[0-9]+)*");
+    final Pattern windowsKitVersionPattern = Pattern.compile("[0-9]+(\\.[0-9]+)*");
     private final FileFilter windowsKitVersionFilter = new FileFilter() {
         @Override
         public boolean accept(File pathname) {
@@ -242,6 +242,9 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     abstract T newComponent(File baseDir, File binDir, VersionNumber version, DiscoveryType discoveryType);
 
     private class DescendingComponentVersionComparator implements Comparator<T> {
+        DescendingComponentVersionComparator() {
+        }
+
         @Override
         public int compare(T o1, T o2) {
             return o2.getVersion().compareTo(o1.getVersion());

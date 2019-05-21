@@ -41,7 +41,7 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
     private final File lockTarget;
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
-    private final CacheInitializationAction initializationAction;
+    final CacheInitializationAction initializationAction;
     private final Action<FileLock> onOpenAction;
     private final Action<FileLock> onCloseAction;
     private FileLock fileLock;

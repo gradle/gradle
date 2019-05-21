@@ -56,7 +56,7 @@ public class CompilerMetaDataProviderFactory {
         private final CompilerMetaDataProvider<T> delegate;
         private final Map<Key, SearchResult<T>> resultMap = new HashMap<Key, SearchResult<T>>();
 
-        private CachingCompilerMetaDataProvider(CompilerMetaDataProvider<T> delegate) {
+        CachingCompilerMetaDataProvider(CompilerMetaDataProvider<T> delegate) {
             this.delegate = delegate;
         }
 
@@ -86,7 +86,7 @@ public class CompilerMetaDataProviderFactory {
         final List<File> path;
         private final Map<String, ?> environmentVariables;
 
-        private Key(File gccBinary, List<String> args, List<File> path, Map<String, ?> environmentVariables) {
+        Key(File gccBinary, List<String> args, List<File> path, Map<String, ?> environmentVariables) {
             this.gccBinary = gccBinary;
             this.args = args;
             this.path = path;

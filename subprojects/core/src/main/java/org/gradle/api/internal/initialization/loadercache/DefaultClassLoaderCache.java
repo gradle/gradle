@@ -43,7 +43,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
 
     private final Object lock = new Object();
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
-    private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
+    final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
     private final Set<ClassLoaderId> usedInThisBuild = Sets.newHashSet();
     private final ClasspathHasher classpathHasher;
     private final HashingClassLoaderFactory classLoaderFactory;
@@ -175,11 +175,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
     }
 
     private static class ManagedClassLoaderSpec extends ClassLoaderSpec {
-        private final String name;
-        private final ClassLoader parent;
+        final String name;
+        final ClassLoader parent;
         private final ClassPath classPath;
-        private final HashCode implementationHash;
-        private final FilteringClassLoader.Spec filterSpec;
+        final HashCode implementationHash;
+        final FilteringClassLoader.Spec filterSpec;
 
         public ManagedClassLoaderSpec(String name, ClassLoader parent, ClassPath classPath, HashCode implementationHash, FilteringClassLoader.Spec filterSpec) {
             this.name = name;
@@ -223,12 +223,12 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
     }
 
     private class CachedClassLoader {
-        private final ClassLoader classLoader;
-        private final ClassLoaderSpec spec;
+        final ClassLoader classLoader;
+        final ClassLoaderSpec spec;
         private final CachedClassLoader parent;
         private final Multiset<ClassLoaderId> usedBy = HashMultiset.create();
 
-        private CachedClassLoader(ClassLoader classLoader, ClassLoaderSpec spec, @Nullable CachedClassLoader parent) {
+        CachedClassLoader(ClassLoader classLoader, ClassLoaderSpec spec, @Nullable CachedClassLoader parent) {
             this.classLoader = classLoader;
             this.spec = spec;
             this.parent = parent;

@@ -54,9 +54,9 @@ import java.util.Set;
  * Allows adding and subtracting {@link Configuration}s, working in offline mode and downloading sources/javadoc.
  */
 public class IdeDependencySet {
-    private final DependencyHandler dependencyHandler;
-    private final Collection<Configuration> plusConfigurations;
-    private final Collection<Configuration> minusConfigurations;
+    final DependencyHandler dependencyHandler;
+    final Collection<Configuration> plusConfigurations;
+    final Collection<Configuration> minusConfigurations;
 
     public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
         this.dependencyHandler = dependencyHandler;
@@ -83,6 +83,9 @@ public class IdeDependencySet {
         private final Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = Maps.newLinkedHashMap();
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
         private final Table<ModuleComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> auxiliaryArtifacts = HashBasedTable.create();
+
+        IdeDependencyResult() {
+        }
 
         public void visit(IdeDependencyVisitor visitor) {
             resolvePlusConfigurations(visitor);
@@ -132,7 +135,7 @@ public class IdeDependencySet {
             }).getArtifacts();
         }
 
-        private Spec<ComponentIdentifier> getComponentFilter(IdeDependencyVisitor visitor) {
+        Spec<ComponentIdentifier> getComponentFilter(IdeDependencyVisitor visitor) {
             return visitor.isOffline() ? NOT_A_MODULE : Specs.<ComponentIdentifier>satisfyAll();
         }
 
@@ -223,7 +226,7 @@ public class IdeDependencySet {
         }
     }
 
-    private static final Spec<ComponentIdentifier> NOT_A_MODULE = new Spec<ComponentIdentifier>() {
+    static final Spec<ComponentIdentifier> NOT_A_MODULE = new Spec<ComponentIdentifier>() {
         @Override
         public boolean isSatisfiedBy(ComponentIdentifier id) {
             return !(id instanceof ModuleComponentIdentifier);

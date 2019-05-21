@@ -19,8 +19,8 @@ import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.internal.resolve.caching.ImplicitInputRecord;
-import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
+import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -31,11 +31,11 @@ import java.io.InputStream;
 import java.net.URI;
 
 public class ExternalRepositoryResourceAccessor implements RepositoryResourceAccessor, ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {
-    private static final String SERVICE_TYPE = RepositoryResourceAccessor.class.getName();
+    static final String SERVICE_TYPE = RepositoryResourceAccessor.class.getName();
 
-    private final URI rootUri;
-    private final String rootUriAsString;
-    private final ExternalResourceAccessor resourceResolver;
+    final URI rootUri;
+    final String rootUriAsString;
+    final ExternalResourceAccessor resourceResolver;
 
     public ExternalRepositoryResourceAccessor(URI rootUri, CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor, FileStore<String> fileStore) {
         this.rootUri = rootUri;
@@ -68,7 +68,7 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
     }
 
     @Nullable
-    private static Long hashFor(@Nullable LocallyAvailableExternalResource resource) {
+    static Long hashFor(@Nullable LocallyAvailableExternalResource resource) {
         return resource == null ? null : resource.getMetaData().getLastModified().getTime();
     }
 
@@ -88,7 +88,7 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
         private final String resource;
         private final Long hash;
 
-        private ServiceCall(String resource, @Nullable Long resourceHash) {
+        ServiceCall(String resource, @Nullable Long resourceHash) {
             this.resource = resource;
             this.hash = resourceHash;
         }

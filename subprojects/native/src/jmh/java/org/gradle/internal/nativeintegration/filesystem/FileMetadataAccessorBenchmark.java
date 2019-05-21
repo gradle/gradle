@@ -114,6 +114,9 @@ public class FileMetadataAccessorBenchmark {
 
     private static class NioFileMetadataAccessor implements FileMetadataAccessor {
 
+        NioFileMetadataAccessor() {
+        }
+
         @Override
         public FileMetadataSnapshot stat(File f) {
             try {

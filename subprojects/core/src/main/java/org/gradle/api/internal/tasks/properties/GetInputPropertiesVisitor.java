@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
-    private final String beanName;
-    private List<InputPropertySpec> inputProperties = new ArrayList<InputPropertySpec>();
+    final String beanName;
+    List<InputPropertySpec> inputProperties = new ArrayList<InputPropertySpec>();
 
     public GetInputPropertiesVisitor(String beanName) {
         this.beanName = beanName;

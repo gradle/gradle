@@ -39,6 +39,9 @@ public class IvyServices extends AbstractPluginServiceRegistry {
 
     private static class BuildServices {
 
+        BuildServices() {
+        }
+
         IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, IvyMutableModuleMetadataFactory metadataFactory) {
             IvyPublisher publisher = new DependencyResolverIvyPublisher();
             publisher = new ValidatingIvyPublisher(publisher, moduleIdentifierFactory, fileResourceRepository, metadataFactory);

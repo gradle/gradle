@@ -54,8 +54,8 @@ import java.util.concurrent.Callable;
 public class Assemble extends DefaultTask {
     private ConfigurableFileCollection source;
     private ConfigurableFileCollection includes;
-    private final Property<NativePlatform> targetPlatform;
-    private final Property<NativeToolChain> toolChain;
+    final Property<NativePlatform> targetPlatform;
+    final Property<NativeToolChain> toolChain;
     private File objectFileDir;
     private List<String> assemblerArgs;
 

@@ -30,10 +30,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 class WatchPointsRegistry {
-    private final static Logger LOG = LoggerFactory.getLogger(WatchPointsRegistry.class);
-    private final CombinedRootSubset rootSubset = new CombinedRootSubset();
-    private ImmutableSet<? extends File> allRequestedRoots;
-    private final boolean createNewStartingPointsUnderExistingRoots;
+    final static Logger LOG = LoggerFactory.getLogger(WatchPointsRegistry.class);
+    final CombinedRootSubset rootSubset = new CombinedRootSubset();
+    ImmutableSet<? extends File> allRequestedRoots;
+    final boolean createNewStartingPointsUnderExistingRoots;
 
     public WatchPointsRegistry(boolean createNewStartingPointsUnderExistingRoots) {
         this.createNewStartingPointsUnderExistingRoots = createNewStartingPointsUnderExistingRoots;
@@ -63,7 +63,7 @@ class WatchPointsRegistry {
         private Iterable<? extends File> startingWatchPoints;
         private ImmutableSet<? extends File> currentWatchPoints;
 
-        private Delta(FileSystemSubset fileSystemSubset, ImmutableSet<? extends File> currentWatchPoints) {
+        Delta(FileSystemSubset fileSystemSubset, ImmutableSet<? extends File> currentWatchPoints) {
             this.fileSystemSubset = fileSystemSubset;
             this.currentWatchPoints = currentWatchPoints;
             init();
@@ -141,11 +141,11 @@ class WatchPointsRegistry {
         }
     }
 
-    static private boolean inCombinedRootsOrAncestorOfAnyRoot(File file, Iterable<? extends File> roots, FileSystemSubset combinedRootsSubset) {
+    static boolean inCombinedRootsOrAncestorOfAnyRoot(File file, Iterable<? extends File> roots, FileSystemSubset combinedRootsSubset) {
         return combinedRootsSubset.contains(file) || isAncestorOfAnyRoot(file, roots, true);
     }
 
-    static private boolean isAncestorOfAnyRoot(File file, Iterable<? extends File> roots) {
+    static boolean isAncestorOfAnyRoot(File file, Iterable<? extends File> roots) {
         return isAncestorOfAnyRoot(file, roots, false);
     }
 
@@ -162,9 +162,9 @@ class WatchPointsRegistry {
     private static class CombinedRootSubset {
         private final FileSystemSubset.Builder combinedFileSystemSubsetBuilder;
 
-        private Iterable<? extends File> roots;
+        Iterable<? extends File> roots;
         private FileSystemSubset unfiltered;
-        private FileSystemSubset combinedFileSystemSubset;
+        FileSystemSubset combinedFileSystemSubset;
 
         public CombinedRootSubset() {
             combinedFileSystemSubsetBuilder = FileSystemSubset.builder();

@@ -47,12 +47,12 @@ import static org.gradle.internal.reflect.JavaPropertyReflectionUtil.hasDefaultT
 
 public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
-    private static final ModelType<? extends Collection<?>> COLLECTION_MODEL_TYPE = new ModelType<Collection<?>>() {
+    static final ModelType<? extends Collection<?>> COLLECTION_MODEL_TYPE = new ModelType<Collection<?>>() {
     };
-    private final StructSchema<M> schema;
-    private final StructBindings<?> bindings;
-    private final ManagedProxyFactory proxyFactory;
-    private final TypeConverter typeConverter;
+    final StructSchema<M> schema;
+    final StructBindings<?> bindings;
+    final ManagedProxyFactory proxyFactory;
+    final TypeConverter typeConverter;
 
     public ManagedModelProjection(StructSchema<M> schema,
                                   StructBindings<?> bindings,
@@ -69,7 +69,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     protected ModelView<M> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
         final DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), getType(), ruleDescriptor, writable, true);
         return new ModelView<M>() {
-            private final Map<String, Object> propertyViews = new HashMap<String, Object>();
+            final Map<String, Object> propertyViews = new HashMap<String, Object>();
 
             @Override
             public ModelPath getPath() {

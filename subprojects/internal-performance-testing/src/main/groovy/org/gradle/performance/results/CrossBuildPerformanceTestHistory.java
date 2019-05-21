@@ -24,7 +24,7 @@ import java.util.List;
 
 public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory {
     private final String name;
-    private final List<BuildDisplayInfo> builds;
+    final List<BuildDisplayInfo> builds;
 
     private final List<CrossBuildPerformanceResults> newestFirst;
 
@@ -120,7 +120,7 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
     }
 
     private class KnownBuildSpecificationsPerformanceTestExecution implements PerformanceTestExecution {
-        private final CrossBuildPerformanceResults results;
+        final CrossBuildPerformanceResults results;
 
         public KnownBuildSpecificationsPerformanceTestExecution(CrossBuildPerformanceResults results) {
             this.results = results;

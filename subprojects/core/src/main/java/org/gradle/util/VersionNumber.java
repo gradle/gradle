@@ -38,11 +38,11 @@ public class VersionNumber implements Comparable<VersionNumber> {
     private static final SchemeWithPatchVersion PATCH_SCHEME = new SchemeWithPatchVersion();
     public static final VersionNumber UNKNOWN = version(0);
 
-    private final int major;
-    private final int minor;
-    private final int micro;
-    private final int patch;
-    private final String qualifier;
+    final int major;
+    final int minor;
+    final int micro;
+    final int patch;
+    final String qualifier;
     private final AbstractScheme scheme;
 
     public VersionNumber(int major, int minor, int micro, @Nullable String qualifier) {
@@ -53,7 +53,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this(major, minor, micro, patch, qualifier, PATCH_SCHEME);
     }
 
-    private VersionNumber(int major, int minor, int micro, int patch, @Nullable String qualifier, AbstractScheme scheme) {
+    VersionNumber(int major, int minor, int micro, int patch, @Nullable String qualifier, AbstractScheme scheme) {
         this.major = major;
         this.minor = minor;
         this.micro = micro;
@@ -204,7 +204,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
             int pos;
             final String str;
 
-            private Scanner(String string) {
+            Scanner(String string) {
                 this.str = string;
             }
 
@@ -277,7 +277,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     private static class SchemeWithPatchVersion extends AbstractScheme {
         private static final String VERSION_TEMPLATE = "%d.%d.%d.%d%s";
 
-        private SchemeWithPatchVersion() {
+        SchemeWithPatchVersion() {
             super(4);
         }
 

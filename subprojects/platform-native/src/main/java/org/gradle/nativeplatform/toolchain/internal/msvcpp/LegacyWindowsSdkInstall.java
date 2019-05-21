@@ -59,8 +59,8 @@ public class LegacyWindowsSdkInstall implements WindowsSdkInstall {
         LIBPATH_SDK8 + "arm"
     };
 
-    private final File baseDir;
-    private final VersionNumber version;
+    final File baseDir;
+    final VersionNumber version;
     private final String name;
 
     public LegacyWindowsSdkInstall(File baseDir, VersionNumber version, String name) {

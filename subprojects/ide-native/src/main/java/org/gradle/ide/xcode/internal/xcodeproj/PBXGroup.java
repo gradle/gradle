@@ -31,7 +31,7 @@ import java.util.List;
  * A collection of files in Xcode's virtual filesystem hierarchy.
  */
 public class PBXGroup extends PBXReference {
-    private final List<PBXReference> children;
+    final List<PBXReference> children;
     private final LoadingCache<String, PBXGroup> childGroupsByName;
 
     // Unfortunately, we can't determine this at constructor time, because CacheBuilder

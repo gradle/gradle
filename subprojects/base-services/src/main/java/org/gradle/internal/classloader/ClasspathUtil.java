@@ -140,7 +140,7 @@ public class ClasspathUtil {
         throw new GradleException(String.format("Cannot determine classpath for resource '%s' from location '%s'.", name, location));
     }
 
-    private static URI toURI(URL url) throws URISyntaxException {
+    static URI toURI(URL url) throws URISyntaxException {
         try {
             return url.toURI();
         } catch (URISyntaxException e) {

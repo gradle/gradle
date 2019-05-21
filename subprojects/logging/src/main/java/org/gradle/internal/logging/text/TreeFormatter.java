@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
  * Constructs a tree of diagnostic messages.
  */
 public class TreeFormatter implements DiagnosticsVisitor {
-    private final StringBuilder buffer = new StringBuilder();
+    final StringBuilder buffer = new StringBuilder();
     private final AbstractStyledTextOutput original;
     private Node current;
 
@@ -241,14 +241,14 @@ public class TreeFormatter implements DiagnosticsVisitor {
         State state;
         boolean valueWritten;
 
-        private Node() {
+        Node() {
             this.parent = null;
             this.value = new StringBuilder();
             prefix = "";
             state = State.TraverseChildren;
         }
 
-        private Node(Node parent, String value) {
+        Node(Node parent, String value) {
             this.parent = parent;
             this.value = new StringBuilder(value);
             state = State.CollectValue;

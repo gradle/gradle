@@ -22,7 +22,13 @@ import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 class RuleBindings {
     private final NodeAtStateIndex rulesBySubject;
@@ -46,7 +52,7 @@ class RuleBindings {
         scopeReferences.addNodeToScope(node.getPath().getParent(), node);
     }
 
-    private void bound(Reference reference, ModelNodeInternal node) {
+    void bound(Reference reference, ModelNodeInternal node) {
         ModelBinding binding = reference.binding;
         binding.onBind(node);
         reference.index.put(new NodeAtState(node.getPath(), binding.predicate.getState()), reference.owner);
@@ -87,7 +93,7 @@ class RuleBindings {
         }
     }
 
-    private static void unbind(RuleBinder rule, ModelNodeInternal node) {
+    static void unbind(RuleBinder rule, ModelNodeInternal node) {
         rule.getSubjectBinding().onUnbind(node);
         for (ModelBinding binding : rule.getInputBindings()) {
             binding.onUnbind(node);
@@ -129,6 +135,9 @@ class RuleBindings {
         final List<Reference> references = new ArrayList<Reference>();
         ModelNodeInternal match;
 
+        PredicateMatches() {
+        }
+
         void match(ModelNodeInternal node) {
             for (Reference reference : references) {
                 bound(reference, node);
@@ -150,6 +159,9 @@ class RuleBindings {
 
     private class PathPredicateIndex {
         final Map<ModelPath, PredicateMatches> predicates = Maps.newLinkedHashMap();
+
+        PathPredicateIndex() {
+        }
 
         public void addNode(ModelNodeInternal node) {
             predicatesForPath(node.getPath()).match(node);
@@ -177,6 +189,9 @@ class RuleBindings {
     private class ScopeIndex {
         final Map<ModelType<?>, PredicateMatches> types = Maps.newLinkedHashMap();
         final List<ModelNodeInternal> nodes = Lists.newArrayList();
+
+        ScopeIndex() {
+        }
 
         public void addNode(ModelNodeInternal node) {
             nodes.add(node);
@@ -218,6 +233,9 @@ class RuleBindings {
     private class TypePredicateIndex {
         final Map<ModelPath, ScopeIndex> scopes = Maps.newLinkedHashMap();
 
+        TypePredicateIndex() {
+        }
+
         public void addNodeToScope(ModelPath path, ModelNodeInternal node) {
             scopeForPath(path).addNode(node);
         }
@@ -244,9 +262,9 @@ class RuleBindings {
     private static class NodeAtStateIndex {
         private final EnumMap<ModelNode.State, Map<String, List<RuleBinder>>> boundAtState = Maps.newEnumMap(ModelNode.State.class);
 
-        private final String name;
+        final String name;
 
-        private NodeAtStateIndex(String name) {
+        NodeAtStateIndex(String name) {
             this.name = name;
         }
 

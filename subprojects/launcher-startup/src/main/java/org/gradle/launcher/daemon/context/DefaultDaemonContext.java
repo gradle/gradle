@@ -33,13 +33,13 @@ public class DefaultDaemonContext implements DaemonContext {
 
     public static final org.gradle.internal.serialize.Serializer<DefaultDaemonContext> SERIALIZER = new Serializer();
 
-    private final String uid;
-    private final File javaHome;
-    private final File daemonRegistryDir;
-    private final Long pid;
-    private final Integer idleTimeout;
-    private final List<String> daemonOpts;
-    private final DaemonParameters.Priority priority;
+    final String uid;
+    final File javaHome;
+    final File daemonRegistryDir;
+    final Long pid;
+    final Integer idleTimeout;
+    final List<String> daemonOpts;
+    final DaemonParameters.Priority priority;
 
     public DefaultDaemonContext(String uid, File javaHome, File daemonRegistryDir, Long pid, Integer idleTimeout, List<String> daemonOpts, DaemonParameters.Priority priority) {
         this.uid = uid;
@@ -92,6 +92,9 @@ public class DefaultDaemonContext implements DaemonContext {
     }
 
     private static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {
+
+        Serializer() {
+        }
 
         @Override
         public DefaultDaemonContext read(Decoder decoder) throws Exception {

@@ -69,6 +69,9 @@ public abstract class Transformers {
     }
 
     private static class ToStringTransformer<T> implements Transformer<String, T> {
+        ToStringTransformer() {
+        }
+
         @Override
         public String transform(T original) {
             return original == null ? null : original.toString();
@@ -87,6 +90,9 @@ public abstract class Transformers {
         private static final Pattern SINGLE_QUOTED = Pattern.compile("^'.*'$");
         private static final Pattern DOUBLE_QUOTED = Pattern.compile("^\".*\"$");
         private static final Pattern A_SINGLE_QUOTE =  Pattern.compile("'");
+
+        CommandLineArgumentTransformer() {
+        }
 
         @Override
         public String transform(String input) {

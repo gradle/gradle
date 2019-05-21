@@ -111,8 +111,8 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     private static class ArtifactsForNode {
-        private final int artifactSetId;
-        private final ArtifactSet artifactSet;
+        final int artifactSetId;
+        final ArtifactSet artifactSet;
 
         ArtifactsForNode(int artifactSetId, ArtifactSet artifactSet) {
             this.artifactSetId = artifactSetId;

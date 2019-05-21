@@ -51,7 +51,7 @@ public class PublishingPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final ArtifactPublicationServices publicationServices;
-    private final ProjectPublicationRegistry projectPublicationRegistry;
+    final ProjectPublicationRegistry projectPublicationRegistry;
     private final FeaturePreviews featurePreviews;
     private final DocumentationRegistry documentationRegistry;
     private CollectionCallbackActionDecorator collectionCallbackActionDecorator;

@@ -45,7 +45,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private final Condition condition = lock.newCondition();
     private ObjectConnection connection;
     private ConnectionAcceptor acceptor;
-    private ExecHandle execHandle;
+    ExecHandle execHandle;
     private boolean running;
     private boolean aborted;
     private Throwable processFailure;
@@ -134,7 +134,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
         }
     }
 
-    private void onProcessStop(ExecResult execResult) {
+    void onProcessStop(ExecResult execResult) {
         lock.lock();
         try {
             try {

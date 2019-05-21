@@ -109,7 +109,7 @@ class ResolutionErrorRenderer implements Action<Throwable> {
         errorActions.add(errorAction);
     }
 
-    private boolean hasVersionConflictOnRequestedDependency(final List<? extends ModuleVersionIdentifier> versionIdentifiers) {
+    boolean hasVersionConflictOnRequestedDependency(final List<? extends ModuleVersionIdentifier> versionIdentifiers) {
         for (final ModuleVersionIdentifier versionIdentifier : versionIdentifiers) {
             if (dependencySpec.isSatisfiedBy(asDependencyResult(versionIdentifier))) {
                 return true;

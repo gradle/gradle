@@ -16,9 +16,19 @@
 
 package org.gradle.wrapper;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 
 public class Download implements IDownload {
     public static final String UNKNOWN_VERSION = "0";
@@ -166,6 +176,9 @@ public class Download implements IDownload {
     }
 
     private static class ProxyAuthenticator extends Authenticator {
+        ProxyAuthenticator() {
+        }
+
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
             return new PasswordAuthentication(

@@ -26,10 +26,10 @@ import java.util.List;
  */
 public class CachingChangeContainer implements ChangeContainer {
     private final ChangeContainer delegate;
-    private final List<Change> cache = new ArrayList<Change>();
-    private final int maxCachedChanges;
+    final List<Change> cache = new ArrayList<Change>();
+    final int maxCachedChanges;
     private boolean cached;
-    private boolean overrun;
+    boolean overrun;
 
     public CachingChangeContainer(int maxCachedChanges, ChangeContainer delegate) {
         this.maxCachedChanges = maxCachedChanges;

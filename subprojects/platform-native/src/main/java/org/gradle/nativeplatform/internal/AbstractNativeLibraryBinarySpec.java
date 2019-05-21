@@ -82,6 +82,9 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
     }
 
     private class HeaderFileSet implements MinimalFileSet, Buildable {
+        HeaderFileSet() {
+        }
+
         @Override
         public String getDisplayName() {
             return "Headers for " + AbstractNativeLibraryBinarySpec.this.getDisplayName();

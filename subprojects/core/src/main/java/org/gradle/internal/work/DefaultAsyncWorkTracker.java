@@ -108,7 +108,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
     }
 
-    private void waitForItemsAndGatherFailures(Iterable<AsyncWorkCompletion> workItems) {
+    void waitForItemsAndGatherFailures(Iterable<AsyncWorkCompletion> workItems) {
         final List<Throwable> failures = Lists.newArrayList();
         for (AsyncWorkCompletion item : workItems) {
             try {

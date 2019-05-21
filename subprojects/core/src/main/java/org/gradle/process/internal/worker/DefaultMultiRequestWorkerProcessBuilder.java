@@ -35,10 +35,10 @@ import java.lang.reflect.Proxy;
 import java.util.Set;
 
 class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWorkerProcessBuilder<WORKER> {
-    private static final Method START_METHOD;
-    private static final Method STOP_METHOD;
+    static final Method START_METHOD;
+    static final Method STOP_METHOD;
     private final Class<WORKER> workerType;
-    private final Class<?> workerImplementation;
+    final Class<?> workerImplementation;
     private final DefaultWorkerProcessBuilder workerProcessBuilder;
     private Action<WorkerProcess> onFailure = Actions.doNothing();
 

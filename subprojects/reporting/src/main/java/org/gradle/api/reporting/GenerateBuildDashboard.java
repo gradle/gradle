@@ -199,7 +199,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
         private final File destination;
         private final boolean available;
 
-        private ReportState(String name, File destination, boolean available) {
+        ReportState(String name, File destination, boolean available) {
             this.name = name;
             this.destination = destination;
             this.available = available;

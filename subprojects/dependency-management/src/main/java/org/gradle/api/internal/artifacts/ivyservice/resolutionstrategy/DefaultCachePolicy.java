@@ -267,7 +267,7 @@ public class DefaultCachePolicy implements CachePolicy {
         private boolean ruleMatch;
         private boolean mustCheck;
 
-        private AbstractResolutionControl(A request, B cachedResult, long ageMillis) {
+        AbstractResolutionControl(A request, B cachedResult, long ageMillis) {
             this.request = request;
             this.cachedResult = cachedResult;
             this.ageMillis = correctForClockShift(ageMillis);
@@ -329,7 +329,7 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     private class CachedDependencyResolutionControl extends AbstractResolutionControl<ModuleIdentifier, Set<ModuleVersionIdentifier>> implements DependencyResolutionControl {
-        private CachedDependencyResolutionControl(ModuleIdentifier request, Set<ModuleVersionIdentifier> result, long ageMillis) {
+        CachedDependencyResolutionControl(ModuleIdentifier request, Set<ModuleVersionIdentifier> result, long ageMillis) {
             super(request, result, ageMillis);
         }
     }
@@ -337,7 +337,7 @@ public class DefaultCachePolicy implements CachePolicy {
     private class CachedModuleResolutionControl extends AbstractResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion> implements ModuleResolutionControl {
         private final boolean changing;
 
-        private CachedModuleResolutionControl(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion cachedVersion, boolean changing, long ageMillis) {
+        CachedModuleResolutionControl(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion cachedVersion, boolean changing, long ageMillis) {
             super(moduleVersionId, cachedVersion, ageMillis);
             this.changing = changing;
         }
@@ -351,7 +351,7 @@ public class DefaultCachePolicy implements CachePolicy {
     private class CachedArtifactResolutionControl extends AbstractResolutionControl<ArtifactIdentifier, File> implements ArtifactResolutionControl {
         private final boolean belongsToChangingModule;
 
-        private CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis, boolean belongsToChangingModule) {
+        CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis, boolean belongsToChangingModule) {
             super(artifactIdentifier, cachedResult, ageMillis);
             this.belongsToChangingModule = belongsToChangingModule;
         }

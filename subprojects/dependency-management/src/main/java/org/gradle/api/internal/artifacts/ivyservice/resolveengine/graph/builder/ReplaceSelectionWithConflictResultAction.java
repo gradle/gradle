@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
 
 class ReplaceSelectionWithConflictResultAction implements Action<ConflictResolutionResult> {
-    private final ResolveState resolveState;
+    final ResolveState resolveState;
 
     ReplaceSelectionWithConflictResultAction(ResolveState resolveState) {
         this.resolveState = resolveState;

@@ -35,7 +35,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     private final ConfigurableFileCollection outputDirectories;
     private Object resourcesDir;
 
-    private final ConfigurableFileCollection classesDirs;
+    final ConfigurableFileCollection classesDirs;
     private final ConfigurableFileCollection dirs;
     private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;

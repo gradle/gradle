@@ -45,7 +45,7 @@ public class RuleExtractorUtils {
     private static class NonReferenceDescendantsSpec extends ModelSpec {
         private final ModelPath scope;
 
-        private NonReferenceDescendantsSpec(ModelPath scope) {
+        NonReferenceDescendantsSpec(ModelPath scope) {
             this.scope = scope;
         }
 

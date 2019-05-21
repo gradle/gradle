@@ -161,7 +161,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
 
         private final RepositoryDescriptor descriptor;
 
-        private static List<Repository> transform(List<ResolutionAwareRepository> repositories) {
+        static List<Repository> transform(List<ResolutionAwareRepository> repositories) {
             return CollectionUtils.collect(repositories, new Transformer<Repository, ResolutionAwareRepository>() {
                 @Override
                 public Repository transform(ResolutionAwareRepository repository) {
@@ -170,7 +170,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
             });
         }
 
-        private RepositoryImpl(RepositoryDescriptor descriptor) {
+        RepositoryImpl(RepositoryDescriptor descriptor) {
             this.descriptor = descriptor;
         }
 

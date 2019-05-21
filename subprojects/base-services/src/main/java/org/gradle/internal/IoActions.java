@@ -128,7 +128,7 @@ public abstract class IoActions {
         private final File file;
         private final String encoding;
 
-        private TextFileWriterIoAction(File file, String encoding) {
+        TextFileWriterIoAction(File file, String encoding) {
             this.file = file;
             this.encoding = encoding;
         }

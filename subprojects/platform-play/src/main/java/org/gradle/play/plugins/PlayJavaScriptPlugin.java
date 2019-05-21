@@ -16,7 +16,12 @@
 
 package org.gradle.play.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -79,6 +84,9 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
     }
 
     private static class JavaScript implements LanguageTransform<JavaScriptSourceSet, JavaScriptSourceCode> {
+        JavaScript() {
+        }
+
         @Override
         public String getLanguageName() {
             return "javaScript";

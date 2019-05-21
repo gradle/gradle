@@ -24,8 +24,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
-    private final ScriptExecutionListener listener;
-    private final Instantiator instantiator;
+    final ScriptExecutionListener listener;
+    final Instantiator instantiator;
 
     public DefaultScriptRunnerFactory(ScriptExecutionListener listener, Instantiator instantiator) {
         this.listener = listener;

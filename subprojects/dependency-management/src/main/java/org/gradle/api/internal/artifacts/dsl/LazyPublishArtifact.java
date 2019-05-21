@@ -33,7 +33,7 @@ import java.io.File;
 import java.util.Date;
 
 public class LazyPublishArtifact implements PublishArtifact {
-    private final ProviderInternal<?> provider;
+    final ProviderInternal<?> provider;
     private final String version;
     private PublishArtifact delegate;
 

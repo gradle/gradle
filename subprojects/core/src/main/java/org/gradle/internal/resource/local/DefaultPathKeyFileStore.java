@@ -174,11 +174,11 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         return new File(file.getParent(), file.getName() + IN_PROGRESS_MARKER_FILE_SUFFIX);
     }
 
-    private boolean isInProgressMarkerFile(File file) {
+    boolean isInProgressMarkerFile(File file) {
         return hasExtension(file, IN_PROGRESS_MARKER_FILE_SUFFIX);
     }
 
-    private boolean isInProgressFile(File file) {
+    boolean isInProgressFile(File file) {
         return getInProgressMarkerFile(file).exists();
     }
 

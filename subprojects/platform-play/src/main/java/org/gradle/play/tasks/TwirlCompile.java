@@ -281,6 +281,9 @@ public class TwirlCompile extends SourceTask {
     private static class RelativeFileCollector implements FileVisitor {
         List<RelativeFile> relativeFiles = Lists.newArrayList();
 
+        RelativeFileCollector() {
+        }
+
         @Override
         public void visitDir(FileVisitDetails dirDetails) {
         }

@@ -31,8 +31,16 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessors;
+import org.gradle.model.internal.core.DirectNodeNoInputsModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelMapModelProjection;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.model.internal.core.NodeBackedModelMap;
+import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -40,12 +48,12 @@ import org.gradle.model.internal.type.ModelType;
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 public class DefaultTaskContainerFactory implements Factory<TaskContainerInternal> {
-    private static final ModelType<DefaultTaskContainer> DEFAULT_TASK_CONTAINER_MODEL_TYPE = ModelType.of(DefaultTaskContainer.class);
-    private static final ModelType<TaskContainer> TASK_CONTAINER_MODEL_TYPE = ModelType.of(TaskContainer.class);
-    private static final ModelType<Task> TASK_MODEL_TYPE = ModelType.of(Task.class);
-    private static final ModelReference<Task> TASK_MODEL_REFERENCE = ModelReference.of(TASK_MODEL_TYPE);
-    private static final SimpleModelRuleDescriptor COPY_TO_TASK_CONTAINER_DESCRIPTOR = new SimpleModelRuleDescriptor("copyToTaskContainer");
-    private final ModelRegistry modelRegistry;
+    static final ModelType<DefaultTaskContainer> DEFAULT_TASK_CONTAINER_MODEL_TYPE = ModelType.of(DefaultTaskContainer.class);
+    static final ModelType<TaskContainer> TASK_CONTAINER_MODEL_TYPE = ModelType.of(TaskContainer.class);
+    static final ModelType<Task> TASK_MODEL_TYPE = ModelType.of(Task.class);
+    static final ModelReference<Task> TASK_MODEL_REFERENCE = ModelReference.of(TASK_MODEL_TYPE);
+    static final SimpleModelRuleDescriptor COPY_TO_TASK_CONTAINER_DESCRIPTOR = new SimpleModelRuleDescriptor("copyToTaskContainer");
+    final ModelRegistry modelRegistry;
     private final Instantiator instantiator;
     private final ITaskFactory taskFactory;
     private final CollectionCallbackActionDecorator callbackDecorator;
@@ -132,6 +140,9 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     }
 
     private static class Namer implements Transformer<String, String> {
+        Namer() {
+        }
+
         @Override
         public String transform(String s) {
             return "Project.<init>.tasks." + s + "()";

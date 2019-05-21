@@ -24,7 +24,7 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import java.util.List;
 
 class DefaultMethodArgsSerializer implements MethodArgsSerializer {
-    private static final Object[] ZERO_ARGS = new Object[0];
+    static final Object[] ZERO_ARGS = new Object[0];
     private final List<SerializerRegistry> serializerRegistries;
     private final MethodArgsSerializer defaultArgsSerializer;
 
@@ -82,6 +82,9 @@ class DefaultMethodArgsSerializer implements MethodArgsSerializer {
     }
 
     private class EmptyArraySerializer implements Serializer<Object[]> {
+        EmptyArraySerializer() {
+        }
+
         @Override
         public Object[] read(Decoder decoder) {
             return ZERO_ARGS;

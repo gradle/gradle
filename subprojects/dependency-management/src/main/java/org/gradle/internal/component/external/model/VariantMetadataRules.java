@@ -17,15 +17,15 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
 import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
-import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -148,7 +148,7 @@ public class VariantMetadataRules {
     }
 
     private static class ImmutableRules extends VariantMetadataRules {
-        private final static ImmutableRules INSTANCE = new ImmutableRules();
+        final static ImmutableRules INSTANCE = new ImmutableRules();
 
         private ImmutableRules() {
             super(null, null);

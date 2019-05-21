@@ -131,6 +131,9 @@ public class ApacheDirectoryListingParser {
     private class AnchorListerHandler extends DefaultHandler {
         List<String> hrefs = new ArrayList<String>();
 
+        AnchorListerHandler() {
+        }
+
         public List<String> getHrefs() {
             return hrefs;
         }

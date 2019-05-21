@@ -205,7 +205,7 @@ public class GradleBuildComparison {
         });
     }
 
-    private BuildComparisonResultRenderer<Writer> createResultRenderer(Charset encoding, final File reportDir, final Map<String, String> hostAttributes) {
+    BuildComparisonResultRenderer<Writer> createResultRenderer(Charset encoding, final File reportDir, final Map<String, String> hostAttributes) {
         return new GradleBuildComparisonResultHtmlRenderer(
                 comparisonResultRenderers,
                 outcomeRenderers,

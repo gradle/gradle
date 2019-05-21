@@ -30,7 +30,7 @@ class PackagePageRenderer extends PageRenderer<PackageTestResults> {
         htmlWriter.endElement();
     }
 
-    private void renderClasses(SimpleHtmlWriter htmlWriter) throws IOException {
+    void renderClasses(SimpleHtmlWriter htmlWriter) throws IOException {
         htmlWriter.startElement("table");
         htmlWriter.startElement("thread");
         htmlWriter.startElement("tr");

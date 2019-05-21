@@ -148,7 +148,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         private ComponentSelector selector;
         private boolean didSubstitute = false;
 
-        private LockingDependencySubstitution(ComponentSelector selector) {
+        LockingDependencySubstitution(ComponentSelector selector) {
             this.selector = selector;
         }
         @Override

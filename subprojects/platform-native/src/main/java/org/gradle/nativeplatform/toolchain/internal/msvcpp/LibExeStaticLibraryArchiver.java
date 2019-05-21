@@ -70,6 +70,9 @@ class LibExeStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiver
     }
 
     private static class LibExeSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
+        LibExeSpecToArguments() {
+        }
+
         @Override
         public List<String> transform(StaticLibraryArchiverSpec spec) {
             List<String> args = new ArrayList<String>();

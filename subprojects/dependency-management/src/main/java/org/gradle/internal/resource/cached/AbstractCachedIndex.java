@@ -42,7 +42,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
         this.fileAccessTracker = fileAccessTracker;
     }
 
-    private PersistentIndexedCache<K, V> getPersistentCache() {
+    PersistentIndexedCache<K, V> getPersistentCache() {
         if (persistentCache == null) {
             persistentCache = initPersistentCache();
         }

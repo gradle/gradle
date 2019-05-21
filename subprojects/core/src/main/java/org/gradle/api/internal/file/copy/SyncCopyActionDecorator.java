@@ -81,9 +81,9 @@ public class SyncCopyActionDecorator implements CopyAction {
         private final Set<RelativePath> visited;
         private final Spec<FileTreeElement> preserveSpec;
         private final PatternSet preserveSet;
-        private boolean didWork;
+        boolean didWork;
 
-        private SyncCopyActionDecoratorFileVisitor(Set<RelativePath> visited, @Nullable PatternFilterable preserveSpec) {
+        SyncCopyActionDecoratorFileVisitor(Set<RelativePath> visited, @Nullable PatternFilterable preserveSpec) {
             this.visited = visited;
             PatternSet preserveSet = new PatternSet();
             if (preserveSpec != null) {

@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import java.io.File;
 
 public class IvyContextualArtifactPublisher implements ArtifactPublisher {
-    private final ArtifactPublisher delegate;
+    final ArtifactPublisher delegate;
     private final IvyContextManager ivyContextManager;
 
     public IvyContextualArtifactPublisher(IvyContextManager ivyContextManager, ArtifactPublisher delegate) {

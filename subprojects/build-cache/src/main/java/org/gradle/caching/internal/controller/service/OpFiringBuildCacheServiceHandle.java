@@ -25,16 +25,16 @@ import org.gradle.caching.internal.controller.operations.LoadOperationMissResult
 import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
 import org.gradle.caching.internal.controller.operations.StoreOperationResult;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    final BuildOperationExecutor buildOperationExecutor;
 
     public OpFiringBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
         super(service, push, role, logStackTraces);
@@ -83,7 +83,7 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
 
     private class OpFiringEntryReader implements BuildCacheEntryReader {
 
-        private final BuildCacheEntryReader delegate;
+        final BuildCacheEntryReader delegate;
 
         OpFiringEntryReader(BuildCacheEntryReader delegate) {
             this.delegate = delegate;

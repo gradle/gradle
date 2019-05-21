@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
  * A {@link PropertyValue} backed by a fixed value.
  */
 public class StaticValue implements PropertyValue {
-    private final Object value;
+    final Object value;
 
     public StaticValue(@Nullable Object value) {
         this.value = value;

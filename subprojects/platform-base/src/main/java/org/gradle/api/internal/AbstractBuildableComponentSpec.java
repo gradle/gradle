@@ -29,8 +29,8 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import javax.annotation.Nullable;
 
 public abstract class AbstractBuildableComponentSpec extends AbstractComponentSpec implements BuildableComponentSpec, CheckableComponentSpec {
-    private final DefaultTaskDependency buildTaskDependencies = new DefaultTaskDependency();
-    private Task buildTask;
+    final DefaultTaskDependency buildTaskDependencies = new DefaultTaskDependency();
+    Task buildTask;
     private final DefaultTaskDependency checkTaskDependencies = new DefaultTaskDependency();
     private Task checkTask;
 

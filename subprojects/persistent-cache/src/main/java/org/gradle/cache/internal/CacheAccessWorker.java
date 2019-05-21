@@ -36,16 +36,16 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
-    private final BlockingQueue<Runnable> workQueue;
+    final BlockingQueue<Runnable> workQueue;
     private final String displayName;
     private final CacheAccess cacheAccess;
-    private final long batchWindowMillis;
-    private final long maximumLockingTimeMillis;
+    final long batchWindowMillis;
+    final long maximumLockingTimeMillis;
     private boolean closed;
     private boolean workerCompleted;
-    private boolean stopSeen;
+    boolean stopSeen;
     private final CountDownLatch doneSignal = new CountDownLatch(1);
-    private final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
+    final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
 
     CacheAccessWorker(String displayName, CacheAccess cacheAccess) {
         this.displayName = displayName;
@@ -107,6 +107,9 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
 
     private static class FlushOperationsCommand implements Runnable {
         private CountDownLatch latch = new CountDownLatch(1);
+
+        FlushOperationsCommand() {
+        }
 
         @Override
         public void run() {
@@ -227,6 +230,9 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     }
 
     private static class ShutdownOperationsCommand implements Runnable {
+        ShutdownOperationsCommand() {
+        }
+
         @Override
         public void run() {
             // do nothing

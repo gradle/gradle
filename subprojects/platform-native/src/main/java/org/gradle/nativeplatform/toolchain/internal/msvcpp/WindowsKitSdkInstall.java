@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSdkInstall {
-    private final File binDir;
+    final File binDir;
 
     public WindowsKitSdkInstall(File baseDir, VersionNumber version, File binDir, String name) {
         super(baseDir, version, name);

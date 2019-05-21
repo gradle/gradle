@@ -92,7 +92,7 @@ public class ArchiveEntry {
     private final long crc;
     private final ImmutableSet<ArchiveEntry> subEntries;
 
-    private ArchiveEntry(Path path, boolean directory, long size, long crc, ImmutableSet<ArchiveEntry> subEntries) {
+    ArchiveEntry(Path path, boolean directory, long size, long crc, ImmutableSet<ArchiveEntry> subEntries) {
         this.directory = directory;
         this.size = size;
         this.crc = crc;

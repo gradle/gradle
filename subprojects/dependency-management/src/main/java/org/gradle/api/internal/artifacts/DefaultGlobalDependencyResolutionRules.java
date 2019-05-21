@@ -56,7 +56,7 @@ public class DefaultGlobalDependencyResolutionRules implements GlobalDependencyR
     private static class CompositeDependencySubstitutionRules implements DependencySubstitutionRules {
         private final List<DependencySubstitutionRules> ruleProviders;
 
-        private CompositeDependencySubstitutionRules(List<DependencySubstitutionRules> ruleProviders) {
+        CompositeDependencySubstitutionRules(List<DependencySubstitutionRules> ruleProviders) {
             this.ruleProviders = ruleProviders;
         }
 

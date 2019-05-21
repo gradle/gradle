@@ -65,7 +65,7 @@ public class OutputFilterUtil {
         }));
     }
 
-    private static FileCollectionFingerprint getFingerprintForProperty(@Nullable ImmutableSortedMap<String, FileCollectionFingerprint> fingerprinters, String propertyName) {
+    static FileCollectionFingerprint getFingerprintForProperty(@Nullable ImmutableSortedMap<String, FileCollectionFingerprint> fingerprinters, String propertyName) {
         if (fingerprinters != null) {
             FileCollectionFingerprint afterPreviousExecution = fingerprinters.get(propertyName);
             if (afterPreviousExecution != null) {
@@ -163,7 +163,7 @@ public class OutputFilterUtil {
     /**
      * Decide whether an entry should be considered to be part of the output. See class Javadoc for definition of what is considered output.
      */
-    private static boolean isOutputEntry(FileSystemLocationSnapshot snapshot, Map<String, FileSystemLocationSnapshot> beforeSnapshots, Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints) {
+    static boolean isOutputEntry(FileSystemLocationSnapshot snapshot, Map<String, FileSystemLocationSnapshot> beforeSnapshots, Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints) {
         if (snapshot.getType() == FileType.Missing) {
             return false;
         }
@@ -182,6 +182,9 @@ public class OutputFilterUtil {
 
     private static class GetAllSnapshotsVisitor implements FileSystemSnapshotVisitor {
         private final Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<String, FileSystemLocationSnapshot>();
+
+        GetAllSnapshotsVisitor() {
+        }
 
         @Override
         public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {

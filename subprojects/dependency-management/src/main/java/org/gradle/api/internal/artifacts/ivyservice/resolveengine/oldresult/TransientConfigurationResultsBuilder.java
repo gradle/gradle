@@ -60,9 +60,9 @@ public class TransientConfigurationResultsBuilder {
 
     private BinaryStore binaryStore;
     private Store<TransientConfigurationResults> cache;
-    private final BuildOperationExecutor buildOperationProcessor;
-    private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer;
-    private BinaryStore.BinaryData binaryData;
+    final BuildOperationExecutor buildOperationProcessor;
+    final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer;
+    BinaryStore.BinaryData binaryData;
 
     public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildOperationExecutor buildOperationProcessor) {
         this.resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer(moduleIdentifierFactory);
@@ -151,7 +151,7 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
-    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
+    TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
         Timer clock = Time.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
         Map<Dependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<Dependency, DependencyGraphNodeResult>();

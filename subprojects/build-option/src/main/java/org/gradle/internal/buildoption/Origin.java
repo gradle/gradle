@@ -30,7 +30,7 @@ public abstract class Origin {
         return new CommandLineOrigin(commandLineOption);
     }
 
-    private Origin(String source) {
+    Origin(String source) {
         this.source = source;
     }
 

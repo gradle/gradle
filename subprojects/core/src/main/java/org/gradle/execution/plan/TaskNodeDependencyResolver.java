@@ -25,7 +25,7 @@ import javax.annotation.Nonnull;
  * Resolves dependencies to {@link TaskNode} objects. Uses the same logic as {@link #TASK_AS_TASK}.
  */
 public class TaskNodeDependencyResolver implements DependencyResolver {
-    private final TaskNodeFactory taskNodeFactory;
+    final TaskNodeFactory taskNodeFactory;
 
     public TaskNodeDependencyResolver(TaskNodeFactory taskNodeFactory) {
         this.taskNodeFactory = taskNodeFactory;

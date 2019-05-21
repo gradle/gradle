@@ -33,9 +33,9 @@ import java.io.Serializable;
  */
 public class ActionExecutionWorker implements Action<WorkerContext>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionExecutionWorker.class);
-    private final Action<? super WorkerProcessContext> action;
-    private final Object workerId;
-    private final String displayName;
+    final Action<? super WorkerProcessContext> action;
+    final Object workerId;
+    final String displayName;
 
     public ActionExecutionWorker(Action<? super WorkerProcessContext> action, Object workerId, String displayName) {
         this.action = action;

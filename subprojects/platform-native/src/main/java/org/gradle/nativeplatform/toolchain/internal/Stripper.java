@@ -49,6 +49,9 @@ public class Stripper extends AbstractCompiler<StripperSpec> {
     protected void addOptionsFileArgs(List<String> args, File tempDir) { }
 
     private static class StripperArgsTransformer implements ArgsTransformer<StripperSpec> {
+        StripperArgsTransformer() {
+        }
+
         @Override
         public List<String> transform(StripperSpec spec) {
             List<String> args = Lists.newArrayList();

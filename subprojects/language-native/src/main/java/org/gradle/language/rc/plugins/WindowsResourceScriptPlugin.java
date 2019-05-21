@@ -63,6 +63,9 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
     }
 
     private static class WindowsResources extends NativeLanguageTransform<WindowsResourceSet> {
+        WindowsResources() {
+        }
+
         @Override
         public Class<WindowsResourceSet> getSourceSetType() {
             return WindowsResourceSet.class;

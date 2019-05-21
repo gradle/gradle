@@ -74,7 +74,7 @@ class WatchServicePoller {
         }
     }
 
-    private FileWatcherEvent toEvent(WatchEvent.Kind kind, File file) {
+    FileWatcherEvent toEvent(WatchEvent.Kind kind, File file) {
         if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
             return FileWatcherEvent.create(file);
         } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {

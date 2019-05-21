@@ -17,7 +17,14 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.ModelRuleExecutionException;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -46,7 +53,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         private final ModelType<T> type;
         private final List<ModelReference<?>> inputs;
 
-        private UnmanagedElementCreationAction(ModelRuleDescriptor descriptor, ModelReference<?> subject, List<ModelReference<?>> inputs, ModelType<T> type) {
+        UnmanagedElementCreationAction(ModelRuleDescriptor descriptor, ModelReference<?> subject, List<ModelReference<?>> inputs, ModelType<T> type) {
             this.subject = subject;
             this.inputs = inputs;
             this.descriptor = descriptor;

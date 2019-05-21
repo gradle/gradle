@@ -205,6 +205,9 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     private static class ResolvedArtifactComparator implements Comparator<ResolvedArtifact> {
+        ResolvedArtifactComparator() {
+        }
+
         @Override
         public int compare(ResolvedArtifact artifact1, ResolvedArtifact artifact2) {
             int diff = artifact1.getName().compareTo(artifact2.getName());

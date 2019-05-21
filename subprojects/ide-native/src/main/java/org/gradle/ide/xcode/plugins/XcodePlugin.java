@@ -86,8 +86,8 @@ import java.io.File;
 public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
-    private final IdeArtifactRegistry artifactRegistry;
-    private DefaultXcodeProject xcodeProject;
+    final IdeArtifactRegistry artifactRegistry;
+    DefaultXcodeProject xcodeProject;
 
     @Inject
     public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, IdeArtifactRegistry artifactRegistry) {
@@ -180,7 +180,7 @@ public class XcodePlugin extends IdePlugin {
         return workspaceFileTask;
     }
 
-    private String getBridgeTaskPath(Project project) {
+    String getBridgeTaskPath(Project project) {
         String projectPath = "";
         if (!isRoot()) {
             projectPath = project.getPath();
@@ -211,7 +211,7 @@ public class XcodePlugin extends IdePlugin {
         });
     }
 
-    private void configureXcodeForXCTest(final Project project) {
+    void configureXcodeForXCTest(final Project project) {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
@@ -240,11 +240,11 @@ public class XcodePlugin extends IdePlugin {
         });
     }
 
-    private FileCollection filterArtifactsFromImplicitBuilds(Configuration configuration) {
+    FileCollection filterArtifactsFromImplicitBuilds(Configuration configuration) {
         return configuration.getIncoming().artifactView(fromSourceDependency()).getArtifacts().getArtifactFiles();
     }
 
-    private void configureXcodeForSwift(final Project project) {
+    void configureXcodeForSwift(final Project project) {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
@@ -286,7 +286,7 @@ public class XcodePlugin extends IdePlugin {
         });
     }
 
-    private String toBuildConfigurationName(SoftwareComponent component, SoftwareComponent binary) {
+    String toBuildConfigurationName(SoftwareComponent component, SoftwareComponent binary) {
         String result = binary.getName().replace(component.getName(), "");
         if (binary instanceof SwiftSharedLibrary || binary instanceof CppSharedLibrary) {
             return result.replace("Shared", "");
@@ -312,7 +312,7 @@ public class XcodePlugin extends IdePlugin {
         });
     }
 
-    private void configureXcodeForCpp(Project project) {
+    void configureXcodeForCpp(Project project) {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
@@ -360,7 +360,7 @@ public class XcodePlugin extends IdePlugin {
         });
     }
 
-    private static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, String schemeName, DefaultXcodeProject xcodeProject) {
+    static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, String schemeName, DefaultXcodeProject xcodeProject) {
         // TODO - capitalise the target name in the task name
         // TODO - don't create a launch target for a library
         String name = "xcodeScheme";
@@ -370,7 +370,7 @@ public class XcodePlugin extends IdePlugin {
         return schemeFileTask;
     }
 
-    private XcodeTarget newTarget(String name, String productName, String gradleCommand, String taskName, FileCollection sources) {
+    XcodeTarget newTarget(String name, String productName, String gradleCommand, String taskName, FileCollection sources) {
         String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
         XcodeTarget target = objectFactory.newInstance(XcodeTarget.class, name, id);
         target.setTaskName(taskName);
@@ -457,7 +457,7 @@ public class XcodePlugin extends IdePlugin {
         };
     }
 
-    private Spec<ComponentIdentifier> isSourceDependency() {
+    Spec<ComponentIdentifier> isSourceDependency() {
         return new Spec<ComponentIdentifier>() {
             @Override
             public boolean isSatisfiedBy(ComponentIdentifier id) {

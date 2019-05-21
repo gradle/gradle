@@ -43,11 +43,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultCacheFactory implements CacheFactory, Closeable {
-    private final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
+    final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final Lock lock = new ReentrantLock();
+    final Lock lock = new ReentrantLock();
 
     public DefaultCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         this.lockManager = fileLockManager;
@@ -110,10 +110,10 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     private class DirCacheReference implements Closeable {
-        private final Map<String, ?> properties;
-        private final CacheBuilder.LockTarget lockTarget;
-        private final LockOptions lockOptions;
-        private final ReferencablePersistentCache cache;
+        final Map<String, ?> properties;
+        final CacheBuilder.LockTarget lockTarget;
+        final LockOptions lockOptions;
+        final ReferencablePersistentCache cache;
         private final Set<ReferenceTrackingCache> references = new HashSet<ReferenceTrackingCache>();
 
         DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions) {
@@ -151,7 +151,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     private static class ReferenceTrackingCache implements PersistentCache {
         private final DirCacheReference reference;
 
-        private ReferenceTrackingCache(DirCacheReference reference) {
+        ReferenceTrackingCache(DirCacheReference reference) {
             this.reference = reference;
             reference.addReference(this);
         }

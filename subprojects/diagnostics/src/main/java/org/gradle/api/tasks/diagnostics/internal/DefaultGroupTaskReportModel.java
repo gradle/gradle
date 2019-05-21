@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class DefaultGroupTaskReportModel implements TaskReportModel {
     public static final String OTHER_GROUP = "other";
-    private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
+    static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
     private SetMultimap<String, TaskDetails> groups;
 
     public void build(TaskReportModel model) {

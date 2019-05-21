@@ -60,6 +60,9 @@ public abstract class Names {
     public abstract String getDirName();
 
     private static class Main extends Names {
+        Main() {
+        }
+
         @Override
         public String getName() {
             return "main";

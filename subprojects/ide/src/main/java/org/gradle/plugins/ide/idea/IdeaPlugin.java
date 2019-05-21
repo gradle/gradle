@@ -101,7 +101,7 @@ public class IdeaPlugin extends IdePlugin {
     private static final String IDEA_WORKSPACE_TASK_NAME = "ideaWorkspace";
 
     private final Instantiator instantiator;
-    private IdeaModel ideaModel;
+    IdeaModel ideaModel;
     private List<Project> allJavaProjects;
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
     private final IdeArtifactRegistry artifactRegistry;
@@ -227,11 +227,11 @@ public class IdeaPlugin extends IdePlugin {
         }
     }
 
-    private static IdeaModel ideaModelFor(Project project) {
+    static IdeaModel ideaModelFor(Project project) {
         return project.getExtensions().getByType(IdeaModel.class);
     }
 
-    private JavaVersion getMaxJavaModuleCompatibilityVersionFor(Function<Project, JavaVersion> toJavaVersion) {
+    JavaVersion getMaxJavaModuleCompatibilityVersionFor(Function<Project, JavaVersion> toJavaVersion) {
         List<Project> allJavaProjects = getAllJavaProjects();
         if (allJavaProjects.isEmpty()) {
             return JavaVersion.VERSION_1_6;
@@ -342,7 +342,7 @@ public class IdeaPlugin extends IdePlugin {
         });
     }
 
-    private void configureIdeaModuleForJava(final Project project) {
+    void configureIdeaModuleForJava(final Project project) {
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
             @Override
             public void execute(GenerateIdeaModule ideaModule) {
@@ -447,7 +447,7 @@ public class IdeaPlugin extends IdePlugin {
         ideaModel.getModule().setScopes(scopes);
     }
 
-    private void configureIdeaModuleForWar(final Project project) {
+    void configureIdeaModuleForWar(final Project project) {
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
             @Override
             public void execute(GenerateIdeaModule ideaModule) {
@@ -463,7 +463,7 @@ public class IdeaPlugin extends IdePlugin {
         });
     }
 
-    private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
+    static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
         if (!rootProject.getPlugins().hasPlugin(IdeaPlugin.class)) {
             return true;
         }
@@ -472,7 +472,7 @@ public class IdeaPlugin extends IdePlugin {
         return !moduleTargetBytecodeLevel.equals(ideaProject.getTargetBytecodeVersion());
     }
 
-    private static boolean includeModuleLanguageLevelOverride(Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
+    static boolean includeModuleLanguageLevelOverride(Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
         if (!rootProject.getPlugins().hasPlugin(IdeaPlugin.class)) {
             return true;
         }
@@ -500,7 +500,7 @@ public class IdeaPlugin extends IdePlugin {
         }
     }
 
-    private void ideaModuleDependsOnRoot() {
+    void ideaModuleDependsOnRoot() {
         // see IdeaScalaConfigurer which requires the ipr to be generated first
         project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
     }
@@ -521,7 +521,7 @@ public class IdeaPlugin extends IdePlugin {
         }
     }
 
-    private void visitAllImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject, TaskDependencyResolveContext context) {
+    void visitAllImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject, TaskDependencyResolveContext context) {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
         for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();

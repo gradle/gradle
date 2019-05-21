@@ -74,7 +74,7 @@ import java.util.concurrent.Callable;
  */
 @NonNullApi
 public class JavaGradlePluginPlugin implements Plugin<Project> {
-    private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
+    static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
     static final String COMPILE_CONFIGURATION = "compile";
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
@@ -378,9 +378,9 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      */
     static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
         private final GradlePluginDevelopmentExtension extension;
-        private final TaskProvider<PluginUnderTestMetadata> pluginClasspathTask;
+        final TaskProvider<PluginUnderTestMetadata> pluginClasspathTask;
 
-        private TestKitAndPluginClasspathDependenciesAction(GradlePluginDevelopmentExtension extension, TaskProvider<PluginUnderTestMetadata> pluginClasspathTask) {
+        TestKitAndPluginClasspathDependenciesAction(GradlePluginDevelopmentExtension extension, TaskProvider<PluginUnderTestMetadata> pluginClasspathTask) {
             this.extension = extension;
             this.pluginClasspathTask = pluginClasspathTask;
         }

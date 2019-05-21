@@ -171,7 +171,7 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             this.id = (byte) id;
         }
 
-        private byte getId() {
+        byte getId() {
             return id;
         }
     }

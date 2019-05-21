@@ -101,7 +101,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return name;
     }
 
-    private static String notNull(String id, Object o) {
+    static String notNull(String id, Object o) {
         if (o == null) {
             throw new InvalidUserDataException(id + " must not be null");
         }
@@ -112,7 +112,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         private final Project project;
         private final String featureName;
 
-        private LazyDefaultFeatureCapability(Project project, String featureName) {
+        LazyDefaultFeatureCapability(Project project, String featureName) {
             this.project = project;
             this.featureName = featureName;
         }

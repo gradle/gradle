@@ -114,7 +114,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             this(new Log());
         }
 
-        private TestBuildOperationQueue(Log log) {
+        TestBuildOperationQueue(Log log) {
             this.log = log;
         }
 
@@ -202,7 +202,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             public Object result;
             public Throwable failure;
 
-            private Record(BuildOperationDescriptor descriptor) {
+            Record(BuildOperationDescriptor descriptor) {
                 this.descriptor = descriptor;
             }
 
@@ -211,7 +211,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                 return descriptor.getDisplayName();
             }
 
-            private <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> asTyped(Class<? extends T> buildOperationType) {
+            <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> asTyped(Class<? extends T> buildOperationType) {
                 if (descriptor.getDetails() == null) {
                     throw new IllegalStateException("operation has null details");
                 }
@@ -233,7 +233,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             public final R result;
             public final Throwable failure;
 
-            private TypedRecord(BuildOperationDescriptor descriptor, D details, R result, Throwable failure) {
+            TypedRecord(BuildOperationDescriptor descriptor, D details, R result, Throwable failure) {
                 this.descriptor = descriptor;
                 this.details = details;
                 this.result = result;
@@ -247,7 +247,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         }
 
 
-        private void run(RunnableBuildOperation buildOperation) {
+        void run(RunnableBuildOperation buildOperation) {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
             TestBuildOperationContext context = new TestBuildOperationContext(record);
@@ -261,7 +261,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             }
         }
 
-        private <T> T call(CallableBuildOperation<T> buildOperation) {
+        <T> T call(CallableBuildOperation<T> buildOperation) {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
             TestBuildOperationContext context = new TestBuildOperationContext(record);
@@ -277,7 +277,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             return t;
         }
 
-        private ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptor) {
+        ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptor) {
             Record record = new Record(descriptor.build());
             records.add(record);
             final TestBuildOperationContext context = new TestBuildOperationContext(record);

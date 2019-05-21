@@ -29,8 +29,8 @@ import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.process.internal.ExecActionFactory;
 
 public abstract class AbstractJavaToolChain implements JavaToolChainInternal {
-    private final JavaCompilerFactory compilerFactory;
-    private final ExecActionFactory execActionFactory;
+    final JavaCompilerFactory compilerFactory;
+    final ExecActionFactory execActionFactory;
 
     protected AbstractJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
         this.compilerFactory = compilerFactory;
@@ -67,6 +67,9 @@ public abstract class AbstractJavaToolChain implements JavaToolChainInternal {
     }
 
     private class JavaToolProvider implements ToolProvider {
+        JavaToolProvider() {
+        }
+
         @Override
         public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
             if (JavaCompileSpec.class.isAssignableFrom(spec)) {
@@ -99,7 +102,7 @@ public abstract class AbstractJavaToolChain implements JavaToolChainInternal {
     private class UnavailableToolProvider implements ToolProvider {
         private final JavaPlatform targetPlatform;
 
-        private UnavailableToolProvider(JavaPlatform targetPlatform) {
+        UnavailableToolProvider(JavaPlatform targetPlatform) {
             this.targetPlatform = targetPlatform;
         }
 

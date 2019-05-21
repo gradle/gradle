@@ -64,7 +64,7 @@ public class TestMainAction implements Runnable {
     public static final class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
         private final Object testTaskOperationId;
 
-        private RootTestSuiteDescriptor(Object id, String name, Object testTaskOperationId) {
+        RootTestSuiteDescriptor(Object id, String name, Object testTaskOperationId) {
             super(id, name);
             this.testTaskOperationId = testTaskOperationId;
         }

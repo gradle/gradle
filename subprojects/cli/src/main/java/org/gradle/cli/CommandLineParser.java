@@ -15,7 +15,19 @@
  */
 package org.gradle.cli;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 /**
@@ -53,9 +65,9 @@ import java.util.regex.Pattern;
 public class CommandLineParser {
     private static final Pattern OPTION_NAME_PATTERN = Pattern.compile("(\\?|\\p{Alnum}[\\p{Alnum}-_]*)");
 
-    private Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();
-    private boolean allowMixedOptions;
-    private boolean allowUnknownOptions;
+    Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();
+    boolean allowMixedOptions;
+    boolean allowUnknownOptions;
 
     /**
      * Parses the given command-line.
@@ -252,9 +264,9 @@ public class CommandLineParser {
 
     private static class OptionString {
         private final String arg;
-        private final String option;
+        final String option;
 
-        private OptionString(String arg, String option) {
+        OptionString(String arg, String option) {
             this.arg = arg;
             this.option = option;
         }
@@ -304,7 +316,7 @@ public class CommandLineParser {
     }
 
     private class BeforeFirstSubCommand extends OptionAwareParserState {
-        private BeforeFirstSubCommand(ParsedCommandLine commandLine) {
+        BeforeFirstSubCommand(ParsedCommandLine commandLine) {
             super(commandLine);
         }
 
@@ -324,7 +336,7 @@ public class CommandLineParser {
     }
 
     private class AfterFirstSubCommand extends OptionAwareParserState {
-        private AfterFirstSubCommand(ParsedCommandLine commandLine) {
+        AfterFirstSubCommand(ParsedCommandLine commandLine) {
             super(commandLine);
         }
 
@@ -341,7 +353,7 @@ public class CommandLineParser {
     private static class AfterOptions extends ParserState {
         private final ParsedCommandLine commandLine;
 
-        private AfterOptions(ParsedCommandLine commandLine) {
+        AfterOptions(ParsedCommandLine commandLine) {
             this.commandLine = commandLine;
         }
 
@@ -365,7 +377,7 @@ public class CommandLineParser {
     private static class MissingOptionArgState extends ParserState {
         private final OptionParserState option;
 
-        private MissingOptionArgState(OptionParserState option) {
+        MissingOptionArgState(OptionParserState option) {
             this.option = option;
         }
 
@@ -407,7 +419,7 @@ public class CommandLineParser {
         private final ParserState state;
         private final List<String> values = new ArrayList<String>();
 
-        private KnownOptionParserState(OptionString optionString, CommandLineOption option, ParsedCommandLine commandLine, ParserState state) {
+        KnownOptionParserState(OptionString optionString, CommandLineOption option, ParsedCommandLine commandLine, ParserState state) {
             this.optionString = optionString;
             this.option = option;
             this.commandLine = commandLine;
@@ -466,7 +478,7 @@ public class CommandLineParser {
         private final String arg;
         private final ParsedCommandLine commandLine;
 
-        private UnknownOptionParserState(String arg, ParsedCommandLine commandLine, ParserState state) {
+        UnknownOptionParserState(String arg, ParsedCommandLine commandLine, ParserState state) {
             this.arg = arg;
             this.commandLine = commandLine;
             this.state = state;
@@ -495,6 +507,9 @@ public class CommandLineParser {
     }
 
     private static final class OptionComparator implements Comparator<CommandLineOption> {
+        OptionComparator() {
+        }
+
         public int compare(CommandLineOption option1, CommandLineOption option2) {
             String min1 = Collections.min(option1.getOptions(), new OptionStringComparator());
             String min2 = Collections.min(option2.getOptions(), new OptionStringComparator());
@@ -503,6 +518,9 @@ public class CommandLineParser {
     }
 
     private static final class CaseInsensitiveStringComparator implements Comparator<String> {
+        CaseInsensitiveStringComparator() {
+        }
+
         public int compare(String option1, String option2) {
             int diff = option1.compareToIgnoreCase(option2);
             if (diff != 0) {
@@ -513,6 +531,9 @@ public class CommandLineParser {
     }
 
     private static final class OptionStringComparator implements Comparator<String> {
+        OptionStringComparator() {
+        }
+
         public int compare(String option1, String option2) {
             boolean short1 = option1.length() == 1;
             boolean short2 = option2.length() == 1;

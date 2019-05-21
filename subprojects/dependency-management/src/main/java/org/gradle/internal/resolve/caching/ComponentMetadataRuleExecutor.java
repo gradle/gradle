@@ -72,7 +72,7 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
 
         private final ModuleVersionIdentifier identifier;
 
-        private SimpleResolvedModuleVersion(ModuleVersionIdentifier identifier) {
+        SimpleResolvedModuleVersion(ModuleVersionIdentifier identifier) {
             this.identifier = identifier;
         }
 

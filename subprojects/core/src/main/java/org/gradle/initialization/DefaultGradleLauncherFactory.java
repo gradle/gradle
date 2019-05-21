@@ -57,9 +57,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
-    private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
-    private final CrossBuildSessionScopeServices crossBuildSessionScopeServices;
-    private DefaultGradleLauncher rootBuild;
+    final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
+    final CrossBuildSessionScopeServices crossBuildSessionScopeServices;
+    DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
         GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
@@ -95,11 +95,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         return launcher;
     }
 
-    private DefaultGradleLauncher doNewInstance(BuildDefinition buildDefinition,
-                                                BuildState build,
-                                                @Nullable GradleLauncher parent,
-                                                BuildTreeScopeServices buildTreeScopeServices,
-                                                List<?> servicesToStop) {
+    DefaultGradleLauncher doNewInstance(BuildDefinition buildDefinition,
+                                        BuildState build,
+                                        @Nullable GradleLauncher parent,
+                                        BuildTreeScopeServices buildTreeScopeServices,
+                                        List<?> servicesToStop) {
         BuildScopeServices serviceRegistry = new BuildScopeServices(buildTreeScopeServices);
         serviceRegistry.add(BuildDefinition.class, buildDefinition);
         serviceRegistry.add(BuildState.class, build);
@@ -184,11 +184,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             }));
         }
 
-        private void setParent(DefaultGradleLauncher parent) {
+        void setParent(DefaultGradleLauncher parent) {
             this.parent = parent;
         }
 
-        private void setBuildCancellationToken(BuildCancellationToken buildCancellationToken) {
+        void setBuildCancellationToken(BuildCancellationToken buildCancellationToken) {
             this.buildCancellationToken = buildCancellationToken;
         }
     }

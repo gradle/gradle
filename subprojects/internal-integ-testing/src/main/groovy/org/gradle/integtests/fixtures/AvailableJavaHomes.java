@@ -167,7 +167,7 @@ public abstract class AvailableJavaHomes {
         return Iterables.getFirst(getAvailableJdks(filter), null);
     }
 
-    private static boolean isSupportedVersion(JvmInstallation jvmInstallation) {
+    static boolean isSupportedVersion(JvmInstallation jvmInstallation) {
         return underTest.worksWith(Jvm.discovered(jvmInstallation.getJavaHome(), jvmInstallation.getJavaVersion()));
     }
 
@@ -259,7 +259,7 @@ public abstract class AvailableJavaHomes {
     private static class DevInfrastructureJvmLocator {
         final FileCanonicalizer fileCanonicalizer;
 
-        private DevInfrastructureJvmLocator(FileCanonicalizer fileCanonicalizer) {
+        DevInfrastructureJvmLocator(FileCanonicalizer fileCanonicalizer) {
             this.fileCanonicalizer = fileCanonicalizer;
         }
 
@@ -294,7 +294,7 @@ public abstract class AvailableJavaHomes {
         private final FileCanonicalizer fileCanonicalizer;
         private final File baseDir;
 
-        private BaseDirJvmLocator(FileCanonicalizer fileCanonicalizer, File baseDir) {
+        BaseDirJvmLocator(FileCanonicalizer fileCanonicalizer, File baseDir) {
             this.fileCanonicalizer = fileCanonicalizer;
             this.baseDir = baseDir;
         }
@@ -323,7 +323,7 @@ public abstract class AvailableJavaHomes {
 
     private static class HomeDirJvmLocator extends BaseDirJvmLocator {
 
-        private HomeDirJvmLocator(FileCanonicalizer fileCanonicalizer) {
+        HomeDirJvmLocator(FileCanonicalizer fileCanonicalizer) {
             super(fileCanonicalizer, new File(SystemProperties.getInstance().getUserHome()));
         }
     }

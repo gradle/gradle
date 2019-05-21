@@ -53,8 +53,8 @@ public class ApplicationPlugin implements Plugin<Project> {
     public static final String TASK_DIST_ZIP_NAME = "distZip";
     public static final String TASK_DIST_TAR_NAME = "distTar";
 
-    private Project project;
-    private ApplicationPluginConvention pluginConvention;
+    Project project;
+    ApplicationPluginConvention pluginConvention;
 
     @Override
     public void apply(final Project project) {

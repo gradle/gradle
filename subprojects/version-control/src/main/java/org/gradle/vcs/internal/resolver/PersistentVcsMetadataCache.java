@@ -38,7 +38,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class PersistentVcsMetadataCache implements Stoppable {
     private static final VersionRefSerializer VALUE_SERIALIZER = new VersionRefSerializer();
     private final PersistentCache cache;
-    private final PersistentIndexedCache<String, VersionRef> workingDirCache;
+    final PersistentIndexedCache<String, VersionRef> workingDirCache;
 
     public PersistentVcsMetadataCache(VcsDirectoryLayout directoryLayout, CacheRepository cacheRepository) {
         cache = cacheRepository
@@ -74,7 +74,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
         });
     }
 
-    private String constraintCacheKey(VersionControlRepositoryConnection repository, VersionConstraint constraint) {
+    String constraintCacheKey(VersionControlRepositoryConnection repository, VersionConstraint constraint) {
         if (constraint.getBranch() != null) {
             return repository.getUniqueId() + ":b:" + constraint.getBranch();
         }
@@ -82,6 +82,9 @@ public class PersistentVcsMetadataCache implements Stoppable {
     }
 
     private static class VersionRefSerializer implements Serializer<VersionRef> {
+        VersionRefSerializer() {
+        }
+
         @Override
         public void write(Encoder encoder, VersionRef value) throws Exception {
             GitVersionRef gitRef = (GitVersionRef) value;

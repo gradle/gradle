@@ -55,11 +55,11 @@ public class DefaultLockStateSerializer implements LockStateSerializer {
     }
 
     private static class SequenceNumberLockState implements LockState {
-        private final long creationNumber;
+        final long creationNumber;
         private final long originalSequenceNumber;
-        private final long sequenceNumber;
+        final long sequenceNumber;
 
-        private SequenceNumberLockState(long creationNumber, long originalSequenceNumber, long sequenceNumber) {
+        SequenceNumberLockState(long creationNumber, long originalSequenceNumber, long sequenceNumber) {
             this.creationNumber = creationNumber;
             this.originalSequenceNumber = originalSequenceNumber;
             this.sequenceNumber = sequenceNumber;

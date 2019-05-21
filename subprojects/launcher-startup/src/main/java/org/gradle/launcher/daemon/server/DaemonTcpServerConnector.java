@@ -39,7 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class DaemonTcpServerConnector implements DaemonServerConnector {
     final private IncomingConnector incomingConnector;
-    private final Serializer<Message> serializer;
+    final Serializer<Message> serializer;
 
     private boolean started;
     private boolean stopped;

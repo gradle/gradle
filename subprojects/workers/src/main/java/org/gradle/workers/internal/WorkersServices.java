@@ -57,6 +57,9 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
 
     private static class BuildSessionScopeServices {
 
+        BuildSessionScopeServices() {
+        }
+
         WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationExecutor buildOperationExecutor) {
             return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
         }
@@ -79,6 +82,9 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
     }
 
     private static class GradleUserHomeServices {
+        GradleUserHomeServices() {
+        }
+
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
                                                                     ListenerManager listenerManager,
@@ -89,6 +95,9 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
     }
 
     private static class ProjectScopeServices {
+        ProjectScopeServices() {
+        }
+
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory, WorkerDaemonFactory daemonWorkerFactory, IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ServiceRegistry serviceRegistry) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, asyncWorkTracker, serviceRegistry);
             DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory);

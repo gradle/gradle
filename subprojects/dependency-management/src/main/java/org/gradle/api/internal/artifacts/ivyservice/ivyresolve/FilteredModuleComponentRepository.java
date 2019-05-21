@@ -20,9 +20,9 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -46,9 +46,9 @@ import java.util.Map;
 
 public class FilteredModuleComponentRepository implements ModuleComponentRepository {
     private final ModuleComponentRepository delegate;
-    private final Action<? super ArtifactResolutionDetails> filterAction;
-    private final String consumerName;
-    private final ImmutableAttributes consumerAttributes;
+    final Action<? super ArtifactResolutionDetails> filterAction;
+    final String consumerName;
+    final ImmutableAttributes consumerAttributes;
 
     public static ModuleComponentRepository of(ModuleComponentRepository delegate, Action<? super ArtifactResolutionDetails> action, String consumerName, AttributeContainer attributes) {
         if (action == null) {
@@ -106,7 +106,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
     private class FilteringAccess implements ModuleComponentRepositoryAccess {
         private final ModuleComponentRepositoryAccess delegate;
 
-        private FilteringAccess(ModuleComponentRepositoryAccess delegate) {
+        FilteringAccess(ModuleComponentRepositoryAccess delegate) {
             this.delegate = delegate;
         }
 
@@ -172,9 +172,9 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         private final ModuleComponentIdentifier moduleComponentIdentifier;
         private final String consumerName;
         private final ImmutableAttributes consumerAttributes;
-        private boolean notFound;
+        boolean notFound;
 
-        private DefaultArtifactResolutionDetails(ModuleIdentifier moduleIdentifier, ModuleComponentIdentifier componentId, String consumerName, ImmutableAttributes consumerAttributes) {
+        DefaultArtifactResolutionDetails(ModuleIdentifier moduleIdentifier, ModuleComponentIdentifier componentId, String consumerName, ImmutableAttributes consumerAttributes) {
             this.consumerName = consumerName;
             this.moduleIdentifier = moduleIdentifier;
             this.moduleComponentIdentifier = componentId;

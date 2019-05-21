@@ -31,6 +31,9 @@ class CppCompiler extends VisualCppNativeCompiler<CppCompileSpec> {
     }
 
     private static class CppCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CppCompileSpec> {
+        CppCompilerArgsTransformer() {
+        }
+
         @Override
         protected String getLanguageOption() {
             return "/TP";

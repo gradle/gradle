@@ -41,7 +41,7 @@ import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Jdk7DirectoryWalker implements DirectoryWalker {
-    private final FileSystem fileSystem;
+    final FileSystem fileSystem;
 
     public Jdk7DirectoryWalker(FileSystem fileSystem) {
         this.fileSystem = fileSystem;

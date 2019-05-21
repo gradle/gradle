@@ -71,6 +71,9 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
 
     private static class SettingsScopeServices {
 
+        SettingsScopeServices() {
+        }
+
         protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginDependencyResolutionServices dependencyResolutionServices,
                                                                   PluginResolutionStrategyInternal internalPluginResolutionStrategy) {
             return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getPluginRepositoryHandlerProvider(), internalPluginResolutionStrategy);
@@ -78,6 +81,9 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
     }
 
     private static class BuildScopeServices {
+        BuildScopeServices() {
+        }
+
         AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
             return new DefaultAutoAppliedPluginRegistry(buildDefinition);
         }
@@ -131,7 +137,7 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             };
         }
 
-        private ProjectFinder makeUnknownProjectFinder() {
+        ProjectFinder makeUnknownProjectFinder() {
             return new UnknownProjectFinder("Cannot use project dependencies in a plugin resolution definition.");
         }
     }

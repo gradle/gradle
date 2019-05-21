@@ -170,7 +170,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private Provider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+    Provider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
         return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
             @Override
             public void execute(JavaCompile compileTask) {
@@ -194,7 +194,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
+    void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
         target.getTasks().register(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new Action<ProcessResources>() {
             @Override
             public void execute(ProcessResources resourcesTask) {
@@ -210,7 +210,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void createClassesTask(final SourceSet sourceSet, Project target) {
+    void createClassesTask(final SourceSet sourceSet, Project target) {
         Provider<Task> classesTask = target.getTasks().register(sourceSet.getClassesTaskName(), new Action<Task>() {
             @Override
             public void execute(Task classesTask) {
@@ -224,7 +224,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         sourceSet.compiledBy(classesTask);
     }
 
-    private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
+    void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
         outputConventionMapping.map("resourcesDir", new Callable<Object>() {
             @Override
             public Object call() {
@@ -237,7 +237,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
     }
 
-    private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations, final JavaPluginConvention convention) {
+    void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations, final JavaPluginConvention convention) {
         String compileConfigurationName = sourceSet.getCompileConfigurationName();
         String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
         String runtimeConfigurationName = sourceSet.getRuntimeConfigurationName();
@@ -397,7 +397,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureTestDefaults(final Test test, Project project, final JavaPluginConvention convention) {
+    void configureTestDefaults(final Test test, Project project, final JavaPluginConvention convention) {
         DslObject htmlReport = new DslObject(test.getReports().getHtml());
         DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
 

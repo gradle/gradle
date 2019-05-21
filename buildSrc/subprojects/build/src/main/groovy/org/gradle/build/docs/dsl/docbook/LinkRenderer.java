@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class LinkRenderer {
-    private final Document document;
+    final Document document;
     private final DslDocModel model;
     private final Set<String> primitiveTypes = new HashSet<String>();
     private final String groovyVersion;
@@ -77,7 +77,7 @@ public class LinkRenderer {
         return linkElement;
     }
 
-    private Node addType(String className, GenerationListener listener) {
+    Node addType(String className, GenerationListener listener) {
         if (model.isKnownType(className)) {
             Element linkElement = document.createElement("apilink");
             linkElement.setAttribute("class", className);

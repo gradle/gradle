@@ -54,12 +54,12 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         }
     };
 
-    private final ComponentIdentifier componentIdentifier;
-    private final Factory<ResolverResults> graphResults;
+    final ComponentIdentifier componentIdentifier;
+    final Factory<ResolverResults> graphResults;
     private final Factory<ResolverResults> artifactResults;
-    private final WorkNodeAction graphResolveAction;
+    final WorkNodeAction graphResolveAction;
     private final FileCollectionFactory fileCollectionFactory;
-    private Set<ComponentIdentifier> buildDependencies;
+    Set<ComponentIdentifier> buildDependencies;
     private Set<ComponentIdentifier> dependencies;
 
     public DefaultExecutionGraphDependenciesResolver(ComponentIdentifier componentIdentifier, Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, WorkNodeAction graphResolveAction, FileCollectionFactory fileCollectionFactory) {
@@ -119,7 +119,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         }
     }
 
-    private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
+    static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
         ResolvedComponentResult targetComponent = null;
         for (ResolvedComponentResult component : componentResults) {
             if (component.getId().equals(componentIdentifier)) {

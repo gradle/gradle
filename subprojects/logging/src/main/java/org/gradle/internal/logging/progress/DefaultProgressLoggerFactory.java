@@ -34,7 +34,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;
     private final Clock clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
-    private final ThreadLocal<ProgressLoggerImpl> current = new ThreadLocal<ProgressLoggerImpl>();
+    final ThreadLocal<ProgressLoggerImpl> current = new ThreadLocal<ProgressLoggerImpl>();
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 
     public DefaultProgressLoggerFactory(ProgressListener progressListener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
@@ -128,7 +128,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private String description;
         private String loggingHeader;
         private State state = State.idle;
-        private int totalProgress;
+        int totalProgress;
 
         ProgressLoggerImpl(
             ProgressLoggerImpl parent,

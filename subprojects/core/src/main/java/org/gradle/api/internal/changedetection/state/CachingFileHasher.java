@@ -102,9 +102,9 @@ public class CachingFileHasher implements FileHasher {
 
     @VisibleForTesting
     static class FileInfo {
-        private final HashCode hash;
-        private final long timestamp;
-        private final long length;
+        final HashCode hash;
+        final long timestamp;
+        final long length;
 
         public FileInfo(HashCode hash, long length, long timestamp) {
             this.hash = hash;
@@ -119,6 +119,9 @@ public class CachingFileHasher implements FileHasher {
 
     private static class FileInfoSerializer extends AbstractSerializer<FileInfo> {
         private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
+
+        FileInfoSerializer() {
+        }
 
         @Override
         public FileInfo read(Decoder decoder) throws Exception {

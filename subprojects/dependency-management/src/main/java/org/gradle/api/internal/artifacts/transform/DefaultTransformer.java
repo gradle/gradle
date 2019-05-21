@@ -275,7 +275,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         }
     }
 
-    private static String getParameterObjectDisplayName(Object parameterObject) {
+    static String getParameterObjectDisplayName(Object parameterObject) {
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 

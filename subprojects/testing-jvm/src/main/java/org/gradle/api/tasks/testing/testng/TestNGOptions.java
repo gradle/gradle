@@ -390,7 +390,7 @@ public class TestNGOptions extends TestFrameworkOptions {
      */
     @Input
     @Optional
-    private String getSuiteXml() {
+    String getSuiteXml() {
         return suiteXmlWriter == null ? null : suiteXmlWriter.toString();
     }
 

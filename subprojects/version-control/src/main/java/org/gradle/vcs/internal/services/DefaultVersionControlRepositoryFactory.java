@@ -77,12 +77,12 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
     }
 
     private static final class LockingVersionControlRepository implements VersionControlRepositoryConnection {
-        private final VcsDirectoryLayout directoryLayout;
-        private final VersionControlSpec spec;
-        private final VersionControlSystem delegate;
+        final VcsDirectoryLayout directoryLayout;
+        final VersionControlSpec spec;
+        final VersionControlSystem delegate;
         private final CacheAccess cacheAccess;
 
-        private LockingVersionControlRepository(VcsDirectoryLayout directoryLayout, VersionControlSpec spec, VersionControlSystem delegate, CacheAccess cacheAccess) {
+        LockingVersionControlRepository(VcsDirectoryLayout directoryLayout, VersionControlSpec spec, VersionControlSystem delegate, CacheAccess cacheAccess) {
             this.directoryLayout = directoryLayout;
             this.spec = spec;
             this.delegate = delegate;

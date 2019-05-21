@@ -162,9 +162,14 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {
+        CommandLineLogging() {
+        }
     }
 
     private static class NestedLogging extends LoggingServiceRegistry {
+
+        NestedLogging() {
+        }
 
         @Override
         protected DefaultLoggingManagerFactory createLoggingManagerFactory() {

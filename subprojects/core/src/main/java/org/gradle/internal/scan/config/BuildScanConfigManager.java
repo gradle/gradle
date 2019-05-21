@@ -37,7 +37,7 @@ import static org.gradle.internal.scan.config.BuildScanPluginCompatibility.isNot
  */
 class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProvider, BuildScanPluginApplied {
 
-    private static final Logger LOGGER = Logging.getLogger(BuildScanConfigManager.class);
+    static final Logger LOGGER = Logging.getLogger(BuildScanConfigManager.class);
 
     private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
@@ -51,7 +51,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
     private final Factory<BuildScanConfig.Attributes> configAttributes;
 
     private Requestedness requestedness = Requestedness.DEFAULTED;
-    private boolean collected;
+    boolean collected;
 
     BuildScanConfigManager(
         StartParameter startParameter,
@@ -143,8 +143,8 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         ENABLED(true, false),
         DISABLED(false, true);
 
-        private final boolean enabled;
-        private final boolean disabled;
+        final boolean enabled;
+        final boolean disabled;
 
         Requestedness(boolean enabled, boolean disabled) {
             this.enabled = enabled;

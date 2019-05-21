@@ -68,6 +68,9 @@ public abstract class AbstractEncoder implements Encoder {
     }
 
     private class EncoderStream extends OutputStream {
+        EncoderStream() {
+        }
+
         @Override
         public void write(byte[] buffer) throws IOException {
             writeBytes(buffer);

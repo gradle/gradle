@@ -68,7 +68,13 @@ import java.util.concurrent.ExecutionException;
 
 import static org.gradle.internal.reflect.Methods.DESCRIPTOR_EQUIVALENCE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
-import static org.gradle.internal.reflect.PropertyAccessorType.*;
+import static org.gradle.internal.reflect.PropertyAccessorType.GET_GETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.IS_GETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.SETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasGetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasVoidReturnType;
+import static org.gradle.internal.reflect.PropertyAccessorType.takesSingleParameter;
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class DefaultStructBindingsStore implements StructBindingsStore {
@@ -150,7 +156,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         });
     }
 
-    private static void validateManagedType(StructBindingValidationProblemCollector problems, Class<?> typeClass) {
+    static void validateManagedType(StructBindingValidationProblemCollector problems, Class<?> typeClass) {
         if (!typeClass.isInterface() && !Modifier.isAbstract(typeClass.getModifiers())) {
             problems.add("Must be defined as an interface or an abstract class.");
         }
@@ -160,7 +166,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         }
     }
 
-    private static void validateType(StructBindingValidationProblemCollector problems, Class<?> typeClass) {
+    static void validateType(StructBindingValidationProblemCollector problems, Class<?> typeClass) {
         Constructor<?> customConstructor = findCustomConstructor(typeClass);
         if (customConstructor != null) {
             problems.add(customConstructor, "Custom constructors are not supported.");
@@ -501,7 +507,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         });
     }
 
-    private <T> StructSchema<T> getStructSchema(ModelType<T> type) {
+    <T> StructSchema<T> getStructSchema(ModelType<T> type) {
         ModelSchema<T> schema = schemaStore.getSchema(type);
         if (!(schema instanceof StructSchema)) {
             throw new IllegalArgumentException(String.format("Type '%s' is not a struct.", type.getDisplayName()));
@@ -510,9 +516,9 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     }
 
     private static class CacheKey {
-        private final ModelType<?> publicType;
-        private final Set<ModelType<?>> viewTypes;
-        private final ModelType<?> delegateType;
+        final ModelType<?> publicType;
+        final Set<ModelType<?>> viewTypes;
+        final ModelType<?> delegateType;
 
         public CacheKey(ModelType<?> publicType, Iterable<? extends ModelType<?>> viewTypes, ModelType<?> delegateType) {
             this.publicType = publicType;

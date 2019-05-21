@@ -120,7 +120,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
-    private WorkerFactory getWorkerFactory(IsolationMode isolationMode) {
+    WorkerFactory getWorkerFactory(IsolationMode isolationMode) {
         switch (isolationMode) {
             case AUTO:
             case CLASSLOADER:

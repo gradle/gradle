@@ -152,6 +152,9 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
         private Path tempDir;
         private Path iterationDir;
 
+        DefaultDirectoryProvider() {
+        }
+
         @Setup(Level.Trial)
         public void setupTrial() throws IOException {
             this.tempDir = Files.createTempDirectory("task-output-cache-benchmark-");

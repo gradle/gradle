@@ -39,6 +39,9 @@ public class HttpResourcesPluginServiceRegistry extends AbstractPluginServiceReg
     }
 
     private static class GlobalScopeServices {
+        GlobalScopeServices() {
+        }
+
         SslContextFactory createSslContextFactory() {
             return new DefaultSslContextFactory();
         }
@@ -49,6 +52,9 @@ public class HttpResourcesPluginServiceRegistry extends AbstractPluginServiceReg
     }
 
     private static class AuthenticationSchemeAction {
+        AuthenticationSchemeAction() {
+        }
+
         public void configure(ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
             authenticationSchemeRegistry.registerScheme(BasicAuthentication.class, DefaultBasicAuthentication.class);
             authenticationSchemeRegistry.registerScheme(DigestAuthentication.class, DefaultDigestAuthentication.class);

@@ -67,10 +67,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
-    private final ConfigurationInternal configuration;
-    private final Set<UnresolvedDependency> unresolvedDependencies;
+    final ConfigurationInternal configuration;
+    final Set<UnresolvedDependency> unresolvedDependencies;
     private final VisitedArtifactsResults artifactResults;
-    private final VisitedFileDependencyResults fileDependencyResults;
+    final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
     private final ArtifactTransforms artifactTransforms;
     private final AttributeContainerInternal implicitAttributes;
@@ -229,7 +229,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return visitor.artifacts;
     }
 
-    private void visitArtifactsWithBuildOperation(final Spec<? super Dependency> dependencySpec, final SelectedArtifactResults artifactResults, final VisitedFileDependencyResults fileDependencyResults, final ArtifactVisitor visitor) {
+    void visitArtifactsWithBuildOperation(final Spec<? super Dependency> dependencySpec, final SelectedArtifactResults artifactResults, final VisitedFileDependencyResults fileDependencyResults, final ArtifactVisitor visitor) {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
@@ -253,7 +253,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      *
      * @param dependencySpec dependency spec
      */
-    private void visitArtifacts(Spec<? super Dependency> dependencySpec, SelectedArtifactResults artifactResults, VisitedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
+    void visitArtifacts(Spec<? super Dependency> dependencySpec, SelectedArtifactResults artifactResults, VisitedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
@@ -293,6 +293,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
         final Set<File> files = Sets.newLinkedHashSet();
 
+        LenientArtifactCollectingVisitor() {
+        }
+
         @Override
         public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
             try {
@@ -326,6 +329,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private static class LenientFilesAndArtifactResolveVisitor extends LenientArtifactCollectingVisitor {
+        LenientFilesAndArtifactResolveVisitor() {
+        }
+
         @Override
         public boolean includeFiles() {
             return true;

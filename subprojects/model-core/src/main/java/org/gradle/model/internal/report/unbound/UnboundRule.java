@@ -17,9 +17,9 @@
 package org.gradle.model.internal.report.unbound;
 
 import com.google.common.collect.ImmutableList;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
-
 import java.io.File;
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class UnboundRule {
     private final ImmutableList<UnboundRuleInput> immutableInputs;
     private final ImmutableList<UnboundRuleInput> mutableInputs;
 
-    private UnboundRule(String descriptor, ImmutableList<UnboundRuleInput> immutableInputs, ImmutableList<UnboundRuleInput> mutableInputs) {
+    UnboundRule(String descriptor, ImmutableList<UnboundRuleInput> immutableInputs, ImmutableList<UnboundRuleInput> mutableInputs) {
         this.descriptor = descriptor;
         this.immutableInputs = immutableInputs;
         this.mutableInputs = mutableInputs;
@@ -64,7 +64,7 @@ public class UnboundRule {
         private final ImmutableList.Builder<UnboundRuleInput> immutableInputs = ImmutableList.builder();
         private final ImmutableList.Builder<UnboundRuleInput> mutableInputs = ImmutableList.builder();
 
-        private Builder(String descriptor) {
+        Builder(String descriptor) {
             this.descriptor = descriptor;
         }
 

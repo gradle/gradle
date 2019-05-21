@@ -27,7 +27,7 @@ import java.util.zip.ZipInputStream;
 
 class StreamZipInput implements ZipInput {
 
-    private final ZipInputStream in;
+    final ZipInputStream in;
 
     public StreamZipInput(InputStream in) {
         this.in = new ZipInputStream(in);

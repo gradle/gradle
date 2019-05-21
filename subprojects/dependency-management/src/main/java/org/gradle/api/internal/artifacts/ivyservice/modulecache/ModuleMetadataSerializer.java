@@ -98,7 +98,7 @@ public class ModuleMetadataSerializer {
         private final AttributeContainerSerializer attributeContainerSerializer;
         private final ModuleComponentSelectorSerializer componentSelectorSerializer;
 
-        private Writer(Encoder encoder, AttributeContainerSerializer attributeContainerSerializer, ModuleComponentSelectorSerializer componentSelectorSerializer) {
+        Writer(Encoder encoder, AttributeContainerSerializer attributeContainerSerializer, ModuleComponentSelectorSerializer componentSelectorSerializer) {
             this.encoder = encoder;
             this.attributeContainerSerializer = attributeContainerSerializer;
             this.componentSelectorSerializer = componentSelectorSerializer;
@@ -383,11 +383,11 @@ public class ModuleMetadataSerializer {
         private ModuleComponentIdentifier id;
         private ImmutableAttributes attributes;
 
-        private Reader(Decoder decoder,
-                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                       AttributeContainerSerializer attributeContainerSerializer,
-                       ModuleComponentSelectorSerializer componentSelectorSerializer, MavenMutableModuleMetadataFactory mavenMutableModuleMetadataFactory,
-                       IvyMutableModuleMetadataFactory ivyMetadataFactory) {
+        Reader(Decoder decoder,
+               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+               AttributeContainerSerializer attributeContainerSerializer,
+               ModuleComponentSelectorSerializer componentSelectorSerializer, MavenMutableModuleMetadataFactory mavenMutableModuleMetadataFactory,
+               IvyMutableModuleMetadataFactory ivyMetadataFactory) {
             this.decoder = decoder;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);

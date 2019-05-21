@@ -22,7 +22,7 @@ public class Serializers {
     }
 
     private static class StatefulSerializerAdapter<T> implements StatefulSerializer<T> {
-        private final Serializer<T> serializer;
+        final Serializer<T> serializer;
 
         public StatefulSerializerAdapter(Serializer<T> serializer) {
             this.serializer = serializer;

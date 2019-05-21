@@ -43,7 +43,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
     public static final String CLEAN_STALE_OUTPUTS_DISPLAY_NAME = "Clean stale outputs";
 
-    private final Logger logger = LoggerFactory.getLogger(CleanupStaleOutputsExecuter.class);
+    final Logger logger = LoggerFactory.getLogger(CleanupStaleOutputsExecuter.class);
     private final BuildOperationExecutor buildOperationExecutor;
     private final OutputChangeListener outputChangeListener;
     private final TaskExecuter executer;

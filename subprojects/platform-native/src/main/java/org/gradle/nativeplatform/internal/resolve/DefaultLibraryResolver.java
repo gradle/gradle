@@ -32,7 +32,7 @@ import org.gradle.util.GUtil;
 import java.util.Set;
 
 class DefaultLibraryResolver {
-    private final NativeLibraryRequirement requirement;
+    final NativeLibraryRequirement requirement;
     private final NativeBinarySpec context;
     private final LibraryBinaryLocator libraryBinaryLocator;
 
@@ -68,6 +68,9 @@ class DefaultLibraryResolver {
         private Flavor flavor;
         private NativePlatform platform;
         private BuildType buildType;
+
+        LibraryResolution() {
+        }
 
         public LibraryResolution withFlavor(Flavor flavor) {
             this.flavor = flavor;

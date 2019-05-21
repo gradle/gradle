@@ -50,7 +50,7 @@ import java.util.concurrent.Callable;
 
 public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
 
-    private final NativeLanguageTransform<?> languageTransform;
+    final NativeLanguageTransform<?> languageTransform;
     private final Class<? extends DefaultTask> taskType;
 
     public CompileTaskConfig(NativeLanguageTransform<?> languageTransform, Class<? extends DefaultTask> taskType) {

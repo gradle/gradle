@@ -49,7 +49,7 @@ import java.util.concurrent.Callable;
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     public static final String DEFAULT_PMD_VERSION = "6.8.0";
-    private PmdExtension extension;
+    PmdExtension extension;
 
     @Override
     protected String getToolName() {
@@ -172,7 +172,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         });
     }
 
-    private String calculateDefaultDependencyNotation(VersionNumber toolVersion) {
+    String calculateDefaultDependencyNotation(VersionNumber toolVersion) {
         if (toolVersion.compareTo(VersionNumber.version(5)) < 0) {
             return "pmd:pmd:" + extension.getToolVersion();
         } else if (toolVersion.compareTo(VersionNumber.parse("5.2.0")) < 0) {

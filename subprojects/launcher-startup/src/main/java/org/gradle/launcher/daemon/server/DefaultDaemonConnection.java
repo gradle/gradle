@@ -19,13 +19,22 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.launcher.daemon.protocol.*;
-import org.gradle.launcher.daemon.server.api.DaemonConnection;
-import org.gradle.launcher.daemon.server.api.StdinHandler;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.remote.internal.RemoteConnection;
+import org.gradle.launcher.daemon.protocol.BuildEvent;
+import org.gradle.launcher.daemon.protocol.BuildStarted;
+import org.gradle.launcher.daemon.protocol.Cancel;
+import org.gradle.launcher.daemon.protocol.CloseInput;
+import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
+import org.gradle.launcher.daemon.protocol.ForwardInput;
+import org.gradle.launcher.daemon.protocol.InputMessage;
+import org.gradle.launcher.daemon.protocol.Message;
+import org.gradle.launcher.daemon.protocol.OutputMessage;
+import org.gradle.launcher.daemon.protocol.Result;
+import org.gradle.launcher.daemon.server.api.DaemonConnection;
+import org.gradle.launcher.daemon.server.api.StdinHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,14 +47,14 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultDaemonConnection implements DaemonConnection {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDaemonConnection.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultDaemonConnection.class);
     private final RemoteConnection<Message> connection;
     private final ManagedExecutor executor;
-    private final StdinQueue stdinQueue;
-    private final DisconnectQueue disconnectQueue;
-    private final CancelQueue cancelQueue;
-    private final ReceiveQueue receiveQueue;
-    private volatile boolean stopping;
+    final StdinQueue stdinQueue;
+    final DisconnectQueue disconnectQueue;
+    final CancelQueue cancelQueue;
+    final ReceiveQueue receiveQueue;
+    volatile boolean stopping;
 
     public DefaultDaemonConnection(final RemoteConnection<Message> connection, ExecutorFactory executorFactory) {
         this.connection = connection;
@@ -164,15 +173,15 @@ public class DefaultDaemonConnection implements DaemonConnection {
     }
 
     private static abstract class CommandQueue<C extends Message, H> implements Stoppable {
-        private final Lock lock = new ReentrantLock();
-        private final Condition condition = lock.newCondition();
+        final Lock lock = new ReentrantLock();
+        final Condition condition = lock.newCondition();
         protected final LinkedList<C> queue = new LinkedList<C>();
         private final String name;
         private ManagedExecutor executor;
-        private boolean removed;
+        boolean removed;
         private final ExecutorFactory executorFactory;
 
-        private CommandQueue(ExecutorFactory executorFactory, String name) {
+        CommandQueue(ExecutorFactory executorFactory, String name) {
             this.executorFactory = executorFactory;
             this.name = name;
         }
@@ -282,7 +291,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
 
     private static class StdinQueue extends CommandQueue<InputMessage, StdinHandler> {
 
-        private StdinQueue(ExecutorFactory executorFactory) {
+        StdinQueue(ExecutorFactory executorFactory) {
             super(executorFactory, "Stdin handler");
         }
 
@@ -311,7 +320,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
 
     private static class CancelQueue extends CommandQueue<Cancel, Runnable> {
 
-        private CancelQueue(ExecutorFactory executorFactory) {
+        CancelQueue(ExecutorFactory executorFactory) {
             super(executorFactory, "Cancel handler");
         }
 
@@ -337,6 +346,9 @@ public class DefaultDaemonConnection implements DaemonConnection {
         private Runnable handler;
         private boolean notifying;
         private boolean disconnected;
+
+        DisconnectQueue() {
+        }
 
         public void disconnect() {
             Runnable action;
@@ -424,6 +436,9 @@ public class DefaultDaemonConnection implements DaemonConnection {
     private static class ReceiveQueue implements Stoppable {
         private static final Object END = new Object();
         private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
+
+        ReceiveQueue() {
+        }
 
         @Override
         public void stop() {

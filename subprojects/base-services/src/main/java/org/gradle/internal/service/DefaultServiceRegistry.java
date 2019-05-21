@@ -70,12 +70,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultServiceRegistry implements ServiceRegistry, Closeable, ContainsServices {
     private enum State {INIT, STARTED, CLOSED};
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
-    private final static Service[] NO_DEPENDENTS = new Service[0];
-    private final static Object[] NO_PARAMS = new Object[0];
+    final static Service[] NO_DEPENDENTS = new Service[0];
+    final static Object[] NO_PARAMS = new Object[0];
 
-    private final OwnServices ownServices;
-    private final ServiceProvider allServices;
-    private final ServiceProvider parentServices;
+    final OwnServices ownServices;
+    final ServiceProvider allServices;
+    final ServiceProvider parentServices;
     private final String displayName;
     private final ServiceProvider thisAsServiceProvider;
 
@@ -145,7 +145,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         return registry;
     }
 
-    private String getDisplayName() {
+    String getDisplayName() {
         return displayName == null ? getClass().getSimpleName() : displayName;
     }
 
@@ -205,7 +205,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         action.execute(newRegistration());
     }
 
-    private void assertMutable() {
+    void assertMutable() {
         if (state.get() != State.INIT) {
             throw new IllegalStateException("Cannot add provide to service registry " + this + " as it is no longer mutable");
         }
@@ -336,7 +336,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private final Class<T> serviceType;
         private final List<T> delegate;
 
-        private InstanceUnpackingVisitor(Class<T> serviceType, List<T> delegate) {
+        InstanceUnpackingVisitor(Class<T> serviceType, List<T> delegate) {
             this.serviceType = serviceType;
             this.delegate = delegate;
         }
@@ -350,7 +350,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private static class CollectingVisitor implements ServiceProvider.Visitor {
         private final List<Service> delegate;
 
-        private CollectingVisitor(List<Service> delegate) {
+        CollectingVisitor(List<Service> delegate) {
             this.delegate = delegate;
         }
 
@@ -366,7 +366,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     }
 
     private class OwnServices implements ServiceProvider {
-        private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
+        final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
         private final CompositeStoppable stoppable = CompositeStoppable.stoppable();
         private ProviderAnalyser analyser = new ProviderAnalyser();
 
@@ -510,7 +510,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
     }
 
-    private static Class<?> unwrap(Type type) {
+    static Class<?> unwrap(Type type) {
         if (type instanceof Class) {
             return (Class) type;
         } else {
@@ -692,7 +692,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private static abstract class FactoryService extends SingletonService {
         private Service[] paramServices;
-        private Service decorates;
+        Service decorates;
 
         protected FactoryService(DefaultServiceRegistry owner, Type serviceType) {
             super(owner, serviceType);
@@ -845,7 +845,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
     }
 
-    private Service getThisAsService() {
+    Service getThisAsService() {
         return new Service() {
             @Override
             public String getDisplayName() {
@@ -883,7 +883,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private static class ConstructorService extends FactoryService {
         private final Constructor<?> constructor;
 
-        private ConstructorService(DefaultServiceRegistry owner, Class<?> serviceType) {
+        ConstructorService(DefaultServiceRegistry owner, Class<?> serviceType) {
             super(owner, serviceType);
             Constructor<?>[] constructors = serviceType.getDeclaredConstructors();
             if (constructors.length != 1) {
@@ -922,7 +922,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private static class CompositeServiceProvider implements ServiceProvider {
         private final ServiceProvider[] serviceProviders;
 
-        private CompositeServiceProvider(ServiceProvider... serviceProviders) {
+        CompositeServiceProvider(ServiceProvider... serviceProviders) {
             this.serviceProviders = serviceProviders;
         }
 
@@ -972,7 +972,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private static class ParentServices implements ServiceProvider {
         private final ServiceProvider parent;
 
-        private ParentServices(ServiceProvider parent) {
+        ParentServices(ServiceProvider parent) {
             this.parent = parent;
         }
 
@@ -1096,7 +1096,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
     }
 
-    private static boolean isSatisfiedBy(Type expected, Type actual) {
+    static boolean isSatisfiedBy(Type expected, Type actual) {
         if (expected.equals(actual)) {
             return true;
         }
@@ -1153,7 +1153,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
     }
 
-    private static String format(Type type) {
+    static String format(Type type) {
         if (type instanceof Class) {
             Class<?> aClass = (Class) type;
             return aClass.getSimpleName();

@@ -389,7 +389,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             class Property {
                 private final String hash;
                 private final String normalization;
-                private final List<Entry> roots = new ArrayList<Entry>();
+                final List<Entry> roots = new ArrayList<Entry>();
 
                 public Property(String hash, String normalization) {
                     this.hash = hash;
@@ -436,7 +436,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             }
 
             class DirEntry extends Entry {
-                private final List<Entry> children = new ArrayList<Entry>();
+                final List<Entry> children = new ArrayList<Entry>();
 
                 DirEntry(String path) {
                     super(path);

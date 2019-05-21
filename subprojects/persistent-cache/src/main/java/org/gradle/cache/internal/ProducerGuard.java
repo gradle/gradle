@@ -82,6 +82,9 @@ public abstract class ProducerGuard<T> {
     private static class AdaptiveProducerGuard<T> extends ProducerGuard<T> {
         private final Set<T> producing = Sets.newHashSet();
 
+        AdaptiveProducerGuard() {
+        }
+
         @Override
         public <V> V guardByKey(T key, Factory<V> factory) {
             synchronized (producing) {
@@ -107,6 +110,9 @@ public abstract class ProducerGuard<T> {
     private static class StripedProducerGuard<T> extends ProducerGuard<T> {
         private final Striped<Lock> locks = Striped.lock(Runtime.getRuntime().availableProcessors() * 4);
 
+        StripedProducerGuard() {
+        }
+
         @Override
         public <V> V guardByKey(T key, Factory<V> factory) {
             Lock lock = locks.get(key);
@@ -121,6 +127,9 @@ public abstract class ProducerGuard<T> {
 
     private static class SerialProducerGuard<T> extends ProducerGuard<T> {
         private final Lock lock = new ReentrantLock();
+
+        SerialProducerGuard() {
+        }
 
         @Override
         public <V> V guardByKey(T key, Factory<V> factory) {

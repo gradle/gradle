@@ -41,13 +41,13 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idl
  */
 public class DaemonInfo implements Serializable, DaemonConnectDetails {
 
-    private final Address address;
-    private final DaemonContext context;
-    private final byte[] token;
+    final Address address;
+    final DaemonContext context;
+    final byte[] token;
     private final Clock clock;
 
-    private State state;
-    private long lastBusy;
+    State state;
+    long lastBusy;
 
     public DaemonInfo(Address address, DaemonContext context, byte[] token, State state) {
         this(address, context, token, state, Time.clock());
@@ -63,7 +63,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         setState(state);
     }
 
-    private DaemonInfo(Address address, DaemonContext context, byte[] token, State state, long lastBusy) {
+    DaemonInfo(Address address, DaemonContext context, byte[] token, State state, long lastBusy) {
         this.address = address;
         this.context = context;
         this.token = token;

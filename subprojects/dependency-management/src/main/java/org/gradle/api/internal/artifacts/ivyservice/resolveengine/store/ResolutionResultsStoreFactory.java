@@ -42,7 +42,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private CachedStoreFactory<TransientConfigurationResults> oldModelCache;
     private CachedStoreFactory<ResolvedComponentResult> newModelCache;
 
-    private AtomicInteger storeSetBaseId = new AtomicInteger(0);
+    AtomicInteger storeSetBaseId = new AtomicInteger(0);
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this(temp, DEFAULT_MAX_SIZE);
@@ -60,7 +60,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private final Map<String, DefaultBinaryStore> stores = new HashMap<String, DefaultBinaryStore>();
     private final CompositeStoppable cleanUpLater = new CompositeStoppable();
 
-    private synchronized DefaultBinaryStore createBinaryStore(String storeKey) {
+    synchronized DefaultBinaryStore createBinaryStore(String storeKey) {
         DefaultBinaryStore store = stores.get(storeKey);
         if (store == null || isFull(store)) {
             File storeFile = temp.createTemporaryFile("gradle", ".bin");
@@ -72,7 +72,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return store;
     }
 
-    private synchronized CachedStoreFactory<TransientConfigurationResults> getOldModelCache() {
+    synchronized CachedStoreFactory<TransientConfigurationResults> getOldModelCache() {
         if (oldModelCache == null) {
             oldModelCache = new CachedStoreFactory<TransientConfigurationResults>("Resolution result");
             cleanUpLater.add(oldModelCache);
@@ -80,7 +80,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return oldModelCache;
     }
 
-    private synchronized CachedStoreFactory<ResolvedComponentResult> getNewModelCache() {
+    synchronized CachedStoreFactory<ResolvedComponentResult> getNewModelCache() {
         if (newModelCache == null) {
             newModelCache = new CachedStoreFactory<ResolvedComponentResult>("Resolution result");
             cleanUpLater.add(newModelCache);

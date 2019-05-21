@@ -209,6 +209,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private class WindowsConfigurer implements ExecHandlerConfigurer {
+        WindowsConfigurer() {
+        }
+
         @Override
         public void configure(ExecHandleBuilder builder) {
             String cmd;
@@ -240,6 +243,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private class UnixConfigurer implements ExecHandlerConfigurer {
+        UnixConfigurer() {
+        }
+
         @Override
         public void configure(ExecHandleBuilder builder) {
             if (getExecutable() != null) {

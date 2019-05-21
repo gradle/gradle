@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
@@ -28,6 +27,7 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,8 +41,8 @@ import java.util.UUID;
  */
 @ThreadSafe
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPayloadClassLoaderRegistry.class);
-    private final PayloadClassLoaderFactory classLoaderFactory;
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultPayloadClassLoaderRegistry.class);
+    final PayloadClassLoaderFactory classLoaderFactory;
     private final ClassLoaderCache cache;
     private final ClassLoaderToDetailsTransformer detailsToClassLoader = new ClassLoaderToDetailsTransformer();
     private final DetailsToClassLoaderTransformer classLoaderToDetails = new DetailsToClassLoaderTransformer();
@@ -95,7 +95,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         };
     }
 
-    private ClassLoader getClassLoader(ClassLoaderDetails details) {
+    ClassLoader getClassLoader(ClassLoaderDetails details) {
         ClassLoader classLoader = cache.getClassLoader(details, detailsToClassLoader);
         if (details.spec instanceof ClientOwnedClassLoaderSpec) {
             ClientOwnedClassLoaderSpec spec = (ClientOwnedClassLoaderSpec) details.spec;
@@ -110,7 +110,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         return classLoader;
     }
 
-    private ClassLoaderDetails getDetails(ClassLoader classLoader) {
+    ClassLoaderDetails getDetails(ClassLoader classLoader) {
         return cache.getDetails(classLoader, classLoaderToDetails);
     }
 
@@ -145,6 +145,9 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     }
 
     private class ClassLoaderToDetailsTransformer implements Transformer<ClassLoader, ClassLoaderDetails> {
+        ClassLoaderToDetailsTransformer() {
+        }
+
         @Override
         public ClassLoader transform(ClassLoaderDetails details) {
             List<ClassLoader> parents = new ArrayList<ClassLoader>();
@@ -162,6 +165,9 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     }
 
     private class DetailsToClassLoaderTransformer implements Transformer<ClassLoaderDetails, ClassLoader> {
+        DetailsToClassLoaderTransformer() {
+        }
+
         @Override
         public ClassLoaderDetails transform(ClassLoader classLoader) {
             ClassLoaderSpecVisitor visitor = new ClassLoaderSpecVisitor(classLoader);

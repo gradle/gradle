@@ -41,10 +41,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
-    private static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
+    final FileSystemSnapshotter fileSystemSnapshotter;
     private final Map<File, DirectoryContents> includeRoots = new HashMap<File, DirectoryContents>();
-    private final FixedIncludePath includePath;
+    final FixedIncludePath includePath;
 
     public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemSnapshotter fileSystemSnapshotter) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
@@ -266,7 +266,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return directoryContents;
     }
 
-    private IncludePath prependSourceDir(File sourceFile, FixedIncludePath includePaths) {
+    IncludePath prependSourceDir(File sourceFile, FixedIncludePath includePaths) {
         File sourceDir = sourceFile.getParentFile();
         if (includePaths.startsWith(sourceDir)) {
             // Source dir already at the start of the path, just use the include path
@@ -336,7 +336,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private class DirectoryContents {
-        private final File searchDir;
+        final File searchDir;
         private final Map<String, CachedIncludeFile> contents = new HashMap<String, CachedIncludeFile>();
 
         DirectoryContents(File searchDir) {
@@ -488,6 +488,9 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static class BuildableResult implements IncludeResolutionResult {
         private final Set<IncludeFile> files = new LinkedHashSet<IncludeFile>();
         private boolean missing;
+
+        BuildableResult() {
+        }
 
         void resolved(IncludeFile includeFile) {
             files.add(includeFile);

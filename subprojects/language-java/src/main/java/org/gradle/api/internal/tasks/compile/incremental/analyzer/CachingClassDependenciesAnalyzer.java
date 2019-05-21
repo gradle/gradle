@@ -22,7 +22,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 
 public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
-    private final ClassDependenciesAnalyzer analyzer;
+    final ClassDependenciesAnalyzer analyzer;
     private final ClassAnalysisCache cache;
 
     public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, ClassAnalysisCache cache) {

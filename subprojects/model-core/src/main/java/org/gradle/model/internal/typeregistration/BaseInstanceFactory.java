@@ -38,7 +38,7 @@ import java.util.Set;
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
-    private final ModelType<PUBLIC> baseInterface;
+    final ModelType<PUBLIC> baseInterface;
     private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = Maps.newLinkedHashMap();
     private final Map<Class<?>, ImplementationFactory<? extends PUBLIC, ?>> factories = Maps.newLinkedHashMap();
 
@@ -111,7 +111,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         return implementationInfo.get();
     }
 
-    private <S extends PUBLIC> Set<ModelType<?>> getInternalViews(ModelType<S> publicType) {
+    <S extends PUBLIC> Set<ModelType<?>> getInternalViews(ModelType<S> publicType) {
         final ImmutableSet.Builder<ModelType<?>> builder = ImmutableSet.builder();
         walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
@@ -135,7 +135,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         return supportedTypes.build();
     }
 
-    private <S extends PUBLIC> TypeRegistration<S> getRegistration(ModelType<S> type) {
+    <S extends PUBLIC> TypeRegistration<S> getRegistration(ModelType<S> type) {
         return Cast.uncheckedCast(registrations.get(type));
     }
 
@@ -157,7 +157,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         }
     }
 
-    private static boolean isManaged(ModelType<?> type) {
+    static boolean isManaged(ModelType<?> type) {
         return type.isAnnotationPresent(Managed.class);
     }
 
@@ -194,10 +194,10 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     }
 
     private class TypeRegistration<S extends PUBLIC> {
-        private final ModelType<S> publicType;
+        final ModelType<S> publicType;
         private final boolean managedPublicType;
-        private ImplementationRegistration<S> implementationRegistration;
-        private final List<InternalViewRegistration<?>> internalViewRegistrations = Lists.newArrayList();
+        ImplementationRegistration<S> implementationRegistration;
+        final List<InternalViewRegistration<?>> internalViewRegistrations = Lists.newArrayList();
 
         public TypeRegistration(ModelType<S> publicType) {
             this.publicType = publicType;
@@ -300,7 +300,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     }
 
     @Nullable
-    private <S extends PUBLIC> ImplementationFactory<S, ?> findFactory(Class<?> implementationClass) {
+    <S extends PUBLIC> ImplementationFactory<S, ?> findFactory(Class<?> implementationClass) {
         ImplementationFactory<? extends PUBLIC, ?> implementationFactory = factories.get(implementationClass);
         if (implementationFactory != null) {
             return Cast.uncheckedCast(implementationFactory);
@@ -318,10 +318,10 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
 
     private static class ImplementationRegistration<PUBLIC> {
         private final ModelRuleDescriptor source;
-        private final ModelType<?> implementationType;
-        private final ImplementationFactory<? super PUBLIC, ?> factory;
+        final ModelType<?> implementationType;
+        final ImplementationFactory<? super PUBLIC, ?> factory;
 
-        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<?> implementationType, ImplementationFactory<? super PUBLIC, ?> factory) {
+        ImplementationRegistration(ModelRuleDescriptor source, ModelType<?> implementationType, ImplementationFactory<? super PUBLIC, ?> factory) {
             this.source = source;
             this.implementationType = implementationType;
             this.factory = factory;
@@ -344,7 +344,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         private final ModelRuleDescriptor source;
         private final ModelType<T> internalView;
 
-        private InternalViewRegistration(ModelRuleDescriptor source, ModelType<T> internalView) {
+        InternalViewRegistration(ModelRuleDescriptor source, ModelType<T> internalView) {
             this.source = source;
             this.internalView = internalView;
         }
@@ -360,7 +360,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
 
     private static class ImplementationInfoImpl<PUBLIC> implements ImplementationInfo {
         private final ModelType<PUBLIC> publicType;
-        private final ImplementationRegistration<? super PUBLIC> implementationRegistration;
+        final ImplementationRegistration<? super PUBLIC> implementationRegistration;
         private final Set<ModelType<?>> internalViews;
 
         public ImplementationInfoImpl(ModelType<PUBLIC> publicType, ImplementationRegistration<?> implementationRegistration, Set<ModelType<?>> internalViews) {
@@ -392,6 +392,9 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     }
 
     private abstract class RegistrationHierarchyVisitor<S> implements TypeVisitor<S> {
+        RegistrationHierarchyVisitor() {
+        }
+
         @Override
         public void visitType(Class<? super S> type) {
             if (!baseInterface.getConcreteClass().isAssignableFrom(type)) {

@@ -66,6 +66,9 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
     }
 
     private static class ObjectiveCpp extends NativeLanguageTransform<ObjectiveCppSourceSet> implements PchEnabledLanguageTransform<ObjectiveCppSourceSet> {
+        ObjectiveCpp() {
+        }
+
         @Override
         public Class<ObjectiveCppSourceSet> getSourceSetType() {
             return ObjectiveCppSourceSet.class;

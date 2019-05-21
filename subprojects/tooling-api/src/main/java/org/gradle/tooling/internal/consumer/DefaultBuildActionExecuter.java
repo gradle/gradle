@@ -32,8 +32,8 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 
 class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<DefaultBuildActionExecuter<T>> implements BuildActionExecuter<T> {
-    private final BuildAction<T> buildAction;
-    private final AsyncConsumerActionExecutor connection;
+    final BuildAction<T> buildAction;
+    final AsyncConsumerActionExecutor connection;
 
     public DefaultBuildActionExecuter(BuildAction<T> buildAction, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);

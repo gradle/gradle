@@ -52,9 +52,9 @@ public class Version1LockStateSerializer implements LockStateSerializer {
     }
 
     private static class DirtyFlagLockState implements LockState {
-        private final boolean dirty;
+        final boolean dirty;
 
-        private DirtyFlagLockState(boolean dirty) {
+        DirtyFlagLockState(boolean dirty) {
             this.dirty = dirty;
         }
 

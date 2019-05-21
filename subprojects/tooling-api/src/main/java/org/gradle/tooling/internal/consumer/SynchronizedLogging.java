@@ -62,7 +62,7 @@ public class SynchronizedLogging implements LoggingProvider {
         final ListenerManager listenerManager;
         final ProgressLoggerFactory progressLoggerFactory;
 
-        private ThreadLoggingServices(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory) {
+        ThreadLoggingServices(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory) {
             this.listenerManager = listenerManager;
             this.progressLoggerFactory = progressLoggerFactory;
         }

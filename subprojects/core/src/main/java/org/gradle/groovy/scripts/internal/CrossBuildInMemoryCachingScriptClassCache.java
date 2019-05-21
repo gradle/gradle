@@ -52,10 +52,10 @@ public class CrossBuildInMemoryCachingScriptClassCache {
     }
 
     private static class CachedCompiledScript {
-        private final HashCode hash;
-        private final CompiledScript<?, ?> compiledScript;
+        final HashCode hash;
+        final CompiledScript<?, ?> compiledScript;
 
-        private CachedCompiledScript(HashCode hash, CompiledScript<?, ?> compiledScript) {
+        CachedCompiledScript(HashCode hash, CompiledScript<?, ?> compiledScript) {
             this.hash = hash;
             this.compiledScript = compiledScript;
         }

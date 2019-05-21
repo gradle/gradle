@@ -195,7 +195,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         return runtimeClasspath;
     }
 
-    private Set<Module> getModules(String[] projectNames) {
+    Set<Module> getModules(String[] projectNames) {
         Set<Module> modules = new LinkedHashSet<Module>();
         for (String project : projectNames) {
             modules.add(getModule(project));
@@ -292,7 +292,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         }
     }
 
-    private boolean hasModuleProperties(String name, File jarFile) {
+    boolean hasModuleProperties(String name, File jarFile) {
         try {
             ZipFile zipFile = new ZipFile(jarFile);
             try {
@@ -441,5 +441,5 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         }
     }
 
-    private static final String[] NO_PROJECTS = new String[0];
+    static final String[] NO_PROJECTS = new String[0];
 }

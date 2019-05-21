@@ -148,7 +148,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
     private abstract static class MutationSafeCollection<T> implements Collection<T> {
         private final Collection<T> delegate;
-        private final ModelViewState state;
+        final ModelViewState state;
         private final ModelType<T> elementType;
 
         public MutationSafeCollection(Collection<T> delegate, ModelViewState state, ModelType<T> elementType) {
@@ -259,7 +259,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         private final class MutationSafeIterator implements Iterator<T> {
             private final Iterator<T> delegate;
 
-            private MutationSafeIterator(Iterator<T> delegate) {
+            MutationSafeIterator(Iterator<T> delegate) {
                 this.delegate = delegate;
             }
 

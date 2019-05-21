@@ -190,6 +190,9 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     private static class TaskDependencySet implements Set<Object> {
         private final Set<Object> delegate = Sets.newHashSet();
 
+        TaskDependencySet() {
+        }
+
         @Override
         public int size() {
             return delegate.size();

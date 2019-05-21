@@ -141,7 +141,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         };
     }
 
-    private static <I> ModelType<NamedEntityInstantiator<I>> instantiatorTypeOf(ModelType<I> type) {
+    static <I> ModelType<NamedEntityInstantiator<I>> instantiatorTypeOf(ModelType<I> type) {
         return new ModelType.Builder<NamedEntityInstantiator<I>>() {
         }.where(
             new ModelType.Parameter<I>() {

@@ -163,7 +163,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     private static class IntersectionPatternSet extends PatternSet {
 
-        private final PatternSet other;
+        final PatternSet other;
 
         public IntersectionPatternSet(PatternSet other) {
             super(other);

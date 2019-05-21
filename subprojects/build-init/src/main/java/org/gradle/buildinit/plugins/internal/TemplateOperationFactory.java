@@ -32,9 +32,9 @@ import java.util.Set;
 
 public class TemplateOperationFactory {
 
-    private final String templatepackage;
-    private final PathToFileResolver fileResolver;
-    private final DocumentationRegistry documentationRegistry;
+    final String templatepackage;
+    final PathToFileResolver fileResolver;
+    final DocumentationRegistry documentationRegistry;
     private final Map defaultBindings;
 
     public TemplateOperationFactory(String templatepackage, PathToFileResolver fileResolver, DocumentationRegistry documentationRegistry) {

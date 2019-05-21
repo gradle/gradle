@@ -54,7 +54,7 @@ import java.util.List;
 @Incubating
 @Deprecated
 public class JavaScriptMinify extends SourceTask {
-    private File destinationDir;
+    File destinationDir;
     private PlayPlatform playPlatform;
     private BaseForkOptions forkOptions;
 

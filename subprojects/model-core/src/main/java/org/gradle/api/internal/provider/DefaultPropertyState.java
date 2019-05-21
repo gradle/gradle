@@ -24,8 +24,8 @@ import org.gradle.api.provider.Provider;
 import javax.annotation.Nullable;
 
 public class DefaultPropertyState<T> extends AbstractProperty<T> implements Property<T> {
-    private final Class<T> type;
-    private final ValueSanitizer<T> sanitizer;
+    final Class<T> type;
+    final ValueSanitizer<T> sanitizer;
     private ProviderInternal<? extends T> provider;
 
     public DefaultPropertyState(Class<T> type) {

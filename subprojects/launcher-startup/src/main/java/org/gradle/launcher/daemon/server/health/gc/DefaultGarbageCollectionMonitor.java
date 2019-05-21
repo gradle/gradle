@@ -35,7 +35,7 @@ public class DefaultGarbageCollectionMonitor implements GarbageCollectionMonitor
 
     private final SlidingWindow<GarbageCollectionEvent> heapEvents;
     private final SlidingWindow<GarbageCollectionEvent> nonHeapEvents;
-    private final GarbageCollectorMonitoringStrategy gcStrategy;
+    final GarbageCollectorMonitoringStrategy gcStrategy;
     private final ScheduledExecutorService pollingExecutor;
 
     public DefaultGarbageCollectionMonitor(GarbageCollectorMonitoringStrategy gcStrategy, ScheduledExecutorService pollingExecutor) {

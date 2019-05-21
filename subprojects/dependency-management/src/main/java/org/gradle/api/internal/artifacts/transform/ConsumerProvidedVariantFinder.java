@@ -118,8 +118,11 @@ public class ConsumerProvidedVariantFinder {
     }
 
     private static class AttributeSpecificCache {
-        private final Map<AttributeContainer, Boolean> ignoreExtraActual = Maps.newConcurrentMap();
-        private final Map<AttributeContainer, ConsumerVariantMatchResult> transforms = Maps.newConcurrentMap();
+        final Map<AttributeContainer, Boolean> ignoreExtraActual = Maps.newConcurrentMap();
+        final Map<AttributeContainer, ConsumerVariantMatchResult> transforms = Maps.newConcurrentMap();
+
+        AttributeSpecificCache() {
+        }
     }
 
 }

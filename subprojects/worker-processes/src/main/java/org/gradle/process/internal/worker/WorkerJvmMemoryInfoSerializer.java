@@ -35,6 +35,9 @@ public class WorkerJvmMemoryInfoSerializer {
     }
 
     private static class JvmMemoryStatusSerializer implements Serializer<JvmMemoryStatus> {
+        JvmMemoryStatusSerializer() {
+        }
+
         @Override
         public JvmMemoryStatus read(Decoder decoder) throws EOFException, Exception {
             long committedMemory = decoder.readLong();

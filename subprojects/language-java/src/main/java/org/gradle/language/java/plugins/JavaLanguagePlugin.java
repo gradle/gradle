@@ -145,7 +145,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             private final ModelSchemaStore schemaStore;
             private final BuildIdentifier currentBuild;
 
-            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore, BuildIdentifier currentBuild) {
+            JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore, BuildIdentifier currentBuild) {
                 this.schemaStore = schemaStore;
                 this.currentBuild = currentBuild;
             }

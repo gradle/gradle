@@ -31,9 +31,9 @@ import java.util.Set;
  */
 public class PatternSetAntBuilderDelegate implements AntBuilderAware {
 
-    private final Set<String> includes;
-    private final Set<String> excludes;
-    private final boolean caseSensitive;
+    final Set<String> includes;
+    final Set<String> excludes;
+    final boolean caseSensitive;
 
     public PatternSetAntBuilderDelegate(Set<String> includes, Set<String> excludes, boolean caseSensitive) {
         this.includes = includes;
@@ -55,15 +55,15 @@ public class PatternSetAntBuilderDelegate implements AntBuilderAware {
         return logical(node, "and", withNode);
     }
 
-    private static Object or(Object node, Action<Object> withNode) {
+    static Object or(Object node, Action<Object> withNode) {
         return logical(node, "or", withNode);
     }
 
-    private static Object not(Object node, Action<Object> withNode) {
+    static Object not(Object node, Action<Object> withNode) {
         return logical(node, "not", withNode);
     }
 
-    private static Object addFilenames(Object node, Iterable<String> filenames, boolean caseSensitive) {
+    static Object addFilenames(Object node, Iterable<String> filenames, boolean caseSensitive) {
         GroovyObject groovyObject = (GroovyObject) node;
         Map<String, Object> props = new HashMap<String, Object>(2);
         props.put("casesensitive", caseSensitive);

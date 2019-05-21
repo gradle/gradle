@@ -46,7 +46,7 @@ public class ThreadFactoryImpl implements ThreadFactory {
     private static class ManagedThreadRunnable implements Runnable {
         private final Runnable delegate;
 
-        private ManagedThreadRunnable(Runnable delegate) {
+        ManagedThreadRunnable(Runnable delegate) {
             this.delegate = delegate;
         }
 

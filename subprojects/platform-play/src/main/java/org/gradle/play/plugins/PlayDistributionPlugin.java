@@ -175,7 +175,7 @@ public class PlayDistributionPlugin extends RuleSource {
         }
     }
 
-    private String getMainClass(PlayDistribution distribution) {
+    String getMainClass(PlayDistribution distribution) {
         PlayPlatform playPlatform = distribution.getBinary().getTargetPlatform();
         String playVersion = playPlatform.getPlayVersion();
         switch (PlayMajorVersion.forPlatform(playPlatform)) {

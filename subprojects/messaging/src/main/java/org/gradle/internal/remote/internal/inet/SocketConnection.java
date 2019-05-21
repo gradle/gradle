@@ -20,18 +20,23 @@ import com.google.common.base.Objects;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.io.BufferCaster;
+import org.gradle.internal.remote.internal.MessageIOException;
+import org.gradle.internal.remote.internal.MessageSerializer;
 import org.gradle.internal.remote.internal.RecoverableMessageIOException;
+import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.ObjectReader;
 import org.gradle.internal.serialize.ObjectWriter;
 import org.gradle.internal.serialize.StatefulSerializer;
-import org.gradle.internal.remote.internal.MessageIOException;
-import org.gradle.internal.remote.internal.MessageSerializer;
-import org.gradle.internal.remote.internal.RemoteConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectStreamException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedSelectorException;
@@ -95,7 +100,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         }
     }
 
-    private static boolean isEndOfStream(Exception e) {
+    static boolean isEndOfStream(Exception e) {
         if (e instanceof EOFException) {
             return true;
         }

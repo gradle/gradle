@@ -38,9 +38,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class TcpIncomingConnector implements IncomingConnector {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
     private final ExecutorFactory executorFactory;
-    private final InetAddressFactory addressFactory;
+    final InetAddressFactory addressFactory;
     private final IdGenerator<UUID> idGenerator;
 
     public TcpIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory addressFactory, IdGenerator<UUID> idGenerator) {

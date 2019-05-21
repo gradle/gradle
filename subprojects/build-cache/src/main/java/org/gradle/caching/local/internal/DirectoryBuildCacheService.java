@@ -43,10 +43,10 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
 
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
-    private final BuildCacheTempFileStore tempFileStore;
+    final BuildCacheTempFileStore tempFileStore;
     private final FileAccessTracker fileAccessTracker;
     private final String failedFileSuffix;
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public DirectoryBuildCacheService(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.fileStore = fileStore;
@@ -60,7 +60,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         private final BuildCacheEntryReader reader;
         boolean loaded;
 
-        private LoadAction(BuildCacheEntryReader reader) {
+        LoadAction(BuildCacheEntryReader reader) {
             this.reader = reader;
         }
 
@@ -104,7 +104,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         });
     }
 
-    private void loadInsideLock(BuildCacheKey key, Action<? super File> reader) {
+    void loadInsideLock(BuildCacheKey key, Action<? super File> reader) {
         LocallyAvailableResource resource = fileStore.get(key.getHashCode());
         if (resource == null) {
             return;
@@ -165,7 +165,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         });
     }
 
-    private void storeInsideLock(BuildCacheKey key, File file) {
+    void storeInsideLock(BuildCacheKey key, File file) {
         LocallyAvailableResource resource = fileStore.move(key.getHashCode(), file);
         fileAccessTracker.markAccessed(resource.getFile());
     }

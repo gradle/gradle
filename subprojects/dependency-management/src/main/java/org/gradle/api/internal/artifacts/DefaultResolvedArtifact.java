@@ -37,9 +37,9 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
-    private final TaskDependency buildDependencies;
+    final TaskDependency buildDependencies;
     private volatile Factory<File> artifactSource;
-    private final ResolvableArtifact sourceArtifact;
+    final ResolvableArtifact sourceArtifact;
     private volatile File file;
     private volatile Throwable failure;
 

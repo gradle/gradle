@@ -54,11 +54,14 @@ public class DefaultRuleActionValidator implements RuleActionValidator {
                              CollectionUtils.collect(validInputTypes, new ClassNameTransformer()));
     }
 
-    private static String className(Class<?> aClass) {
+    static String className(Class<?> aClass) {
         return ModelType.of(aClass).toString();
     }
 
     private static class ClassNameTransformer implements Transformer<String, Class<?>> {
+        ClassNameTransformer() {
+        }
+
         @Override
         public String transform(Class<?> aClass) {
             return className(aClass);

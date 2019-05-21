@@ -79,7 +79,7 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
         return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem).getFile();
     }
 
-    private File createFileInstance(String fileName) {
+    File createFileInstance(String fileName) {
         return new File(getTmpDir(), fileName);
     }
 

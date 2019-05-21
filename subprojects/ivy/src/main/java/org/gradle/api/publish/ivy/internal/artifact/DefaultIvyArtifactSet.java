@@ -34,7 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> implements IvyArtifactSet, PublicationArtifactSet<IvyArtifact> {
-    private final String publicationName;
+    final String publicationName;
     private final FileCollection files;
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
 

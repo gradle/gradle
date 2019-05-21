@@ -38,7 +38,7 @@ import static com.google.common.collect.Iterables.filter;
 public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRulesContainer> {
 
     private static final String VIOLATIONS_ANT_PROPERTY = "jacocoViolations";
-    private static final Predicate<JacocoViolationRule> RULE_ENABLED_PREDICATE = new Predicate<JacocoViolationRule>() {
+    static final Predicate<JacocoViolationRule> RULE_ENABLED_PREDICATE = new Predicate<JacocoViolationRule>() {
         @Override
         public boolean apply(JacocoViolationRule rule) {
             return rule.isEnabled();
@@ -106,7 +106,7 @@ public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRules
         }
     }
 
-    private String getViolations(GroovyObjectSupport antBuilder) {
+    String getViolations(GroovyObjectSupport antBuilder) {
         Object project = antBuilder.getProperty("project");
         Hashtable<String, Object> properties = JavaMethod.of(project, Hashtable.class, "getProperties").invoke(project, new Object[0]);
         return (String) properties.get(VIOLATIONS_ANT_PROPERTY);

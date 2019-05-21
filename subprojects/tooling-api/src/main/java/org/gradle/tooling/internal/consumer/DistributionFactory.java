@@ -107,7 +107,7 @@ public class DistributionFactory {
         private final File distributionBaseDir;
         private final Clock clock;
 
-        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, File distributionBaseDir, Clock clock) {
+        ZippedDistribution(WrapperConfiguration wrapperConfiguration, File distributionBaseDir, Clock clock) {
             this.wrapperConfiguration = wrapperConfiguration;
             this.distributionBaseDir = distributionBaseDir;
             this.clock = clock;
@@ -193,6 +193,9 @@ public class DistributionFactory {
     }
 
     private static class ClasspathDistribution implements Distribution {
+        ClasspathDistribution() {
+        }
+
         @Override
         public String getDisplayName() {
             return "Gradle classpath distribution";

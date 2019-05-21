@@ -44,7 +44,7 @@ public class TarCopyAction implements CopyAction {
      */
     public static final long CONSTANT_TIME_FOR_TAR_ENTRIES = 86400000;
 
-    private final File tarFile;
+    final File tarFile;
     private final ArchiveOutputStreamFactory compressor;
     private final boolean preserveFileTimestamps;
 
@@ -126,7 +126,7 @@ public class TarCopyAction implements CopyAction {
         }
     }
 
-    private long getArchiveTimeFor(FileCopyDetails details) {
+    long getArchiveTimeFor(FileCopyDetails details) {
         return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_TAR_ENTRIES;
     }
 }

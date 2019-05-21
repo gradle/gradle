@@ -46,12 +46,18 @@ public class JavaToolChainServiceRegistry extends AbstractPluginServiceRegistry 
     }
 
     private static class BuildSessionScopeCompileServices {
+        BuildSessionScopeCompileServices() {
+        }
+
         Factory<JavaCompiler> createJavaHomeBasedJavaCompilerFactory() {
             return new JavaHomeBasedJavaCompilerFactory();
         }
     }
 
     private static class ProjectScopeCompileServices {
+        ProjectScopeCompileServices() {
+        }
+
         JavaCompilerFactory createJavaCompilerFactory(WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerDirectoryProvider workerDirectoryProvider, ExecHandleFactory execHandleFactory, AnnotationProcessorDetector processorDetector) {
             return new DefaultJavaCompilerFactory(workerDirectoryProvider, workerDaemonFactory, javaHomeBasedJavaCompilerFactory, forkOptionsFactory, execHandleFactory, processorDetector);
         }

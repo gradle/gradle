@@ -108,7 +108,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         private final ModuleComponentArtifactMetadata clientModuleArtifact;
         private final List<ModuleDependencyMetadata> clientModuleDependencies;
 
-        private ClientModuleComponentResolveMetadata(ModuleComponentResolveMetadata delegate, ModuleComponentArtifactMetadata clientModuleArtifact, List<ModuleDependencyMetadata> clientModuleDependencies) {
+        ClientModuleComponentResolveMetadata(ModuleComponentResolveMetadata delegate, ModuleComponentArtifactMetadata clientModuleArtifact, List<ModuleDependencyMetadata> clientModuleDependencies) {
             this.delegate = delegate;
             this.clientModuleArtifact = clientModuleArtifact;
             this.clientModuleDependencies = clientModuleDependencies;
@@ -196,7 +196,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
     private static class ClientModuleDependencyMetadataWrapper extends ModuleDependencyMetadataWrapper implements DslOriginDependencyMetadata {
         private final DslOriginDependencyMetadata delegate;
 
-        private ClientModuleDependencyMetadataWrapper(DslOriginDependencyMetadata delegate) {
+        ClientModuleDependencyMetadataWrapper(DslOriginDependencyMetadata delegate) {
             super(delegate);
             this.delegate = delegate;
         }

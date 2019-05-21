@@ -237,7 +237,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     private static class StartableLoggingRouter implements Stoppable {
-        private final LoggingRouter loggingRouter;
+        final LoggingRouter loggingRouter;
         private LogLevel level;
         private LoggingSystem.Snapshot originalState;
         private Runnable consoleAttachment;
@@ -310,10 +310,10 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private static class StartableLoggingSystem implements Stoppable {
         private final LoggingSourceSystem loggingSystem;
         private boolean enabled;
-        private LogLevel level;
+        LogLevel level;
         private LoggingSystem.Snapshot originalState;
 
-        private StartableLoggingSystem(LoggingSourceSystem loggingSystem, LogLevel level) {
+        StartableLoggingSystem(LoggingSourceSystem loggingSystem, LogLevel level) {
             this.loggingSystem = loggingSystem;
             this.level = level;
         }

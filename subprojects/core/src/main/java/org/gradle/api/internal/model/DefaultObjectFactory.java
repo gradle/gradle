@@ -56,8 +56,8 @@ import java.util.Set;
 public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
-    private final FileResolver fileResolver;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    final FileResolver fileResolver;
+    final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FilePropertyFactory filePropertyFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;

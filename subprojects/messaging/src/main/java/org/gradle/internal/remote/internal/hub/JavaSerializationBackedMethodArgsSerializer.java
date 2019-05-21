@@ -22,8 +22,8 @@ import org.gradle.internal.serialize.Message;
 import org.gradle.internal.serialize.Serializer;
 
 class JavaSerializationBackedMethodArgsSerializer implements MethodArgsSerializer {
-    private static final Object[] ZERO_ARGS = new Object[0];
-    private final ClassLoader classLoader;
+    static final Object[] ZERO_ARGS = new Object[0];
+    final ClassLoader classLoader;
 
     public JavaSerializationBackedMethodArgsSerializer(ClassLoader classLoader) {
         this.classLoader = classLoader;
@@ -38,6 +38,9 @@ class JavaSerializationBackedMethodArgsSerializer implements MethodArgsSerialize
     }
 
     private class EmptyArraySerializer implements Serializer<Object[]> {
+        EmptyArraySerializer() {
+        }
+
         @Override
         public Object[] read(Decoder decoder) {
             return ZERO_ARGS;
@@ -49,6 +52,9 @@ class JavaSerializationBackedMethodArgsSerializer implements MethodArgsSerialize
     }
 
     private class ArraySerializer implements Serializer<Object[]> {
+        ArraySerializer() {
+        }
+
         @Override
         public Object[] read(Decoder decoder) throws Exception {
             return (Object[]) Message.receive(decoder.getInputStream(), classLoader);

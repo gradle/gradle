@@ -96,7 +96,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         results.artifactsResolved(wrappedConfiguration, results.getVisitedArtifacts());
     }
 
-    private static ResolveException wrapException(Throwable e, ResolveContext resolveContext) {
+    static ResolveException wrapException(Throwable e, ResolveContext resolveContext) {
         if (e instanceof ResolveException) {
             return (ResolveException) e;
         }
@@ -107,7 +107,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         private final LenientConfiguration lenientConfiguration;
         private final ResolveContext resolveContext;
 
-        private ErrorHandlingLenientConfiguration(LenientConfiguration lenientConfiguration, ResolveContext resolveContext) {
+        ErrorHandlingLenientConfiguration(LenientConfiguration lenientConfiguration, ResolveContext resolveContext) {
             this.lenientConfiguration = lenientConfiguration;
             this.resolveContext = resolveContext;
         }

@@ -64,13 +64,13 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
      * are commutative.
      */
     private final static class ExcludePair {
-        private final ExcludeSpec left;
-        private final ExcludeSpec right;
+        final ExcludeSpec left;
+        final ExcludeSpec right;
         private final int hashCode;
 
         // Optimizes comparisons by making sure that the 2 elements of
         // the pair are "sorted" by hashcode ascending
-        private static ExcludePair of(ExcludeSpec left, ExcludeSpec right) {
+        static ExcludePair of(ExcludeSpec left, ExcludeSpec right) {
             if (left.hashCode() > right.hashCode()) {
                 return new ExcludePair(right, left);
             }
@@ -108,11 +108,11 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
      * that union and intersection are commutative.
      */
     private static class ExcludesKey {
-        private final Set<ExcludeSpec> specs;
+        final Set<ExcludeSpec> specs;
         private final int size;
         private final int hashCode;
 
-        private ExcludesKey(Set<ExcludeSpec> specs) {
+        ExcludesKey(Set<ExcludeSpec> specs) {
             this.specs = specs;
             this.size = specs.size();
             this.hashCode = specs.hashCode();

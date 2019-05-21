@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 
 public abstract class AbstractIvyArtifact implements IvyArtifact {
     private final TaskDependency allBuildDependencies;
-    private final DefaultTaskDependency additionalBuildDependencies;
+    final DefaultTaskDependency additionalBuildDependencies;
 
     private String name;
     private String type;
@@ -121,6 +121,9 @@ public abstract class AbstractIvyArtifact implements IvyArtifact {
     }
 
     private class CompositeTaskDependency extends AbstractTaskDependency {
+        CompositeTaskDependency() {
+        }
+
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             getDefaultBuildDependencies().visitDependencies(context);

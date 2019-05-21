@@ -126,7 +126,7 @@ public class PackageListGenerator extends DefaultTask {
         });
     }
 
-    private Trie collectPackages() throws IOException {
+    Trie collectPackages() throws IOException {
         Trie.Builder builder = new Trie.Builder();
         for (File file : getClasspath()) {
             if (file.exists()) {
@@ -177,7 +177,7 @@ public class PackageListGenerator extends DefaultTask {
         });
     }
 
-    private void processEntry(ZipEntry zipEntry, Trie.Builder builder) throws IOException {
+    void processEntry(ZipEntry zipEntry, Trie.Builder builder) throws IOException {
         String name = zipEntry.getName();
         if (name.endsWith(".class")) {
             processClassFile(zipEntry, builder);

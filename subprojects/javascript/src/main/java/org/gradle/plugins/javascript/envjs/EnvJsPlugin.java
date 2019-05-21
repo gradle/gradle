@@ -43,7 +43,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 public class EnvJsPlugin implements Plugin<Project> {
-    private final WorkerProcessFactory workerProcessBuilderFactory;
+    final WorkerProcessFactory workerProcessBuilderFactory;
 
     @Inject
     public EnvJsPlugin(WorkerProcessFactory workerProcessBuilderFactory) {

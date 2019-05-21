@@ -88,6 +88,9 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
     }
 
     private static class StrictCapabilityMapNotationParser extends MapNotationConverter<Capability> {
+        StrictCapabilityMapNotationParser() {
+        }
+
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
@@ -101,6 +104,9 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
     }
 
     private static class LenientCapabilityMapNotationParser extends MapNotationConverter<Capability> {
+        LenientCapabilityMapNotationParser() {
+        }
+
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");

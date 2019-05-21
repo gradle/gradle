@@ -226,7 +226,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         private String chartId;
         private boolean renderBackground;
 
-        private Chart(String field, String label, String unit, String chartId, boolean renderBackground) {
+        Chart(String field, String label, String unit, String chartId, boolean renderBackground) {
             this.field = field;
             this.label = label;
             this.unit = unit;
@@ -255,7 +255,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         }
     }
 
-    private static String getTasks(PerformanceTestHistory testHistory) {
+    static String getTasks(PerformanceTestHistory testHistory) {
         PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
         if (performanceTestExecution == null || performanceTestExecution.getTasks() == null) {
             return "";
@@ -263,7 +263,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         return Joiner.on(" ").join(performanceTestExecution.getTasks());
     }
 
-    private static String getCleanTasks(PerformanceTestHistory testHistory) {
+    static String getCleanTasks(PerformanceTestHistory testHistory) {
         PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
         if (performanceTestExecution == null || performanceTestExecution.getCleanTasks() == null) {
             return "";
@@ -279,7 +279,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         return executions.get(0);
     }
 
-    private String getReproductionInstructions(PerformanceTestHistory history) {
+    String getReproductionInstructions(PerformanceTestHistory history) {
         Set<String> templates = Sets.newHashSet();
         Set<String> cleanTasks = Sets.newHashSet();
         for (ScenarioDefinition scenario : history.getScenarios()) {
@@ -326,7 +326,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         }
     }
 
-    private List<GitHubLink> createGitHubLinks(List<String> commits) {
+    List<GitHubLink> createGitHubLinks(List<String> commits) {
         if (null == commits || commits.size() == 0) {
             return Collections.emptyList();
         }
@@ -344,7 +344,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         }
     }
 
-    private static String shorten(String string, int maxLength) {
+    static String shorten(String string, int maxLength) {
         return string.substring(0, Math.min(maxLength, string.length()));
     }
 

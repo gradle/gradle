@@ -64,7 +64,7 @@ public class ProxyDispatchAdapter<T> {
         private final Class<?> type;
         private final Dispatch<? super MethodInvocation> dispatch;
 
-        private DispatchingInvocationHandler(Class<?> type, Dispatch<? super MethodInvocation> dispatch) {
+        DispatchingInvocationHandler(Class<?> type, Dispatch<? super MethodInvocation> dispatch) {
             this.type = type;
             this.dispatch = dispatch;
         }

@@ -21,7 +21,7 @@ import org.gradle.internal.concurrent.Synchronizer;
 public class CacheAccessSerializer<K, V> implements Cache<K, V> {
 
     final private Synchronizer synchronizer = new Synchronizer();
-    final private Cache<K, V> cache;
+    final Cache<K, V> cache;
 
     public CacheAccessSerializer(Cache<K, V> cache) {
         this.cache = cache;

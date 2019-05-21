@@ -23,7 +23,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class ProjectsEvaluatedNotifier {
-    private static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new NotifyProjectsEvaluatedBuildOperationType.Result() {
+    static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new NotifyProjectsEvaluatedBuildOperationType.Result() {
     };
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -36,7 +36,7 @@ public class ProjectsEvaluatedNotifier {
     }
 
     private class NotifyProjectsEvaluatedListeners implements RunnableBuildOperation {
-        private final GradleInternal gradle;
+        final GradleInternal gradle;
 
         public NotifyProjectsEvaluatedListeners(GradleInternal gradle) {
             this.gradle = gradle;

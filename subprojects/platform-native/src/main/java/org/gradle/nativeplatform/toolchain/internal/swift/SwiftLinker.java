@@ -58,6 +58,9 @@ class SwiftLinker extends AbstractCompiler<LinkerSpec> {
     }
 
     private static class SwiftCompileArgsTransformer implements ArgsTransformer<LinkerSpec> {
+        SwiftCompileArgsTransformer() {
+        }
+
         @Override
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();

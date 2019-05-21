@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata {
 
-    private final VariantMetadataRules componentMetadataRules;
+    final VariantMetadataRules componentMetadataRules;
 
     private List<ModuleDependencyMetadata> calculatedDependencies;
 
@@ -51,7 +51,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     // eagerly because it's very likely that those methods would only be called on the selected variant. Therefore it's a waste of time
     // to compute them eagerly when those filtering methods are called. We cannot use a dedicated, lazy wrapper over configuration metadata
     // because we need the attributes to be computes lazily too, because of component metadata rules.
-    private final DependencyFilter dependencyFilter;
+    final DependencyFilter dependencyFilter;
     private ImmutableList<ModuleDependencyMetadata> filteredConfigDependencies;
 
     public DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
@@ -88,18 +88,18 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         this.dependencyFilter = dependencyFilter;
     }
 
-    private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId,
-                                         String name,
-                                         boolean transitive,
-                                         boolean visible,
-                                         ImmutableSet<String> hierarchy,
-                                         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                         VariantMetadataRules componentMetadataRules,
-                                         ImmutableList<ExcludeMetadata> excludes,
-                                         ImmutableAttributes attributes,
-                                         Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-                                         DependencyFilter dependencyFilter,
-                                         List<Capability> capabilities) {
+    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId,
+                                 String name,
+                                 boolean transitive,
+                                 boolean visible,
+                                 ImmutableSet<String> hierarchy,
+                                 ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                 VariantMetadataRules componentMetadataRules,
+                                 ImmutableList<ExcludeMetadata> excludes,
+                                 ImmutableAttributes attributes,
+                                 Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+                                 DependencyFilter dependencyFilter,
+                                 List<Capability> capabilities) {
         super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities));
         this.componentMetadataRules = componentMetadataRules;
         this.componentLevelAttributes = attributes;
@@ -161,7 +161,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), lazyConfigDependencies(), dependencyFilter.dependenciesOnly());
     }
 
-    private Factory<List<ModuleDependencyMetadata>> lazyConfigDependencies() {
+    Factory<List<ModuleDependencyMetadata>> lazyConfigDependencies() {
         return new Factory<List<ModuleDependencyMetadata>>() {
             @Nullable
             @Override

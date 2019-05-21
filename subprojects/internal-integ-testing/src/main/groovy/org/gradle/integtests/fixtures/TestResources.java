@@ -37,7 +37,7 @@ import java.util.Collection;
 public class TestResources implements MethodRule {
     private final Logger logger = LoggerFactory.getLogger(TestResources.class);
     private final TestDirectoryProvider testWorkDirProvider;
-    private final Collection<String> extraResources;
+    final Collection<String> extraResources;
     private final Resources resources = new Resources();
 
     public TestResources(TestDirectoryProvider testDirectoryProvider, String... extraResources) {

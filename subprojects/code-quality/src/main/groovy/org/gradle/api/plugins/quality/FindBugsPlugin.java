@@ -50,7 +50,7 @@ import java.util.concurrent.Callable;
 public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
 
     public static final String DEFAULT_FINDBUGS_VERSION = "3.0.1";
-    private FindBugsExtension extension;
+    FindBugsExtension extension;
 
     @Override
     protected String getToolName() {

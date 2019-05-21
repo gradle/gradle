@@ -128,9 +128,9 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
 
     static class ExecutionData {
         private String label;
-        private List<List<Number>> data;
+        List<List<Number>> data;
 
-        private ExecutionData(String label, List<List<Number>> data) {
+        ExecutionData(String label, List<List<Number>> data) {
             this.label = label;
             this.data = data;
         }
@@ -150,7 +150,7 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         private String date;
         private List<String> commits;
 
-        private ExecutionLabel(PerformanceTestExecution execution) {
+        ExecutionLabel(PerformanceTestExecution execution) {
             this.id = execution.getExecutionId();
             this.branch = execution.getVcsBranch();
             this.date = FormatSupport.date(new Date(execution.getStartTime()));

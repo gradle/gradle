@@ -42,10 +42,10 @@ import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 import static org.gradle.util.CollectionUtils.single;
 
@@ -178,7 +178,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
 
         private final JvmAssembly jvmAssembly;
 
-        private JvmClassesAdapter(JvmAssembly jvmAssembly) {
+        JvmClassesAdapter(JvmAssembly jvmAssembly) {
             this.jvmAssembly = jvmAssembly;
         }
 

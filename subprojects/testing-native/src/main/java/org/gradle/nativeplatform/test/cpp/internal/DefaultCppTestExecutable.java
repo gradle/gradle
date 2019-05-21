@@ -45,7 +45,7 @@ import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTestExecutable, ConfigurableComponentWithExecutable {
-    private final Provider<CppComponent> testedComponent;
+    final Provider<CppComponent> testedComponent;
     private final RegularFileProperty executableFile;
     private final Property<Task> executableFileProducer;
     private final DirectoryProperty installationDirectory;

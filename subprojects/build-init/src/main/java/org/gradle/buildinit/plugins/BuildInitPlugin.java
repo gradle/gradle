@@ -68,7 +68,7 @@ public class BuildInitPlugin implements Plugin<Project> {
         }
     }
 
-    private String reasonToSkip(Project project) {
+    String reasonToSkip(Project project) {
         for (BuildInitDsl dsl : BuildInitDsl.values()) {
             String buildFileName = dsl.fileNameFor("build");
             if (project.file(buildFileName).exists()) {

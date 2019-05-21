@@ -33,6 +33,9 @@ public class BuildInitServices extends AbstractPluginServiceRegistry {
     }
 
     private static class ProjectScopeBuildInitServices {
+        ProjectScopeBuildInitServices() {
+        }
+
         ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, GradleInternal gradle) {
             return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, gradle.getRootProject().getFileResolver()).createProjectLayoutSetupRegistry();
         }

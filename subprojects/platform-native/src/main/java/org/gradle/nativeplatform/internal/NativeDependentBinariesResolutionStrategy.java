@@ -66,8 +66,11 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     }
 
     private static class State {
-        private final Map<NativeBinarySpecInternal, Set<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
+        final Map<NativeBinarySpecInternal, Set<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
         private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependents = Maps.newHashMap();
+
+        State() {
+        }
 
         void registerBinary(NativeBinarySpecInternal binary) {
             if (dependencies.get(binary) == null) {
@@ -149,7 +152,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         }
     }
 
-    private State buildState() {
+    State buildState() {
         State state = new State();
 
         List<ProjectInternal> orderedProjects = Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects());

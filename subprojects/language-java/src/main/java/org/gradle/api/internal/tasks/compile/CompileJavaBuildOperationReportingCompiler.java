@@ -33,11 +33,11 @@ import java.util.List;
 
 public class CompileJavaBuildOperationReportingCompiler implements Compiler<JavaCompileSpec> {
 
-    private static final CompileJavaBuildOperationType.Details DETAILS = new CompileJavaBuildOperationType.Details() {
+    static final CompileJavaBuildOperationType.Details DETAILS = new CompileJavaBuildOperationType.Details() {
     };
 
-    private final TaskInternal task;
-    private final Compiler<JavaCompileSpec> delegate;
+    final TaskInternal task;
+    final Compiler<JavaCompileSpec> delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public CompileJavaBuildOperationReportingCompiler(TaskInternal task, Compiler<JavaCompileSpec> delegate, BuildOperationExecutor buildOperationExecutor) {

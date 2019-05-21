@@ -26,7 +26,13 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.*;
+import org.gradle.model.internal.manage.schema.extract.ManagedImplStructNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.ModelMapNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.ModelSetNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.NodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.ScalarCollectionNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.ScalarTypes;
+import org.gradle.model.internal.manage.schema.extract.SpecializedMapNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
@@ -84,7 +90,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         }
     }
 
-    private <T> NodeInitializer extractNodeInitializer(NodeInitializerContext<T> context) {
+    <T> NodeInitializer extractNodeInitializer(NodeInitializerContext<T> context) {
         ModelSchema<T> schema = schemaStore.getSchema(context.getModelType());
         for (NodeInitializerExtractionStrategy extractor : allStrategies) {
             NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema, context);

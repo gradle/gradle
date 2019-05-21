@@ -131,7 +131,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
     }
 
-    private static String replacePoints(String name) {
+    static String replacePoints(String name) {
         return name.replace('.', '$');
     }
 
@@ -141,7 +141,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
      */
     private static class ConstructedClassWithPackage extends ClassNode {
         private final String prefix;
-        private String className;
+        String className;
 
         public ConstructedClassWithPackage(String pkg, String name) {
             super(pkg + name, Opcodes.ACC_PUBLIC, ClassHelper.OBJECT_TYPE);

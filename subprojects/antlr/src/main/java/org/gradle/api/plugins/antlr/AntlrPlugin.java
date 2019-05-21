@@ -41,7 +41,7 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
  */
 public class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
-    private final ObjectFactory objectFactory;
+    final ObjectFactory objectFactory;
 
     @Inject
     public AntlrPlugin(ObjectFactory objectFactory) {

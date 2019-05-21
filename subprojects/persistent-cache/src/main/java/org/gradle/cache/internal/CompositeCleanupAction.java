@@ -35,7 +35,7 @@ public class CompositeCleanupAction implements CleanupAction {
 
     private final List<CleanupAction> cleanups;
 
-    private CompositeCleanupAction(List<CleanupAction> cleanups) {
+    CompositeCleanupAction(List<CleanupAction> cleanups) {
         this.cleanups = cleanups;
     }
 
@@ -49,7 +49,7 @@ public class CompositeCleanupAction implements CleanupAction {
     public static class Builder {
         private List<CleanupAction> cleanups = new ArrayList<CleanupAction>();
 
-        private Builder() {
+        Builder() {
         }
 
         public Builder add(CleanupAction... actions) {

@@ -47,12 +47,12 @@ import java.util.Map;
 
 public class BuildCacheCommandFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheCommandFactory.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheCommandFactory.class);
 
-    private final BuildCacheEntryPacker packer;
-    private final OriginMetadataFactory originMetadataFactory;
-    private final FileSystemMirror fileSystemMirror;
-    private final StringInterner stringInterner;
+    final BuildCacheEntryPacker packer;
+    final OriginMetadataFactory originMetadataFactory;
+    final FileSystemMirror fileSystemMirror;
+    final StringInterner stringInterner;
 
     public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
         this.packer = packer;
@@ -79,7 +79,7 @@ public class BuildCacheCommandFactory {
         private final BuildCacheKey cacheKey;
         private final CacheableEntity entity;
 
-        private LoadCommand(BuildCacheKey cacheKey, CacheableEntity entity) {
+        LoadCommand(BuildCacheKey cacheKey, CacheableEntity entity) {
             this.cacheKey = cacheKey;
             this.entity = entity;
         }
@@ -161,7 +161,7 @@ public class BuildCacheCommandFactory {
         private final Map<String, CurrentFileCollectionFingerprint> fingerprints;
         private final long executionTime;
 
-        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
+        StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
             this.cacheKey = cacheKey;
             this.entity = entity;
             this.fingerprints = fingerprints;

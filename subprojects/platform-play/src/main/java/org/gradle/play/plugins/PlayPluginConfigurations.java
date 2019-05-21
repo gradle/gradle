@@ -44,8 +44,8 @@ public class PlayPluginConfigurations {
     public static final String RUN_CONFIGURATION = "playRun";
     public static final String TEST_COMPILE_CONFIGURATION = "playTest";
 
-    private final ConfigurationContainer configurations;
-    private final DependencyHandler dependencyHandler;
+    final ConfigurationContainer configurations;
+    final DependencyHandler dependencyHandler;
 
     public PlayPluginConfigurations(ConfigurationContainer configurations, DependencyHandler dependencyHandler) {
         this.configurations = configurations;
@@ -119,7 +119,7 @@ public class PlayPluginConfigurations {
         private final Configuration configuration;
         private final boolean matchProjectComponents;
 
-        private FilterByProjectComponentTypeFileCollection(Configuration configuration, boolean matchProjectComponents) {
+        FilterByProjectComponentTypeFileCollection(Configuration configuration, boolean matchProjectComponents) {
             this.configuration = configuration;
             this.matchProjectComponents = matchProjectComponents;
         }

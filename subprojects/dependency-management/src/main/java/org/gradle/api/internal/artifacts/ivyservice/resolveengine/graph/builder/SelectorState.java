@@ -334,7 +334,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         private final Collection<String> rejectedVersions;
         private final ComponentSelectionDescriptorInternal descriptor;
 
-        private UnmatchedVersionsReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
+        UnmatchedVersionsReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
             this.rejectedVersions = rejectedVersions;
             this.descriptor = descriptor;
         }
@@ -360,7 +360,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         private final String version;
         private final String reason;
 
-        private RejectedByRuleReason(String version, String reason) {
+        RejectedByRuleReason(String version, String reason) {
             this.version = version;
             this.reason = reason;
         }
@@ -374,7 +374,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private static class RejectedByAttributesReason implements Describable {
         private final RejectedByAttributesVersion version;
 
-        private RejectedByAttributesReason(RejectedByAttributesVersion version) {
+        RejectedByAttributesReason(RejectedByAttributesVersion version) {
             this.version = version;
         }
 
@@ -392,7 +392,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         private final Collection<String> rejectedVersions;
         private final ComponentSelectionDescriptorInternal descriptor;
 
-        private RejectedBySelectorReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
+        RejectedBySelectorReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
             this.rejectedVersions = rejectedVersions;
             this.descriptor = descriptor;
         }

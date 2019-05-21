@@ -34,7 +34,7 @@ import java.util.List;
  * to work around GROOVY-5416.
  */
 class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
-    private static final String ANNOTATION_DESCRIPTOR = Type.getType(GroovyASTTransformationClass.class).getDescriptor();
+    static final String ANNOTATION_DESCRIPTOR = Type.getType(GroovyASTTransformationClass.class).getDescriptor();
 
     static {
         try {
@@ -66,9 +66,9 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
     }
 
     private static class AnnotationDetector extends ClassVisitor {
-        private boolean found;
+        boolean found;
 
-        private AnnotationDetector() {
+        AnnotationDetector() {
             super(AsmConstants.ASM_LEVEL);
         }
 
@@ -95,7 +95,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
         }
 
         private static class AnnotationTransformingVisitor extends AnnotationVisitor {
-            private final List<String> names = new ArrayList<String>();
+            final List<String> names = new ArrayList<String>();
 
             public AnnotationTransformingVisitor(AnnotationVisitor annotationVisitor) {
                 super(AsmConstants.ASM_LEVEL, annotationVisitor);

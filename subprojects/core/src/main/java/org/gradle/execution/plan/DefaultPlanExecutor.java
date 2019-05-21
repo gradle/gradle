@@ -45,7 +45,7 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 @NonNullApi
 public class DefaultPlanExecutor implements PlanExecutor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanExecutor.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanExecutor.class);
     private final int executorCount;
     private final ExecutorFactory executorFactory;
     private final WorkerLeaseService workerLeaseService;
@@ -104,13 +104,13 @@ public class DefaultPlanExecutor implements PlanExecutor {
     }
 
     private static class ExecutorWorker implements Runnable {
-        private final ExecutionPlan executionPlan;
-        private final Action<? super Node> nodeExecutor;
+        final ExecutionPlan executionPlan;
+        final Action<? super Node> nodeExecutor;
         private final WorkerLease parentWorkerLease;
-        private final BuildCancellationToken cancellationToken;
+        final BuildCancellationToken cancellationToken;
         private final ResourceLockCoordinationService coordinationService;
 
-        private ExecutorWorker(ExecutionPlan executionPlan, Action<? super Node> nodeExecutor, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
+        ExecutorWorker(ExecutionPlan executionPlan, Action<? super Node> nodeExecutor, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
             this.executionPlan = executionPlan;
             this.nodeExecutor = nodeExecutor;
             this.parentWorkerLease = parentWorkerLease;

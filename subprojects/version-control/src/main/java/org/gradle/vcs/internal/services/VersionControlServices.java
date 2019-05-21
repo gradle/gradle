@@ -84,6 +84,9 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildTreeServices {
+        VersionControlBuildTreeServices() {
+        }
+
         VcsMappingFactory createVcsMappingFactory(ObjectFactory objectFactory, StartParameter startParameter, NotationParser<String, ModuleIdentifier> notationParser, VersionControlSpecFactory versionControlSpecFactory) {
             return new DefaultVcsMappingFactory(objectFactory, versionControlSpecFactory);
         }
@@ -106,6 +109,9 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildSessionServices {
+        VersionControlBuildSessionServices() {
+        }
+
         NotationParser<String, ModuleIdentifier> createModuleIdParser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             return NotationParserBuilder
                 .builder(String.class, ModuleIdentifier.class)
@@ -128,6 +134,9 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlSettingsServices {
+        VersionControlSettingsServices() {
+        }
+
         VcsMappings createVcsMappings(ObjectFactory objectFactory, VcsMappingsStore vcsMappingsStore, Gradle gradle, NotationParser<String, ModuleIdentifier> notationParser) {
             return objectFactory.newInstance(DefaultVcsMappings.class, vcsMappingsStore, gradle, notationParser);
         }
@@ -138,6 +147,9 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildServices {
+        VersionControlBuildServices() {
+        }
+
         VcsDependencyResolver createVcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter, BuildState containingBuild, PublicBuildPath publicBuildPath) {
             VcsVersionWorkingDirResolver workingDirResolver;
             if (startParameter.isOffline()) {
@@ -158,7 +170,7 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
         private final VcsDependencyResolver vcsDependencyResolver;
         private final VcsResolver vcsResolver;
 
-        private VcsResolverFactory(VcsDependencyResolver vcsDependencyResolver, VcsResolver vcsResolver) {
+        VcsResolverFactory(VcsDependencyResolver vcsDependencyResolver, VcsResolver vcsResolver) {
             this.vcsDependencyResolver = vcsDependencyResolver;
             this.vcsResolver = vcsResolver;
         }

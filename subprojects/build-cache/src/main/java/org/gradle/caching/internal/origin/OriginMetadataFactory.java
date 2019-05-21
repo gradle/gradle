@@ -35,7 +35,7 @@ import java.util.Set;
 
 public class OriginMetadataFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OriginMetadataFactory.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(OriginMetadataFactory.class);
 
     private static final String BUILD_INVOCATION_ID_KEY = "buildInvocationId";
     private static final String TYPE_KEY = "type";
@@ -47,15 +47,15 @@ public class OriginMetadataFactory {
     private static final String OPERATING_SYSTEM_KEY = "operatingSystem";
     private static final String HOST_NAME_KEY = "hostName";
     private static final String USER_NAME_KEY = "userName";
-    private static final Set<String> METADATA_KEYS = ImmutableSet.of(BUILD_INVOCATION_ID_KEY, TYPE_KEY, IDENTITY_KEY, GRADLE_VERSION_KEY, CREATION_TIME_KEY, EXECUTION_TIME_KEY, ROOT_PATH_KEY, OPERATING_SYSTEM_KEY, HOST_NAME_KEY, USER_NAME_KEY);
+    static final Set<String> METADATA_KEYS = ImmutableSet.of(BUILD_INVOCATION_ID_KEY, TYPE_KEY, IDENTITY_KEY, GRADLE_VERSION_KEY, CREATION_TIME_KEY, EXECUTION_TIME_KEY, ROOT_PATH_KEY, OPERATING_SYSTEM_KEY, HOST_NAME_KEY, USER_NAME_KEY);
 
-    private final InetAddressFactory inetAddressFactory;
-    private final String userName;
-    private final String operatingSystem;
-    private final Clock clock;
-    private final GradleVersion gradleVersion;
-    private final UniqueId currentBuildInvocationId;
-    private final File rootDir;
+    final InetAddressFactory inetAddressFactory;
+    final String userName;
+    final String operatingSystem;
+    final Clock clock;
+    final GradleVersion gradleVersion;
+    final UniqueId currentBuildInvocationId;
+    final File rootDir;
 
     public OriginMetadataFactory(Clock clock, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion, UniqueId currentBuildInvocationId) {
         this.inetAddressFactory = inetAddressFactory;

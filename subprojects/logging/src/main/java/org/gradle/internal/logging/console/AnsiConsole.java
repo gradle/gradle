@@ -35,8 +35,8 @@ public class AnsiConsole implements Console {
         }
     };
     private final Flushable flushable;
-    private final MultiLineBuildProgressArea buildStatusArea = new MultiLineBuildProgressArea();
-    private final DefaultTextArea buildOutputArea;
+    final MultiLineBuildProgressArea buildStatusArea = new MultiLineBuildProgressArea();
+    final DefaultTextArea buildOutputArea;
     private final AnsiExecutor ansiExecutor;
 
     public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, ConsoleMetaData consoleMetaData, boolean forceAnsi) {
@@ -95,6 +95,9 @@ public class AnsiConsole implements Console {
     }
 
     private class Listener implements DefaultAnsiExecutor.NewLineListener {
+        Listener() {
+        }
+
         @Override
         public void beforeNewLineWritten(AnsiContext ansi, Cursor writeCursor) {
             if (buildStatusArea.isOverlappingWith(writeCursor)) {

@@ -60,12 +60,12 @@ import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategor
  */
 @NonNullApi
 public class PropertyValidationAccess {
-    private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
+    final static Map<Class<? extends Annotation>, ? extends PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
         InputFiles.class, new MissingNormalizationValidator(false),
         InputFile.class, new MissingNormalizationValidator(false),
         InputDirectory.class, new MissingNormalizationValidator(false)
     );
-    private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> STRICT_PROPERTY_VALIDATORS = ImmutableMap.of(
+    final static Map<Class<? extends Annotation>, ? extends PropertyValidator> STRICT_PROPERTY_VALIDATORS = ImmutableMap.of(
         InputFiles.class, new MissingNormalizationValidator(true),
         InputFile.class, new MissingNormalizationValidator(true),
         InputDirectory.class, new MissingNormalizationValidator(true)
@@ -341,7 +341,7 @@ public class PropertyValidationAccess {
         }
     }
 
-    private static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
+    static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
         ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
         return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
     }

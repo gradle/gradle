@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
 public class CachingPatternSpecFactory extends PatternSpecFactory {
     private static final int RESULTS_CACHE_MAX_SIZE = 100000;
     private static final int INSTANCES_MAX_SIZE = 30000;
-    private final HeapProportionalCacheSizer cacheSizer;
+    final HeapProportionalCacheSizer cacheSizer;
     private final Cache<SpecKey, Spec<FileTreeElement>> specInstanceCache;
 
     public CachingPatternSpecFactory() {
@@ -59,7 +59,7 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
     }
 
     private class CachingSpec implements Spec<FileTreeElement> {
-        private final Spec<FileTreeElement> spec;
+        final Spec<FileTreeElement> spec;
         private final Cache<RelativePath, Boolean> resultCache = CacheBuilder.newBuilder().maximumSize(cacheSizer.scaleCacheSize(RESULTS_CACHE_MAX_SIZE)).build();
 
         CachingSpec(Spec<FileTreeElement> spec) {
@@ -94,7 +94,7 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
         private final boolean caseSensitive;
         private final int hashCode;
 
-        private SpecKey(ImmutableList<String> patterns, boolean include, boolean caseSensitive) {
+        SpecKey(ImmutableList<String> patterns, boolean include, boolean caseSensitive) {
             this.patterns = patterns;
             this.include = include;
             this.caseSensitive = caseSensitive;

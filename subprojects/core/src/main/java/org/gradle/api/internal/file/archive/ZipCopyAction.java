@@ -56,10 +56,10 @@ public class ZipCopyAction implements CopyAction {
      */
     public static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = new GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis();
 
-    private final File zipFile;
+    final File zipFile;
     private final ZipCompressor compressor;
     private final DocumentationRegistry documentationRegistry;
-    private final String encoding;
+    final String encoding;
     private final boolean preserveFileTimestamps;
 
     public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps) {
@@ -144,7 +144,7 @@ public class ZipCopyAction implements CopyAction {
         }
     }
 
-    private long getArchiveTimeFor(FileCopyDetails details) {
+    long getArchiveTimeFor(FileCopyDetails details) {
         return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_ZIP_ENTRIES;
     }
 }

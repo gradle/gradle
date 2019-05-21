@@ -69,6 +69,9 @@ public class CLangPlugin implements Plugin<Project> {
     }
 
     private static class C extends NativeLanguageTransform<CSourceSet> implements PchEnabledLanguageTransform<CSourceSet> {
+        C() {
+        }
+
         @Override
         public Class<CSourceSet> getSourceSetType() {
             return CSourceSet.class;

@@ -19,14 +19,14 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.CompileOperation;
+import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 
 public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
-    private final ScriptRunnerFactory scriptRunnerFactory;
-    private final ScriptClassCompiler scriptClassCompiler;
+    final ScriptRunnerFactory scriptRunnerFactory;
+    final ScriptClassCompiler scriptClassCompiler;
 
     public DefaultScriptCompilerFactory(ScriptClassCompiler scriptClassCompiler, ScriptRunnerFactory scriptRunnerFactory) {
         this.scriptClassCompiler = scriptClassCompiler;

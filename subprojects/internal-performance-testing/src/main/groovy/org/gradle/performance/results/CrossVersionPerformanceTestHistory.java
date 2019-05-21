@@ -152,7 +152,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     private class KnownVersionsPerformanceTestExecution implements PerformanceTestExecution {
-        private final CrossVersionPerformanceResults result;
+        final CrossVersionPerformanceResults result;
 
         public KnownVersionsPerformanceTestExecution(CrossVersionPerformanceResults result) {
             this.result = result;

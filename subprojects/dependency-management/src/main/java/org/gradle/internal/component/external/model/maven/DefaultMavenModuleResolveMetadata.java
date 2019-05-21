@@ -143,7 +143,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return artifacts;
     }
 
-    private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
+    ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
         if (dependencies.isEmpty()) {
             return ImmutableList.of();
         }

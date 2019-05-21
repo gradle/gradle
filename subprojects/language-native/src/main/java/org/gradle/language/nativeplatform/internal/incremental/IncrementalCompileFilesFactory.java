@@ -39,14 +39,14 @@ import java.util.Set;
 
 public class IncrementalCompileFilesFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalCompileFilesFactory.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(IncrementalCompileFilesFactory.class);
     private static final String IGNORE_UNRESOLVED_HEADERS_IN_DEPENDENCIES_PROPERTY_NAME = "org.gradle.internal.native.headers.unresolved.dependencies.ignore";
 
-    private final IncludeDirectives initialIncludeDirectives;
-    private final SourceIncludesParser sourceIncludesParser;
-    private final SourceIncludesResolver sourceIncludesResolver;
-    private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final boolean ignoreUnresolvedHeadersInDependencies;
+    final IncludeDirectives initialIncludeDirectives;
+    final SourceIncludesParser sourceIncludesParser;
+    final SourceIncludesResolver sourceIncludesResolver;
+    final FileSystemSnapshotter fileSystemSnapshotter;
+    final boolean ignoreUnresolvedHeadersInDependencies;
 
     public IncrementalCompileFilesFactory(IncludeDirectives initialIncludeDirectives, SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter fileSystemSnapshotter) {
         this.initialIncludeDirectives = initialIncludeDirectives;
@@ -254,7 +254,7 @@ public class IncrementalCompileFilesFactory {
      */
     private static class FileVisitResult implements CollectingMacroLookup.MacroSource {
         private final File file;
-        private final IncludeFileResolutionResult result;
+        final IncludeFileResolutionResult result;
         private final IncludeDirectives includeDirectives;
         private final List<FileVisitResult> included;
         private final List<IncludeFileEdge> edges;

@@ -198,11 +198,11 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     }
 
     public static class CachedEntry<RESULT> {
-        private final long timestamp;
-        private final Multimap<String, ImplicitInputRecord<?, ?>> implicits;
-        private final RESULT result;
+        final long timestamp;
+        final Multimap<String, ImplicitInputRecord<?, ?>> implicits;
+        final RESULT result;
 
-        private CachedEntry(long timestamp, Multimap<String, ImplicitInputRecord<?, ?>> implicits, RESULT result) {
+        CachedEntry(long timestamp, Multimap<String, ImplicitInputRecord<?, ?>> implicits, RESULT result) {
             this.timestamp = timestamp;
             this.implicits = implicits;
             this.result = result;
@@ -315,6 +315,9 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private static class DefaultImplicitInputRegistrar implements ImplicitInputRecorder {
         final Multimap<String, ImplicitInputRecord<?, ?>> implicits = HashMultimap.create();
 
+        DefaultImplicitInputRegistrar() {
+        }
+
         @Override
         public <IN, OUT> void register(String serviceName, ImplicitInputRecord<IN, OUT> input) {
             implicits.put(serviceName, input);
@@ -333,6 +336,9 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             HashCode.class,
             Throwable.class
         };
+
+        AnySerializer() {
+        }
 
         @Override
         public Object read(Decoder decoder) throws Exception {

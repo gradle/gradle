@@ -94,7 +94,7 @@ class LockEntryFilterFactory {
     private static class AggregateLockEntryFilter implements LockEntryFilter {
         private final Set<LockEntryFilter> filters;
 
-        private AggregateLockEntryFilter(Set<LockEntryFilter> filters) {
+        AggregateLockEntryFilter(Set<LockEntryFilter> filters) {
             this.filters = filters;
         }
 
@@ -113,7 +113,7 @@ class LockEntryFilterFactory {
         private final String group;
         private final String module;
 
-        private GroupModuleLockEntryFilter(String group, String module) {
+        GroupModuleLockEntryFilter(String group, String module) {
             this.group = group;
             this.module = module;
         }

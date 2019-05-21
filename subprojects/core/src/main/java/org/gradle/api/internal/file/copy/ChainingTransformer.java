@@ -24,7 +24,7 @@ import java.util.List;
 
 public class ChainingTransformer<T> implements Transformer<T, T> {
     private final List<Transformer<T, T>> transformers = new ArrayList<Transformer<T, T>>();
-    private final Class<T> type;
+    final Class<T> type;
 
     public ChainingTransformer(Class<T> type) {
         this.type = type;

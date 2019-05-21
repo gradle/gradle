@@ -36,8 +36,8 @@ import static java.lang.String.format;
 
 public class ComponentModuleMetadataContainer implements ModuleReplacementsData {
 
-    private final Map<ModuleIdentifier, Replacement> replacements = newHashMap();
-    private final Set<ModuleIdentifier> targets = newHashSet();
+    final Map<ModuleIdentifier, Replacement> replacements = newHashMap();
+    final Set<ModuleIdentifier> targets = newHashSet();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     public ComponentModuleMetadataContainer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -84,7 +84,7 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
         return targets.contains(moduleId) || replacements.keySet().contains(moduleId);
     }
 
-    private static void detectCycles(Map<ModuleIdentifier, Replacement> replacements, ModuleIdentifier source, ModuleIdentifier target) {
+    static void detectCycles(Map<ModuleIdentifier, Replacement> replacements, ModuleIdentifier source, ModuleIdentifier target) {
         if (source.equals(target)) {
             throw new InvalidUserDataException(String.format("Cannot declare module replacement that replaces self: %s->%s", source, target));
         }
@@ -109,7 +109,7 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
         }
     }
 
-    private static ModuleIdentifier unwrap(Replacement replacement) {
+    static ModuleIdentifier unwrap(Replacement replacement) {
         return replacement == null ? null : replacement.getTarget();
     }
 

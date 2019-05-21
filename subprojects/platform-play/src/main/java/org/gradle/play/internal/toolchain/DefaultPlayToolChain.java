@@ -45,7 +45,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final ConfigurationContainer configurationContainer;
-    private final DependencyHandler dependencyHandler;
+    final DependencyHandler dependencyHandler;
     private final WorkerProcessFactory workerProcessBuilderFactory;
     private final WorkerDirectoryProvider workerDirectoryProvider;
     private final ClasspathFingerprinter fingerprinter;

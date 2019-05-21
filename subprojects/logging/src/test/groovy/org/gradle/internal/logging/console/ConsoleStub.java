@@ -22,7 +22,7 @@ import java.util.List;
 
 public class ConsoleStub implements Console {
     private final TestableBuildOutputTextArea buildOutputArea = new TestableBuildOutputTextArea();
-    private final TestableRedrawableLabel buildStatusLabel = new TestableRedrawableLabel("0");
+    final TestableRedrawableLabel buildStatusLabel = new TestableRedrawableLabel("0");
     private final TestableBuildProgressTextArea buildProgressArea = new TestableBuildProgressTextArea();
 
     @Override

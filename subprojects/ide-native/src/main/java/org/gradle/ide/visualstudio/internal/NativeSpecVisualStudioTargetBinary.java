@@ -294,7 +294,7 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     // in the binary inputs.
     private static class LanguageSourceSetCollectionAdapter implements MinimalFileSet, Buildable {
         private final String displayName;
-        private final Set<LanguageSourceSet> inputs;
+        final Set<LanguageSourceSet> inputs;
         private final Spec<LanguageSourceSet> filterSpec;
         private final Transformer<FileCollection, LanguageSourceSet> transformer;
 

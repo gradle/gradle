@@ -34,7 +34,7 @@ import java.io.InputStream;
  * It also listens to cancel requests and forwards it too as Cancel command.
  */
 public class DaemonClientInputForwarder implements Stoppable {
-    private static final Logger LOGGER = Logging.getLogger(DaemonClientInputForwarder.class);
+    static final Logger LOGGER = Logging.getLogger(DaemonClientInputForwarder.class);
 
     public static final int DEFAULT_BUFFER_SIZE = 1024;
     private final InputForwarder forwarder;

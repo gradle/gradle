@@ -107,6 +107,9 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     private abstract class FilteredFileTree extends CompositeFileTree {
 
+        FilteredFileTree() {
+        }
+
         protected abstract FileTree filter(FileTree set);
 
         @Override

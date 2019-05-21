@@ -27,7 +27,7 @@ import org.gradle.model.internal.type.ModelType;
 
 public class ModelElementProjection extends TypeCompatibilityModelProjectionSupport<ModelElement> {
     private static final ModelType<ModelElement> MODEL_ELEMENT_MODEL_TYPE = ModelType.of(ModelElement.class);
-    private final ModelType<?> publicType;
+    final ModelType<?> publicType;
 
     public ModelElementProjection(ModelType<?> publicType) {
         super(MODEL_ELEMENT_MODEL_TYPE);

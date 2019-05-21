@@ -76,6 +76,9 @@ public class PlayRoutesPlugin extends RuleSource {
     }
 
     private static class Routes implements LanguageTransform<RoutesSourceSet, ScalaSourceCode> {
+        Routes() {
+        }
+
         @Override
         public String getLanguageName() {
             return "routes";

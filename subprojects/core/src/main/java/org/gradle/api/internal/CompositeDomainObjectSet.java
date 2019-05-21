@@ -41,7 +41,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
 
-    private final DefaultDomainObjectSet<T> backingSet;
+    final DefaultDomainObjectSet<T> backingSet;
     private final CollectionCallbackActionDecorator callbackActionDecorator;
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
@@ -160,7 +160,10 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     // TODO Make this work with pending elements
     private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
 
-        private final List<DomainObjectCollection<? extends T>> store = Lists.newLinkedList();
+        final List<DomainObjectCollection<? extends T>> store = Lists.newLinkedList();
+
+        DomainObjectCompositeCollection() {
+        }
 
         public boolean containsCollection(DomainObjectCollection<? extends T> collection) {
             for (DomainObjectCollection<? extends T> ts : store) {

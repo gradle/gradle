@@ -20,9 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
@@ -33,9 +33,9 @@ import java.net.URI;
 import java.util.List;
 
 public class BuildOperationFiringExternalResourceDecorator implements ExternalResource {
-    private final ExternalResourceName resourceName;
+    final ExternalResourceName resourceName;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ExternalResource delegate;
+    final ExternalResource delegate;
 
     public BuildOperationFiringExternalResourceDecorator(ExternalResourceName resourceName, BuildOperationExecutor buildOperationExecutor, ExternalResource delegate) {
         this.resourceName = resourceName;
@@ -239,12 +239,12 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
         });
     }
 
-    private static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
+    static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
         buildOperationContext.setResult(new ReadOperationResult(result == null ? 0 : result.getBytesRead()));
         return result;
     }
 
-    private BuildOperationDescriptor.Builder createBuildOperationDetails() {
+    BuildOperationDescriptor.Builder createBuildOperationDetails() {
         ExternalResourceReadBuildOperationType.Details operationDetails = new ReadOperationDetails(resourceName.getUri());
         return BuildOperationDescriptor
             .displayName("Download " + resourceName.getDisplayName())
@@ -255,7 +255,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     private static class LocationDetails {
         private final URI location;
 
-        private LocationDetails(URI location) {
+        LocationDetails(URI location) {
             this.location = location;
         }
 
@@ -265,7 +265,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     private static class ReadOperationDetails extends LocationDetails implements ExternalResourceReadBuildOperationType.Details {
-        private ReadOperationDetails(URI location) {
+        ReadOperationDetails(URI location) {
             super(location);
         }
 
@@ -276,7 +276,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     private static class MetadataOperationDetails extends LocationDetails implements ExternalResourceReadMetadataBuildOperationType.Details {
-        private MetadataOperationDetails(URI location) {
+        MetadataOperationDetails(URI location) {
             super(location);
         }
 
@@ -286,11 +286,11 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
         }
     }
 
-    private final static ExternalResourceReadMetadataBuildOperationType.Result METADATA_RESULT = new ExternalResourceReadMetadataBuildOperationType.Result() {
+    final static ExternalResourceReadMetadataBuildOperationType.Result METADATA_RESULT = new ExternalResourceReadMetadataBuildOperationType.Result() {
     };
 
     private static class ListOperationDetails extends LocationDetails implements ExternalResourceListBuildOperationType.Details {
-        private ListOperationDetails(URI location) {
+        ListOperationDetails(URI location) {
             super(location);
         }
 
@@ -300,11 +300,11 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
         }
     }
 
-    private final static ExternalResourceListBuildOperationType.Result LIST_RESULT = new ExternalResourceListBuildOperationType.Result() {
+    final static ExternalResourceListBuildOperationType.Result LIST_RESULT = new ExternalResourceListBuildOperationType.Result() {
     };
 
     private static class PutOperationDetails extends LocationDetails implements ExternalResourceWriteBuildOperationType.Details {
-        private PutOperationDetails(URI location) {
+        PutOperationDetails(URI location) {
             super(location);
         }
 
@@ -318,7 +318,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
 
         private final long bytesRead;
 
-        private ReadOperationResult(long bytesRead) {
+        ReadOperationResult(long bytesRead) {
             this.bytesRead = bytesRead;
         }
 

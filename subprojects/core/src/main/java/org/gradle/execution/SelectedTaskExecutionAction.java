@@ -42,6 +42,9 @@ public class SelectedTaskExecutionAction implements BuildExecutionAction {
     }
 
     private static class BindAllReferencesOfProjectsToExecuteListener implements TaskExecutionGraphListener, InternalListener {
+        BindAllReferencesOfProjectsToExecuteListener() {
+        }
+
         @Override
         public void graphPopulated(TaskExecutionGraph graph) {
             Set<Project> seen = Sets.newHashSet();

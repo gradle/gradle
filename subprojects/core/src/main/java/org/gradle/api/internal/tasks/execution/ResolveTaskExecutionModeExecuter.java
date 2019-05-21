@@ -50,7 +50,7 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
     private final PropertyWalker propertyWalker;
     private final TaskExecuter executer;
     private final TaskExecutionModeResolver executionModeResolver;
-    private final FileCollectionFactory fileCollectionFactory;
+    final FileCollectionFactory fileCollectionFactory;
 
     public ResolveTaskExecutionModeExecuter(TaskExecutionModeResolver executionModeResolver, FileCollectionFactory fileCollectionFactory, PropertyWalker propertyWalker, TaskExecuter executer) {
         this.fileCollectionFactory = fileCollectionFactory;

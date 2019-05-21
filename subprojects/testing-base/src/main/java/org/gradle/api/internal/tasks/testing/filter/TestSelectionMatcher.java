@@ -16,12 +16,12 @@
 package org.gradle.api.internal.tasks.testing.filter;
 
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
 
 import static org.apache.commons.lang.StringUtils.splitPreserveAllTokens;
 import static org.apache.commons.lang.StringUtils.substringAfterLast;
@@ -147,7 +147,7 @@ public class TestSelectionMatcher {
         private LastElementMatcher lastElementMatcher;
         private ClassNameSelector classNameSelector;
 
-        private TestPattern(String pattern) {
+        TestPattern(String pattern) {
             this.pattern = preparePattern(pattern);
             this.classNameSelector = patternStartsWithUpperCase(pattern) ?
                 new SimpleClassNameSelector() : new FullQualifiedClassNameSelector();
@@ -177,7 +177,7 @@ public class TestSelectionMatcher {
             return Pattern.compile(pattern.toString());
         }
 
-        private boolean mayIncludeClass(String fullQualifiedName) {
+        boolean mayIncludeClass(String fullQualifiedName) {
             if (patternStartsWithWildcard()) {
                 return true;
             }
@@ -198,11 +198,11 @@ public class TestSelectionMatcher {
             return false;
         }
 
-        private boolean matchesClass(String fullQualifiedName) {
+        boolean matchesClass(String fullQualifiedName) {
             return pattern.matcher(classNameSelector.determineTargetClassName(fullQualifiedName)).matches();
         }
 
-        private boolean matchesClassAndMethod(String fullQualifiedName, String methodName) {
+        boolean matchesClassAndMethod(String fullQualifiedName, String methodName) {
             if (methodName == null) {
                 return false;
             }
@@ -232,7 +232,7 @@ public class TestSelectionMatcher {
         }
     }
 
-    private static String getSimpleName(String fullQualifiedName) {
+    static String getSimpleName(String fullQualifiedName) {
         String simpleName = substringAfterLast(fullQualifiedName, ".");
         if ("".equals(simpleName)) {
             return fullQualifiedName;
@@ -242,7 +242,7 @@ public class TestSelectionMatcher {
 
     // Foo can match both Foo and Foo$NestedClass
     // https://github.com/gradle/gradle/issues/5763
-    private static boolean classNameMatch(String simpleClassName, String patternSimpleClassName) {
+    static boolean classNameMatch(String simpleClassName, String patternSimpleClassName) {
         if (simpleClassName.equals(patternSimpleClassName)) {
             return true;
         } else if (patternSimpleClassName.contains("$")) {
@@ -257,6 +257,9 @@ public class TestSelectionMatcher {
     }
 
     private static class NoWildcardMatcher implements LastElementMatcher {
+        NoWildcardMatcher() {
+        }
+
         @Override
         public boolean match(String classElement, String patternElement) {
             return classNameMatch(classElement, patternElement);
@@ -264,6 +267,9 @@ public class TestSelectionMatcher {
     }
 
     private static class WildcardMatcher implements LastElementMatcher {
+        WildcardMatcher() {
+        }
+
         @Override
         public boolean match(String classElement, String patternElement) {
             return classElement.startsWith(patternElement) || classNameMatch(classElement, patternElement);
@@ -275,6 +281,9 @@ public class TestSelectionMatcher {
     }
 
     private static class FullQualifiedClassNameSelector implements ClassNameSelector {
+        FullQualifiedClassNameSelector() {
+        }
+
         @Override
         public String determineTargetClassName(String fullQualifiedName) {
             return fullQualifiedName;
@@ -282,6 +291,9 @@ public class TestSelectionMatcher {
     }
 
     private static class SimpleClassNameSelector implements ClassNameSelector {
+        SimpleClassNameSelector() {
+        }
+
         @Override
         public String determineTargetClassName(String fullQualifiedName) {
             return getSimpleName(fullQualifiedName);

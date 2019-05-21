@@ -45,9 +45,9 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final Predicate<String> typeFilter;
     private final StringInterner interner;
     private boolean isAnnotationType;
-    private boolean dependencyToAll;
+    boolean dependencyToAll;
     private final RetentionPolicyVisitor retentionPolicyVisitor;
-    private final AnnotationVisitor annotationVisitor;
+    final AnnotationVisitor annotationVisitor;
 
     private ClassDependenciesVisitor(Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
         super(API);

@@ -27,7 +27,7 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import java.io.File;
 
 public class IvyContextualMetaDataParser<T extends MutableModuleComponentResolveMetadata> implements MetaDataParser<T> {
-    private final MetaDataParser<T> delegate;
+    final MetaDataParser<T> delegate;
     private final IvyContextManager ivyContextManager;
 
     public IvyContextualMetaDataParser(IvyContextManager ivyContextManager, MetaDataParser<T> delegate) {

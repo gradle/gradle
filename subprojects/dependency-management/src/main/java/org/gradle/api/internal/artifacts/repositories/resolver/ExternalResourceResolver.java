@@ -91,13 +91,13 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
     private static final StringInterner REPOSITORY_ID_INTERNER = new StringInterner();
 
-    private final String name;
+    final String name;
     private final List<ResourcePattern> ivyPatterns = new ArrayList<ResourcePattern>();
     private final List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
     private ComponentResolvers componentResolvers;
 
     private final ExternalResourceRepository repository;
-    private final boolean local;
+    final boolean local;
     private final CacheAwareExternalResourceAccessor cachingResourceAccessor;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
@@ -193,7 +193,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         throw new UnsupportedOperationException();
     }
 
-    private void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+    void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
         ModuleIdentifier module = dependency.getSelector().getModuleIdentifier();
 
         tryListingViaRule(module, result);
@@ -266,7 +266,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return Collections.emptySet();
     }
 
-    private ModuleDescriptorArtifactMetadata getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
+    ModuleDescriptorArtifactMetadata getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
         IvyArtifactName ivyArtifactName = metadataArtifactProvider.getMetaDataArtifactName(moduleComponentIdentifier.getModule());
         return new DefaultModuleDescriptorArtifactMetadata(moduleComponentIdentifier, ivyArtifactName);
     }
@@ -525,7 +525,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     private static class NoOpResourceAwareResolveResult implements ResourceAwareResolveResult {
 
-        private static final NoOpResourceAwareResolveResult INSTANCE = new NoOpResourceAwareResolveResult();
+        static final NoOpResourceAwareResolveResult INSTANCE = new NoOpResourceAwareResolveResult();
 
         @Override
         public List<String> getAttempted() {
@@ -553,7 +553,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         private final ModuleIdentifier id;
         private final BuildableModuleVersionListingResolveResult result;
 
-        private DefaultComponentVersionsLister(ModuleIdentifier id, BuildableModuleVersionListingResolveResult result) {
+        DefaultComponentVersionsLister(ModuleIdentifier id, BuildableModuleVersionListingResolveResult result) {
             this.id = id;
             this.result = result;
         }

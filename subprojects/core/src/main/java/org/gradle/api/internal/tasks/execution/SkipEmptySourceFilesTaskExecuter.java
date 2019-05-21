@@ -47,7 +47,7 @@ import java.util.function.Predicate;
 public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskInputsListener taskInputsListener;
-    private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
+    final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private final OutputChangeListener outputChangeListener;
     private final TaskExecuter executer;
     private final ExecutionHistoryStore executionHistoryStore;

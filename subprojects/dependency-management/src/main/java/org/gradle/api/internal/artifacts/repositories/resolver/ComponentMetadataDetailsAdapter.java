@@ -131,7 +131,7 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     private static class VariantNameSpec implements Spec<VariantResolveMetadata> {
         private final String name;
 
-        private VariantNameSpec(String name) {
+        VariantNameSpec(String name) {
             this.name = name;
         }
 

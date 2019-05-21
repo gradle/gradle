@@ -37,8 +37,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class DefaultSslContextFactory implements SslContextFactory {
-    private static final char[] EMPTY_PASSWORD = "".toCharArray();
-    private static final Set<String> SSL_SYSTEM_PROPERTIES = ImmutableSet.of(
+    static final char[] EMPTY_PASSWORD = "".toCharArray();
+    static final Set<String> SSL_SYSTEM_PROPERTIES = ImmutableSet.of(
         "ssl.TrustManagerFactory.algorithm",
         "javax.net.ssl.trustStoreType",
         "javax.net.ssl.trustStore",
@@ -75,9 +75,9 @@ public class DefaultSslContextFactory implements SslContextFactory {
     }
 
     private static class SynchronizedSystemPropertiesCacheLoader extends CacheLoader<Map<String, String>, SSLContext> {
-        private final SslContextCacheLoader delegate;
+        final SslContextCacheLoader delegate;
 
-        private SynchronizedSystemPropertiesCacheLoader(SslContextCacheLoader delegate) {
+        SynchronizedSystemPropertiesCacheLoader(SslContextCacheLoader delegate) {
             this.delegate = delegate;
         }
 
@@ -106,6 +106,9 @@ public class DefaultSslContextFactory implements SslContextFactory {
     }
 
     private static class SslContextCacheLoader extends CacheLoader<Map<String, String>, SSLContext> {
+        SslContextCacheLoader() {
+        }
+
         @Override
         public SSLContext load(Map<String, String> props) {
             // TODO: We should see if we can go back to using HttpClient again.

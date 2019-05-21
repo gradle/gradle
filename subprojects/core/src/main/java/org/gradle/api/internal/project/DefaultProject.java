@@ -151,7 +151,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
-    private final ServiceRegistry services;
+    final ServiceRegistry services;
 
     private final ProjectInternal rootProject;
 
@@ -201,7 +201,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<RuleBasedPluginListener>(RuleBasedPluginListener.class);
 
-    private ExtensibleDynamicObject extensibleDynamicObject;
+    ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
@@ -314,7 +314,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
     }
 
-    private void populateModelRegistry(ModelRegistry modelRegistry) {
+    void populateModelRegistry(ModelRegistry modelRegistry) {
         registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
         // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
         registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, new Factory<File>() {

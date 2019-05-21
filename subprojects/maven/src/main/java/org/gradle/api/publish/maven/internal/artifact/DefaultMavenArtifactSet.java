@@ -33,7 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact> implements MavenArtifactSet, PublicationArtifactSet<MavenArtifact> {
-    private final String publicationName;
+    final String publicationName;
     private final FileCollection files;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 

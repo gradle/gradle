@@ -31,8 +31,8 @@ import java.util.Map;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheRepository implements CacheRepository {
-    private final CacheScopeMapping cacheScopeMapping;
-    private final CacheFactory factory;
+    final CacheScopeMapping cacheScopeMapping;
+    final CacheFactory factory;
 
     public DefaultCacheRepository(CacheScopeMapping cacheScopeMapping, CacheFactory factory) {
         this.cacheScopeMapping = cacheScopeMapping;

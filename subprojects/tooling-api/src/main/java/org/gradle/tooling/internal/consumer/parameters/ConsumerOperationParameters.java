@@ -71,7 +71,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<InternalLaunchable> launchables;
         private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
 
-        private Builder() {
+        Builder() {
         }
 
         public Builder setEntryPoint(String entryPoint) {
@@ -231,29 +231,29 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final String entryPointName;
     private final ProgressListenerAdapter progressListener;
     private final FailsafeBuildProgressListenerAdapter buildProgressListener;
-    private final CancellationToken cancellationToken;
+    final CancellationToken cancellationToken;
     private final ConnectionParameters parameters;
     private final long startTime = System.currentTimeMillis();
 
-    private final OutputStream stdout;
-    private final OutputStream stderr;
-    private final Boolean colorOutput;
-    private final InputStream stdin;
+    final OutputStream stdout;
+    final OutputStream stderr;
+    final Boolean colorOutput;
+    final InputStream stdin;
 
-    private final File javaHome;
-    private final List<String> jvmArguments;
-    private final Map<String, String> envVariables;
-    private final List<String> arguments;
-    private final List<String> tasks;
-    private final List<InternalLaunchable> launchables;
-    private final ClassPath injectedPluginClasspath;
+    final File javaHome;
+    final List<String> jvmArguments;
+    final Map<String, String> envVariables;
+    final List<String> arguments;
+    final List<String> tasks;
+    final List<InternalLaunchable> launchables;
+    final ClassPath injectedPluginClasspath;
 
-    private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners;
-    private final Map<OperationType, List<ProgressListener>> progressListeners;
+    final List<org.gradle.tooling.ProgressListener> legacyProgressListeners;
+    final Map<OperationType, List<ProgressListener>> progressListeners;
 
-    private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments,  Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
-                                        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken) {
+    ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
+                                File javaHome, List<String> jvmArguments, Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
+                                List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
@@ -278,7 +278,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.buildProgressListener = new FailsafeBuildProgressListenerAdapter(new BuildProgressListenerAdapter(this.progressListeners));
     }
 
-    private static void validateJavaHome(File javaHome) {
+    static void validateJavaHome(File javaHome) {
         if (javaHome == null) {
             return;
         }

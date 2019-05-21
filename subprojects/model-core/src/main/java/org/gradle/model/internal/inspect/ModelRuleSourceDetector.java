@@ -25,11 +25,11 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.RuleSource;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -41,7 +41,7 @@ import java.util.concurrent.ExecutionException;
 @ThreadSafe
 public class ModelRuleSourceDetector {
 
-    private static final Comparator<Class<?>> COMPARE_BY_CLASS_NAME = new Comparator<Class<?>>() {
+    static final Comparator<Class<?>> COMPARE_BY_CLASS_NAME = new Comparator<Class<?>>() {
         @Override
         public int compare(Class<?> left, Class<?> right) {
             return left.getName().compareTo(right.getName());
@@ -100,7 +100,7 @@ public class ModelRuleSourceDetector {
         return !Iterables.isEmpty(getDeclaredSources(container));
     }
 
-    private boolean isRuleSource(Class<?> clazz) {
+    boolean isRuleSource(Class<?> clazz) {
         return RuleSource.class.isAssignableFrom(clazz);
     }
 }

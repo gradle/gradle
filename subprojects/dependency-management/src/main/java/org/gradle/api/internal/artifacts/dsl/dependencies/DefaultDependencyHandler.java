@@ -109,7 +109,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         return ConfigureUtil.configure(configureClosure, dependency);
     }
 
-    private Dependency doAdd(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
+    Dependency doAdd(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
             Configuration other = (Configuration) dependencyNotation;
             if (!configurationContainer.contains(other)) {
@@ -270,6 +270,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {
+
+        DirectDependencyAdder() {
+        }
 
         @Override
         public Dependency add(Configuration configuration, Object dependencyNotation, @Nullable Closure configureAction) {

@@ -20,13 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
-import org.gradle.internal.remote.internal.IncomingConnector;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.ConnectCompletion;
+import org.gradle.internal.remote.internal.IncomingConnector;
 
 public class MessageHubBackedServer implements MessagingServer {
     private final IncomingConnector connector;
-    private final ExecutorFactory executorFactory;
+    final ExecutorFactory executorFactory;
 
     public MessageHubBackedServer(IncomingConnector connector, ExecutorFactory executorFactory) {
         this.connector = connector;

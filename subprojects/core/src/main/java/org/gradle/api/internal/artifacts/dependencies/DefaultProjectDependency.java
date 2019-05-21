@@ -38,9 +38,9 @@ import java.util.Collections;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
-    private final ProjectInternal dependencyProject;
-    private final boolean buildProjectDependencies;
-    private final ProjectAccessListener projectAccessListener;
+    final ProjectInternal dependencyProject;
+    final boolean buildProjectDependencies;
+    final ProjectAccessListener projectAccessListener;
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
         this(dependencyProject, null, projectAccessListener, buildProjectDependencies);
@@ -187,6 +187,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     private class TaskDependencyImpl extends AbstractTaskDependency {
+        TaskDependencyImpl() {
+        }
+
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             if (!buildProjectDependencies) {

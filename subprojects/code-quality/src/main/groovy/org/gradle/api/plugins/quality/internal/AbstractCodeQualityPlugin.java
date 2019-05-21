@@ -66,7 +66,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     protected abstract Class<T> getTaskType();
 
-    private Class<? extends Task> getCastedTaskType() {
+    Class<? extends Task> getCastedTaskType() {
         return (Class<? extends Task>) getTaskType();
     }
 
@@ -165,7 +165,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         });
     }
 
-    private void configureForSourceSets(SourceSetContainer sourceSets) {
+    void configureForSourceSets(SourceSetContainer sourceSets) {
         sourceSets.all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
@@ -191,7 +191,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         });
     }
 
-    private void configureCheckTaskDependents() {
+    void configureCheckTaskDependents() {
         final String taskBaseName = getTaskBaseName();
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override

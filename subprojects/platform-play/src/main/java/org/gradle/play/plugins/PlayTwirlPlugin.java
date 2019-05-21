@@ -97,7 +97,7 @@ public class PlayTwirlPlugin extends RuleSource {
         languages.add(new Twirl());
     }
 
-    private static boolean hasTwirlSourceSetsWithJavaImports(PlayApplicationSpec playApplicationSpec) {
+    static boolean hasTwirlSourceSetsWithJavaImports(PlayApplicationSpec playApplicationSpec) {
         return CollectionUtils.any(playApplicationSpec.getSources().withType(TwirlSourceSet.class).values(), new Spec<TwirlSourceSet>() {
             @Override
             public boolean isSatisfiedBy(TwirlSourceSet twirlSourceSet) {
@@ -107,6 +107,9 @@ public class PlayTwirlPlugin extends RuleSource {
     }
 
     private static class Twirl implements LanguageTransform<TwirlSourceSet, ScalaSourceCode> {
+        Twirl() {
+        }
+
         @Override
         public String getLanguageName() {
             return "twirl";

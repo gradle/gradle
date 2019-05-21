@@ -16,8 +16,8 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.resource.ReadableContent;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +46,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         private final ReadableContent delegate;
         private final ResourceOperation uploadOperation;
 
-        private ProgressLoggingReadableContent(ReadableContent delegate, ResourceOperation uploadOperation) {
+        ProgressLoggingReadableContent(ReadableContent delegate, ResourceOperation uploadOperation) {
             this.delegate = delegate;
             this.uploadOperation = uploadOperation;
         }

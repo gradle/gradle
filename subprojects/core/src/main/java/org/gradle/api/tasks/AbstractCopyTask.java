@@ -57,7 +57,7 @@ import java.util.regex.Pattern;
 @NonNullApi
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
-    private final CopySpecInternal rootSpec;
+    final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
 
     protected AbstractCopyTask() {

@@ -203,10 +203,10 @@ class SelectorStateResolverResults {
     }
 
     private static class Registration {
-        private final ResolvableSelectorState selector;
-        private ComponentIdResolveResult result;
+        final ResolvableSelectorState selector;
+        ComponentIdResolveResult result;
 
-        private Registration(ResolvableSelectorState selector, ComponentIdResolveResult result) {
+        Registration(ResolvableSelectorState selector, ComponentIdResolveResult result) {
             this.selector = selector;
             this.result = result;
         }

@@ -43,12 +43,12 @@ import java.util.Map;
  */
 public class BuildScriptBuilder {
 
-    private final BuildInitDsl dsl;
+    final BuildInitDsl dsl;
     private final PathToFileResolver fileResolver;
     private final String fileNameWithoutExtension;
 
-    private final List<String> headerLines = new ArrayList<String>();
-    private final TopLevelBlock block = new TopLevelBlock();
+    final List<String> headerLines = new ArrayList<String>();
+    final TopLevelBlock block = new TopLevelBlock();
 
     public BuildScriptBuilder(BuildInitDsl dsl, PathToFileResolver fileResolver, String fileNameWithoutExtension) {
         this.dsl = dsl;
@@ -64,7 +64,7 @@ public class BuildScriptBuilder {
         return this;
     }
 
-    private static List<String> splitComment(String comment) {
+    static List<String> splitComment(String comment) {
         return Splitter.on("\n").splitToList(comment.trim());
     }
 
@@ -158,7 +158,7 @@ public class BuildScriptBuilder {
         return new ContainerElementExpression(container, element);
     }
 
-    private static List<ExpressionValue> expressionValues(Object... expressions) {
+    static List<ExpressionValue> expressionValues(Object... expressions) {
         List<ExpressionValue> result = new ArrayList<ExpressionValue>(expressions.length);
         for (Object expression : expressions) {
             result.add(expressionValue(expression));
@@ -174,7 +174,7 @@ public class BuildScriptBuilder {
         return result;
     }
 
-    private static ExpressionValue expressionValue(Object expression) {
+    static ExpressionValue expressionValue(Object expression) {
         if (expression instanceof CharSequence) {
             return new StringValue((CharSequence) expression);
         }
@@ -350,11 +350,11 @@ public class BuildScriptBuilder {
         };
     }
 
-    private File getTargetFile() {
+    File getTargetFile() {
         return fileResolver.resolve(dsl.fileNameFor(fileNameWithoutExtension));
     }
 
-    private static Syntax syntaxFor(BuildInitDsl dsl) {
+    static Syntax syntaxFor(BuildInitDsl dsl) {
         switch (dsl) {
             case KOTLIN:
                 return new KotlinSyntax();
@@ -584,7 +584,7 @@ public class BuildScriptBuilder {
         final String taskName;
         final String taskType;
 
-        private TaskSelector(String taskName, String taskType) {
+        TaskSelector(String taskName, String taskType) {
             this.taskName = taskName;
             this.taskType = taskType;
         }
@@ -649,7 +649,7 @@ public class BuildScriptBuilder {
 
         final String conventionName;
 
-        private ConventionSelector(String conventionName) {
+        ConventionSelector(String conventionName) {
             this.conventionName = conventionName;
         }
 
@@ -720,7 +720,7 @@ public class BuildScriptBuilder {
 
         final MethodInvocationExpression invocationExpression;
 
-        private MethodInvocation(String comment, MethodInvocationExpression invocationExpression) {
+        MethodInvocation(String comment, MethodInvocationExpression invocationExpression) {
             super(comment);
             this.invocationExpression = invocationExpression;
         }
@@ -738,7 +738,7 @@ public class BuildScriptBuilder {
         private final String elementName;
         @Nullable
         private final String varName;
-        private final ScriptBlockImpl body = new ScriptBlockImpl();
+        final ScriptBlockImpl body = new ScriptBlockImpl();
 
         public ContainerElement(String comment, String container, String elementName, @Nullable String varName) {
             super(null);
@@ -770,7 +770,7 @@ public class BuildScriptBuilder {
         final String propertyName;
         final ExpressionValue propertyValue;
 
-        private PropertyAssignment(String comment, String propertyName, ExpressionValue propertyValue) {
+        PropertyAssignment(String comment, String propertyName, ExpressionValue propertyValue) {
             super(comment);
             this.propertyName = propertyName;
             this.propertyValue = propertyValue;
@@ -791,6 +791,9 @@ public class BuildScriptBuilder {
 
     private static class StatementSequence implements Statement {
         final ScriptBlockImpl statements = new ScriptBlockImpl();
+
+        StatementSequence() {
+        }
 
         public void add(Statement statement) {
             statements.add(statement);
@@ -884,6 +887,9 @@ public class BuildScriptBuilder {
     private static class DependenciesBlock implements DependenciesBuilder, Statement, BlockBody {
         final ListMultimap<String, Statement> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
+        DependenciesBlock() {
+        }
+
         @Override
         public void dependency(String configuration, @Nullable String comment, String... dependencies) {
             this.dependencies.put(configuration, new DepSpec(configuration, comment, Arrays.asList(dependencies)));
@@ -938,6 +944,9 @@ public class BuildScriptBuilder {
 
     private static class ScriptBlockImpl implements ScriptBlockBuilder, BlockBody {
         final List<Statement> statements = new ArrayList<Statement>();
+
+        ScriptBlockImpl() {
+        }
 
         public void add(Statement statement) {
             statements.add(statement);
@@ -1091,6 +1100,9 @@ public class BuildScriptBuilder {
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<TaskSelector>();
         final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<ConventionSelector>();
 
+        TopLevelBlock() {
+        }
+
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
             printer.printStatement(plugins);
@@ -1147,6 +1159,9 @@ public class BuildScriptBuilder {
     private static class ConfigurationStatements<T extends ConfigSelector> implements Statement {
         final ListMultimap<T, Statement> blocks = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
+        ConfigurationStatements() {
+        }
+
         void add(T selector, Statement statement) {
             blocks.put(selector, statement);
         }
@@ -1179,7 +1194,7 @@ public class BuildScriptBuilder {
 
     private static final class PrettyPrinter {
 
-        private final Syntax syntax;
+        final Syntax syntax;
         private final PrintWriter writer;
         private String indent = "";
         private boolean needSeparatorLine = true;
@@ -1237,7 +1252,7 @@ public class BuildScriptBuilder {
             }
         }
 
-        private void printStatement(Statement statement) {
+        void printStatement(Statement statement) {
             Statement.Type type = statement.type();
             if (type == Statement.Type.Empty) {
                 return;
@@ -1267,7 +1282,7 @@ public class BuildScriptBuilder {
             }
         }
 
-        private void println(String s) {
+        void println(String s) {
             if (!indent.isEmpty()) {
                 writer.print(indent);
             }
@@ -1314,6 +1329,9 @@ public class BuildScriptBuilder {
     }
 
     private static final class KotlinSyntax implements Syntax {
+        KotlinSyntax() {
+        }
+
         @Override
         public String string(String string) {
             return '"' + string + '"';
@@ -1439,6 +1457,9 @@ public class BuildScriptBuilder {
     }
 
     private static final class GroovySyntax implements Syntax {
+        GroovySyntax() {
+        }
+
         @Override
         public String string(String string) {
             return "'" + string + "'";

@@ -29,7 +29,7 @@ import java.util.Set;
 
 public class DuplicateHandlingCopyActionDecorator implements CopyAction {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(DuplicateHandlingCopyActionDecorator.class);
+    final static Logger LOGGER = LoggerFactory.getLogger(DuplicateHandlingCopyActionDecorator.class);
     private final CopyAction delegate;
 
     public DuplicateHandlingCopyActionDecorator(CopyAction delegate) {

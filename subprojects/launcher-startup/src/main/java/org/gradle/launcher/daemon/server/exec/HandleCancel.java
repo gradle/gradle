@@ -24,7 +24,7 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
  * Install a handler for cancel request processed asynchronously while the daemon proceeds to build execution.
  */
 public class HandleCancel implements DaemonCommandAction {
-    private static final Logger LOGGER = Logging.getLogger(HandleCancel.class);
+    static final Logger LOGGER = Logging.getLogger(HandleCancel.class);
 
     @Override
     public void execute(final DaemonCommandExecution execution) {

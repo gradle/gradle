@@ -46,7 +46,7 @@ import java.util.Map;
 
 public final class BuildCacheControllerFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheControllerFactory.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheControllerFactory.class);
 
     public enum BuildCacheMode {
         ENABLED, DISABLED
@@ -129,14 +129,14 @@ public final class BuildCacheControllerFactory {
         });
     }
 
-    private static BuildCacheServicesConfiguration toConfiguration(BuildCache local, BuildCacheService localService, BuildCache remote, BuildCacheService remoteService) {
+    static BuildCacheServicesConfiguration toConfiguration(BuildCache local, BuildCacheService localService, BuildCache remote, BuildCacheService remoteService) {
         boolean remotePush = remote != null && remote.isPush();
         boolean localPush = local != null && local.isPush();
         return new BuildCacheServicesConfiguration(localService, localPush, remoteService, remotePush);
     }
 
 
-    private static <T extends BuildCache> DescribedBuildCacheService createBuildCacheService(final T configuration, BuildCacheServiceRole role, Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, Instantiator instantiator) {
+    static <T extends BuildCache> DescribedBuildCacheService createBuildCacheService(final T configuration, BuildCacheServiceRole role, Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, Instantiator instantiator) {
         Class<? extends BuildCacheServiceFactory<T>> castFactoryType = Cast.uncheckedCast(
             buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
         );
@@ -198,12 +198,12 @@ public final class BuildCacheControllerFactory {
 
     private static final class BuildCacheDescription implements FinalizeBuildCacheConfigurationBuildOperationType.Result.BuildCacheDescription {
 
-        private final String className;
+        final String className;
         private final boolean push;
-        private final String type;
-        private final ImmutableSortedMap<String, String> config;
+        final String type;
+        final ImmutableSortedMap<String, String> config;
 
-        private BuildCacheDescription(BuildCache buildCache, String type, ImmutableSortedMap<String, String> config) {
+        BuildCacheDescription(BuildCache buildCache, String type, ImmutableSortedMap<String, String> config) {
             this.className = GeneratedSubclasses.unpackType(buildCache).getName();
             this.push = buildCache.isPush();
             this.type = type;
@@ -233,8 +233,11 @@ public final class BuildCacheControllerFactory {
 
     private static class Describer implements BuildCacheServiceFactory.Describer {
 
-        private String type;
-        private Map<String, String> configParams = new HashMap<String, String>();
+        String type;
+        Map<String, String> configParams = new HashMap<String, String>();
+
+        Describer() {
+        }
 
         @Override
         public BuildCacheServiceFactory.Describer type(String type) {
@@ -262,10 +265,10 @@ public final class BuildCacheControllerFactory {
 
     private static class DescribedBuildCacheService {
 
-        private final BuildCacheService service;
-        private final BuildCacheDescription description;
+        final BuildCacheService service;
+        final BuildCacheDescription description;
 
-        private DescribedBuildCacheService(BuildCacheService service, BuildCacheDescription description) {
+        DescribedBuildCacheService(BuildCacheService service, BuildCacheDescription description) {
             this.service = service;
             this.description = description;
         }
@@ -274,7 +277,7 @@ public final class BuildCacheControllerFactory {
     private static class DetailsImpl implements FinalizeBuildCacheConfigurationBuildOperationType.Details {
         private final String buildPath;
 
-        private DetailsImpl(String buildPath) {
+        DetailsImpl(String buildPath) {
             this.buildPath = buildPath;
         }
 

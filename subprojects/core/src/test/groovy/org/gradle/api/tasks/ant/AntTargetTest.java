@@ -35,8 +35,8 @@ public class AntTargetTest {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
 
-    private final Target antTarget = new Target();
-    private final File baseDir = testDir.getTestDirectory();
+    final Target antTarget = new Target();
+    final File baseDir = testDir.getTestDirectory();
     private final ProjectInternal project = TestUtil.create(testDir).rootProject();
     private final AntTarget task = TestUtil.createTask(AntTarget.class, project);
 

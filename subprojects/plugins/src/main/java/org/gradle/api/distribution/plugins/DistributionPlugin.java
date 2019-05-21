@@ -100,7 +100,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         distributions.create(MAIN_DISTRIBUTION_NAME);
     }
 
-    private <T extends AbstractArchiveTask> TaskProvider<T> configureArchiveTask(final Project project, String taskName, final Distribution distribution, Class<T> type) {
+    <T extends AbstractArchiveTask> TaskProvider<T> configureArchiveTask(final Project project, String taskName, final Distribution distribution, Class<T> type) {
         final TaskProvider<T> archiveTask = project.getTasks().register(taskName, type, new Action<T>() {
             @Override
             public void execute(T archiveTask) {
@@ -140,7 +140,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         return archiveTask;
     }
 
-    private void addInstallTask(final Project project, final Distribution distribution) {
+    void addInstallTask(final Project project, final Distribution distribution) {
         String taskName = TASK_INSTALL_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
             taskName = "install" + StringUtils.capitalize(distribution.getName()) + "Dist";
@@ -162,7 +162,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void addAssembleTask(Project project, final Distribution distribution, final TaskProvider<?>... tasks) {
+    void addAssembleTask(Project project, final Distribution distribution, final TaskProvider<?>... tasks) {
         String taskName = TASK_ASSEMBLE_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
             taskName = "assemble" + StringUtils.capitalize(distribution.getName()) + "Dist";

@@ -34,7 +34,7 @@ import java.io.IOException;
 public class DefaultOutputFilesRepository implements OutputFilesRepository, Closeable {
 
     private final PersistentCache cacheAccess;
-    private final PersistentIndexedCache<String, Boolean> outputFiles; // The value is true if it is an output file, false if it is a parent of an output file
+    final PersistentIndexedCache<String, Boolean> outputFiles; // The value is true if it is an output file, false if it is a parent of an output file
 
     public DefaultOutputFilesRepository(PersistentCache cacheAccess, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.cacheAccess = cacheAccess;

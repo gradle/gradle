@@ -39,7 +39,7 @@ public abstract class DefaultSourceSet implements SourceSet {
     private FileCollection compileClasspath;
     private FileCollection annotationProcessorPath;
     private FileCollection runtimeClasspath;
-    private final SourceDirectorySet javaSource;
+    final SourceDirectorySet javaSource;
     private final SourceDirectorySet allJavaSource;
     private final SourceDirectorySet resources;
     private final String displayName;

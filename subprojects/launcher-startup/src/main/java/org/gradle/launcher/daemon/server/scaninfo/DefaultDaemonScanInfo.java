@@ -35,7 +35,7 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
     private final long idleTimeout;
     private final boolean singleRun;
     private final DaemonRegistry daemonRegistry;
-    private final ListenerManager listenerManager;
+    final ListenerManager listenerManager;
 
     public DefaultDaemonScanInfo(final DaemonRunningStats stats, final long idleTimeout, boolean singleRun, final DaemonRegistry daemonRegistry, final ListenerManager listenerManager) {
         this.stats = stats;

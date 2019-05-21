@@ -53,9 +53,9 @@ public class IdeaDependenciesProvider {
 
     public static final String SCOPE_PLUS = "plus";
     public static final String SCOPE_MINUS = "minus";
-    private final ModuleDependencyBuilder moduleDependencyBuilder;
+    final ModuleDependencyBuilder moduleDependencyBuilder;
     private final IdeaDependenciesOptimizer optimizer;
-    private final ProjectComponentIdentifier currentProjectId;
+    final ProjectComponentIdentifier currentProjectId;
 
     public IdeaDependenciesProvider(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry) {
         moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
@@ -135,7 +135,7 @@ public class IdeaDependenciesProvider {
         return plusMinusConfigurations != null ? plusMinusConfigurations : Collections.<String, Collection<Configuration>>emptyMap();
     }
 
-    private FilePath toPath(IdeaModule ideaModule, File file) {
+    FilePath toPath(IdeaModule ideaModule, File file) {
         return file != null ? ideaModule.getPathFactory().path(file) : null;
     }
 
@@ -149,7 +149,7 @@ public class IdeaDependenciesProvider {
         private final List<Dependency> fileDependencies = Lists.newLinkedList();
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
 
-        private IdeaDependenciesVisitor(IdeaModule ideaModule, String scope) {
+        IdeaDependenciesVisitor(IdeaModule ideaModule, String scope) {
             this.ideaModule = ideaModule;
             this.scope = scope;
         }

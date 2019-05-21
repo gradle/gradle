@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 public abstract class DefaultNativeComponent {
-    private final ConfigurableFileCollection source;
+    final ConfigurableFileCollection source;
 
     public DefaultNativeComponent(ObjectFactory objectFactory) {
         // TODO - introduce a new 'var' data structure that allows these conventions to be configured explicitly

@@ -79,6 +79,9 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {
+        DoNothingCompatibilityRule() {
+        }
+
         @Override
         public void execute(CompatibilityCheckResult<Object> result) {
         }
@@ -90,6 +93,9 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     private static class DoNothingDisambiguationRule implements DisambiguationRule<Object> {
+        DoNothingDisambiguationRule() {
+        }
+
         @Override
         public void execute(MultipleCandidatesResult<Object> objectMultipleCandidatesResult) {
         }

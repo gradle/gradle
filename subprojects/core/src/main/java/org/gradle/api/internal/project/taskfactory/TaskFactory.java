@@ -30,7 +30,7 @@ import java.util.concurrent.Callable;
 
 public class TaskFactory implements ITaskFactory {
     private final ProjectInternal project;
-    private final InstantiationScheme instantiationScheme;
+    final InstantiationScheme instantiationScheme;
 
     public TaskFactory() {
         this(null, null);

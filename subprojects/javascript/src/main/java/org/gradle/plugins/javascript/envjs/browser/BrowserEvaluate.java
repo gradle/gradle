@@ -37,7 +37,7 @@ import java.util.concurrent.Callable;
 
 public class BrowserEvaluate extends DefaultTask {
 
-    private Object content;
+    Object content;
     private Object resource;
     private BrowserEvaluator evaluator;
     private Object result;

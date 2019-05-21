@@ -68,6 +68,9 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     }
 
     private static class HelpAction implements Action<Help> {
+        HelpAction() {
+        }
+
         @Override
         public void execute(Help task) {
             task.setDescription("Displays a help message.");

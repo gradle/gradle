@@ -41,13 +41,13 @@ import java.util.concurrent.Callable;
  */
 public class War extends Jar {
     public static final String WAR_EXTENSION = "war";
-    private static final Spec<File> IS_DIRECTORY = new Spec<File>() {
+    static final Spec<File> IS_DIRECTORY = new Spec<File>() {
         @Override
         public boolean isSatisfiedBy(File element) {
             return element.isDirectory();
         }
     };
-    private static final Spec<File> IS_FILE = new Spec<File>() {
+    static final Spec<File> IS_FILE = new Spec<File>() {
         @Override
         public boolean isSatisfiedBy(File element) {
             return element.isFile();

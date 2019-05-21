@@ -67,7 +67,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
     public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
-    private final ObjectFactory objectFactory;
+    final ObjectFactory objectFactory;
 
     @Inject
     public ScalaBasePlugin(ObjectFactory objectFactory) {
@@ -150,7 +150,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage) {
+    static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage) {
         Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
         final ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
 

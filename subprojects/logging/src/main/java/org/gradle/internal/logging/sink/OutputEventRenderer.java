@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -53,6 +52,7 @@ import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -69,14 +69,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final OutputEventTransformer transformer = new OutputEventTransformer(formatters.getSource());
 
     private ColorMap colourMap;
-    private OutputStream originalStdOut;
-    private OutputStream originalStdErr;
+    OutputStream originalStdOut;
+    OutputStream originalStdErr;
     private OutputEventListener stdOutListener;
     private OutputEventListener stdErrListener;
     private OutputEventListener console;
     private OutputEventListener userListenerChain;
-    private ListenerBroadcast<StandardOutputListener> userStdoutListeners;
-    private ListenerBroadcast<StandardOutputListener> userStderrListeners;
+    ListenerBroadcast<StandardOutputListener> userStdoutListeners;
+    ListenerBroadcast<StandardOutputListener> userStderrListeners;
 
     public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
@@ -320,11 +320,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         return this;
     }
 
-    private OutputEventListener onError(final OutputEventListener listener) {
+    OutputEventListener onError(final OutputEventListener listener) {
         return new LogEventDispatcher(null, listener);
     }
 
-    private OutputEventListener onNonError(final OutputEventListener listener) {
+    OutputEventListener onNonError(final OutputEventListener listener) {
         return new LogEventDispatcher(listener, null);
     }
 
@@ -437,8 +437,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     private static class SnapshotImpl implements Snapshot {
-        private final LogLevel logLevel;
-        private final OutputEventListener console;
+        final LogLevel logLevel;
+        final OutputEventListener console;
 
         SnapshotImpl(LogLevel logLevel, OutputEventListener console) {
             this.logLevel = logLevel;
@@ -451,7 +451,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         private OutputEventListener delegate;
         private LogLevelChangeEvent pendingLogLevel;
 
-        private LazyListener(Factory<OutputEventListener> factory) {
+        LazyListener(Factory<OutputEventListener> factory) {
             this.factory = factory;
         }
 

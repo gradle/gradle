@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.cache.AsyncCacheAccess;
@@ -43,6 +42,7 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,7 +65,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     };
 
-    private final String cacheDisplayName;
+    final String cacheDisplayName;
     private final File baseDir;
     private final CacheCleanupAction cleanupAction;
     private final ExecutorFactory executorFactory;
@@ -321,7 +321,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     /**
      * Called just after the file lock has been acquired.
      */
-    private void afterLockAcquire(FileLock fileLock) {
+    void afterLockAcquire(FileLock fileLock) {
         assert this.fileLock == null;
         this.fileLock = fileLock;
         this.stateAtOpen = fileLock.getState();
@@ -338,7 +338,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     /**
      * Called just before the file lock is about to be released.
      */
-    private void beforeLockRelease(FileLock fileLock) {
+    void beforeLockRelease(FileLock fileLock) {
         assert this.fileLock == fileLock;
         try {
             cacheClosedCount++;
@@ -383,7 +383,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return true;
     }
 
-    private FileLock getFileLock() {
+    FileLock getFileLock() {
         stateLock.lock();
         try {
             if (Thread.currentThread() != owner) {
@@ -396,6 +396,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     private class UnitOfWorkFileAccess extends AbstractFileAccess {
+        UnitOfWorkFileAccess() {
+        }
+
         @Override
         public String toString() {
             return cacheDisplayName;

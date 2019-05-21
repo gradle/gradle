@@ -73,17 +73,17 @@ import java.util.stream.Collectors;
  * and then store the result in the dependency resolution cache.
  */
 public class CachingModuleComponentRepository implements ModuleComponentRepository {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleComponentRepository.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleComponentRepository.class);
 
-    private final ModuleVersionsCache moduleVersionsCache;
-    private final ModuleMetadataCache moduleMetadataCache;
-    private final ModuleArtifactsCache moduleArtifactsCache;
-    private final ModuleArtifactCache moduleArtifactCache;
+    final ModuleVersionsCache moduleVersionsCache;
+    final ModuleMetadataCache moduleMetadataCache;
+    final ModuleArtifactsCache moduleArtifactsCache;
+    final ModuleArtifactCache moduleArtifactCache;
 
-    private final ModuleComponentRepository delegate;
-    private final CachePolicy cachePolicy;
-    private final BuildCommencedTimeProvider timeProvider;
-    private final ComponentMetadataProcessor metadataProcessor;
+    final ModuleComponentRepository delegate;
+    final CachePolicy cachePolicy;
+    final BuildCommencedTimeProvider timeProvider;
+    final ComponentMetadataProcessor metadataProcessor;
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
@@ -135,11 +135,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.getComponentMetadataSupplier();
     }
 
-    private ModuleIdentifier getCacheKey(ModuleComponentSelector requested) {
+    ModuleIdentifier getCacheKey(ModuleComponentSelector requested) {
         return requested.getModuleIdentifier();
     }
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
+        LocateInCacheRepositoryAccess() {
+        }
+
         @Override
         public String toString() {
             return "cache lookup for " + delegate.toString();
@@ -348,6 +351,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
+        ResolveAndCacheRepositoryAccess() {
+        }
+
         @Override
         public String toString() {
             return "cache > " + delegate.getRemoteAccess().toString();
@@ -435,11 +441,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
-    private String cacheKey(ArtifactType artifactType) {
+    String cacheKey(ArtifactType artifactType) {
         return "artifacts:" + artifactType.name();
     }
 
-    private ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactIdentifier id) {
+    ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactIdentifier id) {
         return new ArtifactAtRepositoryKey(delegate.getId(), id);
     }
 

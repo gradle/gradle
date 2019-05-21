@@ -54,7 +54,7 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         return new AnalyzeAction(getOrAppendNode(getXml(), "AnalyzeAction"));
     }
 
-    private static Node getOrAppendNode(Node xml, String name) {
+    static Node getOrAppendNode(Node xml, String name) {
         NodeList nodes = (NodeList) xml.get(name);
         if (nodes.isEmpty()) {
             return xml.appendNode(name);
@@ -81,7 +81,8 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
 
     private static final String YES = "YES";
     private static final String NO = "NO";
-    private static String toYesNo(boolean value) {
+
+    static String toYesNo(boolean value) {
         if (value) {
             return YES;
         }

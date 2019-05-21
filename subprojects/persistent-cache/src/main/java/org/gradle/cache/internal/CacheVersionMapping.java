@@ -36,7 +36,7 @@ public class CacheVersionMapping {
 
     private final NavigableMap<GradleVersion, CacheVersion> versions;
 
-    private CacheVersionMapping(NavigableMap<GradleVersion, CacheVersion> versions) {
+    CacheVersionMapping(NavigableMap<GradleVersion, CacheVersion> versions) {
         Preconditions.checkArgument(!versions.isEmpty(), "versions must not be empty");
         this.versions = Maps.newTreeMap(versions);
     }
@@ -58,7 +58,7 @@ public class CacheVersionMapping {
 
         private final NavigableMap<GradleVersion, Integer> versions = Maps.newTreeMap();
 
-        private Builder() {
+        Builder() {
         }
 
         public Builder incrementedIn(String minGradleVersion) {

@@ -25,11 +25,16 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultArtifactPom implements ArtifactPom {
     private static final Set<String> PACKAGING_TYPES = Sets.newHashSet("war", "jar", "ear");
-    private final MavenPom pom;
+    final MavenPom pom;
     private final Map<ArtifactKey, PublishArtifact> artifacts = new HashMap<ArtifactKey, PublishArtifact>();
 
     private PublishArtifact artifact;
@@ -99,7 +104,7 @@ public class DefaultArtifactPom implements ArtifactPom {
         artifacts.put(new ArtifactKey(artifact), artifact);
     }
 
-    private String getClassifier(Artifact artifact) {
+    String getClassifier(Artifact artifact) {
         return artifact.getExtraAttribute("classifier");
     }
 
@@ -131,7 +136,7 @@ public class DefaultArtifactPom implements ArtifactPom {
         private final String type;
         private final String classifier;
 
-        private ArtifactKey(PublishArtifact artifact) {
+        ArtifactKey(PublishArtifact artifact) {
             this.type = artifact.getType();
             this.classifier = artifact.getClassifier();
         }
@@ -174,7 +179,7 @@ public class DefaultArtifactPom implements ArtifactPom {
     private class MavenArtifact extends AbstractMavenArtifact {
         private final Artifact artifact;
 
-        private MavenArtifact(Artifact artifact, File file) {
+        MavenArtifact(Artifact artifact, File file) {
             super(file);
             this.artifact = artifact;
         }

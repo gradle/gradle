@@ -24,10 +24,10 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.reporting.HtmlReportBuilder;
@@ -42,7 +42,7 @@ import java.util.List;
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 
 public class DefaultTestReport implements TestReporter {
-    private final BuildOperationExecutor buildOperationExecutor;
+    final BuildOperationExecutor buildOperationExecutor;
     private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
 
     public DefaultTestReport(BuildOperationExecutor buildOperationExecutor) {

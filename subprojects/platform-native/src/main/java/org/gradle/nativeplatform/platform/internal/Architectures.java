@@ -53,7 +53,7 @@ public class Architectures {
     }
 
     public static class KnownArchitecture {
-        private final String canonicalName;
+        final String canonicalName;
         private final List<String> aliases;
 
         public KnownArchitecture(String canonicalName, String... aliases) {

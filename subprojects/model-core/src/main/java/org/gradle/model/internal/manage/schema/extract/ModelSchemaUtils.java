@@ -90,7 +90,7 @@ public class ModelSchemaUtils {
         return new CandidateMethods(candidatesBuilder.build());
     }
 
-    private static boolean isIgnoredMethod(Method method) {
+    static boolean isIgnoredMethod(Method method) {
         int modifiers = method.getModifiers();
         if (method.isSynthetic() || Modifier.isStatic(modifiers)) {
             return true;

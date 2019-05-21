@@ -149,7 +149,7 @@ public class ExtensionsStorage {
         private final TypeOf<T> publicType;
         protected final T extension;
 
-        private ExtensionHolder(String name, TypeOf<T> publicType, T extension) {
+        ExtensionHolder(String name, TypeOf<T> publicType, T extension) {
             this.name = name;
             this.publicType = publicType;
             this.extension = extension;

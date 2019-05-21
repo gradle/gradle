@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
 public class DefaultPluginRegistry implements PluginRegistry {
     private final PluginRegistry parent;
     private final PluginInspector pluginInspector;
-    private final ClassLoaderScope classLoaderScope;
+    final ClassLoaderScope classLoaderScope;
 
     private final LoadingCache<Class<?>, PluginImplementation<?>> classMappings;
     private final LoadingCache<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> idMappings;
@@ -130,7 +130,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
     }
 
     @Nullable
-    private PluginImplementation<?> lookup(PluginId pluginId, ClassLoader classLoader) {
+    PluginImplementation<?> lookup(PluginId pluginId, ClassLoader classLoader) {
         // Don't go up the parent chain.
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
 

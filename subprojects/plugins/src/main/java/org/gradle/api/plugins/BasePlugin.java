@@ -58,9 +58,9 @@ public class BasePlugin implements Plugin<Project> {
     public static final String UPLOAD_ARCHIVES_TASK_NAME = "uploadArchives";
     public static final String UPLOAD_GROUP = "upload";
 
-    private final ProjectPublicationRegistry publicationRegistry;
+    final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurationActionContainer configurationActionContainer;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     @Inject
     public BasePlugin(ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {

@@ -224,8 +224,8 @@ public class MSBuildExecutor {
     }
 
     private static class ExecutionOutput {
-        private final File stdout;
-        private final File stderr;
+        final File stdout;
+        final File stderr;
 
         public ExecutionOutput(File stdout, File stderr) {
             this.stdout = stdout;

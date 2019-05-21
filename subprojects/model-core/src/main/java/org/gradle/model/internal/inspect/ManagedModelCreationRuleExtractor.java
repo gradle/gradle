@@ -18,7 +18,16 @@ package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.ModelTypeInitializationException;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -34,7 +43,7 @@ import java.util.Map;
 import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
-    private static final ModelType<NodeInitializerRegistry> NODE_INITIALIZER_REGISTRY = ModelType.of(NodeInitializerRegistry.class);
+    static final ModelType<NodeInitializerRegistry> NODE_INITIALIZER_REGISTRY = ModelType.of(NodeInitializerRegistry.class);
 
     private final ModelSchemaStore schemaStore;
 
@@ -66,7 +75,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         return new ExtractedManagedCreationRule<R, S>(modelPath, ruleDefinition, modelSchema);
     }
 
-    private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
+    static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
         try {
             return nodeInitializerRegistry.getNodeInitializer(forType(modelSchema.getType()));
         } catch (ModelTypeInitializationException e) {
@@ -83,7 +92,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     }
 
     private static class ExtractedManagedCreationRule<R, S> extends ExtractedCreationRule<R, S> {
-        private final ModelSchema<S> modelSchema;
+        final ModelSchema<S> modelSchema;
 
         public ExtractedManagedCreationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition, ModelSchema<S> modelSchema) {
             super(modelPath, ruleDefinition);

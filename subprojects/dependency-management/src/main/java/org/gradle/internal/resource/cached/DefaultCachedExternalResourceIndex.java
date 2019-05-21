@@ -57,6 +57,9 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
     }
 
     private static class CachedExternalResourceSerializer implements Serializer<CachedExternalResource> {
+        CachedExternalResourceSerializer() {
+        }
+
         @Override
         public CachedExternalResource read(Decoder decoder) throws Exception {
             File cachedFile = null;

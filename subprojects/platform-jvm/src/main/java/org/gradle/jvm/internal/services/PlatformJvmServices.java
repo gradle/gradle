@@ -56,6 +56,9 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     }
 
     private class BuildScopeServices {
+        BuildScopeServices() {
+        }
+
         LocalLibraryDependencyResolverFactory createResolverProviderFactory(ProjectModelResolver projectModelResolver, ModelSchemaStore schemaStore, List<VariantAxisCompatibilityFactory> factories) {
             return new LocalLibraryDependencyResolverFactory(projectModelResolver, schemaStore, factories);
         }

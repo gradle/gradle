@@ -69,9 +69,9 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
         class Updater implements Runnable {
             private final UpdateAction<T> updateAction;
 
-            private T result;
+            T result;
 
-            private Updater(UpdateAction<T> updateAction) {
+            Updater(UpdateAction<T> updateAction) {
                 this.updateAction = updateAction;
             }
 
@@ -93,9 +93,9 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
         class MaybeUpdater implements Runnable {
             private final UpdateAction<T> updateAction;
 
-            private T result;
+            T result;
 
-            private MaybeUpdater(UpdateAction<T> updateAction) {
+            MaybeUpdater(UpdateAction<T> updateAction) {
                 this.updateAction = updateAction;
             }
 
@@ -116,7 +116,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
         return maybeUpdater.result;
     }
 
-    private void serialize(T newValue) {
+    void serialize(T newValue) {
         try {
             if (!cacheFile.isFile()) {
                 cacheFile.createNewFile();
@@ -134,7 +134,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
         }
     }
 
-    private T deserialize() {
+    T deserialize() {
         if (!cacheFile.isFile()) {
             return null;
         }

@@ -84,7 +84,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         }, experiment, results, projectDir);
     }
 
-    private void executeWithFileLogging(MavenBuildExperimentSpec experiment, ExecAction mavenInvocation) {
+    void executeWithFileLogging(MavenBuildExperimentSpec experiment, ExecAction mavenInvocation) {
         File log = new File(experiment.getWorkingDirectory(), "log.txt");
         OutputStream out = null;
         try {
@@ -113,7 +113,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         return super.createInvocationCustomizer(info);
     }
 
-    private ExecAction createMavenInvocation(MavenInvocationSpec buildSpec, List<String> tasks) {
+    ExecAction createMavenInvocation(MavenInvocationSpec buildSpec, List<String> tasks) {
         ExecAction execAction = execActionFactory.newExecAction();
         execAction.setWorkingDir(buildSpec.getWorkingDirectory());
         execAction.executable(buildSpec.getInstallation().getMvn());

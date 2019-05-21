@@ -82,7 +82,7 @@ public class NodeInitializerContext<T> {
         private final boolean declaredAsHavingUnmanagedType;
         private final ModelType<?> declaringType;
 
-        private PropertyContext(String name, ModelType<?> type, boolean writable, boolean declaredAsHavingUnmanagedType, ModelType<?> declaringType) {
+        PropertyContext(String name, ModelType<?> type, boolean writable, boolean declaredAsHavingUnmanagedType, ModelType<?> declaringType) {
             this.name = name;
             this.type = type;
             this.writable = writable;
