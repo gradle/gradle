@@ -28,8 +28,8 @@ import org.gradle.api.Incubating;
  *     See the <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#table:incremental_build_annotations">table of incremental build property type annotations</a> for all annotations which can be used.
  *     Example:
  * </p>
- * <pre>
- * interface MyParameters extends TransformParameters {
+ * <pre class='autoTested'>
+ * public interface MyParameters extends TransformParameters {
  *     {@literal @}Input
  *     Property&lt;String&gt; getStringParameter();
  *     {@literal @}InputFiles

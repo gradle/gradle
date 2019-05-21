@@ -37,19 +37,21 @@ import java.lang.annotation.Target;
  * </p>
  *
  * <p>Example usage:</p>
- * <pre>
- * abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+ * <pre class='autoTested'>
+ * import org.gradle.api.artifacts.transform.TransformParameters;
+ *
+ * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
  *
  *     {@literal @}InputArtifact
- *     abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+ *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
  *
  *     {@literal @}InputArtifactDependencies
- *     abstract FileCollection getDependencies();
+ *     public abstract FileCollection getDependencies();
  *
  *     {@literal @}Override
- *     void transform(TransformOutputs outputs) {
+ *     public void transform(TransformOutputs outputs) {
  *         FileCollection dependencies = getDependencies();
- *         ... // Do something with the dependencies
+ *         // Do something with the dependencies
  *     }
  * }
  * </pre>

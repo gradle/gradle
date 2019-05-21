@@ -41,10 +41,18 @@ public interface TransformOutputs {
      *     The path is required to point to the {@link InputArtifact}, or point inside the input artifact if it is a directory.
      *     Example:
      * </p>
-     * <pre>
-     * Provider&lt;FileSystemLocation&gt; inputArtifact = ...
-     * outputs.dir(inputArtifact.get().getAsFile());
-     * outputs.dir(new File(inputArtifact.get().getAsFile(), "sub-dir"));
+     * <pre class='autoTested'>
+     * import org.gradle.api.artifacts.transform.TransformParameters;
+     *
+     * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+     *     {@literal @}InputArtifact
+     *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+     *     {@literal @}Override
+     *     public void transform(TransformOutputs outputs) {
+     *         outputs.dir(getInputArtifact().get().getAsFile());
+     *         outputs.dir(new File(getInputArtifact().get().getAsFile(), "sub-dir"));
+     *     }
+     * }
      * </pre>
      *
      * <p>
@@ -52,9 +60,16 @@ public interface TransformOutputs {
      *     The directory is created automatically when calling the method.
      *     Example:
      * </p>
-     * <pre>
-     * File myOutput = outputs.dir("my-output");
-     * Files.write(myOutput.toPath().resolve("file.txt"), "Generated text");
+     * <pre class='autoTested'>
+     * import org.gradle.api.artifacts.transform.TransformParameters;
+     *
+     * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+     *     {@literal @}Override
+     *     public void transform(TransformOutputs outputs) {
+     *         File myOutput = outputs.dir("my-output");
+     *         Files.write(myOutput.toPath().resolve("file.txt"), "Generated text");
+     *     }
+     * }
      * </pre>
      *
      * <p>
@@ -74,13 +89,21 @@ public interface TransformOutputs {
      *     The path is required to point to the {@link InputArtifact} or be inside it if the input artifact is a directory.
      *     Example:
      * </p>
-     * <pre>
-     * Provider&lt;FileSystemLocation&gt; inputArtifact = ...
-     * File input = inputArtifact.get().getAsFile();
-     * if (input.isFile()) {
-     *     outputs.file(input);
-     * } else {
-     *     outputs.file(new File(input, "file-in-input-artifact.txt"));
+     * <pre class='autoTested'>
+     * import org.gradle.api.artifacts.transform.TransformParameters;
+     *
+     * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+     *     {@literal @}InputArtifact
+     *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+     *     {@literal @}Override
+     *     public void transform(TransformOutputs outputs) {
+     *         File input = getInputArtifact().get().getAsFile();
+     *         if (input.isFile()) {
+     *             outputs.file(input);
+     *         } else {
+     *             outputs.file(new File(input, "file-in-input-artifact.txt"));
+     *         }
+     *     }
      * }
      * </pre>
      *
@@ -89,9 +112,18 @@ public interface TransformOutputs {
      *     The parent directory of the provided location is created automatically when calling the method.
      *     Example:
      * </p>
-     * <pre>
-     * File myOutput = outputs.file("my-output.transformed");
-     * Files.write(myOutput.toPath(), "Generated text");
+     * <pre class='autoTested'>
+     * import org.gradle.api.artifacts.transform.TransformParameters;
+     *
+     * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+     *     {@literal @}InputArtifact
+     *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+     *     {@literal @}Override
+     *     public void transform(TransformOutputs outputs) {
+     *         File myOutput = outputs.file("my-output.transformed");
+     *         Files.write(myOutput.toPath(), "Generated text");
+     *     }
+     * }
      * </pre>
      *
      * <p>The registered file needs to exist when the {@link TransformAction#transform(TransformOutputs)} method finishes.</p>

@@ -30,11 +30,11 @@ import javax.inject.Inject;
  * </p>
  *
  * <pre class='autoTested'>
- * import org.gradle.api.artifacts.transform.TransformParameters
+ * import org.gradle.api.artifacts.transform.TransformParameters;
  *
  * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
  *     {@literal @}InputArtifact
- *     abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+ *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
  *
  *     {@literal @}Override
  *     public void transform(TransformOutputs outputs) {

@@ -32,20 +32,22 @@ import java.lang.annotation.Target;
  *     Normalization must be specified for each file parameter of a cacheable transform.
  *     For example:
  * </p>
- * <pre>
+ * <pre class='autoTested'>
+ * import org.gradle.api.artifacts.transform.TransformParameters;
+ *
  * {@literal @}CacheableTransform
- * abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
- *     {@literal @}PathSensitivity(NAME_ONLY)
+ * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+ *     {@literal @}PathSensitive(PathSensitivity.NAME_ONLY)
  *     {@literal @}InputArtifact
- *     abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+ *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
  *
  *     {@literal @}Classpath
  *     {@literal @}InputArtifactDependencies
- *     abstract FileCollection getDependencies();
+ *     public abstract FileCollection getDependencies();
  *
  *     {@literal @}Override
- *     void transform(TransformOutputs outputs) {
- *         ...
+ *     public void transform(TransformOutputs outputs) {
+ *         // ...
  *     }
  * }
  * </pre>
