@@ -75,13 +75,13 @@ class DefaultInstantExecution(
         host.newStateSerializer()
     }
 
-    override fun canExecuteInstantaneously(): Boolean {
-        return if (!isInstantExecutionEnabled) {
-            false
-        } else if (!instantExecutionStateFile.isFile) {
+    override fun canExecuteInstantaneously(): Boolean = when {
+        !isInstantExecutionEnabled -> false
+        !instantExecutionStateFile.isFile -> {
             logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
             false
-        } else {
+        }
+        else -> {
             logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
             true
         }
