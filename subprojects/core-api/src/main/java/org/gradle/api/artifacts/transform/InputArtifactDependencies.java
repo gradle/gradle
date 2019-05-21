@@ -32,8 +32,8 @@ import java.lang.annotation.Target;
  * <p>
  *     The order of the files match that of the dependencies in the source artifact view.
  *     The type of the injected dependencies is {@link org.gradle.api.file.FileCollection}.
- *     For example, when a project depends on the guava jar, when the project is transformed (i.e. the project is the input artifact),
- *     the input artifact dependencies is the file collection containing only the guava jar.
+ *     For example, when a project depends on {@code spring-web}, when the project is transformed (i.e. the project is the input artifact),
+ *     the input artifact dependencies are the file collection containing the {@code spring-web} JAR and all its dependencies like e.g. the {@code spring-core} JAR.
  * </p>
  *
  * <p>Example usage:</p>

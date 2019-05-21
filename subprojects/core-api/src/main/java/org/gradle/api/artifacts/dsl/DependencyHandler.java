@@ -458,7 +458,7 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * <p>Example: When you have a transform action like this:</p>
      *
-     * <pre>
+     * <pre class='autoTested'>
      * abstract class MyTransform implements TransformAction&lt;Parameters&gt; {
      *     interface Parameters extends TransformParameters {
      *         {@literal @}Input
@@ -467,14 +467,16 @@ public interface DependencyHandler extends ExtensionAware {
      *         ConfigurableFileCollection getInputFiles();
      *     }
      *
-     *     ...
+     *     void transform(TransformOutputs outputs) {
+     *         // ...
+     *     }
      * }
-     * </pre>
      *
-     * Then you can register the action like this:
+     * // Then you can register the action like this:
      *
-     * <pre>
-     * registerTransform(MyTransform) {
+     * def artifactType = Attribute.of('artifactType', String)
+     *
+     * dependencies.registerTransform(MyTransform) {
      *     from.attribute(artifactType, "jar")
      *     to.attribute(artifactType, "java-classes-directory")
      *

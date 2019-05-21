@@ -26,11 +26,12 @@ import javax.inject.Inject;
  *
  * <p>
  *     A transform action implementation is an abstract class implementing the {@link #transform(TransformOutputs)} method.
- *     The abstract methods will be created by Gradle when possible.
  *     A minimal implementation may look like this:
  * </p>
  *
- * <pre>
+ * <pre class='autoTested'>
+ * import org.gradle.api.artifacts.transform.TransformParameters
+ *
  * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
  *     {@literal @}InputArtifact
  *     abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
@@ -46,7 +47,7 @@ import javax.inject.Inject;
  *
  * <ul>
  *     <li>Do not implement {@link #getParameters()} in your class, the method will be implemented by Gradle.</li>
- *     <li>Implementations must provide a public constructor.</li>
+ *     <li>Implementations may only have a default constructor.</li>
  *     <li>Implementations can receive parameters by using annotated abstract getter methods.</li>
  *     <li>A property annotated with {@link InputArtifact} will receive the <em>input artifact</em> location, which is the file or directory that the transform should be applied to.</li>
  *     <li>A property annotated with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its input artifact.</li>
@@ -72,7 +73,7 @@ public interface TransformAction<T extends TransformParameters> {
     /**
      * Executes the transform.
      *
-     * <p>This method must be overwritten in the subclass.</p>
+     * <p>This method must be implemented in the subclass.</p>
      *
      * @param outputs Receives the outputs of the transform.
      */
