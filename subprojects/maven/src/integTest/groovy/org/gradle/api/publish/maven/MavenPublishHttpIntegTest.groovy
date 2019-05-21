@@ -235,9 +235,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         module.rootMetaData.expectGet()
-//        module.rootMetaData.sha1.expectGet()
-//        module.rootMetaData.expectGet()
-//        module.rootMetaData.sha1.expectGet()
         module.rootMetaData.expectPublish()
 
         and:
