@@ -54,6 +54,9 @@ class DefaultInstantExecution(
 ) : InstantExecution {
 
     interface Host {
+
+        val isSkipLoadingState: Boolean
+
         val currentBuild: ClassicModeBuild
 
         fun createBuild(rootProjectName: String): InstantExecutionBuild
@@ -80,6 +83,10 @@ class DefaultInstantExecution(
 
     override fun canExecuteInstantaneously(): Boolean = when {
         !isInstantExecutionEnabled -> false
+        host.isSkipLoadingState -> {
+            logger.lifecycle("Calculating task graph as skipping instant execution cache was requested")
+            false
+        }
         !instantExecutionStateFile.isFile -> {
             logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
             false

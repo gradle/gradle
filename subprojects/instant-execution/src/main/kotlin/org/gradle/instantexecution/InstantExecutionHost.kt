@@ -58,14 +58,10 @@ import java.io.File
 
 
 class InstantExecutionHost internal constructor(
-    private val gradle: GradleInternal
+    private val gradle: GradleInternal,
+    private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
+    private val projectFactory: IProjectFactory
 ) : DefaultInstantExecution.Host {
-
-    private
-    val classLoaderScopeRegistry = service<ClassLoaderScopeRegistry>()
-
-    private
-    val projectFactory = service<IProjectFactory>()
 
     private
     val startParameter = gradle.startParameter
@@ -83,11 +79,14 @@ class InstantExecutionHost internal constructor(
         )
     }
 
+    override val isSkipLoadingState: Boolean
+        get() = gradle.startParameter.isRefreshDependencies
+
     override val currentBuild: ClassicModeBuild =
         DefaultClassicModeBuild()
 
     override fun createBuild(rootProjectName: String): InstantExecutionBuild =
-        DefaultInstantExecutionBuild(rootProjectName)
+        DefaultInstantExecutionBuild(service(), rootProjectName)
 
     override fun newStateSerializer(): StateSerializer =
         serialization.newSerializer()
@@ -124,7 +123,10 @@ class InstantExecutionHost internal constructor(
             gradle.taskGraph.getDependencies(task)
     }
 
-    inner class DefaultInstantExecutionBuild(rootProjectName: String) : InstantExecutionBuild {
+    inner class DefaultInstantExecutionBuild(
+        private val fileResolver: PathToFileResolver,
+        rootProjectName: String
+    ) : InstantExecutionBuild {
 
         init {
             gradle.run {
@@ -161,7 +163,7 @@ class InstantExecutionHost internal constructor(
                 name,
                 rootDir,
                 projectDescriptorRegistry,
-                service<PathToFileResolver>()
+                fileResolver
             )
             return projectFactory.createProject(
                 projectDescriptor,
@@ -251,22 +253,25 @@ class InstantExecutionHost internal constructor(
         }
 
         private
-        fun createSettings(): SettingsInternal {
-            val settingsSource = StringScriptSource("settings", "")
-            val classLoaderScopeRegistry = service<ClassLoaderScopeRegistry>()
-            return service<Instantiator>().newInstance(
-                DefaultSettings::class.java,
-                service<BuildScopeServiceRegistryFactory>(),
-                gradle,
-                classLoaderScopeRegistry.coreScope,
-                classLoaderScopeRegistry.coreScope,
-                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScopeRegistry.coreScope),
-                rootDir,
-                settingsSource,
-                startParameter
-            )
-        }
+        fun createSettings(): SettingsInternal =
+            StringScriptSource("settings", "").let { settingsSource ->
+                service<Instantiator>().newInstance(
+                    DefaultSettings::class.java,
+                    service<BuildScopeServiceRegistryFactory>(),
+                    gradle,
+                    coreScope,
+                    coreScope,
+                    service<ScriptHandlerFactory>().create(settingsSource, coreScope),
+                    rootDir,
+                    settingsSource,
+                    startParameter
+                )
+            }
     }
+
+    private
+    val coreScope: ClassLoaderScope
+        get() = classLoaderScopeRegistry.coreScope
 
     private
     fun getProject(parentPath: Path?) =

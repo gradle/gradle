@@ -19,13 +19,12 @@ package org.gradle.internal.fingerprint.classpath.impl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.JarHasher;
+import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.internal.Factory;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
@@ -53,7 +52,7 @@ import static org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprin
  * Fingerprints classpath-like {@link org.gradle.api.file.FileCollection}s.
  *
  * <p>
- * This strategy uses a {@link ResourceHasher} to normalize the contents of files and a {@link ResourceFilter} to ignore resources in classpath entries. {@code .jar} files are treated as if the contents would be expanded on disk.
+ * This strategy uses a {@link ResourceHasher} to normalize the contents of files and a {@link ResourceFilter} to ignore resources in classpath entries. Zip files are treated as if the contents would be expanded on disk.
  * </p>
  *
  * <p>
@@ -63,25 +62,25 @@ import static org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprin
  */
 public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
-    private final NonJarFingerprintingStrategy nonJarFingerprintingStrategy;
+    private final NonJarFingerprintingStrategy nonZipFingerprintingStrategy;
     private final ResourceFilter classpathResourceFilter;
     private final ResourceSnapshotterCacheService cacheService;
     private final ResourceHasher classpathResourceHasher;
-    private final JarHasher jarHasher;
+    private final ZipHasher zipHasher;
     private final StringInterner stringInterner;
-    private final HashCode jarHasherConfigurationHash;
+    private final HashCode zipHasherConfigurationHash;
 
-    private ClasspathFingerprintingStrategy(String identifier, NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+    private ClasspathFingerprintingStrategy(String identifier, NonJarFingerprintingStrategy nonZipFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
         super(identifier, ClasspathCompareStrategy.INSTANCE);
-        this.nonJarFingerprintingStrategy = nonJarFingerprintingStrategy;
+        this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
         this.classpathResourceFilter = classpathResourceFilter;
         this.classpathResourceHasher = classpathResourceHasher;
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
-        this.jarHasher = new JarHasher(classpathResourceHasher, classpathResourceFilter);
+        this.zipHasher = new ZipHasher(classpathResourceHasher, classpathResourceFilter);
         Hasher hasher = Hashing.newHasher();
-        jarHasher.appendConfigurationToHasher(hasher);
-        this.jarHasherConfigurationHash = hasher.hash();
+        zipHasher.appendConfigurationToHasher(hasher);
+        this.zipHasherConfigurationHash = hasher.hash();
     }
 
     public static ClasspathFingerprintingStrategy runtimeClasspath(ResourceFilter classpathResourceFilter, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
@@ -182,15 +181,15 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
 
     @Nullable
     private HashCode fingerprintRootFile(RegularFileSnapshot fileSnapshot) {
-        if (FileUtils.hasExtensionIgnoresCase(fileSnapshot.getName(), ".jar")) {
-            return fingerprintJarContents(fileSnapshot);
+        if (ZipHasher.isZipFile(fileSnapshot.getName())) {
+            return fingerprintZipContents(fileSnapshot);
         }
-        return nonJarFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
+        return nonZipFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
     }
 
     @Nullable
-    private HashCode fingerprintJarContents(RegularFileSnapshot fileSnapshot) {
-        return cacheService.hashFile(fileSnapshot, jarHasher, jarHasherConfigurationHash);
+    private HashCode fingerprintZipContents(RegularFileSnapshot fileSnapshot) {
+        return cacheService.hashFile(fileSnapshot, zipHasher, zipHasherConfigurationHash);
     }
 
     private class ClasspathFingerprintVisitor {
