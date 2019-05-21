@@ -39,7 +39,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 ## Transforming dependency artifacts on resolution
 
-A dependency’s artifacts can take many forms, some of which will be published but others may not be.
+A dependency’s artifacts can take many forms, and sometimes you might need them in a form that is not readily available in a published form.
 As an example, imagine you have a dependency on a Java module.
 Its producer publishes a normal JAR file and an obfuscated JAR file to a binary repository.
 As a consumer, you want to use the normal JAR for development.
