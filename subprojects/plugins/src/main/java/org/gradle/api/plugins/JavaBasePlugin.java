@@ -199,7 +199,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(ProcessResources resourcesTask) {
                 resourcesTask.setDescription("Processes " + resourceSet + ".");
-                new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
+                new DslObject(resourcesTask.getRootSpec()).getConventionMapping().map("destinationDir", new Callable<File>() {
                     @Override
                     public File call() {
                         return sourceSet.getOutput().getResourcesDir();
