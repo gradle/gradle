@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.DefaultCompositeFileTree
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionLeafVisitor
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
@@ -36,6 +37,7 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
@@ -73,10 +75,16 @@ class StateSerialization(
     val integerSerializer = BaseSerializerFactory.INTEGER_SERIALIZER
 
     private
+    val shortSerializer = BaseSerializerFactory.SHORT_SERIALIZER
+
+    private
     val longSerializer = BaseSerializerFactory.LONG_SERIALIZER
 
     private
     val byteSerializer = BaseSerializerFactory.BYTE_SERIALIZER
+
+    private
+    val floatSerializer = BaseSerializerFactory.FLOAT_SERIALIZER
 
     private
     val doubleSerializer = BaseSerializerFactory.DOUBLE_SERIALIZER
@@ -109,11 +117,17 @@ class StateSerialization(
             is Int -> { encoder, _ ->
                 encoder.writeWithTag(INT_TYPE, integerSerializer, value)
             }
+            is Short -> { encoder, _ ->
+                encoder.writeWithTag(SHORT_TYPE, shortSerializer, value)
+            }
             is Long -> { encoder, _ ->
                 encoder.writeWithTag(LONG_TYPE, longSerializer, value)
             }
             is Byte -> { encoder, _ ->
                 encoder.writeWithTag(BYTE_TYPE, byteSerializer, value)
+            }
+            is Float -> { encoder, _ ->
+                encoder.writeWithTag(FLOAT_TYPE, floatSerializer, value)
             }
             is Double -> { encoder, _ ->
                 encoder.writeWithTag(DOUBLE_TYPE, doubleSerializer, value)
@@ -152,6 +166,9 @@ class StateSerialization(
             is FileResolver -> { encoder, _ ->
                 encoder.writeByte(FILE_RESOLVER_TYPE)
             }
+            is Instantiator -> { encoder, _ ->
+                encoder.writeByte(INSTANTIATOR_TYPE)
+            }
             is FileCollectionFactory -> { encoder, _ ->
                 encoder.writeByte(FILE_COLLECTION_FACTORY_TYPE)
             }
@@ -160,7 +177,17 @@ class StateSerialization(
             is Project -> projectStateType(Project::class)
             is Gradle -> projectStateType(Gradle::class)
             is Settings -> projectStateType(Settings::class)
-            is Task -> projectStateType(Task::class)
+            is Task -> { encoder, context ->
+                if (value == context.owner) {
+                    encoder.writeByte(THIS_TASK)
+                } else {
+                    projectStateType(Task::class)
+                    encoder.writeByte(NULL_VALUE)
+                }
+            }
+            is FileOperations -> { encoder, _ ->
+                encoder.writeByte(FILE_OPERATIONS_TYPE)
+            }
             else -> beanSerializerFor(value)
         }
 
@@ -234,9 +261,11 @@ class StateSerialization(
             STRING_TYPE -> stringSerializer.read(decoder)
             BOOLEAN_TYPE -> booleanSerializer.read(decoder)
             INT_TYPE -> integerSerializer.read(decoder)
+            SHORT_TYPE -> shortSerializer.read(decoder)
             LONG_TYPE -> longSerializer.read(decoder)
             BYTE_TYPE -> byteSerializer.read(decoder)
             DOUBLE_TYPE -> doubleSerializer.read(decoder)
+            FLOAT_TYPE -> floatSerializer.read(decoder)
             FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(decoder)
             CLASS_TYPE -> beanClassLoader.loadClass(decoder.readString())
             LIST_TYPE -> deserializeCollection(decoder, context) { ArrayList<Any?>(it) }
@@ -245,13 +274,16 @@ class StateSerialization(
             LOGGER_TYPE -> {
                 LoggerFactory.getLogger(decoder.readString())
             }
+            THIS_TASK -> context.owner
             FILE_TREE_TYPE -> fileTreeSerializer.read(decoder)
             FILE_COLLECTION_TYPE -> fileCollectionFactory.fixed(fileSetSerializer.read(decoder))
             ARTIFACT_COLLECTION_TYPE -> EmptyArtifactCollection(ImmutableFileCollection.of())
             OBJECT_FACTORY_TYPE -> objectFactory
             FILE_RESOLVER_TYPE -> fileResolver
+            INSTANTIATOR_TYPE -> instantiator
             PATTERN_SPEC_FACTORY_TYPE -> patternSpecFactory
             FILE_COLLECTION_FACTORY_TYPE -> fileCollectionFactory
+            FILE_OPERATIONS_TYPE -> (context.owner.project as ProjectInternal).services.get(FileOperations::class.java)
             DEFAULT_COPY_SPEC -> deserializeDefaultCopySpec(decoder, context)
             DESTINATION_ROOT_COPY_SPEC -> deserializeDestinationRootCopySpec(decoder, context)
             BEAN -> deserializeBean(decoder, context, beanClassLoader)
@@ -359,30 +391,35 @@ class StateSerialization(
         const val BOOLEAN_TYPE: Byte = 2
         const val BYTE_TYPE: Byte = 3
         const val INT_TYPE: Byte = 4
-        const val LONG_TYPE: Byte = 5
-        const val DOUBLE_TYPE: Byte = 6
-        const val LIST_TYPE: Byte = 7
-        const val SET_TYPE: Byte = 8
-        const val MAP_TYPE: Byte = 9
-        const val FILE_TYPE: Byte = 10
-        const val CLASS_TYPE: Byte = 11
-        const val BEAN: Byte = 12
+        const val SHORT_TYPE: Byte = 5
+        const val LONG_TYPE: Byte = 6
+        const val FLOAT_TYPE: Byte = 7
+        const val DOUBLE_TYPE: Byte = 8
+        const val LIST_TYPE: Byte = 9
+        const val SET_TYPE: Byte = 10
+        const val MAP_TYPE: Byte = 11
+        const val FILE_TYPE: Byte = 12
+        const val CLASS_TYPE: Byte = 13
+        const val BEAN: Byte = 14
 
         // Logging type
-        const val LOGGER_TYPE: Byte = 13
+        const val LOGGER_TYPE: Byte = 40
 
         // Gradle types
-        const val FILE_TREE_TYPE: Byte = 14
-        const val FILE_COLLECTION_TYPE: Byte = 15
-        const val ARTIFACT_COLLECTION_TYPE: Byte = 16
-        const val OBJECT_FACTORY_TYPE: Byte = 17
+        const val THIS_TASK: Byte = 80
+        const val FILE_TREE_TYPE: Byte = 81
+        const val FILE_COLLECTION_TYPE: Byte = 82
+        const val ARTIFACT_COLLECTION_TYPE: Byte = 83
+        const val OBJECT_FACTORY_TYPE: Byte = 84
 
         // Internal Gradle types
-        const val FILE_RESOLVER_TYPE: Byte = 18
-        const val PATTERN_SPEC_FACTORY_TYPE: Byte = 19
-        const val FILE_COLLECTION_FACTORY_TYPE: Byte = 20
-        const val DEFAULT_COPY_SPEC: Byte = 21
-        const val DESTINATION_ROOT_COPY_SPEC: Byte = 22
+        const val FILE_RESOLVER_TYPE: Byte = 90
+        const val PATTERN_SPEC_FACTORY_TYPE: Byte = 91
+        const val FILE_COLLECTION_FACTORY_TYPE: Byte = 92
+        const val INSTANTIATOR_TYPE: Byte = 93
+        const val FILE_OPERATIONS_TYPE: Byte = 94
+        const val DEFAULT_COPY_SPEC: Byte = 95
+        const val DESTINATION_ROOT_COPY_SPEC: Byte = 96
     }
 }
 

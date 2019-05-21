@@ -280,10 +280,14 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         boolean.name           | "true"                   | "true"
         Byte.name              | "12"                     | "12"
         byte.name              | "12"                     | "12"
+        Short.name             | "12"                     | "12"
+        short.name             | "12"                     | "12"
         Integer.name           | "12"                     | "12"
         int.name               | "12"                     | "12"
         Long.name              | "12"                     | "12"
         long.name              | "12"                     | "12"
+        Float.name             | "12.1"                   | "12.1"
+        float.name             | "12.1"                   | "12.1"
         Double.name            | "12.1"                   | "12.1"
         double.name            | "12.1"                   | "12.1"
         Class.name             | "SomeBean"               | "class SomeBean"
@@ -449,6 +453,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
                 }
             }
 
+            task other
             task broken(type: SomeTask)
         """
 
@@ -457,8 +462,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         outputContains("instant-execution > Cannot serialize object of type ${type} as these are not supported with instant execution.")
-        outputContains("instant-execution > task ':broken' field 'SomeTask.badReference' cannot be serialized because there's no serializer for")
-        outputContains("instant-execution > task ':broken' field 'SomeBean.badReference' cannot be serialized because there's no serializer for")
 
         when:
         instantRun "broken"
@@ -472,7 +475,41 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         Project.name  | "project"
         Gradle.name   | "project.gradle"
         Settings.name | "project.gradle.settings"
-        Task.name     | "this"
+        Task.name     | "project.tasks.other"
+    }
+
+    def "task can reference itself"() {
+        buildFile << """
+            class SomeBean {
+                private SomeTask owner
+            }
+            
+            class SomeTask extends DefaultTask {
+                private final SomeTask thisTask
+                private final bean = new SomeBean()
+                
+                SomeTask() {
+                    thisTask = this
+                    bean.owner = this
+                }
+
+                @TaskAction
+                void run() {
+                    println "thisTask = " + (thisTask == this) 
+                    println "bean.owner = " + (bean.owner == this)
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("thisTask = true")
+        outputContains("bean.owner = true")
     }
 
     @Ignore
