@@ -149,12 +149,10 @@ class InstantExecutionHost internal constructor(
 
         override fun createProject(path: String): ProjectInternal {
             val projectPath = Path.path(path)
-            val parentPath = projectPath.parent
             val name = projectPath.name
-            if (name == null) {
-                return getProject(path)
-            } else {
-                return createProject(parentPath, name)
+            return when {
+                name != null -> createProject(projectPath.parent, name)
+                else -> gradle.rootProject
             }
         }
 
