@@ -37,7 +37,7 @@ import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
-import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -242,7 +242,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             getScriptPluginFactory(),
             getScriptHandlerFactory(),
             getRootClassLoaderScope(),
-            getResourceLoader(),
+            getUrlResourceLoaderFactory(),
             this);
     }
 
@@ -261,7 +261,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Inject
-    protected TextFileResourceLoader getResourceLoader() {
+    protected TextUrlResourceLoader.Factory getUrlResourceLoaderFactory() {
         throw new UnsupportedOperationException();
     }
 

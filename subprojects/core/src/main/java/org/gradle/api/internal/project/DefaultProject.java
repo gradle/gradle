@@ -92,7 +92,7 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -1272,11 +1272,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), getResourceLoader(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), getUrlResourceLoaderFactory(), this);
     }
 
     @Inject
-    protected TextFileResourceLoader getResourceLoader() {
+    protected TextUrlResourceLoader.Factory getUrlResourceLoaderFactory() {
         throw new UnsupportedOperationException();
     }
 

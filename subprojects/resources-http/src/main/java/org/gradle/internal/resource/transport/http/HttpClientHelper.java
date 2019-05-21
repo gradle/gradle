@@ -151,7 +151,9 @@ public class HttpClientHelper implements Closeable {
          * For security purposes this intentionally requires a user to opt-in to http on case by case basis.
          * We do not want to have a system/gradle property that allows a universal disable of this check.
          */
-        if (settings.allowInsecureProtocol()) return;
+        if (settings.allowInsecureProtocol()) {
+            return;
+        }
 
         final String scheme = url.getScheme();
         if (!"https".equalsIgnoreCase(scheme)) {

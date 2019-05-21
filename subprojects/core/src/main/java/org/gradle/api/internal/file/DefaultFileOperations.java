@@ -43,8 +43,9 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.GFileUtils;
 
@@ -69,14 +70,14 @@ public class DefaultFileOperations implements FileOperations {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, @Nullable TextFileResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory, FileSystem fileSystem, Clock clock) {
+    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, @Nullable TextUrlResourceLoader.Factory textUrlResourceLoaderFactory, FileCollectionFactory fileCollectionFactory, FileSystem fileSystem, Clock clock) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.resourceHandler = new DefaultResourceHandler(this, new DefaultResourceResolver(fileResolver, fileSystem), temporaryFileProvider, textResourceLoader);
+        this.resourceHandler = new DefaultResourceHandler(this, new DefaultResourceResolver(fileResolver, fileSystem), temporaryFileProvider, textUrlResourceLoaderFactory);
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(this.instantiator, fileSystem, this.fileResolver, fileLookup, directoryFileTreeFactory);
@@ -199,5 +200,30 @@ public class DefaultFileOperations implements FileOperations {
     @Override
     public DefaultResourceHandler getResources() {
         return resourceHandler;
+    }
+
+    public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
+        Instantiator instantiator = services.get(Instantiator.class);
+        FileLookup fileLookup = services.get(FileLookup.class);
+        FileSystem fileSystem = services.get(FileSystem.class);
+        Clock clock = services.get(Clock.class);
+        DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
+        StreamHasher streamHasher = services.get(StreamHasher.class);
+        FileHasher fileHasher = services.get(FileHasher.class);
+        TextUrlResourceLoader.Factory textResourceLoaderFactory = services.get(TextUrlResourceLoader.Factory.class);
+        return new DefaultFileOperations(
+            fileResolver,
+            null,
+            null,
+            instantiator,
+            fileLookup,
+            directoryFileTreeFactory,
+            streamHasher,
+            fileHasher,
+            textResourceLoaderFactory,
+            fileTreeFactory,
+            fileSystem,
+            clock
+        );
     }
 }
