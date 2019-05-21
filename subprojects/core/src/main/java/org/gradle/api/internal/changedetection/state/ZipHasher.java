@@ -41,7 +41,7 @@ import java.util.Set;
 
 public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
 
-    private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of(".zip", ".jar", ".war", ".ear", ".apk");
+    private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of(".zip", ".jar", ".war", ".rar", ".ear", ".apk", ".aar");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
 
     public static boolean isZipFile(final String name) {
