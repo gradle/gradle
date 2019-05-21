@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * <p>Only an artifact transform that produces reproducible and relocatable outputs should be marked with {@code CacheableTransform}.</p>
  *
  * <p>
- *     You need to specify the normalization for each file input of the cacheable transform.
+ *     Normalization must be specified for each file parameter of a cacheable transform.
  *     For example:
  * </p>
  * <pre>
