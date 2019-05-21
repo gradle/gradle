@@ -33,7 +33,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.zip.ZipEntry;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
@@ -72,11 +71,11 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     }
 
     @Override
-    public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+    public HashCode hash(ZipEntry zipEntry) throws IOException {
         if (!isClassFile(zipEntry.getName())) {
             return null;
         }
-        return hashClassBytes(zipInput);
+        return hashClassBytes(zipEntry.getInputStream());
     }
 
     private boolean isClassFile(String name) {
