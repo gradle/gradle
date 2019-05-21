@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
 
 /**
  * Attached to a property that should receive the <em>input artifact</em> for an artifact transform.
- * This is the artifact that the transform should be applied to.
+ * This is the artifact that the transform is applied to.
  *
  * <p>The input artifact can be injected as a {@link Provider}&lt;{@link org.gradle.api.file.FileSystemLocation}&gt;.</p>
  *
