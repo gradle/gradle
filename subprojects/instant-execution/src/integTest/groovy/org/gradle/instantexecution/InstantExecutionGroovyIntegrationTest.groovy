@@ -24,7 +24,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
     @Ignore
     def "instant execution for compileGroovy on Groovy project with no dependencies"() {
 
-        def instantExecution = new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
+        def instantExecution = newInstantExecutionFixture()
 
         given:
         buildFile << """

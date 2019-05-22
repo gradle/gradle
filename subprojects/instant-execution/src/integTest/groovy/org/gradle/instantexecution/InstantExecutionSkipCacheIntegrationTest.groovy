@@ -21,7 +21,7 @@ class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionI
 
     def "skip reading cached state on --refresh-dependencies"() {
 
-        def instantExecution = new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
+        def instantExecution = newInstantExecutionFixture()
 
         given:
         buildFile << """

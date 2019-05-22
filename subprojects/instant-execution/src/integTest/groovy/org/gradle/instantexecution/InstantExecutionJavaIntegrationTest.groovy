@@ -23,7 +23,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
     protected InstantExecutionBuildOperationsFixture instantExecution
 
     def setup() {
-        instantExecution = new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
+        instantExecution = newInstantExecutionFixture()
         executer.noDeprecationChecks()
     }
 

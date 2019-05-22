@@ -26,4 +26,8 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution"
+
+    protected InstantExecutionBuildOperationsFixture newInstantExecutionFixture() {
+        return new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
+    }
 }

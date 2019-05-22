@@ -70,7 +70,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
     def "does not configure build when task graph is already cached for requested tasks"() {
 
-        def instantExecution = new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
+        def instantExecution = newInstantExecutionFixture()
 
         given:
         buildFile << """
