@@ -46,6 +46,9 @@ import java.nio.file.Files
 import java.util.SortedSet
 
 
+inline fun <reified T> DefaultInstantExecution.Host.service(): T = getService(T::class.java)
+
+
 class DefaultInstantExecution(
     private val host: Host
 ) : InstantExecution {
@@ -78,21 +81,21 @@ class DefaultInstantExecution(
         host.newStateSerializer()
     }
 
-    override fun canExecuteInstantaneously(): Boolean =
-        isInstantExecutionEnabled && when {
-            host.isSkipLoadingState -> {
-                logger.lifecycle("Calculating task graph as skipping instant execution cache was requested")
-                false
-            }
-            !instantExecutionStateFile.isFile -> {
-                logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
-                false
-            }
-            else -> {
-                logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
-                true
-            }
+    override fun canExecuteInstantaneously(): Boolean = when {
+        !isInstantExecutionEnabled -> false
+        host.isSkipLoadingState -> {
+            logger.lifecycle("Calculating task graph as skipping instant execution cache was requested")
+            false
         }
+        !instantExecutionStateFile.isFile -> {
+            logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
+            false
+        }
+        else -> {
+            logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
+            true
+        }
+    }
 
     override fun saveTaskGraph() {
         if (isInstantExecutionEnabled) {
@@ -106,6 +109,7 @@ class DefaultInstantExecution(
             val build = host.createBuild(rootProjectName)
             loadRelevantProjects(decoder, build)
             build.autoApplyPlugins()
+            build.registerProjects()
             build.scheduleTasks(loadTasksFor(decoder, build))
         }
     }
@@ -170,9 +174,6 @@ class DefaultInstantExecution(
     fun loadTasksWithDependenciesFor(decoder: Decoder, build: InstantExecutionBuild): List<Pair<Task, List<String>>> {
         val classPath = decoder.deserializeClassPath()
         val taskClassLoader = classLoaderFor(classPath)
-
-        build.registerProjects()
-
         return decoder.deserializeCollectionInto({ size -> ArrayList(size) }) { container ->
             val task = loadTaskFor(build, decoder, taskClassLoader)
             container.add(task)
@@ -180,7 +181,7 @@ class DefaultInstantExecution(
     }
 
     private
-    val filePropertyFactory = host.getService(FilePropertyFactory::class.java)
+    val filePropertyFactory = host.service<FilePropertyFactory>()
 
     private
     fun classLoaderFor(classPath: ClassPath) =
@@ -204,7 +205,10 @@ class DefaultInstantExecution(
             writeString(it.path)
         }
 
-        BeanFieldSerializer(task, taskType, stateSerializer).invoke(this, SerializationContext(task, logger))
+        BeanFieldSerializer(task, taskType, stateSerializer).invoke(
+            this,
+            SerializationContext(task, logger)
+        )
     }
 
     private
@@ -212,12 +216,14 @@ class DefaultInstantExecution(
         val projectPath = decoder.readString()
         val taskName = decoder.readString()
         val typeName = decoder.readString()
+        val taskDependencies = decoder.deserializeStrings()
         val taskClass = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
         val task = build.createTask(projectPath, taskName, taskClass)
-        val taskDependencies = decoder.deserializeStrings()
         val deserializer = host.deserializerFor(taskClassLoader)
-        val context = DeserializationContext(task, logger)
-        BeanFieldDeserializer(task, taskClass, deserializer, filePropertyFactory).deserialize(decoder, context)
+        BeanFieldDeserializer(task, taskClass, deserializer, filePropertyFactory).deserialize(
+            decoder,
+            DeserializationContext(task, logger)
+        )
         return task to taskDependencies
     }
 
@@ -231,10 +237,11 @@ class DefaultInstantExecution(
 
     private
     val instantExecutionStateFile by lazy {
-        val dir = File(host.rootDir, ".instant-execution-state/${GradleVersion.current().version}").absoluteFile
+        val currentGradleVersion = GradleVersion.current().version
+        val cacheDir = File(host.rootDir, ".instant-execution-state/$currentGradleVersion").absoluteFile
         val baseName = HashUtil.createCompactMD5(host.requestedTaskNames.joinToString("/"))
         val cacheFileName = "$baseName.bin"
-        File(dir, cacheFileName)
+        File(cacheDir, cacheFileName)
     }
 }
 

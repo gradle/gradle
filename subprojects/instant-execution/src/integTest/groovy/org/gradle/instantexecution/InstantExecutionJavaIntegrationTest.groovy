@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
 class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+
     def setup() {
         executer.noDeprecationChecks()
     }

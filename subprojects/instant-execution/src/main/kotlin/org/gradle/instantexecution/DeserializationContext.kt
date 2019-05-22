@@ -18,12 +18,12 @@ package org.gradle.instantexecution
 
 import org.gradle.api.Task
 import org.slf4j.Logger
-import java.util.IdentityHashMap
 
 
 class DeserializationContext(owner: Task, logger: Logger) : StateContext(owner, logger) {
+
     private
-    val instanceIds = IdentityHashMap<Int, Any>()
+    val instanceIds = HashMap<Int, Any>()
 
     fun getInstance(id: Int) = instanceIds[id]
 
