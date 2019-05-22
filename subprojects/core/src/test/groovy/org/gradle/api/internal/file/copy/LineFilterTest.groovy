@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.copy
 import org.junit.Test
 import org.gradle.internal.SystemProperties
 
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 import static org.junit.Assert.*
 
 class LineFilterTest {

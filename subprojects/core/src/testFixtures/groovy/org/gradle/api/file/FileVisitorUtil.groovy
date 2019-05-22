@@ -19,7 +19,7 @@ import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 
 import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 
 class FileVisitorUtil {
     static void assertCanStopVisiting(MinimalFileTree tree) {

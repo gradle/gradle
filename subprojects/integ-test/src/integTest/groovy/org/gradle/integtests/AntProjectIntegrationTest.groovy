@@ -21,11 +21,11 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
-public class AntProjectIntegrationTest extends AbstractIntegrationTest {
+class AntProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void antTargetsAndGradleTasksCanDependOnEachOther() {
+    void antTargetsAndGradleTasksCanDependOnEachOther() {
         testFile('build.xml') << """
 <project>
     <target name='target1' depends='target2,initialize'>
@@ -53,7 +53,7 @@ task ant(dependsOn: target1)
     }
 
     @Test
-    public void canImportMultipleBuildFilesWithDifferentBaseDirs() {
+    void canImportMultipleBuildFilesWithDifferentBaseDirs() {
         testFile('project1/build.xml') << """
 <project>
     <target name='target1'>
@@ -87,7 +87,7 @@ task ant(dependsOn: [target1, target2])
     }
 
     @Test
-    public void handlesAntImportsOk() {
+    void handlesAntImportsOk() {
         testFile('imported.xml') << """
 <project>
     <target name='target1'>
@@ -121,7 +121,7 @@ task ant(dependsOn: [target1, target2])
     }
 
     @Test
-    public void reportsAntBuildParseFailure() {
+    void reportsAntBuildParseFailure() {
         TestFile antBuildFile = testFile('build.xml')
         antBuildFile << """
 <project>
@@ -141,7 +141,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    public void reportsAntTaskExecutionFailure() {
+    void reportsAntTaskExecutionFailure() {
         testFile('build.xml') << """
 <project>
     <target name='target1'>
@@ -159,7 +159,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    public void targetDependenciesAreOrderedBasedOnDeclarationSequence() {
+    void targetDependenciesAreOrderedBasedOnDeclarationSequence() {
         testFile('build.xml') << """
 <project>
     <target name='a' depends='d,c,b'/>
@@ -185,7 +185,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    public void targetDependenciesOrderDoesNotCreateCycle() {
+    void targetDependenciesOrderDoesNotCreateCycle() {
         testFile('build.xml') << """
 <project>
     <target name='a' depends='c,b'/>
@@ -200,7 +200,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    public void unknownDependencyProducesUsefulMessage() {
+    void unknownDependencyProducesUsefulMessage() {
         testFile('build.xml') << """
 <project>
     <target name='a' depends='b'/>
@@ -213,7 +213,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    public void canHandleDependencyOrderingBetweenNonExistentTasks() {
+    void canHandleDependencyOrderingBetweenNonExistentTasks() {
         testFile('build.xml') << """
 <project>
     <target name='a' depends='b,c'/>
@@ -227,7 +227,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    public void canApplyJavaPluginWithAntBuild() {
+    void canApplyJavaPluginWithAntBuild() {
         testFile('build.xml') << """
 <project>
     <target name='clean'>
@@ -250,7 +250,7 @@ task ant(dependsOn: 'ant-target1')
     }
 
     @Test
-    public void canRenameAntDelegateTask() {
+    void canRenameAntDelegateTask() {
         testFile('build.xml') << """
 <project>
     <target name='c'/>

@@ -21,12 +21,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
@@ -286,7 +286,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':copy'.")
-        failure.assertThatCause(Matchers.startsWith("Unable to expand TAR"))
+        failure.assertThatCause(CoreMatchers.startsWith("Unable to expand TAR"))
     }
 
     def cannotCreateAnEmptyZip() {

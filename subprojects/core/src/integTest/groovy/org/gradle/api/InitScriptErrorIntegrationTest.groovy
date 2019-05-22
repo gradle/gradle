@@ -17,7 +17,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.invocation.DefaultGradle
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 public class InitScriptErrorIntegrationTest extends AbstractIntegrationSpec {
     def initScript

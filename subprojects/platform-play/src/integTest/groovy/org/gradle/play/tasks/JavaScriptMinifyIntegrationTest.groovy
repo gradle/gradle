@@ -17,7 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.test.fixtures.file.TestFile
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
@@ -223,10 +223,10 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         failure.assertHasDescription("Execution failed for task ':minifyPlayBinaryPlayJavaScript'.")
 
         String slash = File.separator
-        failure.assertThatCause(Matchers.allOf([
-                Matchers.startsWith("Minification failed with the following errors:"),
-                Matchers.containsString("app${slash}assets${slash}javascripts${slash}test1.js line 1 : 4"),
-                Matchers.containsString("app${slash}assets${slash}javascripts${slash}test2.js line 1 : 4")
+        failure.assertThatCause(CoreMatchers.allOf([
+            CoreMatchers.startsWith("Minification failed with the following errors:"),
+            CoreMatchers.containsString("app${slash}assets${slash}javascripts${slash}test1.js line 1 : 4"),
+            CoreMatchers.containsString("app${slash}assets${slash}javascripts${slash}test2.js line 1 : 4")
         ]))
     }
 }

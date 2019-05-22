@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 @TestReproducibleArchives
 class ApplicationIntegrationSpec extends AbstractIntegrationSpec{

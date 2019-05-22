@@ -40,16 +40,15 @@ import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.allOf
-import org.hamcrest.Matchers.containsString
-import org.hamcrest.Matchers.empty
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.not
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
 
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.psi.psiUtil.toVisibility
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
+import org.junit.Assert.assertTrue
 
 import org.junit.Test
 
@@ -296,9 +295,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 .filter { it.isFile }
                 .toList()
 
-        assertThat(
-            generatedSourceFiles,
-            not(empty())
+        assertTrue(
+            generatedSourceFiles.isNotEmpty()
         )
 
         data class Declaration(

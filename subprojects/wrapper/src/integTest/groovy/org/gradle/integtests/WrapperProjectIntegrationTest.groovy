@@ -16,10 +16,10 @@
 
 package org.gradle.integtests
 
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 import static org.junit.Assert.assertThat
 
 class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
@@ -39,7 +39,7 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
 """
     }
 
-    public void "has non-zero exit code on build failure"() {
+    void "has non-zero exit code on build failure"() {
         given:
         prepareWrapper()
 
@@ -47,11 +47,11 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.withTasks('unknown').runWithFailure()
 
         then:
-        failure.assertThatDescription(Matchers.startsWith("Task 'unknown' not found in root project"))
+        failure.assertThatDescription(CoreMatchers.startsWith("Task 'unknown' not found in root project"))
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1871")
-    public void "can specify project properties containing D"() {
+    void "can specify project properties containing D"() {
         given:
         prepareWrapper()
 

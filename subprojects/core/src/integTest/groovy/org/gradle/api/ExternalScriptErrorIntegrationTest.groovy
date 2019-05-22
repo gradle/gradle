@@ -16,7 +16,7 @@
 package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class ExternalScriptErrorIntegrationTest extends AbstractIntegrationSpec {
     def externalScript

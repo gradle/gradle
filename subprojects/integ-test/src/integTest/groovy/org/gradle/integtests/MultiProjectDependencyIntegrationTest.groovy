@@ -18,10 +18,10 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 
-public class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
+class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         settingsFile << 'include "a", "b", "c", "d"'
@@ -160,7 +160,7 @@ project(':c') {
 
         then:
         failure.assertHasNoCause()
-        failure.assertThatDescription(Matchers.startsWith("Circular dependency between the following tasks:"))
+        failure.assertThatDescription(CoreMatchers.startsWith("Circular dependency between the following tasks:"))
     }
 
     def "project dependency a->b->c->d and c fails"() {

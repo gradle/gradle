@@ -34,7 +34,7 @@ import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 import static org.junit.Assert.*
 
 class ScalaBasePluginTest {

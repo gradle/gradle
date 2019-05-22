@@ -23,7 +23,7 @@ import org.apache.tools.ant.types.ResourceCollection
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.DefaultAntBuilder
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 import static org.junit.Assert.*
 import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter

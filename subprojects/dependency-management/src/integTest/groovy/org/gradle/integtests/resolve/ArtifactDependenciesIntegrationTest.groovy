@@ -25,7 +25,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import spock.lang.Issue
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 /**
  * This test contains some of the original coverage for dependency resolution.

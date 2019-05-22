@@ -23,7 +23,7 @@ import spock.lang.Issue;
 
 import java.io.File;
 
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.CoreMatchers.startsWith;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test

@@ -18,7 +18,7 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 

@@ -37,9 +37,9 @@ import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toList
 import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.instanceOf
-import static org.hamcrest.Matchers.sameInstance
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.instanceOf
+import static org.hamcrest.CoreMatchers.sameInstance
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue

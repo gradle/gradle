@@ -23,8 +23,8 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.startsWith
 
 @LeaksFileHandles
 class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {

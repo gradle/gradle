@@ -24,7 +24,7 @@ import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 @Unroll
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {

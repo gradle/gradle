@@ -26,7 +26,7 @@ import org.gradle.util.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CodeNarcCoverage.supportedVersionsByJdk })
 class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {

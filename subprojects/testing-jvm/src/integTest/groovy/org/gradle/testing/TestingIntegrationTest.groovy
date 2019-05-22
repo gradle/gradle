@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -103,7 +103,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         and:
         def results = new DefaultTestExecutionResult(file("."))
         results.assertTestClassesExecuted("ExceptionTest")
-        results.testClass("ExceptionTest").assertTestFailed("testThrow", Matchers.equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", CoreMatchers.equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
     }
 
     def "fails cleanly even if an exception is thrown that doesn't de-serialize cleanly"() {
@@ -148,7 +148,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         and:
         def results = new DefaultTestExecutionResult(file("."))
         results.assertTestClassesExecuted("ExceptionTest")
-        results.testClass("ExceptionTest").assertTestFailed("testThrow", Matchers.equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", CoreMatchers.equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -308,8 +308,8 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         and:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass("TestCase").with {
-            assertTestFailed("test", Matchers.containsString("java.lang.VerifyError"))
-            assertTestFailed("test", Matchers.containsString("\$EmptyImmutableCollection"))
+            assertTestFailed("test", CoreMatchers.containsString("java.lang.VerifyError"))
+            assertTestFailed("test", CoreMatchers.containsString("\$EmptyImmutableCollection"))
         }
     }
 

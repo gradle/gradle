@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,8 +45,8 @@ class SamplesJavaTestListenerIntegrationTest extends  AbstractIntegrationTest {
         def result = new DefaultTestExecutionResult(javaprojectDir)
         result.assertTestClassesExecuted('org.gradle.DoNothingTest')
         result.testClass('org.gradle.DoNothingTest').
-                assertTestFailed('doNothingButFail', Matchers.equalTo('java.lang.AssertionError: I always fail')).
-                assertTestFailed('doNothingButError', Matchers.equalTo('java.lang.RuntimeException: I always throw exceptions')).
+                assertTestFailed('doNothingButFail', CoreMatchers.equalTo('java.lang.AssertionError: I always fail')).
+                assertTestFailed('doNothingButError', CoreMatchers.equalTo('java.lang.RuntimeException: I always throw exceptions')).
                 assertTestPassed('doNothing')
     }
 }

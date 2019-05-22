@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -80,7 +80,7 @@ ear {
         then:
         def ear = new JarTestFixture(file('build/libs/root.ear'))
         ear.assertContainsFile("CUSTOM/lib/earLib.jar")
-        ear.assertFileContent("META-INF/application.xml", Matchers.containsString("cool ear"))
+        ear.assertFileContent("META-INF/application.xml", CoreMatchers.containsString("cool ear"))
     }
 
     void "includes modules in deployment descriptor"() {

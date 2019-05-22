@@ -32,8 +32,8 @@ import spock.lang.Specification
 import java.nio.charset.Charset
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.nullValue
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.nullValue
 import static org.junit.Assert.assertThat
 
 @UsesNativeServices

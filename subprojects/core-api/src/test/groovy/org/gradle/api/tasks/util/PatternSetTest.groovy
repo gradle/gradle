@@ -23,7 +23,7 @@ import org.gradle.api.specs.Spec
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.strictlyEquals
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 import static org.junit.Assert.assertThat
 
 class PatternSetTest extends AbstractTestForPatternSet {

@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.*
-import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.CoreMatchers.instanceOf
 
 class LifecycleBasePluginTest extends AbstractProjectBuilderSpec {
 

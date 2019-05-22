@@ -32,10 +32,10 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.not
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.startsWith
 import static org.junit.Assert.assertThat
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })

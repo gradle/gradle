@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.junit.Rule
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
 class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {

@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.is
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.is
 
 // https://github.com/junit-team/junit5/issues/1285
 @TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })

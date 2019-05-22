@@ -21,7 +21,7 @@ import org.junit.Test;
 import java.io.File;
 import java.net.URI;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
 public class PathAssemblerTest {

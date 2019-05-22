@@ -21,7 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
-import static org.hamcrest.Matchers.allOf
+import static org.hamcrest.CoreMatchers.allOf
 
 class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 

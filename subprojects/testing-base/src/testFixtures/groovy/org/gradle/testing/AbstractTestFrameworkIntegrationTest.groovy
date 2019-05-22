@@ -19,7 +19,7 @@ package org.gradle.testing
 import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Assume
 import spock.lang.Unroll
 
@@ -111,7 +111,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         then:
         testResult.assertTestClassesExecuted('SomeTest', 'SomeOtherTest')
-        testResult.testClass('SomeTest').assertTestFailed(failingTestCaseName, Matchers.containsString("test failure message"))
+        testResult.testClass('SomeTest').assertTestFailed(failingTestCaseName, CoreMatchers.containsString("test failure message"))
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
@@ -130,7 +130,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         succeeds "check"
 
         then:
-        testResult.testClass('SomeTest').assertStderr(Matchers.containsString("some error output"))
+        testResult.testClass('SomeTest').assertStderr(CoreMatchers.containsString("some error output"))
     }
 
     def "failing tests cause report url to be printed"() {

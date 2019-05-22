@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 class DetailedExecutionFailure {
     ExecutionFailure failure

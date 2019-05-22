@@ -32,8 +32,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static com.google.common.collect.Lists.newArrayList
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.startsWith
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
 

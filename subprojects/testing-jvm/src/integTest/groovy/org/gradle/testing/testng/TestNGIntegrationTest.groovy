@@ -23,8 +23,8 @@ import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Ignore
 import spock.lang.Issue
 
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
 
 @TargetCoverage({ TestNGCoverage.STANDARD_COVERAGE_WITH_INITIAL_ICLASS_LISTENER })
 class TestNGIntegrationTest extends MultiVersionIntegrationSpec {

@@ -19,7 +19,7 @@ package org.gradle.test.fixtures.server.http
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Rule
 
 class BlockingHttpServerTest extends ConcurrentSpec {
@@ -149,7 +149,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
     }
 
     def "can verify that user agent matches particular criteria"() {
-        def criteria = Matchers.equalTo("some-agent")
+        def criteria = CoreMatchers.equalTo("some-agent")
 
         given:
         server.expect(server.get("a").expectUserAgent(criteria))

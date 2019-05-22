@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.hamcrest.Matchers.hasItems
+import static org.hamcrest.CoreMatchers.hasItems
 
 class EarPluginTest extends AbstractProjectBuilderSpec {
     private static final String TEST_APP_XML = """<?xml version="1.0" encoding="UTF-8"?>

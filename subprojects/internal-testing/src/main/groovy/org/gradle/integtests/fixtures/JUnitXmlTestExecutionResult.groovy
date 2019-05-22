@@ -17,7 +17,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 import static org.hamcrest.core.StringStartsWith.startsWith
 import static org.junit.Assert.assertThat
 

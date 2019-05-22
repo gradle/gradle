@@ -20,7 +20,7 @@ import groovy.io.FileType
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Shared
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 

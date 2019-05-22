@@ -24,9 +24,9 @@ import org.gradle.api.tasks.diagnostics.TaskReportTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.CoreMatchers.instanceOf
 
-public class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
+class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
     private final ProjectReportsPlugin plugin = new ProjectReportsPlugin()
 
     def appliesBaseReportingPluginAndAddsConventionObject() {

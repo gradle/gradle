@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
 

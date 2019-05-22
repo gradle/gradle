@@ -24,7 +24,7 @@ import spock.lang.Timeout
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {

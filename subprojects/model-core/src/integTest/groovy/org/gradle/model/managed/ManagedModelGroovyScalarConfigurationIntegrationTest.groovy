@@ -19,7 +19,7 @@ package org.gradle.model.managed
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractIntegrationSpec {
 

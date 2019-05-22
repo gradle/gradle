@@ -110,14 +110,13 @@ import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionRes
 import static org.gradle.util.Matchers.hasMessage;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.Matchers.normalizedLineSeparators;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -576,7 +575,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
             Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
-            assertThat(executedTasks, containsInAnyOrder(expected.toArray()));
+            assertEquals(new TreeSet<String>(executedTasks), new TreeSet<String>(expected));
             outputResult.assertTasksExecutedInOrder(taskPaths);
             return this;
         }
@@ -584,7 +583,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
             Set<String> flattenedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
-            assertThat(executedTasks, containsInAnyOrder(flattenedTasks.toArray()));
+            assertEquals(new TreeSet<String>(executedTasks), new TreeSet<String>(flattenedTasks));
             outputResult.assertTasksExecuted(flattenedTasks);
             return this;
         }

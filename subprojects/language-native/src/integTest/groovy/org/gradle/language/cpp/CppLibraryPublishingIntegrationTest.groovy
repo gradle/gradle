@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.MachineArchitecture.X86
@@ -559,7 +559,7 @@ dependencies { implementation 'some.group:testlib:1.2' }
         fails("compileDebugCpp")
 
         then:
-        failure.assertThatCause(Matchers.containsString("C++ compiler failed while compiling main.cpp."))
+        failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:
         buildFile << """
@@ -615,7 +615,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         fails("compileDebugCpp")
 
         then:
-        failure.assertThatCause(Matchers.containsString("C++ compiler failed while compiling main.cpp."))
+        failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:
         buildFile.text = buildFile.text.replace("dependencies { implementation project(':logger')", "dependencies { api project(':logger')")

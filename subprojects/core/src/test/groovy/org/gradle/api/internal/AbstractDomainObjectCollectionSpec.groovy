@@ -28,14 +28,14 @@ import org.gradle.internal.Actions
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.ConfigureUtil
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Assume
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.hasMessage
 import static org.gradle.util.WrapUtil.toList
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 import static org.junit.Assert.assertThat
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
@@ -1586,7 +1586,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
             causes.add(exception)
             exception = exception.cause
         }
-        assertThat(causes, Matchers.hasItem(hasMessage(startsWith(message))))
+        assertThat(causes, CoreMatchers.hasItem(hasMessage(startsWith(message))))
     }
 
     @Unroll

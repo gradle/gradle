@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Issue
@@ -191,7 +191,7 @@ credentials {
         then:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+        failure.assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme        | credsName | creds
@@ -237,7 +237,7 @@ credentials {
         then:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
+        failure.assertThatCause(CoreMatchers.containsString('Received status code 500 from server: broken'))
 
         when:
         server.stop()

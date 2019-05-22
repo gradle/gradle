@@ -80,7 +80,7 @@ import spock.lang.Unroll
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
 import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 import static org.junit.Assert.assertThat
 
 class DefaultConfigurationSpec extends Specification {

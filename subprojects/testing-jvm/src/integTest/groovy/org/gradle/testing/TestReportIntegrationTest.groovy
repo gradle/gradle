@@ -25,7 +25,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 
 // https://github.com/junit-team/junit5/issues/1285
 @TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })

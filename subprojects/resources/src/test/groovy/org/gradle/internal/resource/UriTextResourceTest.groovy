@@ -26,7 +26,7 @@ import spock.lang.Specification
 import java.nio.charset.Charset
 
 import static org.gradle.internal.resource.UriTextResource.extractCharacterEncoding
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 import static org.junit.Assert.*
 
 class UriTextResourceTest extends Specification {

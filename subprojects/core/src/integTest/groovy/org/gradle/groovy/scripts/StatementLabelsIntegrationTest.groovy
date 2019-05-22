@@ -17,7 +17,7 @@
 package org.gradle.groovy.scripts
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 
 class StatementLabelsIntegrationTest extends AbstractIntegrationSpec {
     def "use of statement label in build script is reported"() {
@@ -30,14 +30,14 @@ version: '1.0'
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(2)
         failure.assertHasDescription("Could not compile build file '${buildFile}'.")
-        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
+        failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
 
         // try again to make sure that warning sticks if build script is cached
         fails("tasks")
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(2)
         failure.assertHasDescription("Could not compile build file '${buildFile}'.")
-        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
+        failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
     }
 
     def "all usages of statement labels are reported"() {
@@ -52,8 +52,8 @@ description: "bar"
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(2)
         failure.assertHasDescription("Could not compile build file '${buildFile}'.")
-        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
-        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 4: Statement labels may not be used in build scripts."))
+        failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
+        failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 4: Statement labels may not be used in build scripts."))
     }
 
     def "nested use of statement label in build script is reported"() {
@@ -72,7 +72,7 @@ def foo() {
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(5)
         failure.assertHasDescription("Could not compile build file '${buildFile}'.")
-        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 5: Statement labels may not be used in build scripts."))
+        failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 5: Statement labels may not be used in build scripts."))
     }
 
     def "use of statement label in class inside build script is allowed"() {

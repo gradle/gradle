@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
@@ -58,7 +58,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         testExecution.release(OTHER_RESOURCE)
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
+        result.testClass('pkg.FailedTest').assertTestFailed('failTest', CoreMatchers.anything())
         result.testClass('pkg.OtherTest').assertTestPassed('passingTest')
 
         where:
@@ -84,7 +84,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         testExecution.release(FAILED_RESOURCE)
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
+        result.testClass('pkg.FailedTest').assertTestFailed('failTest', CoreMatchers.anything())
         result.testClass('pkg.OtherTest').assertTestSkipped('passingTest')
 
         where:
@@ -108,7 +108,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         testExecution.release(1)
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
-        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', Matchers.anything()) }
+        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', CoreMatchers.anything()) }
         assert testOmitted == resourceForTest.keySet().with {
             count { !result.testClassExists(it) } +
                 count { result.testClassExists(it) && result.testClass(it).testCount == 0 } +
