@@ -1,6 +1,9 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features an [API for transforming artifacts on the fly](#artifact-transforms), improvements to [build init](#build-init) options such as capability to choose JUnit5 support and create plugin projects, new [factory methods](#factory-methods) for creating object containers, ability to declare [organization-wide properties with a custom Gradle Distribution](#gradle-properties), [project name deduplication in Eclipse Buildship](#eclipse-buildship), lots of updates to [Native support guides](#native-support), the Kotlin dependency has been upgraded to 1.3.31  for the [Gradle Kotlin DSL](#kotlin-dsl), and more.
+This release features improvements to [build init](#build-init) to generate plugin projects, 
+[an API for transforming dependency artifacts](#artifact-transforms), 
+the ability to declare [organization-wide Gradle properties](#gradle-properties), 
+lots of new [native plugin documentation](#native-support) and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
@@ -17,19 +20,8 @@ Include only their name, impactful features should be called out separately belo
 [Igor Melnichenko](https://github.com/Myllyenko),
 [Björn Kautler](https://github.com/Vampire),
 [Roberto Perez Alcolea](https://github.com/rpalcolea) and
-[Christian Fränkel](https://github.com/fraenkelc)
+[Christian Fränkel](https://github.com/fraenkelc).
 
-<!-- 
-## 1
-
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
 
 ## Upgrade Instructions
 
@@ -71,12 +63,6 @@ The `init` task can now generate simple Gradle plugin projects. You can use thes
 
 See the [User manual](userguide/build_init_plugin.html) for more details.
 
-<a name="factory-methods"/>
-
-## New factory methods for creating `NamedDomainObjectContainer` and `DomainObjectSet`
-
-The `ObjectFactory` can now be used for creating `NamedDomainObjectContainer` and `DomainObjectSet`.
-
 <a name="gradle-properties"/>
 
 ## Define organization-wide properties with a custom Gradle Distribution
@@ -85,7 +71,21 @@ Gradle now looks for a `gradle.properties` file in the Gradle distribution used 
 
 By placing a `gradle.properties` file in a [custom Gradle distribution](userguide/organizing_gradle_projects.html#sec:custom_gradle_distribution), an organization can add default properties for the entire organization or tweak the default Gradle daemon memory parameters with `org.gradle.jvmargs`.
 
-<a name="eclipse-buildship"/>
+<a name="native-support"/>
+
+## Building native software with Gradle
+
+Gradle's user manual now includes new chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects.  The DSL guide now includes [C++ related types](dsl/index.html#N10808).
+
+Reference chapters were also created for [all of the C++ plugins](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins](userguide/plugin_reference.html#ide_integration).
+
+The [C++ guides](https://gradle.org/guides/?q=Native) have been updated to reflect all the new features available to C++ developers.
+
+See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
+
+## Factory methods for creating domain object collections
+
+The [`ObjectFactory`](javadoc/org/gradle/api/model/ObjectFactory.html) has methods for creating [`NamedDomainObjectContainer`](javadoc/org/gradle/api/NamedDomainObjectContainer.html) and [`DomainObjectSet`](javadoc/org/gradle/api/DomainObjectSet.html).
 
 ## Improved Eclipse project name deduplication in Buildship
 
@@ -95,16 +95,6 @@ non-Gradle projects that conflict with project names in the imported project.
 The upcoming 3.1.1 version of Buildship is required to take advantage of this behavior.
 
 Contributed by [Christian Fränkel](https://github.com/fraenkelc)
-
-<a name="native-support"/>
-
-## Building native software with Gradle
-
-All new C++ documentations including new user manual chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects, [DSL reference for C++ components](dsl/index.html#N10808), [C++ plugins reference chapters](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins reference chapters](userguide/plugin_reference.html#ide_integration).
-The [C++ guides](https://gradle.org/guides/?q=Native) were also improved to reflect all the new features available to C++ developers.
-See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
-
-<a name="kotlin-dsl"/>
 
 ## Gradle Kotlin DSL compiler upgraded to Kotlin 1.3.31
 
