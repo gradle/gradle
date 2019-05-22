@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse
 import static org.gradle.test.fixtures.plugin.PluginBuilder.PLUGIN_MARKER_SUFFIX
 
 class MavenHttpPluginRepository extends MavenHttpRepository implements HttpPluginRepository, TestRule {
+    static final String PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY = BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
     static MavenHttpPluginRepository asGradlePluginPortal(GradleExecuter executer, MavenFileRepository backingRepository) {
         MavenHttpPluginRepository pluginRepo = new MavenHttpPluginRepository(backingRepository)
@@ -45,7 +46,7 @@ class MavenHttpPluginRepository extends MavenHttpRepository implements HttpPlugi
         executer.beforeExecute(new Action<GradleExecuter>() {
             void execute(GradleExecuter e) {
                 if (server.running) {
-                    e.withArgument("-D${BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${uri.toString()}")
+                    e.withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${uri.toString()}")
                 }
             }
         })
