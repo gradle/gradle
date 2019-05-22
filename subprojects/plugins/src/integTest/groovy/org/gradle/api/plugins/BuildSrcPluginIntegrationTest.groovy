@@ -170,6 +170,26 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         outputContains("From MyPluginSub")
     }
 
+    def "Default buildSrc root project dependencies are on the api"() {
+        when:
+        file("buildSrc/settings.gradle") << "include ':subInBuildSrc'"
+        file("buildSrc/subInBuildSrc/build.gradle") << """
+            plugins { id 'java-library' }
+            dependencies { implementation(project(':')) }
+        """
+        file("buildSrc/subInBuildSrc/src/main/java/MySubProjectClass.java") << """
+            import org.gradle.api.Project;
+            import groovy.lang.Closure;
+            public class MySubProjectClass {
+                private Project p;
+                private Closure c;
+            }
+        """
+        then:
+        succeeds "help"
+        outputContains("Task :buildSrc:subInBuildSrc:compileJava")
+    }
+
     private void writeBuildSrcPlugin(String location, String className) {
         file("${location}/src/main/groovy/${className}.groovy") << """
             import org.gradle.api.*
