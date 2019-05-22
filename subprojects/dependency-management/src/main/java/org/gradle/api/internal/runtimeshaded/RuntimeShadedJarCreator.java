@@ -171,17 +171,7 @@ class RuntimeShadedJarCreator {
 
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
         final List<FileVisitDetails> fileVisitDetails = new ArrayList<FileVisitDetails>();
-        directoryFileTreeFactory.create(file).visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                fileVisitDetails.add(dirDetails);
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                fileVisitDetails.add(fileDetails);
-            }
-        });
+        directoryFileTreeFactory.create(file).visit(new MyFileVisitor(fileVisitDetails));
 
         // We need to sort here since the file order obtained from the filesystem
         // can change between machines and we always want to have the same shaded jars.
@@ -446,6 +436,24 @@ class RuntimeShadedJarCreator {
                     super.visitFieldInsn(opcode, owner, name, desc);
                 }
             };
+        }
+    }
+
+    private static class MyFileVisitor implements FileVisitor {
+        private final List<FileVisitDetails> fileVisitDetails;
+
+        public MyFileVisitor(List<FileVisitDetails> fileVisitDetails) {
+            this.fileVisitDetails = fileVisitDetails;
+        }
+
+        @Override
+        public void visitDir(FileVisitDetails dirDetails) {
+            fileVisitDetails.add(dirDetails);
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            fileVisitDetails.add(fileDetails);
         }
     }
 }

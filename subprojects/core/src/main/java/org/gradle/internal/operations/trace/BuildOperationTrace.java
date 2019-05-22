@@ -168,87 +168,7 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {
-        Files.asCharSink(file(basePath, "-tree.txt"), Charsets.UTF_8).writeLines(new Iterable<String>() {
-            @Override
-            @Nonnull
-            public Iterator<String> iterator() {
-
-                final Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<Queue<BuildOperationRecord>>(Collections.singleton(new ArrayDeque<BuildOperationRecord>(roots)));
-                final StringBuilder stringBuilder = new StringBuilder();
-
-                return new Iterator<String>() {
-                    @Override
-                    public boolean hasNext() {
-                        if (stack.isEmpty()) {
-                            return false;
-                        } else if (stack.peek().isEmpty()) {
-                            stack.pop();
-                            return hasNext();
-                        } else {
-                            return true;
-                        }
-                    }
-
-                    @Override
-                    public String next() {
-                        Queue<BuildOperationRecord> children = stack.peek();
-                        BuildOperationRecord record = children.poll();
-
-                        stringBuilder.setLength(0);
-
-                        int indents = stack.size() - 1;
-
-                        for (int i = 0; i < indents; ++i) {
-                            stringBuilder.append("  ");
-                        }
-
-                        if (!record.children.isEmpty()) {
-                            stack.addFirst(new ArrayDeque<BuildOperationRecord>(record.children));
-                        }
-
-                        stringBuilder.append(record.displayName);
-
-                        if (record.details != null) {
-                            stringBuilder.append(" ");
-                            stringBuilder.append(JsonOutput.toJson(record.details));
-                        }
-
-                        if (record.result != null) {
-                            stringBuilder.append(" ");
-                            stringBuilder.append(JsonOutput.toJson(record.result));
-                        }
-
-                        stringBuilder.append(" [");
-                        stringBuilder.append(record.endTime - record.startTime);
-                        stringBuilder.append("ms]");
-
-                        stringBuilder.append(" (");
-                        stringBuilder.append(record.id);
-                        stringBuilder.append(")");
-
-                        if (!record.progress.isEmpty()) {
-                            for (BuildOperationRecord.Progress progress : record.progress) {
-                                stringBuilder.append(StandardSystemProperty.LINE_SEPARATOR.value());
-                                for (int i = 0; i < indents; ++i) {
-                                    stringBuilder.append("  ");
-                                }
-                                stringBuilder.append("- ")
-                                    .append(progress.details).append(" [")
-                                    .append(progress.time - record.startTime)
-                                    .append("]");
-                            }
-                        }
-
-                        return stringBuilder.toString();
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
-            }
-        });
+        Files.asCharSink(file(basePath, "-tree.txt"), Charsets.UTF_8).writeLines(new StringIterable(roots));
     }
 
     public static BuildOperationTree read(String basePath) {
@@ -361,6 +281,104 @@ public class BuildOperationTrace implements Stoppable {
             this.start = start;
         }
 
+    }
+
+    private static class StringIterator implements Iterator<String> {
+        private final Deque<Queue<BuildOperationRecord>> stack;
+        private final StringBuilder stringBuilder;
+
+        public StringIterator(Deque<Queue<BuildOperationRecord>> stack, StringBuilder stringBuilder) {
+            this.stack = stack;
+            this.stringBuilder = stringBuilder;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (stack.isEmpty()) {
+                return false;
+            } else if (stack.peek().isEmpty()) {
+                stack.pop();
+                return hasNext();
+            } else {
+                return true;
+            }
+        }
+
+        @Override
+        public String next() {
+            Queue<BuildOperationRecord> children = stack.peek();
+            BuildOperationRecord record = children.poll();
+
+            stringBuilder.setLength(0);
+
+            int indents = stack.size() - 1;
+
+            for (int i = 0; i < indents; ++i) {
+                stringBuilder.append("  ");
+            }
+
+            if (!record.children.isEmpty()) {
+                stack.addFirst(new ArrayDeque<BuildOperationRecord>(record.children));
+            }
+
+            stringBuilder.append(record.displayName);
+
+            if (record.details != null) {
+                stringBuilder.append(" ");
+                stringBuilder.append(JsonOutput.toJson(record.details));
+            }
+
+            if (record.result != null) {
+                stringBuilder.append(" ");
+                stringBuilder.append(JsonOutput.toJson(record.result));
+            }
+
+            stringBuilder.append(" [");
+            stringBuilder.append(record.endTime - record.startTime);
+            stringBuilder.append("ms]");
+
+            stringBuilder.append(" (");
+            stringBuilder.append(record.id);
+            stringBuilder.append(")");
+
+            if (!record.progress.isEmpty()) {
+                for (BuildOperationRecord.Progress progress : record.progress) {
+                    stringBuilder.append(StandardSystemProperty.LINE_SEPARATOR.value());
+                    for (int i = 0; i < indents; ++i) {
+                        stringBuilder.append("  ");
+                    }
+                    stringBuilder.append("- ")
+                        .append(progress.details).append(" [")
+                        .append(progress.time - record.startTime)
+                        .append("]");
+                }
+            }
+
+            return stringBuilder.toString();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class StringIterable implements Iterable<String> {
+        private final List<BuildOperationRecord> roots;
+
+        public StringIterable(List<BuildOperationRecord> roots) {
+            this.roots = roots;
+        }
+
+        @Override
+        @Nonnull
+        public Iterator<String> iterator() {
+
+            final Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<Queue<BuildOperationRecord>>(Collections.singleton(new ArrayDeque<BuildOperationRecord>(roots)));
+            final StringBuilder stringBuilder = new StringBuilder();
+
+            return new StringIterator(stack, stringBuilder);
+        }
     }
 
 

@@ -178,12 +178,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         if (parameterObject != null) {
-            parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new PropertyVisitor.Adapter() {
-                @Override
-                public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                    context.add(value.getTaskDependencies());
-                }
-            });
+            parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new MyAdapter(context));
         }
     }
 
@@ -415,6 +410,19 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
         public Isolatable<? extends TransformParameters> getIsolatedParameterObject() {
             return isolatedParameterObject;
+        }
+    }
+
+    private static class MyAdapter extends PropertyVisitor.Adapter {
+        private final TaskDependencyResolveContext context;
+
+        public MyAdapter(TaskDependencyResolveContext context) {
+            this.context = context;
+        }
+
+        @Override
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            context.add(value.getTaskDependencies());
         }
     }
 }

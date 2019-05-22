@@ -74,37 +74,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                     .orElse(null)
             );
 
-        return delegate.execute(new IncrementalChangesContext() {
-            @Override
-            public Optional<ExecutionStateChanges> getChanges() {
-                return Optional.ofNullable(changes);
-            }
-
-            @Override
-            public CachingState getCachingState() {
-                return context.getCachingState();
-            }
-
-            @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
-            }
-
-            @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
-            }
-
-            @Override
-            public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return beforeExecutionState;
-            }
-
-            @Override
-            public UnitOfWork getWork() {
-                return work;
-            }
-        });
+        return delegate.execute(new MyIncrementalChangesContext(changes, context, beforeExecutionState, work));
     }
 
     private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
@@ -128,6 +98,50 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 return new DefaultIncrementalInputProperties(builder.build());
             default:
                 throw new AssertionError("Unknown InputChangeTrackingStrategy: " + inputChangeTrackingStrategy);
+        }
+    }
+
+    private static class MyIncrementalChangesContext implements IncrementalChangesContext {
+        private final ExecutionStateChanges changes;
+        private final CachingContext context;
+        private final Optional<BeforeExecutionState> beforeExecutionState;
+        private final UnitOfWork work;
+
+        public MyIncrementalChangesContext(ExecutionStateChanges changes, CachingContext context, Optional<BeforeExecutionState> beforeExecutionState, UnitOfWork work) {
+            this.changes = changes;
+            this.context = context;
+            this.beforeExecutionState = beforeExecutionState;
+            this.work = work;
+        }
+
+        @Override
+        public Optional<ExecutionStateChanges> getChanges() {
+            return Optional.ofNullable(changes);
+        }
+
+        @Override
+        public CachingState getCachingState() {
+            return context.getCachingState();
+        }
+
+        @Override
+        public Optional<String> getRebuildReason() {
+            return context.getRebuildReason();
+        }
+
+        @Override
+        public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return context.getAfterPreviousExecutionState();
+        }
+
+        @Override
+        public Optional<BeforeExecutionState> getBeforeExecutionState() {
+            return beforeExecutionState;
+        }
+
+        @Override
+        public UnitOfWork getWork() {
+            return work;
         }
     }
 }

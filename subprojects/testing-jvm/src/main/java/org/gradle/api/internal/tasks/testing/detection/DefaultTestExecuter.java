@@ -90,12 +90,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                     classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
             }
         };
-        final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
-            @Override
-            public TestClassProcessor create() {
-                return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testExecutionSpec.getForkEvery());
-            }
-        };
+        final Factory<TestClassProcessor> reforkingProcessorFactory = new TestClassProcessorFactory(forkingProcessorFactory, testExecutionSpec);
         processor =
             new PatternMatchTestClassProcessor(testFilter,
                 new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(),
@@ -132,5 +127,20 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             maxParallelForks = maxWorkerCount;
         }
         return maxParallelForks;
+    }
+
+    private static class TestClassProcessorFactory implements Factory<TestClassProcessor> {
+        private final Factory<TestClassProcessor> forkingProcessorFactory;
+        private final JvmTestExecutionSpec testExecutionSpec;
+
+        public TestClassProcessorFactory(Factory<TestClassProcessor> forkingProcessorFactory, JvmTestExecutionSpec testExecutionSpec) {
+            this.forkingProcessorFactory = forkingProcessorFactory;
+            this.testExecutionSpec = testExecutionSpec;
+        }
+
+        @Override
+        public TestClassProcessor create() {
+            return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testExecutionSpec.getForkEvery());
+        }
     }
 }

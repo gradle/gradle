@@ -27,12 +27,7 @@ import java.util.Set;
 
 public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService {
     private final Object lock = new Object();
-    private final ThreadLocal<List<ResourceLockState>> currentState = new ThreadLocal<List<ResourceLockState>>() {
-        @Override
-        protected List<ResourceLockState> initialValue() {
-            return Lists.newArrayList();
-        }
-    };
+    private final ThreadLocal<List<ResourceLockState>> currentState = new ListThreadLocal();
 
     @Override
     public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction) {
@@ -215,6 +210,13 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                 resourceLock.unlock();
             }
             return ResourceLockState.Disposition.FINISHED;
+        }
+    }
+
+    private static class ListThreadLocal extends ThreadLocal<List<ResourceLockState>> {
+        @Override
+        protected List<ResourceLockState> initialValue() {
+            return Lists.newArrayList();
         }
     }
 }

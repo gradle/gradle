@@ -86,18 +86,26 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
     @Override
     public void run(final ResultHandler<? super Void> handler) {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
-        connection.run(new ConsumerAction<Void>() {
-            @Override
-            public ConsumerOperationParameters getParameters() {
-                return operationParameters;
-            }
+        connection.run(new VoidConsumerAction(operationParameters), new ResultHandlerAdapter(handler));
+    }
 
-            @Override
-            public Void run(ConsumerConnection connection) {
-                Void sink = connection.run(Void.class, operationParameters);
-                return sink;
-            }
-        }, new ResultHandlerAdapter(handler));
+    private static class VoidConsumerAction implements ConsumerAction<Void> {
+        private final ConsumerOperationParameters operationParameters;
+
+        public VoidConsumerAction(ConsumerOperationParameters operationParameters) {
+            this.operationParameters = operationParameters;
+        }
+
+        @Override
+        public ConsumerOperationParameters getParameters() {
+            return operationParameters;
+        }
+
+        @Override
+        public Void run(ConsumerConnection connection) {
+            Void sink = connection.run(Void.class, operationParameters);
+            return sink;
+        }
     }
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {

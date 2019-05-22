@@ -59,32 +59,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                 }
                 @SuppressWarnings("OptionalGetWithoutIsPresent")
                 AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecutionState().get();
-                return new UpToDateResult() {
-                    @Override
-                    public ImmutableList<String> getExecutionReasons() {
-                        return ImmutableList.of();
-                    }
-
-                    @Override
-                    public ImmutableSortedMap<String, FileCollectionFingerprint> getFinalOutputs() {
-                        return afterPreviousExecutionState.getOutputFileProperties();
-                    }
-
-                    @Override
-                    public OriginMetadata getOriginMetadata() {
-                        return afterPreviousExecutionState.getOriginMetadata();
-                    }
-
-                    @Override
-                    public Try<ExecutionOutcome> getOutcome() {
-                        return Try.successful(ExecutionOutcome.UP_TO_DATE);
-                    }
-
-                    @Override
-                    public boolean isReused() {
-                        return true;
-                    }
-                };
+                return new MyUpToDateResult2(afterPreviousExecutionState);
             } else {
                 return executeBecause(reasons, context);
             }
@@ -94,32 +69,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
     private UpToDateResult executeBecause(ImmutableList<String> reasons, C context) {
         logExecutionReasons(reasons, context.getWork());
         SnapshotResult result = delegate.execute(context);
-        return new UpToDateResult() {
-            @Override
-            public ImmutableList<String> getExecutionReasons() {
-                return reasons;
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
-                return result.getFinalOutputs();
-            }
-
-            @Override
-            public OriginMetadata getOriginMetadata() {
-                return result.getOriginMetadata();
-            }
-
-            @Override
-            public Try<ExecutionOutcome> getOutcome() {
-                return result.getOutcome();
-            }
-
-            @Override
-            public boolean isReused() {
-                return result.isReused();
-            }
-        };
+        return new MyUpToDateResult(reasons, result);
     }
 
     private void logExecutionReasons(List<String> reasons, UnitOfWork work) {
@@ -130,6 +80,74 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                 formatter.format("%n  %s", message);
             }
             LOGGER.info(formatter.toString());
+        }
+    }
+
+    private static class MyUpToDateResult implements UpToDateResult {
+        private final ImmutableList<String> reasons;
+        private final SnapshotResult result;
+
+        public MyUpToDateResult(ImmutableList<String> reasons, SnapshotResult result) {
+            this.reasons = reasons;
+            this.result = result;
+        }
+
+        @Override
+        public ImmutableList<String> getExecutionReasons() {
+            return reasons;
+        }
+
+        @Override
+        public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
+            return result.getFinalOutputs();
+        }
+
+        @Override
+        public OriginMetadata getOriginMetadata() {
+            return result.getOriginMetadata();
+        }
+
+        @Override
+        public Try<ExecutionOutcome> getOutcome() {
+            return result.getOutcome();
+        }
+
+        @Override
+        public boolean isReused() {
+            return result.isReused();
+        }
+    }
+
+    private static class MyUpToDateResult2 implements UpToDateResult {
+        private final AfterPreviousExecutionState afterPreviousExecutionState;
+
+        public MyUpToDateResult2(AfterPreviousExecutionState afterPreviousExecutionState) {
+            this.afterPreviousExecutionState = afterPreviousExecutionState;
+        }
+
+        @Override
+        public ImmutableList<String> getExecutionReasons() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public ImmutableSortedMap<String, FileCollectionFingerprint> getFinalOutputs() {
+            return afterPreviousExecutionState.getOutputFileProperties();
+        }
+
+        @Override
+        public OriginMetadata getOriginMetadata() {
+            return afterPreviousExecutionState.getOriginMetadata();
+        }
+
+        @Override
+        public Try<ExecutionOutcome> getOutcome() {
+            return Try.successful(ExecutionOutcome.UP_TO_DATE);
+        }
+
+        @Override
+        public boolean isReused() {
+            return true;
         }
     }
 }

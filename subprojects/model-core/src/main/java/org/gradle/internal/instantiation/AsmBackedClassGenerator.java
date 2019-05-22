@@ -632,20 +632,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             //     return metaClass;
             // }
 
-            final MethodCodeBody initMetaClass = new MethodCodeBody() {
-                @Override
-                public void add(MethodVisitor visitor) {
-                    // GroovySystem.getMetaClassRegistry()
-                    visitor.visitMethodInsn(Opcodes.INVOKESTATIC, GROOVY_SYSTEM_TYPE.getInternalName(), "getMetaClassRegistry", RETURN_META_CLASS_REGISTRY, false);
-
-                    // this.getClass()
-                    visitor.visitVarInsn(ALOAD, 0);
-                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, OBJECT_TYPE.getInternalName(), "getClass", RETURN_CLASS, false);
-
-                    // getMetaClass(..)
-                    visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_REGISTRY_TYPE.getInternalName(), "getMetaClass", RETURN_META_CLASS_FROM_CLASS, true);
-                }
-            };
+            final MethodCodeBody initMetaClass = new MyMethodCodeBody();
 
             addLazyGetter("getMetaClass", META_CLASS_TYPE, RETURN_META_CLASS, null, META_CLASS_FIELD, META_CLASS_TYPE, initMetaClass);
 
@@ -1510,6 +1497,21 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             ReturnTypeEntry(String fieldName, String getterName) {
                 this.fieldName = fieldName;
                 this.getterName = getterName;
+            }
+        }
+
+        private static class MyMethodCodeBody implements MethodCodeBody {
+            @Override
+            public void add(MethodVisitor visitor) {
+                // GroovySystem.getMetaClassRegistry()
+                visitor.visitMethodInsn(Opcodes.INVOKESTATIC, GROOVY_SYSTEM_TYPE.getInternalName(), "getMetaClassRegistry", RETURN_META_CLASS_REGISTRY, false);
+
+                // this.getClass()
+                visitor.visitVarInsn(ALOAD, 0);
+                visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, OBJECT_TYPE.getInternalName(), "getClass", RETURN_CLASS, false);
+
+                // getMetaClass(..)
+                visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_REGISTRY_TYPE.getInternalName(), "getMetaClass", RETURN_META_CLASS_FROM_CLASS, true);
             }
         }
     }

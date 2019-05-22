@@ -250,15 +250,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     public void determineExecutionPlan() {
-        List<NodeInVisitingSegment> nodeQueue = Lists.newArrayList(Iterables.transform(entryTasks, new Function<TaskNode, NodeInVisitingSegment>() {
-            private int index;
-
-            @Override
-            @SuppressWarnings("NullableProblems")
-            public NodeInVisitingSegment apply(TaskNode taskNode) {
-                return new NodeInVisitingSegment(taskNode, index++);
-            }
-        }));
+        List<NodeInVisitingSegment> nodeQueue = Lists.newArrayList(Iterables.transform(entryTasks, new TaskNodeNodeInVisitingSegmentFunction()));
         int visitingSegmentCounter = nodeQueue.size();
         Set<Node> dependenciesWhichRequireMonitoring = Sets.newHashSet();
 
@@ -1139,6 +1131,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     taskMapping.remove(((LocalTaskNode) removedNode).getTask());
                 }
             }
+        }
+    }
+
+    private static class TaskNodeNodeInVisitingSegmentFunction implements Function<TaskNode, NodeInVisitingSegment> {
+        private int index;
+
+        @Override
+        @SuppressWarnings("NullableProblems")
+        public NodeInVisitingSegment apply(TaskNode taskNode) {
+            return new NodeInVisitingSegment(taskNode, index++);
         }
     }
 }

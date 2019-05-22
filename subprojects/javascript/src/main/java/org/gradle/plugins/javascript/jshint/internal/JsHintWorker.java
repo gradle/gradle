@@ -26,7 +26,10 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.*;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.DefaultScopeOperation;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.childScope;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.readFile;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.toMap;
 
 public class JsHintWorker implements JsHintProtocol {
 
@@ -51,14 +54,23 @@ public class JsHintWorker implements JsHintProtocol {
     }
 
     private Map<String, Object> jsHint(Scriptable jsHintScope, final String source, final String sourceName) {
-        return childScope(jsHintScope, new DefaultScopeOperation<Map<String, Object>>() {
-            @Override
-            public Map<String, Object> action(Scriptable scope, Context context) {
-                scope.put("jsHintSource", scope, source);
-                Object data = context.evaluateString(scope, "JSHINT(jsHintSource); JSHINT.data();", sourceName, 0, null);
-                return toMap((Scriptable) data);
-            }
-        });
+        return childScope(jsHintScope, new MapDefaultScopeOperation(source, sourceName));
     }
 
+    private static class MapDefaultScopeOperation extends DefaultScopeOperation<Map<String, Object>> {
+        private final String source;
+        private final String sourceName;
+
+        public MapDefaultScopeOperation(String source, String sourceName) {
+            this.source = source;
+            this.sourceName = sourceName;
+        }
+
+        @Override
+        public Map<String, Object> action(Scriptable scope, Context context) {
+            scope.put("jsHintSource", scope, source);
+            Object data = context.evaluateString(scope, "JSHINT(jsHintSource); JSHINT.data();", sourceName, 0, null);
+            return toMap((Scriptable) data);
+        }
+    }
 }

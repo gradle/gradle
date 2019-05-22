@@ -109,42 +109,44 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
 
         @Override
         public SourceTransformTaskConfig getTransformTask() {
-            return new SourceTransformTaskConfig() {
-                @Override
-                public String getTaskPrefix() {
-                    return "minify";
-                }
-
-                @Override
-                public Class<? extends DefaultTask> getTaskType() {
-                    return JavaScriptMinify.class;
-                }
-
-                @Override
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-                    PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
-                    JavaScriptSourceSet javaScriptSourceSet = (JavaScriptSourceSet) sourceSet;
-                    JavaScriptMinify javaScriptMinify = (JavaScriptMinify) task;
-
-                    javaScriptMinify.setDescription("Minifies javascript for the " + javaScriptSourceSet.getDisplayName() + ".");
-
-                    File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
-                    File outputDirectory = new File(generatedSourceDir, javaScriptMinify.getName());
-                    javaScriptMinify.setDestinationDir(outputDirectory);
-
-                    javaScriptMinify.setSource(javaScriptSourceSet.getSource());
-                    javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());
-                    javaScriptMinify.dependsOn(javaScriptSourceSet);
-                    binary.getAssets().addAssetDir(outputDirectory);
-
-                    binary.getAssets().builtBy(javaScriptMinify);
-                }
-            };
+            return new MySourceTransformTaskConfig();
         }
 
         @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
+        }
+
+        private static class MySourceTransformTaskConfig implements SourceTransformTaskConfig {
+            @Override
+            public String getTaskPrefix() {
+                return "minify";
+            }
+
+            @Override
+            public Class<? extends DefaultTask> getTaskType() {
+                return JavaScriptMinify.class;
+            }
+
+            @Override
+            public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+                PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
+                JavaScriptSourceSet javaScriptSourceSet = (JavaScriptSourceSet) sourceSet;
+                JavaScriptMinify javaScriptMinify = (JavaScriptMinify) task;
+
+                javaScriptMinify.setDescription("Minifies javascript for the " + javaScriptSourceSet.getDisplayName() + ".");
+
+                File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
+                File outputDirectory = new File(generatedSourceDir, javaScriptMinify.getName());
+                javaScriptMinify.setDestinationDir(outputDirectory);
+
+                javaScriptMinify.setSource(javaScriptSourceSet.getSource());
+                javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());
+                javaScriptMinify.dependsOn(javaScriptSourceSet);
+                binary.getAssets().addAssetDir(outputDirectory);
+
+                binary.getAssets().builtBy(javaScriptMinify);
+            }
         }
     }
 }

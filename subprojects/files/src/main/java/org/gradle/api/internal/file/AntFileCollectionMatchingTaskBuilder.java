@@ -20,10 +20,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
-import org.gradle.internal.metaobject.BeanDynamicObject;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.tasks.AntBuilderAware;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 
 import java.util.Collections;
 
@@ -54,22 +54,47 @@ public class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
             dynamicObject.invokeMethod(childNodeName, Collections.singletonMap("location", fileTree.getDir()));
         }
 
-        dynamicObject.invokeMethod("or", new Closure<Void>(this) {
-            public Object doCall(Object ignore) {
-                for (final DirectoryFileTree fileTree : existing) {
-                    dynamicObject.invokeMethod("and", new Closure<Void>(this) {
-                        public Object doCall(Object ignore) {
-                            dynamicObject.invokeMethod("gradleBaseDirSelector", Collections.singletonMap("baseDir", fileTree.getDir()));
-                            fileTree.getPatterns().addToAntBuilder(node, null);
-                            return null;
-                        }
-                    });
-                }
-                return null;
-            }
-        });
+        dynamicObject.invokeMethod("or", new VoidClosure2(existing, dynamicObject, node));
 
         return node;
     }
 
+    private class VoidClosure extends Closure<Void> {
+        private final DynamicObject dynamicObject;
+        private final DirectoryFileTree fileTree;
+        private final Object node;
+
+        public VoidClosure(DynamicObject dynamicObject, DirectoryFileTree fileTree, Object node) {
+            super(AntFileCollectionMatchingTaskBuilder.this);
+            this.dynamicObject = dynamicObject;
+            this.fileTree = fileTree;
+            this.node = node;
+        }
+
+        public Object doCall(Object ignore) {
+            dynamicObject.invokeMethod("gradleBaseDirSelector", Collections.singletonMap("baseDir", fileTree.getDir()));
+            fileTree.getPatterns().addToAntBuilder(node, null);
+            return null;
+        }
+    }
+
+    private class VoidClosure2 extends Closure<Void> {
+        private final Iterable<DirectoryFileTree> existing;
+        private final DynamicObject dynamicObject;
+        private final Object node;
+
+        public VoidClosure2(Iterable<DirectoryFileTree> existing, DynamicObject dynamicObject, Object node) {
+            super(AntFileCollectionMatchingTaskBuilder.this);
+            this.existing = existing;
+            this.dynamicObject = dynamicObject;
+            this.node = node;
+        }
+
+        public Object doCall(Object ignore) {
+            for (final DirectoryFileTree fileTree : existing) {
+                dynamicObject.invokeMethod("and", new VoidClosure(dynamicObject, fileTree, node));
+            }
+            return null;
+        }
+    }
 }

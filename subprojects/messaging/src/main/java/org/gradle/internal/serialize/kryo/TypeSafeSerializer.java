@@ -34,12 +34,7 @@ public class TypeSafeSerializer<T> implements StatefulSerializer<Object> {
     @Override
     public ObjectReader<Object> newReader(Decoder decoder) {
         final ObjectReader<T> reader = serializer.newReader(decoder);
-        return new ObjectReader<Object>() {
-            @Override
-            public Object read() throws Exception {
-                return reader.read();
-            }
-        };
+        return new MyObjectReader(reader);
     }
 
     @Override
@@ -51,5 +46,18 @@ public class TypeSafeSerializer<T> implements StatefulSerializer<Object> {
                 writer.write(type.cast(value));
             }
         };
+    }
+
+    private class MyObjectReader implements ObjectReader<Object> {
+        private final ObjectReader<T> reader;
+
+        public MyObjectReader(ObjectReader<T> reader) {
+            this.reader = reader;
+        }
+
+        @Override
+        public Object read() throws Exception {
+            return reader.read();
+        }
     }
 }

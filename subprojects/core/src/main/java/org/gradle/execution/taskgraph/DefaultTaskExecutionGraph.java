@@ -235,12 +235,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void beforeTask(final Action<Task> action) {
-        taskListeners.add(new TaskExecutionAdapter() {
-            @Override
-            public void beforeExecute(Task task) {
-                action.execute(task);
-            }
-        });
+        taskListeners.add(new MyTaskExecutionAdapter2(action));
     }
 
     @Override
@@ -250,12 +245,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void afterTask(final Action<Task> action) {
-        taskListeners.add(new TaskExecutionAdapter() {
-            @Override
-            public void afterExecute(Task task, TaskState state) {
-                action.execute(task);
-            }
-        });
+        taskListeners.add(new MyTaskExecutionAdapter(action));
     }
 
     @Override
@@ -407,6 +397,32 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
                 .details(new NotifyTaskGraphWhenReadyBuildOperationType.DetailsImpl(
                     gradleInternal.getIdentityPath()
                 ));
+        }
+    }
+
+    private static class MyTaskExecutionAdapter extends TaskExecutionAdapter {
+        private final Action<Task> action;
+
+        public MyTaskExecutionAdapter(Action<Task> action) {
+            this.action = action;
+        }
+
+        @Override
+        public void afterExecute(Task task, TaskState state) {
+            action.execute(task);
+        }
+    }
+
+    private static class MyTaskExecutionAdapter2 extends TaskExecutionAdapter {
+        private final Action<Task> action;
+
+        public MyTaskExecutionAdapter2(Action<Task> action) {
+            this.action = action;
+        }
+
+        @Override
+        public void beforeExecute(Task task) {
+            action.execute(task);
         }
     }
 }

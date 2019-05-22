@@ -373,20 +373,10 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
         ConfigurationVariant classesVariant = runtimeVariants.create("classes");
         classesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_CLASSES));
-        classesVariant.artifact(new JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
-            @Override
-            public File getFile() {
-                return javaCompile.get().getDestinationDir();
-            }
-        });
+        classesVariant.artifact(new MyIntermediateJavaArtifact2(javaCompile));
         ConfigurationVariant resourcesVariant = runtimeVariants.create("resources");
         resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
-        resourcesVariant.artifact(new JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
-            @Override
-            public File getFile() {
-                return processResources.get().getDestinationDir();
-            }
-        });
+        resourcesVariant.artifact(new MyIntermediateJavaArtifact(processResources));
     }
 
     private void configureBuild(Project project) {
@@ -546,4 +536,31 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         }
     }
 
+    private static class MyIntermediateJavaArtifact extends JavaPluginsHelper.IntermediateJavaArtifact {
+        private final Provider<ProcessResources> processResources;
+
+        public MyIntermediateJavaArtifact(Provider<ProcessResources> processResources) {
+            super(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources);
+            this.processResources = processResources;
+        }
+
+        @Override
+        public File getFile() {
+            return processResources.get().getDestinationDir();
+        }
+    }
+
+    private static class MyIntermediateJavaArtifact2 extends JavaPluginsHelper.IntermediateJavaArtifact {
+        private final Provider<JavaCompile> javaCompile;
+
+        public MyIntermediateJavaArtifact2(Provider<JavaCompile> javaCompile) {
+            super(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile);
+            this.javaCompile = javaCompile;
+        }
+
+        @Override
+        public File getFile() {
+            return javaCompile.get().getDestinationDir();
+        }
+    }
 }

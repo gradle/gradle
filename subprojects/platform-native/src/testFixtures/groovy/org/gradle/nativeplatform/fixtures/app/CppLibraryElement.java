@@ -41,25 +41,33 @@ public abstract class CppLibraryElement extends CppSourceElement {
      */
     public CppLibraryElement asLib() {
         final CppLibraryElement delegate = this;
-        return new CppLibraryElement() {
-            @Override
-            public SourceElement getPublicHeaders() {
-                List<SourceFile> headers = new ArrayList<SourceFile>();
-                for (SourceFile sourceFile : delegate.getPublicHeaders().getFiles()) {
-                    headers.add(sourceFile("public", sourceFile.getName(), sourceFile.getContent()));
-                }
-                return SourceElement.ofFiles(headers);
-            }
+        return new MyCppLibraryElement(delegate);
+    }
 
-            @Override
-            public SourceElement getPrivateHeaders() {
-                return delegate.getPrivateHeaders();
-            }
+    private class MyCppLibraryElement extends CppLibraryElement {
+        private final CppLibraryElement delegate;
 
-            @Override
-            public SourceElement getSources() {
-                return delegate.getSources();
+        public MyCppLibraryElement(CppLibraryElement delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public SourceElement getPublicHeaders() {
+            List<SourceFile> headers = new ArrayList<SourceFile>();
+            for (SourceFile sourceFile : delegate.getPublicHeaders().getFiles()) {
+                headers.add(sourceFile("public", sourceFile.getName(), sourceFile.getContent()));
             }
-        };
+            return SourceElement.ofFiles(headers);
+        }
+
+        @Override
+        public SourceElement getPrivateHeaders() {
+            return delegate.getPrivateHeaders();
+        }
+
+        @Override
+        public SourceElement getSources() {
+            return delegate.getSources();
+        }
     }
 }

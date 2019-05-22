@@ -204,12 +204,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     private boolean containsProjectLocks(Iterable<? extends ResourceLock> locks) {
-        return Iterables.any(locks, new Predicate<ResourceLock>() {
-            @Override
-            public boolean apply(@Nullable ResourceLock lock) {
-                return lock instanceof ProjectLock;
-            }
-        });
+        return Iterables.any(locks, new ResourceLockPredicate());
     }
 
     private Iterable<? extends ResourceLock> locksNotHeld(final Iterable<? extends ResourceLock> locks) {
@@ -218,19 +213,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         }
 
         final List<ResourceLock> locksNotHeld = Lists.newArrayList(locks);
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                Iterator<ResourceLock> iterator = locksNotHeld.iterator();
-                while (iterator.hasNext()) {
-                    ResourceLock lock = iterator.next();
-                    if (lock.isLockedByCurrentThread()) {
-                        iterator.remove();
-                    }
-                }
-                return FINISHED;
-            }
-        });
+        coordinationService.withStateLock(new DispositionResourceLockStateTransformer2(locksNotHeld));
         return locksNotHeld;
     }
 
@@ -270,18 +253,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
 
     private boolean allLockedByCurrentThread(final Iterable<? extends ResourceLock> locks) {
         final MutableBoolean allLocked = new MutableBoolean();
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                allLocked.set(CollectionUtils.every(locks, new Spec<ResourceLock>() {
-                    @Override
-                    public boolean isSatisfiedBy(ResourceLock lock) {
-                        return lock.isLockedByCurrentThread();
-                    }
-                }));
-                return FINISHED;
-            }
-        });
+        coordinationService.withStateLock(new DispositionResourceLockStateTransformer(allLocked, locks));
         return allLocked.get();
     }
 
@@ -302,12 +274,70 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         }
 
         ResourceLock getResourceLock(final Path lockPath) {
-            return getOrRegisterResourceLock(lockPath, new ResourceLockProducer<Path, ProjectLock>() {
-                @Override
-                public ProjectLock create(Path projectPath, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-                    return new ProjectLock(lockPath.getPath(), coordinationService, lockAction, unlockAction);
+            return getOrRegisterResourceLock(lockPath, new PathProjectLockResourceLockProducer(lockPath));
+        }
+
+        private static class PathProjectLockResourceLockProducer implements ResourceLockProducer<Path, ProjectLock> {
+            private final Path lockPath;
+
+            public PathProjectLockResourceLockProducer(Path lockPath) {
+                this.lockPath = lockPath;
+            }
+
+            @Override
+            public ProjectLock create(Path projectPath, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+                return new ProjectLock(lockPath.getPath(), coordinationService, lockAction, unlockAction);
+            }
+        }
+    }
+
+    private static class ResourceLockSpec implements Spec<ResourceLock> {
+        @Override
+        public boolean isSatisfiedBy(ResourceLock lock) {
+            return lock.isLockedByCurrentThread();
+        }
+    }
+
+    private static class DispositionResourceLockStateTransformer implements Transformer<ResourceLockState.Disposition, ResourceLockState> {
+        private final MutableBoolean allLocked;
+        private final Iterable<? extends ResourceLock> locks;
+
+        public DispositionResourceLockStateTransformer(MutableBoolean allLocked, Iterable<? extends ResourceLock> locks) {
+            this.allLocked = allLocked;
+            this.locks = locks;
+        }
+
+        @Override
+        public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+            allLocked.set(CollectionUtils.every(locks, new ResourceLockSpec()));
+            return FINISHED;
+        }
+    }
+
+    private static class DispositionResourceLockStateTransformer2 implements Transformer<ResourceLockState.Disposition, ResourceLockState> {
+        private final List<ResourceLock> locksNotHeld;
+
+        public DispositionResourceLockStateTransformer2(List<ResourceLock> locksNotHeld) {
+            this.locksNotHeld = locksNotHeld;
+        }
+
+        @Override
+        public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+            Iterator<ResourceLock> iterator = locksNotHeld.iterator();
+            while (iterator.hasNext()) {
+                ResourceLock lock = iterator.next();
+                if (lock.isLockedByCurrentThread()) {
+                    iterator.remove();
                 }
-            });
+            }
+            return FINISHED;
+        }
+    }
+
+    private static class ResourceLockPredicate implements Predicate<ResourceLock> {
+        @Override
+        public boolean apply(@Nullable ResourceLock lock) {
+            return lock instanceof ProjectLock;
         }
     }
 

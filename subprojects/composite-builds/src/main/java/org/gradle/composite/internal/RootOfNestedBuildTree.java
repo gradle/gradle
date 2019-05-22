@@ -109,8 +109,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
                         }
                     });
                     T result = buildAction.transform(buildController);
-                    context.setResult(new RunNestedBuildBuildOperationType.Result() {
-                    });
+                    context.setResult(new MyResult());
                     return result;
                 }
 
@@ -128,6 +127,9 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         } finally {
             buildController.stop();
         }
+    }
+
+    private static class MyResult implements RunNestedBuildBuildOperationType.Result {
     }
 }
 

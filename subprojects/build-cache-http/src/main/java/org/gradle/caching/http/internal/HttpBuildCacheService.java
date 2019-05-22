@@ -136,32 +136,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         httpPut.addHeader(HttpHeaders.CONTENT_TYPE, BUILD_CACHE_CONTENT_TYPE);
         addDiagnosticHeaders(httpPut);
 
-        httpPut.setEntity(new AbstractHttpEntity() {
-            @Override
-            public boolean isRepeatable() {
-                return false;
-            }
-
-            @Override
-            public long getContentLength() {
-                return output.getSize();
-            }
-
-            @Override
-            public InputStream getContent() throws IOException, UnsupportedOperationException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void writeTo(OutputStream outstream) throws IOException {
-                output.writeTo(outstream);
-            }
-
-            @Override
-            public boolean isStreaming() {
-                return false;
-            }
-        });
+        httpPut.setEntity(new MyAbstractHttpEntity(output));
         try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpPut)) {
             StatusLine statusLine = response.getStatusLine();
             if (LOGGER.isDebugEnabled()) {
@@ -224,6 +199,39 @@ public class HttpBuildCacheService implements BuildCacheService {
             return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private static class MyAbstractHttpEntity extends AbstractHttpEntity {
+        private final BuildCacheEntryWriter output;
+
+        public MyAbstractHttpEntity(BuildCacheEntryWriter output) {
+            this.output = output;
+        }
+
+        @Override
+        public boolean isRepeatable() {
+            return false;
+        }
+
+        @Override
+        public long getContentLength() {
+            return output.getSize();
+        }
+
+        @Override
+        public InputStream getContent() throws IOException, UnsupportedOperationException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void writeTo(OutputStream outstream) throws IOException {
+            output.writeTo(outstream);
+        }
+
+        @Override
+        public boolean isStreaming() {
+            return false;
         }
     }
 }

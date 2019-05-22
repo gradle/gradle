@@ -259,17 +259,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         private JvmMemoryStatus snapshot;
 
         public WorkerJvmMemoryStatus() {
-            this.snapshot = new JvmMemoryStatus() {
-                @Override
-                public long getMaxMemory() {
-                    throw new IllegalStateException("JVM memory status has not been reported yet.");
-                }
-
-                @Override
-                public long getCommittedMemory() {
-                    throw new IllegalStateException("JVM memory status has not been reported yet.");
-                }
-            };
+            this.snapshot = new MyJvmMemoryStatus();
         }
 
         @Override
@@ -285,6 +275,18 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         @Override
         public long getCommittedMemory() {
             return snapshot.getCommittedMemory();
+        }
+
+        private static class MyJvmMemoryStatus implements JvmMemoryStatus {
+            @Override
+            public long getMaxMemory() {
+                throw new IllegalStateException("JVM memory status has not been reported yet.");
+            }
+
+            @Override
+            public long getCommittedMemory() {
+                throw new IllegalStateException("JVM memory status has not been reported yet.");
+            }
         }
     }
 }

@@ -542,17 +542,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     @Override
     public PublishedFile getPublishedFile(PublishArtifact source) {
         final String publishedUrl = getPublishedUrl(source);
-        return new PublishedFile() {
-            @Override
-            public String getName() {
-                return publishedUrl;
-            }
-
-            @Override
-            public String getUri() {
-                return publishedUrl;
-            }
-        };
+        return new MyPublishedFile(publishedUrl);
     }
 
     @Override
@@ -570,5 +560,23 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     @Override
     public Set<IvyExcludeRule> getGlobalExcludes() {
         return globalExcludes;
+    }
+
+    private static class MyPublishedFile implements PublishedFile {
+        private final String publishedUrl;
+
+        public MyPublishedFile(String publishedUrl) {
+            this.publishedUrl = publishedUrl;
+        }
+
+        @Override
+        public String getName() {
+            return publishedUrl;
+        }
+
+        @Override
+        public String getUri() {
+            return publishedUrl;
+        }
     }
 }

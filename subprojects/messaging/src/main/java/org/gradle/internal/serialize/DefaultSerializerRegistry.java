@@ -29,12 +29,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class DefaultSerializerRegistry implements SerializerRegistry {
-    private final Map<Class<?>, Serializer<?>> serializerMap = new TreeMap<Class<?>, Serializer<?>>(new Comparator<Class<?>>() {
-        @Override
-        public int compare(Class<?> o1, Class<?> o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
-    });
+    private final Map<Class<?>, Serializer<?>> serializerMap = new TreeMap<Class<?>, Serializer<?>>(new ClassComparator());
     private final Set<Class<?>> javaSerialization = new HashSet<Class<?>>();
     private final SerializerClassMatcherStrategy classMatcher;
 
@@ -209,6 +204,13 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         @Override
         public boolean matches(Class<?> baseType, Class<?> candidate) {
             return baseType.equals(candidate);
+        }
+    }
+
+    private static class ClassComparator implements Comparator<Class<?>> {
+        @Override
+        public int compare(Class<?> o1, Class<?> o2) {
+            return o1.getName().compareTo(o2.getName());
         }
     }
 }

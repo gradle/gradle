@@ -49,39 +49,49 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
         final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(new FileSystemSnapshotVisitor() {
-                private boolean root = true;
-
-                @Override
-                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
-                    String absolutePath = directorySnapshot.getAbsolutePath();
-                    if (processedEntries.add(absolutePath)) {
-                        FileSystemLocationFingerprint fingerprint = isRoot() ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY : new DefaultFileSystemLocationFingerprint(directorySnapshot.getName(), directorySnapshot);
-                        builder.put(absolutePath, fingerprint);
-                    }
-                    root = false;
-                    return true;
-                }
-
-                @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
-                    String absolutePath = fileSnapshot.getAbsolutePath();
-                    if (processedEntries.add(absolutePath)) {
-                        builder.put(
-                            absolutePath,
-                            new DefaultFileSystemLocationFingerprint(fileSnapshot.getName(), fileSnapshot));
-                    }
-                }
-
-                private boolean isRoot() {
-                    return root;
-                }
-
-                @Override
-                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
-                }
-            });
+            root.accept(new MyFileSystemSnapshotVisitor(processedEntries, builder));
         }
         return builder.build();
+    }
+
+    private static class MyFileSystemSnapshotVisitor implements FileSystemSnapshotVisitor {
+        private final HashSet<String> processedEntries;
+        private final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder;
+        private boolean root;
+
+        public MyFileSystemSnapshotVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder) {
+            this.processedEntries = processedEntries;
+            this.builder = builder;
+            root = true;
+        }
+
+        @Override
+        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            String absolutePath = directorySnapshot.getAbsolutePath();
+            if (processedEntries.add(absolutePath)) {
+                FileSystemLocationFingerprint fingerprint = isRoot() ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY : new DefaultFileSystemLocationFingerprint(directorySnapshot.getName(), directorySnapshot);
+                builder.put(absolutePath, fingerprint);
+            }
+            root = false;
+            return true;
+        }
+
+        @Override
+        public void visit(FileSystemLocationSnapshot fileSnapshot) {
+            String absolutePath = fileSnapshot.getAbsolutePath();
+            if (processedEntries.add(absolutePath)) {
+                builder.put(
+                    absolutePath,
+                    new DefaultFileSystemLocationFingerprint(fileSnapshot.getName(), fileSnapshot));
+            }
+        }
+
+        private boolean isRoot() {
+            return root;
+        }
+
+        @Override
+        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+        }
     }
 }

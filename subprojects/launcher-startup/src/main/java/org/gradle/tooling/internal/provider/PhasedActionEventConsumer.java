@@ -41,19 +41,29 @@ public class PhasedActionEventConsumer implements BuildEventConsumer {
             final PhasedBuildActionResult resultEvent = (PhasedBuildActionResult) event;
             final Object deserializedResult = payloadSerializer.deserialize(resultEvent.result);
 
-            phasedActionResultListener.onResult(new PhasedActionResult<Object>() {
-                @Override
-                public Object getResult() {
-                    return deserializedResult;
-                }
-
-                @Override
-                public PhasedActionResult.Phase getPhase() {
-                    return resultEvent.phase;
-                }
-            });
+            phasedActionResultListener.onResult(new MyPhasedActionResult(deserializedResult, resultEvent));
         } else {
             delegate.dispatch(event);
+        }
+    }
+
+    private static class MyPhasedActionResult implements PhasedActionResult<Object> {
+        private final Object deserializedResult;
+        private final PhasedBuildActionResult resultEvent;
+
+        public MyPhasedActionResult(Object deserializedResult, PhasedBuildActionResult resultEvent) {
+            this.deserializedResult = deserializedResult;
+            this.resultEvent = resultEvent;
+        }
+
+        @Override
+        public Object getResult() {
+            return deserializedResult;
+        }
+
+        @Override
+        public Phase getPhase() {
+            return resultEvent.phase;
         }
     }
 }

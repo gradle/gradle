@@ -38,20 +38,30 @@ public class TaskDetailsFactory {
         } else {
             path = task.getPath();
         }
-        return new TaskDetails() {
-            private Path cachedPath;
-            @Override
-            public Path getPath() {
-                if (cachedPath == null) {
-                    cachedPath = Path.path(path);
-                }
-                return cachedPath;
-            }
+        return new MyTaskDetails(path, task);
+    }
 
-            @Override
-            public String getDescription() {
-                return task.getDescription();
+    private static class MyTaskDetails implements TaskDetails {
+        private final String path;
+        private final Task task;
+        private Path cachedPath;
+
+        public MyTaskDetails(String path, Task task) {
+            this.path = path;
+            this.task = task;
+        }
+
+        @Override
+        public Path getPath() {
+            if (cachedPath == null) {
+                cachedPath = Path.path(path);
             }
-        };
+            return cachedPath;
+        }
+
+        @Override
+        public String getDescription() {
+            return task.getDescription();
+        }
     }
 }

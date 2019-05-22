@@ -52,12 +52,7 @@ public class BufferingStyledTextOutput extends AbstractStyledTextOutput {
             return;
         }
         hasContent = true;
-        events.add(new Action<StyledTextOutput>() {
-            @Override
-            public void execute(StyledTextOutput styledTextOutput) {
-                styledTextOutput.text(text);
-            }
-        });
+        events.add(new StyledTextOutputAction(text));
     }
 
     public boolean getHasContent() {
@@ -74,6 +69,19 @@ public class BufferingStyledTextOutput extends AbstractStyledTextOutput {
         @Override
         public void execute(StyledTextOutput styledTextOutput) {
             styledTextOutput.style(style);
+        }
+    }
+
+    private static class StyledTextOutputAction implements Action<StyledTextOutput> {
+        private final String text;
+
+        public StyledTextOutputAction(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public void execute(StyledTextOutput styledTextOutput) {
+            styledTextOutput.text(text);
         }
     }
 }

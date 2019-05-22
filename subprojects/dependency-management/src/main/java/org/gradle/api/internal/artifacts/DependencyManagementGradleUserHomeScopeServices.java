@@ -59,16 +59,24 @@ public class DependencyManagementGradleUserHomeScopeServices {
 
     ImmutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(ImmutableTransformationWorkspaceProvider immutableTransformationWorkspaceProvider, ListenerManager listenerManager) {
         ImmutableCachingTransformationWorkspaceProvider cachingWorkspaceProvider = new ImmutableCachingTransformationWorkspaceProvider(immutableTransformationWorkspaceProvider);
-        listenerManager.addListener(new RootBuildLifecycleListener() {
-            @Override
-            public void afterStart() {
-            }
-
-            @Override
-            public void beforeComplete() {
-                cachingWorkspaceProvider.clearInMemoryCache();
-            }
-        });
+        listenerManager.addListener(new MyRootBuildLifecycleListener(cachingWorkspaceProvider));
         return cachingWorkspaceProvider;
+    }
+
+    private static class MyRootBuildLifecycleListener implements RootBuildLifecycleListener {
+        private final ImmutableCachingTransformationWorkspaceProvider cachingWorkspaceProvider;
+
+        public MyRootBuildLifecycleListener(ImmutableCachingTransformationWorkspaceProvider cachingWorkspaceProvider) {
+            this.cachingWorkspaceProvider = cachingWorkspaceProvider;
+        }
+
+        @Override
+        public void afterStart() {
+        }
+
+        @Override
+        public void beforeComplete() {
+            cachingWorkspaceProvider.clearInMemoryCache();
+        }
     }
 }

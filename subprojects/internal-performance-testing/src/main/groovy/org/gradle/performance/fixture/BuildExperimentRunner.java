@@ -207,12 +207,7 @@ public class BuildExperimentRunner {
         final InvocationCustomizer experimentSpecificCustomizer = invocationInfo.getBuildExperimentSpec().getInvocationCustomizer();
         if (experimentSpecificCustomizer != null) {
             if (invocationCustomizer != null) {
-                return new InvocationCustomizer() {
-                    @Override
-                    public <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo info, T invocationSpec) {
-                        return experimentSpecificCustomizer.customize(info, invocationCustomizer.customize(info, invocationSpec));
-                    }
-                };
+                return new MyInvocationCustomizer(experimentSpecificCustomizer, invocationCustomizer);
             } else {
                 return experimentSpecificCustomizer;
             }
@@ -227,5 +222,20 @@ public class BuildExperimentRunner {
         args.add("-PbuildExperimentIterationNumber=" + iterationNumber);
         args.add("-PbuildExperimentIterationMax=" + iterationMax);
         return args;
+    }
+
+    private static class MyInvocationCustomizer implements InvocationCustomizer {
+        private final InvocationCustomizer experimentSpecificCustomizer;
+        private final InvocationCustomizer invocationCustomizer;
+
+        public MyInvocationCustomizer(InvocationCustomizer experimentSpecificCustomizer, InvocationCustomizer invocationCustomizer) {
+            this.experimentSpecificCustomizer = experimentSpecificCustomizer;
+            this.invocationCustomizer = invocationCustomizer;
+        }
+
+        @Override
+        public <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo info, T invocationSpec) {
+            return experimentSpecificCustomizer.customize(info, invocationCustomizer.customize(info, invocationSpec));
+        }
     }
 }

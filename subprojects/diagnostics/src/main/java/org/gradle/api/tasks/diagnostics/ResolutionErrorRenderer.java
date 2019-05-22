@@ -119,22 +119,29 @@ class ResolutionErrorRenderer implements Action<Throwable> {
     }
 
     private DependencyResult asDependencyResult(final ModuleVersionIdentifier versionIdentifier) {
-        return new DependencyResult() {
-            @Override
-            public ComponentSelector getRequested() {
-                return DefaultModuleComponentSelector.newSelector(versionIdentifier.getModule(), versionIdentifier.getVersion());
-            }
-
-            @Override
-            public ResolvedComponentResult getFrom() {
-                return null;
-            }
-
-            @Override
-            public boolean isConstraint() {
-                return false;
-            }
-        };
+        return new MyDependencyResult(versionIdentifier);
     }
 
+    private static class MyDependencyResult implements DependencyResult {
+        private final ModuleVersionIdentifier versionIdentifier;
+
+        public MyDependencyResult(ModuleVersionIdentifier versionIdentifier) {
+            this.versionIdentifier = versionIdentifier;
+        }
+
+        @Override
+        public ComponentSelector getRequested() {
+            return DefaultModuleComponentSelector.newSelector(versionIdentifier.getModule(), versionIdentifier.getVersion());
+        }
+
+        @Override
+        public ResolvedComponentResult getFrom() {
+            return null;
+        }
+
+        @Override
+        public boolean isConstraint() {
+            return false;
+        }
+    }
 }

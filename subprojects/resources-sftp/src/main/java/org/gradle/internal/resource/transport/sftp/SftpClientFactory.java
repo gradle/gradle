@@ -122,52 +122,57 @@ public class SftpClientFactory implements Stoppable {
                 JSch.setConfig("MaxAuthTries", "1");
                 jsch = new JSch();
                 if(LOGGER.isDebugEnabled()) {
-                    JSch.setLogger(new com.jcraft.jsch.Logger() {
-                        @Override
-                        public boolean isEnabled(int level) {
-                            return true;
-                        }
-                        @Override
-                        public void log(int level, String message) {
-                            LOGGER.debug(message);
-                        }
-                    });
+                    JSch.setLogger(new MyLogger());
                 }
-                jsch.setHostKeyRepository(new HostKeyRepository() {
-                    @Override
-                    public int check(String host, byte[] key) {
-                        return HostKeyRepository.OK;
-                    }
-
-                    @Override
-                    public void add(HostKey hostkey, UserInfo ui) {
-                    }
-
-                    @Override
-                    public void remove(String host, String type) {
-                    }
-
-                    @Override
-                    public void remove(String host, String type, byte[] key) {
-                    }
-
-                    @Override
-                    public String getKnownHostsRepositoryID() {
-                        return "allow-everything";
-                    }
-
-                    @Override
-                    public HostKey[] getHostKey() {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    @Override
-                    public HostKey[] getHostKey(String host, String type) {
-                        return new HostKey[0];
-                    }
-                });
+                jsch.setHostKeyRepository(new MyHostKeyRepository());
             }
             return jsch;
+        }
+
+        private static class MyHostKeyRepository implements HostKeyRepository {
+            @Override
+            public int check(String host, byte[] key) {
+                return HostKeyRepository.OK;
+            }
+
+            @Override
+            public void add(HostKey hostkey, UserInfo ui) {
+            }
+
+            @Override
+            public void remove(String host, String type) {
+            }
+
+            @Override
+            public void remove(String host, String type, byte[] key) {
+            }
+
+            @Override
+            public String getKnownHostsRepositoryID() {
+                return "allow-everything";
+            }
+
+            @Override
+            public HostKey[] getHostKey() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public HostKey[] getHostKey(String host, String type) {
+                return new HostKey[0];
+            }
+        }
+
+        private static class MyLogger implements com.jcraft.jsch.Logger {
+            @Override
+            public boolean isEnabled(int level) {
+                return true;
+            }
+
+            @Override
+            public void log(int level, String message) {
+                LOGGER.debug(message);
+            }
         }
     }
 

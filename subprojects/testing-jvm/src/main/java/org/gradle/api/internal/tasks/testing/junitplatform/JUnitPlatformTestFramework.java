@@ -57,12 +57,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
-        return new Action<WorkerProcessBuilder>() {
-            @Override
-            public void execute(@Nonnull WorkerProcessBuilder workerProcessBuilder) {
-                workerProcessBuilder.sharedPackages("org.junit");
-            }
-        };
+        return new WorkerProcessBuilderAction();
     }
 
     @Override
@@ -94,6 +89,13 @@ public class JUnitPlatformTestFramework implements TestFramework {
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
+        }
+    }
+
+    private static class WorkerProcessBuilderAction implements Action<WorkerProcessBuilder> {
+        @Override
+        public void execute(@Nonnull WorkerProcessBuilder workerProcessBuilder) {
+            workerProcessBuilder.sharedPackages("org.junit");
         }
     }
 }

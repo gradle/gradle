@@ -102,12 +102,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     public boolean hasOutput(long id, final TestOutputEvent.Destination destination) {
         return Iterables.any(
                 classOutputProviders.get(id),
-                new Predicate<DelegateProvider>() {
-                    @Override
-                    public boolean apply(DelegateProvider delegateProvider) {
-                        return delegateProvider.provider.hasOutput(delegateProvider.id, destination);
-                    }
-                });
+            new DelegateProviderPredicate(destination));
     }
 
     @Override
@@ -119,12 +114,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
 
     @Override
     public boolean isHasResults() {
-        return any(providers, new Spec<TestResultsProvider>() {
-            @Override
-            public boolean isSatisfiedBy(TestResultsProvider element) {
-                return element.isHasResults();
-            }
-        });
+        return any(providers, new TestResultsProviderSpec());
     }
 
     @Override
@@ -144,5 +134,25 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     @Override
     public void close() throws IOException {
         CompositeStoppable.stoppable(providers).stop();
+    }
+
+    private static class TestResultsProviderSpec implements Spec<TestResultsProvider> {
+        @Override
+        public boolean isSatisfiedBy(TestResultsProvider element) {
+            return element.isHasResults();
+        }
+    }
+
+    private static class DelegateProviderPredicate implements Predicate<DelegateProvider> {
+        private final TestOutputEvent.Destination destination;
+
+        public DelegateProviderPredicate(TestOutputEvent.Destination destination) {
+            this.destination = destination;
+        }
+
+        @Override
+        public boolean apply(DelegateProvider delegateProvider) {
+            return delegateProvider.provider.hasOutput(delegateProvider.id, destination);
+        }
     }
 }

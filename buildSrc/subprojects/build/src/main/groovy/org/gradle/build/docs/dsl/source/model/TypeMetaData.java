@@ -92,17 +92,7 @@ public class TypeMetaData implements Serializable, TypeContainer {
     public String getSignature() {
         final StringBuilder builder = new StringBuilder();
 
-        visitSignature(new SignatureVisitor() {
-            @Override
-            public void visitText(String text) {
-                builder.append(text);
-            }
-
-            @Override
-            public void visitType(String name) {
-                builder.append(name);
-            }
-        });
+        visitSignature(new MySignatureVisitor(builder));
         return builder.toString();
     }
 
@@ -218,5 +208,23 @@ public class TypeMetaData implements Serializable, TypeContainer {
     @Override
     public int hashCode() {
         return Objects.hash(name, arrayDimensions, varargs, typeArgs, wildcard, upperBounds, lowerBounds);
+    }
+
+    private static class MySignatureVisitor implements SignatureVisitor {
+        private final StringBuilder builder;
+
+        public MySignatureVisitor(StringBuilder builder) {
+            this.builder = builder;
+        }
+
+        @Override
+        public void visitText(String text) {
+            builder.append(text);
+        }
+
+        @Override
+        public void visitType(String name) {
+            builder.append(name);
+        }
     }
 }

@@ -28,20 +28,27 @@ public class EnvJsEvaluateWorker implements EnvJvEvaluateProtocol {
 
         final String targetUrl = spec.getUrl();
 
-        return parseRhino(spec.getEnvJs(), new DefaultScopeOperation<String>() {
-            @Override
-            public void initContext(Context context) {
-                context.setOptimizationLevel(-1);
-            }
-
-            @Override
-            public String action(Scriptable scope, Context context) {
-                scope.put("targetUrl", scope, targetUrl);
-                context.evaluateString(scope, "Envjs({scriptTypes: {'': true, 'text/javascript': true}});", targetUrl, 0, null);
-                Object html = context.evaluateString(scope, "window.location = targetUrl; document.getElementsByTagName('html')[0].innerHTML;", targetUrl, 0, null);
-                return (String) html;
-            }
-        });
+        return parseRhino(spec.getEnvJs(), new StringDefaultScopeOperation(targetUrl));
     }
 
+    private static class StringDefaultScopeOperation extends DefaultScopeOperation<String> {
+        private final String targetUrl;
+
+        public StringDefaultScopeOperation(String targetUrl) {
+            this.targetUrl = targetUrl;
+        }
+
+        @Override
+        public void initContext(Context context) {
+            context.setOptimizationLevel(-1);
+        }
+
+        @Override
+        public String action(Scriptable scope, Context context) {
+            scope.put("targetUrl", scope, targetUrl);
+            context.evaluateString(scope, "Envjs({scriptTypes: {'': true, 'text/javascript': true}});", targetUrl, 0, null);
+            Object html = context.evaluateString(scope, "window.location = targetUrl; document.getElementsByTagName('html')[0].innerHTML;", targetUrl, 0, null);
+            return (String) html;
+        }
+    }
 }

@@ -144,47 +144,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         @Override
         public LenientConfiguration getLenientConfiguration() {
-            return new LenientConfiguration() {
-                @Override
-                public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<ResolvedDependency> getAllModuleDependencies() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<File> getFiles() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<ResolvedArtifact> getArtifacts() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
-                    return Collections.emptySet();
-                }
-            };
+            return new MyLenientConfiguration();
         }
 
         @Override
@@ -214,6 +174,48 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         @Override
         public Set<ResolvedArtifact> getResolvedArtifacts() {
             return Collections.emptySet();
+        }
+
+        private static class MyLenientConfiguration implements LenientConfiguration {
+            @Override
+            public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public Set<ResolvedDependency> getAllModuleDependencies() {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public Set<File> getFiles() {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public Set<ResolvedArtifact> getArtifacts() {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+                return Collections.emptySet();
+            }
         }
     }
 }

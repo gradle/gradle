@@ -85,12 +85,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         rootBuild = launcher;
 
         final DefaultDeploymentRegistry deploymentRegistry = parentRegistry.get(DefaultDeploymentRegistry.class);
-        launcher.getGradle().addBuildListener(new InternalBuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-                deploymentRegistry.buildFinished(result);
-            }
-        });
+        launcher.getGradle().addBuildListener(new MyInternalBuildAdapter(deploymentRegistry));
 
         return launcher;
     }
@@ -152,6 +147,19 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         nestedBuildFactory.setParent(gradleLauncher);
         nestedBuildFactory.setBuildCancellationToken(buildTreeScopeServices.get(BuildCancellationToken.class));
         return gradleLauncher;
+    }
+
+    private static class MyInternalBuildAdapter extends InternalBuildAdapter {
+        private final DefaultDeploymentRegistry deploymentRegistry;
+
+        public MyInternalBuildAdapter(DefaultDeploymentRegistry deploymentRegistry) {
+            this.deploymentRegistry = deploymentRegistry;
+        }
+
+        @Override
+        public void buildFinished(BuildResult result) {
+            deploymentRegistry.buildFinished(result);
+        }
     }
 
     private class NestedBuildFactoryImpl implements NestedBuildFactory {

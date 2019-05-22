@@ -92,35 +92,37 @@ public class JvmResourcesPlugin implements Plugin<Project> {
 
         @Override
         public SourceTransformTaskConfig getTransformTask() {
-            return new SourceTransformTaskConfig() {
-                @Override
-                public String getTaskPrefix() {
-                    return "process";
-                }
-
-                @Override
-                public Class<? extends DefaultTask> getTaskType() {
-                    return ProcessResources.class;
-                }
-
-                @Override
-                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-                    ProcessResources resourcesTask = (ProcessResources) task;
-                    JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
-                    resourcesTask.from(resourceSet.getSource());
-
-                    // The first directory is the one created by JvmComponentPlugin.configureJvmBinaries()
-                    // to be used as the default output directory for processed resources
-                    JvmAssembly assembly = ((WithJvmAssembly) binary).getAssembly();
-                    resourcesTask.setDestinationDir(first(assembly.getResourceDirectories()));
-
-                    assembly.builtBy(resourcesTask);
-                }
-            };
+            return new MySourceTransformTaskConfig();
         }
         @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof WithJvmAssembly;
+        }
+
+        private static class MySourceTransformTaskConfig implements SourceTransformTaskConfig {
+            @Override
+            public String getTaskPrefix() {
+                return "process";
+            }
+
+            @Override
+            public Class<? extends DefaultTask> getTaskType() {
+                return ProcessResources.class;
+            }
+
+            @Override
+            public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+                ProcessResources resourcesTask = (ProcessResources) task;
+                JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
+                resourcesTask.from(resourceSet.getSource());
+
+                // The first directory is the one created by JvmComponentPlugin.configureJvmBinaries()
+                // to be used as the default output directory for processed resources
+                JvmAssembly assembly = ((WithJvmAssembly) binary).getAssembly();
+                resourcesTask.setDestinationDir(first(assembly.getResourceDirectories()));
+
+                assembly.builtBy(resourcesTask);
+            }
         }
     }
 }

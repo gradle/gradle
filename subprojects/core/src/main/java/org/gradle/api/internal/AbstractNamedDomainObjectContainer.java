@@ -119,7 +119,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
     @Override
     public TypeOf<?> getPublicType() {
-        return parameterizedTypeOf(new TypeOf<NamedDomainObjectContainer<?>>() {}, typeOf(getType()));
+        return parameterizedTypeOf(new NamedDomainObjectContainerTypeOf(), typeOf(getType()));
     }
 
     @Override
@@ -141,6 +141,9 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
         );
         addLater(provider);
         return provider;
+    }
+
+    private static class NamedDomainObjectContainerTypeOf extends TypeOf<NamedDomainObjectContainer<?>> {
     }
 
     // Cannot be private due to reflective instantiation

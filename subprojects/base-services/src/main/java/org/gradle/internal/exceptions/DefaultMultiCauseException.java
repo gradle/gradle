@@ -74,12 +74,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     }
 
     private ThreadLocal<Boolean> threadLocal() {
-        return new ThreadLocal<Boolean>() {
-            @Override
-            protected Boolean initialValue() {
-                return false;
-            }
-        };
+        return new BooleanThreadLocal();
     }
 
     @Override
@@ -144,5 +139,12 @@ public class DefaultMultiCauseException extends GradleException implements Multi
             return message;
         }
         return message;
+    }
+
+    private static class BooleanThreadLocal extends ThreadLocal<Boolean> {
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
     }
 }

@@ -63,25 +63,33 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
         }
         Set<RenderableDependency> children = Sets.newLinkedHashSet();
         for (final Dependency dependency : dependencies) {
-            children.add(new AbstractRenderableDependency() {
-                @Override
-                public Object getId() {
-                    return dependency;
-                }
-
-                @Override
-                public String getName() {
-                    String label;
-                    if (dependency instanceof ProjectDependency) {
-                        label = "project " + dependency.getName();
-                    } else {
-                        label = Joiner.on(":").join(Iterables.filter(Arrays.asList(dependency.getGroup(), dependency.getName(), dependency.getVersion()), Predicates.<String>notNull()));
-                    }
-                    return label;
-                }
-
-            });
+            children.add(new MyAbstractRenderableDependency(dependency));
         }
         return children;
+    }
+
+    private static class MyAbstractRenderableDependency extends AbstractRenderableDependency {
+        private final Dependency dependency;
+
+        public MyAbstractRenderableDependency(Dependency dependency) {
+            this.dependency = dependency;
+        }
+
+        @Override
+        public Object getId() {
+            return dependency;
+        }
+
+        @Override
+        public String getName() {
+            String label;
+            if (dependency instanceof ProjectDependency) {
+                label = "project " + dependency.getName();
+            } else {
+                label = Joiner.on(":").join(Iterables.filter(Arrays.asList(dependency.getGroup(), dependency.getName(), dependency.getVersion()), Predicates.<String>notNull()));
+            }
+            return label;
+        }
+
     }
 }

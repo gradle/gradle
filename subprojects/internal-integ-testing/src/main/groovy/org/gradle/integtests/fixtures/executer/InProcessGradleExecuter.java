@@ -436,9 +436,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         final List<String> executedTasks = new CopyOnWriteArrayList<String>();
         final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
 
-        BuildListenerImpl() {
-        }
-
         @Override
         public void graphPopulated(TaskExecutionGraph graph) {
             List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
@@ -814,9 +811,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     private static class TestClassLoaderRegistry implements PayloadClassLoaderRegistry {
-        TestClassLoaderRegistry() {
-        }
-
         @Override
         public SerializeMap newSerializeSession() {
             throw new UnsupportedOperationException();

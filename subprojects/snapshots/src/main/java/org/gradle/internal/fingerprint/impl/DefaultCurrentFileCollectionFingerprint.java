@@ -61,22 +61,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         this.roots = roots;
 
         final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
-        accept(new FileSystemSnapshotVisitor() {
-            @Override
-            public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
-                builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
-                return false;
-            }
-
-            @Override
-            public void visit(FileSystemLocationSnapshot fileSnapshot) {
-                builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
-            }
-
-            @Override
-            public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
-            }
-        });
+        accept(new MyFileSystemSnapshotVisitor(builder));
         this.rootHashes = builder.build();
     }
 
@@ -130,6 +115,29 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         }
         for (FileSystemSnapshot root : roots) {
             root.accept(visitor);
+        }
+    }
+
+    private static class MyFileSystemSnapshotVisitor implements FileSystemSnapshotVisitor {
+        private final ImmutableMultimap.Builder<String, HashCode> builder;
+
+        public MyFileSystemSnapshotVisitor(ImmutableMultimap.Builder<String, HashCode> builder) {
+            this.builder = builder;
+        }
+
+        @Override
+        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
+            return false;
+        }
+
+        @Override
+        public void visit(FileSystemLocationSnapshot fileSnapshot) {
+            builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
+        }
+
+        @Override
+        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
         }
     }
 }

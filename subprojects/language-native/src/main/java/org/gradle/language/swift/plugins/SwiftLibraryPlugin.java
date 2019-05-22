@@ -34,13 +34,13 @@ import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
-import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
-import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachineFactory;
@@ -99,35 +99,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         module.set(GUtil.toCamelCase(project.getName()));
 
         library.getTargetMachines().convention(useHostAsDefaultTargetMachine(targetMachineFactory));
-        library.getDevelopmentBinary().convention(project.provider(new Callable<SwiftBinary>() {
-            @Override
-            public SwiftBinary call() throws Exception {
-                return getDebugSharedHostStream().findFirst().orElse(
-                        getDebugStaticHostStream().findFirst().orElse(
-                                getDebugSharedStream().findFirst().orElse(
-                                        getDebugStaticStream().findFirst().orElse(null))));
-            }
-
-            private Stream<SwiftBinary> getDebugStream() {
-                return library.getBinaries().get().stream().filter(binary -> !binary.isOptimized());
-            }
-
-            private Stream<SwiftBinary> getDebugSharedStream() {
-                return getDebugStream().filter(SwiftSharedLibrary.class::isInstance);
-            }
-
-            private Stream<SwiftBinary> getDebugSharedHostStream() {
-                return getDebugSharedStream().filter(binary -> Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()));
-            }
-
-            private Stream<SwiftBinary> getDebugStaticStream() {
-                return getDebugStream().filter(SwiftStaticLibrary.class::isInstance);
-            }
-
-            private Stream<SwiftBinary> getDebugStaticHostStream() {
-                return getDebugStaticStream().filter(binary -> Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()));
-            }
-        }));
+        library.getDevelopmentBinary().convention(project.provider(new SwiftBinaryCallable(library)));
 
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
@@ -180,5 +152,41 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
             library.getBinaries().realizeNow();
         });
+    }
+
+    private static class SwiftBinaryCallable implements Callable<SwiftBinary> {
+        private final DefaultSwiftLibrary library;
+
+        public SwiftBinaryCallable(DefaultSwiftLibrary library) {
+            this.library = library;
+        }
+
+        @Override
+        public SwiftBinary call() throws Exception {
+            return getDebugSharedHostStream().findFirst().orElse(
+                    getDebugStaticHostStream().findFirst().orElse(
+                            getDebugSharedStream().findFirst().orElse(
+                                    getDebugStaticStream().findFirst().orElse(null))));
+        }
+
+        private Stream<SwiftBinary> getDebugStream() {
+            return library.getBinaries().get().stream().filter(binary -> !binary.isOptimized());
+        }
+
+        private Stream<SwiftBinary> getDebugSharedStream() {
+            return getDebugStream().filter(SwiftSharedLibrary.class::isInstance);
+        }
+
+        private Stream<SwiftBinary> getDebugSharedHostStream() {
+            return getDebugSharedStream().filter(binary -> Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()));
+        }
+
+        private Stream<SwiftBinary> getDebugStaticStream() {
+            return getDebugStream().filter(SwiftStaticLibrary.class::isInstance);
+        }
+
+        private Stream<SwiftBinary> getDebugStaticHostStream() {
+            return getDebugStaticStream().filter(binary -> Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()));
+        }
     }
 }

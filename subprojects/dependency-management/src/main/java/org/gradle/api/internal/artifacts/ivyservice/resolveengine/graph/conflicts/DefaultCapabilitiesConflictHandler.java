@@ -79,19 +79,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 candidatesForConflict.removeIf(n -> !n.isRoot() && n.getComponent().getId().getModule().equals(rootModuleId));
             }
             if (candidatesForConflict.size() > 1) {
-                PotentialConflict conflict = new PotentialConflict() {
-                    @Override
-                    public void withParticipatingModules(Action<ModuleIdentifier> action) {
-                        for (NodeState node : candidatesForConflict) {
-                            action.execute(node.getComponent().getId().getModule());
-                        }
-                    }
-
-                    @Override
-                    public boolean conflictExists() {
-                        return true;
-                    }
-                };
+                PotentialConflict conflict = new MyPotentialConflict(candidatesForConflict);
                 conflicts.add(new CapabilityConflict(group, name, candidatesForConflict));
                 return conflict;
             }
@@ -293,5 +281,25 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             }
         }
         return false;
+    }
+
+    private static class MyPotentialConflict implements PotentialConflict {
+        private final List<NodeState> candidatesForConflict;
+
+        public MyPotentialConflict(List<NodeState> candidatesForConflict) {
+            this.candidatesForConflict = candidatesForConflict;
+        }
+
+        @Override
+        public void withParticipatingModules(Action<ModuleIdentifier> action) {
+            for (NodeState node : candidatesForConflict) {
+                action.execute(node.getComponent().getId().getModule());
+            }
+        }
+
+        @Override
+        public boolean conflictExists() {
+            return true;
+        }
     }
 }

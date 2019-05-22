@@ -55,25 +55,14 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     @Override
     public Set<File> getFiles() {
         final Set<File> files = new LinkedHashSet<File>();
-        visit(new EmptyFileVisitor() {
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                files.add(fileDetails.getFile());
-            }
-        });
+        visit(new MyEmptyFileVisitor3(files));
         return files;
     }
 
     @Override
     public boolean isEmpty() {
         final MutableBoolean found = new MutableBoolean();
-        visit(new EmptyFileVisitor() {
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                found.set(true);
-                fileDetails.stopVisiting();
-            }
-        });
+        visit(new MyEmptyFileVisitor2(found));
         return !found.get();
     }
 
@@ -97,12 +86,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     public Map<String, File> getAsMap() {
         final Map<String, File> map = new LinkedHashMap<String, File>();
-        visit(new EmptyFileVisitor() {
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                map.put(fileDetails.getRelativePath().getPathString(), fileDetails.getFile());
-            }
-        });
+        visit(new MyEmptyFileVisitor(map));
         return map;
     }
 
@@ -116,19 +100,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
      */
     protected boolean visitAll() {
         final MutableBoolean hasContent = new MutableBoolean();
-        visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                dirDetails.getFile();
-                hasContent.set(true);
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                fileDetails.getFile();
-                hasContent.set(true);
-            }
-        });
+        visit(new MyFileVisitor2(hasContent));
         return hasContent.get();
     }
 
@@ -153,17 +125,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     @Override
     public FileTree visit(final Action<? super FileVisitDetails> visitor) {
-        return visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                visitor.execute(dirDetails);
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                visitor.execute(fileDetails);
-            }
-        });
+        return visit(new MyFileVisitor(visitor));
     }
 
     @Override
@@ -224,6 +186,84 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         @Override
         public void visitTreeOrBackingFile(FileVisitor visitor) {
             fileTree.visitTreeOrBackingFile(visitor);
+        }
+    }
+
+    private static class MyFileVisitor implements FileVisitor {
+        private final Action<? super FileVisitDetails> visitor;
+
+        public MyFileVisitor(Action<? super FileVisitDetails> visitor) {
+            this.visitor = visitor;
+        }
+
+        @Override
+        public void visitDir(FileVisitDetails dirDetails) {
+            visitor.execute(dirDetails);
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            visitor.execute(fileDetails);
+        }
+    }
+
+    private static class MyFileVisitor2 implements FileVisitor {
+        private final MutableBoolean hasContent;
+
+        public MyFileVisitor2(MutableBoolean hasContent) {
+            this.hasContent = hasContent;
+        }
+
+        @Override
+        public void visitDir(FileVisitDetails dirDetails) {
+            dirDetails.getFile();
+            hasContent.set(true);
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            fileDetails.getFile();
+            hasContent.set(true);
+        }
+    }
+
+    private static class MyEmptyFileVisitor extends EmptyFileVisitor {
+        private final Map<String, File> map;
+
+        public MyEmptyFileVisitor(Map<String, File> map) {
+            this.map = map;
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            map.put(fileDetails.getRelativePath().getPathString(), fileDetails.getFile());
+        }
+    }
+
+    private static class MyEmptyFileVisitor2 extends EmptyFileVisitor {
+        private final MutableBoolean found;
+
+        public MyEmptyFileVisitor2(MutableBoolean found) {
+            this.found = found;
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            found.set(true);
+            fileDetails.stopVisiting();
+        }
+    }
+
+    private static class MyEmptyFileVisitor3 extends EmptyFileVisitor {
+        private final Set<File> files;
+
+        public MyEmptyFileVisitor3(Set<File> files) {
+            this.files = files;
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            files.add(fileDetails.getFile());
         }
     }
 }

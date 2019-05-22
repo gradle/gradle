@@ -128,12 +128,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void bridgeToSoftwareModelIfNecessary(ProjectInternal project) {
-        project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
-            @Override
-            public void prepareForRuleBasedPlugins(Project project) {
-                project.getPluginManager().apply(JavaBasePluginRules.class);
-            }
-        });
+        project.addRuleBasedPluginListener(new MyRuleBasedPluginListener());
     }
 
     private void configureSchema(ProjectInternal project) {
@@ -160,78 +155,26 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 Provider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
 
-                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
-                    @Override
-                    public CompileOptions transform(JavaCompile javaCompile) {
-                        return javaCompile.getOptions();
-                    }
-                }));
+                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new CompileOptionsJavaCompileTransformer()));
             }
         });
     }
 
     Provider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
-        return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
-            @Override
-            public void execute(JavaCompile compileTask) {
-                compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
-                compileTask.setSource(sourceDirectorySet);
-                ConventionMapping conventionMapping = compileTask.getConventionMapping();
-                conventionMapping.map("classpath", new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        return sourceSet.getCompileClasspath();
-                    }
-                });
-                SourceSetUtil.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
-                compileTask.setDestinationDir(target.provider(new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return sourceDirectorySet.getOutputDir();
-                    }
-                }));
-            }
-        });
+        return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new JavaCompileAction(sourceDirectorySet, sourceSet, target));
     }
 
     void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
-        target.getTasks().register(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new Action<ProcessResources>() {
-            @Override
-            public void execute(ProcessResources resourcesTask) {
-                resourcesTask.setDescription("Processes " + resourceSet + ".");
-                new DslObject(resourcesTask.getRootSpec()).getConventionMapping().map("destinationDir", new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return sourceSet.getOutput().getResourcesDir();
-                    }
-                });
-                resourcesTask.from(resourceSet);
-            }
-        });
+        target.getTasks().register(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new ProcessResourcesAction(resourceSet, sourceSet));
     }
 
     void createClassesTask(final SourceSet sourceSet, Project target) {
-        Provider<Task> classesTask = target.getTasks().register(sourceSet.getClassesTaskName(), new Action<Task>() {
-            @Override
-            public void execute(Task classesTask) {
-                classesTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-                classesTask.setDescription("Assembles " + sourceSet.getOutput() + ".");
-                classesTask.dependsOn(sourceSet.getOutput().getDirs());
-                classesTask.dependsOn(sourceSet.getCompileJavaTaskName());
-                classesTask.dependsOn(sourceSet.getProcessResourcesTaskName());
-            }
-        });
+        Provider<Task> classesTask = target.getTasks().register(sourceSet.getClassesTaskName(), new TaskAction222(sourceSet));
         sourceSet.compiledBy(classesTask);
     }
 
     void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
-        outputConventionMapping.map("resourcesDir", new Callable<Object>() {
-            @Override
-            public Object call() {
-                String classesDirName = "resources/" + sourceSet.getName();
-                return new File(project.getBuildDir(), classesDirName);
-            }
-        });
+        outputConventionMapping.map("resourcesDir", new MyCallable2222222(sourceSet, project));
 
         sourceSet.getJava().srcDir("src/" + sourceSet.getName() + "/java");
         sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
@@ -307,85 +250,23 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private Action<ConfigurationInternal> configureDefaultTargetPlatform(final JavaPluginConvention convention) {
-        return new Action<ConfigurationInternal>() {
-            @Override
-            public void execute(ConfigurationInternal conf) {
-                if (!convention.getAutoTargetJvmDisabled()) {
-                    JavaEcosystemSupport.configureDefaultTargetPlatform(conf, convention.getTargetCompatibility());
-                }
-            }
-        };
+        return new ConfigurationInternalAction(convention);
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
-        project.getTasks().withType(AbstractCompile.class).configureEach(new Action<AbstractCompile>() {
-            @Override
-            public void execute(final AbstractCompile compile) {
-                ConventionMapping conventionMapping = compile.getConventionMapping();
-                conventionMapping.map("sourceCompatibility", new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        return javaConvention.getSourceCompatibility().toString();
-                    }
-                });
-                conventionMapping.map("targetCompatibility", new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        return javaConvention.getTargetCompatibility().toString();
-                    }
-                });
-            }
-        });
+        project.getTasks().withType(AbstractCompile.class).configureEach(new AbstractCompileAction(javaConvention));
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().withType(Javadoc.class).configureEach(new Action<Javadoc>() {
-            @Override
-            public void execute(Javadoc javadoc) {
-                javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        return new File(convention.getDocsDir(), "javadoc");
-                    }
-                });
-                javadoc.getConventionMapping().map("title", new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
-                    }
-                });
-            }
-        });
+        project.getTasks().withType(Javadoc.class).configureEach(new JavadocAction(convention, project));
     }
 
     private void configureBuildNeeded(Project project) {
-        project.getTasks().register(BUILD_NEEDED_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task buildTask) {
-                buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
-                buildTask.setGroup(BasePlugin.BUILD_GROUP);
-                buildTask.dependsOn(BUILD_TASK_NAME);
-            }
-        });
+        project.getTasks().register(BUILD_NEEDED_TASK_NAME, new TaskAction22());
     }
 
     private void configureBuildDependents(Project project) {
-        project.getTasks().register(BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task buildTask) {
-                buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
-                buildTask.setGroup(BasePlugin.BUILD_GROUP);
-                buildTask.dependsOn(BUILD_TASK_NAME);
-                buildTask.doFirst(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        if (!task.getProject().getGradle().getIncludedBuilds().isEmpty()) {
-                            task.getProject().getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
-                        }
-                    }
-                });
-            }
-        });
+        project.getTasks().register(BUILD_DEPENDENTS_TASK_NAME, new TaskAction2());
     }
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
@@ -401,24 +282,305 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         DslObject htmlReport = new DslObject(test.getReports().getHtml());
         DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
 
-        xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(convention.getTestResultsDir(), test.getName());
-            }
-        });
-        htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(convention.getTestReportDir(), test.getName());
-            }
-        });
-        test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(convention.getTestResultsDir(), test.getName() + "/binary");
-            }
-        });
+        xmlReport.getConventionMapping().map("destination", new MyCallable222(convention, test));
+        htmlReport.getConventionMapping().map("destination", new MyCallable2(convention, test));
+        test.getConventionMapping().map("binResultsDir", new MyCallable(convention, test));
         test.workingDir(project.getProjectDir());
+    }
+
+    private static class MyCallable implements Callable<Object> {
+        private final JavaPluginConvention convention;
+        private final Test test;
+
+        public MyCallable(JavaPluginConvention convention, Test test) {
+            this.convention = convention;
+            this.test = test;
+        }
+
+        @Override
+        public Object call() {
+            return new File(convention.getTestResultsDir(), test.getName() + "/binary");
+        }
+    }
+
+    private static class MyCallable2 implements Callable<Object> {
+        private final JavaPluginConvention convention;
+        private final Test test;
+
+        public MyCallable2(JavaPluginConvention convention, Test test) {
+            this.convention = convention;
+            this.test = test;
+        }
+
+        @Override
+        public Object call() {
+            return new File(convention.getTestReportDir(), test.getName());
+        }
+    }
+
+    private static class MyCallable222 implements Callable<Object> {
+        private final JavaPluginConvention convention;
+        private final Test test;
+
+        public MyCallable222(JavaPluginConvention convention, Test test) {
+            this.convention = convention;
+            this.test = test;
+        }
+
+        @Override
+        public Object call() {
+            return new File(convention.getTestResultsDir(), test.getName());
+        }
+    }
+
+    private static class TaskAction implements Action<Task> {
+        @Override
+        public void execute(Task task) {
+            if (!task.getProject().getGradle().getIncludedBuilds().isEmpty()) {
+                task.getProject().getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
+            }
+        }
+    }
+
+    private static class TaskAction2 implements Action<Task> {
+        @Override
+        public void execute(Task buildTask) {
+            buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
+            buildTask.setGroup(BasePlugin.BUILD_GROUP);
+            buildTask.dependsOn(BUILD_TASK_NAME);
+            buildTask.doFirst(new TaskAction());
+        }
+    }
+
+    private static class TaskAction22 implements Action<Task> {
+        @Override
+        public void execute(Task buildTask) {
+            buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
+            buildTask.setGroup(BasePlugin.BUILD_GROUP);
+            buildTask.dependsOn(BUILD_TASK_NAME);
+        }
+    }
+
+    private static class MyCallable22 implements Callable<Object> {
+        private final Project project;
+
+        public MyCallable22(Project project) {
+            this.project = project;
+        }
+
+        @Override
+        public Object call() {
+            return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
+        }
+    }
+
+    private static class MyCallable2222 implements Callable<Object> {
+        private final JavaPluginConvention convention;
+
+        public MyCallable2222(JavaPluginConvention convention) {
+            this.convention = convention;
+        }
+
+        @Override
+        public Object call() {
+            return new File(convention.getDocsDir(), "javadoc");
+        }
+    }
+
+    private static class JavadocAction implements Action<Javadoc> {
+        private final JavaPluginConvention convention;
+        private final Project project;
+
+        public JavadocAction(JavaPluginConvention convention, Project project) {
+            this.convention = convention;
+            this.project = project;
+        }
+
+        @Override
+        public void execute(Javadoc javadoc) {
+            javadoc.getConventionMapping().map("destinationDir", new MyCallable2222(convention));
+            javadoc.getConventionMapping().map("title", new MyCallable22(project));
+        }
+    }
+
+    private static class MyCallable22222 implements Callable<Object> {
+        private final JavaPluginConvention javaConvention;
+
+        public MyCallable22222(JavaPluginConvention javaConvention) {
+            this.javaConvention = javaConvention;
+        }
+
+        @Override
+        public Object call() {
+            return javaConvention.getTargetCompatibility().toString();
+        }
+    }
+
+    private static class MyCallable222222 implements Callable<Object> {
+        private final JavaPluginConvention javaConvention;
+
+        public MyCallable222222(JavaPluginConvention javaConvention) {
+            this.javaConvention = javaConvention;
+        }
+
+        @Override
+        public Object call() {
+            return javaConvention.getSourceCompatibility().toString();
+        }
+    }
+
+    private static class AbstractCompileAction implements Action<AbstractCompile> {
+        private final JavaPluginConvention javaConvention;
+
+        public AbstractCompileAction(JavaPluginConvention javaConvention) {
+            this.javaConvention = javaConvention;
+        }
+
+        @Override
+        public void execute(final AbstractCompile compile) {
+            ConventionMapping conventionMapping = compile.getConventionMapping();
+            conventionMapping.map("sourceCompatibility", new MyCallable222222(javaConvention));
+            conventionMapping.map("targetCompatibility", new MyCallable22222(javaConvention));
+        }
+    }
+
+    private static class ConfigurationInternalAction implements Action<ConfigurationInternal> {
+        private final JavaPluginConvention convention;
+
+        public ConfigurationInternalAction(JavaPluginConvention convention) {
+            this.convention = convention;
+        }
+
+        @Override
+        public void execute(ConfigurationInternal conf) {
+            if (!convention.getAutoTargetJvmDisabled()) {
+                JavaEcosystemSupport.configureDefaultTargetPlatform(conf, convention.getTargetCompatibility());
+            }
+        }
+    }
+
+    private static class MyCallable2222222 implements Callable<Object> {
+        private final SourceSet sourceSet;
+        private final Project project;
+
+        public MyCallable2222222(SourceSet sourceSet, Project project) {
+            this.sourceSet = sourceSet;
+            this.project = project;
+        }
+
+        @Override
+        public Object call() {
+            String classesDirName = "resources/" + sourceSet.getName();
+            return new File(project.getBuildDir(), classesDirName);
+        }
+    }
+
+    private static class TaskAction222 implements Action<Task> {
+        private final SourceSet sourceSet;
+
+        public TaskAction222(SourceSet sourceSet) {
+            this.sourceSet = sourceSet;
+        }
+
+        @Override
+        public void execute(Task classesTask) {
+            classesTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+            classesTask.setDescription("Assembles " + sourceSet.getOutput() + ".");
+            classesTask.dependsOn(sourceSet.getOutput().getDirs());
+            classesTask.dependsOn(sourceSet.getCompileJavaTaskName());
+            classesTask.dependsOn(sourceSet.getProcessResourcesTaskName());
+        }
+    }
+
+    private static class FileCallable implements Callable<File> {
+        private final SourceSet sourceSet;
+
+        public FileCallable(SourceSet sourceSet) {
+            this.sourceSet = sourceSet;
+        }
+
+        @Override
+        public File call() {
+            return sourceSet.getOutput().getResourcesDir();
+        }
+    }
+
+    private static class ProcessResourcesAction implements Action<ProcessResources> {
+        private final SourceDirectorySet resourceSet;
+        private final SourceSet sourceSet;
+
+        public ProcessResourcesAction(SourceDirectorySet resourceSet, SourceSet sourceSet) {
+            this.resourceSet = resourceSet;
+            this.sourceSet = sourceSet;
+        }
+
+        @Override
+        public void execute(ProcessResources resourcesTask) {
+            resourcesTask.setDescription("Processes " + resourceSet + ".");
+            new DslObject(resourcesTask.getRootSpec()).getConventionMapping().map("destinationDir", new FileCallable(sourceSet));
+            resourcesTask.from(resourceSet);
+        }
+    }
+
+    private static class FileCallable2 implements Callable<File> {
+        private final SourceDirectorySet sourceDirectorySet;
+
+        public FileCallable2(SourceDirectorySet sourceDirectorySet) {
+            this.sourceDirectorySet = sourceDirectorySet;
+        }
+
+        @Override
+        public File call() {
+            return sourceDirectorySet.getOutputDir();
+        }
+    }
+
+    private static class MyCallable22222222 implements Callable<Object> {
+        private final SourceSet sourceSet;
+
+        public MyCallable22222222(SourceSet sourceSet) {
+            this.sourceSet = sourceSet;
+        }
+
+        @Override
+        public Object call() {
+            return sourceSet.getCompileClasspath();
+        }
+    }
+
+    private static class JavaCompileAction implements Action<JavaCompile> {
+        private final SourceDirectorySet sourceDirectorySet;
+        private final SourceSet sourceSet;
+        private final Project target;
+
+        public JavaCompileAction(SourceDirectorySet sourceDirectorySet, SourceSet sourceSet, Project target) {
+            this.sourceDirectorySet = sourceDirectorySet;
+            this.sourceSet = sourceSet;
+            this.target = target;
+        }
+
+        @Override
+        public void execute(JavaCompile compileTask) {
+            compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
+            compileTask.setSource(sourceDirectorySet);
+            ConventionMapping conventionMapping = compileTask.getConventionMapping();
+            conventionMapping.map("classpath", new MyCallable22222222(sourceSet));
+            SourceSetUtil.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
+            compileTask.setDestinationDir(target.provider(new FileCallable2(sourceDirectorySet)));
+        }
+    }
+
+    private static class CompileOptionsJavaCompileTransformer implements Transformer<CompileOptions, JavaCompile> {
+        @Override
+        public CompileOptions transform(JavaCompile javaCompile) {
+            return javaCompile.getOptions();
+        }
+    }
+
+    private static class MyRuleBasedPluginListener implements RuleBasedPluginListener {
+        @Override
+        public void prepareForRuleBasedPlugins(Project project) {
+            project.getPluginManager().apply(JavaBasePluginRules.class);
+        }
     }
 }

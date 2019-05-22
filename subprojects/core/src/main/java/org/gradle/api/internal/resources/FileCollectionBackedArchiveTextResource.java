@@ -32,27 +32,39 @@ public class FileCollectionBackedArchiveTextResource extends FileCollectionBacke
                                                    final TemporaryFileProvider tempFileProvider,
                                                    final FileCollection fileCollection,
                                                    final String path, Charset charset) {
-        super(tempFileProvider, new LazilyInitializedFileCollection() {
-            @Override
-            public String getDisplayName() {
-                return String.format("entry '%s' in archive %s", path, fileCollection);
-            }
+        super(tempFileProvider, new MyLazilyInitializedFileCollection(path, fileCollection, fileOperations), charset);
+    }
 
-            @Override
-            public FileCollection createDelegate() {
-                File archiveFile = fileCollection.getSingleFile();
-                String fileExtension = Files.getFileExtension(archiveFile.getName());
-                FileTree archiveContents = fileExtension.equals("jar") || fileExtension.equals("zip")
-                    ? fileOperations.zipTree(archiveFile) : fileOperations.tarTree(archiveFile);
-                PatternSet patternSet = new PatternSet();
-                patternSet.include(path);
-                return archiveContents.matching(patternSet);
-            }
+    private static class MyLazilyInitializedFileCollection extends LazilyInitializedFileCollection {
+        private final String path;
+        private final FileCollection fileCollection;
+        private final FileOperations fileOperations;
 
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(fileCollection);
-            }
-        }, charset);
+        public MyLazilyInitializedFileCollection(String path, FileCollection fileCollection, FileOperations fileOperations) {
+            this.path = path;
+            this.fileCollection = fileCollection;
+            this.fileOperations = fileOperations;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return String.format("entry '%s' in archive %s", path, fileCollection);
+        }
+
+        @Override
+        public FileCollection createDelegate() {
+            File archiveFile = fileCollection.getSingleFile();
+            String fileExtension = Files.getFileExtension(archiveFile.getName());
+            FileTree archiveContents = fileExtension.equals("jar") || fileExtension.equals("zip")
+                ? fileOperations.zipTree(archiveFile) : fileOperations.tarTree(archiveFile);
+            PatternSet patternSet = new PatternSet();
+            patternSet.include(path);
+            return archiveContents.matching(patternSet);
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(fileCollection);
+        }
     }
 }

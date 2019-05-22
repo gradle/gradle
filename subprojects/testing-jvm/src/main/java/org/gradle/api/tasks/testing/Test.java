@@ -565,14 +565,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         TestResultSerializer serializer = new TestResultSerializer(getBinResultsDir());
         if (serializer.isHasResults()) {
             final Set<String> previousFailedTestClasses = new HashSet<String>();
-            serializer.read(new Action<TestClassResult>() {
-                @Override
-                public void execute(TestClassResult testClassResult) {
-                    if (testClassResult.getFailuresCount() > 0) {
-                        previousFailedTestClasses.add(testClassResult.getClassName());
-                    }
-                }
-            });
+            serializer.read(new TestClassResultAction(previousFailedTestClasses));
             return previousFailedTestClasses;
         } else {
             return Collections.emptySet();
@@ -1061,5 +1054,20 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
+    }
+
+    private static class TestClassResultAction implements Action<TestClassResult> {
+        private final Set<String> previousFailedTestClasses;
+
+        public TestClassResultAction(Set<String> previousFailedTestClasses) {
+            this.previousFailedTestClasses = previousFailedTestClasses;
+        }
+
+        @Override
+        public void execute(TestClassResult testClassResult) {
+            if (testClassResult.getFailuresCount() > 0) {
+                previousFailedTestClasses.add(testClassResult.getClassName());
+            }
+        }
     }
 }

@@ -215,12 +215,14 @@ public class GitVersionControlSystem implements VersionControlSystem {
         public void configure(Transport transport) {
             if (transport instanceof SshTransport) {
                 SshTransport sshTransport = (SshTransport) transport;
-                sshTransport.setSshSessionFactory(new JschConfigSessionFactory() {
-                    @Override
-                    protected void configure(OpenSshConfig.Host hc, Session session) {
-                        // TODO: This is where the password information would go
-                    }
-                });
+                sshTransport.setSshSessionFactory(new MyJschConfigSessionFactory());
+            }
+        }
+
+        private static class MyJschConfigSessionFactory extends JschConfigSessionFactory {
+            @Override
+            protected void configure(OpenSshConfig.Host hc, Session session) {
+                // TODO: This is where the password information would go
             }
         }
     }

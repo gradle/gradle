@@ -190,27 +190,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                         outputFingerprinter
                     );
 
-                    CachingResult outcome = workExecutor.execute(new IncrementalContext() {
-                        @Override
-                        public UnitOfWork getWork() {
-                            return execution;
-                        }
-
-                        @Override
-                        public Optional<String> getRebuildReason() {
-                            return Optional.empty();
-                        }
-
-                        @Override
-                        public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                            return afterPreviousExecutionState;
-                        }
-
-                        @Override
-                        public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                            return Optional.of(beforeExecutionState);
-                        }
-                    });
+                    CachingResult outcome = workExecutor.execute(new MyIncrementalContext(execution, afterPreviousExecutionState, beforeExecutionState));
 
                     return outcome.getOutcome()
                         .map(outcome1 -> execution.loadResultsFile())
@@ -306,17 +286,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             this.dependencies = dependencies;
             this.outputFingerprinter = outputFingerprinter;
             this.executionTimer = Time.startTimer();
-            this.inputArtifactProvider = Providers.of(new FileSystemLocation() {
-                @Override
-                public File getAsFile() {
-                    return inputArtifact;
-                }
-
-                @Override
-                public String toString() {
-                    return inputArtifact.toString();
-                }
-            });
+            this.inputArtifactProvider = Providers.of(new MyFileSystemLocation(inputArtifact));
         }
 
         @Override
@@ -459,6 +429,24 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         public String getDisplayName() {
             return transformer.getDisplayName() + ": " + inputArtifact;
         }
+
+        private static class MyFileSystemLocation implements FileSystemLocation {
+            private final File inputArtifact;
+
+            public MyFileSystemLocation(File inputArtifact) {
+                this.inputArtifact = inputArtifact;
+            }
+
+            @Override
+            public File getAsFile() {
+                return inputArtifact;
+            }
+
+            @Override
+            public String toString() {
+                return inputArtifact.toString();
+            }
+        }
     }
 
     static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createInputFileFingerprints(
@@ -587,6 +575,38 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             result = 31 * result + secondaryInputsHash.hashCode();
             result = 31 * result + dependenciesHash.hashCode();
             return result;
+        }
+    }
+
+    private static class MyIncrementalContext implements IncrementalContext {
+        private final TransformerExecution execution;
+        private final Optional<AfterPreviousExecutionState> afterPreviousExecutionState;
+        private final BeforeExecutionState beforeExecutionState;
+
+        public MyIncrementalContext(TransformerExecution execution, Optional<AfterPreviousExecutionState> afterPreviousExecutionState, BeforeExecutionState beforeExecutionState) {
+            this.execution = execution;
+            this.afterPreviousExecutionState = afterPreviousExecutionState;
+            this.beforeExecutionState = beforeExecutionState;
+        }
+
+        @Override
+        public UnitOfWork getWork() {
+            return execution;
+        }
+
+        @Override
+        public Optional<String> getRebuildReason() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return afterPreviousExecutionState;
+        }
+
+        @Override
+        public Optional<BeforeExecutionState> getBeforeExecutionState() {
+            return Optional.of(beforeExecutionState);
         }
     }
 }

@@ -143,40 +143,42 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
 
         @Override
         public SourceTransformTaskConfig getTransformTask() {
-            return new SourceTransformTaskConfig() {
-                @Override
-                public String getTaskPrefix() {
-                    return "compile";
-                }
-
-                @Override
-                public Class<? extends DefaultTask> getTaskType() {
-                    return PlayCoffeeScriptCompile.class;
-                }
-
-                @Override
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-                    PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
-                    CoffeeScriptSourceSet coffeeScriptSourceSet = (CoffeeScriptSourceSet) sourceSet;
-                    PlayCoffeeScriptCompile coffeeScriptCompile = (PlayCoffeeScriptCompile) task;
-                    JavaScriptSourceSet javaScriptSourceSet = binary.getGeneratedJavaScript().get(coffeeScriptSourceSet);
-
-                    coffeeScriptCompile.setDescription("Compiles coffeescript for the " + coffeeScriptSourceSet.getDisplayName() + ".");
-
-                    File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
-                    File outputDirectory = new File(generatedSourceDir, javaScriptSourceSet.getName());
-                    coffeeScriptCompile.setDestinationDir(outputDirectory);
-                    coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
-
-                    javaScriptSourceSet.getSource().srcDir(outputDirectory);
-                    javaScriptSourceSet.builtBy(coffeeScriptCompile);
-                }
-            };
+            return new MySourceTransformTaskConfig();
         }
 
         @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
+        }
+
+        private static class MySourceTransformTaskConfig implements SourceTransformTaskConfig {
+            @Override
+            public String getTaskPrefix() {
+                return "compile";
+            }
+
+            @Override
+            public Class<? extends DefaultTask> getTaskType() {
+                return PlayCoffeeScriptCompile.class;
+            }
+
+            @Override
+            public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+                PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
+                CoffeeScriptSourceSet coffeeScriptSourceSet = (CoffeeScriptSourceSet) sourceSet;
+                PlayCoffeeScriptCompile coffeeScriptCompile = (PlayCoffeeScriptCompile) task;
+                JavaScriptSourceSet javaScriptSourceSet = binary.getGeneratedJavaScript().get(coffeeScriptSourceSet);
+
+                coffeeScriptCompile.setDescription("Compiles coffeescript for the " + coffeeScriptSourceSet.getDisplayName() + ".");
+
+                File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
+                File outputDirectory = new File(generatedSourceDir, javaScriptSourceSet.getName());
+                coffeeScriptCompile.setDestinationDir(outputDirectory);
+                coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
+
+                javaScriptSourceSet.getSource().srcDir(outputDirectory);
+                javaScriptSourceSet.builtBy(coffeeScriptCompile);
+            }
         }
     }
 }

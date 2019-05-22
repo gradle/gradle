@@ -45,37 +45,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
         Optional<InputChangesInternal> inputChanges = work.getInputChangeTrackingStrategy().requiresInputChanges()
             ? Optional.of(determineInputChanges(work, context))
             : Optional.empty();
-        return delegate.execute(new InputChangesContext() {
-            @Override
-            public Optional<InputChangesInternal> getInputChanges() {
-                return inputChanges;
-            }
-
-            @Override
-            public boolean isIncrementalExecution() {
-                return inputChanges.map(changes -> changes.isIncremental()).orElse(false);
-            }
-
-            @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
-            }
-
-            @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
-            }
-
-            @Override
-            public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
-            }
-
-            @Override
-            public UnitOfWork getWork() {
-                return work;
-            }
-        });
+        return delegate.execute(new MyInputChangesContext(inputChanges, context, work));
     }
 
     private InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
@@ -86,5 +56,47 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
             LOGGER.info("All input files are considered out-of-date for incremental {}.", work.getDisplayName());
         }
         return inputChanges;
+    }
+
+    private class MyInputChangesContext implements InputChangesContext {
+        private final Optional<InputChangesInternal> inputChanges;
+        private final C context;
+        private final UnitOfWork work;
+
+        public MyInputChangesContext(Optional<InputChangesInternal> inputChanges, C context, UnitOfWork work) {
+            this.inputChanges = inputChanges;
+            this.context = context;
+            this.work = work;
+        }
+
+        @Override
+        public Optional<InputChangesInternal> getInputChanges() {
+            return inputChanges;
+        }
+
+        @Override
+        public boolean isIncrementalExecution() {
+            return inputChanges.map(changes -> changes.isIncremental()).orElse(false);
+        }
+
+        @Override
+        public Optional<String> getRebuildReason() {
+            return context.getRebuildReason();
+        }
+
+        @Override
+        public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return context.getAfterPreviousExecutionState();
+        }
+
+        @Override
+        public Optional<BeforeExecutionState> getBeforeExecutionState() {
+            return context.getBeforeExecutionState();
+        }
+
+        @Override
+        public UnitOfWork getWork() {
+            return work;
+        }
     }
 }

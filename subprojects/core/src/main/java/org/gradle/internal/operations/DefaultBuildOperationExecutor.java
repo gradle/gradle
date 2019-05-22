@@ -178,49 +178,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
         return execute(descriptorBuilder, defaultParent, (BuildOperationExecution<ExecutingBuildOperation>) (descriptor, context, listener) -> {
             listener.start();
-            return new ExecutingBuildOperation() {
-                private boolean finished;
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return descriptorBuilder;
-                }
-
-                @Override
-                public void failed(@Nullable Throwable failure) {
-                    assertNotFinished();
-                    context.failed(failure);
-                    finish();
-                }
-
-                @Override
-                public void setResult(Object result) {
-                    assertNotFinished();
-                    context.setResult(result);
-                    finish();
-                }
-
-                @Override
-                public void setStatus(String status) {
-                    assertNotFinished();
-                    context.setStatus(status);
-                }
-
-                private void finish() {
-                    finished = true;
-                    try {
-                        listener.stop();
-                    } finally {
-                        listener.close();
-                    }
-                }
-
-                private void assertNotFinished() {
-                    if (finished) {
-                        throw new IllegalStateException(String.format("Operation (%s) has already finished.", descriptor));
-                    }
-                }
-            };
+            return new MyExecutingBuildOperation(descriptorBuilder, context, listener, descriptor);
         });
     }
 
@@ -415,6 +373,61 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
         public T getReturnValue() {
             return returnValue;
+        }
+    }
+
+    private static class MyExecutingBuildOperation implements ExecutingBuildOperation {
+        private final BuildOperationDescriptor.Builder descriptorBuilder;
+        private final DefaultBuildOperationContext context;
+        private final BuildOperationExecutionListener listener;
+        private final BuildOperationDescriptor descriptor;
+        private boolean finished;
+
+        public MyExecutingBuildOperation(BuildOperationDescriptor.Builder descriptorBuilder, DefaultBuildOperationContext context, BuildOperationExecutionListener listener, BuildOperationDescriptor descriptor) {
+            this.descriptorBuilder = descriptorBuilder;
+            this.context = context;
+            this.listener = listener;
+            this.descriptor = descriptor;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return descriptorBuilder;
+        }
+
+        @Override
+        public void failed(@Nullable Throwable failure) {
+            assertNotFinished();
+            context.failed(failure);
+            finish();
+        }
+
+        @Override
+        public void setResult(Object result) {
+            assertNotFinished();
+            context.setResult(result);
+            finish();
+        }
+
+        @Override
+        public void setStatus(String status) {
+            assertNotFinished();
+            context.setStatus(status);
+        }
+
+        private void finish() {
+            finished = true;
+            try {
+                listener.stop();
+            } finally {
+                listener.close();
+            }
+        }
+
+        private void assertNotFinished() {
+            if (finished) {
+                throw new IllegalStateException(String.format("Operation (%s) has already finished.", descriptor));
+            }
         }
     }
 

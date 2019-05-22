@@ -32,21 +32,33 @@ public class GzipPacker implements Packer {
 
     @Override
     public void pack(List<DataSource> inputs, DataTarget output) throws IOException {
-        delegate.pack(inputs, new DelegatingDataTarget(output) {
-            @Override
-            public OutputStream openOutput() throws IOException {
-                return new GZIPOutputStream(super.openOutput());
-            }
-        });
+        delegate.pack(inputs, new MyDelegatingDataTarget(output));
     }
 
     @Override
     public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
-        delegate.unpack(new DelegatingDataSource(input) {
-            @Override
-            public InputStream openInput() throws IOException {
-                return new GZIPInputStream(super.openInput());
-            }
-        }, targetFactory);
+        delegate.unpack(new MyDelegatingDataSource(input), targetFactory);
+    }
+
+    private static class MyDelegatingDataSource extends DelegatingDataSource {
+        public MyDelegatingDataSource(DataSource input) {
+            super(input);
+        }
+
+        @Override
+        public InputStream openInput() throws IOException {
+            return new GZIPInputStream(super.openInput());
+        }
+    }
+
+    private static class MyDelegatingDataTarget extends DelegatingDataTarget {
+        public MyDelegatingDataTarget(DataTarget output) {
+            super(output);
+        }
+
+        @Override
+        public OutputStream openOutput() throws IOException {
+            return new GZIPOutputStream(super.openOutput());
+        }
     }
 }

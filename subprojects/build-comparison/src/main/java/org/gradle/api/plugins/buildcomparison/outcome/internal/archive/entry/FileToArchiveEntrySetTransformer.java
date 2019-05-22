@@ -63,11 +63,7 @@ public class FileToArchiveEntrySetTransformer implements Transformer<Set<Archive
                 builder.setSize(entry.getSize());
                 if (!builder.isDirectory() && (zipStream.available() == 1)) {
                     boolean zipEntry;
-                    final BufferedInputStream bis = new BufferedInputStream(zipStream) {
-                        @Override
-                        public void close() throws IOException {
-                        }
-                    };
+                    final BufferedInputStream bis = new MyBufferedInputStream(zipStream);
                     bis.mark(Integer.MAX_VALUE);
                     zipEntry = new ZipInputStream(bis).getNextEntry() != null;
                     bis.reset();
@@ -93,4 +89,13 @@ public class FileToArchiveEntrySetTransformer implements Transformer<Set<Archive
         return entries.build();
     }
 
+    private static class MyBufferedInputStream extends BufferedInputStream {
+        public MyBufferedInputStream(ZipInputStream zipStream) {
+            super(zipStream);
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
+    }
 }

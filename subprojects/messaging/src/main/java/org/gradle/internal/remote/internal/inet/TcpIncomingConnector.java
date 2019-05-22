@@ -69,23 +69,35 @@ public class TcpIncomingConnector implements IncomingConnector {
         final ManagedExecutor executor = executorFactory.create("Incoming " + (allowRemote ? "remote" : "local")+ " TCP Connector on port " + localPort);
         executor.execute(new Receiver(serverSocket, action, allowRemote));
 
-        return new ConnectionAcceptor() {
-            @Override
-            public Address getAddress() {
-                return address;
-            }
+        return new MyConnectionAcceptor(address, serverSocket, executor);
+    }
 
-            @Override
-            public void requestStop() {
-                CompositeStoppable.stoppable(serverSocket).stop();
-            }
+    private static class MyConnectionAcceptor implements ConnectionAcceptor {
+        private final Address address;
+        private final ServerSocketChannel serverSocket;
+        private final ManagedExecutor executor;
 
-            @Override
-            public void stop() {
-                requestStop();
-                executor.stop();
-            }
-        };
+        public MyConnectionAcceptor(Address address, ServerSocketChannel serverSocket, ManagedExecutor executor) {
+            this.address = address;
+            this.serverSocket = serverSocket;
+            this.executor = executor;
+        }
+
+        @Override
+        public Address getAddress() {
+            return address;
+        }
+
+        @Override
+        public void requestStop() {
+            CompositeStoppable.stoppable(serverSocket).stop();
+        }
+
+        @Override
+        public void stop() {
+            requestStop();
+            executor.stop();
+        }
     }
 
     private class Receiver implements Runnable {

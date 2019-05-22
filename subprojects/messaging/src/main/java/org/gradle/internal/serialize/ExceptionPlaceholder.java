@@ -76,23 +76,7 @@ class ExceptionPlaceholder implements Serializable {
 
         StreamByteBuffer buffer = new StreamByteBuffer();
         ExceptionReplacingObjectOutputStream oos = objectOutputStreamCreator.transform(buffer.getOutputStream());
-        oos.setObjectTransformer(new Transformer<Object, Object>() {
-            boolean seenFirst;
-
-            @Override
-            public Object transform(Object obj) {
-                if (!seenFirst) {
-                    seenFirst = true;
-                    return obj;
-                }
-                // Don't serialize the causes - we'll serialize them separately later
-                int causeIndex = causes.indexOf(obj);
-                if (causeIndex >= 0) {
-                    return new CausePlaceholder(causeIndex);
-                }
-                return obj;
-            }
-        });
+        oos.setObjectTransformer(new MyTransformer2(causes));
 
         try {
             oos.writeObject(throwable);
@@ -122,16 +106,7 @@ class ExceptionPlaceholder implements Serializable {
         if (serializedException != null) {
             // try to deserialize the original exception
             final ExceptionReplacingObjectInputStream ois = objectInputStreamCreator.transform(new ByteArrayInputStream(serializedException));
-            ois.setObjectTransformer(new Transformer<Object, Object>() {
-                @Override
-                public Object transform(Object obj) {
-                    if (obj instanceof CausePlaceholder) {
-                        CausePlaceholder placeholder = (CausePlaceholder) obj;
-                        return causes.get(placeholder.getCauseIndex());
-                    }
-                    return obj;
-                }
-            });
+            ois.setObjectTransformer(new MyTransformer(causes));
 
             try {
                 return (Throwable) ois.readObject();
@@ -217,5 +192,45 @@ class ExceptionPlaceholder implements Serializable {
             result.add(placeholder.read(classNameTransformer, objectInputStreamCreator));
         }
         return result;
+    }
+
+    private static class MyTransformer implements Transformer<Object, Object> {
+        private final List<Throwable> causes;
+
+        public MyTransformer(List<Throwable> causes) {
+            this.causes = causes;
+        }
+
+        @Override
+        public Object transform(Object obj) {
+            if (obj instanceof CausePlaceholder) {
+                CausePlaceholder placeholder = (CausePlaceholder) obj;
+                return causes.get(placeholder.getCauseIndex());
+            }
+            return obj;
+        }
+    }
+
+    private static class MyTransformer2 implements Transformer<Object, Object> {
+        private final List<? extends Throwable> causes;
+        boolean seenFirst;
+
+        public MyTransformer2(List<? extends Throwable> causes) {
+            this.causes = causes;
+        }
+
+        @Override
+        public Object transform(Object obj) {
+            if (!seenFirst) {
+                seenFirst = true;
+                return obj;
+            }
+            // Don't serialize the causes - we'll serialize them separately later
+            int causeIndex = causes.indexOf(obj);
+            if (causeIndex >= 0) {
+                return new CausePlaceholder(causeIndex);
+            }
+            return obj;
+        }
     }
 }

@@ -54,12 +54,20 @@ public class DefaultHeaderDependenciesCollector implements HeaderDependenciesCol
     private void addIncludeRoots(String taskPath, List<File> includeRoots, final Set<File> headerDependencies) {
         for (final File includeRoot : includeRoots) {
             logger.info("adding files in {} to header dependencies for {}", includeRoot, taskPath);
-            directoryFileTreeFactory.create(includeRoot).visit(new EmptyFileVisitor() {
-                @Override
-                public void visitFile(FileVisitDetails fileDetails) {
-                    headerDependencies.add(fileDetails.getFile());
-                }
-            });
+            directoryFileTreeFactory.create(includeRoot).visit(new MyEmptyFileVisitor(headerDependencies));
+        }
+    }
+
+    private static class MyEmptyFileVisitor extends EmptyFileVisitor {
+        private final Set<File> headerDependencies;
+
+        public MyEmptyFileVisitor(Set<File> headerDependencies) {
+            this.headerDependencies = headerDependencies;
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            headerDependencies.add(fileDetails.getFile());
         }
     }
 }

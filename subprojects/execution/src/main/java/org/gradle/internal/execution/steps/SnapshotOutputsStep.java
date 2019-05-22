@@ -47,26 +47,38 @@ public class SnapshotOutputsStep<C extends Context> implements Step<C, CurrentSn
         UnitOfWork work = context.getWork();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated();
         OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId, work.markExecutionTime());
-        return new CurrentSnapshotResult() {
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
-                return finalOutputs;
-            }
+        return new MyCurrentSnapshotResult(finalOutputs, originMetadata, result);
+    }
 
-            @Override
-            public OriginMetadata getOriginMetadata() {
-                return originMetadata;
-            }
+    private static class MyCurrentSnapshotResult implements CurrentSnapshotResult {
+        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs;
+        private final OriginMetadata originMetadata;
+        private final Result result;
 
-            @Override
-            public Try<ExecutionOutcome> getOutcome() {
-                return result.getOutcome();
-            }
+        public MyCurrentSnapshotResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, OriginMetadata originMetadata, Result result) {
+            this.finalOutputs = finalOutputs;
+            this.originMetadata = originMetadata;
+            this.result = result;
+        }
 
-            @Override
-            public boolean isReused() {
-                return false;
-            }
-        };
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+            return finalOutputs;
+        }
+
+        @Override
+        public OriginMetadata getOriginMetadata() {
+            return originMetadata;
+        }
+
+        @Override
+        public Try<ExecutionOutcome> getOutcome() {
+            return result.getOutcome();
+        }
+
+        @Override
+        public boolean isReused() {
+            return false;
+        }
     }
 }

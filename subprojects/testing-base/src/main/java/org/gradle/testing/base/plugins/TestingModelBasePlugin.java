@@ -101,20 +101,7 @@ public class TestingModelBasePlugin implements Plugin<Project> {
 
         @Finalize
         void linkTestSuiteBinariesRunTaskToBinariesCheckTasks(@Path("binaries") ModelMap<TestSuiteBinarySpec> binaries) {
-            binaries.afterEach(new Action<TestSuiteBinarySpec>() {
-                @Override
-                public void execute(TestSuiteBinarySpec testSuiteBinary) {
-                    if (testSuiteBinary.isBuildable()) {
-                        if (testSuiteBinary.getTasks() instanceof TestSuiteTaskCollection) {
-                            testSuiteBinary.checkedBy(((TestSuiteTaskCollection) testSuiteBinary.getTasks()).getRun());
-                        }
-                        BinarySpec testedBinary = testSuiteBinary.getTestedBinary();
-                        if (testedBinary != null && testedBinary.isBuildable()) {
-                            testedBinary.checkedBy(testSuiteBinary.getCheckTask());
-                        }
-                    }
-                }
-            });
+            binaries.afterEach(new TestSuiteBinarySpecAction());
         }
 
         @Finalize
@@ -124,6 +111,21 @@ public class TestingModelBasePlugin implements Plugin<Project> {
                     Task binaryCheckTask = binary.getCheckTask();
                     if (binaryCheckTask != null) {
                         checkTask.dependsOn(binaryCheckTask);
+                    }
+                }
+            }
+        }
+
+        private static class TestSuiteBinarySpecAction implements Action<TestSuiteBinarySpec> {
+            @Override
+            public void execute(TestSuiteBinarySpec testSuiteBinary) {
+                if (testSuiteBinary.isBuildable()) {
+                    if (testSuiteBinary.getTasks() instanceof TestSuiteTaskCollection) {
+                        testSuiteBinary.checkedBy(((TestSuiteTaskCollection) testSuiteBinary.getTasks()).getRun());
+                    }
+                    BinarySpec testedBinary = testSuiteBinary.getTestedBinary();
+                    if (testedBinary != null && testedBinary.isBuildable()) {
+                        testedBinary.checkedBy(testSuiteBinary.getCheckTask());
                     }
                 }
             }

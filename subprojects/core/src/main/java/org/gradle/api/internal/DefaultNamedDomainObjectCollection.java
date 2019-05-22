@@ -457,22 +457,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public Rule addRule(final String description, final Closure ruleAction) {
-        return addRule(new RuleAdapter(description) {
-            @Override
-            public void apply(String domainObjectName) {
-                ruleAction.call(domainObjectName);
-            }
-        });
+        return addRule(new MyRuleAdapter2(description, ruleAction));
     }
 
     @Override
     public Rule addRule(final String description, final Action<String> ruleAction) {
-        return addRule(new RuleAdapter(description) {
-            @Override
-            public void apply(String domainObjectName) {
-                ruleAction.execute(domainObjectName);
-            }
-        });
+        return addRule(new MyRuleAdapter(description, ruleAction));
     }
 
     private static abstract class RuleAdapter implements Rule {
@@ -506,6 +496,34 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected String getTypeDisplayName() {
         return getType().getSimpleName();
+    }
+
+    private static class MyRuleAdapter extends RuleAdapter {
+        private final Action<String> ruleAction;
+
+        public MyRuleAdapter(String description, Action<String> ruleAction) {
+            super(description);
+            this.ruleAction = ruleAction;
+        }
+
+        @Override
+        public void apply(String domainObjectName) {
+            ruleAction.execute(domainObjectName);
+        }
+    }
+
+    private static class MyRuleAdapter2 extends RuleAdapter {
+        private final Closure ruleAction;
+
+        public MyRuleAdapter2(String description, Closure ruleAction) {
+            super(description);
+            this.ruleAction = ruleAction;
+        }
+
+        @Override
+        public void apply(String domainObjectName) {
+            ruleAction.call(domainObjectName);
+        }
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {

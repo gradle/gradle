@@ -101,42 +101,44 @@ public class PlayRoutesPlugin extends RuleSource {
 
         @Override
         public SourceTransformTaskConfig getTransformTask() {
-            return new SourceTransformTaskConfig() {
-                @Override
-                public String getTaskPrefix() {
-                    return "compile";
-                }
-
-                @Override
-                public Class<? extends DefaultTask> getTaskType() {
-                    return RoutesCompile.class;
-                }
-
-                @Override
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-                    PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
-                    RoutesSourceSet routesSourceSet = (RoutesSourceSet) sourceSet;
-                    RoutesCompile routesCompile = (RoutesCompile) task;
-                    ScalaLanguageSourceSet routesScalaSources = binary.getGeneratedScala().get(routesSourceSet);
-                    File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
-                    File routesCompileOutputDirectory = new File(generatedSourceDir, routesScalaSources.getName());
-
-                    routesCompile.setDescription("Generates routes for the '" + routesSourceSet.getName() + "' source set.");
-                    routesCompile.setPlatform(binary.getTargetPlatform());
-                    routesCompile.setAdditionalImports(new ArrayList<String>());
-                    routesCompile.setSource(routesSourceSet.getSource());
-                    routesCompile.setOutputDirectory(routesCompileOutputDirectory);
-                    routesCompile.setInjectedRoutesGenerator(binary.getApplication().getInjectedRoutesGenerator());
-
-                    routesScalaSources.getSource().srcDir(routesCompileOutputDirectory);
-                    routesScalaSources.builtBy(routesCompile);
-                }
-            };
+            return new MySourceTransformTaskConfig();
         }
 
         @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
+        }
+
+        private static class MySourceTransformTaskConfig implements SourceTransformTaskConfig {
+            @Override
+            public String getTaskPrefix() {
+                return "compile";
+            }
+
+            @Override
+            public Class<? extends DefaultTask> getTaskType() {
+                return RoutesCompile.class;
+            }
+
+            @Override
+            public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+                PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
+                RoutesSourceSet routesSourceSet = (RoutesSourceSet) sourceSet;
+                RoutesCompile routesCompile = (RoutesCompile) task;
+                ScalaLanguageSourceSet routesScalaSources = binary.getGeneratedScala().get(routesSourceSet);
+                File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
+                File routesCompileOutputDirectory = new File(generatedSourceDir, routesScalaSources.getName());
+
+                routesCompile.setDescription("Generates routes for the '" + routesSourceSet.getName() + "' source set.");
+                routesCompile.setPlatform(binary.getTargetPlatform());
+                routesCompile.setAdditionalImports(new ArrayList<String>());
+                routesCompile.setSource(routesSourceSet.getSource());
+                routesCompile.setOutputDirectory(routesCompileOutputDirectory);
+                routesCompile.setInjectedRoutesGenerator(binary.getApplication().getInjectedRoutesGenerator());
+
+                routesScalaSources.getSource().srcDir(routesCompileOutputDirectory);
+                routesScalaSources.builtBy(routesCompile);
+            }
         }
     }
 

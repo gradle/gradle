@@ -163,15 +163,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public Factory managedFactory() {
-            return new Factory() {
-                @Override
-                public <T> T fromState(Class<T> type, Object state) {
-                    if (!type.isAssignableFrom(RegularFile.class)) {
-                        return null;
-                    }
-                    return type.cast(new FixedFile((File) state));
-                }
-            };
+            return new MyFactory();
         }
 
         @Override
@@ -204,6 +196,16 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public File getAsFile() {
             return file;
+        }
+
+        private static class MyFactory implements Factory {
+            @Override
+            public <T> T fromState(Class<T> type, Object state) {
+                if (!type.isAssignableFrom(RegularFile.class)) {
+                    return null;
+                }
+                return type.cast(new FixedFile((File) state));
+            }
         }
     }
 
@@ -405,42 +407,72 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public Provider<Directory> dir(final String path) {
-            return new AbstractMappingProvider<Directory, Directory>(Directory.class, this) {
-                @Override
-                protected Directory map(Directory dir) {
-                    return dir.dir(path);
-                }
-            };
+            return new DirectoryDirectoryAbstractMappingProvider(path);
         }
 
         @Override
         public Provider<Directory> dir(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(Directory.class, this, path) {
-                @Override
-                protected Directory map(Directory b, CharSequence v) {
-                    return b.dir(v.toString());
-                }
-            };
+            return new DirectoryDirectoryCharSequenceAbstractCombiningProvider(path);
         }
 
         @Override
         public Provider<RegularFile> file(final String path) {
-            return new AbstractMappingProvider<RegularFile, Directory>(RegularFile.class, this) {
-                @Override
-                protected RegularFile map(Directory dir) {
-                    return dir.file(path);
-                }
-            };
+            return new RegularFileDirectoryAbstractMappingProvider(path);
         }
 
         @Override
         public Provider<RegularFile> file(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(RegularFile.class, this, path) {
-                @Override
-                protected RegularFile map(Directory b, CharSequence v) {
-                    return b.file(v.toString());
-                }
-            };
+            return new RegularFileDirectoryCharSequenceAbstractCombiningProvider(path);
+        }
+
+        private class RegularFileDirectoryCharSequenceAbstractCombiningProvider extends AbstractCombiningProvider<RegularFile, Directory, CharSequence> {
+            public RegularFileDirectoryCharSequenceAbstractCombiningProvider(Provider<? extends CharSequence> path) {
+                super(RegularFile.class, DefaultDirectoryVar.this, path);
+            }
+
+            @Override
+            protected RegularFile map(Directory b, CharSequence v) {
+                return b.file(v.toString());
+            }
+        }
+
+        private class RegularFileDirectoryAbstractMappingProvider extends AbstractMappingProvider<RegularFile, Directory> {
+            private final String path;
+
+            public RegularFileDirectoryAbstractMappingProvider(String path) {
+                super(RegularFile.class, DefaultDirectoryVar.this);
+                this.path = path;
+            }
+
+            @Override
+            protected RegularFile map(Directory dir) {
+                return dir.file(path);
+            }
+        }
+
+        private class DirectoryDirectoryCharSequenceAbstractCombiningProvider extends AbstractCombiningProvider<Directory, Directory, CharSequence> {
+            public DirectoryDirectoryCharSequenceAbstractCombiningProvider(Provider<? extends CharSequence> path) {
+                super(Directory.class, DefaultDirectoryVar.this, path);
+            }
+
+            @Override
+            protected Directory map(Directory b, CharSequence v) {
+                return b.dir(v.toString());
+            }
+        }
+
+        private class DirectoryDirectoryAbstractMappingProvider extends AbstractMappingProvider<Directory, Directory> {
+            private final String path;
+
+            public DirectoryDirectoryAbstractMappingProvider(String path) {
+                super(Directory.class, DefaultDirectoryVar.this);
+                this.path = path;
+            }
+
+            @Override
+            protected Directory map(Directory dir) {
+                return dir.dir(path);
+            }
         }
     }
 

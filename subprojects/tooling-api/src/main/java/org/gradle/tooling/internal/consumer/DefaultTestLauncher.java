@@ -119,18 +119,28 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
         }
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(testClassNames), ImmutableSet.copyOf(internalJvmTestRequests));
-        connection.run(new ConsumerAction<Void>() {
-            @Override
-            public ConsumerOperationParameters getParameters() {
-                return operationParameters;
-            }
+        connection.run(new VoidConsumerAction(operationParameters, testExecutionRequest), new ResultHandlerAdapter(handler));
+    }
 
-            @Override
-            public Void run(ConsumerConnection connection) {
-                connection.runTests(testExecutionRequest, getParameters());
-                return null;
-            }
-        }, new ResultHandlerAdapter(handler));
+    private static class VoidConsumerAction implements ConsumerAction<Void> {
+        private final ConsumerOperationParameters operationParameters;
+        private final TestExecutionRequest testExecutionRequest;
+
+        public VoidConsumerAction(ConsumerOperationParameters operationParameters, TestExecutionRequest testExecutionRequest) {
+            this.operationParameters = operationParameters;
+            this.testExecutionRequest = testExecutionRequest;
+        }
+
+        @Override
+        public ConsumerOperationParameters getParameters() {
+            return operationParameters;
+        }
+
+        @Override
+        public Void run(ConsumerConnection connection) {
+            connection.runTests(testExecutionRequest, getParameters());
+            return null;
+        }
     }
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {

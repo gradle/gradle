@@ -142,12 +142,14 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
     }
 
     private PrintStream getDummyPrintStream() {
-        OutputStream os = new OutputStream() {
-            @Override
-            public void write(int b) {
-                // do nothing
-            }
-        };
+        OutputStream os = new MyOutputStream();
         return new PrintStream(os);
+    }
+
+    private static class MyOutputStream extends OutputStream {
+        @Override
+        public void write(int b) {
+            // do nothing
+        }
     }
 }

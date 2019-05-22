@@ -46,32 +46,17 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTree matching(final Closure filterConfigClosure) {
-        return new FilteredFileTree() {
-            @Override
-            protected FileTree filter(FileTree set) {
-                return set.matching(filterConfigClosure);
-            }
-        };
+        return new MyFilteredFileTree2MyFilteredFileTree2(filterConfigClosure);
     }
 
     @Override
     public FileTree matching(final Action<? super PatternFilterable> filterConfigAction) {
-        return new FilteredFileTree() {
-            @Override
-            protected FileTree filter(FileTree set) {
-                return set.matching(filterConfigAction);
-            }
-        };
+        return new MyFilteredFileTree2(filterConfigAction);
     }
 
     @Override
     public FileTree matching(final PatternFilterable patterns) {
-        return new FilteredFileTree() {
-            @Override
-            protected FileTree filter(FileTree set) {
-                return set.matching(patterns);
-            }
-        };
+        return new MyFilteredFileTree(patterns);
     }
 
     @Override
@@ -129,6 +114,45 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             CompositeFileTree.this.visitDependencies(context);
+        }
+    }
+
+    private class MyFilteredFileTree extends FilteredFileTree {
+        private final PatternFilterable patterns;
+
+        public MyFilteredFileTree(PatternFilterable patterns) {
+            this.patterns = patterns;
+        }
+
+        @Override
+        protected FileTree filter(FileTree set) {
+            return set.matching(patterns);
+        }
+    }
+
+    private class MyFilteredFileTree2 extends FilteredFileTree {
+        private final Action<? super PatternFilterable> filterConfigAction;
+
+        public MyFilteredFileTree2(Action<? super PatternFilterable> filterConfigAction) {
+            this.filterConfigAction = filterConfigAction;
+        }
+
+        @Override
+        protected FileTree filter(FileTree set) {
+            return set.matching(filterConfigAction);
+        }
+    }
+
+    private class MyFilteredFileTree2MyFilteredFileTree2 extends FilteredFileTree {
+        private final Closure filterConfigClosure;
+
+        public MyFilteredFileTree2MyFilteredFileTree2(Closure filterConfigClosure) {
+            this.filterConfigClosure = filterConfigClosure;
+        }
+
+        @Override
+        protected FileTree filter(FileTree set) {
+            return set.matching(filterConfigClosure);
         }
     }
 }

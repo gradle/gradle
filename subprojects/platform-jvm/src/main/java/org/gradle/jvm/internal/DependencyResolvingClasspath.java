@@ -109,32 +109,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ensureResolved(true);
         final Set<File> result = new LinkedHashSet<File>();
         ParallelResolveArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationExecutor);
-        artifacts.visit(new ArtifactVisitor() {
-            @Override
-            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-                result.add(artifact.getFile());
-            }
-
-            @Override
-            public void visitFailure(Throwable failure) {
-                throw UncheckedException.throwAsUncheckedException(failure);
-            }
-
-            @Override
-            public boolean includeFiles() {
-                return true;
-            }
-
-            @Override
-            public boolean requireArtifactFiles() {
-                return true;
-            }
-
-            @Override
-            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-                result.add(file);
-            }
-        });
+        artifacts.visit(new MyArtifactVisitor(result));
         return result;
     }
 
@@ -164,28 +139,63 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     private ResolveResult resolve() {
         ResolveResult result = new ResolveResult();
-        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema, new ArtifactTypeRegistry() {
-            @Override
-            public ImmutableAttributes mapAttributesFor(File file) {
-                return ImmutableAttributes.EMPTY;
-            }
-
-            @Override
-            public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
-                return variant.getAttributes().asImmutable();
-            }
-
-            @Override
-            public ArtifactTypeContainer create() {
-                throw new UnsupportedOperationException();
-            }
-        });
+        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema, new MyArtifactTypeRegistry());
         return result;
     }
 
     private void failOnUnresolvedDependency(List<Throwable> notFound) {
         if (!notFound.isEmpty()) {
             throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' %s", binary.getDisplayName(), descriptor), notFound);
+        }
+    }
+
+    private static class MyArtifactTypeRegistry implements ArtifactTypeRegistry {
+        @Override
+        public ImmutableAttributes mapAttributesFor(File file) {
+            return ImmutableAttributes.EMPTY;
+        }
+
+        @Override
+        public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
+            return variant.getAttributes().asImmutable();
+        }
+
+        @Override
+        public ArtifactTypeContainer create() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class MyArtifactVisitor implements ArtifactVisitor {
+        private final Set<File> result;
+
+        public MyArtifactVisitor(Set<File> result) {
+            this.result = result;
+        }
+
+        @Override
+        public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+            result.add(artifact.getFile());
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+            throw UncheckedException.throwAsUncheckedException(failure);
+        }
+
+        @Override
+        public boolean includeFiles() {
+            return true;
+        }
+
+        @Override
+        public boolean requireArtifactFiles() {
+            return true;
+        }
+
+        @Override
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
+            result.add(file);
         }
     }
 

@@ -68,12 +68,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (contents instanceof Buildable) {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
-        return new FileCollectionAdapter(contents) {
-            @Override
-            public TaskDependency getBuildDependencies() {
-                return builtBy;
-            }
-        };
+        return new MyFileCollectionAdapter(contents, builtBy);
     }
 
     @Override
@@ -207,6 +202,20 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         public void visitContents(FileCollectionResolveContext context) {
             FileCollectionResolveContext nested = context.push(resolver);
             nested.add(paths);
+        }
+    }
+
+    private static class MyFileCollectionAdapter extends FileCollectionAdapter {
+        private final TaskDependency builtBy;
+
+        public MyFileCollectionAdapter(MinimalFileSet contents, TaskDependency builtBy) {
+            super(contents);
+            this.builtBy = builtBy;
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return builtBy;
         }
     }
 }

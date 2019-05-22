@@ -130,11 +130,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             addProvider(new BuildScanServices());
         } else {
             // Task execution services at all levels needs this
-            addProvider(new Object() {
-                BuildScanPluginApplied createBuildScanPluginApplied() {
-                    return gradle.getRoot().getServices().get(BuildScanPluginApplied.class);
-                }
-            });
+            addProvider(new MyObject(gradle));
         }
     }
 
@@ -299,4 +295,15 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         super.close();
     }
 
+    private static class MyObject {
+        private final GradleInternal gradle;
+
+        public MyObject(GradleInternal gradle) {
+            this.gradle = gradle;
+        }
+
+        BuildScanPluginApplied createBuildScanPluginApplied() {
+            return gradle.getRoot().getServices().get(BuildScanPluginApplied.class);
+        }
+    }
 }

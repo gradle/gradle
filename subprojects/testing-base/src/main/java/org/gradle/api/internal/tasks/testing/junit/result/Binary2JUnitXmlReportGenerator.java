@@ -56,12 +56,7 @@ public class Binary2JUnitXmlReportGenerator {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                File[] oldXmlFiles = testResultsDir.listFiles(new FilenameFilter() {
-                    @Override
-                    public boolean accept(File dir, String name) {
-                        return name.startsWith("TEST") && name.endsWith(".xml");
-                    }
-                });
+                File[] oldXmlFiles = testResultsDir.listFiles(new MyFilenameFilter());
 
                 for (File oldXmlFile : oldXmlFiles) {
                     GFileUtils.deleteQuietly(oldXmlFile);
@@ -122,6 +117,13 @@ public class Binary2JUnitXmlReportGenerator {
             } finally {
                 IoActions.closeQuietly(output);
             }
+        }
+    }
+
+    private static class MyFilenameFilter implements FilenameFilter {
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.startsWith("TEST") && name.endsWith(".xml");
         }
     }
 }

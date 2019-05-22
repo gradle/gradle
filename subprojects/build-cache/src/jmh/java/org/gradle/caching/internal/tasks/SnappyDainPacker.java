@@ -33,21 +33,33 @@ public class SnappyDainPacker implements Packer {
 
     @Override
     public void pack(List<DataSource> inputs, DataTarget output) throws IOException {
-        delegate.pack(inputs, new DelegatingDataTarget(output) {
-            @Override
-            public OutputStream openOutput() throws IOException {
-                return new SnappyFramedOutputStream(super.openOutput());
-            }
-        });
+        delegate.pack(inputs, new MyDelegatingDataTarget(output));
     }
 
     @Override
     public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
-        delegate.unpack(new DelegatingDataSource(input) {
-            @Override
-            public InputStream openInput() throws IOException {
-                return new SnappyFramedInputStream(super.openInput(), true);
-            }
-        }, targetFactory);
+        delegate.unpack(new MyDelegatingDataSource(input), targetFactory);
+    }
+
+    private static class MyDelegatingDataSource extends DelegatingDataSource {
+        public MyDelegatingDataSource(DataSource input) {
+            super(input);
+        }
+
+        @Override
+        public InputStream openInput() throws IOException {
+            return new SnappyFramedInputStream(super.openInput(), true);
+        }
+    }
+
+    private static class MyDelegatingDataTarget extends DelegatingDataTarget {
+        public MyDelegatingDataTarget(DataTarget output) {
+            super(output);
+        }
+
+        @Override
+        public OutputStream openOutput() throws IOException {
+            return new SnappyFramedOutputStream(super.openOutput());
+        }
     }
 }

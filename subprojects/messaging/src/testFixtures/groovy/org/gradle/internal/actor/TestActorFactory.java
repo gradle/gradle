@@ -30,20 +30,28 @@ public class TestActorFactory implements ActorFactory {
 
     @Override
     public Actor createBlockingActor(final Object target) {
-        return new Actor() {
-            @Override
-            public <T> T getProxy(Class<T> type) {
-                return new ProxyDispatchAdapter<T>(new ReflectionDispatch(target), type, ThreadSafe.class).getSource();
-            }
+        return new MyActor(target);
+    }
 
-            @Override
-            public void stop() throws DispatchException {
-            }
+    private static class MyActor implements Actor {
+        private final Object target;
 
-            @Override
-            public void dispatch(MethodInvocation message) {
-                throw new UnsupportedOperationException();
-            }
-        };
+        public MyActor(Object target) {
+            this.target = target;
+        }
+
+        @Override
+        public <T> T getProxy(Class<T> type) {
+            return new ProxyDispatchAdapter<T>(new ReflectionDispatch(target), type, ThreadSafe.class).getSource();
+        }
+
+        @Override
+        public void stop() throws DispatchException {
+        }
+
+        @Override
+        public void dispatch(MethodInvocation message) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

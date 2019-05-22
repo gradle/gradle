@@ -58,29 +58,12 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
 
     @Override
     public MappedProperty map(String propertyName, final Closure<?> value) {
-        return map(propertyName, new MappedPropertyImpl() {
-            @Override
-            public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
-                switch (value.getMaximumNumberOfParameters()) {
-                    case 0:
-                        return value.call();
-                    case 1:
-                        return value.call(convention);
-                    default:
-                        return value.call(convention, conventionAwareObject);
-                }
-            }
-        });
+        return map(propertyName, new MyMappedPropertyImpl2(value));
     }
 
     @Override
     public MappedProperty map(String propertyName, final Callable<?> value) {
-        return map(propertyName, new MappedPropertyImpl() {
-            @Override
-            public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
-                return uncheckedCall(value);
-            }
-        });
+        return map(propertyName, new MyMappedPropertyImpl(value));
     }
 
     public void propertyMissing(String name, Object value) {
@@ -143,5 +126,38 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         }
 
         abstract Object doGetValue(Convention convention, IConventionAware conventionAwareObject);
+    }
+
+    private static class MyMappedPropertyImpl extends MappedPropertyImpl {
+        private final Callable<?> value;
+
+        public MyMappedPropertyImpl(Callable<?> value) {
+            this.value = value;
+        }
+
+        @Override
+        public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
+            return uncheckedCall(value);
+        }
+    }
+
+    private static class MyMappedPropertyImpl2 extends MappedPropertyImpl {
+        private final Closure<?> value;
+
+        public MyMappedPropertyImpl2(Closure<?> value) {
+            this.value = value;
+        }
+
+        @Override
+        public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
+            switch (value.getMaximumNumberOfParameters()) {
+                case 0:
+                    return value.call();
+                case 1:
+                    return value.call(convention);
+                default:
+                    return value.call(convention, conventionAwareObject);
+            }
+        }
     }
 }

@@ -107,31 +107,7 @@ public class CppUnitTestPlugin implements Plugin<Project> {
             }
         });
 
-        testComponent.getTestBinary().convention(project.provider(new Callable<CppTestExecutable>() {
-            @Override
-            public CppTestExecutable call() throws Exception {
-                return getAllBuildableTestExecutable()
-                        .filter(it -> isCurrentArchitecture(it.getNativePlatform()))
-                        .findFirst()
-                        .orElse(
-                                getAllBuildableTestExecutable().findFirst().orElse(
-                                        getAllTestExecutable().findFirst().orElse(null)));
-            }
-
-            private boolean isCurrentArchitecture(NativePlatform targetPlatform) {
-                return targetPlatform.getArchitecture().equals(DefaultNativePlatform.getCurrentArchitecture());
-            }
-
-            private Stream<DefaultCppTestExecutable> getAllBuildableTestExecutable() {
-                return getAllTestExecutable().filter(it -> it.getPlatformToolProvider().isAvailable());
-            }
-
-            private Stream<DefaultCppTestExecutable> getAllTestExecutable() {
-                return testComponent.getBinaries().get().stream()
-                        .filter(CppTestExecutable.class::isInstance)
-                        .map(DefaultCppTestExecutable.class::cast);
-            }
-        }));
+        testComponent.getTestBinary().convention(project.provider(new CppTestExecutableCallable(testComponent)));
 
         testComponent.getBinaries().whenElementKnown(DefaultCppTestExecutable.class, binary -> {
             // TODO: Replace with native test task
@@ -222,5 +198,37 @@ public class CppUnitTestPlugin implements Plugin<Project> {
         ConfigurableComponentWithLinkUsage developmentBinaryWithUsage = (ConfigurableComponentWithLinkUsage) mainComponent.getDevelopmentBinary().get();
         ConfigurableComponentWithLinkUsage testedBinaryWithUsage = (ConfigurableComponentWithLinkUsage)testedBinary;
         return testedBinaryWithUsage.getLinkage() == developmentBinaryWithUsage.getLinkage();
+    }
+
+    private static class CppTestExecutableCallable implements Callable<CppTestExecutable> {
+        private final DefaultCppTestSuite testComponent;
+
+        public CppTestExecutableCallable(DefaultCppTestSuite testComponent) {
+            this.testComponent = testComponent;
+        }
+
+        @Override
+        public CppTestExecutable call() throws Exception {
+            return getAllBuildableTestExecutable()
+                    .filter(it -> isCurrentArchitecture(it.getNativePlatform()))
+                    .findFirst()
+                    .orElse(
+                            getAllBuildableTestExecutable().findFirst().orElse(
+                                    getAllTestExecutable().findFirst().orElse(null)));
+        }
+
+        private boolean isCurrentArchitecture(NativePlatform targetPlatform) {
+            return targetPlatform.getArchitecture().equals(DefaultNativePlatform.getCurrentArchitecture());
+        }
+
+        private Stream<DefaultCppTestExecutable> getAllBuildableTestExecutable() {
+            return getAllTestExecutable().filter(it -> it.getPlatformToolProvider().isAvailable());
+        }
+
+        private Stream<DefaultCppTestExecutable> getAllTestExecutable() {
+            return testComponent.getBinaries().get().stream()
+                    .filter(CppTestExecutable.class::isInstance)
+                    .map(DefaultCppTestExecutable.class::cast);
+        }
     }
 }

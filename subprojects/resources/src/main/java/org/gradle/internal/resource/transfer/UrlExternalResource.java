@@ -72,22 +72,7 @@ public class UrlExternalResource implements ExternalResourceConnector {
             URL url = location.toURL();
             final URLConnection connection = url.openConnection();
             final InputStream inputStream = connection.getInputStream();
-            return new ExternalResourceReadResponse() {
-                @Override
-                public InputStream openStream() throws IOException {
-                    return inputStream;
-                }
-
-                @Override
-                public ExternalResourceMetaData getMetaData() {
-                    return new DefaultExternalResourceMetaData(location, connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
-                }
-
-                @Override
-                public void close() throws IOException {
-                    inputStream.close();
-                }
-            };
+            return new MyExternalResourceReadResponse(inputStream, location, connection);
         } catch (FileNotFoundException e) {
             return null;
         } catch (Exception e) {
@@ -104,5 +89,32 @@ public class UrlExternalResource implements ExternalResourceConnector {
     @Override
     public void upload(ReadableContent resource, URI destination) throws IOException {
         throw new UnsupportedOperationException();
+    }
+
+    private static class MyExternalResourceReadResponse implements ExternalResourceReadResponse {
+        private final InputStream inputStream;
+        private final URI location;
+        private final URLConnection connection;
+
+        public MyExternalResourceReadResponse(InputStream inputStream, URI location, URLConnection connection) {
+            this.inputStream = inputStream;
+            this.location = location;
+            this.connection = connection;
+        }
+
+        @Override
+        public InputStream openStream() throws IOException {
+            return inputStream;
+        }
+
+        @Override
+        public ExternalResourceMetaData getMetaData() {
+            return new DefaultExternalResourceMetaData(location, connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
+        }
+
+        @Override
+        public void close() throws IOException {
+            inputStream.close();
+        }
     }
 }

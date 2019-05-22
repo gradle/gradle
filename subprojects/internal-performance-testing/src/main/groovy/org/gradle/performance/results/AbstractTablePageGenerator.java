@@ -58,7 +58,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
     protected Set<ScenarioBuildResultData> readBuildResultData(File resultJson) {
         try {
             // @formatter:off
-            List<ScenarioBuildResultData> list = new ObjectMapper().readValue(resultJson, new TypeReference<List<ScenarioBuildResultData>>() { });
+            List<ScenarioBuildResultData> list = new ObjectMapper().readValue(resultJson, new ListTypeReference());
             // @formatter:on
             return queryExecutionData(list);
         } catch (IOException e) {
@@ -98,6 +98,9 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
         } else {
             return execution.getVcsCommits().get(0);
         }
+    }
+
+    private static class ListTypeReference extends TypeReference<List<ScenarioBuildResultData>> {
     }
 
     protected abstract class TableHtml extends MetricsHtml {

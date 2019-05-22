@@ -115,12 +115,7 @@ public class LocationAwareException extends GradleException implements FailureRe
      */
     public List<Throwable> getReportableCauses() {
         final List<Throwable> causes = new ArrayList<Throwable>();
-        visitCauses(getCause(), new TreeVisitor<Throwable>() {
-            @Override
-            public void node(Throwable node) {
-                causes.add(node);
-            }
-        });
+        visitCauses(getCause(), new ThrowableTreeVisitor(causes));
         return causes;
     }
 
@@ -173,5 +168,18 @@ public class LocationAwareException extends GradleException implements FailureRe
             return t;
         }
         return findNearestContextual(t.getCause());
+    }
+
+    private static class ThrowableTreeVisitor extends TreeVisitor<Throwable> {
+        private final List<Throwable> causes;
+
+        public ThrowableTreeVisitor(List<Throwable> causes) {
+            this.causes = causes;
+        }
+
+        @Override
+        public void node(Throwable node) {
+            causes.add(node);
+        }
     }
 }

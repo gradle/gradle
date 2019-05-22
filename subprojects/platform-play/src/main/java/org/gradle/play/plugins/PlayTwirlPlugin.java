@@ -132,44 +132,46 @@ public class PlayTwirlPlugin extends RuleSource {
 
         @Override
         public SourceTransformTaskConfig getTransformTask() {
-            return new SourceTransformTaskConfig() {
-                @Override
-                public String getTaskPrefix() {
-                    return "compile";
-                }
-
-                @Override
-                public Class<? extends DefaultTask> getTaskType() {
-                    return TwirlCompile.class;
-                }
-
-                @Override
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-                    PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
-                    TwirlSourceSet twirlSourceSet = (TwirlSourceSet) sourceSet;
-                    TwirlCompile twirlCompile = (TwirlCompile) task;
-                    ScalaLanguageSourceSet twirlScalaSources = binary.getGeneratedScala().get(twirlSourceSet);
-
-                    File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
-                    File twirlCompileOutputDirectory = new File(generatedSourceDir, twirlScalaSources.getName());
-
-                    twirlCompile.setDescription("Compiles Twirl templates for the '" + twirlSourceSet.getName() + "' source set.");
-                    twirlCompile.setPlatform(binary.getTargetPlatform());
-                    twirlCompile.setSource(twirlSourceSet.getSource());
-                    twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
-                    twirlCompile.setDefaultImports(twirlSourceSet.getDefaultImports());
-                    twirlCompile.setUserTemplateFormats(twirlSourceSet.getUserTemplateFormats());
-                    twirlCompile.setAdditionalImports(twirlSourceSet.getAdditionalImports());
-
-                    twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
-                    twirlScalaSources.builtBy(twirlCompile);
-                }
-            };
+            return new MySourceTransformTaskConfig();
         }
 
         @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
+        }
+
+        private static class MySourceTransformTaskConfig implements SourceTransformTaskConfig {
+            @Override
+            public String getTaskPrefix() {
+                return "compile";
+            }
+
+            @Override
+            public Class<? extends DefaultTask> getTaskType() {
+                return TwirlCompile.class;
+            }
+
+            @Override
+            public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+                PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
+                TwirlSourceSet twirlSourceSet = (TwirlSourceSet) sourceSet;
+                TwirlCompile twirlCompile = (TwirlCompile) task;
+                ScalaLanguageSourceSet twirlScalaSources = binary.getGeneratedScala().get(twirlSourceSet);
+
+                File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
+                File twirlCompileOutputDirectory = new File(generatedSourceDir, twirlScalaSources.getName());
+
+                twirlCompile.setDescription("Compiles Twirl templates for the '" + twirlSourceSet.getName() + "' source set.");
+                twirlCompile.setPlatform(binary.getTargetPlatform());
+                twirlCompile.setSource(twirlSourceSet.getSource());
+                twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
+                twirlCompile.setDefaultImports(twirlSourceSet.getDefaultImports());
+                twirlCompile.setUserTemplateFormats(twirlSourceSet.getUserTemplateFormats());
+                twirlCompile.setAdditionalImports(twirlSourceSet.getAdditionalImports());
+
+                twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
+                twirlScalaSources.builtBy(twirlCompile);
+            }
         }
     }
 }

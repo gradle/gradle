@@ -118,24 +118,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
     }
 
     protected XCTestCaseElement testCase(final String methodName, final String assertion, final boolean isExpectFailure) {
-        return new XCTestCaseElement() {
-            @Override
-            public String getContent() {
-                return "func " + methodName + "() {\n"
-                    + "    " + assertion + "\n"
-                    + "}";
-            }
-
-            @Override
-            public String getName() {
-                return methodName;
-            }
-
-            @Override
-            public boolean isExpectFailure() {
-                return isExpectFailure;
-            }
-        };
+        return new MyXCTestCaseElement(methodName, assertion, isExpectFailure);
     }
 
     public abstract List<XCTestCaseElement> getTestCases();
@@ -179,5 +162,34 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
                 + "<dict>\n"
                 + "</dict>\n"
                 + "</plist>");
+    }
+
+    private static class MyXCTestCaseElement implements XCTestCaseElement {
+        private final String methodName;
+        private final String assertion;
+        private final boolean isExpectFailure;
+
+        public MyXCTestCaseElement(String methodName, String assertion, boolean isExpectFailure) {
+            this.methodName = methodName;
+            this.assertion = assertion;
+            this.isExpectFailure = isExpectFailure;
+        }
+
+        @Override
+        public String getContent() {
+            return "func " + methodName + "() {\n"
+                + "    " + assertion + "\n"
+                + "}";
+        }
+
+        @Override
+        public String getName() {
+            return methodName;
+        }
+
+        @Override
+        public boolean isExpectFailure() {
+            return isExpectFailure;
+        }
     }
 }

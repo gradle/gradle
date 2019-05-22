@@ -32,13 +32,21 @@ public class DefaultBuildScanEndOfBuildNotifier implements BuildScanEndOfBuildNo
 
     public void fireBuildComplete(@Nullable final Throwable failure) {
         if (listener != null) {
-            listener.execute(new BuildResult() {
-                @Nullable
-                @Override
-                public Throwable getFailure() {
-                    return failure;
-                }
-            });
+            listener.execute(new MyBuildResult(failure));
+        }
+    }
+
+    private static class MyBuildResult implements BuildResult {
+        private final Throwable failure;
+
+        public MyBuildResult(Throwable failure) {
+            this.failure = failure;
+        }
+
+        @Nullable
+        @Override
+        public Throwable getFailure() {
+            return failure;
         }
     }
 }

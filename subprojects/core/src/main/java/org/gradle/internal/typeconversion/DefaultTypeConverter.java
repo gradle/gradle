@@ -171,12 +171,7 @@ public class DefaultTypeConverter implements TypeConverter {
     }
 
     public DefaultTypeConverter(final PathToFileResolver fileResolver) {
-        registerConverter(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>(File.class) {
-            @Override
-            public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
-                result.converted(fileResolver.resolve(notation));
-            }
-        }), File.class);
+        registerConverter(new CharSequenceNotationConverter<Object, File>(new FileCharSequenceConverter(fileResolver)), File.class);
         registerConverters();
     }
 
@@ -308,6 +303,20 @@ public class DefaultTypeConverter implements TypeConverter {
         @Override
         public void convert(String notation, NotationConvertResult<? super Boolean> result) throws TypeConversionException {
             result.converted("true".equals(notation));
+        }
+    }
+
+    private static class FileCharSequenceConverter extends CharSequenceConverter<File> {
+        private final PathToFileResolver fileResolver;
+
+        public FileCharSequenceConverter(PathToFileResolver fileResolver) {
+            super(File.class);
+            this.fileResolver = fileResolver;
+        }
+
+        @Override
+        public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
+            result.converted(fileResolver.resolve(notation));
         }
     }
 

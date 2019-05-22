@@ -136,12 +136,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     @Override
     public boolean processTestClass(final RelativeFile testClassFile) {
-        return processTestClass(testClassFile.getFile(), false, new Factory<String>() {
-            @Override
-            public String create() {
-                return testClassFile.getRelativePath().getPathString().replace(".class", "");
-            }
-        });
+        return processTestClass(testClassFile.getFile(), false, new StringFactory(testClassFile));
     }
 
     /**
@@ -248,4 +243,16 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         }
     }
 
+    private static class StringFactory implements Factory<String> {
+        private final RelativeFile testClassFile;
+
+        public StringFactory(RelativeFile testClassFile) {
+            this.testClassFile = testClassFile;
+        }
+
+        @Override
+        public String create() {
+            return testClassFile.getRelativePath().getPathString().replace(".class", "");
+        }
+    }
 }

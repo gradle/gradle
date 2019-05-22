@@ -56,26 +56,36 @@ public class BuildOperationSettingsProcessor implements SettingsProcessor {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Evaluate settings").
                     progressDisplayName("Evaluating settings").
-                    details(new Details() {
-
-                        @Override
-                        public String getBuildPath() {
-                            return gradle.getIdentityPath().toString();
-                        }
-
-                        @Override
-                        public String getSettingsDir() {
-                            return settingsLocation.getSettingsDir().getAbsolutePath();
-                        }
-
-                        @Override
-                        public String getSettingsFile() {
-                            File settingsFile = settingsLocation.getSettingsFile();
-                            return settingsFile != null ? settingsFile.getPath() : null;
-                        }
-
-                    });
+                    details(new MyDetails(gradle, settingsLocation));
             }
         });
+    }
+
+    private static class MyDetails implements Details {
+
+        private final GradleInternal gradle;
+        private final SettingsLocation settingsLocation;
+
+        public MyDetails(GradleInternal gradle, SettingsLocation settingsLocation) {
+            this.gradle = gradle;
+            this.settingsLocation = settingsLocation;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return gradle.getIdentityPath().toString();
+        }
+
+        @Override
+        public String getSettingsDir() {
+            return settingsLocation.getSettingsDir().getAbsolutePath();
+        }
+
+        @Override
+        public String getSettingsFile() {
+            File settingsFile = settingsLocation.getSettingsFile();
+            return settingsFile != null ? settingsFile.getPath() : null;
+        }
+
     }
 }

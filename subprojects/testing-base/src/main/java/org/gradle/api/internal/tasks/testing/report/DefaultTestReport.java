@@ -61,59 +61,19 @@ public class DefaultTestReport implements TestReporter {
 
     private AllTestResults loadModelFromProvider(TestResultsProvider resultsProvider) {
         final AllTestResults model = new AllTestResults();
-        resultsProvider.visitClasses(new Action<TestClassResult>() {
-            @Override
-            public void execute(TestClassResult classResult) {
-                model.addTestClass(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName());
-                List<TestMethodResult> collectedResults = classResult.getResults();
-                for (TestMethodResult collectedResult : collectedResults) {
-                    final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName(), collectedResult.getName(), collectedResult.getDisplayName(), collectedResult.getDuration());
-                    if (collectedResult.getResultType() == SKIPPED) {
-                        testResult.setIgnored();
-                    } else {
-                        List<TestFailure> failures = collectedResult.getFailures();
-                        for (TestFailure failure : failures) {
-                            testResult.addFailure(failure);
-                        }
-                    }
-                }
-            }
-        });
+        resultsProvider.visitClasses(new TestClassResultAction(model));
         return model;
     }
 
     private void generateFiles(AllTestResults model, final TestResultsProvider resultsProvider, final File reportDir) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    // Clean-up old HTML report directories
-                    GFileUtils.deleteQuietly(new File(reportDir, "packages"));
-                    GFileUtils.deleteQuietly(new File(reportDir, "classes"));
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Delete old HTML results");
-                }
-            });
+            buildOperationExecutor.run(new MyRunnableBuildOperation(reportDir));
 
             htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder>() {
                 @Override
                 public void render(final AllTestResults model, final HtmlReportBuilder output) throws IOException {
-                    buildOperationExecutor.runAll(new Action<BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>>>() {
-                        @Override
-                        public void execute(BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>> queue) {
-                            queue.add(generator("index.html", model, new OverviewPageRenderer(), output));
-                            for (PackageTestResults packageResults : model.getPackages()) {
-                                queue.add(generator(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer(), output));
-                                for (ClassTestResults classResults : packageResults.getClasses()) {
-                                    queue.add(generator(classResults.getBaseUrl(), classResults, new ClassPageRenderer(resultsProvider), output));
-                                }
-                            }
-                        }
-                    });
+                    buildOperationExecutor.runAll(new BuildOperationQueueAction(model, output, resultsProvider));
                 }
             }, reportDir);
         } catch (Exception e) {
@@ -146,6 +106,74 @@ public class DefaultTestReport implements TestReporter {
         @Override
         public void run(BuildOperationContext context) {
             output.renderHtmlPage(fileUrl, results, renderer);
+        }
+    }
+
+    private static class BuildOperationQueueAction implements Action<BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>>> {
+        private final AllTestResults model;
+        private final HtmlReportBuilder output;
+        private final TestResultsProvider resultsProvider;
+
+        public BuildOperationQueueAction(AllTestResults model, HtmlReportBuilder output, TestResultsProvider resultsProvider) {
+            this.model = model;
+            this.output = output;
+            this.resultsProvider = resultsProvider;
+        }
+
+        @Override
+        public void execute(BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>> queue) {
+            queue.add(generator("index.html", model, new OverviewPageRenderer(), output));
+            for (PackageTestResults packageResults : model.getPackages()) {
+                queue.add(generator(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer(), output));
+                for (ClassTestResults classResults : packageResults.getClasses()) {
+                    queue.add(generator(classResults.getBaseUrl(), classResults, new ClassPageRenderer(resultsProvider), output));
+                }
+            }
+        }
+    }
+
+    private static class MyRunnableBuildOperation implements RunnableBuildOperation {
+        private final File reportDir;
+
+        public MyRunnableBuildOperation(File reportDir) {
+            this.reportDir = reportDir;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            // Clean-up old HTML report directories
+            GFileUtils.deleteQuietly(new File(reportDir, "packages"));
+            GFileUtils.deleteQuietly(new File(reportDir, "classes"));
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Delete old HTML results");
+        }
+    }
+
+    private static class TestClassResultAction implements Action<TestClassResult> {
+        private final AllTestResults model;
+
+        public TestClassResultAction(AllTestResults model) {
+            this.model = model;
+        }
+
+        @Override
+        public void execute(TestClassResult classResult) {
+            model.addTestClass(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName());
+            List<TestMethodResult> collectedResults = classResult.getResults();
+            for (TestMethodResult collectedResult : collectedResults) {
+                final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName(), collectedResult.getName(), collectedResult.getDisplayName(), collectedResult.getDuration());
+                if (collectedResult.getResultType() == SKIPPED) {
+                    testResult.setIgnored();
+                } else {
+                    List<TestFailure> failures = collectedResult.getFailures();
+                    for (TestFailure failure : failures) {
+                        testResult.addFailure(failure);
+                    }
+                }
+            }
         }
     }
 }

@@ -77,31 +77,7 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
                                  final JvmTestSuiteBinarySpecInternal binary,
                                  final @Path("buildDir") File buildDir) {
         final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
-        tasks.create(testTaskNameFor(binary), Test.class, new Action<Test>() {
-            @Override
-            public void execute(final Test test) {
-                test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
-                test.dependsOn(jvmAssembly);
-                test.setTestClassesDirs(ImmutableFileCollection.of(binary.getClassesDir()));
-                test.setClasspath(binary.getRuntimeClasspath());
-                configureReports(binary, test);
-            }
-
-            private void configureReports(JvmTestSuiteBinarySpecInternal binary, Test test) {
-                // todo: improve configuration of reports
-                TestTaskReports reports = test.getReports();
-                File reportsDirectory = new File(buildDir, "reports");
-                File reportsOutputDirectory = binary.getNamingScheme().getOutputDirectory(reportsDirectory);
-                File htmlDir = new File(reportsOutputDirectory, "tests");
-                File xmlDir = new File(buildDir, "test-results");
-                File xmlDirOutputDirectory = binary.getNamingScheme().getOutputDirectory(xmlDir);
-                File binDir = new File(xmlDirOutputDirectory, "binary");
-                reports.getHtml().setDestination(htmlDir);
-                reports.getJunitXml().setDestination(xmlDirOutputDirectory);
-                test.setBinResultsDir(binDir);
-            }
-        });
+        tasks.create(testTaskNameFor(binary), Test.class, new TestAction(binary, jvmAssembly, buildDir));
     }
 
     private static String testTaskNameFor(JvmTestSuiteBinarySpec binary) {
@@ -157,6 +133,42 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
             if (sourceSet instanceof DependentSourceSet) {
                 dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
             }
+        }
+    }
+
+    private static class TestAction implements Action<Test> {
+        private final JvmTestSuiteBinarySpecInternal binary;
+        private final JvmAssembly jvmAssembly;
+        private final File buildDir;
+
+        public TestAction(JvmTestSuiteBinarySpecInternal binary, JvmAssembly jvmAssembly, File buildDir) {
+            this.binary = binary;
+            this.jvmAssembly = jvmAssembly;
+            this.buildDir = buildDir;
+        }
+
+        @Override
+        public void execute(final Test test) {
+            test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+            test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
+            test.dependsOn(jvmAssembly);
+            test.setTestClassesDirs(ImmutableFileCollection.of(binary.getClassesDir()));
+            test.setClasspath(binary.getRuntimeClasspath());
+            configureReports(binary, test);
+        }
+
+        private void configureReports(JvmTestSuiteBinarySpecInternal binary, Test test) {
+            // todo: improve configuration of reports
+            TestTaskReports reports = test.getReports();
+            File reportsDirectory = new File(buildDir, "reports");
+            File reportsOutputDirectory = binary.getNamingScheme().getOutputDirectory(reportsDirectory);
+            File htmlDir = new File(reportsOutputDirectory, "tests");
+            File xmlDir = new File(buildDir, "test-results");
+            File xmlDirOutputDirectory = binary.getNamingScheme().getOutputDirectory(xmlDir);
+            File binDir = new File(xmlDirOutputDirectory, "binary");
+            reports.getHtml().setDestination(htmlDir);
+            reports.getJunitXml().setDestination(xmlDirOutputDirectory);
+            test.setBinResultsDir(binDir);
         }
     }
 }

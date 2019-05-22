@@ -80,17 +80,7 @@ public class PropertyValidationAccess {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
         // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the plugin service registries
         // For now, re-implement the discovery here
-        builder.provider(new Object() {
-            void configure(ServiceRegistration registration) {
-                registration.add(DefaultListenerManager.class, new DefaultListenerManager());
-                registration.add(DefaultCrossBuildInMemoryCacheFactory.class);
-                registration.add(DefaultInstantiatorFactory.class);
-                List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
-                for (PluginServiceRegistry pluginServiceFactory : pluginServiceFactories) {
-                    pluginServiceFactory.registerGlobalServices(registration);
-                }
-            }
-        });
+        builder.provider(new MyObject());
         ServiceRegistry services = builder.build();
         taskClassInfoStore = services.get(TaskClassInfoStore.class);
         typeSchemes = services.getAll(TypeScheme.class);
@@ -344,5 +334,17 @@ public class PropertyValidationAccess {
     static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
         ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
         return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
+    }
+
+    private class MyObject {
+        void configure(ServiceRegistration registration) {
+            registration.add(DefaultListenerManager.class, new DefaultListenerManager());
+            registration.add(DefaultCrossBuildInMemoryCacheFactory.class);
+            registration.add(DefaultInstantiatorFactory.class);
+            List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
+            for (PluginServiceRegistry pluginServiceFactory : pluginServiceFactories) {
+                pluginServiceFactory.registerGlobalServices(registration);
+            }
+        }
     }
 }

@@ -32,6 +32,9 @@ public class ShutdownAwareConsumerConnection extends CancellableConsumerConnecti
 
     @Override
     public void stop() {
-        ((StoppableConnection) getDelegate()).shutdown(new ShutdownParameters() { });
+        ((StoppableConnection) getDelegate()).shutdown(new MyShutdownParameters());
+    }
+
+    private static class MyShutdownParameters implements ShutdownParameters {
     }
 }

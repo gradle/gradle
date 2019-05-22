@@ -274,23 +274,7 @@ public class TestFile extends File {
             try {
                 final Path targetDir = target.toPath();
                 final Path sourceDir = this.toPath();
-                Files.walkFileTree(sourceDir, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attributes) throws IOException {
-                        Path targetFile = targetDir.resolve(sourceDir.relativize(sourceFile));
-                        Files.copy(sourceFile, targetFile, COPY_ATTRIBUTES, REPLACE_EXISTING);
-
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes) throws IOException {
-                        Path newDir = targetDir.resolve(sourceDir.relativize(dir));
-                        Files.createDirectories(newDir);
-
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
+                Files.walkFileTree(sourceDir, new PathSimpleFileVisitor2(targetDir, sourceDir));
             } catch (IOException e) {
                 throw new RuntimeException(String.format("Could not copy test directory '%s' to '%s'", this, target), e);
             }
@@ -309,16 +293,7 @@ public class TestFile extends File {
 
     public void copyFrom(final URL resource) {
         final TestFile testFile = this;
-        RetryUtil.retry(new Closure(null, null) {
-            @SuppressWarnings("UnusedDeclaration")
-            void doCall() {
-                try {
-                    FileUtils.copyURLToFile(resource, testFile);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        });
+        RetryUtil.retry(new MyClosure(resource, testFile));
     }
 
     public void moveToDirectory(File target) {
@@ -662,24 +637,7 @@ public class TestFile extends File {
                 }
             } else {
                 List<String> errorPaths = new ArrayList<>();
-                Files.walkFileTree(toPath(), new SimpleFileVisitor<Path>() {
-
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        if (!file.toFile().delete()) {
-                            errorPaths.add(file.toFile().getCanonicalPath());
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        if (!dir.toFile().delete()) {
-                            errorPaths.add(dir.toFile().getCanonicalPath());
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
+                Files.walkFileTree(toPath(), new PathSimpleFileVisitor(errorPaths));
                 if (!errorPaths.isEmpty()) {
                     StringBuilder builder = new StringBuilder()
                         .append("Unable to recursively delete directory ")
@@ -833,6 +791,77 @@ public class TestFile extends File {
      */
     public URI relativizeFrom(TestFile baseDir) {
         return baseDir.toURI().relativize(toURI());
+    }
+
+    private static class PathSimpleFileVisitor extends SimpleFileVisitor<Path> {
+
+        private final List<String> errorPaths;
+
+        public PathSimpleFileVisitor(List<String> errorPaths) {
+            this.errorPaths = errorPaths;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            if (!file.toFile().delete()) {
+                errorPaths.add(file.toFile().getCanonicalPath());
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            if (!dir.toFile().delete()) {
+                errorPaths.add(dir.toFile().getCanonicalPath());
+            }
+            return FileVisitResult.CONTINUE;
+        }
+    }
+
+    private static class MyClosure extends Closure {
+        private final URL resource;
+        private final TestFile testFile;
+
+        public MyClosure(URL resource, TestFile testFile) {
+            super(null, null);
+            this.resource = resource;
+            this.testFile = testFile;
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        void doCall() {
+            try {
+                FileUtils.copyURLToFile(resource, testFile);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+    }
+
+    private static class PathSimpleFileVisitor2 extends SimpleFileVisitor<Path> {
+        private final Path targetDir;
+        private final Path sourceDir;
+
+        public PathSimpleFileVisitor2(Path targetDir, Path sourceDir) {
+            this.targetDir = targetDir;
+            this.sourceDir = sourceDir;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attributes) throws IOException {
+            Path targetFile = targetDir.resolve(sourceDir.relativize(sourceFile));
+            Files.copy(sourceFile, targetFile, COPY_ATTRIBUTES, REPLACE_EXISTING);
+
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes) throws IOException {
+            Path newDir = targetDir.resolve(sourceDir.relativize(dir));
+            Files.createDirectories(newDir);
+
+            return FileVisitResult.CONTINUE;
+        }
     }
 
     public class Snapshot {

@@ -64,18 +64,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         task.source(sourceSet.getSource());
 
         FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
-        task.includes(fileCollectionFactory.create(new MinimalFileSet() {
-            @Override
-            public Set<File> getFiles() {
-                PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
-                return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(ToolType.ASSEMBLER).getIncludeDirs());
-            }
-
-            @Override
-            public String getDisplayName() {
-                return "System includes for " + binary.getToolChain().getDisplayName();
-            }
-        }));
+        task.includes(fileCollectionFactory.create(new MyMinimalFileSet(binary)));
 
         final Project project = task.getProject();
         task.setObjectFileDir(new File(binary.getNamingScheme().getOutputDirectory(project.getBuildDir(), "objs"), sourceSet.getProjectScopedName()));
@@ -84,5 +73,24 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         task.setAssemblerArgs(assemblerTool.getArgs());
 
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+    }
+
+    private static class MyMinimalFileSet implements MinimalFileSet {
+        private final NativeBinarySpecInternal binary;
+
+        public MyMinimalFileSet(NativeBinarySpecInternal binary) {
+            this.binary = binary;
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
+            return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(ToolType.ASSEMBLER).getIncludeDirs());
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "System includes for " + binary.getToolChain().getDisplayName();
+        }
     }
 }

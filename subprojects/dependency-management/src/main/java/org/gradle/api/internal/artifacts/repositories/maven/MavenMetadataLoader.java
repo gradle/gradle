@@ -71,26 +71,42 @@ public class MavenMetadataLoader {
 
     private void parseMavenMetadataInto(ExternalResource metadataResource, final MavenMetadata mavenMetadata) {
         LOGGER.debug("parsing maven-metadata: {}", metadataResource);
-        metadataResource.withContent(new ErroringAction<InputStream>() {
-            @Override
-            public void doExecute(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
-                XMLHelper.parse(inputStream, null, new ContextualSAXHandler() {
-                    @Override
-                    public void endElement(String uri, String localName, String qName)
-                            throws SAXException {
-                        if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
-                            mavenMetadata.timestamp = getText();
-                        }
-                        if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
-                            mavenMetadata.buildNumber = getText();
-                        }
-                        if ("metadata/versioning/versions/version".equals(getContext())) {
-                            mavenMetadata.versions.add(getText().trim());
-                        }
-                        super.endElement(uri, localName, qName);
-                    }
-                }, null);
+        metadataResource.withContent(new InputStreamErroringAction(mavenMetadata));
+    }
+
+    private static class MyContextualSAXHandler extends ContextualSAXHandler {
+        private final MavenMetadata mavenMetadata;
+
+        public MyContextualSAXHandler(MavenMetadata mavenMetadata) {
+            this.mavenMetadata = mavenMetadata;
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName)
+                throws SAXException {
+            if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
+                mavenMetadata.timestamp = getText();
             }
-        });
+            if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
+                mavenMetadata.buildNumber = getText();
+            }
+            if ("metadata/versioning/versions/version".equals(getContext())) {
+                mavenMetadata.versions.add(getText().trim());
+            }
+            super.endElement(uri, localName, qName);
+        }
+    }
+
+    private static class InputStreamErroringAction extends ErroringAction<InputStream> {
+        private final MavenMetadata mavenMetadata;
+
+        public InputStreamErroringAction(MavenMetadata mavenMetadata) {
+            this.mavenMetadata = mavenMetadata;
+        }
+
+        @Override
+        public void doExecute(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
+            XMLHelper.parse(inputStream, null, new MyContextualSAXHandler(mavenMetadata), null);
+        }
     }
 }

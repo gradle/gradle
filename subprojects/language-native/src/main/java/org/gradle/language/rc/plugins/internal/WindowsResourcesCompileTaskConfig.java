@@ -67,18 +67,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
         task.includes(sourceSet.getExportedHeaders().getSourceDirectories());
 
         FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
-        task.includes(fileCollectionFactory.create(new MinimalFileSet() {
-            @Override
-            public Set<File> getFiles() {
-                PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
-                return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(ToolType.WINDOW_RESOURCES_COMPILER).getIncludeDirs());
-            }
-
-            @Override
-            public String getDisplayName() {
-                return "System includes for " + binary.getToolChain().getDisplayName();
-            }
-        }));
+        task.includes(fileCollectionFactory.create(new MyMinimalFileSet(binary)));
 
         task.source(sourceSet.getSource());
 
@@ -96,4 +85,22 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
         }
     }
 
+    private static class MyMinimalFileSet implements MinimalFileSet {
+        private final NativeBinarySpecInternal binary;
+
+        public MyMinimalFileSet(NativeBinarySpecInternal binary) {
+            this.binary = binary;
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
+            return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(ToolType.WINDOW_RESOURCES_COMPILER).getIncludeDirs());
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "System includes for " + binary.getToolChain().getDisplayName();
+        }
+    }
 }

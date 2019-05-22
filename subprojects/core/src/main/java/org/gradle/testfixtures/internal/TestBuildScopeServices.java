@@ -57,16 +57,18 @@ public class TestBuildScopeServices extends BuildScopeServices {
     }
 
     protected NestedBuildFactory createNestedBuildFactory() {
-        return new NestedBuildFactory() {
-            @Override
-            public GradleLauncher nestedInstance(BuildDefinition buildDefinition, NestedBuildState build) {
-                throw new UnsupportedOperationException();
-            }
+        return new MyNestedBuildFactory();
+    }
 
-            @Override
-            public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, NestedRootBuild build) {
-                throw new UnsupportedOperationException();
-            }
-        };
+    private static class MyNestedBuildFactory implements NestedBuildFactory {
+        @Override
+        public GradleLauncher nestedInstance(BuildDefinition buildDefinition, NestedBuildState build) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, NestedRootBuild build) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

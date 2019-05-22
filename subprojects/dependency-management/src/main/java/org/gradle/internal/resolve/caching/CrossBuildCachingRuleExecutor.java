@@ -263,18 +263,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             for (int i = 0; i < cpt; i++) {
                 final Object in = readAny(decoder);
                 final Object out = readAny(decoder);
-                implicits.add(new ImplicitInputRecord<Object, Object>() {
-                    @Override
-                    public Object getInput() {
-                        return in;
-                    }
-
-                    @Nullable
-                    @Override
-                    public Object getOutput() {
-                        return out;
-                    }
-                });
+                implicits.add(new MyImplicitInputRecord(in, out));
             }
             return implicits;
         }
@@ -309,6 +298,27 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
 
         private void writeAny(Encoder encoder, Object any) throws Exception {
             anySerializer.write(encoder, any);
+        }
+
+        private static class MyImplicitInputRecord implements ImplicitInputRecord<Object, Object> {
+            private final Object in;
+            private final Object out;
+
+            public MyImplicitInputRecord(Object in, Object out) {
+                this.in = in;
+                this.out = out;
+            }
+
+            @Override
+            public Object getInput() {
+                return in;
+            }
+
+            @Nullable
+            @Override
+            public Object getOutput() {
+                return out;
+            }
         }
     }
 

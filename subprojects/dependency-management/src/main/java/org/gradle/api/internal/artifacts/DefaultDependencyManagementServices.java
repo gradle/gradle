@@ -204,15 +204,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ArtifactTransformListener createArtifactTransformListener() {
-            return new ArtifactTransformListener() {
-                @Override
-                public void beforeTransformerInvocation(Describable transformer, Describable subject) {
-                }
-
-                @Override
-                public void afterTransformerInvocation(Describable transformer, Describable subject) {
-                }
-            };
+            return new MyArtifactTransformListener();
         }
 
         OutputFileCollectionFingerprinter createOutputFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
@@ -220,17 +212,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformationNodeRegistry createTransformationNodeRegistry() {
-            return new TransformationNodeRegistry() {
-                @Override
-                public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
-                    throw new UnsupportedOperationException("Cannot schedule transforms for build script dependencies");
-                }
-
-                @Override
-                public Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
-                    return Optional.empty();
-                }
-            };
+            return new MyTransformationNodeRegistry();
         }
 
         /**
@@ -272,6 +254,28 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 )
             );
         }
+
+        private static class MyTransformationNodeRegistry implements TransformationNodeRegistry {
+            @Override
+            public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
+                throw new UnsupportedOperationException("Cannot schedule transforms for build script dependencies");
+            }
+
+            @Override
+            public Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+                return Optional.empty();
+            }
+        }
+
+        private static class MyArtifactTransformListener implements ArtifactTransformListener {
+            @Override
+            public void beforeTransformerInvocation(Describable transformer, Describable subject) {
+            }
+
+            @Override
+            public void afterTransformerInvocation(Describable transformer, Describable subject) {
+            }
+        }
     }
 
     private static class NoOpCachingStateStep implements Step<IncrementalContext, CachingResult> {
@@ -283,63 +287,79 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         @Override
         public CachingResult execute(IncrementalContext context) {
-            UpToDateResult result = delegate.execute(new CachingContext() {
-                @Override
-                public CachingState getCachingState() {
-                    return CachingState.NOT_DETERMINED;
-                }
+            UpToDateResult result = delegate.execute(new MyCachingContext(context));
+            return new MyCachingResult(result);
+        }
 
-                @Override
-                public Optional<String> getRebuildReason() {
-                    return context.getRebuildReason();
-                }
+        private static class MyCachingResult implements CachingResult {
+            private final UpToDateResult result;
 
-                @Override
-                public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                    return context.getAfterPreviousExecutionState();
-                }
+            public MyCachingResult(UpToDateResult result) {
+                this.result = result;
+            }
 
-                @Override
-                public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                    return context.getBeforeExecutionState();
-                }
+            @Override
+            public CachingState getCachingState() {
+                return CachingState.NOT_DETERMINED;
+            }
 
-                @Override
-                public UnitOfWork getWork() {
-                    return context.getWork();
-                }
-            });
-            return new CachingResult() {
-                @Override
-                public CachingState getCachingState() {
-                    return CachingState.NOT_DETERMINED;
-                }
+            @Override
+            public ImmutableList<String> getExecutionReasons() {
+                return result.getExecutionReasons();
+            }
 
-                @Override
-                public ImmutableList<String> getExecutionReasons() {
-                    return result.getExecutionReasons();
-                }
+            @Override
+            public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
+                return result.getFinalOutputs();
+            }
 
-                @Override
-                public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
-                    return result.getFinalOutputs();
-                }
+            @Override
+            public OriginMetadata getOriginMetadata() {
+                return result.getOriginMetadata();
+            }
 
-                @Override
-                public OriginMetadata getOriginMetadata() {
-                    return result.getOriginMetadata();
-                }
+            @Override
+            public boolean isReused() {
+                return result.isReused();
+            }
 
-                @Override
-                public boolean isReused() {
-                    return result.isReused();
-                }
+            @Override
+            public Try<ExecutionOutcome> getOutcome() {
+                return result.getOutcome();
+            }
+        }
 
-                @Override
-                public Try<ExecutionOutcome> getOutcome() {
-                    return result.getOutcome();
-                }
-            };
+        private static class MyCachingContext implements CachingContext {
+            private final IncrementalContext context;
+
+            public MyCachingContext(IncrementalContext context) {
+                this.context = context;
+            }
+
+            @Override
+            public CachingState getCachingState() {
+                return CachingState.NOT_DETERMINED;
+            }
+
+            @Override
+            public Optional<String> getRebuildReason() {
+                return context.getRebuildReason();
+            }
+
+            @Override
+            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
+            }
+
+            @Override
+            public UnitOfWork getWork() {
+                return context.getWork();
+            }
         }
     }
 

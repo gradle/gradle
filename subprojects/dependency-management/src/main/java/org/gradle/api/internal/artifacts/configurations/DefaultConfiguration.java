@@ -436,14 +436,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
         validateMutation(MutationType.DEPENDENCIES);
-        defaultDependencyActions = defaultDependencyActions.add(new Action<DependencySet>() {
-            @Override
-            public void execute(DependencySet dependencies) {
-                if (dependencies.isEmpty()) {
-                    action.execute(dependencies);
-                }
-            }
-        });
+        defaultDependencyActions = defaultDependencyActions.add(new DependencySetAction(action));
         return this;
     }
 
@@ -1153,6 +1146,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public String getDisplayName() {
             return "configuration '" + identityPath + "'";
+        }
+    }
+
+    private static class DependencySetAction implements Action<DependencySet> {
+        private final Action<? super DependencySet> action;
+
+        public DependencySetAction(Action<? super DependencySet> action) {
+            this.action = action;
+        }
+
+        @Override
+        public void execute(DependencySet dependencies) {
+            if (dependencies.isEmpty()) {
+                action.execute(dependencies);
+            }
         }
     }
 

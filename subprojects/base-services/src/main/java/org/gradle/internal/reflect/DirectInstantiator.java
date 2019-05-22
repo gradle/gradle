@@ -108,15 +108,7 @@ public class DirectInstantiator implements Instantiator {
         }
 
         private String prettify(Class<?>[] argumentTypes) {
-            return Joiner.on(", ").join(Iterables.transform(Arrays.asList(argumentTypes), new Function<Class<?>, String>() {
-                @Override
-                public String apply(Class<?> input) {
-                    if (input == null) {
-                        return "null";
-                    }
-                    return input.getName();
-                }
-            }));
+            return Joiner.on(", ").join(Iterables.transform(Arrays.asList(argumentTypes), new ClassStringFunction()));
         }
 
         private boolean isMatch(Class<?>[] argumentTypes, Class[] parameterTypes) {
@@ -135,6 +127,16 @@ public class DirectInstantiator implements Instantiator {
                 }
             }
             return true;
+        }
+
+        private static class ClassStringFunction implements Function<Class<?>, String> {
+            @Override
+            public String apply(Class<?> input) {
+                if (input == null) {
+                    return "null";
+                }
+                return input.getName();
+            }
         }
     }
 

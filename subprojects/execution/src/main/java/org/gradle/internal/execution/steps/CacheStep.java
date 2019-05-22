@@ -81,27 +81,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                     cleanLocalState(work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
                     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = cacheHit.getResultingSnapshots();
-                    return (CurrentSnapshotResult) new CurrentSnapshotResult() {
-                        @Override
-                        public Try<ExecutionOutcome> getOutcome() {
-                            return Try.successful(ExecutionOutcome.FROM_CACHE);
-                        }
-
-                        @Override
-                        public OriginMetadata getOriginMetadata() {
-                            return originMetadata;
-                        }
-
-                        @Override
-                        public boolean isReused() {
-                            return true;
-                        }
-
-                        @Override
-                        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
-                            return finalOutputs;
-                        }
-                    };
+                    return (CurrentSnapshotResult) new MyCurrentSnapshotResult(originMetadata, finalOutputs);
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheKey, context))
             )
@@ -113,37 +93,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                 cleanOutputsAfterLoadFailure(work);
                 Optional<ExecutionStateChanges> rebuildChanges = context.getChanges().map(changes -> changes.withEnforcedRebuild(FAILED_LOAD_REBUILD_REASON));
 
-                return executeAndStoreInCache(cacheKey, new IncrementalChangesContext() {
-                    @Override
-                    public Optional<ExecutionStateChanges> getChanges() {
-                        return rebuildChanges;
-                    }
-
-                    @Override
-                    public CachingState getCachingState() {
-                        return context.getCachingState();
-                    }
-
-                    @Override
-                    public Optional<String> getRebuildReason() {
-                        return Optional.of(FAILED_LOAD_REBUILD_REASON);
-                    }
-
-                    @Override
-                    public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                        return context.getAfterPreviousExecutionState();
-                    }
-
-                    @Override
-                    public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                        return context.getBeforeExecutionState();
-                    }
-
-                    @Override
-                    public UnitOfWork getWork() {
-                        return work;
-                    }
-                });
+                return executeAndStoreInCache(cacheKey, new MyIncrementalChangesContext(rebuildChanges, context, work));
             });
     }
 
@@ -199,5 +149,77 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     private CurrentSnapshotResult executeWithoutCache(IncrementalChangesContext context) {
         return delegate.execute(context);
+    }
+
+    private static class MyIncrementalChangesContext implements IncrementalChangesContext {
+        private final Optional<ExecutionStateChanges> rebuildChanges;
+        private final IncrementalChangesContext context;
+        private final UnitOfWork work;
+
+        public MyIncrementalChangesContext(Optional<ExecutionStateChanges> rebuildChanges, IncrementalChangesContext context, UnitOfWork work) {
+            this.rebuildChanges = rebuildChanges;
+            this.context = context;
+            this.work = work;
+        }
+
+        @Override
+        public Optional<ExecutionStateChanges> getChanges() {
+            return rebuildChanges;
+        }
+
+        @Override
+        public CachingState getCachingState() {
+            return context.getCachingState();
+        }
+
+        @Override
+        public Optional<String> getRebuildReason() {
+            return Optional.of(FAILED_LOAD_REBUILD_REASON);
+        }
+
+        @Override
+        public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return context.getAfterPreviousExecutionState();
+        }
+
+        @Override
+        public Optional<BeforeExecutionState> getBeforeExecutionState() {
+            return context.getBeforeExecutionState();
+        }
+
+        @Override
+        public UnitOfWork getWork() {
+            return work;
+        }
+    }
+
+    private static class MyCurrentSnapshotResult implements CurrentSnapshotResult {
+        private final OriginMetadata originMetadata;
+        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs;
+
+        public MyCurrentSnapshotResult(OriginMetadata originMetadata, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
+            this.originMetadata = originMetadata;
+            this.finalOutputs = finalOutputs;
+        }
+
+        @Override
+        public Try<ExecutionOutcome> getOutcome() {
+            return Try.successful(ExecutionOutcome.FROM_CACHE);
+        }
+
+        @Override
+        public OriginMetadata getOriginMetadata() {
+            return originMetadata;
+        }
+
+        @Override
+        public boolean isReused() {
+            return true;
+        }
+
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+            return finalOutputs;
+        }
     }
 }

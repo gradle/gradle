@@ -71,12 +71,7 @@ public abstract class NodePredicate {
     public NodePredicate withType(ModelType<?> type) {
         final Predicate<MutableModelNode> matcher = ModelNodes.withType(type, this.matcher);
         final NodePredicate parent = this;
-        return new NodePredicate(matcher) {
-            @Override
-            protected ModelSpec scope(ModelPath scope, Predicate<? super MutableModelNode> matcher) {
-                return parent.scope(scope, matcher);
-            }
-        };
+        return new MyNodePredicate(matcher, parent);
     }
 
     private static class BasicPredicate extends ModelSpec {
@@ -113,6 +108,20 @@ public abstract class NodePredicate {
         @Override
         public boolean matches(MutableModelNode node) {
             return matcher.apply(node);
+        }
+    }
+
+    private static class MyNodePredicate extends NodePredicate {
+        private final NodePredicate parent;
+
+        public MyNodePredicate(Predicate<MutableModelNode> matcher, NodePredicate parent) {
+            super(matcher);
+            this.parent = parent;
+        }
+
+        @Override
+        protected ModelSpec scope(ModelPath scope, Predicate<? super MutableModelNode> matcher) {
+            return parent.scope(scope, matcher);
         }
     }
 }

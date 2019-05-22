@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import java.io.Serializable;
-
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -31,6 +29,8 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
+
+import java.io.Serializable;
 
 public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
@@ -53,14 +53,7 @@ public class JUnitTestFramework implements TestFramework {
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
-        return new Action<WorkerProcessBuilder>() {
-            @Override
-            public void execute(WorkerProcessBuilder workerProcessBuilder) {
-                workerProcessBuilder.sharedPackages("junit.framework");
-                workerProcessBuilder.sharedPackages("junit.extensions");
-                workerProcessBuilder.sharedPackages("org.junit");
-            }
-        };
+        return new WorkerProcessBuilderAction();
     }
 
     @Override
@@ -87,6 +80,15 @@ public class JUnitTestFramework implements TestFramework {
         @Override
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(Clock.class));
+        }
+    }
+
+    private static class WorkerProcessBuilderAction implements Action<WorkerProcessBuilder> {
+        @Override
+        public void execute(WorkerProcessBuilder workerProcessBuilder) {
+            workerProcessBuilder.sharedPackages("junit.framework");
+            workerProcessBuilder.sharedPackages("junit.extensions");
+            workerProcessBuilder.sharedPackages("org.junit");
         }
     }
 }

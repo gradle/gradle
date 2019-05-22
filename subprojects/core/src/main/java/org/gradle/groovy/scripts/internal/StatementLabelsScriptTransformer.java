@@ -31,20 +31,28 @@ public class StatementLabelsScriptTransformer extends AbstractScriptTransformer 
     @Override
     public void call(final SourceUnit source) throws CompilationFailedException {
         // currently we only look in script code; could extend this to build script classes
-        AstUtils.visitScriptCode(source, new ClassCodeVisitorSupport() {
-            @Override
-            protected SourceUnit getSourceUnit() {
-                return source;
-            }
+        AstUtils.visitScriptCode(source, new MyClassCodeVisitorSupport(source));
+    }
 
-            @Override
-            protected void visitStatement(Statement statement) {
-                if (statement.getStatementLabel() != null) {
-                    String message = String.format("Statement labels may not be used in build scripts.%nIn case you tried to configure a property named '%s', replace ':' with '=' or ' ', otherwise it will not have the desired effect.",
-                            statement.getStatementLabel());
-                    addError(message, statement);
-                }
+    private static class MyClassCodeVisitorSupport extends ClassCodeVisitorSupport {
+        private final SourceUnit source;
+
+        public MyClassCodeVisitorSupport(SourceUnit source) {
+            this.source = source;
+        }
+
+        @Override
+        protected SourceUnit getSourceUnit() {
+            return source;
+        }
+
+        @Override
+        protected void visitStatement(Statement statement) {
+            if (statement.getStatementLabel() != null) {
+                String message = String.format("Statement labels may not be used in build scripts.%nIn case you tried to configure a property named '%s', replace ':' with '=' or ' ', otherwise it will not have the desired effect.",
+                        statement.getStatementLabel());
+                addError(message, statement);
             }
-        });
+        }
     }
 }

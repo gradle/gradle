@@ -152,16 +152,18 @@ public class TestReport extends DefaultTask {
             if (resultDirs.getFiles().size() == 1) {
                 return new BinaryResultBackedTestResultsProvider(resultDirs.getSingleFile());
             } else {
-                return new AggregateTestResultsProvider(collect(resultDirs, resultsProviders, new Transformer<TestResultsProvider, File>() {
-                    @Override
-                    public TestResultsProvider transform(File dir) {
-                        return new BinaryResultBackedTestResultsProvider(dir);
-                    }
-                }));
+                return new AggregateTestResultsProvider(collect(resultDirs, resultsProviders, new TestResultsProviderFileTransformer()));
             }
         } catch (RuntimeException e) {
             stoppable(resultsProviders).stop();
             throw e;
+        }
+    }
+
+    private static class TestResultsProviderFileTransformer implements Transformer<TestResultsProvider, File> {
+        @Override
+        public TestResultsProvider transform(File dir) {
+            return new BinaryResultBackedTestResultsProvider(dir);
         }
     }
 }

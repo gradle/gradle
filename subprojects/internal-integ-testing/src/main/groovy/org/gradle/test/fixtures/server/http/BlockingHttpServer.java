@@ -140,12 +140,7 @@ public class BlockingHttpServer extends ExternalResource {
      * Expects that all requests use the basic authentication with the given credentials.
      */
     public void withBasicAuthentication(final String username, final String password) {
-        context.setAuthenticator(new BasicAuthenticator("get") {
-            @Override
-            public boolean checkCredentials(String suppliedUser, String suppliedPassword) {
-                return suppliedUser.equals(username) && password.equals(suppliedPassword);
-            }
-        });
+        context.setAuthenticator(new MyBasicAuthenticator(username, password));
     }
 
     /**
@@ -194,12 +189,7 @@ public class BlockingHttpServer extends ExternalResource {
      * Expect a HEAD request to the given path.
      */
     public ExpectedRequest head(String path) {
-        return new ExpectMethodAndRunAction("HEAD", normalizePath(path), new ErroringAction<HttpExchange>() {
-            @Override
-            protected void doExecute(HttpExchange exchange) throws Exception {
-                exchange.sendResponseHeaders(200, -1);
-            }
-        });
+        return new ExpectMethodAndRunAction("HEAD", normalizePath(path), new HttpExchangeErroringAction());
     }
 
     /**
@@ -490,6 +480,29 @@ public class BlockingHttpServer extends ExternalResource {
         @Override
         protected void doExecute(HttpExchange httpExchange) throws Exception {
             httpExchange.sendResponseHeaders(200, 0);
+        }
+    }
+
+    private static class HttpExchangeErroringAction extends ErroringAction<HttpExchange> {
+        @Override
+        protected void doExecute(HttpExchange exchange) throws Exception {
+            exchange.sendResponseHeaders(200, -1);
+        }
+    }
+
+    private static class MyBasicAuthenticator extends BasicAuthenticator {
+        private final String username;
+        private final String password;
+
+        public MyBasicAuthenticator(String username, String password) {
+            super("get");
+            this.username = username;
+            this.password = password;
+        }
+
+        @Override
+        public boolean checkCredentials(String suppliedUser, String suppliedPassword) {
+            return suppliedUser.equals(username) && password.equals(suppliedPassword);
         }
     }
 

@@ -87,17 +87,7 @@ public class DaemonStopClient {
         CountdownTimer timer = Time.startCountdownTimer(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         final Set<String> seen = new HashSet<String>();
 
-        ExplainingSpec<DaemonContext> spec = new ExplainingSpec<DaemonContext>() {
-            @Override
-            public String whyUnsatisfied(DaemonContext element) {
-                return "already seen";
-            }
-
-            @Override
-            public boolean isSatisfiedBy(DaemonContext element) {
-                return !seen.contains(element.getUid());
-            }
-        };
+        ExplainingSpec<DaemonContext> spec = new DaemonContextExplainingSpec(seen);
 
         DaemonClientConnection connection = connector.maybeConnect(spec);
         if (connection == null) {
@@ -129,6 +119,24 @@ public class DaemonStopClient {
 
         if (connection != null) {
             throw new GradleException(String.format("Timeout waiting for all daemons to stop. Waited %s.", timer.getElapsed()));
+        }
+    }
+
+    private static class DaemonContextExplainingSpec implements ExplainingSpec<DaemonContext> {
+        private final Set<String> seen;
+
+        public DaemonContextExplainingSpec(Set<String> seen) {
+            this.seen = seen;
+        }
+
+        @Override
+        public String whyUnsatisfied(DaemonContext element) {
+            return "already seen";
+        }
+
+        @Override
+        public boolean isSatisfiedBy(DaemonContext element) {
+            return !seen.contains(element.getUid());
         }
     }
 }

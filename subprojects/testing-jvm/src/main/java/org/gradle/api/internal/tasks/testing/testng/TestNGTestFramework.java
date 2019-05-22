@@ -114,12 +114,7 @@ public class TestNGTestFramework implements TestFramework {
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
-        return new Action<WorkerProcessBuilder>() {
-            @Override
-            public void execute(WorkerProcessBuilder workerProcessBuilder) {
-                workerProcessBuilder.sharedPackages("org.testng");
-            }
-        };
+        return new WorkerProcessBuilderAction();
     }
 
     @Override
@@ -146,6 +141,13 @@ public class TestNGTestFramework implements TestFramework {
         @Override
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(Clock.class), serviceRegistry.get(ActorFactory.class));
+        }
+    }
+
+    private static class WorkerProcessBuilderAction implements Action<WorkerProcessBuilder> {
+        @Override
+        public void execute(WorkerProcessBuilder workerProcessBuilder) {
+            workerProcessBuilder.sharedPackages("org.testng");
         }
     }
 }

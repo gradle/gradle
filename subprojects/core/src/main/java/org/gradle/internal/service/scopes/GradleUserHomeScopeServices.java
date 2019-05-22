@@ -161,27 +161,8 @@ public class GradleUserHomeScopeServices {
 
     FileSystemMirror createFileSystemMirror(ListenerManager listenerManager, WellKnownFileLocations wellKnownFileLocations) {
         final DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(wellKnownFileLocations);
-        listenerManager.addListener(new OutputChangeListener() {
-            @Override
-            public void beforeOutputChange() {
-                fileSystemMirror.beforeOutputChange();
-            }
-
-            @Override
-            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                fileSystemMirror.beforeOutputChange(affectedOutputPaths);
-            }
-        });
-        listenerManager.addListener(new RootBuildLifecycleListener() {
-            @Override
-            public void afterStart() {
-            }
-
-            @Override
-            public void beforeComplete() {
-                fileSystemMirror.beforeBuildFinished();
-            }
-        });
+        listenerManager.addListener(new MyOutputChangeListener(fileSystemMirror));
+        listenerManager.addListener(new MyRootBuildLifecycleListener(fileSystemMirror));
         return fileSystemMirror;
     }
 
@@ -263,5 +244,40 @@ public class GradleUserHomeScopeServices {
 
     TimeoutHandler createTimeoutHandler(ExecutorFactory executorFactory) {
         return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1));
+    }
+
+    private static class MyRootBuildLifecycleListener implements RootBuildLifecycleListener {
+        private final DefaultFileSystemMirror fileSystemMirror;
+
+        public MyRootBuildLifecycleListener(DefaultFileSystemMirror fileSystemMirror) {
+            this.fileSystemMirror = fileSystemMirror;
+        }
+
+        @Override
+        public void afterStart() {
+        }
+
+        @Override
+        public void beforeComplete() {
+            fileSystemMirror.beforeBuildFinished();
+        }
+    }
+
+    private static class MyOutputChangeListener implements OutputChangeListener {
+        private final DefaultFileSystemMirror fileSystemMirror;
+
+        public MyOutputChangeListener(DefaultFileSystemMirror fileSystemMirror) {
+            this.fileSystemMirror = fileSystemMirror;
+        }
+
+        @Override
+        public void beforeOutputChange() {
+            fileSystemMirror.beforeOutputChange();
+        }
+
+        @Override
+        public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+            fileSystemMirror.beforeOutputChange(affectedOutputPaths);
+        }
     }
 }

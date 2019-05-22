@@ -178,21 +178,7 @@ public class ApiMemberSelector extends ClassVisitor {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers) || ("<init>".equals(name) && isInnerClass)) {
             final MethodMember methodMember = new MethodMember(access, name, desc, signature, exceptions);
             methods.add(methodMember);
-            return new MethodVisitor(AsmConstants.ASM_LEVEL) {
-                @Override
-                public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-                    AnnotationMember ann = new AnnotationMember(desc, visible);
-                    methodMember.addAnnotation(ann);
-                    return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
-                }
-
-                @Override
-                public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-                    ParameterAnnotationMember ann = new ParameterAnnotationMember(desc, visible, parameter);
-                    methodMember.addParameterAnnotation(ann);
-                    return new SortingAnnotationVisitor(ann, super.visitParameterAnnotation(parameter, desc, visible));
-                }
-            };
+            return new MyMethodVisitor(methodMember);
         }
         return null;
     }
@@ -203,14 +189,7 @@ public class ApiMemberSelector extends ClassVisitor {
             Object keepValue = (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
             final FieldMember fieldMember = new FieldMember(access, name, signature, desc, keepValue);
             fields.add(fieldMember);
-            return new FieldVisitor(AsmConstants.ASM_LEVEL) {
-                @Override
-                public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-                    AnnotationMember ann = new AnnotationMember(desc, visible);
-                    fieldMember.addAnnotation(ann);
-                    return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
-                }
-            };
+            return new MyFieldVisitor(fieldMember);
         }
         return null;
     }
@@ -250,5 +229,44 @@ public class ApiMemberSelector extends ClassVisitor {
 
     private static boolean isPackagePrivateMember(int access) {
         return (access & (ACC_PUBLIC | ACC_PROTECTED | ACC_PRIVATE)) == 0;
+    }
+
+    private static class MyFieldVisitor extends FieldVisitor {
+        private final FieldMember fieldMember;
+
+        public MyFieldVisitor(FieldMember fieldMember) {
+            super(AsmConstants.ASM_LEVEL);
+            this.fieldMember = fieldMember;
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            AnnotationMember ann = new AnnotationMember(desc, visible);
+            fieldMember.addAnnotation(ann);
+            return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
+        }
+    }
+
+    private static class MyMethodVisitor extends MethodVisitor {
+        private final MethodMember methodMember;
+
+        public MyMethodVisitor(MethodMember methodMember) {
+            super(AsmConstants.ASM_LEVEL);
+            this.methodMember = methodMember;
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            AnnotationMember ann = new AnnotationMember(desc, visible);
+            methodMember.addAnnotation(ann);
+            return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
+        }
+
+        @Override
+        public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
+            ParameterAnnotationMember ann = new ParameterAnnotationMember(desc, visible, parameter);
+            methodMember.addParameterAnnotation(ann);
+            return new SortingAnnotationVisitor(ann, super.visitParameterAnnotation(parameter, desc, visible));
+        }
     }
 }

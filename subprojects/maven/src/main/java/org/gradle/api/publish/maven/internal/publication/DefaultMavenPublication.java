@@ -675,17 +675,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         checkThatArtifactIsPublishedUnmodified(source);
         final String publishedUrl = getPublishedUrl(source);
         final String publishedName = isPublishWithOriginalFileName ? source.getFile().getName() : publishedUrl;
-        return new PublishedFile() {
-            @Override
-            public String getName() {
-                return publishedName;
-            }
-
-            @Override
-            public String getUri() {
-                return publishedUrl;
-            }
-        };
+        return new MyPublishedFile(publishedName, publishedUrl);
     }
 
     @Nullable
@@ -759,6 +749,26 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         @Override
         public int hashCode() {
             return file.hashCode() ^ Objects.hashCode(classifier, extension);
+        }
+    }
+
+    private static class MyPublishedFile implements PublishedFile {
+        private final String publishedName;
+        private final String publishedUrl;
+
+        public MyPublishedFile(String publishedName, String publishedUrl) {
+            this.publishedName = publishedName;
+            this.publishedUrl = publishedUrl;
+        }
+
+        @Override
+        public String getName() {
+            return publishedName;
+        }
+
+        @Override
+        public String getUri() {
+            return publishedUrl;
         }
     }
 }

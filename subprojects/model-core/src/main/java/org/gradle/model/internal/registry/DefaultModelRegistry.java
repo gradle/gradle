@@ -160,19 +160,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     @Override
     public ModelRegistry configureMatching(final ModelSpec predicate, final Class<? extends RuleSource> rules) {
-        registerListener(new DelegatingListener(predicate) {
-            @Override
-            public String toString() {
-                return "configure matching " + predicate + " apply " + rules.getSimpleName();
-            }
-
-            @Override
-            public void onDiscovered(ModelNodeInternal node) {
-                if (predicate.matches(node)) {
-                    node.applyToSelf(rules);
-                }
-            }
-        });
+        registerListener(new MyDelegatingListener(predicate, rules));
         return this;
     }
 
@@ -538,6 +526,29 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             }
         }
         return result;
+    }
+
+    private static class MyDelegatingListener extends DelegatingListener {
+        private final ModelSpec predicate;
+        private final Class<? extends RuleSource> rules;
+
+        public MyDelegatingListener(ModelSpec predicate, Class<? extends RuleSource> rules) {
+            super(predicate);
+            this.predicate = predicate;
+            this.rules = rules;
+        }
+
+        @Override
+        public String toString() {
+            return "configure matching " + predicate + " apply " + rules.getSimpleName();
+        }
+
+        @Override
+        public void onDiscovered(ModelNodeInternal node) {
+            if (predicate.matches(node)) {
+                node.applyToSelf(rules);
+            }
+        }
     }
 
     private class GoalGraph {

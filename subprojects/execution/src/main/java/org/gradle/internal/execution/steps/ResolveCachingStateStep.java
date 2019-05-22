@@ -87,63 +87,8 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
             logDisabledReasons(disabledReasons, work);
         }
 
-        UpToDateResult result = delegate.execute(new CachingContext() {
-            @Override
-            public CachingState getCachingState() {
-                return cachingState;
-            }
-
-            @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
-            }
-
-            @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
-            }
-
-            @Override
-            public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
-            }
-
-            @Override
-            public UnitOfWork getWork() {
-                return work;
-            }
-        });
-        return new CachingResult() {
-            @Override
-            public CachingState getCachingState() {
-                return cachingState;
-            }
-
-            @Override
-            public ImmutableList<String> getExecutionReasons() {
-                return result.getExecutionReasons();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
-                return result.getFinalOutputs();
-            }
-
-            @Override
-            public OriginMetadata getOriginMetadata() {
-                return result.getOriginMetadata();
-            }
-
-            @Override
-            public boolean isReused() {
-                return result.isReused();
-            }
-
-            @Override
-            public Try<ExecutionOutcome> getOutcome() {
-                return result.getOutcome();
-            }
-        };
+        UpToDateResult result = delegate.execute(new MyCachingContext(cachingState, context, work));
+        return new MyCachingResult(cachingState, result);
     }
 
     private CachingState calculateCachingState(BeforeExecutionState executionState, UnitOfWork work) {
@@ -183,6 +128,83 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
                 formatter.format("%n  %s", reason.getMessage());
             }
             LOGGER.info(formatter.toString());
+        }
+    }
+
+    private static class MyCachingResult implements CachingResult {
+        private final CachingState cachingState;
+        private final UpToDateResult result;
+
+        public MyCachingResult(CachingState cachingState, UpToDateResult result) {
+            this.cachingState = cachingState;
+            this.result = result;
+        }
+
+        @Override
+        public CachingState getCachingState() {
+            return cachingState;
+        }
+
+        @Override
+        public ImmutableList<String> getExecutionReasons() {
+            return result.getExecutionReasons();
+        }
+
+        @Override
+        public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
+            return result.getFinalOutputs();
+        }
+
+        @Override
+        public OriginMetadata getOriginMetadata() {
+            return result.getOriginMetadata();
+        }
+
+        @Override
+        public boolean isReused() {
+            return result.isReused();
+        }
+
+        @Override
+        public Try<ExecutionOutcome> getOutcome() {
+            return result.getOutcome();
+        }
+    }
+
+    private static class MyCachingContext implements CachingContext {
+        private final CachingState cachingState;
+        private final IncrementalContext context;
+        private final UnitOfWork work;
+
+        public MyCachingContext(CachingState cachingState, IncrementalContext context, UnitOfWork work) {
+            this.cachingState = cachingState;
+            this.context = context;
+            this.work = work;
+        }
+
+        @Override
+        public CachingState getCachingState() {
+            return cachingState;
+        }
+
+        @Override
+        public Optional<String> getRebuildReason() {
+            return context.getRebuildReason();
+        }
+
+        @Override
+        public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return context.getAfterPreviousExecutionState();
+        }
+
+        @Override
+        public Optional<BeforeExecutionState> getBeforeExecutionState() {
+            return context.getBeforeExecutionState();
+        }
+
+        @Override
+        public UnitOfWork getWork() {
+            return work;
         }
     }
 }

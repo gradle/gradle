@@ -38,22 +38,7 @@ public abstract class AbstractWorker implements Worker {
     }
 
     DefaultWorkResult executeWrappedInBuildOperation(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation, final Work work) {
-        return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
-            @Override
-            public DefaultWorkResult call(BuildOperationContext context) {
-                DefaultWorkResult result = work.execute(spec);
-                context.setResult(RESULT);
-                context.failed(result.getException());
-                return result;
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(spec.getDisplayName())
-                    .parent(parentBuildOperation)
-                    .details(new Details(spec.getImplementationClass().getName(), spec.getDisplayName()));
-            }
-        });
+        return buildOperationExecutor.call(new DefaultWorkResultCallableBuildOperation(work, spec, parentBuildOperation));
     }
 
     interface Work {
@@ -85,4 +70,30 @@ public abstract class AbstractWorker implements Worker {
     static class Result implements ExecuteWorkItemBuildOperationType.Result {
     }
 
+    private static class DefaultWorkResultCallableBuildOperation implements CallableBuildOperation<DefaultWorkResult> {
+        private final Work work;
+        private final ActionExecutionSpec spec;
+        private final BuildOperationRef parentBuildOperation;
+
+        public DefaultWorkResultCallableBuildOperation(Work work, ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
+            this.work = work;
+            this.spec = spec;
+            this.parentBuildOperation = parentBuildOperation;
+        }
+
+        @Override
+        public DefaultWorkResult call(BuildOperationContext context) {
+            DefaultWorkResult result = work.execute(spec);
+            context.setResult(RESULT);
+            context.failed(result.getException());
+            return result;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(spec.getDisplayName())
+                .parent(parentBuildOperation)
+                .details(new Details(spec.getImplementationClass().getName(), spec.getDisplayName()));
+        }
+    }
 }

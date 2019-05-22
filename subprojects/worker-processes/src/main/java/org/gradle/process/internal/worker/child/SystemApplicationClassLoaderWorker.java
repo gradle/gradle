@@ -130,22 +130,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             }
 
             final ObjectConnection serverConnection = connection;
-            action.execute(new WorkerContext() {
-                @Override
-                public ClassLoader getApplicationClassLoader() {
-                    return ClassLoader.getSystemClassLoader();
-                }
-
-                @Override
-                public ObjectConnection getServerConnection() {
-                    return serverConnection;
-                }
-
-                @Override
-                public ServiceRegistry getServiceRegistry() {
-                    return workerServices;
-                }
-            });
+            action.execute(new MyWorkerContext(serverConnection, workerServices));
         } finally {
             if (workerLogEventListener != null) {
                 loggingManager.removeOutputEventListener(workerLogEventListener);
@@ -159,6 +144,44 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         return null;
+    }
+
+    private static class MyJvmMemoryStatusListener implements JvmMemoryStatusListener {
+        private final WorkerJvmMemoryInfoProtocol workerJvmMemoryInfoProtocol;
+
+        public MyJvmMemoryStatusListener(WorkerJvmMemoryInfoProtocol workerJvmMemoryInfoProtocol) {
+            this.workerJvmMemoryInfoProtocol = workerJvmMemoryInfoProtocol;
+        }
+
+        @Override
+        public void onJvmMemoryStatus(JvmMemoryStatus jvmMemoryStatus) {
+            workerJvmMemoryInfoProtocol.sendJvmMemoryStatus(jvmMemoryStatus);
+        }
+    }
+
+    private static class MyWorkerContext implements WorkerContext {
+        private final ObjectConnection serverConnection;
+        private final WorkerServices workerServices;
+
+        public MyWorkerContext(ObjectConnection serverConnection, WorkerServices workerServices) {
+            this.serverConnection = serverConnection;
+            this.workerServices = workerServices;
+        }
+
+        @Override
+        public ClassLoader getApplicationClassLoader() {
+            return ClassLoader.getSystemClassLoader();
+        }
+
+        @Override
+        public ObjectConnection getServerConnection() {
+            return serverConnection;
+        }
+
+        @Override
+        public ServiceRegistry getServiceRegistry() {
+            return workerServices;
+        }
     }
 
     private class PrintUnrecoverableErrorToFileHandler implements Action<Throwable> {
@@ -204,12 +227,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     private void configureWorkerJvmMemoryInfoEvents(WorkerServices services, ObjectConnection connection) {
         connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
         final WorkerJvmMemoryInfoProtocol workerJvmMemoryInfoProtocol = connection.addOutgoing(WorkerJvmMemoryInfoProtocol.class);
-        services.get(MemoryManager.class).addListener(new JvmMemoryStatusListener() {
-            @Override
-            public void onJvmMemoryStatus(JvmMemoryStatus jvmMemoryStatus) {
-                workerJvmMemoryInfoProtocol.sendJvmMemoryStatus(jvmMemoryStatus);
-            }
-        });
+        services.get(MemoryManager.class).addListener(new MyJvmMemoryStatusListener(workerJvmMemoryInfoProtocol));
     }
 
     LoggingManagerInternal createLoggingManager(LoggingServiceRegistry loggingServiceRegistry) {
@@ -221,16 +239,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     private static class WorkerServices extends DefaultServiceRegistry {
         public WorkerServices(ServiceRegistry parent, final File gradleUserHomeDir) {
             super(parent);
-            addProvider(new Object() {
-                GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
-                    return new GradleUserHomeDirProvider() {
-                        @Override
-                        public File getGradleUserHomeDirectory() {
-                            return gradleUserHomeDir;
-                        }
-                    };
-                }
-            });
+            addProvider(new MyObject(gradleUserHomeDir));
         }
 
         ListenerManager createListenerManager() {
@@ -255,6 +264,31 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         WorkerServices createWorkerServices() {
             return this;
+        }
+
+        private static class MyGradleUserHomeDirProvider implements GradleUserHomeDirProvider {
+            private final File gradleUserHomeDir;
+
+            public MyGradleUserHomeDirProvider(File gradleUserHomeDir) {
+                this.gradleUserHomeDir = gradleUserHomeDir;
+            }
+
+            @Override
+            public File getGradleUserHomeDirectory() {
+                return gradleUserHomeDir;
+            }
+        }
+
+        private static class MyObject {
+            private final File gradleUserHomeDir;
+
+            public MyObject(File gradleUserHomeDir) {
+                this.gradleUserHomeDir = gradleUserHomeDir;
+            }
+
+            GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
+                return new MyGradleUserHomeDirProvider(gradleUserHomeDir);
+            }
         }
     }
 }

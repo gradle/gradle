@@ -40,17 +40,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public BuildOperationRef getCurrentOperation() {
-        return new BuildOperationRef() {
-            @Override
-            public OperationIdentifier getId() {
-                return new OperationIdentifier(1L);
-            }
-
-            @Override
-            public OperationIdentifier getParentId() {
-                return null;
-            }
-        };
+        return new MyBuildOperationRef();
     }
 
     public List<BuildOperationDescriptor> getOperations() {
@@ -281,31 +271,53 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             Record record = new Record(descriptor.build());
             records.add(record);
             final TestBuildOperationContext context = new TestBuildOperationContext(record);
-            return new ExecutingBuildOperation() {
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return descriptor;
-                }
+            return new MyExecutingBuildOperation(descriptor, context);
+        }
 
-                @Override
-                public void failed(@Nullable Throwable failure) {
-                    context.failed(failure);
-                }
+        private static class MyExecutingBuildOperation implements ExecutingBuildOperation {
+            private final BuildOperationDescriptor.Builder descriptor;
+            private final TestBuildOperationContext context;
 
-                @Override
-                public void setResult(Object result) {
-                    context.setResult(result);
-                }
+            public MyExecutingBuildOperation(BuildOperationDescriptor.Builder descriptor, TestBuildOperationContext context) {
+                this.descriptor = descriptor;
+                this.context = context;
+            }
 
-                @Override
-                public void setStatus(String status) {
-                    context.setStatus(status);
-                }
-            };
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return descriptor;
+            }
+
+            @Override
+            public void failed(@Nullable Throwable failure) {
+                context.failed(failure);
+            }
+
+            @Override
+            public void setResult(Object result) {
+                context.setResult(result);
+            }
+
+            @Override
+            public void setStatus(String status) {
+                context.setStatus(status);
+            }
         }
     }
 
     public void reset() {
         log.records.clear();
+    }
+
+    private static class MyBuildOperationRef implements BuildOperationRef {
+        @Override
+        public OperationIdentifier getId() {
+            return new OperationIdentifier(1L);
+        }
+
+        @Override
+        public OperationIdentifier getParentId() {
+            return null;
+        }
     }
 }

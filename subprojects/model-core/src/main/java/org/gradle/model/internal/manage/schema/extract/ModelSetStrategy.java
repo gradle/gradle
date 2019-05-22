@@ -30,8 +30,7 @@ public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
     private final ModelType<?> modelType;
 
     public ModelSetStrategy() {
-        modelType = new ModelType<ModelSet<?>>() {
-        };
+        modelType = new ModelSetModelType();
     }
 
     @Override
@@ -67,5 +66,8 @@ public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
             }
         });
         return schema;
+    }
+
+    private static class ModelSetModelType extends ModelType<ModelSet<?>> {
     }
 }

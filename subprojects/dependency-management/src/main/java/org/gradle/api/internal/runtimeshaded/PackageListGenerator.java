@@ -115,13 +115,7 @@ public class PackageListGenerator extends DefaultTask {
             @Override
             public void doExecute(final BufferedWriter bufferedWriter) throws Exception {
                 Trie packages = collectPackages();
-                packages.dump(false, new ErroringAction<String>() {
-                    @Override
-                    public void doExecute(String s) throws Exception {
-                        bufferedWriter.write(s);
-                        bufferedWriter.newLine();
-                    }
-                });
+                packages.dump(false, new StringErroringAction(bufferedWriter));
             }
         });
     }
@@ -201,4 +195,17 @@ public class PackageListGenerator extends DefaultTask {
         return new ZipInputStream(new FileInputStream(file));
     }
 
+    private static class StringErroringAction extends ErroringAction<String> {
+        private final BufferedWriter bufferedWriter;
+
+        public StringErroringAction(BufferedWriter bufferedWriter) {
+            this.bufferedWriter = bufferedWriter;
+        }
+
+        @Override
+        public void doExecute(String s) throws Exception {
+            bufferedWriter.write(s);
+            bufferedWriter.newLine();
+        }
+    }
 }

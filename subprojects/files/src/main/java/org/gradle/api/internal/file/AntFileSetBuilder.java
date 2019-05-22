@@ -40,12 +40,23 @@ public class AntFileSetBuilder implements AntBuilderAware {
                 continue;
             }
 
-            dynamicObject.invokeMethod(nodeName == null ? "fileset" : nodeName, Collections.singletonMap("dir", AntUtil.maskFilename(tree.getDir().getAbsolutePath())), new Closure<Void>(this) {
-                public Object doCall(Object ignore) {
-                    return tree.getPatternSet().addToAntBuilder(node, null);
-                }
-            });
+            dynamicObject.invokeMethod(nodeName == null ? "fileset" : nodeName, Collections.singletonMap("dir", AntUtil.maskFilename(tree.getDir().getAbsolutePath())), new VoidClosure2(tree, node));
         }
         return null;
+    }
+
+    private class VoidClosure2 extends Closure<Void> {
+        private final DirectoryFileTree tree;
+        private final Object node;
+
+        public VoidClosure2(DirectoryFileTree tree, Object node) {
+            super(AntFileSetBuilder.this);
+            this.tree = tree;
+            this.node = node;
+        }
+
+        public Object doCall(Object ignore) {
+            return tree.getPatternSet().addToAntBuilder(node, null);
+        }
     }
 }

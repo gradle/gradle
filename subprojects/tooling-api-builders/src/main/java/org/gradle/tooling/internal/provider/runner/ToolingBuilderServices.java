@@ -30,19 +30,21 @@ public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
 
-        registration.addProvider(new Object() {
-            BuildActionRunner createBuildActionRunner(final BuildOperationListenerManager buildOperationListenerManager) {
-                return new ChainingBuildActionRunner(
-                    Arrays.asList(
-                        new BuildModelActionRunner(),
-                        new TestExecutionRequestActionRunner(buildOperationListenerManager),
-                        new ClientProvidedBuildActionRunner(),
-                        new ClientProvidedPhasedActionRunner()));
-            }
+        registration.addProvider(new MyObject());
+    }
 
-            ToolingApiSubscribableBuildActionRunnerRegistration createToolingApiSubscribableBuildActionRunnerRegistration(ServiceRegistry services) {
-                return new ToolingApiSubscribableBuildActionRunnerRegistration(new CompositeOperationResultPostProcessor(services.getAll(OperationResultPostProcessor.class)));
-            }
-        });
+    private static class MyObject {
+        BuildActionRunner createBuildActionRunner(final BuildOperationListenerManager buildOperationListenerManager) {
+            return new ChainingBuildActionRunner(
+                Arrays.asList(
+                    new BuildModelActionRunner(),
+                    new TestExecutionRequestActionRunner(buildOperationListenerManager),
+                    new ClientProvidedBuildActionRunner(),
+                    new ClientProvidedPhasedActionRunner()));
+        }
+
+        ToolingApiSubscribableBuildActionRunnerRegistration createToolingApiSubscribableBuildActionRunnerRegistration(ServiceRegistry services) {
+            return new ToolingApiSubscribableBuildActionRunnerRegistration(new CompositeOperationResultPostProcessor(services.getAll(OperationResultPostProcessor.class)));
+        }
     }
 }

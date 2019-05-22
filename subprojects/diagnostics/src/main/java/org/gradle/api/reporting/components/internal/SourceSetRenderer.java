@@ -74,14 +74,16 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
         if (sourceSet instanceof DependentSourceSet) {
             DependencySpecContainer dependencies = ((DependentSourceSet) sourceSet).getDependencies();
             if (!dependencies.isEmpty()) {
-                builder.collection("dependencies", dependencies.getDependencies(), new ReportRenderer<DependencySpec, TextReportBuilder>() {
-                    @Override
-                    public void render(DependencySpec model, TextReportBuilder output) throws IOException {
-                        if (model instanceof ProjectDependencySpec) {
-                            output.item(model.getDisplayName());
-                        }
-                    }
-                }, "dependencies");
+                builder.collection("dependencies", dependencies.getDependencies(), new DependencySpecTextReportBuilderReportRenderer(), "dependencies");
+            }
+        }
+    }
+
+    private static class DependencySpecTextReportBuilderReportRenderer extends ReportRenderer<DependencySpec, TextReportBuilder> {
+        @Override
+        public void render(DependencySpec model, TextReportBuilder output) throws IOException {
+            if (model instanceof ProjectDependencySpec) {
+                output.item(model.getDisplayName());
             }
         }
     }

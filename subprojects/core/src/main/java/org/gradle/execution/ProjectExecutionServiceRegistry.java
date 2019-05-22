@@ -29,12 +29,7 @@ import javax.annotation.Nonnull;
  */
 public class ProjectExecutionServiceRegistry implements AutoCloseable {
     private final LoadingCache<ProjectInternal, ProjectExecutionServices> projectRegistries = CacheBuilder.newBuilder()
-        .build(new CacheLoader<ProjectInternal, ProjectExecutionServices>() {
-            @Override
-            public ProjectExecutionServices load(@Nonnull ProjectInternal project) {
-                return new ProjectExecutionServices(project);
-            }
-        });
+        .build(new ProjectInternalProjectExecutionServicesCacheLoader());
 
     public <T> T getProjectService(ProjectInternal project, Class<T> serviceType) {
         return forProject(project).get(serviceType);
@@ -48,6 +43,13 @@ public class ProjectExecutionServiceRegistry implements AutoCloseable {
     public void close() {
         for (ProjectExecutionServices registry : projectRegistries.asMap().values()) {
             registry.close();
+        }
+    }
+
+    private static class ProjectInternalProjectExecutionServicesCacheLoader extends CacheLoader<ProjectInternal, ProjectExecutionServices> {
+        @Override
+        public ProjectExecutionServices load(@Nonnull ProjectInternal project) {
+            return new ProjectExecutionServices(project);
         }
     }
 }

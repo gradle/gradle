@@ -78,12 +78,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
 
     // Transform ProgressCompleteEvent into their corresponding progress OperationIdentifier.
     private Set<OperationIdentifier> toOperationIdSet(Iterable<ProgressCompleteEvent> events) {
-        return Sets.newHashSet(Iterables.transform(events, new Function<ProgressCompleteEvent, OperationIdentifier>() {
-            @Override
-            public OperationIdentifier apply(ProgressCompleteEvent event) {
-                return event.getProgressOperationId();
-            }
-        }));
+        return Sets.newHashSet(Iterables.transform(events, new ProgressCompleteEventOperationIdentifierFunction()));
     }
 
     private void resizeTo(int newBuildProgressLabelCount) {
@@ -203,6 +198,13 @@ public class WorkInProgressRenderer implements OutputEventListener {
         }
         for (StyledLabel emptyLabel : unusedProgressLabels) {
             emptyLabel.setText(labelFormatter.format());
+        }
+    }
+
+    private static class ProgressCompleteEventOperationIdentifierFunction implements Function<ProgressCompleteEvent, OperationIdentifier> {
+        @Override
+        public OperationIdentifier apply(ProgressCompleteEvent event) {
+            return event.getProgressOperationId();
         }
     }
 

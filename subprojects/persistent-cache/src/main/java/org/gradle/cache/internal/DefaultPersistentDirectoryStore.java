@@ -100,17 +100,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     protected CacheInitializationAction getInitAction() {
-        return new CacheInitializationAction() {
-            @Override
-            public boolean requiresInitialization(FileLock fileLock) {
-                return false;
-            }
-
-            @Override
-            public void initialize(FileLock fileLock) {
-                throw new UnsupportedOperationException();
-            }
-        };
+        return new MyCacheInitializationAction();
     }
 
     protected CacheCleanupAction getCleanupAction() {
@@ -185,6 +175,18 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     @Override
     public void useCache(Runnable action) {
         cacheAccess.useCache(action);
+    }
+
+    private static class MyCacheInitializationAction implements CacheInitializationAction {
+        @Override
+        public boolean requiresInitialization(FileLock fileLock) {
+            return false;
+        }
+
+        @Override
+        public void initialize(FileLock fileLock) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private class Cleanup implements CacheCleanupAction {

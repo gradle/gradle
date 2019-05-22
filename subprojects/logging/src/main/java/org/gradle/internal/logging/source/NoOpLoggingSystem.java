@@ -39,6 +39,9 @@ public class NoOpLoggingSystem implements StdOutLoggingSystem, StdErrLoggingSyst
     public void restore(Snapshot state) {}
 
     private Snapshot dummy() {
-        return new Snapshot() {};
+        return new MySnapshot();
+    }
+
+    private static class MySnapshot implements Snapshot {
     }
 }

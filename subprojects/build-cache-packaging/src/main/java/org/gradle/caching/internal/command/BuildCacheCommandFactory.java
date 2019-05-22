@@ -102,17 +102,7 @@ public class BuildCacheCommandFactory {
 
                 @Override
                 public LoadMetadata getMetadata() {
-                    return new LoadMetadata() {
-                        @Override
-                        public OriginMetadata getOriginMetadata() {
-                            return unpackResult.getOriginMetadata();
-                        }
-
-                        @Override
-                        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots() {
-                            return snapshots;
-                        }
-                    };
+                    return new MyLoadMetadata(unpackResult, snapshots);
                 }
             };
         }
@@ -151,6 +141,26 @@ public class BuildCacheCommandFactory {
                 builder.put(treeName, DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy));
             });
             return builder.build();
+        }
+
+        private class MyLoadMetadata implements LoadMetadata {
+            private final BuildCacheEntryPacker.UnpackResult unpackResult;
+            private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots;
+
+            public MyLoadMetadata(BuildCacheEntryPacker.UnpackResult unpackResult, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots) {
+                this.unpackResult = unpackResult;
+                this.snapshots = snapshots;
+            }
+
+            @Override
+            public OriginMetadata getOriginMetadata() {
+                return unpackResult.getOriginMetadata();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots() {
+                return snapshots;
+            }
         }
     }
 

@@ -25,7 +25,11 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
 
-import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.*;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.DefaultScopeOperation;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.childScope;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.parse;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.readFile;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.writeFile;
 
 public class CoffeeScriptCompilerWorker implements CoffeeScriptCompilerProtocol {
 
@@ -50,16 +54,26 @@ public class CoffeeScriptCompilerWorker implements CoffeeScriptCompilerProtocol 
     }
 
     private String compile(Scriptable rootScope, final String source, final String sourceName) {
-        return childScope(rootScope, new DefaultScopeOperation<String>() {
-            @Override
-            public String action(Scriptable compileScope, Context context) {
-                compileScope.put("coffeeScriptSource", compileScope, source);
-                try {
-                    return (String) context.evaluateString(compileScope, "CoffeeScript.compile(coffeeScriptSource, {});", sourceName, 0, null);
-                } catch (JavaScriptException jse) {
-                    throw new SourceTransformationException(String.format("Failed to compile coffeescript file: %s", sourceName), jse);
-                }
+        return childScope(rootScope, new StringDefaultScopeOperation(source, sourceName));
+    }
+
+    private static class StringDefaultScopeOperation extends DefaultScopeOperation<String> {
+        private final String source;
+        private final String sourceName;
+
+        public StringDefaultScopeOperation(String source, String sourceName) {
+            this.source = source;
+            this.sourceName = sourceName;
+        }
+
+        @Override
+        public String action(Scriptable compileScope, Context context) {
+            compileScope.put("coffeeScriptSource", compileScope, source);
+            try {
+                return (String) context.evaluateString(compileScope, "CoffeeScript.compile(coffeeScriptSource, {});", sourceName, 0, null);
+            } catch (JavaScriptException jse) {
+                throw new SourceTransformationException(String.format("Failed to compile coffeescript file: %s", sourceName), jse);
             }
-        });
+        }
     }
 }
