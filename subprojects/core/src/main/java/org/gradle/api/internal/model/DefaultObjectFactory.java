@@ -109,12 +109,12 @@ public class DefaultObjectFactory implements ObjectFactory {
     }
 
     @Override
-    public <T> NamedDomainObjectContainer<T> container(Class<T> elementType) {
+    public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType) {
         return domainObjectCollectionFactory.newNamedDomainObjectContainer(elementType);
     }
 
     @Override
-    public <T> NamedDomainObjectContainer<T> container(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
+    public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
         return domainObjectCollectionFactory.newNamedDomainObjectContainer(elementType, factory);
     }
 
