@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import com.google.common.util.concurrent.ListenableFutureTask
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.internal.Factory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -49,12 +50,13 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     }
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
+    def classLoaderRegistry = Mock(ClassLoaderRegistry)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderRegistry)
     }
 
     @Unroll

@@ -16,26 +16,16 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.initialization.GradleApiUtil;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.io.File;
 
 public class IsolatedClassLoaderUtil {
-    static FilteringClassLoader.Spec gradleApiSpec;
-
-    private static FilteringClassLoader.Spec getGradleApiSpec() {
-        if (gradleApiSpec == null) {
-            gradleApiSpec = GradleApiUtil.apiSpecFor(IsolatedClassLoaderUtil.class.getClassLoader(), DirectInstantiator.INSTANCE);
-        }
-        return gradleApiSpec;
-    }
-
-    public static ClassLoaderStructure getDefaultClassLoaderStructure(Iterable<File> userClasspath) {
-        FilteringClassLoader.Spec gradleApiFilter = getGradleApiSpec();
+    public static ClassLoaderStructure getDefaultClassLoaderStructure(ClassLoaderRegistry classLoaderRegistry, Iterable<File> userClasspath) {
+        FilteringClassLoader.Spec gradleApiFilter = classLoaderRegistry.getGradleApiFilterSpec();
         VisitableURLClassLoader.Spec userSpec = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(userClasspath).getAsURLs());
 
         // Add the Gradle API filter between the user classloader and the worker infrastructure classloader

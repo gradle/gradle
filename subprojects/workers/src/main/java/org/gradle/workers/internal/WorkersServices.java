@@ -92,9 +92,19 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
     }
 
     private static class ProjectScopeServices {
-        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory, WorkerDaemonFactory daemonWorkerFactory, IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ServiceRegistry serviceRegistry) {
+        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
+                                            WorkerDaemonFactory daemonWorkerFactory,
+                                            IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
+                                            JavaForkOptionsFactory forkOptionsFactory,
+                                            WorkerLeaseRegistry workerLeaseRegistry,
+                                            BuildOperationExecutor buildOperationExecutor,
+                                            AsyncWorkTracker asyncWorkTracker,
+                                            WorkerDirectoryProvider workerDirectoryProvider,
+                                            ClassLoaderRegistry classLoaderRegistry,
+                                            WorkerExecutionQueueFactory workerExecutionQueueFactory,
+                                            ServiceRegistry serviceRegistry) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, serviceRegistry);
-            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory);
+            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory, classLoaderRegistry);
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }

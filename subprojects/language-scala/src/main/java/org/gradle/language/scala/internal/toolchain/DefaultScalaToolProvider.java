@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
 import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.ZincScalaCompiler;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -41,8 +42,9 @@ public class DefaultScalaToolProvider implements ToolProvider {
     private final Set<File> resolvedZincClasspath;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final ClassPathRegistry classPathRegistry;
+    private final ClassLoaderRegistry classLoaderRegistry;
 
-    public DefaultScalaToolProvider(File gradleUserHomeDir, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath) {
+    public DefaultScalaToolProvider(File gradleUserHomeDir, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath, ClassLoaderRegistry classLoaderRegistry) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
@@ -50,6 +52,7 @@ public class DefaultScalaToolProvider implements ToolProvider {
         this.resolvedScalaClasspath = resolvedScalaClasspath;
         this.resolvedZincClasspath = resolvedZincClasspath;
         this.classPathRegistry = classPathRegistry;
+        this.classLoaderRegistry = classLoaderRegistry;
     }
 
     @Override
@@ -64,8 +67,8 @@ public class DefaultScalaToolProvider implements ToolProvider {
                             workerDaemonFactory,
                             resolvedZincClasspath,
                             forkOptionsFactory,
-                            classPathRegistry
-                    )
+                            classPathRegistry,
+                            classLoaderRegistry)
             );
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));

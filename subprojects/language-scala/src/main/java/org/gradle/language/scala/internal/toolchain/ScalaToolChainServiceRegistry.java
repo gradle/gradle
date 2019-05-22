@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -34,8 +35,8 @@ public class ScalaToolChainServiceRegistry extends AbstractPluginServiceRegistry
     }
 
     private static class ProjectScopeCompileServices {
-        ScalaToolChainInternal createScalaToolChain(GradleInternal gradle, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, JavaForkOptionsFactory forkOptionsFactory, WorkerDirectoryProvider workerDirectoryProvider, ClassPathRegistry classPathRegistry) {
-            return new DownloadingScalaToolChain(gradle.getGradleUserHomeDir(), workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, configurationContainer, dependencyHandler, forkOptionsFactory, classPathRegistry);
+        ScalaToolChainInternal createScalaToolChain(GradleInternal gradle, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, JavaForkOptionsFactory forkOptionsFactory, WorkerDirectoryProvider workerDirectoryProvider, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
+            return new DownloadingScalaToolChain(gradle.getGradleUserHomeDir(), workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, configurationContainer, dependencyHandler, forkOptionsFactory, classPathRegistry, classLoaderRegistry);
         }
     }
 }

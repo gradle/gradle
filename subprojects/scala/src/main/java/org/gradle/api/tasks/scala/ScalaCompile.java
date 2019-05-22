@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
@@ -89,9 +90,10 @@ public class ScalaCompile extends AbstractScalaCompile {
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
             JavaForkOptionsFactory forkOptionsFactory = getServices().get(JavaForkOptionsFactory.class);
             ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
+            ClassLoaderRegistry classLoaderRegistry = getServices().get(ClassLoaderRegistry.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
                 getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), workerDaemonFactory, getScalaClasspath(),
-                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), forkOptionsFactory, classPathRegistry);
+                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), forkOptionsFactory, classPathRegistry, classLoaderRegistry);
             compiler = scalaCompilerFactory.newCompiler(spec);
         }
         return compiler;

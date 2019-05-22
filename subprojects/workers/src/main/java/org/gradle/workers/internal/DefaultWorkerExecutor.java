@@ -19,6 +19,7 @@ package org.gradle.workers.internal;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -46,6 +47,8 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import static org.gradle.workers.internal.IsolatedClassLoaderUtil.getDefaultClassLoaderStructure;
+
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ConditionalExecutionQueue<DefaultWorkResult> executionQueue;
     private final WorkerFactory daemonWorkerFactory;
@@ -56,8 +59,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final WorkerDirectoryProvider workerDirectoryProvider;
+    private final ClassLoaderRegistry classLoaderRegistry;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderRegistry classLoaderRegistry) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -67,6 +71,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.workerDirectoryProvider = workerDirectoryProvider;
+        this.classLoaderRegistry = classLoaderRegistry;
     }
 
     @Override
@@ -230,7 +235,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
             Iterable<File> daemonClasspath = classpathBuilder.build();
 
-            builder.classpath(daemonClasspath);
+            builder.withClassLoaderStructure(getDefaultClassLoaderStructure(classLoaderRegistry, daemonClasspath));
         }
 
         return builder.build();

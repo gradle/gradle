@@ -37,12 +37,11 @@ import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
-import org.gradle.initialization.GradleApiUtil;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -59,13 +58,15 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
     private final ClassPathRegistry classPathRegistry;
+    private final ClassLoaderRegistry classLoaderRegistry;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> delegateClass, Object[] delegateParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry) {
+    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> delegateClass, Object[] delegateParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
         super(delegateClass, delegateParameters, workerDaemonFactory);
         this.zincClasspath = zincClasspath;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
         this.classPathRegistry = classPathRegistry;
+        this.classLoaderRegistry = classLoaderRegistry;
     }
 
     @Override
@@ -87,8 +88,8 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
             .build();
     }
 
-    private static FilteringClassLoader.Spec getScalaFilterSpec() {
-        FilteringClassLoader.Spec gradleApiAndScalaSpec = GradleApiUtil.apiSpecFor(DaemonScalaCompiler.class.getClassLoader(), DirectInstantiator.INSTANCE);
+    private FilteringClassLoader.Spec getScalaFilterSpec() {
+        FilteringClassLoader.Spec gradleApiAndScalaSpec = classLoaderRegistry.getGradleApiFilterSpec();
 
         // These should come from the compiler classloader
         gradleApiAndScalaSpec.disallowPackage("org.gradle.api.internal.tasks.scala");

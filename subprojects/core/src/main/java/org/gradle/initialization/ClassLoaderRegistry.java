@@ -15,6 +15,8 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.classloader.FilteringClassLoader;
+
 public interface ClassLoaderRegistry {
     /**
      * Returns the root class loader shared by all builds. This class loader exposes the Gradle API and APIs for the built-in plugins.
@@ -40,4 +42,9 @@ public interface ClassLoaderRegistry {
      * Returns the implementation class loader for the built-in plugins, constructed for use in a worker process.
      */
     ClassLoader getWorkerPluginsClassLoader();
+
+    /**
+     * Returns a copy of the filter spec for the Gradle API Classloader
+     */
+    FilteringClassLoader.Spec getGradleApiFilterSpec();
 }

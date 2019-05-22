@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecution
@@ -50,13 +51,14 @@ class DefaultWorkerExecutorTest extends Specification {
     def runnable = Mock(Runnable)
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
+    def classLoaderRegistry = Mock(ClassLoaderRegistry)
     def worker = Mock(BuildOperationAwareWorker)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderRegistry)
     }
 
     def "worker configuration fork property defaults to AUTO"() {

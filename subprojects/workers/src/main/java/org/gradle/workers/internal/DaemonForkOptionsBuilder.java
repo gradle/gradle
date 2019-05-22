@@ -20,8 +20,6 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.JavaForkOptionsInternal;
 
-import java.io.File;
-
 public class DaemonForkOptionsBuilder {
     private final JavaForkOptionsInternal javaForkOptions;
     private final JavaForkOptionsFactory forkOptionsFactory;
@@ -31,11 +29,6 @@ public class DaemonForkOptionsBuilder {
     public DaemonForkOptionsBuilder(JavaForkOptionsFactory forkOptionsFactory) {
         this.forkOptionsFactory = forkOptionsFactory;
         javaForkOptions = forkOptionsFactory.newJavaForkOptions();
-    }
-
-    public DaemonForkOptionsBuilder classpath(Iterable<File> classpath) {
-        this.classLoaderStructure = IsolatedClassLoaderUtil.getDefaultClassLoaderStructure(classpath);
-        return this;
     }
 
     public DaemonForkOptionsBuilder keepAliveMode(KeepAliveMode keepAliveMode) {

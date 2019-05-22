@@ -26,8 +26,10 @@ import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
 class DaemonForkOptionsTest extends Specification {
     def "is compatible with itself"() {
+        def spec1 = Mock(ClassLoaderSpec)
+        def spec2 = Mock(ClassLoaderSpec)
         def settings = daemonForkOptionsBuilder()
-            .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
+            .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2))
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()
 
@@ -36,41 +38,19 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     def "is compatible with same settings"() {
+        def spec1 = Mock(ClassLoaderSpec)
+        def spec2 = Mock(ClassLoaderSpec)
         def settings1 = daemonForkOptionsBuilder()
-            .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
+            .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2))
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()
         def settings2 = daemonForkOptionsBuilder()
-            .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
+            .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2))
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()
 
         expect:
         settings1.isCompatibleWith(settings2)
-    }
-
-    def "is compatible with same class path"() {
-        def settings1 = daemonForkOptionsBuilder()
-            .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
-            .build()
-        def settings2 = daemonForkOptionsBuilder()
-            .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
-            .build()
-
-        expect:
-        settings1.isCompatibleWith(settings2)
-    }
-
-    def "is not compatible with different class path"() {
-        def settings1 = daemonForkOptionsBuilder()
-            .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
-            .build()
-        def settings2 = daemonForkOptionsBuilder()
-            .classpath([new File("lib/lib1.jar"), new File("lib/lib3.jar")])
-            .build()
-
-        expect:
-        !settings1.isCompatibleWith(settings2)
     }
 
     def "is compatible with same keep alive modes"() {
