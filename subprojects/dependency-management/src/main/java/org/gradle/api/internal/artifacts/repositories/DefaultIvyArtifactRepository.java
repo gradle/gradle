@@ -147,7 +147,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
-    public ModuleVersionPublisher createPublisher() {
+    public IvyResolver createPublisher() {
         return createRealResolver();
     }
 
