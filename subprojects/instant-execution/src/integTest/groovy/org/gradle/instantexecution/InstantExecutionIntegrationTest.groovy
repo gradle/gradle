@@ -35,15 +35,36 @@ import javax.inject.Inject
 class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "instant execution for help on empty project"() {
-        given:
-        instantRun "help"
-        def firstRunOutput = result.normalizedOutput.replace('Calculating task graph as no instant execution cache is available for tasks: help', '')
+
+        def instantExecution = newInstantExecutionFixture()
 
         when:
-        instantRun "help"
+        instantRun "-q", "help"
 
         then:
-        firstRunOutput == result.normalizedOutput.replace('Reusing instant execution cache. This is not guaranteed to work in any way.', '')
+        instantExecution.assertStateStored()
+        def helpOutput = result.normalizedOutput
+
+        when:
+        instantRun "-q", "help"
+
+        then:
+        instantExecution.assertStateLoaded()
+        helpOutput == result.normalizedOutput
+
+        when:
+        instantRun "-q", "help", "--task", "tasks"
+
+        then:
+        instantExecution.assertStateStored()
+        def tasksHelpOutput = result.normalizedOutput
+
+        when:
+        instantRun "-q", "help", "--task", "tasks"
+
+        then:
+        instantExecution.assertStateLoaded()
+        tasksHelpOutput == result.normalizedOutput
     }
 
     def "restores some details of the project structure"() {
