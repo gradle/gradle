@@ -739,22 +739,23 @@ import javax.inject.Inject
                 (0..100).each { idx ->
                     intermediate.dependsOn(tasks.register("secondAsyncTask\${idx}_\${globalIdx}", AsyncTask) {
                         dependsOn("asyncTask\${idx % 20}_\${globalIdx}")
+                        mustRunAfter("asyncTask\${idx % 20}_\${globalIdx}")
                         inputFile = file("input.txt")
-                        outputFile = file("build/\${name}/output.txt")               
+                        outputFile = file("build/secondAsyncTask\${idx % 20 + 1}_\${globalIdx}/output.txt")               
                     })
                 }
             }
             (0..2).each { globalIdx ->            
                 (0..100).each { idx ->
-                    tasks.register("asyncTask\${idx}_\${globalIdx}_1", AsyncTask) {
-                        inputFile = file("input.txt")
-                        outputFile = file("build/\${name}/output.txt")
+                    tasks.register("asyncTask\${idx}_\${globalIdx}_1") {
                         dependsOn("intermediate")               
+                        mustRunAfter("intermediate")               
                     }
                 }
                 (0..100).each { idx ->
                     finalTask.dependsOn(tasks.register("secondAsyncTask\${idx}_\${globalIdx}_1", AsyncTask) {
                         dependsOn("asyncTask\${idx % 20}_\${globalIdx}_1")
+                        mustRunAfter("asyncTask\${idx % 20}_\${globalIdx}_1")
                         inputFile = file("input.txt")
                         outputFile = file("build/\${name}/output.txt")               
                     })
@@ -763,8 +764,12 @@ import javax.inject.Inject
         """
 
         when:
-        run("finalTask", "--max-workers=70", "--parallel")
+        run("finalTask", "--max-workers=70", "--parallel", "-x", "intermediate")
         then:
         executedAndNotSkipped(":finalTask")
+        when:
+        run("finalTask", "--max-workers=70", "--parallel")
+        then:
+        skipped(":finalTask")
     }
 }
