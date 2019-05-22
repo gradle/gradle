@@ -19,79 +19,28 @@ package org.gradle.instantexecution
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.RunnableBuildOperation
-
-
-class InstantExecutionStateLoadBuildOperationType private constructor()
-    : BuildOperationType<InstantExecutionStateLoadBuildOperationType.Details, InstantExecutionStateLoadBuildOperationType.Results> {
-
-    interface Details
-    interface Results
-}
-
-
-class InstantExecutionStateStoreBuildOperationType private constructor()
-    : BuildOperationType<InstantExecutionStateStoreBuildOperationType.Details, InstantExecutionStateStoreBuildOperationType.Results> {
-
-    interface Details
-    interface Results
-}
-
-
-private
-object LoadDetails : InstantExecutionStateLoadBuildOperationType.Details
-
-
-private
-object LoadResults : InstantExecutionStateLoadBuildOperationType.Results
-
-
-private
-object StoreDetails : InstantExecutionStateStoreBuildOperationType.Details
-
-
-private
-object StoreResults : InstantExecutionStateLoadBuildOperationType.Results
 
 
 internal
 fun BuildOperationExecutor.withLoadOperation(block: () -> Unit) =
-    withOperation(
-        "Load instant execution state",
-        LoadDetails,
-        LoadResults,
-        block
-    )
+    withOperation("Load instant execution state", block)
 
 
 internal
 fun BuildOperationExecutor.withStoreOperation(block: () -> Unit) =
-    withOperation(
-        "Store instant execution state",
-        StoreDetails,
-        StoreResults,
-        block
-    )
+    withOperation("Store instant execution state", block)
 
 
 private
-fun <D, R> BuildOperationExecutor.withOperation(
-    displayName: String,
-    details: D,
-    results: R,
-    block: () -> Unit
-) {
+fun BuildOperationExecutor.withOperation(displayName: String, block: () -> Unit) {
     run(object : RunnableBuildOperation {
 
         override fun description(): BuildOperationDescriptor.Builder =
-            BuildOperationDescriptor
-                .displayName(displayName)
-                .details(details)
+            BuildOperationDescriptor.displayName(displayName)
 
         override fun run(context: BuildOperationContext) {
             block()
-            context.setResult(results)
         }
     })
 }

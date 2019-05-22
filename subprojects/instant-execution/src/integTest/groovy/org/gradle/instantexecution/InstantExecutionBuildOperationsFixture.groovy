@@ -27,6 +27,9 @@ import static org.junit.Assert.assertThat
 
 class InstantExecutionBuildOperationsFixture {
 
+    private static final String LOAD_NAME = "Load instant execution state"
+    private static final String STORE_NAME = "Store instant execution state"
+
     final BuildOperationsFixture operations
 
     InstantExecutionBuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
@@ -34,17 +37,17 @@ class InstantExecutionBuildOperationsFixture {
     }
 
     void assertStateLoaded() {
-        assertThat(operations.first(InstantExecutionStateLoadBuildOperationType), notNullValue())
-        assertThat(operations.first(InstantExecutionStateStoreBuildOperationType), nullValue())
+        assertThat(operations.first(LOAD_NAME), notNullValue())
+        assertThat(operations.first(STORE_NAME), nullValue())
     }
 
     void assertStateStored() {
-        assertThat(operations.first(InstantExecutionStateLoadBuildOperationType), nullValue())
-        assertThat(operations.first(InstantExecutionStateStoreBuildOperationType), notNullValue())
+        assertThat(operations.first(LOAD_NAME), nullValue())
+        assertThat(operations.first(STORE_NAME), notNullValue())
     }
 
     void assertNoInstantExecution() {
-        assertThat(operations.first(InstantExecutionStateLoadBuildOperationType), nullValue())
-        assertThat(operations.first(InstantExecutionStateStoreBuildOperationType), nullValue())
+        assertThat(operations.first(LOAD_NAME), nullValue())
+        assertThat(operations.first(STORE_NAME), nullValue())
     }
 }
