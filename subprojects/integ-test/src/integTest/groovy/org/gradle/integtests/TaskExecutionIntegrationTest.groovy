@@ -691,4 +691,80 @@ task someTask(dependsOn: [someDep, someOtherDep])
         expect:
         succeeds "custom", "--rerun-tasks"
     }
+
+    def "build finishes for task which use the worker API"() {
+        file("input.txt").text = "input"
+        buildFile << """
+            
+
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.OutputFile
+import org.gradle.internal.work.WorkerLeaseService
+import javax.inject.Inject
+
+            abstract class AsyncTask extends DefaultTask {
+                @Inject
+                abstract WorkerLeaseService getWorkerLeaseService()
+                
+                @InputFile
+                abstract RegularFileProperty getInputFile()                
+            
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+            
+                @TaskAction
+                void runAction() {
+                    workerLeaseService.withoutProjectLock {
+                        Thread.sleep(new Random().nextInt(1000))
+                        outputFile.get().asFile.text = inputFile.get().asFile.text
+                    }
+                }
+            }
+            
+            task finalTask(type: AsyncTask) {
+                inputFile = file("input.txt")
+                outputFile = file("build/finalOutput.txt")               
+            }
+            task intermediate(type: AsyncTask) {
+                inputFile = file("input.txt")
+                outputFile = file("build/finalOutput.txt")               
+            }
+            (0..2).each { globalIdx ->            
+                (0..100).each { idx ->
+                    tasks.register("asyncTask\${idx}_\${globalIdx}", AsyncTask) {
+                        inputFile = file("input.txt")
+                        outputFile = file("build/\${name}/output.txt")               
+                    }
+                }
+                (0..100).each { idx ->
+                    intermediate.dependsOn(tasks.register("secondAsyncTask\${idx}_\${globalIdx}", AsyncTask) {
+                        dependsOn("asyncTask\${idx % 20}_\${globalIdx}")
+                        inputFile = file("input.txt")
+                        outputFile = file("build/\${name}/output.txt")               
+                    })
+                }
+            }
+            (0..2).each { globalIdx ->            
+                (0..100).each { idx ->
+                    tasks.register("asyncTask\${idx}_\${globalIdx}_1", AsyncTask) {
+                        inputFile = file("input.txt")
+                        outputFile = file("build/\${name}/output.txt")
+                        dependsOn("intermediate")               
+                    }
+                }
+                (0..100).each { idx ->
+                    finalTask.dependsOn(tasks.register("secondAsyncTask\${idx}_\${globalIdx}_1", AsyncTask) {
+                        dependsOn("asyncTask\${idx % 20}_\${globalIdx}_1")
+                        inputFile = file("input.txt")
+                        outputFile = file("build/\${name}/output.txt")               
+                    })
+                }
+            }
+        """
+
+        when:
+        run("finalTask", "--max-workers=70", "--parallel")
+        then:
+        executedAndNotSkipped(":finalTask")
+    }
 }
