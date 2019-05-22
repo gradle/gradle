@@ -30,9 +30,11 @@ import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -171,15 +173,17 @@ public class HttpClientHelper implements Closeable {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @Nonnull
     private static List<URI> getRedirectLocations(HttpContext httpContext) {
-        return (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
+        @SuppressWarnings("unchecked")
+        List<URI> redirects = (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
+        return redirects == null ? Collections.emptyList() : redirects;
     }
 
 
     private static URI getLastRedirectLocation(HttpContext httpContext) {
         List<URI> redirectLocations = getRedirectLocations(httpContext);
-        return (redirectLocations == null || redirectLocations.isEmpty()) ? null : Iterables.getLast(redirectLocations);
+        return redirectLocations.isEmpty() ? null : Iterables.getLast(redirectLocations);
     }
 
     private HttpClientResponse processResponse(HttpClientResponse response) {

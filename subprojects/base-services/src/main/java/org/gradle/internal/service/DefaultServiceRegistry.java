@@ -1156,7 +1156,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private static String format(Type type) {
         if (type instanceof Class) {
             Class<?> aClass = (Class) type;
-            return aClass.getSimpleName();
+            Class<?> enclosingClass = aClass.getEnclosingClass();
+            if (enclosingClass != null) {
+                return format(enclosingClass) + "." + aClass.getSimpleName();
+            } else {
+                return aClass.getSimpleName();
+            }
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             StringBuilder builder = new StringBuilder();

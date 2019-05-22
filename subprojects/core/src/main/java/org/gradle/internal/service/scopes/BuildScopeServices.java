@@ -162,6 +162,7 @@ import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -315,6 +316,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ModelRuleSourceDetector.class),
             get(ProviderFactory.class),
             get(TextFileResourceLoader.class),
+            get(TextUrlResourceLoader.Factory.class),
             get(StreamHasher.class),
             get(FileHasher.class),
             get(ExecFactory.class),

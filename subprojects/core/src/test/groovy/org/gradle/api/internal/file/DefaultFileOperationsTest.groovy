@@ -31,7 +31,7 @@ import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.TextFileResourceLoader
+import org.gradle.internal.resource.TextUrlResourceLoader
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -52,14 +52,14 @@ class DefaultFileOperationsTest extends Specification {
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
     private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
-    private final TextFileResourceLoader textResourceLoader = Mock()
+    private final TextUrlResourceLoader.Factory textUrlResourceLoaderFactory = Mock()
     private final FileCollectionFactory fileCollectionFactory = Mock()
     private DefaultFileOperations fileOperations = instance()
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textResourceLoader, fileCollectionFactory, TestFiles.fileSystem(), Time.clock())
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textUrlResourceLoaderFactory, fileCollectionFactory, TestFiles.fileSystem(), Time.clock())
     }
 
     def resolvesFile() {
