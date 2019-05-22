@@ -27,6 +27,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
@@ -34,23 +35,22 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 public class Help extends DefaultTask {
 
-    private final Provider<HelpTaskDetail> helpTaskDetail;
+    private final Provider<TaskPathHelp> taskPathHelp;
 
+    @Nullable
     private String taskPath;
 
     @Inject
     public Help(ProviderFactory providers, TaskSelector taskSelector, OptionReader optionReader) {
-        helpTaskDetail = providers.provider(() -> new HelpTaskDetailFactory(taskSelector, optionReader).createFor(taskPath));
+        taskPathHelp = providers.provider(() ->
+            taskPath == null ? null
+                : new TaskPathHelpFactory(taskSelector, optionReader).createFor(taskPath)
+        );
     }
 
-    @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected BuildClientMetaData getClientMetaData() {
-        throw new UnsupportedOperationException();
+    @Option(option = "task", description = "The task to show help for.")
+    public void setTaskPath(String taskPath) {
+        this.taskPath = taskPath;
     }
 
     @TaskAction
@@ -64,7 +64,7 @@ public class Help extends DefaultTask {
     }
 
     private void printTaskHelp(StyledTextOutput output) {
-        new TaskDetailPrinter(helpTaskDetail.get()).print(output);
+        new TaskPathHelpPrinter(taskPathHelp.get()).print(output);
     }
 
     private void printDefaultHelp(StyledTextOutput output, BuildClientMetaData metaData) {
@@ -92,8 +92,13 @@ public class Help extends DefaultTask {
         output.println();
     }
 
-    @Option(option = "task", description = "The task to show help for.")
-    public void setTaskPath(String taskPath) {
-        this.taskPath = taskPath;
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected BuildClientMetaData getClientMetaData() {
+        throw new UnsupportedOperationException();
     }
 }

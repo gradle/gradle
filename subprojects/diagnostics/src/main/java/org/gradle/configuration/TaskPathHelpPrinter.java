@@ -22,7 +22,6 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,35 +29,34 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 import static org.gradle.util.CollectionUtils.collect;
 
 
-class TaskDetailPrinter {
+class TaskPathHelpPrinter {
 
     private static final String INDENT = "     ";
 
-    private final HelpTaskDetail state;
+    private final TaskPathHelp taskPathHelp;
 
-    TaskDetailPrinter(HelpTaskDetail state) {
-        this.state = state;
+    TaskPathHelpPrinter(TaskPathHelp taskPathHelp) {
+        this.taskPathHelp = taskPathHelp;
     }
 
     void print(StyledTextOutput output) {
-        output.text("Detailed task information for ").withStyle(UserInput).println(state.getTaskPath());
+        output.text("Detailed task information for ").withStyle(UserInput).println(taskPathHelp.taskPath);
 
-        List<HelpTaskDetail.SelectedTaskType> taskTypes = state.getSelectedTaskTypes();
-        for (HelpTaskDetail.SelectedTaskType taskType : taskTypes) {
+        for (TaskPathHelp.TaskType taskType : taskPathHelp.taskTypes) {
 
             output.println();
-            final LinePrefixingStyledTextOutput pathOutput = createIndentedOutput(output, INDENT);
-            Set<String> paths = taskType.getAttributesByPath().keySet();
+            LinePrefixingStyledTextOutput pathOutput = createIndentedOutput(output, INDENT);
+            Set<String> paths = taskType.attributesByPath.keySet();
             pathOutput.println(paths.size() > 1 ? "Paths" : "Path");
             for (String path : paths) {
                 pathOutput.withStyle(UserInput).println(path);
             }
 
             output.println();
-            final LinePrefixingStyledTextOutput typeOutput = createIndentedOutput(output, INDENT);
+            LinePrefixingStyledTextOutput typeOutput = createIndentedOutput(output, INDENT);
             typeOutput.println("Type");
-            typeOutput.withStyle(UserInput).text(taskType.getSimpleName());
-            typeOutput.println(" (" + taskType.getQualifiedName() + ")");
+            typeOutput.withStyle(UserInput).text(taskType.simpleName);
+            typeOutput.println(" (" + taskType.qualifiedName + ")");
 
             printlnCommandlineOptions(output, taskType);
 
@@ -68,33 +66,33 @@ class TaskDetailPrinter {
             output.println();
             printTaskGroup(output, taskType);
 
-            if (taskTypes.size() > 1) {
+            if (taskPathHelp.taskTypes.size() > 1) {
                 output.println();
                 output.println("----------------------");
             }
         }
     }
 
-    private void printTaskDescription(StyledTextOutput output, HelpTaskDetail.SelectedTaskType taskType) {
-        printTaskAttribute(output, "Description", taskType, attributes -> attributes.getDescription());
+    private void printTaskDescription(StyledTextOutput output, TaskPathHelp.TaskType taskType) {
+        printTaskAttribute(output, "Description", taskType, attributes -> attributes.description);
     }
 
-    private void printTaskGroup(StyledTextOutput output, HelpTaskDetail.SelectedTaskType taskType) {
-        printTaskAttribute(output, "Group", taskType, attributes -> attributes.getGroup());
+    private void printTaskGroup(StyledTextOutput output, TaskPathHelp.TaskType taskType) {
+        printTaskAttribute(output, "Group", taskType, attributes -> attributes.group);
     }
 
-    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, HelpTaskDetail.SelectedTaskType taskType, Transformer<String, HelpTaskDetail.TaskAttributes> transformer) {
-        int count = collect(taskType.getAttributesByPath().values(), new HashSet<>(), transformer).size();
-        final LinePrefixingStyledTextOutput attributeOutput = createIndentedOutput(output, INDENT);
+    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, TaskPathHelp.TaskType taskType, Transformer<String, TaskPathHelp.TaskAttributes> transformer) {
+        int count = collect(taskType.attributesByPath.values(), new HashSet<>(), transformer).size();
+        LinePrefixingStyledTextOutput attributeOutput = createIndentedOutput(output, INDENT);
         if (count == 1) {
             // all tasks have the same value
             attributeOutput.println(attributeHeader);
-            final HelpTaskDetail.TaskAttributes task = taskType.getAttributesByPath().values().iterator().next();
+            TaskPathHelp.TaskAttributes task = taskType.attributesByPath.values().iterator().next();
             String value = transformer.transform(task);
             attributeOutput.println(value == null ? "-" : value);
         } else {
             attributeOutput.println(attributeHeader + "s");
-            for (Map.Entry<String, HelpTaskDetail.TaskAttributes> entry : taskType.getAttributesByPath().entrySet()) {
+            for (Map.Entry<String, TaskPathHelp.TaskAttributes> entry : taskType.attributesByPath.entrySet()) {
                 attributeOutput.withStyle(UserInput).text("(" + entry.getKey() + ") ");
                 String value = transformer.transform(entry.getValue());
                 attributeOutput.println(value == null ? "-" : value);
@@ -102,26 +100,26 @@ class TaskDetailPrinter {
         }
     }
 
-    private void printlnCommandlineOptions(StyledTextOutput output, HelpTaskDetail.SelectedTaskType taskType) {
+    private void printlnCommandlineOptions(StyledTextOutput output, TaskPathHelp.TaskType taskType) {
 
-        if (!taskType.getOptions().isEmpty()) {
+        if (!taskType.options.isEmpty()) {
             output.println();
             output.text("Options").println();
         }
-        Iterator<HelpTaskDetail.TaskOption> iterator = taskType.getOptions().iterator();
+        Iterator<TaskPathHelp.TaskOption> iterator = taskType.options.iterator();
         while (iterator.hasNext()) {
-            HelpTaskDetail.TaskOption option = iterator.next();
-            String optionString = "--" + option.getName();
+            TaskPathHelp.TaskOption option = iterator.next();
+            String optionString = "--" + option.name;
             output.text(INDENT).withStyle(UserInput).text(optionString);
-            output.text(INDENT).text(option.getDescription());
-            if (!option.getAvailableValues().isEmpty()) {
-                final int optionDescriptionOffset = 2 * INDENT.length() + optionString.length();
-                final LinePrefixingStyledTextOutput prefixedOutput = createIndentedOutput(output, optionDescriptionOffset);
-                prefixedOutput.println();
-                prefixedOutput.println("Available values are:");
-                for (String value : option.getAvailableValues()) {
-                    prefixedOutput.text(INDENT);
-                    prefixedOutput.withStyle(UserInput).println(value);
+            output.text(INDENT).text(option.description);
+            if (!option.availableValues.isEmpty()) {
+                int optionDescriptionOffset = 2 * INDENT.length() + optionString.length();
+                LinePrefixingStyledTextOutput indentedOutput = createIndentedOutput(output, optionDescriptionOffset);
+                indentedOutput.println();
+                indentedOutput.println("Available values are:");
+                for (String value : option.availableValues) {
+                    indentedOutput.text(INDENT);
+                    indentedOutput.withStyle(UserInput).println(value);
                 }
 
             } else {
