@@ -16,7 +16,7 @@
 
 package org.gradle.api
 
-import groovy.transform.NotYetImplemented
+
 import spock.lang.Issue
 
 class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
@@ -37,30 +37,29 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
     def "chained lookup of tasks.withType.matching"() {
         buildFile << """
             tasks.withType(Copy).matching({ it.name.endsWith("foo") }).all { task ->
-                assert task.path in [':foo', ':barfoo']
+                assert task.path in [':foo']
             }
             
             tasks.register("foo", Copy)
             tasks.register("bar", Copy)
-            tasks.register("foobar", Copy)
-            tasks.register("barfoo", Copy)
+            tasks.register("foobar", Delete)
+            tasks.register("barfoo", Delete)
         """
         expect:
         succeeds "help"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9446")
-    @NotYetImplemented
     def "chained lookup of tasks.matching.withType"() {
         buildFile << """
             tasks.matching({ it.name.endsWith("foo") }).withType(Copy).all { task ->
-                assert task.path in [':foo', ':barfoo']
+                assert task.path in [':foo']
             }
             
             tasks.register("foo", Copy)
             tasks.register("bar", Copy)
-            tasks.register("foobar", Copy)
-            tasks.register("barfoo", Copy)
+            tasks.register("foobar", Delete)
+            tasks.register("barfoo", Delete)
         """
         expect:
         succeeds "help"

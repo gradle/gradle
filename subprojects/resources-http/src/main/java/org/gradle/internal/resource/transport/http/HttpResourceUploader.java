@@ -39,8 +39,8 @@ public class HttpResourceUploader implements ExternalResourceUploader {
         method.setEntity(entity);
         try (HttpClientResponse response = http.performHttpRequest(method)) {
             if (!response.wasSuccessful()) {
-                throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s",
-                    destination, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
+                URI effectiveUri = response.getEffectiveUri();
+                throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
             }
         }
     }

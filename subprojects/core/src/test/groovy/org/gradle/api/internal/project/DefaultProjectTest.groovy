@@ -42,6 +42,7 @@ import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
@@ -207,10 +208,11 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) TextFileResourceLoader) >> textResourceLoader
         serviceRegistryMock.get((Type) TextUrlResourceLoader.Factory) >> textUrlResourceLoaderFactory
         serviceRegistryMock.get(ManagedProxyFactory) >> managedProxyFactory
-        serviceRegistryMock.get(AttributesSchema)  >> attributesSchema
-        serviceRegistryMock.get(BuildOperationExecutor)  >> buildOperationExecutor
-        serviceRegistryMock.get((Type) ListenerBuildOperationDecorator)  >> listenerBuildOperationDecorator
-        serviceRegistryMock.get((Type) CrossProjectConfigurator)  >> crossProjectConfigurator
+        serviceRegistryMock.get(AttributesSchema) >> attributesSchema
+        serviceRegistryMock.get(BuildOperationExecutor) >> buildOperationExecutor
+        serviceRegistryMock.get((Type) ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
+        serviceRegistryMock.get((Type) CrossProjectConfigurator) >> crossProjectConfigurator
+        serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)

@@ -21,7 +21,7 @@ import spock.lang.Unroll
 
 class WorkerApiPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
-        runner.minimumVersion = '4.0'
+        runner.minimumVersion = '5.0'
         runner.targetVersions = ["5.5-20190515115345+0000"]
         runner.testProject = "workerApiProject"
     }
@@ -29,7 +29,7 @@ class WorkerApiPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll
     def "executing tasks with no isolation with work=#workItems / workers=#workers"() {
         given:
-        runner.tasksToRun = ['clean', 'noIsolation', "--outputSize=$workItems"]
+        runner.tasksToRun = ['clean', 'noIsolation', "-PoutputSize=$workItems"]
         runner.args = [ "--max-workers=$workers" ]
 
         when:
@@ -53,7 +53,7 @@ class WorkerApiPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll
     def "executing tasks with classloader isolation work=#workItems / workers=#workers"() {
         given:
-        runner.tasksToRun = ['clean', 'classloaderIsolation', "--outputSize=$workItems"]
+        runner.tasksToRun = ['clean', 'classloaderIsolation', "-PoutputSize=$workItems"]
         runner.args = [ "--max-workers=$workers" ]
 
         when:
@@ -77,7 +77,7 @@ class WorkerApiPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll
     def "executing tasks with process isolation work=#workItems / workers=#workers"() {
         given:
-        runner.tasksToRun = ['clean', 'classloaderIsolation', "--outputSize=$workItems"]
+        runner.tasksToRun = ['clean', 'classloaderIsolation', "-PoutputSize=$workItems"]
         runner.args = [ "--max-workers=$workers" ]
 
         when:

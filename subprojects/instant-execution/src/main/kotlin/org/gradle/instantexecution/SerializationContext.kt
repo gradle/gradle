@@ -22,6 +22,7 @@ import java.util.IdentityHashMap
 
 
 class SerializationContext(owner: Task, logger: Logger) : StateContext(owner, logger) {
+
     private
     val instanceIds = IdentityHashMap<Any, Int>()
 

@@ -30,8 +30,13 @@ import java.util.function.Supplier
 /**
  * Serializes a bean by serializing the value of each of its fields.
  */
-class BeanFieldSerializer(private val bean: Any, private val beanType: Class<*>, private val stateSerializer: StateSerializer) : ValueSerializer {
-    override fun invoke(encoder: Encoder, listener: SerializationContext) {
+class BeanFieldSerializer(
+    private val bean: Any,
+    private val beanType: Class<*>,
+    private val stateSerializer: StateSerializer
+) : ValueSerializer {
+
+    override fun invoke(encoder: Encoder, context: SerializationContext) {
         encoder.apply {
             for (field in relevantStateOf(beanType)) {
                 field.isAccessible = true
@@ -41,31 +46,27 @@ class BeanFieldSerializer(private val bean: Any, private val beanType: Class<*>,
                 val valueSerializer = stateSerializer.serializerFor(finalValue)
                 if (valueSerializer == null) {
                     if (finalValue == null) {
-                        listener.logFieldWarning("serialize", beanType, field.name, "there's no serializer for null values")
+                        context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for null values")
                     } else {
-                        listener.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue).name}'")
+                        context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue).name}'")
                     }
                     continue
                 }
                 writeString(field.name)
                 try {
-                    valueSerializer(this, listener)
+                    valueSerializer(this, context)
                 } catch (e: Throwable) {
                     throw GradleException("Could not save the value of field '${beanType.name}.${field.name}' with type ${finalValue?.javaClass?.name}.", e)
                 }
-                listener.logFieldSerialization("serialize", beanType, field.name, finalValue)
+                context.logFieldSerialization("serialize", beanType, field.name, finalValue)
             }
             writeString("")
         }
     }
 
     private
-    fun conventionalValueOf(bean: Any, fieldName: String): Any? {
-        if (bean is IConventionAware) {
-            return bean.conventionMapping.getConventionValue(null, fieldName, false)
-        } else {
-            return null
-        }
+    fun conventionalValueOf(bean: Any, fieldName: String): Any? = (bean as? IConventionAware)?.run {
+        conventionMapping.getConventionValue<Any?>(null, fieldName, false)
     }
 
     private

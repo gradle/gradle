@@ -49,7 +49,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         group = "org.gradle"
         name = "publish"
         version = "2"
-        module = mavenRemoteRepo.module(group, name, version)
+        module = mavenRemoteRepo.module(group, name, version).withModuleMetadata()
 
         settingsFile << 'rootProject.name = "publish"'
     }
@@ -135,7 +135,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("Could not write to resource '${module.artifact.uri}")
         failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
@@ -157,7 +156,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("Could not write to resource '${module.artifact.uri}")
         failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
@@ -262,6 +260,23 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         module.rootMetaData.verifyChecksums()
         module.rootMetaData.versions == ["2", "3"]
+    }
+
+    def "retries artifact upload for transient network error"() {
+        given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+
+        module.artifact.expectPutBroken()
+        module.pom.expectPublish()
+        module.moduleMetadata.expectPublish()
+
+        expectModulePublish(module)
+
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublishedAsJavaModule()
     }
 
     private String publicationBuild(String version, String group, URI uri, PasswordCredentials credentials = null) {
