@@ -16,6 +16,8 @@
 package org.gradle.configuration;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.tasks.TaskAction;
@@ -29,8 +31,17 @@ import javax.inject.Inject;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
+
 public class Help extends DefaultTask {
+
+    private final Provider<HelpTaskDetail> helpTaskDetail;
+
     private String taskPath;
+
+    @Inject
+    public Help(ProviderFactory providers, TaskSelector taskSelector, OptionReader optionReader) {
+        helpTaskDetail = providers.provider(() -> new HelpTaskDetailFactory(taskSelector, optionReader).createFor(taskPath));
+    }
 
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
@@ -42,33 +53,18 @@ public class Help extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
-    @Inject
-    protected TaskSelector getTaskSelector() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected OptionReader getOptionReader() {
-        throw new UnsupportedOperationException();
-    }
-
     @TaskAction
     void displayHelp() {
         StyledTextOutput output = getTextOutputFactory().create(Help.class);
-        BuildClientMetaData metaData = getClientMetaData();
         if (taskPath != null) {
             printTaskHelp(output);
         } else {
-            printDefaultHelp(output, metaData);
+            printDefaultHelp(output, getClientMetaData());
         }
     }
 
     private void printTaskHelp(StyledTextOutput output) {
-        TaskSelector selector = getTaskSelector();
-        TaskSelector.TaskSelection selection = selector.getSelection(taskPath);
-        OptionReader optionReader = getOptionReader();
-        TaskDetailPrinter taskDetailPrinter = new TaskDetailPrinter(taskPath, selection, optionReader);
-        taskDetailPrinter.print(output);
+        new TaskDetailPrinter(helpTaskDetail.get()).print(output);
     }
 
     private void printDefaultHelp(StyledTextOutput output, BuildClientMetaData metaData) {
