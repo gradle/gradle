@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.publisher;
+package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
