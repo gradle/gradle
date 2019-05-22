@@ -205,6 +205,12 @@ public abstract class AstUtils {
             public boolean apply(ScriptBlock input) {
                 return names.contains(input.getName());
             }
+
+            @Override
+            // Added for Java 6 source compatibility
+            public boolean test(ScriptBlock input) {
+                return apply(input);
+            }
         });
     }
 
