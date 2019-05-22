@@ -40,10 +40,9 @@ public class DefaultTaskFingerprinter implements TaskFingerprinter {
     public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintTaskFiles(TaskInternal task, SortedSet<? extends FilePropertySpec> fileProperties) {
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         for (FilePropertySpec propertySpec : fileProperties) {
-            CurrentFileCollectionFingerprint result;
             FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(propertySpec.getNormalizer());
             LOGGER.debug("Fingerprinting property {} for {}", propertySpec, task);
-            result = fingerprinter.fingerprint(propertySpec.getPropertyFiles());
+            CurrentFileCollectionFingerprint result = fingerprinter.fingerprint(propertySpec.getPropertyFiles());
             builder.put(propertySpec.getPropertyName(), result);
         }
         return builder.build();
