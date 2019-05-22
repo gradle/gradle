@@ -17,10 +17,12 @@
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -29,8 +31,8 @@ import org.gradle.internal.component.model.IvyArtifactName;
 public class DependencyResolverIvyPublisher implements IvyPublisher {
 
     @Override
-    public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
-        ModuleVersionPublisher publisher = repository.createPublisher();
+    public void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository) {
+        ModuleVersionPublisher publisher = Cast.cast(PublicationAwareRepository.class, repository).createPublisher();
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
         ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(projectIdentity.getOrganisation(), projectIdentity.getModule()), projectIdentity.getRevision());
 

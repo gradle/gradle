@@ -18,8 +18,8 @@ package org.gradle.api.publish.ivy.internal.publisher
 
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
@@ -47,6 +47,7 @@ class ValidatingIvyPublisherTest extends Specification {
     IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory())
 
     def publisher = new ValidatingIvyPublisher(delegate, moduleIdentifierFactory, TestFiles.fileRepository(), metadataFactory)
+    def repository = Mock(IvyArtifactRepository)
 
     def "delegates when publication is valid"() {
         when:
@@ -55,7 +56,6 @@ class ValidatingIvyPublisherTest extends Specification {
                             .withBranch("the-branch")
                             .withStatus("release")
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
-        def repository = Mock(PublicationAwareRepository)
 
         and:
         publisher.publish(publication, repository)
@@ -75,7 +75,6 @@ class ValidatingIvyPublisherTest extends Specification {
 
         and:
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity("the-group", "the-artifact", "the-version"), ivyFile, emptySet())
-        def repository = Mock(PublicationAwareRepository)
 
         and:
         publisher.publish(publication, repository)
@@ -88,7 +87,6 @@ class ValidatingIvyPublisherTest extends Specification {
         given:
         def projectIdentity = projectIdentity(group, name, version)
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(group, name, version), emptySet())
-        def repository = Mock(PublicationAwareRepository)
 
         when:
         publisher.publish(publication, repository)
@@ -117,7 +115,6 @@ class ValidatingIvyPublisherTest extends Specification {
                             .withBranch(branch)
                             .withStatus(status)
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
-        def repository = Stub(PublicationAwareRepository)
 
         when:
         publisher.publish(publication, repository)
@@ -148,7 +145,6 @@ class ValidatingIvyPublisherTest extends Specification {
                             .withBranch(branch)
                             .withStatus(status)
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
-        def repository = Stub(PublicationAwareRepository)
 
         when:
         publisher.publish(publication, repository)
@@ -170,7 +166,6 @@ class ValidatingIvyPublisherTest extends Specification {
         def generator = ivyGenerator("org", "module", "version")
         elements.each { generator.withExtraInfo(it, "${it}Value") }
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
-        def repository = Stub(PublicationAwareRepository)
 
         when:
         publisher.publish(publication, repository)
@@ -189,7 +184,6 @@ class ValidatingIvyPublisherTest extends Specification {
         given:
         def projectIdentity = projectIdentity("org", "module", "version")
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(organisation, module, version), emptySet())
-        def repository = Mock(PublicationAwareRepository)
 
         when:
         publisher.publish(publication, repository)
@@ -217,7 +211,6 @@ class ValidatingIvyPublisherTest extends Specification {
 
         and:
         def publication = new IvyNormalizedPublication("pub-name", identity, ivyFile, emptySet())
-        def repository = Mock(PublicationAwareRepository)
 
         when:
         publisher.publish(publication, repository)
@@ -242,7 +235,7 @@ class ValidatingIvyPublisherTest extends Specification {
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity("org", "module", "version"), ivyFile("org", "module", "version"), toSet([ivyArtifact]))
 
         when:
-        publisher.publish(publication, Mock(PublicationAwareRepository))
+        publisher.publish(publication, repository)
 
         then:
         def t = thrown InvalidIvyPublicationException
@@ -273,7 +266,7 @@ class ValidatingIvyPublisherTest extends Specification {
         }
 
         when:
-        publisher.publish(publication, Mock(PublicationAwareRepository))
+        publisher.publish(publication, repository)
 
         then:
         ivyArtifact.name >> "name"
@@ -311,7 +304,7 @@ class ValidatingIvyPublisherTest extends Specification {
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("org", "module", "revision"), toSet([artifact1, artifact2]))
 
         when:
-        publisher.publish(publication, Mock(PublicationAwareRepository))
+        publisher.publish(publication, repository)
 
         then:
         def t = thrown InvalidIvyPublicationException
@@ -331,7 +324,7 @@ class ValidatingIvyPublisherTest extends Specification {
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("org", "module", "revision"), toSet([artifact1]))
 
         when:
-        publisher.publish(publication, Mock(PublicationAwareRepository))
+        publisher.publish(publication, repository)
 
         then:
         def t = thrown InvalidIvyPublicationException
