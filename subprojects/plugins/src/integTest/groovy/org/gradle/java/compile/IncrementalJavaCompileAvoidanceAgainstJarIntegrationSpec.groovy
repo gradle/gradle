@@ -16,6 +16,7 @@
 
 package org.gradle.java.compile
 
-class NonIncrementalJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
+class IncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
+    Language language = Language.JAVA
     boolean incremental = true
 }

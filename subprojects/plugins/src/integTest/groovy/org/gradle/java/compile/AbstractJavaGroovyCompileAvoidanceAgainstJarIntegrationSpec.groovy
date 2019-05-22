@@ -17,20 +17,12 @@
 package org.gradle.java.compile
 
 import spock.lang.Issue
-import spock.lang.Unroll
 
 abstract class AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
     boolean useJar = true
 
-    @Override
-    List<Language> getSupportedLanguages() {
-        return [Language.JAVA, Language.GROOVY]
-    }
-
-    @Unroll
     def "doesn't recompile when implementation manifest is changed"() {
         given:
-        beforeEach(language)
         buildFile << """
             project(':b') {
                 dependencies {
@@ -64,16 +56,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec exten
         succeeds ":b:${language.compileTaskName}"
         executedAndNotSkipped ':a:jar'
         skipped ":b:${language.compileTaskName}"
-
-        where:
-        language << getSupportedLanguages()
     }
 
     @Issue("gradle/gradle#1457")
-    @Unroll
     def "doesn't fail when jar is missing"() {
         given:
-        beforeEach(language)
         buildFile << """
             project(':b') {
                 dependencies {
@@ -93,9 +80,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec exten
 
         then:
         noExceptionThrown()
-
-        where:
-        language << getSupportedLanguages()
     }
 
 }

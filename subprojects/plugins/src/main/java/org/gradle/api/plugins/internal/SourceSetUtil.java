@@ -74,7 +74,7 @@ public class SourceSetUtil {
     }
 
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target,
-            Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
+           Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         final String sourceSetChildPath = "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         sourceDirectorySet.setOutputDir(target.provider(new Callable<File>() {
             @Override

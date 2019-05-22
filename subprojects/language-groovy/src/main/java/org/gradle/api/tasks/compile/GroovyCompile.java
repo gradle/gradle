@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -60,22 +62,55 @@ import java.io.File;
 public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> compiler;
     private FileCollection groovyClasspath;
+    private FileCollection compilerPluginClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
 
     public GroovyCompile() {
         CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
         this.compileOptions = compileOptions;
+        this.compilerPluginClasspath = getServices().get(ObjectFactory.class).fileCollection();
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+    }
+
+    @Override
+    @CompileClasspath
+    public FileCollection getClasspath() {
+        return super.getClasspath();
+    }
+
+    @Classpath
+    public FileCollection getCompilerPluginClasspath() {
+        return compilerPluginClasspath;
+    }
+
+    public void setCompilerPluginClasspath(FileCollection compilerPluginClasspath) {
+        if (!experimentalCompilationAvoidanceEnabled()) {
+            throw new IllegalStateException("You need to enable org.gradle.groovy.compilation.avoidance system property!");
+        }
+        this.compilerPluginClasspath = compilerPluginClasspath;
+    }
+
+    private boolean experimentalCompilationAvoidanceEnabled() {
+        return Boolean.getBoolean("org.gradle.groovy.compilation.avoidance");
     }
 
     @Override
     @TaskAction
     protected void compile() {
         checkGroovyClasspathIsNonEmpty();
+        separateCompileClasspathIfCompileAvoidanceEnabled();
         DefaultGroovyJavaJointCompileSpec spec = createSpec();
         WorkResult result = getCompiler(spec).execute(spec);
         setDidWork(result.getDidWork());
+    }
+
+    private void separateCompileClasspathIfCompileAvoidanceEnabled() {
+        if (experimentalCompilationAvoidanceEnabled()) {
+            compilerPluginClasspath = compilerPluginClasspath.plus(getGroovyClasspath());
+        } else {
+            compilerPluginClasspath = getClasspath();
+        }
     }
 
     private Compiler<GroovyJavaJointCompileSpec> getCompiler(GroovyJavaJointCompileSpec spec) {
@@ -94,13 +129,21 @@ public class GroovyCompile extends AbstractCompile {
         return compiler;
     }
 
+    private FileCollection determineGroovyCompileClasspath() {
+        if (experimentalCompilationAvoidanceEnabled()) {
+            return compilerPluginClasspath.plus(getClasspath());
+        } else {
+            return getClasspath();
+        }
+    }
+
     private DefaultGroovyJavaJointCompileSpec createSpec() {
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions).create();
         spec.setSourceFiles(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
-        spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
+        spec.setCompileClasspath(ImmutableList.copyOf(getClasspath().plus(determineGroovyCompileClasspath())));
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath() == null ? getProject().getLayout().files() : compileOptions.getAnnotationProcessorPath()));
@@ -118,7 +161,7 @@ public class GroovyCompile extends AbstractCompile {
     private void checkGroovyClasspathIsNonEmpty() {
         if (getGroovyClasspath().isEmpty()) {
             throw new InvalidUserDataException("'" + getName() + ".groovyClasspath' must not be empty. If a Groovy compile dependency is provided, "
-                    + "the 'groovy-base' plugin will attempt to configure 'groovyClasspath' automatically. Alternatively, you may configure 'groovyClasspath' explicitly.");
+                + "the 'groovy-base' plugin will attempt to configure 'groovyClasspath' automatically. Alternatively, you may configure 'groovyClasspath' explicitly.");
         }
     }
 
