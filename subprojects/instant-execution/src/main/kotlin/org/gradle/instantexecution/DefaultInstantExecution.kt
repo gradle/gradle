@@ -83,8 +83,8 @@ class DefaultInstantExecution(
     }
 
     private
-    val buildOperationExecutor =
-        host.getService(BuildOperationExecutor::class.java)
+    val buildOperationExecutor: BuildOperationExecutor =
+        host.service()
 
     override fun canExecuteInstantaneously(): Boolean = when {
         !isInstantExecutionEnabled -> false
