@@ -25,7 +25,7 @@ package org.gradle.internal.operations;
  * The producer side APIs in Gradle do not currently enforce (at compile-time or run-time) details or result types.
  * Over time, they will be evolved to enforce usage of correct types.
  *
- * Currently, the only reason to use to use structured details/results objects is to expose
+ * Currently, the only reason to use structured details/results objects is to expose
  * information to the build scan plugin.
  * The build scan plugin will use the details and result types,
  * but will not link against the containing BuildOperationType type.

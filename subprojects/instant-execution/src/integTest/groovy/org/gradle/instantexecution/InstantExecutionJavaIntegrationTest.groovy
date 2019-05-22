@@ -20,7 +20,10 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 
 class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
+    protected InstantExecutionBuildOperationsFixture instantExecution
+
     def setup() {
+        instantExecution = newInstantExecutionFixture()
         executer.noDeprecationChecks()
     }
 
@@ -31,8 +34,6 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         """
         buildFile << """
             plugins { id 'java' }
-            
-            println "running build script"
         """
         file("src/main/java/Thing.java") << """
             class Thing {
@@ -41,7 +42,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
 
         expect:
         instantRun "assemble"
-        outputContains("running build script")
+        instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -54,7 +55,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantRun "assemble"
 
         then:
-        outputDoesNotContain("running build script")
+        instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         classFile.isFile()
         new ZipTestFixture(jarFile).assertContainsFile("Thing.class")
@@ -69,8 +70,6 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             plugins { id 'java' }
             
             sourceSets.main.java.srcDir("src/common/java") 
-            
-            println "running build script"
         """
         file("src/common/java/OtherThing.java") << """
             class OtherThing {
@@ -83,7 +82,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
 
         expect:
         instantRun "assemble"
-        outputContains("running build script")
+        instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -96,7 +95,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantRun "assemble"
 
         then:
-        outputDoesNotContain("running build script")
+        instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         classFile.isFile()
         new ZipTestFixture(jarFile).assertContainsFile("Thing.class")
@@ -147,7 +146,6 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         """
         buildFile << """
             plugins { id 'application' }
-            println "running build script"
             application.mainClassName = 'Thing'
         """
         file("src/main/java/Thing.java") << """
@@ -157,7 +155,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
 
         expect:
         instantRun "assemble"
-        outputContains("running build script")
+        instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -169,7 +167,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantRun "assemble"
 
         then:
-        outputDoesNotContain("running build script")
+        instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble")
         classFile.isFile()
         jarFile.isFile()

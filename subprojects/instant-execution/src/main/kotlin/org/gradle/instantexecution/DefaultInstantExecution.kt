@@ -31,6 +31,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -81,6 +82,10 @@ class DefaultInstantExecution(
         host.newStateSerializer()
     }
 
+    private
+    val buildOperationExecutor: BuildOperationExecutor
+        get() = host.service()
+
     override fun canExecuteInstantaneously(): Boolean = when {
         !isInstantExecutionEnabled -> false
         host.isSkipLoadingState -> {
@@ -99,25 +104,23 @@ class DefaultInstantExecution(
 
     override fun saveTaskGraph() {
         if (isInstantExecutionEnabled) {
-            saveTasks(host.currentBuild)
+            buildOperationExecutor.withStoreOperation {
+                saveTasks(instantExecutionStateFile)
+            }
         }
     }
 
     override fun loadTaskGraph() {
-        KryoBackedDecoder(instantExecutionStateFile.inputStream()).use { decoder ->
-            val rootProjectName = decoder.readString()
-            val build = host.createBuild(rootProjectName)
-            loadRelevantProjects(decoder, build)
-            build.autoApplyPlugins()
-            build.registerProjects()
-            build.scheduleTasks(loadTasksFor(decoder, build))
+        buildOperationExecutor.withLoadOperation {
+            loadTasks(instantExecutionStateFile)
         }
     }
 
     private
-    fun saveTasks(build: ClassicModeBuild) {
-        Files.createDirectories(instantExecutionStateFile.parentFile.toPath())
-        KryoBackedEncoder(instantExecutionStateFile.outputStream()).use { encoder ->
+    fun saveTasks(stateFile: File) {
+        val build = host.currentBuild
+        Files.createDirectories(stateFile.parentFile.toPath())
+        KryoBackedEncoder(stateFile.outputStream()).use { encoder ->
             encoder.writeString(build.rootProject.name)
             val scheduledTasks = build.scheduledTasks
             saveRelevantProjectsFor(scheduledTasks, encoder)
@@ -145,6 +148,18 @@ class DefaultInstantExecution(
         tasks.mapNotNull { task ->
             task.project.takeIf { it.parent != null }?.path?.let(Path::path)
         }.toSortedSet()
+
+    private
+    fun loadTasks(stateFile: File) {
+        KryoBackedDecoder(stateFile.inputStream()).use { decoder ->
+            val rootProjectName = decoder.readString()
+            val build = host.createBuild(rootProjectName)
+            loadRelevantProjects(decoder, build)
+            build.autoApplyPlugins()
+            build.registerProjects()
+            build.scheduleTasks(loadTasksFor(decoder, build))
+        }
+    }
 
     private
     fun loadRelevantProjects(decoder: Decoder, build: InstantExecutionBuild) {

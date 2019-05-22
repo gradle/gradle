@@ -69,6 +69,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {
+
+        def instantExecution = newInstantExecutionFixture()
+
         given:
         buildFile << """
             println "running build script"
@@ -90,6 +93,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "a"
 
         then:
+        instantExecution.assertStateStored()
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -99,6 +103,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "a"
 
         then:
+        instantExecution.assertStateLoaded()
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -108,6 +113,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "b"
 
         then:
+        instantExecution.assertStateStored()
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -117,6 +123,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "a"
 
         then:
+        instantExecution.assertStateLoaded()
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
