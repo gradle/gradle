@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.api.internal
 
-class FeaturePreviewsFixture {
+class FeaturePreviewsActivationFixture {
 
-    static void enableGradleMetadata(File settings) {
-        settings << """
-enableFeaturePreview("GRADLE_METADATA")
-"""
+    static def activeFeatures() {
+        EnumSet.of(FeaturePreviews.Feature.GRADLE_METADATA)
+    }
+
+    static def inactiveFeatures() {
+        def features = EnumSet.allOf(FeaturePreviews.Feature.class)
+        features.removeAll(activeFeatures())
+        features
     }
 }

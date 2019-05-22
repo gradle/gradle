@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.FeaturePreviews
+import org.gradle.api.internal.FeaturePreviewsActivationFixture
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -28,7 +29,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -219,7 +219,7 @@ class DefaultSettingsTest extends Specification {
         then:
         previews.isFeatureEnabled(feature)
         where:
-        feature << FeaturePreviewsFixture.activeFeatures()
+        feature << FeaturePreviewsActivationFixture.activeFeatures()
     }
 
     def 'fails when enabling an unknown feature'() {

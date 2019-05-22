@@ -72,7 +72,6 @@ dependencies {
     testImplementation(project(":plugins"))
     testImplementation(project(":testingBase"))
     testImplementation(project(":platformNative"))
-    testImplementation(project(":internalIntegTesting")) // TODO only for 'FeaturePreviewsFixture'
     testImplementation(testLibrary("jsoup"))
     testImplementation(library("log4j_to_slf4j"))
     testImplementation(library("jcl_to_slf4j"))

@@ -15,8 +15,8 @@
  */
 package org.gradle.api
 
+import org.gradle.api.internal.FeaturePreviewsActivationFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -41,7 +41,7 @@ class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("The feature flag is no longer relevant, please remove it from your settings file.")
 
         where:
-        feature << FeaturePreviewsFixture.inactiveFeatures()
+        feature << FeaturePreviewsActivationFixture.inactiveFeatures()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/8840")
