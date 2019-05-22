@@ -260,9 +260,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
 
         module.artifact.expectPutBroken()
-        module.pom.expectPublish()
-        module.moduleMetadata.expectPublish()
-
         expectModulePublish(module)
 
         when:

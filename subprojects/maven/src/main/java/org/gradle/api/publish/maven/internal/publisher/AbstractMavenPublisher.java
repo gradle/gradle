@@ -29,6 +29,7 @@ import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.local.ByteArrayReadableContent;
 import org.gradle.internal.resource.local.FileReadableContent;
 import org.gradle.internal.xml.XmlTransformer;
@@ -145,6 +146,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
      * Publishes artifacts for a single Maven module.
      */
     private static class ModuleArtifactPublisher {
+        private final NetworkOperationBackOffAndRetry networkOperationRunner = new NetworkOperationBackOffAndRetry();
         private final ExternalResourceRepository repository;
         private final boolean localRepo;
         private final URI rootUri;
@@ -154,7 +156,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         private String artifactVersion;
 
         ModuleArtifactPublisher(ExternalResourceRepository repository, boolean localRepo, URI rootUri, String groupId, String artifactId, String moduleVersion) {
-            this.repository = repository;
+            this.repository = repository.withProgressLogging();
             this.localRepo = localRepo;
             this.rootUri = rootUri;
             this.groupPath = groupId.replace('.', '/');
@@ -211,24 +213,38 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             if (!localRepo) {
                 LOGGER.info("Uploading {} to {}", externalResource.getShortDisplayName(), externalResource.getPath());
             }
-            repository.withProgressLogging().resource(externalResource).put(new FileReadableContent(content));
+            putResource(externalResource, new FileReadableContent(content));
             if (!localRepo) {
-                publishChecksums(repository, content, externalResource);
+                publishChecksums(externalResource, content);
             }
         }
 
-        private void publishChecksums(ExternalResourceRepository repository, File source, ExternalResourceName destination) {
-            byte[] sha1 = createChecksumFile(source, "SHA1", 40);
-            repository.resource(destination.append(".sha1")).put(new ByteArrayReadableContent(sha1));
+        private void publishChecksums(ExternalResourceName destination, File content) {
+            byte[] sha1 = createChecksumFile(content, "SHA1", 40);
+            putResource(destination.append(".sha1"), new ByteArrayReadableContent(sha1));
 
-            byte[] md5 = createChecksumFile(source, "MD5", 32);
-            repository.resource(destination.append(".md5")).put(new ByteArrayReadableContent(md5));
+            byte[] md5 = createChecksumFile(content, "MD5", 32);
+            putResource(destination.append(".md5"), new ByteArrayReadableContent(md5));
         }
 
         private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
             HashValue hash = HashUtil.createHash(src, algorithm);
             String formattedHashString = hash.asZeroPaddedHexString(checksumLength);
             return formattedHashString.getBytes(StandardCharsets.US_ASCII);
+        }
+
+        private void putResource(ExternalResourceName externalResource, ReadableContent readableContent) {
+            networkOperationRunner.withBackoffAndRetry(new Runnable() {
+                @Override
+                public void run() {
+                    repository.resource(externalResource).put(readableContent);
+                }
+
+                @Override
+                public String toString() {
+                    return "PUT " + externalResource.getDisplayName();
+                }
+            });
         }
     }
 }
