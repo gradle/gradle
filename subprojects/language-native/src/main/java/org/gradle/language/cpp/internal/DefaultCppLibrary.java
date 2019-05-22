@@ -25,7 +25,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -58,7 +57,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultCppLibrary(String name, ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory immutableAttributesFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory immutableAttributesFactory) {
         super(name, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
@@ -81,7 +80,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         AttributeContainer publicationAttributes = immutableAttributesFactory.mutable();
         publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
         publicationAttributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.ZIP_TYPE);
-        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, publicationAttributes, collectionCallbackActionDecorator);
+        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, publicationAttributes, objectFactory);
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {

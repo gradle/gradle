@@ -168,7 +168,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void configureEach(Action<? super T> action) {
         assertMutable("configureEach(Action)");
-        Action<? super T> wrappedAction = withMutationDisabled(action);
+        Action<? super T> wrappedAction = withMutationDisabled(decorate(action));
         Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
 
         // copy in case any actions mutate the store
@@ -224,18 +224,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private Action<? super T> addEagerAction(Action<? super T> action) {
         store.realizePending(type);
-        return eventRegister.registerEagerAddAction(type, action);
+        return eventRegister.registerEagerAddAction(type, decorate(action));
     }
 
     @Override
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
-        eventRegister.registerRemoveAction(type, action);
+        eventRegister.registerRemoveAction(type, decorate(action));
         return action;
     }
 
     @Override
     public void whenObjectRemoved(Closure action) {
         whenObjectRemoved(toAction(action));
+    }
+
+    private Action<? super T> decorate(Action<? super T> action) {
+        return eventRegister.getDecorator().decorate(action);
     }
 
     private Action<? super T> toAction(Closure action) {

@@ -1,4 +1,4 @@
-// Copyright 2018 the original author or authors.
+// Copyright 2019 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,10 +36,9 @@ In order to operate, the link:{groovyDslPath}/org.gradle.nativeplatform.test.tas
 
  * Where to find the built test executable (property: link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html#org.gradle.nativeplatform.test.tasks.RunTestExecutable:executable[RunTestExecutable.getExecutable()])
 
-// TODO: Adds link to C++ Unit Test Plugin reference chapter
-When you’re using the C++ Unit Test Plugin you will automatically get the following:
+When you’re using the <<cpp_unit_test_plugin.adoc#,{cpp} Unit Test Plugin>> you will automatically get the following:
 
- * A dedicated `unitTest` extension for configuring test component and its variants
+ * A dedicated link:{groovyDslPath}/org.gradle.nativeplatform.test.cpp.CppTestSuite.html[unitTest] extension for configuring test component and its variants
  * A `run` task of type link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html[RunTestExecutable] that runs the test executable
 
 The test plugins configure the required pieces of information appropriately.

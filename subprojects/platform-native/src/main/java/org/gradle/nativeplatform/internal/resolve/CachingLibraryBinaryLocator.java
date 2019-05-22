@@ -17,8 +17,7 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 
 import javax.annotation.Nullable;
@@ -26,12 +25,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
-    private static final DomainObjectSet<NativeLibraryBinary> NULL_RESULT = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class, CollectionCallbackActionDecorator.NOOP);
+    private static DomainObjectSet<NativeLibraryBinary> nullResult;
     private final LibraryBinaryLocator delegate;
     private final Map<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>> libraries = new HashMap<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>>();
 
-    public CachingLibraryBinaryLocator(LibraryBinaryLocator delegate) {
+    public CachingLibraryBinaryLocator(LibraryBinaryLocator delegate, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.delegate = delegate;
+        if (nullResult == null) {
+            nullResult = domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);
+        }
     }
 
     @Nullable
@@ -41,10 +43,10 @@ public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
         if (libraryBinaries == null) {
             libraryBinaries = delegate.getBinaries(library);
             if (libraryBinaries == null) {
-                libraryBinaries = NULL_RESULT;
+                libraryBinaries = nullResult;
             }
             libraries.put(library, libraryBinaries);
         }
-        return libraryBinaries == NULL_RESULT ? null : libraryBinaries;
+        return libraryBinaries == nullResult ? null : libraryBinaries;
     }
 }

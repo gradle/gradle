@@ -86,12 +86,12 @@ Run the installed executable.
 [[sec:cpp_unit_test_lifecycle_tasks]]
 === Lifecycle Tasks
 
-The {cpp} Unit Test Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc,Base Plugin chapter>> - which the {cpp} Application Plugin applies automatically:
+The {cpp} Unit Test Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> - which the {cpp} Application Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Aggregate task that assembles the debug variant of the tested component for the current host (if present) in the project.
 For example, the {cpp} Application Plugin and {cpp} Library Plugin attach their link and create tasks to this lifecycle task.
-This task is added by the <<base_plugin.adoc,Base Plugin>>.
+This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 
 `test` - Task (lifecycle)::
 Depends on: `runTest__Variant__` that most closely matches the build host
@@ -103,17 +103,17 @@ Depends on: `test`
 ::
 Aggregate task that performs verification tasks, such as running the tests.
 Some plugins add their own verification task to `check`.
-This task is added by the <<base_plugin.adoc,Base Plugin>>.
+This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 
 `build` - Task (lifecycle)::
 Depends on: `check`, `assemble`
 ::
 Aggregate tasks that perform a full build of the project.
-This task is added by the <<base_plugin.adoc,Base Plugin>>.
+This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 
 `clean` - Delete::
 Deletes the build directory and everything in it, i.e. the path specified by the `Project.getBuildDir()` project property.
-This task is added by the <<base_plugin.adoc,Base Plugin>>.
+This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 
 [[sec:cpp_unit_test_dependency_management]]
 == Dependency management

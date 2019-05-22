@@ -257,15 +257,26 @@ There are several services, such as `ObjectFactory`, that are available for inje
 [[sec:maintaining_multiple_domain_objects]]
 === Configuring a collection of objects
 
-Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL. One such type is link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] which manages a set of objects. Gradle uses this type extensively throughout the API. For example, the `tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer`.
+Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL.
+One such type is link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] which manages a set of objects.
+Gradle uses this type extensively throughout the API.
+For example, the `tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer`.
 
-You can create a container instance using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method. Services are available for injection into the elements of the container. See <<custom_tasks.adoc#service_injection,service injection for tasks>>. for details.
+You can create a container instance using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method.
+You can also use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#container-java.lang.Class-[ObjectFactory.container()].
+Services are available for injection into the elements of the container.
+See <<custom_tasks.adoc#service_injection,service injection for tasks>>. for details.
 
 .Managing a collection of objects
 ====
 include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/groovy",files="build.gradle[]"]
 include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
 ====
+
+Another type is link:{javadocPath}/org/gradle/api/DomainObjectSet.html[DomainObjectSet] which maintains a simple set of objects.
+Compared to the `NamedDomainObjectContainer`, the `DomainObjectSet` doesn't manage the objects in the collection.
+They need to be created and added manually.
+You can create an instance using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectSet-java.lang.Class-[ObjectFactory.domainObjectSet()].
 
 ==== Output of **`gradle -q books`**
 [source.multi-language-sample,groovy]

@@ -109,30 +109,29 @@ Aggregates tasks that assemble the specific variant of this library.
 [[sec:cpp_library_lifecycle_tasks]]
 === Lifecycle Tasks
 
-The {cpp} Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc,Base Plugin chapter>> - which the {cpp} Library Plugin applies automatically:
+The {cpp} Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> - which the {cpp} Library Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Depends on: `linkDebug` when linkage includes `shared` or `createDebug` otherwise.
 ::
 Aggregate task that assembles the debug variant of the shared library (if available) for the current host (if present) in the project.
-This task is added by the <<base_plugin.adoc,Base Plugin>>.
+This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 
 `check` - Task (lifecycle)::
 Aggregate task that performs verification tasks, such as running the tests.
 Some plugins add their own verification task to `check`.
-For example, the {cpp} Unit Test Plugin attach his test task to this lifecycle task.
-This task is added by the <<base_plugin.adoc,Base Plugin>>.
-// TODO: Link to the C++ Unit Test Plugin reference chapter
+For example, the <<cpp_unit_test_plugin.adoc#,{cpp} Unit Test Plugin>> attach his test task to this lifecycle task.
+This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 
 `build` - Task (lifecycle)::
 Depends on: `check`, `assemble`
 ::
 Aggregate tasks that perform a full build of the project.
-This task is added by the <<base_plugin.adoc,Base Plugin>>.
+This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 
 `clean` - Delete::
 Deletes the build directory and everything in it, i.e. the path specified by the `Project.getBuildDir()` project property.
-This task is added by the <<base_plugin.adoc,Base Plugin>>.
+This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 
 [[sec:cpp_library_dependency_management]]
 == Dependency management

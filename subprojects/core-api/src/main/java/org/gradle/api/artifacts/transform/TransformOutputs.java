@@ -35,7 +35,46 @@ import java.io.File;
 public interface TransformOutputs {
     /**
      * Registers an output directory.
-     * For a relative path, a location for the output directory is provided.
+     *
+     * <p>
+     *     For an <strong>absolute path</strong>, the location is registered as an output directory of the {@link TransformAction}.
+     *     The path is required to point to the {@link InputArtifact}, or point inside the input artifact if it is a directory.
+     *     Example:
+     * </p>
+     * <pre class='autoTested'>
+     * import org.gradle.api.artifacts.transform.TransformParameters;
+     *
+     * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+     *     {@literal @}InputArtifact
+     *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+     *     {@literal @}Override
+     *     public void transform(TransformOutputs outputs) {
+     *         outputs.dir(getInputArtifact().get().getAsFile());
+     *         outputs.dir(new File(getInputArtifact().get().getAsFile(), "sub-dir"));
+     *     }
+     * }
+     * </pre>
+     *
+     * <p>
+     *     For a <strong>relative path</strong>, a location for the output directory is provided by Gradle, so that the {@link TransformAction} can produce its outputs at that location.
+     *     The directory is created automatically when calling the method.
+     *     Example:
+     * </p>
+     * <pre class='autoTested'>
+     * import org.gradle.api.artifacts.transform.TransformParameters;
+     *
+     * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+     *     {@literal @}Override
+     *     public void transform(TransformOutputs outputs) {
+     *         File myOutput = outputs.dir("my-output");
+     *         Files.write(myOutput.toPath().resolve("file.txt"), "Generated text");
+     *     }
+     * }
+     * </pre>
+     *
+     * <p>
+     *     <strong>Note:</strong> it is an error if the registered directory does not exist when the {@link TransformAction#transform(TransformOutputs)} method finishes.
+     * </p>
      *
      * @param path path of the output directory
      * @return determined location of the output
@@ -44,9 +83,52 @@ public interface TransformOutputs {
 
     /**
      * Registers an output file.
-     * For a relative path, a location for the output file is provided.
      *
-     * @param path path of the output directory
+     * <p>
+     *     For an absolute path, the location is registered as an output file of the {@link TransformAction}.
+     *     The path is required to point to the {@link InputArtifact} or be inside it if the input artifact is a directory.
+     *     Example:
+     * </p>
+     * <pre class='autoTested'>
+     * import org.gradle.api.artifacts.transform.TransformParameters;
+     *
+     * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+     *     {@literal @}InputArtifact
+     *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+     *     {@literal @}Override
+     *     public void transform(TransformOutputs outputs) {
+     *         File input = getInputArtifact().get().getAsFile();
+     *         if (input.isFile()) {
+     *             outputs.file(input);
+     *         } else {
+     *             outputs.file(new File(input, "file-in-input-artifact.txt"));
+     *         }
+     *     }
+     * }
+     * </pre>
+     *
+     * <p>
+     *     For a relative path, a location for the output file is provided by Gradle, so that the {@link TransformAction} can produce its outputs at that location.
+     *     The parent directory of the provided location is created automatically when calling the method.
+     *     Example:
+     * </p>
+     * <pre class='autoTested'>
+     * import org.gradle.api.artifacts.transform.TransformParameters;
+     *
+     * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+     *     {@literal @}InputArtifact
+     *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+     *     {@literal @}Override
+     *     public void transform(TransformOutputs outputs) {
+     *         File myOutput = outputs.file("my-output.transformed");
+     *         Files.write(myOutput.toPath(), "Generated text");
+     *     }
+     * }
+     * </pre>
+     *
+     * <p>The registered file needs to exist when the {@link TransformAction#transform(TransformOutputs)} method finishes.</p>
+     *
+     * @param path path of the output file
      * @return determined location of the output
      */
     File file(Object path);
