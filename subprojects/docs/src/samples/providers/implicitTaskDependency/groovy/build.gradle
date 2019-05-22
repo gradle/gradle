@@ -24,16 +24,20 @@ class Consumer extends DefaultTask {
     }
 }
 
-task producer(type: Producer)
-task consumer(type: Consumer)
+def producer = tasks.register("producer", Producer)
+def consumer = tasks.register("consumer", Consumer)
 
 // Connect the producer task output to the consumer task input
 // Don't need to add a task dependency to the consumer task. This is automatically added
-consumer.inputFile = producer.outputFile
+consumer.configure {
+    inputFile = producer.flatMap { it.outputFile }
+}
 
 // Set values for the producer lazily
 // Don't need to update the consumer.inputFile property. This is automatically updated as producer.outputFile changes
-producer.outputFile = layout.buildDirectory.file('file.txt')
+producer.configure {
+    outputFile = layout.buildDirectory.file('file.txt')
+}
 
 // Change the build directory.
 // Don't need to update producer.outputFile and consumer.inputFile. These are automatically updated as the build directory changes
