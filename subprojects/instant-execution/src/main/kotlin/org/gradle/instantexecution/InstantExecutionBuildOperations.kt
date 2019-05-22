@@ -57,31 +57,41 @@ object StoreResults : InstantExecutionStateLoadBuildOperationType.Results
 
 internal
 fun BuildOperationExecutor.withLoadOperation(block: () -> Unit) =
-    run(object : RunnableBuildOperation {
-
-        override fun description(): BuildOperationDescriptor.Builder =
-            BuildOperationDescriptor
-                .displayName("Load instant execution state")
-                .details(LoadDetails)
-
-        override fun run(context: BuildOperationContext) {
-            block()
-            context.setResult(LoadResults)
-        }
-    })
+    withOperation(
+        "Load instant execution state",
+        LoadDetails,
+        LoadResults,
+        block
+    )
 
 
 internal
 fun BuildOperationExecutor.withStoreOperation(block: () -> Unit) =
+    withOperation(
+        "Store instant execution state",
+        StoreDetails,
+        StoreResults,
+        block
+    )
+
+
+private
+fun <D, R> BuildOperationExecutor.withOperation(
+    displayName: String,
+    details: D,
+    results: R,
+    block: () -> Unit
+) {
     run(object : RunnableBuildOperation {
 
         override fun description(): BuildOperationDescriptor.Builder =
             BuildOperationDescriptor
-                .displayName("Store instant execution state")
-                .details(StoreDetails)
+                .displayName(displayName)
+                .details(details)
 
         override fun run(context: BuildOperationContext) {
             block()
-            context.setResult(StoreResults)
+            context.setResult(results)
         }
     })
+}
