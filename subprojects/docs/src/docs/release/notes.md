@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features an [API for transforming artifacts on the fly](#artifact-transforms), improvements to [build init](#build-init) options such as capability to choose JUnit5 support and create plugin projects, new [factory methods](#factory-methods) for creating object containers, ability to declare [organization-wide properties with a custom Gradle Distribution](#gradle-properties), [project name deduplication in Eclipse Buildship](#eclipse-buildship), lots of updates to [Native support guides](#native-support), the Kotlin dependency has been upgraded to 1.3.31  for the [Gradle Kotlin DSL](#kotlin-dsl), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
@@ -37,6 +37,8 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
+<a name="artifact-transforms"/>
+
 ## Transforming dependency artifacts on resolution
 
 A dependency’s artifacts can take many forms, and sometimes you might need one that is not readily available.
@@ -49,10 +51,11 @@ Let’s say you want to get hold of the obfuscated JAR, but it’s not available
 Why not just retrieve the un-obfuscated JAR and obfuscate it yourself?
 
 Gradle now allows you to register an _artifact transform_ to do just that, by hooking into the dependency management resolution engine.
-You can specify that whenever an obfuscated JAR is requested but can’t be found, Gradle should run an artifact transform that performs the obfuscation and makes the resulting artifact available to the build.
-The build won’t even be aware that the artifact was transformed.
+You can specify that whenever an obfuscated JAR is requested but can’t be found, Gradle should run an artifact transform that performs the obfuscation and makes the resulting artifact available transparently to the build.
  
 For more information have a look at the [user manual](userguide/dependency_management_attribute_based_matching.htmpl#sec:abm_artifact_transforms).
+
+<a name="build-init"/>
 
 ## Build init plugin improvements
 
@@ -64,19 +67,25 @@ Contributed by [Erhard Pointl](https://github.com/epeee)
 
 ### Generate Gradle plugin builds
 
-The `init` task can now generate simple Gradle plugins. You can use these as a starting point for developing and testing a Gradle plugin. The `init` task provides an option to use either Java, Groovy or Kotlin for the plugin source. You can select a Gradle plugin when you run the `init` task interactively, or use the `--type` command-line option. 
+The `init` task can now generate simple Gradle plugin projects. You can use these as a starting point for developing and testing a Gradle plugin. The `init` task provides an option to use either Java, Groovy or Kotlin for the plugin source. You can select a Gradle plugin when you run the `init` task interactively, or use the `--type` command-line option.
 
 See the [User manual](userguide/build_init_plugin.html) for more details.
+
+<a name="factory-methods"/>
 
 ## New factory methods for creating `NamedDomainObjectContainer` and `DomainObjectSet`
 
 The `ObjectFactory` can now be used for creating `NamedDomainObjectContainer` and `DomainObjectSet`.
+
+<a name="gradle-properties"/>
 
 ## Define organization-wide properties with a custom Gradle Distribution
 
 Gradle now looks for a `gradle.properties` file in the Gradle distribution used by the build.  This file has the [lowest precedence of any `gradle.properties`](userguide/build_environment.html#sec:gradle_configuration_properties) and properties defined in other locations will override values defined here.
 
 By placing a `gradle.properties` file in a [custom Gradle distribution](userguide/organizing_gradle_projects.html#sec:custom_gradle_distribution), an organization can add default properties for the entire organization or tweak the default Gradle daemon memory parameters with `org.gradle.jvmargs`.
+
+<a name="eclipse-buildship"/>
 
 ## Improved Eclipse project name deduplication in Buildship
 
@@ -87,11 +96,15 @@ The upcoming 3.1.1 version of Buildship is required to take advantage of this be
 
 Contributed by [Christian Fränkel](https://github.com/fraenkelc)
 
+<a name="native-support"/>
+
 ## Building native software with Gradle
 
 All new C++ documentations including new user manual chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects, [DSL reference for C++ components](dsl/index.html#N10808), [C++ plugins reference chapters](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins reference chapters](userguide/plugin_reference.html#ide_integration).
 The [C++ guides](https://gradle.org/guides/?q=Native) were also improved to reflect all the new features available to C++ developers.
 See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
+
+<a name="kotlin-dsl"/>
 
 ## Gradle Kotlin DSL compiler upgraded to Kotlin 1.3.31
 
