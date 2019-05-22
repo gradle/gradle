@@ -70,7 +70,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
     def "does not configure build when task graph is already cached for requested tasks"() {
 
-        def operations = newBuildOperationsFixture()
+        def instantExecution = new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
 
         given:
         buildFile << """
@@ -93,7 +93,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "a"
 
         then:
-        assertInstantExecutionStateStored(operations)
+        instantExecution.assertStateStored()
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -103,7 +103,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "a"
 
         then:
-        assertInstantExecutionStateLoaded(operations)
+        instantExecution.assertStateLoaded()
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -113,7 +113,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "b"
 
         then:
-        assertInstantExecutionStateStored(operations)
+        instantExecution.assertStateStored()
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -123,7 +123,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "a"
 
         then:
-        assertInstantExecutionStateLoaded(operations)
+        instantExecution.assertStateLoaded()
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")

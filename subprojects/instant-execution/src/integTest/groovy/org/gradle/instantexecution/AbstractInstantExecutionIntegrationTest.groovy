@@ -16,9 +16,8 @@
 
 package org.gradle.instantexecution
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildOperationsFixture
+
 
 class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -27,23 +26,4 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution"
-
-    protected BuildOperationsFixture newBuildOperationsFixture() {
-        return new BuildOperationsFixture(executer, temporaryFolder)
-    }
-
-    protected static void assertInstantExecutionStateLoaded(BuildOperationsFixture operations) {
-        operations.first(InstantExecutionStateLoadBuildOperationType)
-        operations.first(InstantExecutionStateStoreBuildOperationType) == null
-    }
-
-    protected static void assertInstantExecutionStateStored(BuildOperationsFixture operations) {
-        operations.first(InstantExecutionStateLoadBuildOperationType) == null
-        operations.first(InstantExecutionStateStoreBuildOperationType)
-    }
-
-    protected static void assertNoInstantExecution(BuildOperationsFixture operations) {
-        operations.first(InstantExecutionStateLoadBuildOperationType) == null
-        operations.first(InstantExecutionStateStoreBuildOperationType) == null
-    }
 }

@@ -16,15 +16,14 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
 class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    protected BuildOperationsFixture operations
+    protected InstantExecutionBuildOperationsFixture instantExecution
 
     def setup() {
-        operations = newBuildOperationsFixture()
+        instantExecution = new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
         executer.noDeprecationChecks()
     }
 
@@ -43,7 +42,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
 
         expect:
         instantRun "assemble"
-        assertInstantExecutionStateStored(operations)
+        instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -56,7 +55,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantRun "assemble"
 
         then:
-        assertInstantExecutionStateLoaded(operations)
+        instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         classFile.isFile()
         new ZipTestFixture(jarFile).assertContainsFile("Thing.class")
@@ -83,7 +82,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
 
         expect:
         instantRun "assemble"
-        assertInstantExecutionStateStored(operations)
+        instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -96,7 +95,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantRun "assemble"
 
         then:
-        assertInstantExecutionStateLoaded(operations)
+        instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         classFile.isFile()
         new ZipTestFixture(jarFile).assertContainsFile("Thing.class")
@@ -156,7 +155,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
 
         expect:
         instantRun "assemble"
-        assertInstantExecutionStateStored(operations)
+        instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -168,7 +167,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantRun "assemble"
 
         then:
-        assertInstantExecutionStateLoaded(operations)
+        instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble")
         classFile.isFile()
         jarFile.isFile()

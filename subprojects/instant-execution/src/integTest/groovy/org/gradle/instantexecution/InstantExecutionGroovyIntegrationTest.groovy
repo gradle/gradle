@@ -24,7 +24,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
     @Ignore
     def "instant execution for compileGroovy on Groovy project with no dependencies"() {
 
-        def operations = newBuildOperationsFixture()
+        def instantExecution = new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
 
         given:
         buildFile << """
@@ -39,7 +39,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         instantRun "compileGroovy"
 
         then:
-        assertInstantExecutionStateStored(operations)
+        instantExecution.assertStateStored()
         result.assertTasksExecuted(":compileGroovy")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -49,7 +49,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         instantRun "compileGroovy"
 
         then:
-        assertInstantExecutionStateLoaded(operations)
+        instantExecution.assertStateLoaded()
         result.assertTasksExecuted(":compileGroovy")
         classFile.isFile()
     }
