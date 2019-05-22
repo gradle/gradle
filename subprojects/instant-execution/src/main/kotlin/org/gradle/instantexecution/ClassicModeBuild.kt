@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal
 
 
 interface ClassicModeBuild {
+
     val rootProject: ProjectInternal
 
     val scheduledTasks: List<Task>
