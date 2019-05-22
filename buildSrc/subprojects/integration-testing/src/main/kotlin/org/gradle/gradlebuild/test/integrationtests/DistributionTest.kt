@@ -20,6 +20,7 @@ import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.CommandLineArgumentProvider
@@ -53,6 +55,10 @@ open class DistributionTest : Test() {
     @Internal
     val libsRepository = LibsRepositoryEnvironmentProvider(project.objects)
 
+    @get:Internal
+    @get:Option(option = "rerun", description = "Always rerun the task")
+    val rerun: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType)
+
     init {
         dependsOn(Callable { if (binaryDistributions.distributionsRequired) listOf("all", "bin", "src").map { ":distributions:${it}Zip" } else null })
         dependsOn(Callable { if (binaryDistributions.binZipRequired) ":distributions:binZip" else null })
@@ -60,6 +66,9 @@ open class DistributionTest : Test() {
         jvmArgumentProviders.add(gradleInstallationForTest)
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
+        outputs.upToDateWhen {
+            !rerun.getOrElse(false)
+        }
     }
 }
 
