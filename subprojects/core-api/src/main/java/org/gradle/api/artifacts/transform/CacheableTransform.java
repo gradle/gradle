@@ -24,9 +24,33 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>Attached to an {@link TransformAction} type to indicate that the build cache should be used for artifact transforms of this type.</p>
+ * Attached to a {@link TransformAction} type it indicates that the build cache should be used for artifact transforms of this type.
  *
  * <p>Only an artifact transform that produces reproducible and relocatable outputs should be marked with {@code CacheableTransform}.</p>
+ *
+ * <p>
+ *     Normalization must be specified for each file parameter of a cacheable transform.
+ *     For example:
+ * </p>
+ * <pre class='autoTested'>
+ * import org.gradle.api.artifacts.transform.TransformParameters;
+ *
+ * {@literal @}CacheableTransform
+ * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+ *     {@literal @}PathSensitive(PathSensitivity.NAME_ONLY)
+ *     {@literal @}InputArtifact
+ *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+ *
+ *     {@literal @}Classpath
+ *     {@literal @}InputArtifactDependencies
+ *     public abstract FileCollection getDependencies();
+ *
+ *     {@literal @}Override
+ *     public void transform(TransformOutputs outputs) {
+ *         // ...
+ *     }
+ * }
+ * </pre>
  *
  * @since 5.3
  */

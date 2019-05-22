@@ -29,8 +29,32 @@ import java.lang.annotation.Target;
 /**
  * Attached to a property that should receive the <em>artifact dependencies</em> of the {@link InputArtifact} of an artifact transform.
  *
- * The order of the files match that of the dependencies in the source artifact view.
- * The type of the injected dependencies is {@link org.gradle.api.file.FileCollection}.
+ * <p>
+ *     The order of the files match that of the dependencies in the source artifact view.
+ *     The type of the injected dependencies is {@link org.gradle.api.file.FileCollection}.
+ *     For example, when a project depends on {@code spring-web}, when the project is transformed (i.e. the project is the input artifact),
+ *     the input artifact dependencies are the file collection containing the {@code spring-web} JAR and all its dependencies like e.g. the {@code spring-core} JAR.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre class='autoTested'>
+ * import org.gradle.api.artifacts.transform.TransformParameters;
+ *
+ * public abstract class MyTransform implements TransformAction&lt;TransformParameters.None&gt; {
+ *
+ *     {@literal @}InputArtifact
+ *     public abstract Provider&lt;FileSystemLocation&gt; getInputArtifact();
+ *
+ *     {@literal @}InputArtifactDependencies
+ *     public abstract FileCollection getDependencies();
+ *
+ *     {@literal @}Override
+ *     public void transform(TransformOutputs outputs) {
+ *         FileCollection dependencies = getDependencies();
+ *         // Do something with the dependencies
+ *     }
+ * }
+ * </pre>
  *
  * @since 5.3
  */
