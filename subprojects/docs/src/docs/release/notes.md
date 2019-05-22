@@ -93,6 +93,10 @@ All new C++ documentations including new user manual chapters for [building](use
 The [C++ guides](https://gradle.org/guides/?q=Native) were also improved to reflect all the new features available to C++ developers.
 See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
 
+## Gradle Kotlin DSL compiler upgraded to Kotlin 1.3.31
+
+The Gradle Kotlin DSL embedded Kotlin compiler has been upgraded from version `1.2.21` to version `1.3.31`, please refer to the [Kotlin 1.3.30 release blog entry](https://blog.jetbrains.com/kotlin/2019/04/kotlin-1-3-30-released/) and the [Kotlin 1.3.31 GitHub release notes](https://github.com/JetBrains/kotlin/releases/tag/v1.3.31) for details.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
