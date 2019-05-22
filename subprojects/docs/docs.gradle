@@ -285,6 +285,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciido
     sources { include 'userguide_single.adoc' }
     outputDir = userguideSinglePageOutputDir
     backends = ['pdf', 'html5']
+    jvmArgs = ['-Xms3g', '-Xmx3g']
 
     attributes toc          : 'macro',
         toclevels           : 2,
