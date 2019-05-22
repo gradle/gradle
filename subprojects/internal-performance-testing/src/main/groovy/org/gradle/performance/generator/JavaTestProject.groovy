@@ -33,15 +33,15 @@ enum JavaTestProject {
 
     MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", GROOVY, 10000, 0, '512m', '1g', false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
     MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", GROOVY, 100, 100, '512m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", GROOVY, composite(false), 100, 100, '768m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD("mediumJavaPredefinedCompositeBuild", GROOVY, composite(true), 100, 100, '768m',  '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", GROOVY, true, composite(false), 100, 100, '768m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD("mediumJavaPredefinedCompositeBuild", GROOVY, true, composite(true), 100, 100, '768m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
     MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", GROOVY, 100, 100, '512m', '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]),
 
     SMALL_JAVA_MULTI_PROJECT("smallJavaMultiProject", GROOVY, 50, 10, '256m', '64m', false, [assemble: productionFile('smallJavaMultiProject')]),
 
     private TestProjectGeneratorConfiguration config
 
-    JavaTestProject(String projectName, GradleDsl dsl, CompositeConfiguration compositeConfiguration = null, int sourceFiles, int subProjects, String daemonMemory, String compilerMemory, boolean useTestNG, Map<String, String> filesToUpdate) {
+    JavaTestProject(String projectName, GradleDsl dsl, boolean buildSrc = true, CompositeConfiguration compositeConfiguration = null, int sourceFiles, int subProjects, String daemonMemory, String compilerMemory, boolean useTestNG, Map<String, String> filesToUpdate) {
         this.config = new TestProjectGeneratorConfiguration()
         config.projectName = projectName
 
@@ -53,6 +53,7 @@ enum JavaTestProject {
                                           'commons-codec:commons-codec:1.2', 'org.slf4j:jcl-over-slf4j:1.7.10']
         config.externalImplementationDependencies = ['com.googlecode:reflectasm:1.01']
 
+        config.buildSrc = buildSrc
         config.subProjects = subProjects
         config.sourceFiles = sourceFiles
         config.minLinesOfCodePerSourceFile = 100

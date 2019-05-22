@@ -77,7 +77,7 @@ class TestProjectGenerator {
             }
         }
 
-        if (isRoot) {
+        if (isRoot && config.buildSrc) {
             addDummyBuildSrcProject(projectDir)
         }
     }
