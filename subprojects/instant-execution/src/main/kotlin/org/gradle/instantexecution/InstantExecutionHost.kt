@@ -113,6 +113,7 @@ class InstantExecutionHost internal constructor(
         )
 
     inner class DefaultClassicModeBuild : ClassicModeBuild {
+
         override val scheduledTasks: List<Task>
             get() = gradle.taskGraph.allTasks
 
@@ -274,6 +275,10 @@ class InstantExecutionHost internal constructor(
         get() = classLoaderScopeRegistry.coreScope
 
     private
+    val coreAndPluginsScope: ClassLoaderScope
+        get() = classLoaderScopeRegistry.coreAndPluginsScope
+
+    private
     fun getProject(parentPath: Path?) =
         parentPath?.let { gradle.rootProject.project(it.path) }
 
@@ -284,8 +289,4 @@ class InstantExecutionHost internal constructor(
     private
     val projectDescriptorRegistry
         get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
-
-    private
-    val coreAndPluginsScope: ClassLoaderScope
-        get() = classLoaderScopeRegistry.coreAndPluginsScope
 }
