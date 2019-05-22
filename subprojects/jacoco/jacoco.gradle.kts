@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -15,14 +13,34 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    `java-library`
+}
 
 dependencies {
-    compile(library("groovy"))
-    compile(project(":core"))
-    compile(project(":plugins"))
-    compile(project(":reporting"))
-    testCompile(testLibrary("jsoup"))
-    testCompile(project(":internalIntegTesting"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":platformBase"))
+    implementation(project(":testingBase"))
+    implementation(project(":testingJvm"))
+    implementation(project(":plugins"))
+    implementation(project(":reporting"))
+
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
+
+    testImplementation(project(":files"))
+    testImplementation(project(":internalIntegTesting"))
+    testImplementation(testLibrary("jsoup"))
 }
 
 gradlebuildJava {

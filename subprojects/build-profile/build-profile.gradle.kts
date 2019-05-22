@@ -17,14 +17,24 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 description = "Provides high-level insights into a Gradle build (--profile)"
 
 dependencies {
-    api(project(":core"))
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+
+    implementation(library("guava"))
+    
     testImplementation(project(":internalTesting"))
+
+    integTestImplementation(project(":buildOption"))
+    integTestImplementation(testLibrary("jsoup"))
 }
 
 java {

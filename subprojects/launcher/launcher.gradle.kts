@@ -8,6 +8,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":baseServices"))
 
     compileOnly(project(":launcherBootstrap"))
     compileOnly(project(":launcherStartup"))
@@ -27,11 +28,32 @@ dependencies {
     runtimeOnly(library("commons_lang"))
     runtimeOnly(library("slf4j_api"))
 
-    integTestCompile(project(":internalIntegTesting"))
-    integTestRuntime(project(":plugins"))
-    integTestRuntime(project(":languageNative"))
+    testImplementation(project(":native"))
+    testImplementation(project(":cli"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":coreApi"))
+    testImplementation(project(":modelCore"))
+    testImplementation(project(":files"))
+    testImplementation(project(":resources"))
+    testImplementation(project(":persistentCache"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":buildOption"))
+    testImplementation(project(":jvmServices"))
+    testImplementation(library("slf4j_api"))
+    testImplementation(library("guava"))
+    testImplementation(library("ant"))
 
-    testFixturesApi(project(":internalIntegTesting"))
+    integTestImplementation(project(":persistentCache"))
+    integTestImplementation(project(":internalIntegTesting"))
+    integTestImplementation(library("slf4j_api"))
+    integTestImplementation(library("guava"))
+    integTestImplementation(library("commons_lang"))
+    integTestImplementation(library("commons_io"))
+    integTestRuntimeOnly(project(":plugins"))
+    integTestRuntimeOnly(project(":languageNative"))
+
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
 }
 
 val availableJavaInstallations = rootProject.availableJavaInstallations

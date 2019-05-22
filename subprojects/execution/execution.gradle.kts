@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import accessors.java
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -25,18 +24,27 @@ plugins {
 description = "Execution engine that takes a unit of work and makes it happen"
 
 dependencies {
-    api(project(":coreApi"))
-    api(library("guava"))
-    api(library("jsr305"))
-    api(library("inject"))
-
     implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":coreApi"))
     implementation(project(":snapshots"))
+    implementation(project(":persistentCache"))
+    implementation(project(":buildCache"))
     implementation(project(":buildCachePackaging"))
+
+    implementation(library("jsr305"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
+    implementation(library("inject"))
 
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":native"))
+    testImplementation(project(":logging"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":modelCore"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":resources"))
 }
 
 java {

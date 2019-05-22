@@ -9,8 +9,14 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":processServices"))
+    implementation(project(":baseServices"))
+    implementation(project(":processServices"))
+
+    testImplementation(project(":native"))
+    testImplementation(project(":coreApi"))
+    testImplementation(project(":files"))
+    testImplementation(project(":resources"))
+    testImplementation(library("slf4j_api"))
 }
 
 gradlebuildJava {

@@ -16,6 +16,10 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
+plugins {
+    `java-library`
+}
+
 val css by configurations.creating {
     // define a configuration that, when resolved, will look in
     // the producer for a publication that exposes CSS resources
@@ -27,20 +31,32 @@ val css by configurations.creating {
 }
 
 dependencies {
-    compile(library("groovy"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":resources"))
+    implementation(project(":toolingApi"))
+    implementation(project(":reporting"))
+    implementation(project(":plugins"))
+    implementation(project(":platformJvm"))
+    implementation(project(":ear"))
 
-    compile(project(":resources"))
-    compile(project(":core"))
-    compile(project(":toolingApi"))
-    compile(project(":reporting"))
-    compile(project(":plugins"))
-    compile(project(":ear"))
-    compile(library("guava"))
-    compile(library("slf4j_api"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
 
-    testCompile(testLibrary("jsoup"))
+    testImplementation(project(":native"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":files"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":dependencyManagement"))
+    testImplementation(testLibrary("jsoup"))
 
-    integTestRuntime(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":toolingApiBuilders"))
 
     css(project(":docs"))
 }

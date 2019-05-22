@@ -8,14 +8,15 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
+    implementation(project(":baseServices"))
 
     implementation(project(":messaging"))
     implementation(project(":native"))
-    implementation(library("guava"))
-    implementation(library("slf4j_api"))
-}
 
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("nativePlatform"))
+}
 
 gradlebuildJava {
     moduleType = ModuleType.WORKER

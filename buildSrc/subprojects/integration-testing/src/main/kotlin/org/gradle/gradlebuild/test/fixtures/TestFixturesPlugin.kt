@@ -44,9 +44,6 @@ import java.util.Locale
 open class TestFixturesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-
-        apply(plugin = "java")
-
         extensions.create<TestFixturesExtension>("testFixtures")
 
         if (file("src/testFixtures").isDirectory) {
@@ -75,19 +72,14 @@ open class TestFixturesPlugin : Plugin<Project> {
         }
 
         configurations {
-            val testFixturesApi by creating {
-                extendsFrom(configurations[testFixtures.compileConfigurationName])
-            }
-
+            val testFixturesApi by creating
             val testFixturesImplementation by getting {
                 extendsFrom(testFixturesApi)
             }
-
-            val testFixturesRuntime by getting
             val testFixturesRuntimeOnly by getting
 
             create(testFixtures.apiElementsConfigurationName) {
-                extendsFrom(testFixturesApi, testFixturesRuntime)
+                extendsFrom(testFixturesApi)
                 /*
                  * FIXME only the classes would be more appropriate here, but the Groovy compiler
                  * needs resources too because we make use of extension methods registered through
@@ -103,7 +95,7 @@ open class TestFixturesPlugin : Plugin<Project> {
             }
 
             create(testFixtures.runtimeElementsConfigurationName) {
-                extendsFrom(testFixturesImplementation, testFixturesRuntime, testFixturesRuntimeOnly)
+                extendsFrom(testFixturesImplementation, testFixturesRuntimeOnly)
                 /*
                  * FIXME a JAR would be more appropriate here, but the PlayApp fixture assumes that
                  * its class is loaded from a directory.
@@ -122,12 +114,15 @@ open class TestFixturesPlugin : Plugin<Project> {
 
         dependencies {
             val testFixturesApi by configurations
+            val testFixturesImplementation by configurations
             val testFixturesRuntimeOnly by configurations
 
+            // add the implementation code as 'test api' of the project providing the fixtues
             testFixturesApi(project(path))
-            testFixturesApi(library("junit"))
-            testFixturesApi(library("groovy"))
-            testFixturesApi(testLibrary("spock"))
+            // add a set of default dependencies for fixture implementation
+            testFixturesImplementation(library("junit"))
+            testFixturesImplementation(library("groovy"))
+            testFixturesImplementation(testLibrary("spock"))
             testFixturesRuntimeOnly(testLibrary("bytebuddy"))
             testFixturesRuntimeOnly(testLibrary("cglib"))
         }
@@ -145,14 +140,8 @@ open class TestFixturesPlugin : Plugin<Project> {
     private
     fun SourceSet.extendsFrom(other: SourceSet, configurations: ConfigurationContainer) {
         configurations {
-            compileConfigurationName {
-                extendsFrom(configurations[other.compileConfigurationName])
-            }
             implementationConfigurationName {
                 extendsFrom(configurations[other.implementationConfigurationName])
-            }
-            runtimeConfigurationName {
-                extendsFrom(configurations[other.runtimeConfigurationName])
             }
             runtimeOnlyConfigurationName {
                 extendsFrom(configurations[other.runtimeOnlyConfigurationName])
@@ -164,13 +153,13 @@ open class TestFixturesPlugin : Plugin<Project> {
     fun Project.configureAsConsumer() = afterEvaluate {
         the<TestFixturesExtension>().origins.forEach { (projectPath, sourceSetName) ->
             val sourceSet = java.sourceSets[sourceSetName]
-            val compileConfig = sourceSet.compileConfigurationName
-            val runtimeConfig = sourceSet.runtimeConfigurationName
+            val implementationConfig = sourceSet.implementationConfigurationName
+            val runtimeOnlyConfig = sourceSet.runtimeOnlyConfigurationName
 
             dependencies {
-                compileConfig(project(path = projectPath, configuration = "testFixturesApiElements"))
-                compileConfig(project(":internalTesting"))
-                runtimeConfig(project(path = projectPath, configuration = "testFixturesRuntimeElements"))
+                implementationConfig(project(path = projectPath, configuration = "testFixturesApiElements"))
+                implementationConfig(project(":internalTesting"))
+                runtimeOnlyConfig(project(path = projectPath, configuration = "testFixturesRuntimeElements"))
             }
         }
     }

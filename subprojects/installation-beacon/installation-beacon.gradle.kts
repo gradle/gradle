@@ -15,13 +15,10 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// This lib should not have any dependencies.
-dependencies {
-    //import dependency constraints
-    compile(project(":distributionsDependencies"))
+plugins {
+    java
 }
-
+// This lib should not have any dependencies.
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }

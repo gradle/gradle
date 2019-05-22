@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,72 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    gradlebuild.`strict-compile`
-    gradlebuild.classycle
+    // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
+    // id "gradlebuild.strict-compile"
+    // id "gradlebuild.classycle"
 }
 
 dependencies {
+    api(library("jsr305"))
+
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
+    implementation(project(":files"))
+    implementation(project(":jvmServices"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":files"))
-    implementation(project(":persistentCache"))
-    implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
+    implementation(project(":reporting"))
+    implementation(project(":diagnostics"))
     implementation(project(":platformBase"))
-    implementation(project(":platformNative"))
-    implementation(project(":plugins"))
-    implementation(project(":publish"))
-    implementation(project(":maven"))
-    implementation(project(":ivy"))
-    implementation(project(":toolingApi"))
-    implementation(project(":versionControl"))
+    implementation(project(":platformJvm"))
+    implementation(project(":languageJava"))
+    implementation(project(":testingBase"))
 
-    implementation(library("groovy"))
     implementation(library("slf4j_api"))
+    implementation(library("groovy"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
+    implementation(library("asm"))
+    implementation(library("junit"))
+    implementation(library("testng"))
     implementation(library("inject"))
+    implementation(library("bsh"))
 
-    testFixturesImplementation(project(":internalIntegTesting"))
-
-    testImplementation(project(":native"))
-    testImplementation(project(":resources"))
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation("com.google.inject:guice:2.0") {
+        because("This is for TestNG")
+    }
 
-    integTestImplementation(project(":native"))
-    integTestImplementation(project(":resources"))
-    integTestImplementation(library("nativePlatform"))
-    integTestImplementation(library("ant"))
-    integTestImplementation(library("jgit"))
-
-    integTestRuntimeOnly(project(":ideNative"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.CORE
+    moduleType = ModuleType.WORKER
+}
+
+tasks.named<Test>("test").configure {
+    exclude("org/gradle/api/internal/tasks/testing/junit/ATestClass*.*")
+    exclude("org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*")
 }
 
 testFixtures {
     from(":core")
-    from(":versionControl")
-    from(":platformNative")
-    from(":platformBase")
+    from(":testingBase")
+    from(":diagnostics")
     from(":messaging")
-    from(":platformNative", "testFixtures")
-    from(":snapshots")
-}
-
-classycle {
-    excludePatterns.set(listOf("org/gradle/language/nativeplatform/internal/**"))
+    from(":baseServices")
+    from(":platformNative")
 }

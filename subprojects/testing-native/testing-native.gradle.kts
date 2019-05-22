@@ -16,17 +16,36 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(project(":core"))
-    compile(project(":platformNative"))
-    compile(project(":languageNative"))
-    compile(project(":testingBase"))
+    implementation(project(":baseServices"))
+    implementation(project(":native"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":diagnostics"))
+    implementation(project(":reporting"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformNative"))
+    implementation(project(":languageNative"))
+    implementation(project(":testingBase"))
 
-    integTestRuntime(project(":ideNative"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("commons_io"))
+    implementation(library("inject"))
+
+    testImplementation(project(":files"))
+
+    integTestRuntimeOnly(project(":ideNative"))
 }
 
 gradlebuildJava {
@@ -40,4 +59,5 @@ testFixtures {
     from(":platformBase")
     from(":testingBase")
     from(":languageNative")
+    from(":ide")
 }

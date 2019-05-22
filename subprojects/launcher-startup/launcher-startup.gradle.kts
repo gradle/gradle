@@ -6,25 +6,28 @@ plugins {
 }
 
 dependencies {
-    api(project(":cli"))
+    implementation(project(":baseServices"))
+    implementation(project(":cli"))
+    implementation(project(":messaging"))
+    implementation(project(":buildOption"))
+    implementation(project(":native"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":files"))
+    implementation(project(":persistentCache"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+    implementation(project(":launcherBootstrap"))
+    implementation(project(":jvmServices"))
+    implementation(project(":toolingApi"))
 
-    compile(project(":coreApi"))
-    compile(project(":launcherBootstrap"))
-    compile(project(":jvmServices"))
-    compile(project(":core"))
-    compile(project(":buildOption"))
-    compile(project(":toolingApi"))
-    compile(project(":native"))
-    compile(project(":logging"))
-    compile(project(":messaging"))
-    compile(project(":baseServices"))
-    compile(project(":files"))
-
-    compile(library("guava"))
-    compile(library("asm"))
-    compile(library("commons_io"))
-    compile(library("commons_lang"))
-    compile(library("ant"))
+    implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_io"))
+    implementation(library("commons_lang"))
+    implementation(library("asm"))
+    implementation(library("ant"))
 }
 
 gradlebuildJava {

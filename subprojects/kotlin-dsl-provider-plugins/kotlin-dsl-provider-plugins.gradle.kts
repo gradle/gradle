@@ -28,13 +28,19 @@ gradlebuildJava {
 
 
 dependencies {
+    implementation(project(":kotlinDsl"))
 
-    compile(project(":distributionsDependencies"))
-
-    compile(project(":kotlinDsl"))
-
+    compileOnly(project(":baseServices"))
+    compileOnly(project(":logging"))
+    compileOnly(project(":coreApi"))
+    compileOnly(project(":modelCore"))
+    compileOnly(project(":core"))
+    compileOnly(project(":files"))
+    compileOnly(project(":resources"))
     compileOnly(project(":plugins"))
     compileOnly(project(":pluginDevelopment"))
+
+    compileOnly(library("slf4j_api"))
 
     testImplementation(project(":kotlinDslTestFixtures"))
     testImplementation(project(":plugins"))

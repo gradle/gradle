@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -15,31 +13,30 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-/*
-    Provides generally useful test utilities, used for unit and integration testing.
-*/
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(library("groovy"))
+    implementation(project(":baseServices"))
+    implementation(project(":native"))
 
-    compile(project(":baseServices"))
-    compile(project(":native"))
-    compile(library("slf4j_api"))
-    compile(library("guava"))
-    compile(library("commons_lang"))
-    compile(library("commons_io"))
-    compile(library("ant"))
-    compile(library("asm"))
-    compile(library("asm_tree"))
-    compile(library("junit"))
-    compile(testLibrary("hamcrest"))
-    compile(testLibrary("spock"))
-    runtime(testLibrary("bytebuddy"))
-    compile(testLibrary("jsoup"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("commons_io"))
+    implementation(library("ant"))
+    implementation(library("asm"))
+    implementation(library("asm_tree"))
+    implementation(library("junit"))
+    implementation(testLibrary("spock"))
+    implementation(testLibrary("jsoup"))
+
+    runtimeOnly(testLibrary("bytebuddy"))
 }
 
 gradlebuildJava {

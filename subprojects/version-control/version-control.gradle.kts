@@ -1,5 +1,7 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +15,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
     `java-library`
+    gradlebuild.`strict-compile`
+    gradlebuild.classycle
 }
 
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
+    implementation(project(":files"))
+    implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
     implementation(project(":core"))
+    implementation(project(":resources"))
     implementation(project(":dependencyManagement"))
-    implementation(project(":launcher"))
-    implementation(project(":pluginUse"))
 
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
+    implementation(library("inject"))
+    implementation(library("jgit"))
+    implementation(library("commons_httpclient"))
+    implementation(library("jsch"))
 
-    integTestImplementation(project(":buildOption"))
+    testImplementation(project(":native"))
+    testImplementation(project(":processServices"))
+    
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
 
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":ide"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
-    integTestRuntimeOnly(project(":testKit"))
+    testFixturesImplementation(library("jgit"))
+    testFixturesImplementation(library("commons_io"))
+    testFixturesImplementation(library("commons_httpclient"))
+    testFixturesImplementation(library("jsch"))
+    
+    integTestImplementation(project(":launcherStartup"))
 }
 
 gradlebuildJava {
@@ -48,10 +57,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(":dependencyManagement")
-    from(":launcher")
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
+    from(":core")
 }

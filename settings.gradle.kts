@@ -131,13 +131,7 @@ rootProject.name = "gradle"
 val groovyBuildScriptProjects = hashSetOf(
     "distributions",
     "docs",
-    "performance",
-    "testing-base",
-    "testing-jvm",
-    "testing-junit-platform",
-    "test-kit",
-    "smoke-test",
-    "version-control"
+    "performance"
 )
 
 fun buildFileNameFor(projectDirName: String) =

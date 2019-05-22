@@ -18,6 +18,7 @@ import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
  * limitations under the License.
  */
 plugins {
+    java
     gradlebuild.classycle
 }
 
@@ -25,10 +26,14 @@ dependencies {
     // so that all Gradle features are available
     val allTestRuntimeDependencies: DependencySet by rootProject.extra
     allTestRuntimeDependencies.forEach {
-        performanceTestRuntime(it)
+        performanceTestRuntimeOnly(it)
     }
 
-    testFixturesApi(project(":internalPerformanceTesting"))
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internalPerformanceTesting"))
+    testFixturesImplementation(library("commons_io"))
 }
 
 gradlebuildJava {

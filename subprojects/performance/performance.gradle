@@ -19,14 +19,25 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 apply from: 'templates.gradle'
 
 dependencies {
-    compile project(':distributionsDependencies')
-
+    performanceTestImplementation project(":baseServices")
+    performanceTestImplementation project(":core")
+    performanceTestImplementation project(":modelCore")
+    performanceTestImplementation project(":coreApi")
+    performanceTestImplementation project(":buildOption")
+    performanceTestImplementation project(":internalIntegTesting")
+    performanceTestImplementation libraries.slf4j_api.coordinates
+    performanceTestImplementation libraries.commons_io.coordinates
     performanceTestImplementation libraries.commons_compress.coordinates
+    performanceTestImplementation testLibraries.jetty
 
     // so that all Gradle features are available
-    performanceTestRuntime allTestRuntimeDependencies
+    performanceTestRuntimeOnly allTestRuntimeDependencies
 }
 
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
+}
+
+testFixtures {
+    from(":toolingApi", "performanceTest")
 }

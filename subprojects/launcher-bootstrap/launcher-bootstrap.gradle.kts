@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
+    implementation(project(":baseServices"))
     implementation(project(":core"))
     implementation(project(":coreApi"))
     implementation(project(":logging"))

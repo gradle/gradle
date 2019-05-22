@@ -17,19 +17,30 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  * limitations under the License.
  */
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(project(":core"))
-    compile(project(":dependencyManagement"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":messaging"))
+    implementation(project(":files"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+    implementation(project(":dependencyManagement"))
 
-    runtime(project(":resourcesHttp"))
+    runtimeOnly(project(":resourcesHttp"))
 
-    integTestRuntime(project(":plugins"))
-    integTestRuntime(project(":pluginDevelopment"))
-    integTestRuntime(project(":testKit"))
-    integTestRuntime(project(":toolingApiBuilders"))
+    implementation(library("groovy"))
+    implementation(library("guava"))
+
+    integTestImplementation(project(":baseServicesGroovy"))
+
+    integTestRuntimeOnly(project(":plugins"))
+    integTestRuntimeOnly(project(":pluginDevelopment"))
+    integTestRuntimeOnly(project(":testKit"))
+    integTestRuntimeOnly(project(":toolingApiBuilders"))
 }
 
 

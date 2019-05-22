@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,58 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import build.kotlinVersion
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    gradlebuild.classycle
 }
 
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-
     implementation(project(":baseServices"))
+    implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":persistentCache"))
+    implementation(project(":processServices"))
+    implementation(project(":workerProcesses"))
     implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
     implementation(project(":baseServicesGroovy"))
+    implementation(project(":reporting"))
+    implementation(project(":platformBase"))
 
-    implementation(library("inject"))
-    implementation(library("groovy"))
     implementation(library("slf4j_api"))
+    implementation(library("groovy"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
-    implementation(library("asm"))
+    implementation(library("commons_io"))
+    implementation(library("kryo"))
+    implementation(library("inject"))
+    implementation(library("ant")) // only used for DateUtils
 
-    testFixturesImplementation(project(":internalIntegTesting"))
-
-    testImplementation(project(":processServices"))
     testImplementation(project(":files"))
-
-    integTestImplementation(project(":platformBase"))
     
-    integTestRuntimeOnly(project(":apiMetadata"))
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(testLibrary("jsoup"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.CORE
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {
-    from(":core", "testFixtures")
-    from(":coreApi")
-    from(":diagnostics", "testFixtures")
-}
-
-classycle {
-    excludePatterns.set(listOf(
-        "org/gradle/model/internal/core/**",
-        "org/gradle/model/internal/inspect/**",
-        "org/gradle/api/internal/tasks/**",
-        "org/gradle/model/internal/manage/schema/**",
-        "org/gradle/model/internal/type/**",
-        "org/gradle/api/internal/plugins/*"
-    ))
+    from(":core")
+    from(":messaging")
+    from(":platformBase")
+    from(":logging")
+    from(":baseServices")
+    from(":launcher")
 }

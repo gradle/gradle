@@ -26,16 +26,16 @@ open class GeneratePom : DefaultTask() {
     val pomFile = File(temporaryDir, "pom.xml")
 
     @get:Internal
-    val publishCompile by project.configurations.creating
+    val publishImplementation by project.configurations.creating
 
     @get:Internal
     val publishRuntime by project.configurations.creating
 
     init {
         // Subprojects assign dependencies to publishCompile to indicate that they should be part of the published pom.
-        // Therefore compile needs to contain those dependencies and extend publishCompile
-        project.configurations.getByName("compile") {
-            extendsFrom(publishCompile)
+        // Therefore implementation needs to contain those dependencies and extend publishImplementation
+        project.configurations.getByName("implementation") {
+            extendsFrom(publishImplementation)
         }
         // Never up to date; we don't understand the data structures.
         outputs.upToDateWhen(Specs.satisfyNone<Task>())
@@ -64,10 +64,10 @@ open class GeneratePom : DefaultTask() {
     private
     fun Project.addDependenciesToPublishConfigurations() {
         dependencies {
-            publishCompile.allDependencies.withType<ProjectDependency>().forEach {
+            publishImplementation.allDependencies.withType<ProjectDependency>().forEach {
                 publishRuntime("org.gradle:${it.dependencyProject.base.archivesBaseName}:$version")
             }
-            publishCompile.allDependencies.withType<ExternalDependency>().forEach {
+            publishImplementation.allDependencies.withType<ExternalDependency>().forEach {
                 publishRuntime(it)
             }
         }

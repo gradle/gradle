@@ -1,7 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +13,22 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    `java-library`
+}
 
 dependencies {
-    compile project(':core')
-    compile project(':platformJvm')
-    compile project(':languageJava')
-    compile project(':testingBase')
-    compile project(':testingJvm')
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":platformJvm"))
+    implementation(project(":languageJava"))
+    implementation(project(":testingBase"))
+    implementation(project(":testingJvm"))
 
-    implementation libraries.junit.coordinates
-    implementation libraries.junit_platform.coordinates
+    implementation(library("junit"))
+    implementation(library("junit_platform"))
 }
 
 gradlebuildJava {

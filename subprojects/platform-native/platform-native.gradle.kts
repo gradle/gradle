@@ -1,6 +1,3 @@
-import org.gradle.gradlebuild.buildquality.classycle.Classycle
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -16,26 +13,43 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":native"))
+    implementation(project(":processServices"))
+    implementation(project(":files"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":workers"))
+    implementation(project(":platformBase"))
+    implementation(project(":diagnostics"))
+
+    implementation(library("nativePlatform"))
     implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("snakeyaml"))
     implementation(library("gson"))
+    implementation(library("inject"))
 
-    compile(project(":core"))
-    compile(project(":platformBase"))
-    compile(project(":diagnostics"))
-
-    integTestRuntime(project(":maven"))
+    integTestRuntimeOnly(project(":maven"))
     // Required to test visual studio project file generation for generated sources
-    integTestRuntime(project(":ideNative"))
+    integTestRuntimeOnly(project(":ideNative"))
 
-    testFixturesApi(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":resources"))
+    testFixturesImplementation(project(":internalIntegTesting"))
 }
 
 gradlebuildJava {

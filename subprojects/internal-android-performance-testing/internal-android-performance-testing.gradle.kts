@@ -12,7 +12,8 @@ repositories {
 }
 
 dependencies {
-    compile(project(":toolingApi"))
+    implementation(project(":baseServices"))
+    implementation(project(":toolingApi"))
     androidTools("com.android.tools.build:gradle:3.0.0")
 }
 

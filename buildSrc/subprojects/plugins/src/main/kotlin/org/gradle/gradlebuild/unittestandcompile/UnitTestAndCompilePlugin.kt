@@ -151,13 +151,13 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.addDependencies() {
         dependencies {
-            val testCompile = configurations.getByName("testCompile")
-            val testRuntime = configurations.getByName("testRuntime")
-            testCompile(library("junit"))
-            testCompile(library("groovy"))
-            testCompile(testLibrary("spock"))
-            testRuntime(testLibrary("bytebuddy"))
-            testRuntime(library("objenesis"))
+            val testImplementation = configurations.getByName("testImplementation")
+            val testRuntimeOnly = configurations.getByName("testRuntimeOnly")
+            testImplementation(library("junit"))
+            testImplementation(library("groovy"))
+            testImplementation(testLibrary("spock"))
+            testRuntimeOnly(testLibrary("bytebuddy"))
+            testRuntimeOnly(library("objenesis"))
         }
     }
 
@@ -259,6 +259,7 @@ open class UnitTestAndCompileExtension(val project: Project) {
     var moduleType: ModuleType? = null
         set(value) {
             field = value!!
+            project.addPlatformDependency(value)
             project.java.targetCompatibility = value.compatibility
             project.java.sourceCompatibility = value.compatibility
             project.java.disableAutoTargetJvmGradle53()
@@ -268,6 +269,19 @@ open class UnitTestAndCompileExtension(val project: Project) {
         project.afterEvaluate {
             if (this@UnitTestAndCompileExtension.moduleType == null) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
+            }
+        }
+    }
+
+    private
+    fun Project.addPlatformDependency(moduleType: ModuleType) {
+        val platformProject = ":distributionsDependencies"
+        dependencies {
+            if (moduleType == ModuleType.PORTAL_PLUGINS) {
+                "compileOnly"(platform(project(platformProject)))
+                "testImplementation"(platform(project(platformProject)))
+            } else {
+                "implementation"(platform(project(platformProject)))
             }
         }
     }

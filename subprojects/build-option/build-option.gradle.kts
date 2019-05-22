@@ -6,8 +6,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":cli"))
-    api(library("jsr305"))
+    implementation(project(":cli"))
+
+    implementation(library("jsr305"))
     implementation(library("commons_lang"))
 }
 

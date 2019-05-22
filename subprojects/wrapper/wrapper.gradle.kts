@@ -18,13 +18,26 @@ import java.util.jar.Attributes
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
 dependencies {
     implementation(project(":cli"))
 
+    testImplementation(project(":baseServices"))
+    testImplementation(project(":native"))
     testImplementation(library("ant"))
+
+    integTestImplementation(project(":logging"))
+    integTestImplementation(project(":coreApi"))
+    integTestImplementation(library("commons_io"))
+    integTestImplementation(testLibrary("littleproxy"))
+    integTestImplementation(testLibrary("jetty"))
+
+    crossVersionTestImplementation(project(":logging"))
+    crossVersionTestImplementation(project(":persistentCache"))
+    crossVersionTestImplementation(project(":launcherStartup"))
 }
 
 gradlebuildJava {
@@ -42,7 +55,9 @@ tasks.register<Jar>("executableJar") {
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
     }
     from(sourceSets.main.get().output)
-    from(configurations.runtimeClasspath.get().allDependencies.withType<ProjectDependency>().map { it.dependencyProject.sourceSets.main.get().output })
+    from(configurations.runtimeClasspath.get().allDependencies.withType<ProjectDependency>().filter { it.dependencyProject.extensions.findByType<SourceSetContainer>() != null }.map {
+        it.dependencyProject.sourceSets.main.get().output
+    })
 }
 
 val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
