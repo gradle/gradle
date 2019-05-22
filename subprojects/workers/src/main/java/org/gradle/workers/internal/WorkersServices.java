@@ -89,6 +89,10 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                                                     ClassPathRegistry classPathRegistry) {
             return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager, classPathRegistry), listenerManager, loggingManager, memoryManager, memoryInfo);
         }
+
+        ClassLoaderStructureProvider createClassLoaderStructureProvider(ClassLoaderRegistry classLoaderRegistry) {
+            return new ClassLoaderStructureProvider(classLoaderRegistry);
+        }
     }
 
     private static class ProjectScopeServices {
@@ -100,11 +104,11 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             BuildOperationExecutor buildOperationExecutor,
                                             AsyncWorkTracker asyncWorkTracker,
                                             WorkerDirectoryProvider workerDirectoryProvider,
-                                            ClassLoaderRegistry classLoaderRegistry,
+                                            ClassLoaderStructureProvider classLoaderStructureProvider,
                                             WorkerExecutionQueueFactory workerExecutionQueueFactory,
                                             ServiceRegistry serviceRegistry) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, serviceRegistry);
-            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory, classLoaderRegistry);
+            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory, classLoaderStructureProvider);
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }
