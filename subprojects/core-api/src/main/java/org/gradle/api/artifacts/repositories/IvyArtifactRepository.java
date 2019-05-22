@@ -51,6 +51,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      *
      * @return The URL.
      */
+    @Override
     URI getUrl();
 
     /**
@@ -59,6 +60,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * @param url The base URL.
      * @since 4.0
      */
+    @Override
     void setUrl(URI url);
 
     /**
@@ -69,6 +71,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      *
      * @param url The base URL.
      */
+    @Override
     void setUrl(Object url);
 
     /**

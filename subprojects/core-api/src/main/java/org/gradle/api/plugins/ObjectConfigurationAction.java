@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 
 /**
@@ -50,7 +51,9 @@ public interface ObjectConfigurationAction {
      * a URL can also be used, allowing the script to be fetched using HTTP, for example.
      * @param allowInsecureProtocol Accept using an insecure protocol like HTTP.
      * @return this
+     * @since 5.6
      */
+    @Incubating
     ObjectConfigurationAction from(Object script, boolean allowInsecureProtocol);
 
     /**

@@ -16,11 +16,16 @@
 
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.Incubating;
+
 import java.net.URI;
 
 /**
  * A repository that supports resolving artifacts from a URL.
+ *
+ * @since 5.6
  */
+@Incubating
 public interface UrlArtifactRepository {
 
     /**
@@ -34,7 +39,6 @@ public interface UrlArtifactRepository {
      * Sets the base URL of this repository.
      *
      * @param url The base URL.
-     * @since 4.0
      */
     void setUrl(URI url);
 
@@ -42,7 +46,6 @@ public interface UrlArtifactRepository {
      * Sets the base URL of this repository.
      *
      * @param url The base URL.
-     * @since 4.0
      */
     void setUrl(Object url);
 
@@ -59,8 +62,6 @@ public interface UrlArtifactRepository {
      *     serve malicious executable code onto the system.
      * </a>
      * </b>
-     *
-     * @since 5.5
      */
     void allowInsecureProtocol(boolean allowInsecureProtocol);
 
@@ -77,8 +78,6 @@ public interface UrlArtifactRepository {
      *     serve malicious executable code onto the system.
      * </a>
      * </b>
-     *
-     * @since 5.5
      */
     boolean isAllowInsecureProtocol();
 }

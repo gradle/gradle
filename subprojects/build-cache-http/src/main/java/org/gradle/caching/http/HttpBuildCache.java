@@ -17,6 +17,7 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
 import javax.annotation.Nullable;
@@ -141,8 +142,9 @@ public class HttpBuildCache extends AbstractBuildCache {
      * </a>
      * </b>
      *
-     * @since 5.5
+     * @since 5.6
      */
+    @Incubating
     public boolean isAllowUntrustedProtocol() {
         return allowUntrustedProtocol;
     }
@@ -161,8 +163,9 @@ public class HttpBuildCache extends AbstractBuildCache {
      * </a>
      * </b>
      *
-     * @since 5.5
+     * @since 5.6
      */
+    @Incubating
     public void setAllowUntrustedProtocol(boolean allowUntrustedProtocol) {
         this.allowUntrustedProtocol = allowUntrustedProtocol;
     }

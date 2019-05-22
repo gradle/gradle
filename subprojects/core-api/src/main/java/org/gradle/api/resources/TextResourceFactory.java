@@ -105,7 +105,7 @@ public interface TextResourceFactory {
      * @param allowInsecureProtocol Accept using an insecure protocol like HTTP. Defaults to {@code false}.
      *
      * @return a text resource backed by the given uri
-     * @since 5.5
+     * @since 5.6
      */
     @Incubating
     TextResource fromUri(Object uri, boolean allowInsecureProtocol);
