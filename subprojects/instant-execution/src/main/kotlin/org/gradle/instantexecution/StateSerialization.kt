@@ -363,9 +363,14 @@ class StateSerialization(
             )
 
         override fun write(encoder: Encoder, value: FileTreeInternal) {
+            fileSetSerializer.write(encoder, fileTreeRootsOf(value))
+        }
+
+        private
+        fun fileTreeRootsOf(value: FileTreeInternal): LinkedHashSet<File> {
             val visitor = FileTreeVisitor()
             value.visitLeafCollections(visitor)
-            fileSetSerializer.write(encoder, visitor.roots)
+            return visitor.roots
         }
     }
 
