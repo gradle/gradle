@@ -1,10 +1,4 @@
 {
     "acceptedApiChanges": [
-        {
-            "type": "org.gradle.platform.base.binary.BaseBinarySpec",
-            "member": "Method org.gradle.platform.base.binary.BaseBinarySpec.create(java.lang.Class,java.lang.Class,org.gradle.platform.base.internal.ComponentSpecIdentifier,org.gradle.model.internal.core.MutableModelNode,org.gradle.model.internal.core.MutableModelNode,org.gradle.internal.reflect.Instantiator,org.gradle.model.internal.core.NamedEntityInstantiator,org.gradle.api.internal.CollectionCallbackActionDecorator,org.gradle.api.internal.collections.DomainObjectCollectionFactory)",
-            "acceptation": "Change to internal factory method",
-            "changes": []
-        }
     ]
 }

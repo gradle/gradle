@@ -74,7 +74,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     /**
      * Creates a {@link BaseBinarySpec}.
      *
-     * @since 5.0
+     * @since 5.6
      */
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
                                                       ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
