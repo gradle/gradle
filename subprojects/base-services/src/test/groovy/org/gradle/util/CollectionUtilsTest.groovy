@@ -15,10 +15,7 @@
  */
 package org.gradle.util
 
-import org.gradle.api.Action
 import org.gradle.api.Transformer
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -50,7 +47,7 @@ class CollectionUtilsTest extends Specification {
 
     def "list filtering"() {
         given:
-        def spec = Specs.convertClosureToSpec { it < 5 }
+        def spec = { it < 5 }
         def filter = { Integer[] nums -> filter(nums as List, spec) }
 
         expect:
@@ -62,7 +59,7 @@ class CollectionUtilsTest extends Specification {
 
     def "array filtering"() {
         given:
-        def spec = Specs.convertClosureToSpec { it < 5 }
+        def spec = { it < 5 }
         def filter = { Integer[] nums -> filter(nums, spec) }
 
         expect:
@@ -85,7 +82,7 @@ class CollectionUtilsTest extends Specification {
 
     def "set filtering"() {
         given:
-        def spec = Specs.convertClosureToSpec { it < 5 }
+        def spec = { it < 5 }
         def filter = { Integer[] nums -> filter(nums as Set, spec) }
 
         expect:
@@ -97,7 +94,7 @@ class CollectionUtilsTest extends Specification {
 
     def "map filtering"() {
         expect:
-        def filtered = filter(a: 1, b: 2, c: 3, spec { it.value < 2 })
+        def filtered = filter(a: 1, b: 2, c: 3, { it.value < 2 })
         filtered.size() == 1
         filtered.a == 1
     }
@@ -152,13 +149,13 @@ class CollectionUtilsTest extends Specification {
         def l = [1, 2, 3]
 
         expect:
-        replace l, spec { it == 2 }, transformer { 2 * 2 }
+        replace l, { it == 2 }, transformer { 2 * 2 }
         l == [1, 4, 3]
 
-        replace l, spec { it > 1 }, transformer { 0 }
+        replace l, { it > 1 }, transformer { 0 }
         l == [1, 0, 0]
 
-        !replace(l, spec { false }, transformer { it })
+        !replace(l, { false }, transformer { it })
     }
 
     @Unroll
@@ -205,10 +202,10 @@ class CollectionUtilsTest extends Specification {
 
     def "every"() {
         expect:
-        every([1, 2, 3], spec { it < 4 })
-        !every([1, 2, 4], spec { it < 4 })
-        !every([1], spec { it instanceof String })
-        every([], spec { false })
+        every([1, 2, 3], { it < 4 })
+        !every([1, 2, 4], { it < 4 })
+        !every([1], { it instanceof String })
+        every([], { false })
     }
 
     def "intersection"() {
@@ -282,7 +279,7 @@ class CollectionUtilsTest extends Specification {
 
     def "partitioning"() {
         when:
-        def pair = partition([1, 2, 3], spec { it % 2 == 0 })
+        def pair = partition([1, 2, 3], { it % 2 == 0 })
 
         then:
         pair.left == [2]
@@ -291,7 +288,7 @@ class CollectionUtilsTest extends Specification {
 
     def "partitioning empty collection"() {
         when:
-        def pair = partition([], spec { it })
+        def pair = partition([], { it })
 
         then:
         pair.left == []
@@ -300,7 +297,7 @@ class CollectionUtilsTest extends Specification {
 
     def "partitioning throws exception given nulls"() {
         when:
-        partition(null, spec { it })
+        partition(null, { it })
 
         then:
         thrown(NullPointerException)
@@ -327,21 +324,21 @@ class CollectionUtilsTest extends Specification {
     def "injection"() {
         expect:
         def target = []
-        def result = inject(target, [1, 2, 3], action { it.target.add(it.item.toString()) })
+        def result = inject(target, [1, 2, 3], { it.target.add(it.item.toString()) })
         result.is(target)
         result == ["1", "2", "3"]
 
-        inject([], [[1, 2], [3]], action { it.target.addAll(it.item) }) == [1, 2, 3]
+        inject([], [[1, 2], [3]], { it.target.addAll(it.item) }) == [1, 2, 3]
 
         when:
-        inject(null, [], action {})
+        inject(null, [], {})
 
         then:
         def e = thrown(NullPointerException)
         e.message == "The 'target' cannot be null"
 
         when:
-        inject([], null, action {})
+        inject([], null, {})
 
         then:
         e = thrown(NullPointerException)
@@ -416,16 +413,7 @@ class CollectionUtilsTest extends Specification {
         nonEmptyOrNull([]) == null
     }
 
-    Spec<?> spec(Closure c) {
-        Specs.convertClosureToSpec(c)
-    }
-
     Transformer<?, ?> transformer(Closure c) {
         c as Transformer
     }
-
-    Action action(Closure c) {
-        ClosureBackedAction.of(c)
-    }
-
 }
