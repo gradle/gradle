@@ -33,7 +33,7 @@ version = "1.2.9"
 base.archivesBaseName = "plugins"
 
 gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
+    moduleType = ModuleType.PORTAL_PLUGINS
 }
 
 val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin")

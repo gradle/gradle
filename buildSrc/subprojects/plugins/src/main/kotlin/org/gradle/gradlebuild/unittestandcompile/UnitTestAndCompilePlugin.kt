@@ -46,7 +46,7 @@ import java.util.jar.Attributes
 import kotlin.reflect.full.declaredFunctions
 
 
-enum class ModuleType(val compatibility: JavaVersion) {
+enum class ModuleType(val compatibility: JavaVersion = JavaVersion.VERSION_1_8) {
 
     /**
      * the first modules loaded during startup that support an older Java version
@@ -62,12 +62,17 @@ enum class ModuleType(val compatibility: JavaVersion) {
     /**
      * modules that end up in the distribution in addition to STARTUP and WORKER
      */
-    CORE(JavaVersion.VERSION_1_8),
+    CORE,
+
+    /**
+     * modules that are published as plugins on the portal
+     */
+    PORTAL_PLUGINS,
 
     /**
      * internal modules, like test fixtures, that are not part of the distribution
      */
-    INTERNAL(JavaVersion.VERSION_1_8),
+    INTERNAL,
 }
 
 
