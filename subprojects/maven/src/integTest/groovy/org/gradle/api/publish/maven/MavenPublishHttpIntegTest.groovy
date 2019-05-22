@@ -126,8 +126,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401, credentials)
-        module.pom.expectPut(401, credentials)
-        module.moduleMetadata.expectPut(401, credentials)
 
         when:
         fails 'publish'
@@ -147,8 +145,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401)
-        module.pom.expectPut(401)
-        module.moduleMetadata.expectPut(401)
 
         when:
         fails 'publish'
@@ -239,9 +235,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         module.rootMetaData.expectGet()
-        module.rootMetaData.sha1.expectGet()
-        module.rootMetaData.expectGet()
-        module.rootMetaData.sha1.expectGet()
         module.rootMetaData.expectPublish()
 
         and:
@@ -267,9 +260,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
 
         module.artifact.expectPutBroken()
-        module.pom.expectPublish()
-        module.moduleMetadata.expectPublish()
-
         expectModulePublish(module)
 
         when:

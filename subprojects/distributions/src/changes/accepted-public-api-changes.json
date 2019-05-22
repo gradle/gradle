@@ -1,4 +1,10 @@
 {
     "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.publish.maven.tasks.PublishToMavenLocal",
+            "member": "Method org.gradle.api.publish.maven.tasks.PublishToMavenLocal.getRepositoryTransportFactory()",
+            "acceptation": "Injected service",
+            "changes": []
+        }
     ]
 }

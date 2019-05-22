@@ -17,13 +17,15 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenLocalPublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
-import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.TaskAction;
+
+import javax.inject.Inject;
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to the Maven Local repository.
@@ -42,11 +44,15 @@ public class PublishToMavenLocal extends AbstractPublishToMaven {
         new PublishOperation(publication, "mavenLocal") {
             @Override
             protected void publish() throws Exception {
-                MavenPublisher localPublisher = new MavenLocalPublisher(getMavenRepositoryLocator());
-                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(localPublisher);
-                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
+                MavenPublisher localPublisher = new MavenLocalPublisher(getTemporaryDirFactory(), getRepositoryTransportFactory(), getMavenRepositoryLocator());
+                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(localPublisher);
                 validatingPublisher.publish(publication.asNormalisedPublication(), null);
             }
         }.run();
+    }
+
+    @Inject
+    protected RepositoryTransportFactory getRepositoryTransportFactory() {
+        throw new UnsupportedOperationException();
     }
 }
