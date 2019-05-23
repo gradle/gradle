@@ -26,8 +26,8 @@ import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import static org.hamcrest.Matchers.anyOf
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.anyOf
+import static org.hamcrest.CoreMatchers.containsString
 
 @InjectsPluginClasspath
 @InspectsBuildOutput

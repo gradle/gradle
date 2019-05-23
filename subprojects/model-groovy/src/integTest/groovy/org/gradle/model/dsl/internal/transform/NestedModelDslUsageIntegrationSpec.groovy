@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking
 import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 

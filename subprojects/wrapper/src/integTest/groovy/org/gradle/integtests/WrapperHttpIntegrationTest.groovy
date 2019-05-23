@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 import static org.junit.Assert.assertThat
 
 class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {

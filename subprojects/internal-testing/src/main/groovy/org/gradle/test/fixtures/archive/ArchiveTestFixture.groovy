@@ -22,8 +22,8 @@ import com.google.common.collect.ListMultimap
 import org.gradle.util.CollectionUtils
 import org.hamcrest.Matcher
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.hasItem
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.hasItem
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
 

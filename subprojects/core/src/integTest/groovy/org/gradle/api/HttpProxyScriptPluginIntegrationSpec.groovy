@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.Unroll
 
 class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
@@ -133,6 +133,6 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
                 .assertHasCause("Could not get resource '${server.uri}/external.gradle'.")
-                .assertThatCause(Matchers.containsString("Proxy Authentication Required"))
+                .assertThatCause(CoreMatchers.containsString("Proxy Authentication Required"))
     }
 }

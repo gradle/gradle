@@ -17,9 +17,9 @@
 package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.hamcrest.Matchers
 import spock.lang.Unroll
 
+import static org.hamcrest.CoreMatchers.containsString
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
 /**
@@ -279,7 +279,7 @@ public class ExtensionTest {
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('org.gradle.ExtensionTest').assertTestCount(2, 0, 0)
-            .assertStdout(Matchers.stringContainsInOrder(['Created!', 'Created!']))
+            .assertStdout(containsString('Created!'))
     }
 
     def 'can test interface default method'() {
@@ -319,7 +319,7 @@ public class Test implements TestInterfaceDynamicTestsDemo {
             .testClass('org.gradle.Test').assertTestCount(2, 0, 0)
             .assertTestPassed('dynamicTestsFromCollection()[1]', '1st dynamic test in test interface')
             .assertTestPassed('dynamicTestsFromCollection()[2]', '2nd dynamic test in test interface')
-            .assertStdout(Matchers.stringContainsInOrder(['Invoked!', 'Invoked!']))
+            .assertStdout(containsString('Invoked!'))
     }
 
     def 'can support parameterized tests'() {

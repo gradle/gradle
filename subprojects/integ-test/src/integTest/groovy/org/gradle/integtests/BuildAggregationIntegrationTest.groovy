@@ -17,7 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
@@ -87,7 +87,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasFileName("Build file '${other}'")
         failure.assertHasLineNumber(2)
-        failure.assertThatDescription(Matchers.startsWith("A problem occurred evaluating project ':other'"))
+        failure.assertThatDescription(CoreMatchers.startsWith("A problem occurred evaluating project ':other'"))
         failure.assertHasCause('broken')
     }
 

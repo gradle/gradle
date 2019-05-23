@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -15,21 +13,34 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 dependencies {
-    compile(library("groovy"))
-    compile(project(":core"))
-    compile(project(":plugins"))
-    compile(project(":workers"))
-    compile(project(":reporting"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":native"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":plugins"))
+    implementation(project(":workers"))
+    implementation(project(":reporting"))
 
-    compile(library("slf4j_api"))
+    implementation(library("groovy"))
+    implementation(library("guava"))
+    implementation(library("inject"))
+    implementation(library("ant"))
+    implementation(library("slf4j_api"))
 
     // minimal dependencies to make our code compile
     // we don't ship these dependencies because findbugs plugin will download them (and more) at runtime
     compileOnly("com.google.code.findbugs:findbugs:2.0.1")
-    testRuntime("com.google.code.findbugs:bcel:2.0.1")
-    testRuntime("jaxen:jaxen:1.1")
+
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":files"))
+    testRuntimeOnly("com.google.code.findbugs:bcel:2.0.1")
+    testRuntimeOnly("jaxen:jaxen:1.1")
 }
 
 gradlebuildJava {

@@ -23,16 +23,21 @@ plugins {
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":coreApi"))
-    api(project(":files"))
-    api(library("guava"))
-    api(library("jsr305"))
-    api(library("inject"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":native"))
+    implementation(project(":messaging"))
+    implementation(project(":coreApi"))
+    implementation(project(":files"))
+    implementation(project(":persistentCache"))
     implementation(project(":modelCore"))
+    
+    implementation(library("guava"))
+    implementation(library("jsr305"))
+    implementation(library("inject"))
 
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":resources"))
+    testImplementation(library("ant"))
 }
 
 gradlebuildJava {

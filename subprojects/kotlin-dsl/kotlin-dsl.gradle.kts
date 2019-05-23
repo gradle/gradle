@@ -31,40 +31,72 @@ gradlebuildJava {
 }
 
 dependencies {
+    api(project(":kotlinDslToolingModels"))
+    api(project(":kotlinCompilerEmbeddable"))
+    api(futureKotlin("stdlib-jdk8"))
 
-    api(project(":distributionsDependencies"))
-
+    compileOnly(project(":baseServices"))
+    compileOnly(project(":native"))
+    compileOnly(project(":logging"))
+    compileOnly(project(":processServices"))
+    compileOnly(project(":persistentCache"))
+    compileOnly(project(":coreApi"))
+    compileOnly(project(":modelCore"))
+    compileOnly(project(":core"))
+    compileOnly(project(":baseServicesGroovy")) // for 'Specs'
+    compileOnly(project(":files"))
+    compileOnly(project(":resources"))
+    compileOnly(project(":buildCache"))
     compileOnly(project(":toolingApi"))
 
-    compile(project(":kotlinDslToolingModels"))
+    compileOnly(library("groovy"))
+    compileOnly(library("slf4j_api"))
+    compileOnly(library("guava"))
+    compileOnly(library("inject"))
 
-    compile(project(":kotlinCompilerEmbeddable"))
-    compile(futureKotlin("scripting-compiler-embeddable")) {
+    implementation(futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
     }
-
-    compile(futureKotlin("stdlib-jdk8"))
-    compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
+    implementation(futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    compile("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.5") {
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.5") {
         isTransitive = false
     }
 
     testImplementation(project(":kotlinDslTestFixtures"))
-
+    testImplementation(project(":baseServices"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":coreApi"))
+    testImplementation(project(":modelCore"))
+    testImplementation(project(":core"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":resources"))
+    testImplementation(project(":buildCache"))
     testImplementation(project(":buildCacheHttp"))
     testImplementation(project(":buildInit"))
     testImplementation(project(":jacoco"))
     testImplementation(project(":platformNative"))
     testImplementation(project(":plugins"))
     testImplementation(project(":versionControl"))
+    testImplementation(library("ant"))
+    testImplementation(library("asm"))
+    testImplementation(testLibrary("mockito_kotlin"))
+    testImplementation(testLibrary("jackson_kotlin"))
 
     testImplementation("com.tngtech.archunit:archunit:0.8.3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
     testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
 
     testRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestImplementation(project(":baseServices"))
+    integTestImplementation(project(":coreApi"))
+    integTestImplementation(project(":modelCore"))
+    integTestImplementation(project(":core"))
+    integTestImplementation(project(":languageGroovy"))
+    integTestImplementation(project(":internalTesting"))
+    integTestImplementation(testLibrary("mockito_kotlin"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":apiMetadata"))

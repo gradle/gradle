@@ -1,7 +1,3 @@
-import build.kotlinVersion
-import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -18,9 +14,9 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
-/*
- * The model management core.
- */
+import build.kotlinVersion
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     `java-library`
     gradlebuild.classycle
@@ -29,17 +25,26 @@ plugins {
 dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
 
-    api(project(":baseServices"))
-    api(project(":coreApi"))
-    api(library("inject"))
-    api(library("groovy"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":persistentCache"))
+    implementation(project(":coreApi"))
     implementation(project(":baseServicesGroovy"))
+
+    implementation(library("inject"))
+    implementation(library("groovy"))
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("asm"))
 
+    testFixturesImplementation(project(":internalIntegTesting"))
+
+    testImplementation(project(":processServices"))
+    testImplementation(project(":files"))
+
+    integTestImplementation(project(":platformBase"))
+    
     integTestRuntimeOnly(project(":apiMetadata"))
 }
 
@@ -48,7 +53,7 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(":core")
+    from(":core", "testFixtures")
     from(":coreApi")
     from(":diagnostics", "testFixtures")
 }

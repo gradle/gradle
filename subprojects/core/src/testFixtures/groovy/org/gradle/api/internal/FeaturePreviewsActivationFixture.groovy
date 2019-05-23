@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.dispatch;
 
-import org.slf4j.Logger;
+package org.gradle.api.internal
 
-public class DiscardingFailureHandler<T> implements DispatchFailureHandler<T> {
-    private final Logger logger;
+class FeaturePreviewsActivationFixture {
 
-    public DiscardingFailureHandler(Logger logger) {
-        this.logger = logger;
+    static def activeFeatures() {
+        EnumSet.of(FeaturePreviews.Feature.GRADLE_METADATA)
     }
 
-    @Override
-    public void dispatchFailed(T message, Throwable failure) {
-        logger.error(String.format("Could not dispatch message %s. Discarding message.", message), failure);
+    static def inactiveFeatures() {
+        def features = EnumSet.allOf(FeaturePreviews.Feature.class)
+        features.removeAll(activeFeatures())
+        features
     }
 }

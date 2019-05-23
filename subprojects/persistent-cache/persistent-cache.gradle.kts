@@ -22,14 +22,18 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":messaging"))
-    api(project(":native"))
-    api(project(":resources"))
-    api(project(":logging"))
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":native"))
+    implementation(project(":resources"))
+    implementation(project(":logging"))
 
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
+
+    testImplementation(project(":coreApi"))
 }
 
 gradlebuildJava {

@@ -100,12 +100,13 @@ dependencies {
     jquery "jquery:jquery.min:1.8.0@js"
     jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
-    testCompile testLibraries.jsoup
-    testCompile("org.gebish:geb-spock:2.2")
-    testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
-    testCompile libraries.commons_httpclient.coordinates
-    testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
-    testCompile project(":core")
+    testImplementation project(":baseServices")
+    testImplementation project(":core")
+    testImplementation testLibraries.jsoup
+    testImplementation("org.gebish:geb-spock:2.2")
+    testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
+    testImplementation libraries.commons_httpclient.coordinates
+    testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
 
     gradleApiRuntime project(":")
 }

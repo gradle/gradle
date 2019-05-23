@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -237,7 +237,7 @@ subprojects {
 
         expect:
         fails "mainExecutable"
-        failure.assertThatCause(Matchers.not(Matchers.containsString("Could not stop")))
+        failure.assertThatCause(CoreMatchers.not(CoreMatchers.containsString("Could not stop")))
     }
 
     def "can configure output file for binaries"() {

@@ -29,9 +29,12 @@ gradlebuildJava {
 }
 
 dependencies {
-
     testImplementation(project(":kotlinDslTestFixtures"))
 
+    integTestImplementation(project(":baseServices"))
+    integTestImplementation(project(":coreApi"))
+    integTestImplementation(project(":core"))
+    integTestImplementation(project(":internalTesting"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra

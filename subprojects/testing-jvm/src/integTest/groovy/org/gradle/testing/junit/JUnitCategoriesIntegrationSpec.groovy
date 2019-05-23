@@ -25,7 +25,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
 

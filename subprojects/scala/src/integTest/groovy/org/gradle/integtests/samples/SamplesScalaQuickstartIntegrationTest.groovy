@@ -28,7 +28,7 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 @Requires(KOTLIN_SCRIPT)
 class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTest {

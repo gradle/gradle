@@ -44,7 +44,7 @@ subprojects {
         }
 
         dependencies {
-            compile(gradleApi())
+            implementation(gradleApi())
         }
 
         afterEvaluate {
@@ -95,7 +95,7 @@ allprojects {
 
 dependencies {
     subprojects.forEach {
-        runtime(project(it.path))
+        runtimeOnly(project(it.path))
     }
 }
 
@@ -179,12 +179,12 @@ fun Project.applyGroovyProjectConventions() {
     apply(plugin = "groovy")
 
     dependencies {
-        compile(localGroovy())
-        testCompile("org.spockframework:spock-core:1.2-groovy-2.5") {
+        implementation(localGroovy())
+        testImplementation("org.spockframework:spock-core:1.2-groovy-2.5") {
             exclude(group = "org.codehaus.groovy")
         }
-        testCompile("net.bytebuddy:byte-buddy:1.8.21")
-        testCompile("org.objenesis:objenesis:2.6")
+        testImplementation("net.bytebuddy:byte-buddy:1.8.21")
+        testImplementation("org.objenesis:objenesis:2.6")
     }
 
     tasks.withType<GroovyCompile>().configureEach {

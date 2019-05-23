@@ -510,7 +510,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            def container = project.objects.container(NamedThing)
+            def container = project.objects.domainObjectContainer(NamedThing)
             assert container != null
             def element = container.create('foo')
             assert element.name == 'foo'
@@ -531,7 +531,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            def container = project.objects.container(NamedThing) {
+            def container = project.objects.domainObjectContainer(NamedThing) {
                 return new NamedThing("prefix-" + it)
             }
             assert container != null

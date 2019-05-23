@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -40,7 +39,7 @@ class FeaturePreviewsTest extends Specification {
         then:
         previews.isFeatureEnabled(feature)
         where:
-        feature << FeaturePreviewsFixture.activeFeatures()
+        feature << FeaturePreviewsActivationFixture.activeFeatures()
     }
 
     @Unroll
@@ -50,11 +49,11 @@ class FeaturePreviewsTest extends Specification {
         then:
         !previews.isFeatureEnabled(feature)
         where:
-        feature << FeaturePreviewsFixture.inactiveFeatures()
+        feature << FeaturePreviewsActivationFixture.inactiveFeatures()
     }
 
     def 'lists active features'() {
         expect:
-        previews.getActiveFeatures() == FeaturePreviewsFixture.activeFeatures()
+        previews.getActiveFeatures() == FeaturePreviewsActivationFixture.activeFeatures()
     }
 }

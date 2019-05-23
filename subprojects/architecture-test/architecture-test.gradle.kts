@@ -11,13 +11,15 @@ gradlebuildJava {
 }
 
 dependencies {
-    api(project(":distributionsDependencies"))
-    testImplementation("com.tngtech.archunit:archunit-junit4:0.9.1")
-    testImplementation(library("jsr305"))
     testImplementation(project(":baseServices"))
     testImplementation(project(":modelCore"))
+    
+    testImplementation("com.tngtech.archunit:archunit-junit4:0.9.1")
+    testImplementation(library("jsr305"))
+    testImplementation(library("guava"))
+
     publicProjects.forEach {
-        testRuntime(it)
+        testRuntimeOnly(it)
     }
 }
 
