@@ -69,7 +69,7 @@ open class IntegrationTest : DistributionTest() {
     override fun setClasspath(classpath: FileCollection) {
         /*
          * The 'kotlin-daemon-client.jar' repackages 'native-platform' with all its binaries.
-         * Here we Make sure it is paced at the end of the test classpath so that we do not accidentally
+         * Here we make sure it is placed at the end of the test classpath so that we do not accidentally
          * pick parts of 'native-platform' from the 'kotlin-daemon-client.jar' when instantiating
          * a Gradle runner.
          */
