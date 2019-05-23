@@ -301,10 +301,8 @@ Learn more about <<software_model.adoc#model-report,the model report>> in the so
 
 Gradle provides bash and zsh tab completion support for tasks, options, and Gradle properties through https://github.com/gradle/gradle-completion[gradle-completion], installed separately.
 
-ifdef::basebackend-html5[]
 .Gradle Completion
 image::gradle-completion-4.0.gif[]
-endif::basebackend-html5[]
 
 [[sec:command_line_debugging]]
 == Debugging options
