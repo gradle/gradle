@@ -47,10 +47,6 @@ import java.nio.file.Files
 import java.util.SortedSet
 
 
-inline fun <reified T> DefaultInstantExecution.Host.service(): T =
-    getService(T::class.java)
-
-
 class DefaultInstantExecution(
     private val host: Host
 ) : InstantExecution {
@@ -226,10 +222,9 @@ class DefaultInstantExecution(
         writeString(taskType.name)
         writeStrings(dependencies.map { it.path })
 
-        BeanFieldSerializer(task, taskType, stateSerializer).invoke(
-            this,
-            SerializationContext(task, logger)
-        )
+        BeanFieldSerializer(task, taskType, stateSerializer).run {
+            invoke(SerializationContext(task, logger))
+        }
     }
 
     private
@@ -242,10 +237,9 @@ class DefaultInstantExecution(
         val taskType = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
         val task = createTask(projectPath, taskName, taskType)
         val deserializer = host.deserializerFor(taskClassLoader)
-        BeanFieldDeserializer(task, taskType, deserializer, filePropertyFactory).deserialize(
-            this,
-            DeserializationContext(task, logger)
-        )
+        BeanFieldDeserializer(task, taskType, deserializer, filePropertyFactory).run {
+            deserialize(DeserializationContext(task, logger))
+        }
 
         return task to taskDependencies
     }
@@ -281,6 +275,10 @@ class DefaultInstantExecution(
         File(cacheDir, cacheFileName)
     }
 }
+
+
+inline fun <reified T> DefaultInstantExecution.Host.service(): T =
+    getService(T::class.java)
 
 
 internal

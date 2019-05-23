@@ -16,18 +16,24 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.Encoder
-
 
 interface StateSerializer {
-    fun serializerFor(value: Any?): ValueSerializer?
+    fun WriteContext.serializerFor(value: Any?): ValueSerializer?
 }
 
 
-typealias ValueSerializer = (Encoder, SerializationContext) -> Unit
+interface ValueSerializer {
+    fun WriteContext.invoke(context: SerializationContext)
+}
 
 
 interface StateDeserializer {
-    fun read(decoder: Decoder, context: DeserializationContext): Any?
+    fun ReadContext.read(context: DeserializationContext): Any?
 }
+
+
+fun writer(f: WriteContext.(SerializationContext) -> Unit): ValueSerializer = object : ValueSerializer {
+    override fun WriteContext.invoke(context: SerializationContext) = f(context)
+}
+
+

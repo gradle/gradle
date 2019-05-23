@@ -25,7 +25,6 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.reflect.JavaReflectionUtil
-import org.gradle.internal.serialize.Decoder
 import java.io.File
 import java.util.function.Supplier
 
@@ -36,15 +35,15 @@ class BeanFieldDeserializer(
     private val deserializer: StateDeserializer,
     private val filePropertyFactory: FilePropertyFactory
 ) {
-    fun deserialize(decoder: Decoder, context: DeserializationContext) {
+    fun ReadContext.deserialize(context: DeserializationContext) {
         val fieldsByName = relevantStateOf(beanType).associateBy { it.name }
         while (true) {
-            val fieldName = decoder.readString()
+            val fieldName = readString()
             if (fieldName.isEmpty()) {
                 break
             }
             try {
-                val value = deserializer.read(decoder, context)
+                val value = deserializer.run { read(context) }
                 val field = fieldsByName.getValue(fieldName)
                 field.isAccessible = true
                 context.logFieldSerialization("deserialize", beanType, fieldName, value)

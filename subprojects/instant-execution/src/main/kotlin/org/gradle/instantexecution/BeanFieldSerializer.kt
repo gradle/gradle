@@ -23,7 +23,6 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.internal.serialize.Encoder
 import java.util.function.Supplier
 
 
@@ -36,32 +35,30 @@ class BeanFieldSerializer(
     private val stateSerializer: StateSerializer
 ) : ValueSerializer {
 
-    override fun invoke(encoder: Encoder, context: SerializationContext) {
-        encoder.apply {
-            for (field in relevantStateOf(beanType)) {
-                field.isAccessible = true
-                val fieldValue = field.get(bean)
-                val conventionalValue = fieldValue ?: conventionalValueOf(bean, field.name)
-                val finalValue = unpack(conventionalValue)
-                val valueSerializer = stateSerializer.serializerFor(finalValue)
-                if (valueSerializer == null) {
-                    if (finalValue == null) {
-                        context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for null values")
-                    } else {
-                        context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue).name}'")
-                    }
-                    continue
+    override fun WriteContext.invoke(context: SerializationContext) {
+        for (field in relevantStateOf(beanType)) {
+            field.isAccessible = true
+            val fieldValue = field.get(bean)
+            val conventionalValue = fieldValue ?: conventionalValueOf(bean, field.name)
+            val finalValue = unpack(conventionalValue)
+            val valueSerializer = stateSerializer.run { serializerFor(finalValue) }
+            if (valueSerializer == null) {
+                if (finalValue == null) {
+                    context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for null values")
+                } else {
+                    context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue).name}'")
                 }
-                writeString(field.name)
-                try {
-                    valueSerializer(this, context)
-                } catch (e: Throwable) {
-                    throw GradleException("Could not save the value of field '${beanType.name}.${field.name}' with type ${finalValue?.javaClass?.name}.", e)
-                }
-                context.logFieldSerialization("serialize", beanType, field.name, finalValue)
+                continue
             }
-            writeString("")
+            writeString(field.name)
+            try {
+                valueSerializer.run { invoke(context) }
+            } catch (e: Throwable) {
+                throw GradleException("Could not save the value of field '${beanType.name}.${field.name}' with type ${finalValue?.javaClass?.name}.", e)
+            }
+            context.logFieldSerialization("serialize", beanType, field.name, finalValue)
         }
+        writeString("")
     }
 
     private
