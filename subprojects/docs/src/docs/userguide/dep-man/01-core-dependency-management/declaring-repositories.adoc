@@ -95,7 +95,26 @@ Gradle will make several attempts to connect to a given repository. If it fails,
 [[case-for-maven-local]]
 == The case for mavenLocal()
 
-TODO
+As a general advice, you should avoid adding `mavenLocal()` as a repository.
+There are different issues with using `mavenLocal()` that you should be aware of:
+
+* as it is a local repository, it can't be trusted, which means that
+ ** origin of artifacts cannot be tracked, which is a security problem
+ ** artifacts can be easily overwritten, which is a both a security and a reproducibility problem
+* to mitigate the fact metadata artifacts can be changed, Gradle currently does not cache any metadata from local repositories
+** as a consequence, your builds are slower
+** given that order of repositories is important, adding `mavenLocal()` _first_ means that all your builds are going to be slower
+
+There are a few cases where you might, legitimately, want to use `mavenLocal()`:
+
+* for interoperability with Maven
+** for example, project A is built with Maven, project B is built with Gradle, and you need to share the artifacts during development
+** it is _always_ preferable to use a local repository server instead
+** in case this is not possible, you should limit this to _local builds only_
+* for interoperability with Gradle itself
+** in a multi-repository world, you want to check that changes to project A work with project B
+** it is preferable to use <<composite-builds#composite-builds.adoc, composite builds>> for this use case
+** if for some reason composite builds are not applicable, you can add `mavenLocal()`
 
 [[plugin-vs-build-repos]]
 == Plugin repositories vs. build repositories
