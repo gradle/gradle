@@ -58,7 +58,8 @@ public class NetworkOperationBackOffAndRetry {
             if (!NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure) || retries == maxDeployAttempts) {
                 throw UncheckedException.throwAsUncheckedException(failure);
             } else {
-                LOGGER.info("Error in '{}'. Waiting {}ms before next retry, {} retries left", operation, backoff, maxDeployAttempts - retries, failure);
+                LOGGER.info("Error in '{}'. Waiting {}ms before next retry, {} retries left", operation, backoff, maxDeployAttempts - retries);
+                LOGGER.debug("Network operation failed", failure);
                 try {
                     Thread.sleep(backoff);
                     backoff *= 2;

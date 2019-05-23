@@ -411,10 +411,15 @@ credentials {
 
         and:
         module.jar.expectPutBroken()
+        module.jar.expectPutBroken()
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+
+        module.ivy.expectPutBroken()
         module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
         module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
+
+        module.moduleMetadata.expectPutBroken()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
 
