@@ -110,7 +110,7 @@ public interface ObjectFactory {
      * @return The container. Never returns null.
      * @since 5.5
      */
-    <T> NamedDomainObjectContainer<T> container(Class<T> elementType);
+    <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType);
 
     /**
      * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The given factory is used to create object instances.</p>
@@ -124,7 +124,7 @@ public interface ObjectFactory {
      * @return The container. Never returns null.
      * @since 5.5
      */
-    <T> NamedDomainObjectContainer<T> container(Class<T> elementType,  NamedDomainObjectFactory<T> factory);
+    <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory);
 
     /**
      * Creates a new {@link DomainObjectSet} for managing objects of the specified type.

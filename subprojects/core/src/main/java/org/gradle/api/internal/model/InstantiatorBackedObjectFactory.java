@@ -55,12 +55,12 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     }
 
     @Override
-    public <T> NamedDomainObjectContainer<T> container(Class<T> elementType) {
+    public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType) {
         throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object container");
     }
 
     @Override
-    public <T> NamedDomainObjectContainer<T> container(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
+    public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
         throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object container with factory");
     }
 
