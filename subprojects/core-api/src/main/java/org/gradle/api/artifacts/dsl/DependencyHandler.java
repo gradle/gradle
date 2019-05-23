@@ -449,16 +449,17 @@ public interface DependencyHandler extends ExtensionAware {
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
     /**
-     * Registers an artifact transform.
+     * Registers an <a href="https://docs.gradle.org/current/userguide/dependency_management_attribute_based_matching.html#sec:abm_artifact_transforms">artifact transform</a>.
      *
      * <p>
      *     The registration action needs to specify the {@code from} and {@code to} attributes.
      *     It may also provide parameters for the transform action by using {@link TransformSpec#parameters(Action)}.
      * </p>
      *
-     * <p>Example: When you have a transform action like this:</p>
+     * <p>For example:</p>
      *
      * <pre class='autoTested'>
+     * // You have a transform action like this:
      * abstract class MyTransform implements TransformAction&lt;Parameters&gt; {
      *     interface Parameters extends TransformParameters {
      *         {@literal @}Input
