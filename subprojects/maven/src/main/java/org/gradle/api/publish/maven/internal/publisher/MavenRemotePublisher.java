@@ -29,6 +29,7 @@ import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInterna
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,10 +43,12 @@ import java.util.TimeZone;
 public class MavenRemotePublisher extends AbstractMavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenRemotePublisher.class);
     private final RepositoryTransportFactory repositoryTransportFactory;
+    private final BuildCommencedTimeProvider timeProvider;
 
-    public MavenRemotePublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory) {
+    public MavenRemotePublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory, BuildCommencedTimeProvider timeProvider) {
         super(temporaryDirFactory);
         this.repositoryTransportFactory = repositoryTransportFactory;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -70,9 +73,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         metadata.setArtifactId(artifactId);
         metadata.setVersion(version);
 
-        DateFormat utcDateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
-        utcDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String timestamp = utcDateFormatter.format(new Date());
+        String timestamp = createSnapshotTimestamp();
 
         Snapshot snapshot = new Snapshot();
         snapshot.setBuildNumber(getNextBuildNumber(repository, metadataResource));
@@ -96,6 +97,13 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         metadata.setVersioning(versioning);
 
         return metadata;
+    }
+
+    private String createSnapshotTimestamp() {
+        DateFormat utcDateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
+        utcDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date currentTime = new Date(timeProvider.getCurrentTime());
+        return utcDateFormatter.format(currentTime);
     }
 
     private int getNextBuildNumber(ExternalResourceRepository repository, ExternalResourceName metadataResource) {

@@ -18,16 +18,12 @@ package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
-import org.gradle.api.publish.maven.internal.publisher.MavenRemotePublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
-
-import javax.inject.Inject;
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to a {@link MavenArtifactRepository}.
@@ -76,15 +72,10 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         new PublishOperation(publication, repository.getName()) {
             @Override
             protected void publish() throws Exception {
-                MavenPublisher remotePublisher = new MavenRemotePublisher(getTemporaryDirFactory(), getRepositoryTransportFactory());
+                MavenPublisher remotePublisher = getMavenPublishers().getRemotePublisher(getTemporaryDirFactory());
                 MavenPublisher validatingPublisher = new ValidatingMavenPublisher(remotePublisher);
                 validatingPublisher.publish(publication.asNormalisedPublication(), repository);
             }
         }.run();
-    }
-
-    @Inject
-    protected RepositoryTransportFactory getRepositoryTransportFactory() {
-        throw new UnsupportedOperationException();
     }
 }
