@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  */
 public class ApiClassExtractor {
 
-    private static final Pattern LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
+    private static final Pattern LOCAL_CLASS_PATTERN = Pattern.compile("\\d+(?:[\\p{Alnum}_$]+)?$");
 
     private final Set<String> exportedPackages;
     private final boolean apiIncludesPackagePrivateMembers;
@@ -93,6 +93,8 @@ public class ApiClassExtractor {
 
     // See JLS3 "Binary Compatibility" (13.1)
     private static boolean isLocalClass(String className) {
-        return LOCAL_CLASS_PATTERN.matcher(className).matches();
+        int localClassDelimiterPos = className.indexOf('$') + 1;
+        return localClassDelimiterPos > 0
+            && LOCAL_CLASS_PATTERN.matcher(className).find(localClassDelimiterPos);
     }
 }
