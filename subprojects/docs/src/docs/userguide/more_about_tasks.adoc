@@ -937,9 +937,20 @@ One last benefit of defining task inputs and outputs is that Gradle can use this
 [[sec:how_does_it_work]]
 === How does it work?
 
-Before a task is executed for the first time, Gradle takes a fingerprint of the inputs. This fingerprint contains the paths of input files and a hash of the contents of each file. Gradle then executes the task. If the task completes successfully, Gradle takes a fingerprint of the outputs. This fingerprint contains the set of output files and a hash of the contents of each file. Gradle persists both fingerprints for the next time the task is executed.
+Before a task is executed for the first time, Gradle takes a fingerprint of the inputs.
+This fingerprint contains the paths of input files and a hash of the contents of each file.
+Gradle then executes the task.
+If the task completes successfully, Gradle takes a fingerprint of the outputs.
+This fingerprint contains the set of output files and a hash of the contents of each file.
+Gradle persists both fingerprints for the next time the task is executed.
 
-Each time after that, before the task is executed, Gradle takes a new fingerprint of the inputs and outputs. If the new fingerprints are the same as the previous fingerprints, Gradle assumes that the outputs are up to date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both fingerprints for the next time the task is executed.
+Each time after that, before the task is executed, Gradle takes a new fingerprint of the inputs and outputs.
+If the new fingerprints are the same as the previous fingerprints, Gradle assumes that the outputs are up to date and skips the task.
+If they are not the same, Gradle executes the task.
+Gradle persists both fingerprints for the next time the task is executed.
+
+If the stats of a file (i.e. `lastModified` and `size`) did not change, Gradle will reuse the file's fingerprint from the previous run.
+That means that Gradle does not detect changes when the stats of a file did not change.
 
 Gradle also considers the _code_ of the task as part of the inputs to the task. When a task, its actions, or its dependencies change between executions, Gradle considers the task as out-of-date.
 
