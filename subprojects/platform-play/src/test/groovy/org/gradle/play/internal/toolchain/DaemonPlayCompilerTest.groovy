@@ -19,6 +19,8 @@ package org.gradle.play.internal.toolchain
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.BaseForkOptions
+import org.gradle.initialization.ClassLoaderRegistry
+import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.play.internal.routes.RoutesCompiler
 import org.gradle.play.internal.spec.PlayCompileSpec
@@ -35,17 +37,19 @@ class DaemonPlayCompilerTest extends Specification {
     def forkOptions = Mock(BaseForkOptions)
     def forkOptionsFactory = TestFiles.execFactory()
     def classpathRegistry = Mock(ClassPathRegistry)
+    def classLoaderRegistry = Mock(ClassLoaderRegistry)
 
     def setup(){
         _ * spec.getForkOptions() >> forkOptions
         _ * forkOptions.jvmArgs >> []
         _ * classpathRegistry.getClassPath(_) >> new DefaultClassPath()
+        _ * classLoaderRegistry.gradleApiFilterSpec >> Mock(FilteringClassLoader.Spec)
     }
 
     def "passes compile classpath to daemon options"() {
         given:
         def classpath = someClasspath()
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegateClass, delegateParameters, workerDaemonFactory, classpath, forkOptionsFactory, classpathRegistry)
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegateClass, delegateParameters, workerDaemonFactory, classpath, forkOptionsFactory, classpathRegistry, classLoaderRegistry)
         when:
         def daemonForkOptions = compiler.toDaemonForkOptions(spec)
         then:
@@ -54,7 +58,7 @@ class DaemonPlayCompilerTest extends Specification {
 
     def "applies fork settings to daemon options"(){
         given:
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegateClass, delegateParameters, workerDaemonFactory, someClasspath(), forkOptionsFactory, classpathRegistry)
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegateClass, delegateParameters, workerDaemonFactory, someClasspath(), forkOptionsFactory, classpathRegistry, classLoaderRegistry)
         when:
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"

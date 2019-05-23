@@ -20,6 +20,8 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.tasks.compile.BaseForkOptions;
+import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -39,14 +41,16 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
     private final Iterable<File> compilerClasspath;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final ClassPathRegistry classPathRegistry;
+    private final ClassLoaderRegistry classLoaderRegistry;
     private final File daemonWorkingDir;
 
-    public DaemonPlayCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compiler, Object[] compilerParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> compilerClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry) {
+    public DaemonPlayCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compiler, Object[] compilerParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> compilerClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
         super(compiler, compilerParameters, workerDaemonFactory);
         this.compilerClasspath = compilerClasspath;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
         this.classPathRegistry = classPathRegistry;
+        this.classLoaderRegistry = classLoaderRegistry;
     }
 
     @Override
@@ -57,12 +61,25 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
 
         ClassPath playCompilerClasspath = classPathRegistry.getClassPath("PLAY-COMPILER").plus(DefaultClassPath.of(compilerClasspath));
 
-        ClassLoaderStructure classLoaderStructure = new ClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", playCompilerClasspath.getAsURLs()));
+        ClassLoaderStructure classLoaderStructure = new ClassLoaderStructure(getPlayFilterSpec())
+                .withChild(new VisitableURLClassLoader.Spec("compiler", playCompilerClasspath.getAsURLs()));
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
             .withClassLoaderStructure(classLoaderStructure)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
+    }
+
+    private FilteringClassLoader.Spec getPlayFilterSpec() {
+        FilteringClassLoader.Spec gradleApiAndPlaySpec = classLoaderRegistry.getGradleApiFilterSpec();
+
+        // These should come from the compiler classloader
+        gradleApiAndPlaySpec.disallowPackage("org.gradle.play");
+
+        // Guava
+        gradleApiAndPlaySpec.allowPackage("com.google");
+
+        return gradleApiAndPlaySpec;
     }
 }
