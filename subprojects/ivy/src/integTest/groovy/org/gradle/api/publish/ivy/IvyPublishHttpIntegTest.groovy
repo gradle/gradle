@@ -36,6 +36,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
+    private static final int HTTP_UNRECOVERABLE_ERROR = 415
     private static final String BAD_CREDENTIALS = '''
 credentials {
     username 'testuser'
@@ -375,7 +376,7 @@ credentials {
         """
 
         and:
-        module.jar.expectPutBroken(415)
+        module.jar.expectPutBroken(HTTP_UNRECOVERABLE_ERROR)
 
         when:
         fails ':publish'
