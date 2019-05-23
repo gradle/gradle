@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
@@ -29,7 +28,6 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -148,7 +146,7 @@ public class PublishToIvyRepository extends DefaultTask {
             protected void publish() throws Exception {
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 IvyPublisher publisher = getIvyPublisher();
-                publisher.publish(normalizedPublication, Cast.cast(PublicationAwareRepository.class, repository));
+                publisher.publish(normalizedPublication, repository);
             }
         }.run();
     }
