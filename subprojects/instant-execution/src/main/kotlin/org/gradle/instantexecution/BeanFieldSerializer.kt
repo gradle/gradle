@@ -43,11 +43,7 @@ class BeanFieldSerializer(
             val finalValue = unpack(conventionalValue)
             val valueSerializer = stateSerializer.run { serializerFor(finalValue) }
             if (valueSerializer == null) {
-                if (finalValue == null) {
-                    context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for null values")
-                } else {
-                    context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue).name}'")
-                }
+                context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue!!).name}'")
                 continue
             }
             writeString(field.name)
