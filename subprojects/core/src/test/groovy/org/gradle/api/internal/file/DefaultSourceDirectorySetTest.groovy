@@ -33,7 +33,7 @@ import spock.lang.Specification
 
 import static org.apache.commons.io.FileUtils.touch
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 
 @UsesNativeServices
 class DefaultSourceDirectorySetTest extends Specification {

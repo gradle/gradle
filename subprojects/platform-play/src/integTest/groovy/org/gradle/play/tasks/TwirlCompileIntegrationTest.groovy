@@ -22,7 +22,7 @@ import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 

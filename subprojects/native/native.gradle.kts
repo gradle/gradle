@@ -9,13 +9,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(library("nativePlatform"))
+    implementation(project(":baseServices"))
 
-    implementation(library("commons_io"))
+    implementation(library("nativePlatform"))
     implementation(library("slf4j_api"))
-    implementation(library("jansi"))
     implementation(library("guava"))
+    implementation(library("commons_io"))
+    implementation(library("jansi"))
 }
 
 gradlebuildJava {

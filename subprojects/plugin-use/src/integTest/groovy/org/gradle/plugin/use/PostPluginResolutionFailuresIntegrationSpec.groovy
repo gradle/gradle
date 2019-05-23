@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 @LeaksFileHandles
 class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpec {

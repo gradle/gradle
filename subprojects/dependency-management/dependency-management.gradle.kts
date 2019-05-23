@@ -22,21 +22,37 @@ plugins {
 }
 
 dependencies {
-    api(project(":core"))
+    api(library("jsr305"))
 
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":native"))
+    implementation(project(":logging"))
+    implementation(project(":files"))
+    implementation(project(":persistentCache"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":baseServicesGroovy"))
+    implementation(project(":buildCache"))
+    implementation(project(":core"))
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
     implementation(project(":snapshots"))
     implementation(project(":execution"))
 
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
     implementation(library("asm"))
     implementation(library("asm_commons"))
     implementation(library("asm_util"))
+    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
-    implementation(library("ivy"))
-    implementation(library("slf4j_api"))
+    implementation(library("commons_httpclient"))
+    implementation(library("inject"))
     implementation(library("gson"))
+    implementation(library("ant"))
+    implementation(library("ivy"))
     implementation(library("maven3"))
 
     runtimeOnly(library("bouncycastle_provider"))
@@ -44,7 +60,14 @@ dependencies {
     runtimeOnly(project(":compositeBuilds"))
     runtimeOnly(project(":versionControl"))
 
+    testImplementation(project(":processServices"))
+    testImplementation(project(":diagnostics"))
+    testImplementation(project(":buildCachePackaging"))
     testImplementation(library("nekohtml"))
+
+    integTestImplementation(project(":buildOption"))
+    integTestImplementation(library("jansi"))
+    integTestImplementation(library("ansi_control_sequence_util"))
 
     integTestRuntimeOnly(project(":ivy"))
     integTestRuntimeOnly(project(":maven"))
@@ -52,8 +75,11 @@ dependencies {
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":testKit"))
 
-    testFixturesApi(project(":resourcesHttp", "testFixturesApiElements"))
+    testFixturesImplementation(project(":core", "testFixturesApiElements"))
+    testFixturesImplementation(project(":resourcesHttp", "testFixturesApiElements"))
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(testLibrary("jetty"))
 
     crossVersionTestRuntimeOnly(project(":maven"))
 }

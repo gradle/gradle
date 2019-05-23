@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 
 import static org.gradle.util.Matchers.matchesRegexp
 
@@ -72,7 +72,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertThatCause(Matchers.containsString("Received status code 500 from server: broken"))
+        failure.assertThatCause(CoreMatchers.containsString("Received status code 500 from server: broken"))
 
 
         when:
@@ -175,7 +175,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertThatCause(Matchers.containsString("Received status code 401 from server: Unauthorized"))
+        failure.assertThatCause(CoreMatchers.containsString("Received status code 401 from server: Unauthorized"))
 
         when:
         server.resetExpectations()

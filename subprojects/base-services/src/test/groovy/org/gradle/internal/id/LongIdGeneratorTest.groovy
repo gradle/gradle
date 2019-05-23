@@ -21,7 +21,7 @@ import org.junit.Rule
 
 import java.util.concurrent.CopyOnWriteArraySet
 import org.junit.Test
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 import static org.junit.Assert.*
 
 import org.gradle.util.MultithreadedTestRule

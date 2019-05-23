@@ -16,22 +16,33 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(project(":resources"))
-    compile(project(":resourcesHttp"))
-    compile(project(":baseServices"))
-    compile(project(":core"))
-    compile(library("commons_httpclient"))
-    compile(library("commons_lang"))
+    implementation(project(":baseServices"))
+    implementation(project(":buildCache"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+    implementation(project(":resources"))
+    implementation(project(":resourcesHttp"))
 
-    integTestCompile(testLibrary("jetty"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_httpclient"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
+
+    integTestImplementation(project(":logging"))
+    integTestImplementation(testLibrary("jetty"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
+testFixtures {
+    from(":core")
+}

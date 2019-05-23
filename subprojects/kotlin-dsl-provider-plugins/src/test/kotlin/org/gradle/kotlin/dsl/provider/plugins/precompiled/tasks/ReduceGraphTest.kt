@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
+import org.hamcrest.CoreMatchers.equalTo
 
 import org.junit.Test
 

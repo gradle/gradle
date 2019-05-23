@@ -33,7 +33,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 
 import static org.gradle.util.Matchers.matchesRegexp;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 public class TextResourceScriptSourceTest {

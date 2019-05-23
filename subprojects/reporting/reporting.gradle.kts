@@ -2,6 +2,7 @@ import accessors.javaScript
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     `javascript-base`
 }
 
@@ -14,13 +15,24 @@ repositories {
 }
 
 dependencies {
-    compile(library("groovy"))
-    compile(project(":core"))
-    compile(library("jatl"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":files"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
 
-    testCompile(testLibrary("jsoup"))
-    integTestRuntime(project(":codeQuality"))
-    integTestRuntime(project(":jacoco"))
+    implementation(library("groovy"))
+    implementation(library("guava"))
+    implementation(library("inject"))
+    implementation(library("jatl"))
+
+    testImplementation(project(":processServices"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(testLibrary("jsoup"))
+
+    integTestRuntimeOnly(project(":codeQuality"))
+    integTestRuntimeOnly(project(":jacoco"))
 
     add("reports", "jquery:jquery.min:1.11.0@js")
 }

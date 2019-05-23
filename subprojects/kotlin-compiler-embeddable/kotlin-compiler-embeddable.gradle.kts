@@ -17,14 +17,11 @@ gradlebuildJava {
 }
 
 dependencies {
+    api(futureKotlin("stdlib"))
+    api(futureKotlin("reflect"))
+    api(futureKotlin("script-runtime"))
 
-    api(project(":distributionsDependencies"))
-
-    compile(futureKotlin("stdlib"))
-    compile(futureKotlin("reflect"))
-    compile(futureKotlin("script-runtime"))
-
-    runtime("org.jetbrains.intellij.deps:trove4j:1.0.20181211")
+    runtimeOnly("org.jetbrains.intellij.deps:trove4j:1.0.20181211")
 }
 
 val kotlinCompilerEmbeddable by configurations.creating
