@@ -18,22 +18,20 @@ package org.gradle.instantexecution
 
 
 interface StateSerializer {
-    fun WriteContext.serializerFor(value: Any?): ValueSerializer?
+    fun WriteContext.serializerFor(candidate: Any?): ValueSerializer?
 }
 
 
 interface ValueSerializer {
-    fun WriteContext.invoke(context: SerializationContext)
+    fun WriteContext.invoke(value: Any?)
 }
 
 
 interface StateDeserializer {
-    fun ReadContext.read(context: DeserializationContext): Any?
+    fun ReadContext.deserialize(): Any?
 }
 
 
-fun writer(f: WriteContext.(SerializationContext) -> Unit): ValueSerializer = object : ValueSerializer {
-    override fun WriteContext.invoke(context: SerializationContext) = f(context)
+fun writer(f: WriteContext.(Any?) -> Unit): ValueSerializer = object : ValueSerializer {
+    override fun WriteContext.invoke(value: Any?) = f(value)
 }
-
-

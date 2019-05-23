@@ -30,29 +30,26 @@ import java.util.function.Supplier
  * Serializes a bean by serializing the value of each of its fields.
  */
 class BeanFieldSerializer(
-    private val bean: Any,
-    private val beanType: Class<*>,
-    private val stateSerializer: StateSerializer
-) : ValueSerializer {
-
-    override fun WriteContext.invoke(context: SerializationContext) {
+    private val beanType: Class<*>
+) {
+    fun WriteContext.serialize(bean: Any) {
         for (field in relevantStateOf(beanType)) {
             field.isAccessible = true
             val fieldValue = field.get(bean)
             val conventionalValue = fieldValue ?: conventionalValueOf(bean, field.name)
             val finalValue = unpack(conventionalValue)
-            val valueSerializer = stateSerializer.run { serializerFor(finalValue) }
+            val valueSerializer = writerFor(finalValue)
             if (valueSerializer == null) {
-                context.logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue!!).name}'")
+                logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue!!).name}'")
                 continue
             }
             writeString(field.name)
             try {
-                valueSerializer.run { invoke(context) }
+                valueSerializer.run { invoke(finalValue) }
             } catch (e: Throwable) {
                 throw GradleException("Could not save the value of field '${beanType.name}.${field.name}' with type ${finalValue?.javaClass?.name}.", e)
             }
-            context.logFieldSerialization("serialize", beanType, field.name, finalValue)
+            logFieldSerialization("serialize", beanType, field.name, finalValue)
         }
         writeString("")
     }

@@ -16,23 +16,18 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.Task
-import org.slf4j.Logger
+
+fun IsolateContext.logFieldWarning(action: String, type: Class<*>, fieldName: String, message: String) {
+    logger.warn(
+        "instant-execution > task '{}' field '{}.{}' cannot be {}d because {}.",
+        isolate.owner.path, type.name, fieldName, action, message
+    )
+}
 
 
-open class StateContext(val owner: Task, private val logger: Logger) {
-
-    fun logFieldWarning(action: String, type: Class<*>, fieldName: String, message: String) {
-        logger.warn(
-            "instant-execution > task '{}' field '{}.{}' cannot be {}d because {}.",
-            owner.path, type.name, fieldName, action, message
-        )
-    }
-
-    fun logFieldSerialization(action: String, type: Class<*>, fieldName: String, value: Any?) {
-        logger.info(
-            "instant-execution > task '{}' field '{}.{}' {}d value {}",
-            owner.path, type.name, fieldName, action, value
-        )
-    }
+fun IsolateContext.logFieldSerialization(action: String, type: Class<*>, fieldName: String, value: Any?) {
+    logger.info(
+        "instant-execution > task '{}' field '{}.{}' {}d value {}",
+        isolate.owner.path, type.name, fieldName, action, value
+    )
 }

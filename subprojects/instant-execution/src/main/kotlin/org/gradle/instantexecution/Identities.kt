@@ -16,12 +16,10 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.Task
-import org.slf4j.Logger
 import java.util.IdentityHashMap
 
 
-class SerializationContext(owner: Task, logger: Logger) : StateContext(owner, logger) {
+class WriteIdentities {
 
     private
     val instanceIds = IdentityHashMap<Any, Int>()
@@ -32,5 +30,18 @@ class SerializationContext(owner: Task, logger: Logger) : StateContext(owner, lo
         val id = instanceIds.size
         instanceIds[instance] = id
         return id
+    }
+}
+
+
+class ReadIdentities {
+
+    private
+    val instanceIds = HashMap<Int, Any>()
+
+    fun getInstance(id: Int) = instanceIds[id]
+
+    fun putInstance(id: Int, instance: Any) {
+        instanceIds[id] = instance
     }
 }

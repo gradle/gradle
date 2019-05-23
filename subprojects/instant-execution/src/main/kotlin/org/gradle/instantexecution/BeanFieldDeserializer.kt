@@ -30,12 +30,10 @@ import java.util.function.Supplier
 
 
 class BeanFieldDeserializer(
-    private val bean: Any,
     private val beanType: Class<*>,
-    private val deserializer: StateDeserializer,
     private val filePropertyFactory: FilePropertyFactory
 ) {
-    fun ReadContext.deserialize(context: DeserializationContext) {
+    fun ReadContext.deserialize(bean: Any) {
         val fieldsByName = relevantStateOf(beanType).associateBy { it.name }
         while (true) {
             val fieldName = readString()
@@ -43,13 +41,12 @@ class BeanFieldDeserializer(
                 break
             }
             try {
-                val value = deserializer.run { read(context) }
+                val value = read()
                 val field = fieldsByName.getValue(fieldName)
                 field.isAccessible = true
-                context.logFieldSerialization("deserialize", beanType, fieldName, value)
-                val type = field.type
+                logFieldSerialization("deserialize", beanType, fieldName, value)
                 @Suppress("unchecked_cast")
-                when (type) {
+                when (val type = field.type) {
                     DirectoryProperty::class.java -> {
                         val dirProperty = filePropertyFactory.newDirectoryProperty()
                         dirProperty.set(value as File?)
@@ -80,7 +77,7 @@ class BeanFieldDeserializer(
                         if (isAssignableTo(type, value)) {
                             field.set(bean, value)
                         } else if (value != null) {
-                            context.logFieldWarning("deserialize", beanType, fieldName, "value $value is not assignable to $type")
+                            logFieldWarning("deserialize", beanType, fieldName, "value $value is not assignable to $type")
                         } // else null value -> ignore
                     }
                 }

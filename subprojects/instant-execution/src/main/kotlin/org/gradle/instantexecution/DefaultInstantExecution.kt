@@ -103,13 +103,14 @@ class DefaultInstantExecution(
     }
 
     override fun saveTaskGraph() {
+
         if (!isInstantExecutionEnabled) {
             return
         }
 
         buildOperationExecutor.withStoreOperation {
             KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                DefaultWriteContext(encoder).run {
+                DefaultWriteContext(stateSerializer, encoder, logger).run {
 
                     val build = host.currentBuild
                     writeString(build.rootProject.name)
@@ -131,7 +132,7 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
-                DefaultReadContext(decoder).run {
+                DefaultReadContext(host.newStateDeserializer(), decoder, logger).run {
 
                     val rootProjectName = readString()
                     val build = host.createBuild(rootProjectName)
@@ -152,7 +153,7 @@ class DefaultInstantExecution(
     }
 
     private
-    fun WriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
+    fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
         writeCollection(tasks) { task ->
             try {
                 writeTask(task, build.dependenciesOf(task))
@@ -163,14 +164,14 @@ class DefaultInstantExecution(
     }
 
     private
-    fun ReadContext.readTaskGraph(): List<Task> {
+    fun MutableReadContext.readTaskGraph(): List<Task> {
         val tasksWithDependencies = readTasksWithDependencies()
         wireTaskDependencies(tasksWithDependencies)
         return tasksWithDependencies.map { (task, _) -> task }
     }
 
     private
-    fun ReadContext.readTasksWithDependencies(): List<Pair<Task, List<String>>> =
+    fun MutableReadContext.readTasksWithDependencies(): List<Pair<Task, List<String>>> =
         readCollectionInto({ size -> ArrayList(size) }) { container ->
             val task = readTask()
             container.add(task)
@@ -223,20 +224,22 @@ class DefaultInstantExecution(
         task.javaClass.classLoader.let(ClasspathUtil::getClasspath)
 
     private
-    fun WriteContext.writeTask(task: Task, dependencies: Set<Task>) {
+    fun MutableWriteContext.writeTask(task: Task, dependencies: Set<Task>) {
         val taskType = GeneratedSubclasses.unpack(task.javaClass)
         writeString(task.project.path)
         writeString(task.name)
         writeString(taskType.name)
         writeStrings(dependencies.map { it.path })
 
-        BeanFieldSerializer(task, taskType, stateSerializer).run {
-            invoke(SerializationContext(task, logger))
+        withIsolate(task) {
+            BeanFieldSerializer(taskType).run {
+                serialize(task)
+            }
         }
     }
 
     private
-    fun ReadContext.readTask(): Pair<Task, List<String>> {
+    fun MutableReadContext.readTask(): Pair<Task, List<String>> {
         val projectPath = readString()
         val taskName = readString()
         val typeName = readString()
@@ -244,9 +247,11 @@ class DefaultInstantExecution(
 
         val taskType = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
         val task = createTask(projectPath, taskName, taskType)
-        val deserializer = host.newStateDeserializer()
-        BeanFieldDeserializer(task, taskType, deserializer, filePropertyFactory).run {
-            deserialize(DeserializationContext(task, logger))
+
+        withIsolate(task) {
+            BeanFieldDeserializer(taskType, filePropertyFactory).run {
+                deserialize(task)
+            }
         }
 
         return task to taskDependencies
