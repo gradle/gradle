@@ -48,6 +48,10 @@ Previously, it was possible to pass `Task.dependsOn()` a `Provider<File>`, `Prov
 
 Note that it is still possible to to pass `dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDir })`.
 
+==== Enhanced validation of names for `publishing.publications` and `publishing.repositories`
+
+The repository and publication names are used to construct task names when publishing. Previously is was possible to supply a name that resulted in an invalid task name. These names are now restricted to `[A-Za-z0-9_\\-.]+`.
+
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
 
