@@ -31,6 +31,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -79,6 +80,10 @@ class DefaultInstantExecution(
         host.newStateSerializer()
     }
 
+    private
+    val buildOperationExecutor: BuildOperationExecutor
+        get() = host.service()
+
     override fun canExecuteInstantaneously(): Boolean = when {
         !isInstantExecutionEnabled -> {
             false
@@ -98,23 +103,24 @@ class DefaultInstantExecution(
     }
 
     override fun saveTaskGraph() {
-
         if (!isInstantExecutionEnabled) {
             return
         }
 
-        KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-            DefaultWriteContext(encoder).run {
+        buildOperationExecutor.withStoreOperation {
+            KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
+                DefaultWriteContext(encoder).run {
 
-                val build = host.currentBuild
-                writeString(build.rootProject.name)
-                val scheduledTasks = build.scheduledTasks
-                writeRelevantProjectsFor(scheduledTasks)
+                    val build = host.currentBuild
+                    writeString(build.rootProject.name)
+                    val scheduledTasks = build.scheduledTasks
+                    writeRelevantProjectsFor(scheduledTasks)
 
-                val tasksClassPath = classPathFor(scheduledTasks)
-                writeClassPath(tasksClassPath)
+                    val tasksClassPath = classPathFor(scheduledTasks)
+                    writeClassPath(tasksClassPath)
 
-                writeTaskGraphOf(build, scheduledTasks)
+                    writeTaskGraphOf(build, scheduledTasks)
+                }
             }
         }
     }
@@ -123,22 +129,24 @@ class DefaultInstantExecution(
 
         require(isInstantExecutionEnabled)
 
-        KryoBackedDecoder(stateFileInputStream()).use { decoder ->
-            DefaultReadContext(decoder).run {
+        buildOperationExecutor.withLoadOperation {
+            KryoBackedDecoder(stateFileInputStream()).use { decoder ->
+                DefaultReadContext(decoder).run {
 
-                val rootProjectName = readString()
-                val build = host.createBuild(rootProjectName)
-                readRelevantProjects(build)
+                    val rootProjectName = readString()
+                    val build = host.createBuild(rootProjectName)
+                    readRelevantProjects(build)
 
-                build.autoApplyPlugins()
-                build.registerProjects()
+                    build.autoApplyPlugins()
+                    build.registerProjects()
 
-                val tasksClassPath = readClassPath()
-                val taskClassLoader = classLoaderFor(tasksClassPath)
-                initialize(build::getProject, taskClassLoader)
+                    val tasksClassPath = readClassPath()
+                    val taskClassLoader = classLoaderFor(tasksClassPath)
+                    initialize(build::getProject, taskClassLoader)
 
-                val scheduledTasks = readTaskGraph()
-                build.scheduleTasks(scheduledTasks)
+                    val scheduledTasks = readTaskGraph()
+                    build.scheduleTasks(scheduledTasks)
+                }
             }
         }
     }

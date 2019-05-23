@@ -34,7 +34,6 @@ import org.gradle.test.fixtures.gradle.VariantMetadataSpec
 import java.text.SimpleDateFormat
 
 abstract class AbstractMavenModule extends AbstractModule implements MavenModule {
-    protected static final String MAVEN_METADATA_FILE = "maven-metadata.xml"
     private final TestFile rootDir
     final TestFile moduleDir
     final String groupId
@@ -336,12 +335,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     DefaultRootMavenMetaData getRootMetaData() {
-        new DefaultRootMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
+        new DefaultRootMavenMetaData("$moduleRootPath/${metadataFileName}", rootMetaDataFile)
     }
 
     @Override
     DefaultSnapshotMavenMetaData getSnapshotMetaData() {
-        new DefaultSnapshotMavenMetaData("$path/${MAVEN_METADATA_FILE}", snapshotMetaDataFile)
+        new DefaultSnapshotMavenMetaData("$path/${metadataFileName}", snapshotMetaDataFile)
     }
 
     @Override
@@ -370,15 +369,19 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     TestFile getMetaDataFile() {
-        moduleDir.file(MAVEN_METADATA_FILE)
+        moduleDir.file(metadataFileName)
     }
 
     TestFile getRootMetaDataFile() {
-        moduleDir.parentFile.file(MAVEN_METADATA_FILE)
+        moduleDir.parentFile.file(metadataFileName)
     }
 
     TestFile getSnapshotMetaDataFile() {
-        moduleDir.file(MAVEN_METADATA_FILE)
+        moduleDir.file(metadataFileName)
+    }
+
+    protected String getMetadataFileName() {
+        "maven-metadata.xml"
     }
 
     TestFile artifactFile(Map<String, ?> options) {

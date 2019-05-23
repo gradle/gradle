@@ -16,9 +16,12 @@
 
 package org.gradle.instantexecution
 
+
 class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "skip reading cached state on --refresh-dependencies"() {
+
+        def instantExecution = newInstantExecutionFixture()
 
         given:
         buildFile << """
@@ -35,12 +38,14 @@ class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionI
 
         then:
         outputContains("foo")
+        instantExecution.assertStateStored()
 
         when:
         instantRun "myTask"
 
         then:
         outputContains("foo")
+        instantExecution.assertStateLoaded()
 
         when:
         buildFile.text = buildFile.text.replace("foo", "bar")
@@ -50,17 +55,20 @@ class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionI
 
         then:
         outputContains("foo")
+        instantExecution.assertStateLoaded()
 
         when:
         instantRun "myTask", "--refresh-dependencies"
 
         then:
         outputContains("bar")
+        instantExecution.assertStateStored()
 
         when:
         instantRun "myTask"
 
         then:
         outputContains("bar")
+        instantExecution.assertStateLoaded()
     }
 }
