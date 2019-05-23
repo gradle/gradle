@@ -30,7 +30,7 @@ public class PlayPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Framework", "org.gradle.playframework");
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play", "org.gradle.playframework");
         project.getPluginManager().apply(PlayApplicationPlugin.class);
         project.getPluginManager().apply(PlayTestPlugin.class);
         project.getPluginManager().apply(PlayJavaScriptPlugin.class);
