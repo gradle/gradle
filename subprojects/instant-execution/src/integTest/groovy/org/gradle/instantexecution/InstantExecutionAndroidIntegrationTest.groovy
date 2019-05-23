@@ -17,10 +17,8 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.android.AndroidHome
 import org.junit.Rule
-
-import static org.hamcrest.CoreMatchers.notNullValue
-import static org.junit.Assume.assumeThat
 
 
 class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -29,7 +27,7 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
     TestResources resources = new TestResources(temporaryFolder, "builds")
 
     def setup() {
-        assumeThat(System.getenv("ANDROID_HOME"), notNullValue())
+        AndroidHome.assumeIsSet()
         executer.noDeprecationChecks()
     }
 

@@ -16,10 +16,10 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
-import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
@@ -43,7 +43,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     @Unroll
     def 'kotlin android #androidPluginVersion plugin'() {
         given:
-        assertAndroidHomeSet()
+        AndroidHome.assertIsSet()
         useSample("android-kotlin-example")
         replaceVariablesInBuildFile(
             kotlinVersion: TestedVersions.kotlin.latest(),
