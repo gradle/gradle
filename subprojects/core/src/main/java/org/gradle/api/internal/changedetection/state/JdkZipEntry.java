@@ -43,4 +43,9 @@ class JdkZipEntry implements ZipEntry {
     public InputStream getInputStream() {
         return inputStreamSupplier.get();
     }
+
+    @Override
+    public int size() {
+        return (int) entry.getSize();
+    }
 }

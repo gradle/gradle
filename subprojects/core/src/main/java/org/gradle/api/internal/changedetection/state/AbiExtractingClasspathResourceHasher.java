@@ -17,7 +17,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,10 +35,9 @@ import java.util.Collections;
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
 
-    private HashCode hashClassBytes(InputStream inputStream) throws IOException {
+    private HashCode hashClassBytes(byte[] classBytes) {
         // Use the ABI as the hash
-        byte[] classBytes = ByteStreams.toByteArray(inputStream);
-        ApiClassExtractor extractor = new ApiClassExtractor(Collections.<String>emptySet());
+        ApiClassExtractor extractor = new ApiClassExtractor(Collections.emptySet());
         ClassReader reader = new ClassReader(classBytes);
         if (extractor.shouldExtractApiClassFrom(reader)) {
             byte[] signature = extractor.extractApiClassFrom(reader);
@@ -54,19 +51,17 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        if (!isClassFile(fileSnapshot.getName())) {
-            return null;
-        }
-        Path path = Paths.get(fileSnapshot.getAbsolutePath());
-        InputStream inputStream = null;
         try {
-            inputStream = Files.newInputStream(path);
-            return hashClassBytes(inputStream);
+            if (!isClassFile(fileSnapshot.getName())) {
+                return null;
+            }
+
+            Path path = Paths.get(fileSnapshot.getAbsolutePath());
+            byte[] classBytes = Files.readAllBytes(path);
+            return hashClassBytes(classBytes);
         } catch (Exception e) {
             LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", fileSnapshot.getName(), e);
             return fileSnapshot.getHash();
-        } finally {
-            IoActions.closeQuietly(inputStream);
         }
     }
 
@@ -75,7 +70,9 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         if (!isClassFile(zipEntry.getName())) {
             return null;
         }
-        return hashClassBytes(zipEntry.getInputStream());
+        byte[] content = new byte[zipEntry.size()];
+        ByteStreams.readFully(zipEntry.getInputStream(), content);
+        return hashClassBytes(content);
     }
 
     private boolean isClassFile(String name) {
