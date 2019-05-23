@@ -383,29 +383,29 @@ fun Decoder.readStrings(): List<String> =
 
 
 private
-fun <T> Encoder.writeCollection(elements: Collection<T>, serializeElement: (T) -> Unit) {
-    writeSmallInt(elements.size)
-    for (element in elements) {
-        serializeElement(element)
+fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
+    writeSmallInt(collection.size)
+    for (element in collection) {
+        writeElement(element)
     }
 }
 
 
 private
-fun Decoder.readCollection(deserializeElement: () -> Unit) {
+fun Decoder.readCollection(readElement: () -> Unit) {
     val size = readSmallInt()
     for (i in 0 until size) {
-        deserializeElement()
+        readElement()
     }
 }
 
 
 private
-inline fun <T> Decoder.readCollectionInto(containerSupplier: (Int) -> T, deserializeElement: (T) -> Unit): T {
+inline fun <T> Decoder.readCollectionInto(containerForSize: (Int) -> T, readElementInto: (T) -> Unit): T {
     val size = readSmallInt()
-    val container = containerSupplier(size)
+    val container = containerForSize(size)
     for (i in 0 until size) {
-        deserializeElement(container)
+        readElementInto(container)
     }
     return container
 }
