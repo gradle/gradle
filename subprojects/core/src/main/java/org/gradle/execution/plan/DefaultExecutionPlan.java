@@ -64,6 +64,8 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -88,6 +90,8 @@ import java.util.function.Consumer;
  */
 @NonNullApi
 public class DefaultExecutionPlan implements ExecutionPlan {
+    private final static Logger LOGGER = LoggerFactory.getLogger(DefaultExecutionPlan.class);
+
     private final Set<TaskNode> entryTasks = new LinkedHashSet<TaskNode>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = Lists.newLinkedList();
@@ -345,7 +349,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         executionQueue.clear();
         Iterables.addAll(executionQueue, nodeMapping);
         for (Node node : executionQueue) {
-            maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
+            boolean before = maybeNodesReady;
+            boolean updated = node.updateAllDependenciesComplete();
+            maybeNodesReady |= updated && node.isReady();
+            if (before != maybeNodesReady) {
+                LOGGER.debug("{} is ready to execute.", node);
+            }
         }
         this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
     }
@@ -550,32 +559,45 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Nullable
     public Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
         if (allProjectsLocked()) {
+            LOGGER.debug("All project locked - no node can be selected.");
             return null;
         }
 
         for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
             Node node = iterator.next();
             if (node.isComplete()) {
+                LOGGER.debug("Monitored node {} completed. Updating dependencies.", node);
                 updateAllDependenciesCompleteForPredecessors(node);
                 iterator.remove();
             }
         }
         if (!maybeNodesReady) {
+            LOGGER.debug("Not searching for available nodes since no nodes are ready.");
             return null;
         }
         Iterator<Node> iterator = executionQueue.iterator();
         boolean foundReadyNode = false;
         while (iterator.hasNext()) {
             Node node = iterator.next();
+            if (node.allDependenciesComplete() && !node.isReady()) {
+                LOGGER.debug("The dependencies of node {} completed, but it is not ready to execute, but {} instead.", node, node.getState());
+            }
             if (node.isReady() && node.allDependenciesComplete()) {
                 foundReadyNode = true;
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
                 // TODO: convert output file checks to a resource lock
-                if (!tryLockProjectFor(node)
-                    || !workerLease.tryLock()
-                    || !canRunWithCurrentlyExecutedNodes(node, mutations)) {
+                if (!tryLockProjectFor(node)) {
                     resourceLockState.releaseLocks();
+                    LOGGER.debug("Cannot aquire project lock for node {}.", node);
+                    continue;
+                } else if (!workerLease.tryLock()) {
+                    resourceLockState.releaseLocks();
+                    LOGGER.debug("Cannot aquire worker lease lock for node {}.", node);
+                    continue;
+                } else if (!canRunWithCurrentlyExecutedNodes(node, mutations)) {
+                    resourceLockState.releaseLocks();
+                    LOGGER.debug("Node {} cannot run with currently running nodes {}.", node, runningNodes);
                     continue;
                 }
 
@@ -587,16 +609,23 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     updateAllDependenciesCompleteForPredecessors(node);
                 }
                 iterator.remove();
+                LOGGER.debug("Node will be executed now: {}, state: {}", node, node.getState());
                 return node;
             }
         }
+        LOGGER.debug("No node could be selected, nodes ready: {}", foundReadyNode);
         maybeNodesReady = foundReadyNode;
         return null;
     }
 
     private void updateAllDependenciesCompleteForPredecessors(Node node) {
         for (Node predecessor : node.getAllPredecessors()) {
-            maybeNodesReady |= predecessor.updateAllDependenciesComplete() && predecessor.isReady();
+            boolean becameComplete = predecessor.updateAllDependenciesComplete();
+            boolean isReady = predecessor.isReady();
+            if (!maybeNodesReady && predecessor.allDependenciesComplete()) {
+                LOGGER.debug("Dependencies for node {} are completed, node is ready: {}, dependencies completed now: {}", node, isReady, becameComplete);
+            }
+            maybeNodesReady |= becameComplete && isReady;
         }
     }
 
@@ -894,13 +923,17 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         try {
             if (!node.isComplete()) {
                 enforceFinalizers(node);
+                LOGGER.debug("Nodes ready to execute since {} completed.", node);
                 maybeNodesReady = true;
                 if (node.isFailed()) {
+                    LOGGER.debug("Node {} failed.", node);
                     handleFailure(node);
                 }
 
                 node.finishExecution();
                 recordNodeCompleted(node);
+            } else {
+                LOGGER.debug("Already completed node {} completed.", node);
             }
         } finally {
             unlockProjectFor(node);

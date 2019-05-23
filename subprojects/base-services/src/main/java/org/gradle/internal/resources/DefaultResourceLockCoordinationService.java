@@ -48,7 +48,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                         case RETRY:
                             resourceLockState.releaseLocks();
                             try {
-                                lock.wait();
+                                lock.wait(5000);
                             } catch (InterruptedException e) {
                                 throw UncheckedException.throwAsUncheckedException(e);
                             }
