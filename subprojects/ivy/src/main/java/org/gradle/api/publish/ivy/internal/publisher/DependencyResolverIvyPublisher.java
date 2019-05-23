@@ -50,6 +50,12 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
             public void run() {
                 publisher.publish(artifactMetadata, artifact.getFile());
             }
+
+            @Override
+            public String toString() {
+                return "Publish " + artifactMetadata;
+            }
+
         });
     }
 
