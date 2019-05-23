@@ -29,9 +29,6 @@ class PerformanceTestJvmOptions {
         } else {
             jvmOptions = originalJvmOptions.collect { it.toString() }  // makes sure that all elements are java.lang.String instances
         }
-        if (!JavaVersion.current().isJava8Compatible() && jvmOptions.count { it.startsWith('-XX:MaxPermSize=') } == 0) {
-            jvmOptions << '-XX:MaxPermSize=256m'
-        }
 
         return jvmOptions
     }

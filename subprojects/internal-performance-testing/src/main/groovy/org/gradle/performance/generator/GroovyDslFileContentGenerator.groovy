@@ -49,9 +49,6 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
             maxParallelForks = ${config.maxParallelForks}
             forkEvery = testForkEvery
             
-            if (!JavaVersion.current().java8Compatible) {
-                jvmArgs '-XX:MaxPermSize=512m'
-            }
             jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
         }
 

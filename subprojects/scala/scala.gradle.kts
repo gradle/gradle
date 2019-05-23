@@ -63,5 +63,5 @@ testFixtures {
 }
 
 tasks.named<Test>("integTest") {
-    jvmArgs("-XX:MaxPermSize=1500m") // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
+    jvmArgs("-XX:MaxMetaspaceSize=1500m") // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
 }

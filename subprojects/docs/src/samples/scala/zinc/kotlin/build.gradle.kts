@@ -20,7 +20,7 @@ dependencies {
 tasks.withType<ScalaCompile>().configureEach {
     scalaCompileOptions.forkOptions.apply {
         memoryMaximumSize = "1g"
-        jvmArgs = listOf("-XX:MaxPermSize=512m")
+        jvmArgs = listOf("-XX:MaxMetaspaceSize=512m")
     }
 }
 // end::adjust-memory[]

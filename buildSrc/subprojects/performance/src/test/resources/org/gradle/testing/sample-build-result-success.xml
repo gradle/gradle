@@ -24,7 +24,7 @@
   <properties count="26">
     <property name="env.BUILD_ID" value="%teamcity.build.id%"/>
     <property name="env.CI" value="1"/>
-    <property name="env.GRADLE_OPTS" value="-Xmx1536m -XX:MaxPermSize=384m"/>
+    <property name="env.GRADLE_OPTS" value="-Xmx1536m"/>
     <property name="env.JAVA_HOME" value="/opt/jdk/oracle-jdk-8-latest"/>
     <property name="maxParallelForks" value="4"/>
     <property name="scenario" value="native parallel build multi" own="true"/>

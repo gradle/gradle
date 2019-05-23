@@ -47,9 +47,6 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
             maxParallelForks = ${config.maxParallelForks}
             setForkEvery(testForkEvery.toLong())
             
-            if (!JavaVersion.current().isJava8Compatible) {
-                jvmArgs("-XX:MaxPermSize=512m")
-            }
             jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
         }
 

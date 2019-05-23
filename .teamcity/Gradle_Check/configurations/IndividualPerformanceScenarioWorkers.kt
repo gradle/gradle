@@ -31,7 +31,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
         param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
         param("performance.db.username", "tcagent")
 
-        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
+        param("env.GRADLE_OPTS", "-Xmx1536m")
         param("env.ANDROID_HOME", "/opt/android/sdk")
         param("env.JAVA_HOME", buildJavaHome)
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")

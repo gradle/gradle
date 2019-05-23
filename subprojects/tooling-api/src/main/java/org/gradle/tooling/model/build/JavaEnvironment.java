@@ -35,8 +35,7 @@ public interface JavaEnvironment {
 
     /**
      * The JVM arguments the user has provided to start the Java process that handles Gradle operations (for example running tasks or acquiring model information). The returned arguments do not
-     * include system properties passed as -Dfoo=bar. They may include extra properties added by default if no user jvm arguments are specified, like those required by the Gradle daemon (eg.
-     * MaxPermSize).
+     * include system properties passed as -Dfoo=bar. They may include extra properties added by default if no user jvm arguments are specified, like those required by the Gradle daemon.
      *
      * @since 1.0-milestone-8
      */

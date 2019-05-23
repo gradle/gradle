@@ -122,9 +122,6 @@ class DistributionTestingPlugin : Plugin<Project> {
     private
     fun DistributionTest.setJvmArgsOfTestJvm() {
         jvmArgs("-Xmx512m", "-XX:+HeapDumpOnOutOfMemoryError")
-        if (!javaVersion.isJava8Compatible) {
-            jvmArgs("-XX:MaxPermSize=768m")
-        }
     }
 
     private

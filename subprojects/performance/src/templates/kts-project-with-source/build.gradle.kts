@@ -39,9 +39,6 @@ dependencies {
 }
 
 (tasks.getByName("test") as Test).apply {
-    if (!JavaVersion.current().isJava8Compatible) {
-        jvmArgs("-XX:MaxPermSize=512m")
-    }
     jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
 }
 

@@ -52,7 +52,7 @@ import org.gradle.tooling.model.Task;
  *    build.setJavaHome(new File("/path/to/java"));
  *
  *    //if your build needs crazy amounts of memory:
- *    build.setJvmArguments("-Xmx2048m", "-XX:MaxPermSize=512m");
+ *    build.setJvmArguments("-Xmx2g", "-XX:MaxMetaspaceSize=512m");
  *
  *    //if you want to listen to the progress events:
  *    ProgressListener listener = null; // use your implementation
