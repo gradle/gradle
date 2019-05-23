@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
@@ -78,11 +79,23 @@ public class GroovyCompile extends AbstractCompile {
         return super.getClasspath();
     }
 
+    /**
+     * The classpath for compiler plugin to run, for example, AST transformation.
+     *
+     * @since 5.6
+     */
     @Classpath
+    @Incubating
     public FileCollection getCompilerPluginClasspath() {
         return compilerPluginClasspath;
     }
 
+    /**
+     * The classpath for compiler plugin to run, for example, AST transformation.
+     *
+     * @since 5.6
+     */
+    @Incubating
     public void setCompilerPluginClasspath(FileCollection compilerPluginClasspath) {
         if (!experimentalCompilationAvoidanceEnabled()) {
             throw new IllegalStateException("You need to enable org.gradle.groovy.compilation.avoidance system property!");
