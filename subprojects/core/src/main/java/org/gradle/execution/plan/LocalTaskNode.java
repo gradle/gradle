@@ -88,16 +88,11 @@ public class LocalTaskNode extends TaskNode {
             processHardSuccessor.execute(targetNode);
         }
         for (Node targetNode : getMustRunAfter(dependencyResolver)) {
-            addMustSuccessor((TaskNode) targetNode);
+            addMustSuccessor(targetNode);
         }
         for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
             addShouldSuccessor(targetNode);
         }
-    }
-
-    @Override
-    public boolean requiresMonitoring() {
-        return false;
     }
 
     private void addFinalizerNode(TaskNode finalizerNode) {
