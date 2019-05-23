@@ -61,7 +61,7 @@ class DefaultInstantExecution(
 
         fun newStateSerializer(): StateSerializer
 
-        fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer
+        fun newStateDeserializer(): StateDeserializer
 
         fun <T> getService(serviceType: Class<T>): T
 
@@ -236,7 +236,7 @@ class DefaultInstantExecution(
 
         val taskType = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
         val task = createTask(projectPath, taskName, taskType)
-        val deserializer = host.deserializerFor(taskClassLoader)
+        val deserializer = host.newStateDeserializer()
         BeanFieldDeserializer(task, taskType, deserializer, filePropertyFactory).run {
             deserialize(DeserializationContext(task, logger))
         }

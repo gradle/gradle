@@ -91,8 +91,8 @@ class InstantExecutionHost internal constructor(
     override fun newStateSerializer(): StateSerializer =
         serialization.newSerializer()
 
-    override fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer =
-        serialization.deserializerFor(beanClassLoader)
+    override fun newStateDeserializer(): StateDeserializer =
+        serialization.newDeserializer()
 
     override fun <T> getService(serviceType: Class<T>): T =
         gradle.services.get(serviceType)

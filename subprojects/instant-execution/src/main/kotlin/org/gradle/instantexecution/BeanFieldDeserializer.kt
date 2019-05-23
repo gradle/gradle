@@ -47,8 +47,9 @@ class BeanFieldDeserializer(
                 val field = fieldsByName.getValue(fieldName)
                 field.isAccessible = true
                 context.logFieldSerialization("deserialize", beanType, fieldName, value)
+                val type = field.type
                 @Suppress("unchecked_cast")
-                when (field.type) {
+                when (type) {
                     DirectoryProperty::class.java -> {
                         val dirProperty = filePropertyFactory.newDirectoryProperty()
                         dirProperty.set(value as File?)
@@ -76,10 +77,10 @@ class BeanFieldDeserializer(
                     Function0::class.java -> field.set(bean, { value })
                     Lazy::class.java -> field.set(bean, lazyOf(value))
                     else -> {
-                        if (field.type.isInstance(value) || field.type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(field.type).isInstance(value)) {
+                        if (isAssignableTo(type, value)) {
                             field.set(bean, value)
                         } else if (value != null) {
-                            context.logFieldWarning("deserialize", beanType, fieldName, "value $value is not assignable to ${field.type}")
+                            context.logFieldWarning("deserialize", beanType, fieldName, "value $value is not assignable to $type")
                         } // else null value -> ignore
                     }
                 }
@@ -88,4 +89,9 @@ class BeanFieldDeserializer(
             }
         }
     }
+
+    private
+    fun isAssignableTo(type: Class<*>, value: Any?) =
+        type.isInstance(value) ||
+            type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(type).isInstance(value)
 }

@@ -52,6 +52,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import sun.reflect.ReflectionFactory
 import java.io.File
+import java.lang.reflect.Constructor
 import kotlin.reflect.KClass
 
 
@@ -98,8 +99,8 @@ class StateSerialization(
     fun newSerializer(): StateSerializer =
         DefaultStateSerializer()
 
-    fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer =
-        DefaultStateDeserializer(beanClassLoader)
+    fun newDeserializer(): StateDeserializer =
+        DefaultStateDeserializer()
 
     private
     inner class DefaultStateSerializer : StateSerializer {
@@ -252,9 +253,7 @@ class StateSerialization(
     }
 
     private
-    inner class DefaultStateDeserializer(
-        private val beanClassLoader: ClassLoader
-    ) : StateDeserializer {
+    inner class DefaultStateDeserializer : StateDeserializer {
 
         override fun ReadContext.read(context: DeserializationContext): Any? = when (readByte()) {
             NULL_VALUE -> null
@@ -267,7 +266,7 @@ class StateSerialization(
             DOUBLE_TYPE -> doubleSerializer.read(this)
             FLOAT_TYPE -> floatSerializer.read(this)
             FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(this)
-            CLASS_TYPE -> beanClassLoader.loadClass(readString())
+            CLASS_TYPE -> taskClassLoader.loadClass(readString())
             LIST_TYPE -> deserializeCollection(context) { ArrayList<Any?>(it) }
             SET_TYPE -> deserializeCollection(context) { LinkedHashSet<Any?>(it) }
             MAP_TYPE -> deserializeMap(context)
@@ -286,30 +285,34 @@ class StateSerialization(
             FILE_OPERATIONS_TYPE -> (context.owner.project as ProjectInternal).services.get(FileOperations::class.java)
             DEFAULT_COPY_SPEC -> deserializeDefaultCopySpec(context)
             DESTINATION_ROOT_COPY_SPEC -> deserializeDestinationRootCopySpec(context)
-            BEAN -> deserializeBean(context, beanClassLoader)
+            BEAN -> deserializeBean(context)
             else -> throw UnsupportedOperationException()
         }
 
         private
-        fun ReadContext.deserializeBean(context: DeserializationContext, loader: ClassLoader): Any {
+        fun ReadContext.deserializeBean(context: DeserializationContext): Any {
             val id = readSmallInt()
             val previousValue = context.getInstance(id)
             if (previousValue != null) {
                 return previousValue
             }
             val beanTypeName = readString()
-            val beanType = loader.loadClass(beanTypeName)
+            val beanType = taskClassLoader.loadClass(beanTypeName)
             val constructor = if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
                 // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
-                ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
+                newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
             } else {
-                ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, Object::class.java.getConstructor())
+                newConstructorForSerialization(beanType, Object::class.java.getConstructor())
             }
             val bean = constructor.newInstance()
             context.putInstance(id, bean)
             BeanFieldDeserializer(bean, bean.javaClass, this@DefaultStateDeserializer, filePropertyFactory).run { deserialize(context) }
             return bean
         }
+
+        private
+        fun newConstructorForSerialization(beanType: Class<*>, constructor: Constructor<*>): Constructor<out Any> =
+            ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, constructor)
 
         private
         fun <T : MutableCollection<Any?>> ReadContext.deserializeCollection(context: DeserializationContext, factory: (Int) -> T): T {
