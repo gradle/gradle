@@ -80,7 +80,7 @@ class RerunableDistributedPerformanceTest extends DistributedPerformanceTest {
     }
 
     private boolean isRerun() {
-        return Boolean.parseBoolean(project.findProperty("onlyPreviousFailedTestClasses")?.toString())
+        return Boolean.parseBoolean(project.findProperty("PonlyPreviousFailedTests")?.toString())
     }
 
     @Override
