@@ -42,6 +42,34 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
+import org.gradle.instantexecution.Tags.ARTIFACT_COLLECTION_TYPE
+import org.gradle.instantexecution.Tags.BEAN
+import org.gradle.instantexecution.Tags.BOOLEAN_TYPE
+import org.gradle.instantexecution.Tags.BYTE_TYPE
+import org.gradle.instantexecution.Tags.CLASS_TYPE
+import org.gradle.instantexecution.Tags.DEFAULT_COPY_SPEC
+import org.gradle.instantexecution.Tags.DESTINATION_ROOT_COPY_SPEC
+import org.gradle.instantexecution.Tags.DOUBLE_TYPE
+import org.gradle.instantexecution.Tags.FILE_COLLECTION_FACTORY_TYPE
+import org.gradle.instantexecution.Tags.FILE_COLLECTION_TYPE
+import org.gradle.instantexecution.Tags.FILE_OPERATIONS_TYPE
+import org.gradle.instantexecution.Tags.FILE_RESOLVER_TYPE
+import org.gradle.instantexecution.Tags.FILE_TREE_TYPE
+import org.gradle.instantexecution.Tags.FILE_TYPE
+import org.gradle.instantexecution.Tags.FLOAT_TYPE
+import org.gradle.instantexecution.Tags.INSTANTIATOR_TYPE
+import org.gradle.instantexecution.Tags.INT_TYPE
+import org.gradle.instantexecution.Tags.LIST_TYPE
+import org.gradle.instantexecution.Tags.LOGGER_TYPE
+import org.gradle.instantexecution.Tags.LONG_TYPE
+import org.gradle.instantexecution.Tags.MAP_TYPE
+import org.gradle.instantexecution.Tags.NULL_VALUE
+import org.gradle.instantexecution.Tags.OBJECT_FACTORY_TYPE
+import org.gradle.instantexecution.Tags.PATTERN_SPEC_FACTORY_TYPE
+import org.gradle.instantexecution.Tags.SET_TYPE
+import org.gradle.instantexecution.Tags.SHORT_TYPE
+import org.gradle.instantexecution.Tags.STRING_TYPE
+import org.gradle.instantexecution.Tags.THIS_TASK
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
@@ -388,44 +416,6 @@ class StateSerialization(
         override fun visitFileTree(root: File, patterns: PatternSet) {
             roots.add(root)
         }
-    }
-
-    companion object {
-        // JVM types
-        const val NULL_VALUE: Byte = 0
-        const val STRING_TYPE: Byte = 1
-        const val BOOLEAN_TYPE: Byte = 2
-        const val BYTE_TYPE: Byte = 3
-        const val INT_TYPE: Byte = 4
-        const val SHORT_TYPE: Byte = 5
-        const val LONG_TYPE: Byte = 6
-        const val FLOAT_TYPE: Byte = 7
-        const val DOUBLE_TYPE: Byte = 8
-        const val LIST_TYPE: Byte = 9
-        const val SET_TYPE: Byte = 10
-        const val MAP_TYPE: Byte = 11
-        const val FILE_TYPE: Byte = 12
-        const val CLASS_TYPE: Byte = 13
-        const val BEAN: Byte = 14
-
-        // Logging type
-        const val LOGGER_TYPE: Byte = 40
-
-        // Gradle types
-        const val THIS_TASK: Byte = 80
-        const val FILE_TREE_TYPE: Byte = 81
-        const val FILE_COLLECTION_TYPE: Byte = 82
-        const val ARTIFACT_COLLECTION_TYPE: Byte = 83
-        const val OBJECT_FACTORY_TYPE: Byte = 84
-
-        // Internal Gradle types
-        const val FILE_RESOLVER_TYPE: Byte = 90
-        const val PATTERN_SPEC_FACTORY_TYPE: Byte = 91
-        const val FILE_COLLECTION_FACTORY_TYPE: Byte = 92
-        const val INSTANTIATOR_TYPE: Byte = 93
-        const val FILE_OPERATIONS_TYPE: Byte = 94
-        const val DEFAULT_COPY_SPEC: Byte = 95
-        const val DESTINATION_ROOT_COPY_SPEC: Byte = 96
     }
 }
 
