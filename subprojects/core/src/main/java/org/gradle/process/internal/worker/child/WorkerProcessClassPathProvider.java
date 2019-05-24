@@ -76,7 +76,6 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
 
     public static final String[] RUNTIME_MODULES = new String[] {
             "gradle-core-api",
-            "gradle-core-api",
             "gradle-core",
             "gradle-logging",
             "gradle-messaging",
