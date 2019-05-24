@@ -163,9 +163,8 @@ class DefaultInstantExecution(
 
     private
     fun MutableReadContext.readTasksWithDependencies(): List<Pair<Task, List<String>>> =
-        readCollectionInto({ size -> ArrayList(size) }) { container ->
-            val task = readTask()
-            container.add(task)
+        readCollectionInto({ size -> ArrayList(size) }) {
+            readTask()
         }
 
     private
@@ -357,8 +356,8 @@ fun Encoder.writeClassPath(classPath: ClassPath) {
 private
 fun Decoder.readClassPath(): ClassPath =
     DefaultClassPath.of(
-        readCollectionInto({ size -> LinkedHashSet<File>(size) }) { container ->
-            container.add(readFile())
+        readCollectionInto({ size -> LinkedHashSet<File>(size) }) {
+            readFile()
         }
     )
 
@@ -384,8 +383,8 @@ fun Encoder.writeStrings(strings: List<String>) {
 
 private
 fun Decoder.readStrings(): List<String> =
-    readCollectionInto({ size -> ArrayList(size) }) { container ->
-        container.add(readString())
+    readCollectionInto({ size -> ArrayList(size) }) {
+        readString()
     }
 
 
@@ -408,11 +407,11 @@ fun Decoder.readCollection(readElement: () -> Unit) {
 
 
 private
-inline fun <T> Decoder.readCollectionInto(containerForSize: (Int) -> T, readElementInto: (T) -> Unit): T {
+inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(containerForSize: (Int) -> C, readElement: () -> T): C {
     val size = readSmallInt()
     val container = containerForSize(size)
     for (i in 0 until size) {
-        readElementInto(container)
+        container.add(readElement())
     }
     return container
 }
