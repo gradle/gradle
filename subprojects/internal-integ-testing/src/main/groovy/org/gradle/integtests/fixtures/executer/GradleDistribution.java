@@ -75,6 +75,11 @@ public interface GradleDistribution {
     boolean isToolingApiLoggingInEmbeddedModeSupported();
 
     /**
+     * Returns true if this version handles the client provided standard input stream when running in embedded mode.
+     */
+    boolean isToolingApiStdinInEmbeddedModeSupported();
+
+    /**
      * Returns true if the tooling API of this distribution incorrectly locks build action implementation classes.
      */
     boolean isToolingApiLocksBuildActionClasses();
