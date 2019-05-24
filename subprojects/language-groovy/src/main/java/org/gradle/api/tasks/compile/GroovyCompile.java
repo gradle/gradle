@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -48,12 +49,13 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.inject.Inject;
-import java.io.File;
+import java.io.*;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
@@ -62,7 +64,7 @@ import java.io.File;
 public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> compiler;
     private FileCollection groovyClasspath;
-    private FileCollection compilerPluginClasspath;
+    private ConfigurableFileCollection compilerPluginClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
 
@@ -76,6 +78,8 @@ public class GroovyCompile extends AbstractCompile {
     @Override
     @CompileClasspath
     public FileCollection getClasspath() {
+        // Note that this is an approximation and must be fixed before de-incubating getCompilerPluginClasspath()
+        // See https://github.com/gradle/gradle/pull/9513
         return super.getClasspath();
     }
 
@@ -88,19 +92,6 @@ public class GroovyCompile extends AbstractCompile {
     @Incubating
     public FileCollection getCompilerPluginClasspath() {
         return compilerPluginClasspath;
-    }
-
-    /**
-     * The classpath for compiler plugin to run, for example, AST transformation.
-     *
-     * @since 5.6
-     */
-    @Incubating
-    public void setCompilerPluginClasspath(FileCollection compilerPluginClasspath) {
-        if (!experimentalCompilationAvoidanceEnabled()) {
-            throw new IllegalStateException("You need to enable org.gradle.groovy.compilation.avoidance system property!");
-        }
-        this.compilerPluginClasspath = compilerPluginClasspath;
     }
 
     private boolean experimentalCompilationAvoidanceEnabled() {
@@ -119,9 +110,9 @@ public class GroovyCompile extends AbstractCompile {
 
     private void separateCompileClasspathIfCompileAvoidanceEnabled() {
         if (experimentalCompilationAvoidanceEnabled()) {
-            compilerPluginClasspath = compilerPluginClasspath.plus(getGroovyClasspath());
+            DeprecationLogger.incubatingFeatureUsed("Groovy compilation avoidance is an incubating feature.");
         } else {
-            compilerPluginClasspath = getClasspath();
+            compilerPluginClasspath.from(getClasspath());
         }
     }
 

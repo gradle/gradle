@@ -1152,7 +1152,7 @@ public class MyASTTransformation extends AbstractASTTransformation {
                 }
                 
                 tasks.withType(GroovyCompile) {
-                    compilerPluginClasspath = configurations.astTransformation
+                    compilerPluginClasspath.from(configurations.astTransformation)
                 }
             }
         """
@@ -1210,7 +1210,7 @@ public @interface MyAnnotation { }
                 }
                 
                 tasks.withType(GroovyCompile) {
-                    compilerPluginClasspath = configurations.astTransformation
+                    compilerPluginClasspath.from(configurations.astTransformation)
                 }
             }
         """
