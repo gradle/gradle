@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
@@ -45,6 +46,12 @@ public class ProjectDependency extends AbstractClasspathEntry {
         assertPathIsValid();
     }
 
+    /**
+     * Returns the file that can replace this ProjectDependency
+     *
+     * @since 5.6
+     */
+    @Incubating
     public File getPublication() {
         return publication;
     }
@@ -53,6 +60,12 @@ public class ProjectDependency extends AbstractClasspathEntry {
         this.publication = publication;
     }
 
+    /**
+     * Returns the TaskDependency that builds the the file returned by {@link #getPublication()}
+     *
+     * @since 5.6
+     */
+    @Incubating
     public TaskDependency getBuildDependencies() {
         return buildDependencies;
     }

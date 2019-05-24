@@ -36,9 +36,7 @@ import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.Artifact;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.jvm.JvmLibrary;
@@ -130,8 +128,8 @@ public class IdeDependencySet {
                 public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
                     viewConfiguration.lenient(true);
                     viewConfiguration.componentFilter(getComponentFilter(visitor));
-                    // FIXME: This breaks org/gradle/plugins/ide/idea/model/internal/IdeaDependenciesProviderTest.groovy:130
-                    viewConfiguration.attributes(attrs -> attrs.attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME_JARS)));
+                    // TODO: Doing the restriction this way breaks a lot of test. The resulting start containing RUNTIME + TEST instead of COMPILE scopes for Idea for example.
+                    //viewConfiguration.attributes(attrs -> attrs.attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME_JARS)));
                 }
             }).getArtifacts();
         }

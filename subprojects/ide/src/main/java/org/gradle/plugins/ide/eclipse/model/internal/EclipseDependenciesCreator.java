@@ -27,7 +27,9 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -53,6 +55,7 @@ import java.util.Set;
 public class EclipseDependenciesCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
+    public static final Usage RUNTIME_JARS_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME_JARS);
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
     private final ProjectComponentIdentifier currentProjectId;
@@ -101,6 +104,10 @@ public class EclipseDependenciesCreator {
         public void visitProjectDependency(ResolvedArtifactResult artifact) {
             ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (componentIdentifier.equals(currentProjectId)) {
+                return;
+            }
+            Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
+            if (!RUNTIME_JARS_USAGE.equals(usage)) {
                 return;
             }
             ComponentArtifactMetadata artifactId = (ComponentArtifactMetadata) artifact.getId();
@@ -195,6 +202,7 @@ public class EclipseDependenciesCreator {
 
             Collection<String> sourceSets = pathToSourceSets.get(binary.getAbsolutePath());
             if (sourceSets != null) {
+                // TODO: see if can do the variant filtering another way without breaking all the IDEA tests.
                 out.getEntryAttributes().put(EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME, Joiner.on(',').join(sourceSets));
             }
             return out;
