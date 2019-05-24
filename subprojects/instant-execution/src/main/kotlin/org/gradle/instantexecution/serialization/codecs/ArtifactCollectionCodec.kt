@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.WriteContext
+
+
+internal
+object ArtifactCollectionCodec : Codec<ArtifactCollection> {
+
+    override fun WriteContext.encode(value: ArtifactCollection) = Unit
+
+    override fun ReadContext.decode(): ArtifactCollection? =
+        EmptyArtifactCollection(ImmutableFileCollection.of())
+}
 
 
 class EmptyArtifactCollection(

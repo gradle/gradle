@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization
 
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
@@ -65,11 +65,10 @@ interface WriteContext : IsolateContext, Encoder {
     override val isolate: WriteIsolate
 
     fun writerFor(value: Any?): ValueSerializer?
-}
 
-
-fun WriteContext.write(value: Any?) {
-    writerFor(value)!!.run { invoke(value) }
+    fun write(value: Any?) {
+        writerFor(value)!!.run { invoke(value) }
+    }
 }
 
 

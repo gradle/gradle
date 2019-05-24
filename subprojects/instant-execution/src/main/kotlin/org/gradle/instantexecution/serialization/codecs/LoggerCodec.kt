@@ -14,34 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization.codecs
 
-import java.util.IdentityHashMap
+import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.WriteContext
+
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 
-class WriteIdentities {
+internal
+object LoggerCodec : Codec<Logger> {
 
-    private
-    val instanceIds = IdentityHashMap<Any, Int>()
-
-    fun getId(instance: Any) = instanceIds[instance]
-
-    fun putInstance(instance: Any): Int {
-        val id = instanceIds.size
-        instanceIds[instance] = id
-        return id
+    override fun WriteContext.encode(value: Logger) {
+        writeString(value.name)
     }
-}
 
-
-class ReadIdentities {
-
-    private
-    val instanceIds = HashMap<Int, Any>()
-
-    fun getInstance(id: Int) = instanceIds[id]
-
-    fun putInstance(id: Int, instance: Any) {
-        instanceIds[id] = instance
-    }
+    override fun ReadContext.decode(): Logger? =
+        LoggerFactory.getLogger(readString())
 }

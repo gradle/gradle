@@ -16,23 +16,35 @@
 
 package org.gradle.instantexecution
 
-import groovy.lang.GroovyObject
-import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Task
-import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.InstantExecution
+import org.gradle.instantexecution.serialization.DefaultReadContext
+import org.gradle.instantexecution.serialization.DefaultWriteContext
+import org.gradle.instantexecution.serialization.MutableReadContext
+import org.gradle.instantexecution.serialization.MutableWriteContext
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.StateDeserializer
+import org.gradle.instantexecution.serialization.StateSerializer
+import org.gradle.instantexecution.serialization.beans.BeanFieldDeserializer
+import org.gradle.instantexecution.serialization.beans.BeanFieldSerializer
+import org.gradle.instantexecution.serialization.readClass
+import org.gradle.instantexecution.serialization.readClassPath
+import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readCollectionInto
+import org.gradle.instantexecution.serialization.readStrings
+import org.gradle.instantexecution.serialization.withIsolate
+import org.gradle.instantexecution.serialization.writeClass
+import org.gradle.instantexecution.serialization.writeClassPath
+import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.instantexecution.serialization.writeStrings
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -42,9 +54,9 @@ import org.gradle.util.Path
 
 import java.io.File
 import java.io.FileOutputStream
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
 import java.nio.file.Files
+
+import java.util.ArrayList
 import java.util.SortedSet
 
 
@@ -289,42 +301,6 @@ inline fun <reified T> DefaultInstantExecution.Host.service(): T =
 
 
 internal
-fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
-    relevantTypeHierarchyOf(taskType).flatMap { type ->
-        type.declaredFields.asSequence().filterNot { field ->
-            Modifier.isStatic(field.modifiers) || Modifier.isTransient(field.modifiers)
-        }
-    }
-
-
-private
-fun relevantTypeHierarchyOf(taskType: Class<*>): Sequence<Class<*>> = sequence {
-    var current = taskType
-    while (isRelevantDeclaringClass(current)) {
-        yield(current)
-        current = current.superclass
-    }
-}
-
-
-private
-fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
-    declaringClass !in irrelevantDeclaringClasses
-
-
-private
-val irrelevantDeclaringClasses = setOf(
-    Object::class.java,
-    GroovyObject::class.java,
-    Task::class.java,
-    TaskInternal::class.java,
-    DefaultTask::class.java,
-    AbstractTask::class.java,
-    ConventionTask::class.java
-)
-
-
-internal
 fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
     val pathsWithoutGaps = ArrayList<Path>(paths.size)
     var index = 0
@@ -341,81 +317,6 @@ fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
         index += added
     }
     return pathsWithoutGaps
-}
-
-
-private
-fun Encoder.writeClassPath(classPath: ClassPath) {
-    writeCollection(classPath.asFiles) {
-        writeFile(it)
-    }
-}
-
-
-private
-fun Decoder.readClassPath(): ClassPath =
-    DefaultClassPath.of(
-        readCollectionInto({ size -> LinkedHashSet<File>(size) }) {
-            readFile()
-        }
-    )
-
-
-private
-fun Encoder.writeFile(file: File?) {
-    BaseSerializerFactory.FILE_SERIALIZER.write(this, file)
-}
-
-
-private
-fun Decoder.readFile(): File =
-    BaseSerializerFactory.FILE_SERIALIZER.read(this)
-
-
-private
-fun Encoder.writeStrings(strings: List<String>) {
-    writeCollection(strings) {
-        writeString(it)
-    }
-}
-
-
-private
-fun Decoder.readStrings(): List<String> =
-    readCollectionInto({ size -> ArrayList(size) }) {
-        readString()
-    }
-
-
-internal
-fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
-    writeSmallInt(collection.size)
-    for (element in collection) {
-        writeElement(element)
-    }
-}
-
-
-internal
-fun Decoder.readCollection(readElement: () -> Unit) {
-    val size = readSmallInt()
-    for (i in 0 until size) {
-        readElement()
-    }
-}
-
-
-internal
-inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
-    containerForSize: (Int) -> C,
-    readElement: () -> T
-): C {
-    val size = readSmallInt()
-    val container = containerForSize(size)
-    for (i in 0 until size) {
-        container.add(readElement())
-    }
-    return container
 }
 
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization.beans
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
@@ -23,6 +23,9 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.logFieldSerialization
+import org.gradle.instantexecution.serialization.logFieldWarning
 import java.util.function.Supplier
 
 

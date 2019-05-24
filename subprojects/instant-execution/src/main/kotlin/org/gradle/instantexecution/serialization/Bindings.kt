@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization
 
 import org.gradle.internal.serialize.Serializer
 import kotlin.reflect.KClass
@@ -50,38 +50,19 @@ class BindingsBuilder {
             Binding(tag.toByte(), type, codec as Codec<Any>)
         )
     }
-}
 
+    inline fun <reified T> bind(codec: Codec<T>) =
+        bind(T::class.java, codec)
 
-internal
-inline fun <reified T> BindingsBuilder.bind(codec: Codec<T>) =
-    bind(T::class.java, codec)
+    inline fun <reified T> bind(serializer: Serializer<T>) =
+        bind(T::class.java, serializer)
 
+    fun bind(type: KClass<*>, codec: Codec<*>) =
+        bind(type.java, codec)
 
-internal
-inline fun <reified T> BindingsBuilder.bind(serializer: Serializer<T>) =
-    bind(T::class.java, serializer)
+    fun bind(type: KClass<*>, serializer: Serializer<*>) =
+        bind(type.java, serializer)
 
-
-internal
-fun BindingsBuilder.bind(type: KClass<*>, codec: Codec<*>) =
-    bind(type.java, codec)
-
-
-internal
-fun BindingsBuilder.bind(type: KClass<*>, serializer: Serializer<*>) =
-    bind(type.java, serializer)
-
-
-internal
-fun BindingsBuilder.bind(type: Class<*>, serializer: Serializer<*>) =
-    bind(type, SerializerCodec(serializer))
-
-
-internal
-data class SerializerCodec<T>(val serializer: Serializer<T>) : Codec<T> {
-
-    override fun WriteContext.encode(value: T) = serializer.write(this, value)
-
-    override fun ReadContext.decode(): T = serializer.read(this)
+    fun bind(type: Class<*>, serializer: Serializer<*>) =
+        bind(type, SerializerCodec(serializer))
 }

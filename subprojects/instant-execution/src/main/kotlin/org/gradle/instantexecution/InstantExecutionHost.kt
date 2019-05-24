@@ -41,6 +41,8 @@ import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
+import org.gradle.instantexecution.serialization.StateDeserializer
+import org.gradle.instantexecution.serialization.StateSerializer
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver

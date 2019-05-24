@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization.codecs
+
+import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readClass
+import org.gradle.instantexecution.serialization.writeClass
 
 
-interface StateSerializer {
-    fun WriteContext.serializerFor(candidate: Any?): ValueSerializer?
-}
+internal
+object ClassCodec : Codec<Class<*>> {
 
+    override fun WriteContext.encode(value: Class<*>) {
+        writeClass(value)
+    }
 
-interface ValueSerializer {
-    fun WriteContext.invoke(value: Any?)
-}
-
-
-interface StateDeserializer {
-    fun ReadContext.deserialize(): Any?
-}
-
-
-fun writer(f: WriteContext.(Any?) -> Unit): ValueSerializer = object : ValueSerializer {
-    override fun WriteContext.invoke(value: Any?) = f(value)
+    override fun ReadContext.decode(): Class<*>? =
+        readClass()
 }

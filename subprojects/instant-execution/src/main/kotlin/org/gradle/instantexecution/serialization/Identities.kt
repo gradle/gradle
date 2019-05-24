@@ -14,20 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization
+
+import java.util.IdentityHashMap
 
 
-fun IsolateContext.logFieldWarning(action: String, type: Class<*>, fieldName: String, message: String) {
-    logger.warn(
-        "instant-execution > task '{}' field '{}.{}' cannot be {}d because {}.",
-        isolate.owner.path, type.name, fieldName, action, message
-    )
+class WriteIdentities {
+
+    private
+    val instanceIds = IdentityHashMap<Any, Int>()
+
+    fun getId(instance: Any) = instanceIds[instance]
+
+    fun putInstance(instance: Any): Int {
+        val id = instanceIds.size
+        instanceIds[instance] = id
+        return id
+    }
 }
 
 
-fun IsolateContext.logFieldSerialization(action: String, type: Class<*>, fieldName: String, value: Any?) {
-    logger.info(
-        "instant-execution > task '{}' field '{}.{}' {}d value {}",
-        isolate.owner.path, type.name, fieldName, action, value
-    )
+class ReadIdentities {
+
+    private
+    val instanceIds = HashMap<Int, Any>()
+
+    fun getInstance(id: Int) = instanceIds[id]
+
+    fun putInstance(id: Int, instance: Any) {
+        instanceIds[id] = instance
+    }
 }
