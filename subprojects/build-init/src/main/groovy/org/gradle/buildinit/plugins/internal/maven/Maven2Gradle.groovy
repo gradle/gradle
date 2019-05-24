@@ -328,13 +328,13 @@ class Maven2Gradle {
         if (!compileTimeScope.isEmpty() || !runTimeScope.isEmpty() || !testScope.isEmpty() || !providedScope.isEmpty() || !systemScope.isEmpty()) {
 // for each collection, one at a time, we take each element and call our print function
             if (!compileTimeScope.isEmpty()) {
-                compileTimeScope.each() { createGradleDep("compile", result, it) }
+                compileTimeScope.each() { createGradleDep("implementation", result, it) }
             }
             if (!runTimeScope.isEmpty()) {
-                runTimeScope.each() { createGradleDep("runtime", result, it) }
+                runTimeScope.each() { createGradleDep("runtimeOnly", result, it) }
             }
             if (!testScope.isEmpty()) {
-                testScope.each() { createGradleDep("testCompile", result, it) }
+                testScope.each() { createGradleDep("testImplementation", result, it) }
             }
             if (!providedScope.isEmpty()) {
                 providedScope.each() { createGradleDep("providedCompile", result, it) }
