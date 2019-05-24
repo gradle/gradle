@@ -119,11 +119,6 @@ class TransformationNodeSpec extends Specification {
         }
 
         @Override
-        boolean requiresMonitoring() {
-            return false
-        }
-
-        @Override
         String toString() {
             return null
         }

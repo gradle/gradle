@@ -128,11 +128,6 @@ public class TaskNodeFactory {
         }
 
         @Override
-        public boolean requiresMonitoring() {
-            return true;
-        }
-
-        @Override
         public void require() {
             // Ignore
         }

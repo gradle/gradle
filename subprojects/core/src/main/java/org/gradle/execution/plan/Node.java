@@ -38,7 +38,6 @@ public abstract class Node implements Comparable<Node> {
 
     private ExecutionState state;
     private boolean dependenciesProcessed;
-    private boolean allDependenciesComplete;
     private Throwable executionFailure;
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
@@ -61,7 +60,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isIncludeInGraph() {
-        return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN;
+        return state == ExecutionState.NOT_REQUIRED || state == ExecutionState.UNKNOWN;
     }
 
     public boolean isReady() {
@@ -173,7 +172,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected boolean doCheckDependenciesComplete() {
+    public boolean allDependenciesComplete() {
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
                 return false;
@@ -183,25 +182,6 @@ public abstract class Node implements Comparable<Node> {
         return true;
     }
 
-    /**
-     * Returns if all dependencies completed, but have not been completed in the last check.
-     */
-    public boolean updateAllDependenciesComplete() {
-        if (!allDependenciesComplete) {
-            forceAllDependenciesCompleteUpdate();
-            return allDependenciesComplete;
-        }
-        return false;
-    }
-
-    public void forceAllDependenciesCompleteUpdate() {
-        allDependenciesComplete = doCheckDependenciesComplete();
-    }
-
-    public boolean allDependenciesComplete() {
-        return allDependenciesComplete;
-    }
-
     public boolean allDependenciesSuccessful() {
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isSuccessful()) {
@@ -209,11 +189,6 @@ public abstract class Node implements Comparable<Node> {
             }
         }
         return true;
-    }
-
-    @OverridingMethodsMustInvokeSuper
-    protected Iterable<Node> getAllPredecessors() {
-        return getDependencyPredecessors();
     }
 
     public abstract void prepareForExecution();
@@ -249,13 +224,6 @@ public abstract class Node implements Comparable<Node> {
     public abstract Set<Node> getFinalizers();
 
     public abstract boolean isPublicNode();
-
-    /**
-     * Whether the task needs to be queried if it is completed.
-     *
-     * Everything where the value of {@link #isComplete()} depends on some other state, like another task in an included build.
-     */
-    public abstract boolean requiresMonitoring();
 
     /**
      * Returns the project which the node requires access to, if any.
