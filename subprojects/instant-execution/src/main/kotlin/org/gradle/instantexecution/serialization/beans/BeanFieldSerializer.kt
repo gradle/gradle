@@ -41,14 +41,14 @@ class BeanFieldSerializer(
             val fieldValue = field.get(bean)
             val conventionalValue = fieldValue ?: conventionalValueOf(bean, field.name)
             val finalValue = unpack(conventionalValue)
-            val valueSerializer = writerFor(finalValue)
-            if (valueSerializer == null) {
+            val writeValue = writeActionFor(finalValue)
+            if (writeValue == null) {
                 logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue!!).name}'")
                 continue
             }
             writeString(field.name)
             try {
-                valueSerializer.run { invoke(finalValue) }
+                writeValue(finalValue)
             } catch (e: Throwable) {
                 throw GradleException("Could not save the value of field '${beanType.name}.${field.name}' with type ${finalValue?.javaClass?.name}.", e)
             }

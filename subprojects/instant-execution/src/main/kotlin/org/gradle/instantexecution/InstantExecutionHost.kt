@@ -41,8 +41,6 @@ import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
-import org.gradle.instantexecution.serialization.StateDeserializer
-import org.gradle.instantexecution.serialization.StateSerializer
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver
@@ -68,19 +66,6 @@ class InstantExecutionHost internal constructor(
     private
     val startParameter = gradle.startParameter
 
-    private
-    val serialization by lazy {
-        StateSerialization(
-            directoryFileTreeFactory = service(),
-            fileCollectionFactory = service(),
-            fileResolver = service(),
-            instantiator = service(),
-            objectFactory = service(),
-            patternSpecFactory = service(),
-            filePropertyFactory = service()
-        )
-    }
-
     override val isSkipLoadingState: Boolean
         get() = gradle.startParameter.isRefreshDependencies
 
@@ -89,12 +74,6 @@ class InstantExecutionHost internal constructor(
 
     override fun createBuild(rootProjectName: String): InstantExecutionBuild =
         DefaultInstantExecutionBuild(service(), rootProjectName)
-
-    override fun newStateSerializer(): StateSerializer =
-        serialization.newSerializer()
-
-    override fun newStateDeserializer(): StateDeserializer =
-        serialization.newDeserializer()
 
     override fun <T> getService(serviceType: Class<T>): T =
         gradle.services.get(serviceType)

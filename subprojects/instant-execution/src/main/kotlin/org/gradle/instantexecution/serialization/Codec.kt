@@ -24,13 +24,48 @@ import org.gradle.internal.serialize.Encoder
 
 
 /**
- * Binary encoding of type [T].
+ * Binary encoding for type [T].
  */
 interface Codec<T> {
 
     fun WriteContext.encode(value: T)
 
     fun ReadContext.decode(): T?
+}
+
+
+interface WriteContext : IsolateContext, Encoder {
+
+    override val isolate: WriteIsolate
+
+    fun writeActionFor(value: Any?): Encoding?
+
+    fun write(value: Any?) {
+        writeActionFor(value)!!(value)
+    }
+}
+
+
+typealias Encoding = WriteContext.(value: Any?) -> Unit
+
+
+interface ReadContext : IsolateContext, Decoder {
+
+    override val isolate: ReadIsolate
+
+    val taskClassLoader: ClassLoader
+
+    fun getProject(path: String): ProjectInternal
+
+    fun read(): Any?
+}
+
+
+interface IsolateContext {
+
+    val logger: Logger
+
+    val isolate: Isolate
 }
 
 
@@ -49,38 +84,6 @@ interface WriteIsolate : Isolate {
 interface ReadIsolate : Isolate {
 
     val identities: ReadIdentities
-}
-
-
-interface IsolateContext {
-
-    val logger: Logger
-
-    val isolate: Isolate
-}
-
-
-interface WriteContext : IsolateContext, Encoder {
-
-    override val isolate: WriteIsolate
-
-    fun writerFor(value: Any?): ValueSerializer?
-
-    fun write(value: Any?) {
-        writerFor(value)!!.run { invoke(value) }
-    }
-}
-
-
-interface ReadContext : IsolateContext, Decoder {
-
-    override val isolate: ReadIsolate
-
-    val taskClassLoader: ClassLoader
-
-    fun getProject(path: String): ProjectInternal
-
-    fun read(): Any?
 }
 
 
@@ -141,11 +144,21 @@ abstract class AbstractIsolateContext<T> : MutableIsolateContext {
 }
 
 
+interface EncodingProvider {
+    fun WriteContext.encodingFor(candidate: Any?): Encoding?
+}
+
+
+interface DecodingProvider {
+    fun ReadContext.decode(): Any?
+}
+
+
 internal
 class DefaultWriteContext(
 
     private
-    val serializer: StateSerializer,
+    val encodings: EncodingProvider,
 
     private
     val encoder: Encoder,
@@ -157,8 +170,8 @@ class DefaultWriteContext(
     override val isolate: WriteIsolate
         get() = getIsolate()
 
-    override fun writerFor(value: Any?): ValueSerializer? = serializer.run {
-        serializerFor(value)
+    override fun writeActionFor(value: Any?): Encoding? = encodings.run {
+        encodingFor(value)
     }
 
     // TODO: consider interning strings
@@ -174,7 +187,7 @@ internal
 class DefaultReadContext(
 
     private
-    val deserializer: StateDeserializer,
+    val decoding: DecodingProvider,
 
     private
     val decoder: Decoder,
@@ -195,8 +208,8 @@ class DefaultReadContext(
         this.classLoader = classLoader
     }
 
-    override fun read(): Any? = deserializer.run {
-        deserialize()
+    override fun read(): Any? = decoding.run {
+        decode()
     }
 
     override val isolate: ReadIsolate

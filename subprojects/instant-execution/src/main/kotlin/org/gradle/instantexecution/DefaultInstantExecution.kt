@@ -27,8 +27,7 @@ import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.MutableReadContext
 import org.gradle.instantexecution.serialization.MutableWriteContext
 import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.StateDeserializer
-import org.gradle.instantexecution.serialization.StateSerializer
+import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.beans.BeanFieldDeserializer
 import org.gradle.instantexecution.serialization.beans.BeanFieldSerializer
 import org.gradle.instantexecution.serialization.readClass
@@ -72,10 +71,6 @@ class DefaultInstantExecution(
 
         fun createBuild(rootProjectName: String): InstantExecutionBuild
 
-        fun newStateSerializer(): StateSerializer
-
-        fun newStateDeserializer(): StateDeserializer
-
         fun <T> getService(serviceType: Class<T>): T
 
         fun getSystemProperty(propertyName: String): String?
@@ -113,7 +108,7 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withStoreOperation {
             KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                DefaultWriteContext(host.newStateSerializer(), encoder, logger).run {
+                DefaultWriteContext(codecs, encoder, logger).run {
 
                     val build = host.currentBuild
                     writeString(build.rootProject.name)
@@ -135,7 +130,7 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
-                DefaultReadContext(host.newStateDeserializer(), decoder, logger).run {
+                DefaultReadContext(codecs, decoder, logger).run {
 
                     val rootProjectName = readString()
                     val build = host.createBuild(rootProjectName)
@@ -153,6 +148,19 @@ class DefaultInstantExecution(
                 }
             }
         }
+    }
+
+    private
+    val codecs by lazy {
+        Codecs(
+            directoryFileTreeFactory = service(),
+            fileCollectionFactory = service(),
+            fileResolver = service(),
+            instantiator = service(),
+            objectFactory = service(),
+            patternSpecFactory = service(),
+            filePropertyFactory = service()
+        )
     }
 
     private
@@ -212,11 +220,15 @@ class DefaultInstantExecution(
 
     private
     val filePropertyFactory: FilePropertyFactory
-        get() = host.service()
+        get() = service()
 
     private
     val buildOperationExecutor: BuildOperationExecutor
-        get() = host.service()
+        get() = service()
+
+    private
+    inline fun <reified T> service() =
+        host.service<T>()
 
     private
     fun classLoaderFor(classPath: ClassPath) =

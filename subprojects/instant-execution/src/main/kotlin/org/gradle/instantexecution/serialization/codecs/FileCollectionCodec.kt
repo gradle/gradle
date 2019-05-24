@@ -27,8 +27,8 @@ import java.io.File
 
 internal
 class FileCollectionCodec(
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val fileSetSerializer: SetSerializer<File>
+    private val fileSetSerializer: SetSerializer<File>,
+    private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<FileCollection> {
 
     override fun WriteContext.encode(value: FileCollection) =

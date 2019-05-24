@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
@@ -26,29 +26,16 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
+import org.gradle.instantexecution.serialization.DecodingProvider
+import org.gradle.instantexecution.serialization.Encoding
+import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.StateDeserializer
-import org.gradle.instantexecution.serialization.StateSerializer
-import org.gradle.instantexecution.serialization.ValueSerializer
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.bindings
-import org.gradle.instantexecution.serialization.codecs.ArtifactCollectionCodec
-import org.gradle.instantexecution.serialization.codecs.BeanCodec
-import org.gradle.instantexecution.serialization.codecs.ClassCodec
-import org.gradle.instantexecution.serialization.codecs.DefaultCopySpecCodec
-import org.gradle.instantexecution.serialization.codecs.DestinationRootCopySpecCodec
-import org.gradle.instantexecution.serialization.codecs.FileCollectionCodec
-import org.gradle.instantexecution.serialization.codecs.FileTreeCodec
-import org.gradle.instantexecution.serialization.codecs.LoggerCodec
-import org.gradle.instantexecution.serialization.codecs.TaskReferenceCodec
-import org.gradle.instantexecution.serialization.codecs.listCodec
-import org.gradle.instantexecution.serialization.codecs.mapCodec
-import org.gradle.instantexecution.serialization.codecs.setCodec
 import org.gradle.instantexecution.serialization.logUnsupported
 import org.gradle.instantexecution.serialization.ownerProjectService
 import org.gradle.instantexecution.serialization.singleton
-import org.gradle.instantexecution.serialization.writer
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
@@ -63,7 +50,7 @@ import org.gradle.internal.serialize.SetSerializer
 import kotlin.reflect.KClass
 
 
-class StateSerialization(
+class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val fileCollectionFactory: FileCollectionFactory,
     private val fileResolver: FileResolver,
@@ -71,7 +58,7 @@ class StateSerialization(
     private val objectFactory: ObjectFactory,
     private val patternSpecFactory: PatternSpecFactory,
     private val filePropertyFactory: FilePropertyFactory
-) {
+) : EncodingProvider, DecodingProvider {
 
     private
     val fileSetSerializer = SetSerializer(FILE_SERIALIZER)
@@ -99,7 +86,7 @@ class StateSerialization(
 
         bind(LoggerCodec)
 
-        bind(FileCollectionCodec(fileCollectionFactory, fileSetSerializer))
+        bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory))
         bind(ArtifactCollectionCodec)
 
         bind(singleton(objectFactory))
@@ -118,52 +105,39 @@ class StateSerialization(
         bind(BeanCodec(filePropertyFactory))
     }
 
-    fun newSerializer(): StateSerializer =
-        DefaultStateSerializer()
-
-    fun newDeserializer(): StateDeserializer =
-        DefaultStateDeserializer()
-
     private
-    inner class DefaultStateSerializer : StateSerializer {
+    val nullEncoding = encoding {
+        writeByte(NULL_VALUE)
+    }
 
-        private
-        val nullWriter = writer {
-            writeByte(NULL_VALUE)
-        }
-
-        override fun WriteContext.serializerFor(candidate: Any?): ValueSerializer? = when (candidate) {
-            null -> nullWriter
-            is Project -> unsupportedState(Project::class)
-            is Gradle -> unsupportedState(Gradle::class)
-            is Settings -> unsupportedState(Settings::class)
-            else -> candidate.javaClass.let { type ->
-                bindings.find { it.type.isAssignableFrom(type) }?.run {
-                    writer { value ->
-                        writeByte(tag)
-                        codec.run {
-                            encode(value!!)
-                        }
-                    }
+    override fun WriteContext.encodingFor(candidate: Any?): Encoding? = when (candidate) {
+        null -> nullEncoding
+        is Project -> unsupportedState(Project::class)
+        is Gradle -> unsupportedState(Gradle::class)
+        is Settings -> unsupportedState(Settings::class)
+        else -> candidate.javaClass.let { type ->
+            bindings.find { it.type.isAssignableFrom(type) }?.run {
+                encoding { value ->
+                    writeByte(tag)
+                    codec.run { encode(value!!) }
                 }
             }
         }
     }
 
-    private
-    inner class DefaultStateDeserializer : StateDeserializer {
-
-        override fun ReadContext.deserialize(): Any? = when (val tag = readByte()) {
-            NULL_VALUE -> null
-            else -> bindings[tag.toInt()].codec.run { decode() }
-        }
+    override fun ReadContext.decode(): Any? = when (val tag = readByte()) {
+        NULL_VALUE -> null
+        else -> bindings[tag.toInt()].codec.run { decode() }
     }
 
     private
-    fun IsolateContext.unsupportedState(type: KClass<*>): ValueSerializer? {
+    fun IsolateContext.unsupportedState(type: KClass<*>): Encoding? {
         logUnsupported(type)
         return null
     }
+
+    private
+    fun encoding(e: Encoding) = e
 
     internal
     companion object {
