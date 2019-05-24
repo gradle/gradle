@@ -19,7 +19,6 @@ package org.gradle.instantexecution
 import groovy.lang.GroovyObjectSupport
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GeneratedSubclasses
@@ -33,7 +32,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
@@ -42,36 +40,16 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
-import org.gradle.instantexecution.Tags.ARTIFACT_COLLECTION_TYPE
-import org.gradle.instantexecution.Tags.BEAN
-import org.gradle.instantexecution.Tags.BOOLEAN_TYPE
-import org.gradle.instantexecution.Tags.BYTE_TYPE
-import org.gradle.instantexecution.Tags.CLASS_TYPE
-import org.gradle.instantexecution.Tags.DEFAULT_COPY_SPEC
-import org.gradle.instantexecution.Tags.DESTINATION_ROOT_COPY_SPEC
-import org.gradle.instantexecution.Tags.DOUBLE_TYPE
-import org.gradle.instantexecution.Tags.FILE_COLLECTION_FACTORY_TYPE
-import org.gradle.instantexecution.Tags.FILE_COLLECTION_TYPE
-import org.gradle.instantexecution.Tags.FILE_OPERATIONS_TYPE
-import org.gradle.instantexecution.Tags.FILE_RESOLVER_TYPE
-import org.gradle.instantexecution.Tags.FILE_TREE_TYPE
-import org.gradle.instantexecution.Tags.FILE_TYPE
-import org.gradle.instantexecution.Tags.FLOAT_TYPE
-import org.gradle.instantexecution.Tags.INSTANTIATOR_TYPE
-import org.gradle.instantexecution.Tags.INT_TYPE
-import org.gradle.instantexecution.Tags.LIST_TYPE
-import org.gradle.instantexecution.Tags.LOGGER_TYPE
-import org.gradle.instantexecution.Tags.LONG_TYPE
-import org.gradle.instantexecution.Tags.MAP_TYPE
-import org.gradle.instantexecution.Tags.NULL_VALUE
-import org.gradle.instantexecution.Tags.OBJECT_FACTORY_TYPE
-import org.gradle.instantexecution.Tags.PATTERN_SPEC_FACTORY_TYPE
-import org.gradle.instantexecution.Tags.SET_TYPE
-import org.gradle.instantexecution.Tags.SHORT_TYPE
-import org.gradle.instantexecution.Tags.STRING_TYPE
-import org.gradle.instantexecution.Tags.THIS_TASK
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.serialize.BaseSerializerFactory
+import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.DOUBLE_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.FLOAT_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
@@ -95,34 +73,52 @@ class StateSerialization(
 ) {
 
     private
-    val fileSetSerializer = SetSerializer(BaseSerializerFactory.FILE_SERIALIZER)
-
-    private
-    val stringSerializer = BaseSerializerFactory.STRING_SERIALIZER
-
-    private
-    val integerSerializer = BaseSerializerFactory.INTEGER_SERIALIZER
-
-    private
-    val shortSerializer = BaseSerializerFactory.SHORT_SERIALIZER
-
-    private
-    val longSerializer = BaseSerializerFactory.LONG_SERIALIZER
-
-    private
-    val byteSerializer = BaseSerializerFactory.BYTE_SERIALIZER
-
-    private
-    val floatSerializer = BaseSerializerFactory.FLOAT_SERIALIZER
-
-    private
-    val doubleSerializer = BaseSerializerFactory.DOUBLE_SERIALIZER
-
-    private
-    val booleanSerializer = BaseSerializerFactory.BOOLEAN_SERIALIZER
+    val fileSetSerializer = SetSerializer(FILE_SERIALIZER)
 
     private
     val fileTreeSerializer = FileTreeSerializer(fileSetSerializer, directoryFileTreeFactory)
+
+    private
+    val bindings = bindings {
+
+        bind(STRING_SERIALIZER)
+        bind(BOOLEAN_SERIALIZER)
+        bind(INTEGER_SERIALIZER)
+        bind(SHORT_SERIALIZER)
+        bind(LONG_SERIALIZER)
+        bind(BYTE_SERIALIZER)
+        bind(FLOAT_SERIALIZER)
+        bind(DOUBLE_SERIALIZER)
+        bind(fileTreeSerializer)
+        bind(FILE_SERIALIZER)
+        bind(classCodec)
+
+        bind(listCodec)
+        bind(setCodec)
+
+        // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
+        bind(HashMap::class, mapCodec)
+
+        bind(loggerCodec)
+
+        bind(FileCollectionCodec(fileCollectionFactory, fileSetSerializer))
+        bind(artifactCollectionCodec)
+
+        bind(singleton(objectFactory))
+        bind(singleton(patternSpecFactory))
+        bind(singleton(fileResolver))
+        bind(singleton(instantiator))
+        bind(singleton(fileCollectionFactory))
+
+        bind(DefaultCopySpecCodec(fileResolver, instantiator))
+        bind(DestinationRootCopySpecCodec(fileResolver))
+
+        bind(OwnerTaskCodec)
+
+        bind(ownerProjectService<FileOperations>())
+
+        bind(BeanCodec(filePropertyFactory))
+    }
 
     fun newSerializer(): StateSerializer =
         DefaultStateSerializer()
@@ -133,122 +129,25 @@ class StateSerialization(
     private
     inner class DefaultStateSerializer : StateSerializer {
 
+        private
+        val nullWriter = writer {
+            writeByte(NULL_VALUE)
+        }
+
         override fun WriteContext.serializerFor(candidate: Any?): ValueSerializer? = when (candidate) {
-            null -> writer {
-                writeByte(NULL_VALUE)
-            }
-            is String -> writer { value ->
-                require(value is String)
-                writeWithTag(STRING_TYPE, stringSerializer, value)
-            }
-            is Boolean -> writer { value ->
-                require(value is Boolean)
-                writeWithTag(BOOLEAN_TYPE, booleanSerializer, value)
-            }
-            is Int -> writer { value ->
-                require(value is Int)
-                writeWithTag(INT_TYPE, integerSerializer, value)
-            }
-            is Short -> writer { value ->
-                require(value is Short)
-                writeWithTag(SHORT_TYPE, shortSerializer, value)
-            }
-            is Long -> writer { value ->
-                require(value is Long)
-                writeWithTag(LONG_TYPE, longSerializer, value)
-            }
-            is Byte -> writer { value ->
-                require(value is Byte)
-                writeWithTag(BYTE_TYPE, byteSerializer, value)
-            }
-            is Float -> writer { value ->
-                require(value is Float)
-                writeWithTag(FLOAT_TYPE, floatSerializer, value)
-            }
-            is Double -> writer { value ->
-                require(value is Double)
-                writeWithTag(DOUBLE_TYPE, doubleSerializer, value)
-            }
-            is FileTreeInternal -> writer { value ->
-                require(value is FileTreeInternal)
-                writeWithTag(FILE_TREE_TYPE, fileTreeSerializer, value)
-            }
-            is File -> writer { value ->
-                require(value is File)
-                writeWithTag(FILE_TYPE, BaseSerializerFactory.FILE_SERIALIZER, value)
-            }
-            is Class<*> -> writer { value ->
-                require(value is Class<*>)
-                writeByte(CLASS_TYPE)
-                writeClass(value)
-            }
-            is List<*> -> collectionSerializerFor(LIST_TYPE)
-            is Set<*> -> collectionSerializerFor(SET_TYPE)
-            // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
-            is HashMap<*, *> -> mapSerializer()
-            is LinkedHashMap<*, *> -> mapSerializer()
-            is Logger -> writer { value ->
-                require(value is Logger)
-                writeByte(LOGGER_TYPE)
-                writeLogger(value)
-            }
-            is FileCollection -> writer { value ->
-                require(value is FileCollection)
-                writeWithTag(FILE_COLLECTION_TYPE, fileSetSerializer, value.files)
-            }
-            is ArtifactCollection -> writer { value ->
-                require(value is ArtifactCollection)
-                writeByte(ARTIFACT_COLLECTION_TYPE)
-            }
-            is ObjectFactory -> writer { value ->
-                require(value is ObjectFactory)
-                writeByte(OBJECT_FACTORY_TYPE)
-            }
-            is PatternSpecFactory -> writer { value ->
-                require(value is PatternSpecFactory)
-                writeByte(PATTERN_SPEC_FACTORY_TYPE)
-            }
-            is FileResolver -> writer { value ->
-                require(value is FileResolver)
-                writeByte(FILE_RESOLVER_TYPE)
-            }
-            is Instantiator -> writer { value ->
-                require(value is Instantiator)
-                writeByte(INSTANTIATOR_TYPE)
-            }
-            is FileCollectionFactory -> writer { value ->
-                require(value is FileCollectionFactory)
-                writeByte(FILE_COLLECTION_FACTORY_TYPE)
-            }
-            is DefaultCopySpec -> writer { value ->
-                require(value is DefaultCopySpec)
-                writeByte(DEFAULT_COPY_SPEC)
-                writeDefaultCopySpec(value)
-            }
-            is DestinationRootCopySpec -> writer { value ->
-                require(value is DestinationRootCopySpec)
-                writeByte(DESTINATION_ROOT_COPY_SPEC)
-                writeDestinationRootCopySpec(value)
-            }
+            null -> nullWriter
             is Project -> projectStateType(Project::class)
             is Gradle -> projectStateType(Gradle::class)
             is Settings -> projectStateType(Settings::class)
-            is Task -> writer { value ->
-                if (value === isolate.owner) {
-                    writeByte(THIS_TASK)
-                } else {
-                    projectStateType(Task::class)
-                    writeByte(NULL_VALUE)
+            else -> candidate.javaClass.let { type ->
+                bindings.find { it.type.isAssignableFrom(type) }?.run {
+                    writer { value ->
+                        writeByte(tag)
+                        codec.run {
+                            encode(value!!)
+                        }
+                    }
                 }
-            }
-            is FileOperations -> writer { value ->
-                require(value is FileOperations)
-                writeByte(FILE_OPERATIONS_TYPE)
-            }
-            else -> writer { value ->
-                require(value != null)
-                writeByte(BEAN)
-                writeBean(value)
             }
         }
     }
@@ -256,46 +155,53 @@ class StateSerialization(
     private
     inner class DefaultStateDeserializer : StateDeserializer {
 
-        override fun ReadContext.deserialize(): Any? = when (readByte()) {
+        override fun ReadContext.deserialize(): Any? = when (val tag = readByte()) {
             NULL_VALUE -> null
-            STRING_TYPE -> stringSerializer.read(this)
-            BOOLEAN_TYPE -> booleanSerializer.read(this)
-            INT_TYPE -> integerSerializer.read(this)
-            SHORT_TYPE -> shortSerializer.read(this)
-            LONG_TYPE -> longSerializer.read(this)
-            BYTE_TYPE -> byteSerializer.read(this)
-            DOUBLE_TYPE -> doubleSerializer.read(this)
-            FLOAT_TYPE -> floatSerializer.read(this)
-            FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(this)
-            CLASS_TYPE -> readClass()
-            LIST_TYPE -> readCollectionInto { size -> ArrayList<Any?>(size) }
-            SET_TYPE -> readCollectionInto { size -> LinkedHashSet<Any?>(size) }
-            MAP_TYPE -> readMap()
-            LOGGER_TYPE -> readLogger()
-            THIS_TASK -> isolate.owner
-            FILE_TREE_TYPE -> fileTreeSerializer.read(this)
-            FILE_COLLECTION_TYPE -> fileCollectionFactory.fixed(fileSetSerializer.read(this))
-            ARTIFACT_COLLECTION_TYPE -> EmptyArtifactCollection(ImmutableFileCollection.of())
-            OBJECT_FACTORY_TYPE -> objectFactory
-            FILE_RESOLVER_TYPE -> fileResolver
-            INSTANTIATOR_TYPE -> instantiator
-            PATTERN_SPEC_FACTORY_TYPE -> patternSpecFactory
-            FILE_COLLECTION_FACTORY_TYPE -> fileCollectionFactory
-            FILE_OPERATIONS_TYPE -> readProjectService<FileOperations>()
-            DEFAULT_COPY_SPEC -> readDefaultCopySpec(fileResolver, instantiator)
-            DESTINATION_ROOT_COPY_SPEC -> readDestinationRootCopySpec(fileResolver)
-            BEAN -> readBean(filePropertyFactory)
-            else -> throw UnsupportedOperationException()
+            else -> bindings[tag.toInt()].codec.run { decode() }
         }
+    }
+
+    internal
+    companion object {
+        const val NULL_VALUE: Byte = -1
     }
 }
 
 
-private
-fun <T> Encoder.writeWithTag(tag: Byte, serializer: Serializer<T>, value: T) {
-    writeByte(tag)
-    serializer.write(this, value)
+internal
+object OwnerTaskCodec : Codec<Task> {
+
+    override fun WriteContext.encode(value: Task) {
+        if (value === isolate.owner) {
+            writeBoolean(true)
+        } else {
+            logUnsupported(Task::class)
+            writeBoolean(false)
+        }
+    }
+
+    override fun ReadContext.decode(): Task? =
+        isolate.owner.takeIf { readBoolean() }
 }
+
+
+internal
+class FileCollectionCodec(
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val fileSetSerializer: SetSerializer<File>
+) : Codec<FileCollection> {
+
+    override fun WriteContext.encode(value: FileCollection) =
+        fileSetSerializer.write(this, value.files)
+
+    override fun ReadContext.decode(): FileCollection? =
+        fileCollectionFactory.fixed(fileSetSerializer.read(this))
+}
+
+
+internal
+inline fun <reified T> ownerProjectService() =
+    codec<T>({ }, { readProjectService() })
 
 
 private
@@ -307,7 +213,7 @@ inline fun <reified T> ReadContext.readProjectService() =
 
 internal
 val IsolateContext.ownerProject
-    get() = (isolate.owner.project as ProjectInternal)
+    get() = isolate.owner.project as ProjectInternal
 
 
 internal
@@ -322,9 +228,15 @@ fun ReadContext.readClass(): Class<*> =
 
 
 private
-fun WriteContext.projectStateType(type: KClass<*>): ValueSerializer? {
-    logger.warn("instant-execution > Cannot serialize object of type ${type.java.name} as these are not supported with instant execution.")
+fun IsolateContext.projectStateType(type: KClass<*>): ValueSerializer? {
+    logUnsupported(type)
     return null
+}
+
+
+internal
+fun IsolateContext.logUnsupported(type: KClass<*>) {
+    logger.warn("instant-execution > Cannot serialize object of type ${type.java.name} as these are not supported with instant execution.")
 }
 
 
@@ -337,6 +249,20 @@ fun WriteContext.writeLogger(value: Logger) {
 internal
 fun ReadContext.readLogger() =
     LoggerFactory.getLogger(readString())
+
+
+internal
+class DefaultCopySpecCodec(
+    private val fileResolver: FileResolver,
+    private val instantiator: Instantiator
+) : Codec<DefaultCopySpec> {
+
+    override fun WriteContext.encode(value: DefaultCopySpec) =
+        writeDefaultCopySpec(value)
+
+    override fun ReadContext.decode(): DefaultCopySpec =
+        readDefaultCopySpec(fileResolver, instantiator)
+}
 
 
 private
@@ -357,6 +283,19 @@ fun ReadContext.readDefaultCopySpec(fileResolver: FileResolver, instantiator: In
 }
 
 
+internal
+class DestinationRootCopySpecCodec(
+    private val fileResolver: FileResolver
+) : Codec<DestinationRootCopySpec> {
+
+    override fun WriteContext.encode(value: DestinationRootCopySpec) =
+        writeDestinationRootCopySpec(value)
+
+    override fun ReadContext.decode(): DestinationRootCopySpec =
+        readDestinationRootCopySpec(fileResolver)
+}
+
+
 private
 fun WriteContext.writeDestinationRootCopySpec(value: DestinationRootCopySpec) {
     write(value.destinationDir)
@@ -371,6 +310,19 @@ fun ReadContext.readDestinationRootCopySpec(fileResolver: FileResolver): Destina
     val spec = DestinationRootCopySpec(fileResolver, delegate)
     destDir?.let(spec::into)
     return spec
+}
+
+
+internal
+class BeanCodec(
+    private val filePropertyFactory: FilePropertyFactory
+) : Codec<Any> {
+
+    override fun WriteContext.encode(value: Any) =
+        writeBean(value)
+
+    override fun ReadContext.decode(): Any? =
+        readBean(filePropertyFactory)
 }
 
 
@@ -419,20 +371,12 @@ fun newConstructorForSerialization(beanType: Class<*>, constructor: Constructor<
     ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, constructor)
 
 
-private
-fun collectionSerializerFor(tag: Byte): ValueSerializer = writer { value ->
-    require(value is Collection<*>)
-    writeByte(tag)
-    writeCollection(value)
-}
+internal
+fun ReadContext.readList() = readCollectionInto { size -> ArrayList<Any?>(size) }
 
 
-private
-fun mapSerializer(): ValueSerializer = writer { value ->
-    require(value is Map<*, *>)
-    writeByte(MAP_TYPE)
-    writeMap(value)
-}
+internal
+fun ReadContext.readSet() = readCollectionInto { size -> LinkedHashSet<Any?>(size) }
 
 
 internal

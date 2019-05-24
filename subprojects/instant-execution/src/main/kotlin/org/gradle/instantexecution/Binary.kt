@@ -23,6 +23,17 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
 
+/**
+ * Binary encoding of type [T].
+ */
+interface Codec<T> {
+
+    fun WriteContext.encode(value: T)
+
+    fun ReadContext.decode(): T?
+}
+
+
 interface Isolate {
 
     val owner: Task
