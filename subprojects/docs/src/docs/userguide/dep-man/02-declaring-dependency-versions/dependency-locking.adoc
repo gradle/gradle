@@ -1,5 +1,5 @@
 [[dependency-locking]]
-= Dependency locking
+= Locking dependency versions
 
 Use of dynamic dependency versions (e.g. `1.+` or `[1.0,2.0)`) makes builds non-deterministic.
 This causes builds to break without any obvious change, and worse, can be caused by a transitive dependency that the build author has no control over.

@@ -74,4 +74,4 @@ All you need to do is to set the property link:{javadocPath}/org/gradle/api/arti
 [[refreshing-dependencies]]
 === Refreshing dependencies
 
-include::dependency-locking.adoc[]
+include::dependency-locking.adoc[leveloffset=+1]

@@ -37,7 +37,7 @@ Cannot choose between log4j:log4j:1.2.16 and org.slf4j:log4j-over-slf4j:1.7.10 b
 
 It does not, however, choose what component to use for you: detecting a conflict is the first step, then you have to fix it.
 
-include::feature-variants.adoc[]
+include::feature-variants.adoc[leveloffset=+1]
 
 [[understanding-variant-selection]]
 == Understanding variant selection

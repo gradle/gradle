@@ -60,9 +60,9 @@ Learn more in <<inspecting_dependencies.adoc#inspecting_dependencies,Inspecting 
 .Build scan dependencies report
 image::gradle-core-test-build-scan-dependencies.png[]
 
-include::declaring-repositories.adoc[]
+include::declaring-repositories.adoc[leveloffset=+1]
 
-include::declaring-dependencies.adoc[]
+include::declaring-dependencies.adoc[leveloffset=+1]
 
 [[understanding-diff-libraries-and-apps]]
 == Understanding difference between libraries and applications
@@ -79,4 +79,4 @@ include::declaring-dependencies.adoc[]
 [[being-respectful-consumers]]
 === Being respectful of consumers
 
-include::viewing-debugging-dependencies.adoc[]
+include::viewing-debugging-dependencies.adoc[leveloffset=+1]

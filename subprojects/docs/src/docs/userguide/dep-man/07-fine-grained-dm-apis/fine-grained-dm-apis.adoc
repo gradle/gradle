@@ -57,9 +57,9 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDyn
 [[artifact-resolution-queries]]
 == Artifact resolution queries
 
-include::artifact-transforms.adoc[]
+include::artifact-transforms.adoc[leveloffset=+1]
 
-include::variant-aware-plugins.adoc[]
+include::variant-aware-plugins.adoc[leveloffset=+1]
 
 [[adding-new-attributes]]
 === Adding new attributes

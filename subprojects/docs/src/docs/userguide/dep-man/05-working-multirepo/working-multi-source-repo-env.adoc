@@ -4,7 +4,7 @@
 [[refactoring-binary-dep]]
 == Refactoring a binary dependency within the build
 
-include::composite-builds.adoc[]
+include::composite-builds.adoc[leveloffset=+1]
 
 [[integrating-source-dependencies]]
 == Integrating source dependencies
