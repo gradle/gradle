@@ -38,7 +38,7 @@ public interface TransformOutputs {
      *
      * <p>
      *     For an <strong>absolute path</strong>, the location is registered as an output directory of the {@link TransformAction}.
-     *     The path is required to point to the {@link InputArtifact}, or point inside the input artifact if it is a directory.
+     *     The path must to point to the {@link InputArtifact}, or point inside the input artifact if it is a directory.
      *     Example:
      * </p>
      * <pre class='autoTested'>
@@ -56,8 +56,7 @@ public interface TransformOutputs {
      * </pre>
      *
      * <p>
-     *     For a <strong>relative path</strong>, a location for the output directory is provided by Gradle, so that the {@link TransformAction} can produce its outputs at that location.
-     *     The directory is created automatically when calling the method.
+     *     For a <strong>relative path</strong>, Gradle creates an output directory into which the {@link TransformAction} must place its output files.
      *     Example:
      * </p>
      * <pre class='autoTested'>

@@ -45,13 +45,17 @@ import javax.inject.Inject;
  * }
  * </pre>
  *
+ * Implementations of TransformAction are subject to the following constraints:
  * <ul>
  *     <li>Do not implement {@link #getParameters()} in your class, the method will be implemented by Gradle.</li>
  *     <li>Implementations may only have a default constructor.</li>
- *     <li>Implementations can receive parameters by using annotated abstract getter methods.</li>
- *     <li>A property annotated with {@link InputArtifact} will receive the <em>input artifact</em> location, which is the file or directory that the transform should be applied to.</li>
- *     <li>A property annotated with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its input artifact.</li>
  * </ul>
+ *
+ *  Implementations can receive parameters by using annotated abstract getter methods.
+ *  <ul>
+ *      <li>An abstract getter annotated with {@link InputArtifact} will receive the <em>input artifact</em> location, which is the file or directory that the transform should be applied to.</li>
+ *      <li>An abstract getter with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its input artifact.</li>
+ *  </ul>
  *
  * @param <T> Parameter type for the transform action. Should be {@link TransformParameters.None} if the action does not have parameters.
  * @since 5.3
