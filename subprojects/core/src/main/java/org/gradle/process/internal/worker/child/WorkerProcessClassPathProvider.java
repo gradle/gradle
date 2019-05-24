@@ -74,6 +74,35 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
     private ClassPath workerClassPath;
     private PersistentCache workerClassPathCache;
 
+    public static final String[] RUNTIME_MODULES = new String[] {
+            "gradle-core-api",
+            "gradle-core-api",
+            "gradle-core",
+            "gradle-logging",
+            "gradle-messaging",
+            "gradle-base-services",
+            "gradle-cli",
+            "gradle-native",
+            "gradle-dependency-management",
+            "gradle-workers",
+            "gradle-process-services",
+            "gradle-persistent-cache",
+            "gradle-model-core",
+            "gradle-jvm-services",
+            "gradle-files"
+    };
+
+    public static final String[] RUNTIME_EXTERNAL_MODULES = new String[] {
+            "slf4j-api",
+            "jul-to-slf4j",
+            "native-platform",
+            "kryo",
+            "commons-lang",
+            "guava",
+            "javax.inject",
+            "groovy-all"
+    };
+
     public WorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         this.cacheRepository = cacheRepository;
         this.moduleRegistry = moduleRegistry;
@@ -93,11 +122,25 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                 return workerClassPath;
             }
         }
-        if (name.equals("WORKER_RUNTIME")) {
+
+        // Gradle core plus worker implementation classes
+        if (name.equals("CORE_WORKER_RUNTIME")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getModule("gradle-core").getAllRequiredModulesClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getAllRequiredModulesClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-workers").getAllRequiredModulesClasspath());
+            return classpath;
+        }
+
+        // Just the minimal stuff necessary for the worker infrastructure
+        if (name.equals("MINIMUM_WORKER_RUNTIME")) {
+            ClassPath classpath = ClassPath.EMPTY;
+            for (String module : RUNTIME_MODULES) {
+                classpath = classpath.plus(moduleRegistry.getModule(module).getImplementationClasspath());
+            }
+            for (String externalModule : RUNTIME_EXTERNAL_MODULES) {
+                classpath = classpath.plus(moduleRegistry.getExternalModule(externalModule).getImplementationClasspath());
+            }
             return classpath;
         }
 

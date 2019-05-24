@@ -136,7 +136,6 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
 
     @Override
     public MultiRequestWorkerProcessBuilder useApplicationClassloaderOnly() {
-        workerProcessBuilder.applicationClasspath(implementationClasspath.getAsFiles());
         workerProcessBuilder.setImplementationClasspath(Collections.<URL>emptyList());
         return this;
     }

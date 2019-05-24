@@ -61,10 +61,10 @@ public class WorkerDaemonServer implements WorkerProtocol {
 
     private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure) {
         if (isolatedClassloaderWorker == null) {
-            ClassLoaderRegistry classLoaderRegistry = serviceRegistry.get(ClassLoaderRegistry.class);
             if (classLoaderStructure.isFlat()) {
-                isolatedClassloaderWorker = new FlatClassLoaderWorker(classLoaderRegistry.getRuntimeClassLoader(), serviceRegistry);
+                isolatedClassloaderWorker = new FlatClassLoaderWorker(this.getClass().getClassLoader(), serviceRegistry);
             } else {
+                ClassLoaderRegistry classLoaderRegistry = serviceRegistry.get(ClassLoaderRegistry.class);
                 isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, classLoaderRegistry.getWorkerPluginsClassLoader(), serviceRegistry, true);
             }
         }

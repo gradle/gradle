@@ -54,11 +54,13 @@ public class WorkerDaemonStarter {
         MultiRequestWorkerProcessBuilder<WorkerDaemonProcess> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonProcess.class, WorkerProtocol.class, workerProtocolImplementationClass);
         builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
-        builder.applicationClasspath(classPathRegistry.getClassPath("WORKER_RUNTIME").getAsFiles());
         builder.sharedPackages("org.gradle", "javax.inject");
         if (forkOptions.getClassLoaderStructure().isFlat()) {
+            builder.applicationClasspath(classPathRegistry.getClassPath("MINIMUM_WORKER_RUNTIME").getAsFiles());
             builder.useApplicationClassloaderOnly();
             builder.applicationClasspath(toFiles((VisitableURLClassLoader.Spec)forkOptions.getClassLoaderStructure().getSpec()));
+        } else {
+            builder.applicationClasspath(classPathRegistry.getClassPath("CORE_WORKER_RUNTIME").getAsFiles());
         }
         builder.onProcessFailure(cleanupAction);
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
