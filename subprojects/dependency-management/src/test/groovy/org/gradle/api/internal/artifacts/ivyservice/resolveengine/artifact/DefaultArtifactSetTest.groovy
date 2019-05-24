@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -28,7 +27,6 @@ import spock.lang.Specification
 
 class DefaultArtifactSetTest extends Specification {
     def componentId = Stub(ComponentIdentifier)
-    def exclusions = Stub(ModuleExclusions)
     def schema = Stub(AttributesSchemaInternal)
     def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
 

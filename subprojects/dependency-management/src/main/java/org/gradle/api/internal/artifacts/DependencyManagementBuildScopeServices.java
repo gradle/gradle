@@ -60,7 +60,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
@@ -167,10 +166,6 @@ class DependencyManagementBuildScopeServices {
 
     BuildCommencedTimeProvider createBuildTimeProvider() {
         return new BuildCommencedTimeProvider();
-    }
-
-    ModuleExclusions createModuleExclusions() {
-        return new ModuleExclusions();
     }
 
     MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -316,7 +311,6 @@ class DependencyManagementBuildScopeServices {
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
                                                                 ProjectDependencyResolver projectDependencyResolver,
-                                                                ModuleExclusions moduleExclusions,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ComponentSelectorConverter componentSelectorConverter,
                                                                 ImmutableAttributesFactory attributesFactory,
@@ -330,7 +324,6 @@ class DependencyManagementBuildScopeServices {
             resolveIvyFactory,
             dependencyDescriptorFactory,
             versionComparator,
-            moduleExclusions,
             componentSelectorConverter,
             attributesFactory,
             versionSelectorScheme,

@@ -31,7 +31,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -85,7 +84,6 @@ public class DependencyGraphBuilder {
     private final AttributesSchemaInternal attributesSchema;
     private final ModuleExclusions moduleExclusions;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ModuleReplacementsData moduleReplacementsData;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final ImmutableAttributesFactory attributesFactory;
@@ -101,9 +99,7 @@ public class DependencyGraphBuilder {
                                   CapabilitiesConflictHandler capabilitiesConflictHandler,
                                   Spec<? super DependencyMetadata> edgeFilter,
                                   AttributesSchemaInternal attributesSchema,
-                                  ModuleExclusions moduleExclusions,
                                   BuildOperationExecutor buildOperationExecutor,
-                                  ModuleReplacementsData moduleReplacementsData,
                                   DependencySubstitutionApplicator dependencySubstitutionApplicator,
                                   ComponentSelectorConverter componentSelectorConverter,
                                   ImmutableAttributesFactory attributesFactory,
@@ -116,9 +112,8 @@ public class DependencyGraphBuilder {
         this.moduleConflictHandler = moduleConflictHandler;
         this.edgeFilter = edgeFilter;
         this.attributesSchema = attributesSchema;
-        this.moduleExclusions = moduleExclusions;
+        this.moduleExclusions = new ModuleExclusions();
         this.buildOperationExecutor = buildOperationExecutor;
-        this.moduleReplacementsData = moduleReplacementsData;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
