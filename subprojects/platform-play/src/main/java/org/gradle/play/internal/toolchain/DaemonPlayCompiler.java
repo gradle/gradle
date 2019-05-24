@@ -80,6 +80,9 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
         // Guava
         gradleApiAndPlaySpec.allowPackage("com.google");
 
+        // Apache commons
+        gradleApiAndPlaySpec.allowPackage("org.apache.commons.lang");
+
         return gradleApiAndPlaySpec;
     }
 }
