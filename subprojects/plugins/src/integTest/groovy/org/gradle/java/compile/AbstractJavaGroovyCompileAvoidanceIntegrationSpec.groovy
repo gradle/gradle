@@ -1175,6 +1175,7 @@ public @interface MyAnnotation { }
         then:
         succeeds ":b:compileGroovy"
         outputContains('Hello from AST transformation!')
+        outputContains('Groovy compilation avoidance is an incubating feature')
         executedAndNotSkipped ":a:compileGroovy"
         executedAndNotSkipped ":b:compileGroovy"
 
@@ -1226,6 +1227,7 @@ public @interface MyAnnotation { }
         then:
         succeeds ":b:compileGroovy"
         outputContains('Hello from AST transformation!')
+        outputContains('Groovy compilation avoidance is an incubating feature')
         executedAndNotSkipped ":a:compileGroovy"
         executedAndNotSkipped ":b:compileGroovy"
 
