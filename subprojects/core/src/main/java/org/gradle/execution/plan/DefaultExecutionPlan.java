@@ -619,12 +619,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private void updateAllDependenciesCompleteForPredecessors(Node node) {
+        LOGGER.debug("Updating dependencies for nodes depending on {}", node);
         for (Node predecessor : node.getAllPredecessors()) {
             boolean becameComplete = predecessor.updateAllDependenciesComplete();
             boolean isReady = predecessor.isReady();
-            if (!maybeNodesReady && predecessor.allDependenciesComplete()) {
-                LOGGER.debug("Dependencies for node {} are completed, node is ready: {}, dependencies completed now: {}", node, isReady, becameComplete);
-            }
+            LOGGER.debug("Dependencies for node {} are completed: {}, node is ready: {}, dependencies completed now: {}", predecessor, predecessor.allDependenciesComplete(), isReady, becameComplete);
             maybeNodesReady |= becameComplete && isReady;
         }
     }

@@ -20,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -30,6 +32,7 @@ import java.util.Set;
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
  */
 public abstract class Node implements Comparable<Node> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Node.class);
 
     @VisibleForTesting
     enum ExecutionState {
@@ -174,12 +177,15 @@ public abstract class Node implements Comparable<Node> {
 
     @OverridingMethodsMustInvokeSuper
     protected boolean doCheckDependenciesComplete() {
+        LOGGER.debug("Checking if all dependencies are complete for {}", this);
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
+                LOGGER.debug("Dependency {} for {} not yet completed", dependency, this);
                 return false;
             }
         }
 
+        LOGGER.debug("All dependencies are complete for {}", this);
         return true;
     }
 
