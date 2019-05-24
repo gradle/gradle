@@ -146,6 +146,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
+    public boolean isToolingApiStdinInEmbeddedModeSupported() {
+        return isSameOrNewer("5.6-rc-1");
+    }
+
+    @Override
     public CacheVersion getArtifactCacheLayoutVersion() {
         if (isSameOrNewer("1.9-rc-2")) {
             return CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(this.version).get();
