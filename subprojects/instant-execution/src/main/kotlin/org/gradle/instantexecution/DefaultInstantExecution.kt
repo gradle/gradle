@@ -223,7 +223,7 @@ class DefaultInstantExecution(
         val taskType = GeneratedSubclasses.unpack(task.javaClass)
         writeString(task.project.path)
         writeString(task.name)
-        writeString(taskType.name)
+        writeClass(taskType)
         writeStrings(dependencies.map { it.path })
 
         withIsolate(task) {
@@ -237,10 +237,9 @@ class DefaultInstantExecution(
     fun MutableReadContext.readTask(): Pair<Task, List<String>> {
         val projectPath = readString()
         val taskName = readString()
-        val typeName = readString()
+        val taskType = readClass().asSubclass(Task::class.java)
         val taskDependencies = readStrings()
 
-        val taskType = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
         val task = createTask(projectPath, taskName, taskType)
 
         withIsolate(task) {
