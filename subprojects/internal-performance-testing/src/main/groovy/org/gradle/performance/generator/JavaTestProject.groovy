@@ -30,6 +30,7 @@ enum JavaTestProject {
     LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", GROOVY, 50000, 0, '1536m', '4g', false, [assemble: productionFile('largeMonolithicJavaProject', -1), test: productionFile('largeMonolithicJavaProject', -1)]),
     LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", GROOVY, 100, 500, '1536m', '256m', false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
     LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL("largeJavaMultiProjectKotlinDsl", KOTLIN, 100, 500, '1536m', '256m', false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
+    LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC("largeJavaMultiProjectNoBuildSrc", GROOVY, false, 100, 500, '1536m', '256m', false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
 
     MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", GROOVY, 10000, 0, '512m', '1g', false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
     MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", GROOVY, 100, 100, '512m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
@@ -38,6 +39,7 @@ enum JavaTestProject {
     MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", GROOVY, 100, 100, '512m', '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]),
 
     SMALL_JAVA_MULTI_PROJECT("smallJavaMultiProject", GROOVY, 50, 10, '256m', '64m', false, [assemble: productionFile('smallJavaMultiProject')]),
+    SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC("smallJavaMultiProjectNoBuildSrc", GROOVY, false, 50, 10, '256m', '64m', false, [assemble: productionFile('smallJavaMultiProject')]),
 
     private TestProjectGeneratorConfiguration config
 
