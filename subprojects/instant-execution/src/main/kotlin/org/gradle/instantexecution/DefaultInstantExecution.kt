@@ -388,7 +388,7 @@ fun Decoder.readStrings(): List<String> =
     }
 
 
-private
+internal
 fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
     writeSmallInt(collection.size)
     for (element in collection) {
@@ -397,7 +397,7 @@ fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> 
 }
 
 
-private
+internal
 fun Decoder.readCollection(readElement: () -> Unit) {
     val size = readSmallInt()
     for (i in 0 until size) {
@@ -406,8 +406,11 @@ fun Decoder.readCollection(readElement: () -> Unit) {
 }
 
 
-private
-inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(containerForSize: (Int) -> C, readElement: () -> T): C {
+internal
+inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
+    containerForSize: (Int) -> C,
+    readElement: () -> T
+): C {
     val size = readSmallInt()
     val container = containerForSize(size)
     for (i in 0 until size) {

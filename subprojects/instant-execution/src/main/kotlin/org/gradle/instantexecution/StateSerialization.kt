@@ -85,7 +85,7 @@ import kotlin.reflect.KClass
 
 
 class StateSerialization(
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory,
+    directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val fileCollectionFactory: FileCollectionFactory,
     private val fileResolver: FileResolver,
     private val instantiator: Instantiator,
@@ -122,7 +122,7 @@ class StateSerialization(
     val booleanSerializer = BaseSerializerFactory.BOOLEAN_SERIALIZER
 
     private
-    val fileTreeSerializer = FileTreeSerializer()
+    val fileTreeSerializer = FileTreeSerializer(fileSetSerializer, directoryFileTreeFactory)
 
     fun newSerializer(): StateSerializer =
         DefaultStateSerializer()
@@ -180,17 +180,17 @@ class StateSerialization(
             is Class<*> -> writer { value ->
                 require(value is Class<*>)
                 writeByte(CLASS_TYPE)
-                writeString(value.name)
+                writeClass(value)
             }
             is List<*> -> collectionSerializerFor(LIST_TYPE)
             is Set<*> -> collectionSerializerFor(SET_TYPE)
             // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
-            is HashMap<*, *> -> mapSerializerFor()
-            is LinkedHashMap<*, *> -> mapSerializerFor()
+            is HashMap<*, *> -> mapSerializer()
+            is LinkedHashMap<*, *> -> mapSerializer()
             is Logger -> writer { value ->
                 require(value is Logger)
                 writeByte(LOGGER_TYPE)
-                writeString(value.name)
+                writeLogger(value)
             }
             is FileCollection -> writer { value ->
                 require(value is FileCollection)
@@ -220,8 +220,16 @@ class StateSerialization(
                 require(value is FileCollectionFactory)
                 writeByte(FILE_COLLECTION_FACTORY_TYPE)
             }
-            is DefaultCopySpec -> defaultCopySpecSerializerFor()
-            is DestinationRootCopySpec -> destinationRootCopySpecSerializerFor()
+            is DefaultCopySpec -> writer { value ->
+                require(value is DefaultCopySpec)
+                writeByte(DEFAULT_COPY_SPEC)
+                writeDefaultCopySpec(value)
+            }
+            is DestinationRootCopySpec -> writer { value ->
+                require(value is DestinationRootCopySpec)
+                writeByte(DESTINATION_ROOT_COPY_SPEC)
+                writeDestinationRootCopySpec(value)
+            }
             is Project -> projectStateType(Project::class)
             is Gradle -> projectStateType(Gradle::class)
             is Settings -> projectStateType(Settings::class)
@@ -237,67 +245,10 @@ class StateSerialization(
                 require(value is FileOperations)
                 writeByte(FILE_OPERATIONS_TYPE)
             }
-            else -> beanSerializerFor()
-        }
-
-        private
-        fun WriteContext.projectStateType(type: KClass<*>): ValueSerializer? {
-            LoggerFactory.getLogger(StateSerialization::class.java).warn("instant-execution > Cannot serialize object of type ${type.java.name} as these are not supported with instant execution.")
-            return null
-        }
-
-        private
-        fun WriteContext.defaultCopySpecSerializerFor(): ValueSerializer = writer { value ->
-            require(value is DefaultCopySpec)
-            val allSourcePaths = ArrayList<File>()
-            collectSourcePathsFrom(value, allSourcePaths)
-            writeByte(DEFAULT_COPY_SPEC)
-            write(allSourcePaths)
-        }
-
-        private
-        fun WriteContext.destinationRootCopySpecSerializerFor(): ValueSerializer = writer { value ->
-            require(value is DestinationRootCopySpec)
-            writeByte(DESTINATION_ROOT_COPY_SPEC)
-            write(value.destinationDir)
-            write(value.delegate)
-        }
-
-        private
-        fun WriteContext.beanSerializerFor(): ValueSerializer = writer { value ->
-            require(value != null)
-            writeByte(BEAN)
-            val id = isolate.identities.getId(value)
-            if (id != null) {
-                writeSmallInt(id)
-            } else {
-                writeSmallInt(isolate.identities.putInstance(value))
-                val beanType = GeneratedSubclasses.unpackType(value)
-                writeString(beanType.name)
-                BeanFieldSerializer(beanType).run {
-                    serialize(value)
-                }
-            }
-        }
-
-        private
-        fun WriteContext.collectionSerializerFor(tag: Byte): ValueSerializer = writer { value ->
-            require(value is Collection<*>)
-            writeByte(tag)
-            writeSmallInt(value.size)
-            for (item in value) {
-                write(item)
-            }
-        }
-
-        private
-        fun WriteContext.mapSerializerFor(): ValueSerializer = writer { value ->
-            require(value is Map<*, *>)
-            writeByte(MAP_TYPE)
-            writeSmallInt(value.size)
-            for (entry in value.entries) {
-                write(entry.key)
-                write(entry.value)
+            else -> writer { value ->
+                require(value != null)
+                writeByte(BEAN)
+                writeBean(value)
             }
         }
     }
@@ -316,13 +267,11 @@ class StateSerialization(
             DOUBLE_TYPE -> doubleSerializer.read(this)
             FLOAT_TYPE -> floatSerializer.read(this)
             FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(this)
-            CLASS_TYPE -> taskClassLoader.loadClass(readString())
-            LIST_TYPE -> deserializeCollection { ArrayList<Any?>(it) }
-            SET_TYPE -> deserializeCollection { LinkedHashSet<Any?>(it) }
-            MAP_TYPE -> deserializeMap()
-            LOGGER_TYPE -> {
-                LoggerFactory.getLogger(readString())
-            }
+            CLASS_TYPE -> readClass()
+            LIST_TYPE -> readCollectionInto { size -> ArrayList<Any?>(size) }
+            SET_TYPE -> readCollectionInto { size -> LinkedHashSet<Any?>(size) }
+            MAP_TYPE -> readMap()
+            LOGGER_TYPE -> readLogger()
             THIS_TASK -> isolate.owner
             FILE_TREE_TYPE -> fileTreeSerializer.read(this)
             FILE_COLLECTION_TYPE -> fileCollectionFactory.fixed(fileSetSerializer.read(this))
@@ -332,76 +281,218 @@ class StateSerialization(
             INSTANTIATOR_TYPE -> instantiator
             PATTERN_SPEC_FACTORY_TYPE -> patternSpecFactory
             FILE_COLLECTION_FACTORY_TYPE -> fileCollectionFactory
-            FILE_OPERATIONS_TYPE -> (isolate.owner.project as ProjectInternal).services.get(FileOperations::class.java)
-            DEFAULT_COPY_SPEC -> deserializeDefaultCopySpec()
-            DESTINATION_ROOT_COPY_SPEC -> deserializeDestinationRootCopySpec()
-            BEAN -> deserializeBean()
+            FILE_OPERATIONS_TYPE -> readProjectService<FileOperations>()
+            DEFAULT_COPY_SPEC -> readDefaultCopySpec(fileResolver, instantiator)
+            DESTINATION_ROOT_COPY_SPEC -> readDestinationRootCopySpec(fileResolver)
+            BEAN -> readBean(filePropertyFactory)
             else -> throw UnsupportedOperationException()
         }
+    }
+}
 
-        private
-        fun ReadContext.deserializeBean(): Any {
-            val id = readSmallInt()
-            val previousValue = isolate.identities.getInstance(id)
-            if (previousValue != null) {
-                return previousValue
-            }
-            val beanTypeName = readString()
-            val beanType = taskClassLoader.loadClass(beanTypeName)
-            val constructor = if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
-                // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
-                newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
-            } else {
-                newConstructorForSerialization(beanType, Object::class.java.getConstructor())
-            }
-            val bean = constructor.newInstance()
-            isolate.identities.putInstance(id, bean)
-            BeanFieldDeserializer(bean.javaClass, filePropertyFactory).run {
-                deserialize(bean)
-            }
-            return bean
-        }
 
-        private
-        fun ReadContext.deserializeDestinationRootCopySpec(): DestinationRootCopySpec {
-            val destDir = read() as? File
-            val delegate = read() as CopySpecInternal
-            val spec = DestinationRootCopySpec(fileResolver, delegate)
-            destDir?.let(spec::into)
-            return spec
-        }
+private
+fun <T> Encoder.writeWithTag(tag: Byte, serializer: Serializer<T>, value: T) {
+    writeByte(tag)
+    serializer.write(this, value)
+}
 
-        private
-        fun ReadContext.deserializeDefaultCopySpec(): DefaultCopySpec {
-            @Suppress("unchecked_cast")
-            val sourceFiles = read() as List<File>
-            val copySpec = DefaultCopySpec(fileResolver, instantiator)
-            copySpec.from(sourceFiles)
-            return copySpec
+
+private
+inline fun <reified T> ReadContext.readProjectService() =
+    ownerProject
+        .services
+        .get(T::class.java)
+
+
+internal
+val IsolateContext.ownerProject
+    get() = (isolate.owner.project as ProjectInternal)
+
+
+internal
+fun WriteContext.writeClass(value: Class<*>) {
+    writeString(value.name)
+}
+
+
+internal
+fun ReadContext.readClass(): Class<*> =
+    taskClassLoader.loadClass(readString())
+
+
+private
+fun WriteContext.projectStateType(type: KClass<*>): ValueSerializer? {
+    logger.warn("instant-execution > Cannot serialize object of type ${type.java.name} as these are not supported with instant execution.")
+    return null
+}
+
+
+internal
+fun WriteContext.writeLogger(value: Logger) {
+    writeString(value.name)
+}
+
+
+internal
+fun ReadContext.readLogger() =
+    LoggerFactory.getLogger(readString())
+
+
+private
+fun WriteContext.writeDefaultCopySpec(value: DefaultCopySpec) {
+    val allSourcePaths = ArrayList<File>()
+    collectSourcePathsFrom(value, allSourcePaths)
+    write(allSourcePaths)
+}
+
+
+private
+fun ReadContext.readDefaultCopySpec(fileResolver: FileResolver, instantiator: Instantiator): DefaultCopySpec {
+    @Suppress("unchecked_cast")
+    val sourceFiles = read() as List<File>
+    val copySpec = DefaultCopySpec(fileResolver, instantiator)
+    copySpec.from(sourceFiles)
+    return copySpec
+}
+
+
+private
+fun WriteContext.writeDestinationRootCopySpec(value: DestinationRootCopySpec) {
+    write(value.destinationDir)
+    write(value.delegate)
+}
+
+
+private
+fun ReadContext.readDestinationRootCopySpec(fileResolver: FileResolver): DestinationRootCopySpec {
+    val destDir = read() as? File
+    val delegate = read() as CopySpecInternal
+    val spec = DestinationRootCopySpec(fileResolver, delegate)
+    destDir?.let(spec::into)
+    return spec
+}
+
+
+private
+fun WriteContext.writeBean(value: Any) {
+    val id = isolate.identities.getId(value)
+    if (id != null) {
+        writeSmallInt(id)
+    } else {
+        writeSmallInt(isolate.identities.putInstance(value))
+        val beanType = GeneratedSubclasses.unpackType(value)
+        writeString(beanType.name)
+        BeanFieldSerializer(beanType).run {
+            serialize(value)
         }
     }
+}
+
+
+private
+fun ReadContext.readBean(filePropertyFactory: FilePropertyFactory): Any {
+    val id = readSmallInt()
+    val previousValue = isolate.identities.getInstance(id)
+    if (previousValue != null) {
+        return previousValue
+    }
+    val beanType = readClass()
+    val constructor = if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
+        // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
+        newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
+    } else {
+        newConstructorForSerialization(beanType, Object::class.java.getConstructor())
+    }
+    val bean = constructor.newInstance()
+    isolate.identities.putInstance(id, bean)
+    BeanFieldDeserializer(bean.javaClass, filePropertyFactory).run {
+        deserialize(bean)
+    }
+    return bean
+}
+
+
+// TODO: What about the runtime decorations a serialized bean might have had at configuration time?
+private
+fun newConstructorForSerialization(beanType: Class<*>, constructor: Constructor<*>): Constructor<out Any> =
+    ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, constructor)
+
+
+private
+fun collectionSerializerFor(tag: Byte): ValueSerializer = writer { value ->
+    require(value is Collection<*>)
+    writeByte(tag)
+    writeCollection(value)
+}
+
+
+private
+fun mapSerializer(): ValueSerializer = writer { value ->
+    require(value is Map<*, *>)
+    writeByte(MAP_TYPE)
+    writeMap(value)
+}
+
+
+internal
+fun WriteContext.writeCollection(value: Collection<*>) {
+    writeCollection(value) { write(it) }
+}
+
+
+internal
+fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory: (Int) -> T): T =
+    readCollectionInto(factory) { read() }
+
+
+internal
+fun WriteContext.writeMap(value: Map<*, *>) {
+    writeSmallInt(value.size)
+    for (entry in value.entries) {
+        write(entry.key)
+        write(entry.value)
+    }
+}
+
+
+internal
+fun ReadContext.readMap(): Map<Any?, Any?> {
+    val size = readSmallInt()
+    val items = LinkedHashMap<Any?, Any?>()
+    for (i in 0 until size) {
+        val key = read()
+        val value = read()
+        items[key] = value
+    }
+    return items
+}
+
+
+private
+class FileTreeSerializer(
+    private val fileSetSerializer: SetSerializer<File>,
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory
+) : Serializer<FileTreeInternal> {
+
+    override fun write(encoder: Encoder, value: FileTreeInternal) {
+        fileSetSerializer.write(encoder, fileTreeRootsOf(value))
+    }
+
+    override fun read(decoder: Decoder): FileTreeInternal =
+        DefaultCompositeFileTree(
+            fileSetSerializer.read(decoder).map {
+                FileTreeAdapter(directoryFileTreeFactory.create(it))
+            }
+        )
 
     private
-    inner class FileTreeSerializer : Serializer<FileTreeInternal> {
-
-        override fun read(decoder: Decoder): FileTreeInternal =
-            DefaultCompositeFileTree(
-                fileSetSerializer.read(decoder).map {
-                    FileTreeAdapter(directoryFileTreeFactory.create(it))
-                }
-            )
-
-        override fun write(encoder: Encoder, value: FileTreeInternal) {
-            fileSetSerializer.write(encoder, fileTreeRootsOf(value))
-        }
-
-        private
-        fun fileTreeRootsOf(value: FileTreeInternal): LinkedHashSet<File> {
-            val visitor = FileTreeVisitor()
-            value.visitLeafCollections(visitor)
-            return visitor.roots
-        }
+    fun fileTreeRootsOf(value: FileTreeInternal): LinkedHashSet<File> {
+        val visitor = FileTreeVisitor()
+        value.visitLeafCollections(visitor)
+        return visitor.roots
     }
+
 
     private
     class FileTreeVisitor : FileCollectionLeafVisitor {
@@ -417,42 +508,6 @@ class StateSerialization(
             roots.add(root)
         }
     }
-}
-
-
-private
-fun <T> Encoder.writeWithTag(tag: Byte, serializer: Serializer<T>, value: T) {
-    writeByte(tag)
-    serializer.write(this, value)
-}
-
-
-private
-fun newConstructorForSerialization(beanType: Class<*>, constructor: Constructor<*>): Constructor<out Any> =
-    ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, constructor)
-
-
-private
-fun <T : MutableCollection<Any?>> ReadContext.deserializeCollection(factory: (Int) -> T): T {
-    val size = readSmallInt()
-    val items = factory(size)
-    for (i in 0 until size) {
-        items.add(read())
-    }
-    return items
-}
-
-
-private
-fun ReadContext.deserializeMap(): Map<Any?, Any?> {
-    val size = readSmallInt()
-    val items = LinkedHashMap<Any?, Any?>()
-    for (i in 0 until size) {
-        val key = read()
-        val value = read()
-        items[key] = value
-    }
-    return items
 }
 
 
