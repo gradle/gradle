@@ -393,7 +393,7 @@ apply plugin: "checkstyle"
 ${mavenCentralRepository()}
 
 dependencies {
-    compile localGroovy()
+    implementation localGroovy()
 }
 
 checkstyle {

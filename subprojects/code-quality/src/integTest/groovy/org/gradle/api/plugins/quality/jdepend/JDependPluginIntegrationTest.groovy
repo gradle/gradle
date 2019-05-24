@@ -83,7 +83,7 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             apply plugin: 'groovy'
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
         """
         file("src/main/groovy/org/gradle/Groovy1.groovy") << """

@@ -212,7 +212,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
         """.stripIndent()
     }

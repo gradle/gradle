@@ -42,7 +42,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
             }
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
         """.stripIndent()
 
