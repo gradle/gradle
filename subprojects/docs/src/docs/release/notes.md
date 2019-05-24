@@ -29,6 +29,10 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
+See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+
 <a name="artifact-transforms"/>
 
 ## Transforming dependency artifacts on resolution
@@ -115,29 +119,6 @@ The following are the features that have been promoted in this Gradle release.
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
-
-## Deprecations
-
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 6.0). See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
-
-### Deprecated plugins
-
-#### Play
-
-The built-in [Play plugin](userguide/play_plugin.html) has been deprecated and replaced by a new [Playframework plugin](https://gradle.github.io/playframework) available from the plugin portal.
-
-#### Build Comparison
-
-The [build comparison](userguide/comparing_builds.html) plugin has been deprecated without replacement.
-
-## Breaking changes and potential breaking changes
-
-See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about breaking changes and considerations when upgrading to Gradle @version@.
-
-<!-- Do not add breaking changes here! Add them to the upgrade guide instead. --> 
 
 ## External contributions
 
