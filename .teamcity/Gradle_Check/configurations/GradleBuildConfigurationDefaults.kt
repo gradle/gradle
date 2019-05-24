@@ -123,7 +123,7 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
                     "-PteamCityPassword=%teamcity.password.restbot%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { configurations.buildScanTag(it) } +
-                    "-PonlyPreviousFailedTests=true" +
+                    "-PonlyPreviousFailedTestClasses=true" +
                     "-Dscan.tag.RERUN_TESTS" +
                     "-PgithubToken=%github.ci.oauth.token%"
                 ).joinToString(separator = " ")
