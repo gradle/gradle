@@ -147,8 +147,9 @@ class DefaultWriteContext(
     override val isolate: WriteIsolate
         get() = getIsolate()
 
-    override fun writerFor(value: Any?): ValueSerializer? =
-        serializer.run { serializerFor(value) }
+    override fun writerFor(value: Any?): ValueSerializer? = serializer.run {
+        serializerFor(value)
+    }
 
     // TODO: consider interning strings
     override fun writeString(string: CharSequence) =
