@@ -31,7 +31,7 @@ class GroovyDocStampsIntegrationTest extends MultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "org.codehaus.groovy:groovy:${version}"
+                implementation "org.codehaus.groovy:groovy:${version}"
             }
 
             // coverage for false case(s) handled by GroovyDocIntegrationTest

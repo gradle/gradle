@@ -145,7 +145,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         buildB.buildFile << """
             project(":foo") {
                 dependencies {
-                    compile project(":bar")
+                    implementation project(":bar")
                 }
             }
         """
@@ -170,7 +170,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         buildB.buildFile << """
             project(":foo") {
                 dependencies {
-                    compile project(":bar")
+                    implementation project(":bar")
                 }
             }
         """
