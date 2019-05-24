@@ -295,7 +295,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
     }
 
-    private void publish(ModuleComponentArtifactMetadata artifact, File src) {
+    public void publish(ModuleComponentArtifactMetadata artifact, File src) {
         ResourcePattern destinationPattern;
         if ("ivy".equals(artifact.getName().getType()) && !ivyPatterns.isEmpty()) {
             destinationPattern = ivyPatterns.get(0);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.publisher
+package org.gradle.api.internal.artifacts.repositories.transport
 
 import org.apache.http.conn.HttpHostConnectException
 import org.gradle.api.UncheckedIOException
@@ -25,7 +25,7 @@ import spock.lang.Unroll
 @Unroll
 class NetworkOperationBackOffAndRetryTest extends Specification {
 
-    def 'retries operation if transient network issue - #ex'() {
+    def 'retries operation on transient network issue and fails after max attempts - #ex'() {
         when:
         int attempts = 0
         Runnable operation = {
@@ -53,7 +53,32 @@ class NetworkOperationBackOffAndRetryTest extends Specification {
         ]
     }
 
-    def 'does not retry operation if not transient network issue - #ex'() {
+    def 'retries operation on transient network issue and succeeds on subsequent attempt - #ex'() {
+        when:
+        int attempts = 0
+        Runnable operation = {
+            attempts++
+            if (attempts < 3) {
+                throw ex
+            }
+        }
+        NetworkOperationBackOffAndRetry executer = new NetworkOperationBackOffAndRetry(3, 1)
+        executer.withBackoffAndRetry(operation)
+
+        then:
+        attempts == 3
+        noExceptionThrown()
+
+        where:
+        ex << [
+                new SocketTimeoutException("something went wrong"),
+                new HttpHostConnectException(new IOException("something went wrong"), null, null),
+                new HttpErrorStatusCodeException("something", "something", 503, "something"),
+                new RuntimeException("with cause", new SocketTimeoutException("something went wrong"))
+        ]
+    }
+
+    def 'does not retry operation for non transient network issue - #ex'() {
         when:
         int attempts = 0
         Runnable operation = {

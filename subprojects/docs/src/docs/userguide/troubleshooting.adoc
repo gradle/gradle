@@ -100,20 +100,15 @@ Many tips are also covered in the Android Studio user guide link:https://develop
 You can set breakpoints and debug <<custom_plugins.adoc#sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
 
 ----
-❯ gradle help -Dorg.gradle.debug=true --no-daemon
+❯ gradle help -Dorg.gradle.debug=true
 ----
 
 In addition, if you’ve adopted the Kotlin DSL, you can also debug build scripts themselves.
 
-ifdef::basebackend-html5[]
 The following video demonstrates how to debug an example build using IntelliJ IDEA.
 
 .Interactive debugging of a build script
 image::remote-debug-gradle.gif[]
-endif::basebackend-html5[]
-
-[NOTE]
-You must either stop running Gradle Daemons or run with `--no-daemon` when using debug mode.
 
 === Adding and changing logging
 

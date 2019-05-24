@@ -23,11 +23,9 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import org.slf4j.Logger
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -517,16 +515,5 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         then:
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
-    }
-
-    @Ignore
-    def "android"() {
-
-        given:
-        new TestFile("/Users/paul/src/local/gradle/instant-application").copyTo(testDirectory)
-
-        expect:
-        instantRun 'mainApkListPersistenceDebug', 'compileDebugAidl'
-        instantRun 'mainApkListPersistenceDebug', 'compileDebugAidl'
     }
 }

@@ -7,6 +7,7 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
+[Andrew K.](https://github.com/miokowpak)
 
 <!-- 
 ## 1
@@ -25,6 +26,10 @@ details of 2
 Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
+
+See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
 ## Improvements for plugin authors
 
@@ -66,25 +71,6 @@ This improves performance for projects with a large amount of resource files.
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
-
-## Deprecations
-
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 6.0). See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
-
-### Deprecated build comparison plugin
-
-The [build comparison](userguide/comparing_builds.html) plugin has been deprecated.
-
-### Breaking changes
-
-<!-- summary and links -->
-
-See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about breaking changes and considerations when upgrading to Gradle @version@.
-
-<!-- Do not add breaking changes here! Add them to the upgrade guide instead. --> 
 
 ## External contributions
 

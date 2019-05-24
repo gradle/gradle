@@ -18,8 +18,8 @@ package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
-import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
 public class ContextualizingIvyPublisher implements IvyPublisher {
     private final IvyPublisher ivyPublisher;
@@ -31,7 +31,7 @@ public class ContextualizingIvyPublisher implements IvyPublisher {
     }
 
     @Override
-    public void publish(final IvyNormalizedPublication publication, final PublicationAwareRepository repository) {
+    public void publish(final IvyNormalizedPublication publication, final IvyArtifactRepository repository) {
         ivyContextManager.withIvy(new Action<Ivy>() {
             @Override
             public void execute(Ivy ivy) {

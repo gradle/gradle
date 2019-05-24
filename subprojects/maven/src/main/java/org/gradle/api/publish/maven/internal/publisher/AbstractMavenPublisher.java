@@ -21,6 +21,7 @@ import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;

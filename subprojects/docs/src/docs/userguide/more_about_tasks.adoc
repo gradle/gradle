@@ -1148,13 +1148,15 @@ Let's say you want to add a file `build-info.properties` to all your produced ja
 This file is only for auditing purposes, and has no effect on the outcome of running tests.
 Nonetheless, this file is part of the runtime classpath for the `test` task and changes on every build invocation.
 Therefore, the `test` would be never up-to-date or pulled from the build cache.
-In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:normalization(org.gradle.api.Action)[Project.normalization(org.gradle.api.Action)]:
+In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:normalization(org.gradle.api.Action)[Project.normalization(org.gradle.api.Action)] (in the _consuming_ project):
 
 .Runtime classpath normalization
 ====
 include::sample[dir="userguide/tasks/inputNormalization/groovy",files="build.gradle[tags=ignore-build-info-properties]"]
 include::sample[dir="userguide/tasks/inputNormalization/kotlin",files="build.gradle.kts[tags=ignore-build-info-properties]"]
 ====
+
+If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.
 
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task - i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.

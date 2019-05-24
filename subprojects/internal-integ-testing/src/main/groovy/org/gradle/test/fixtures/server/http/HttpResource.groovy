@@ -90,8 +90,8 @@ abstract class HttpResource extends AbstractHttpResource {
         server.expectPut(getPath(), getFile(), statusCode, credentials)
     }
 
-    void expectPutBroken(PasswordCredentials credentials = null) {
-        server.expectPut(getPath(), getFile(), 500, credentials)
+    void expectPutBroken(Integer statusCode = 500) {
+        server.expectPut(getPath(), getFile(), statusCode, null)
     }
 
     abstract TestFile getFile();

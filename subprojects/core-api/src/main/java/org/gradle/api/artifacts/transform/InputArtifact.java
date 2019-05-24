@@ -29,10 +29,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to a property that should receive the <em>input artifact</em> for an artifact transform.
+ * Attach this annotation to an abstract getter that should receive the <em>input artifact</em> for an artifact transform.
  * This is the artifact that the transform is applied to.
  *
- * <p>The input artifact can be injected as a {@link Provider}&lt;{@link org.gradle.api.file.FileSystemLocation}&gt;.</p>
+ * <p>The abstract getter must be declared as type {@link Provider}&lt;{@link org.gradle.api.file.FileSystemLocation}&gt;.</p>
  *
  * <p>Example usage:</p>
  *
