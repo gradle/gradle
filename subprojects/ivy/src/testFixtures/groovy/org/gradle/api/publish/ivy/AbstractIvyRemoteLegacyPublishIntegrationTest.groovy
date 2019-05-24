@@ -42,7 +42,10 @@ abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractInt
     }
 
     @Issue("GRADLE-3440")
-    public void "can publish using uploadArchives"() {
+    void "can publish using uploadArchives"() {
+        // We expect 'The compile/runtime configuration has been deprecated for removal.' for using this legacy mechanism in the traditional way.
+        executer.expectDeprecationWarnings(2)
+
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -120,7 +123,7 @@ uploadArchives {
         progressLogger.uploadProgressLogged(module.ivy.uri)
     }
 
-    public void "does not upload meta-data file when artifact upload fails"() {
+    void "does not upload meta-data file when artifact upload fails"() {
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
