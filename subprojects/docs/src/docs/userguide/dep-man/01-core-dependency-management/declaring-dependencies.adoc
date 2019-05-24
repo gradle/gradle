@@ -1,5 +1,3 @@
-:samplesPath2: ../../../../samples
-
 [[sec:declaring-dependencies]]
 = Declaring dependencies
 
@@ -245,7 +243,7 @@ include::sample[dir="userguide/artifacts/generatedFileDependencies/kotlin",files
 
 ----
 $ gradle -q list
-include::{samplesPath2}/userguide/artifacts/generatedFileDependencies/generatedFileDependencies.out[]
+include::{samplesPath}/userguide/artifacts/generatedFileDependencies/generatedFileDependencies.out[]
 ----
 
 [[sub:project_dependencies]]
@@ -334,7 +332,7 @@ include::sample[dir="userguide/dependencyManagement/inspectingDependencies/depen
 .Output of **`gradle -q dependencyInsight --dependency asm`**
 ----
 > gradle -q dependencyInsight --dependency asm
-include::{samplesPath2}/userguide/dependencyManagement/inspectingDependencies/dependencyReason/dependencyReasonReport.out[]
+include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyReason/dependencyReasonReport.out[]
 ----
 
 [[sub:resolve_specific_artifacts_from_dependency]]

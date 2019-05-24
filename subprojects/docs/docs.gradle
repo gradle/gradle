@@ -280,8 +280,31 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
+
+def userguideFlattenSources = tasks.register("userguideFlattenSources", Sync) {
+    dependsOn css, samples, defaultImports
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+    into("${buildDir}/userguide-resources")
+    from("src/docs/css") {
+        into("css")
+    }
+    from("src/samples") {
+        into("samples")
+    }
+    from("src/docs/userguide") {
+        include("img/**")
+    }
+    from(generatedResourcesDir) {
+        into(generatedResourcesDir.name)
+    }
+    from fileTree("src/docs/userguide").matching {
+        include "**/*.adoc"
+    }.files
+}
+
 def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciidoctorTask) {
-    sourceDir = userguideSrcDir
+    dependsOn(userguideFlattenSources)
+    sourceDir = userguideFlattenSources.get().destinationDir
     sources { include 'userguide_single.adoc' }
     outputDir = userguideSinglePageOutputDir
     backends = ['pdf', 'html5']
@@ -363,8 +386,6 @@ asciidoctorj {
 }
 
 tasks.withType(CacheableAsciidoctorTask).configureEach {
-    dependsOn css, samples, defaultImports
-
     separateOutputDirs = false
     options doctype: 'book'
 
@@ -378,7 +399,7 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         .withPropertyName("samples")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
-    attributes stylesdir    : '../css/',
+    attributes stylesdir    : 'css/',
         stylesheet          : 'manual.css',
         imagesdir           : 'img',
         nofooter            : true,
@@ -398,12 +419,13 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         docsUrl             : 'https://docs.gradle.org',
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
-        samplesPath         : "../../samples",
+        samplesPath         : "samples",
         'samples-dir'       : 'src/samples'
 }
 
 def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
-    sourceDir = userguideSrcDir
+    dependsOn(userguideFlattenSources)
+    sourceDir = userguideFlattenSources.get().destinationDir
 
     sources {
         include '*.adoc'

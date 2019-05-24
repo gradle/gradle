@@ -1,5 +1,3 @@
-:samplesPath2: ../../../../samples
-
 [[sec:abm_artifact_transforms]]
 = Transforming dependency artifacts on resolution
 
@@ -106,7 +104,7 @@ Gradle transforms the binary dependencies when it executes the `resolveRuntimeCl
 ----
 > gradle resolveRuntimeClasspath
 
-include::{samplesPath2}/userguide/dependencyManagement/artifactTransforms/minify/artifactTransformMinify.out[]
+include::{samplesPath}/userguide/dependencyManagement/artifactTransforms/minify/artifactTransformMinify.out[]
 ----
 
 

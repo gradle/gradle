@@ -1,5 +1,3 @@
-:samplesPath2: ../../../../samples
-
 [[viewing-debugging-dependencies]]
 = Viewing and debugging dependencies
 
@@ -47,7 +45,7 @@ include::sample[dir="userguide/dependencyManagement/inspectingDependencies/depen
 .Output of **`gradle -q dependencies --configuration scm`**
 ----
 > gradle -q dependencies --configuration scm
-include::{samplesPath2}/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/dependencyReport.out[]
+include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/dependencyReport.out[]
 ----
 
 The dependencies report provides detailed information about the dependencies available in the graph.
@@ -84,7 +82,7 @@ Given a dependency in the dependency graph you can identify the selection reason
 .Output of **`gradle -q dependencyInsight --dependency commons-codec --configuration scm`**
 ----
 > gradle -q dependencyInsight --dependency commons-codec --configuration scm
-include::{samplesPath2}/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
+include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
 ----
 
 [[resolving-variant-aware-errors]]

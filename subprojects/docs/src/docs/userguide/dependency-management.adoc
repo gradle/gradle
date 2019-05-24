@@ -1,16 +1,16 @@
-include::dep-man/01-core-dependency-management/core-dependency-management.adoc[]
+include::core-dependency-management.adoc[]
 
-include::dep-man/02-declaring-dependency-versions/declaring-dependency-versions.adoc[]
+include::declaring-dependency-versions.adoc[]
 
-include::dep-man/03-controlling-transitive-dependencies/controlling-transitive-dependencies.adoc[]
+include::controlling-transitive-dependencies.adoc[]
 
-include::dep-man/04-modeling-features/modeling-features.adoc[]
+include::modeling-features.adoc[]
 
-include::dep-man/05-working-multirepo/working-multi-source-repo-env.adoc[]
+include::working-multi-source-repo-env.adoc[]
 
-include::dep-man/06-publishing/publishing.adoc[]
+include::publishing.adoc[]
 
-include::dep-man/07-fine-grained-dm-apis/fine-grained-dm-apis.adoc[]
+include::fine-grained-dm-apis.adoc[]
 
-include::dep-man/dependency-management-terminology.adoc[]
+include::dependency-management-terminology.adoc[]
 

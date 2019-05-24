@@ -1,5 +1,3 @@
-:samplesPath2: ../../../../samples
-
 [[dependency-locking]]
 = Dependency locking
 
@@ -112,7 +110,7 @@ Module notations are ordered alphabetically, to ease diffs.
 [listing]
 .gradle/dependency-locks/compileClasspath.lockfile
 ----
-include::{samplesPath2}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy/gradle/dependency-locks/compileClasspath.lockfile[]
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy/gradle/dependency-locks/compileClasspath.lockfile[]
 ----
 
 which matches the following dependency declaration:
