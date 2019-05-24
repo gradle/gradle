@@ -75,15 +75,6 @@ class DefaultInstantExecution(
         fun classLoaderFor(classPath: ClassPath): ClassLoader
     }
 
-    private
-    val stateSerializer by lazy(LazyThreadSafetyMode.NONE) {
-        host.newStateSerializer()
-    }
-
-    private
-    val buildOperationExecutor: BuildOperationExecutor
-        get() = host.service()
-
     override fun canExecuteInstantaneously(): Boolean = when {
         !isInstantExecutionEnabled -> {
             false
@@ -110,7 +101,7 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withStoreOperation {
             KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                DefaultWriteContext(stateSerializer, encoder, logger).run {
+                DefaultWriteContext(host.newStateSerializer(), encoder, logger).run {
 
                     val build = host.currentBuild
                     writeString(build.rootProject.name)
@@ -209,7 +200,12 @@ class DefaultInstantExecution(
         }.toSortedSet()
 
     private
-    val filePropertyFactory = host.service<FilePropertyFactory>()
+    val filePropertyFactory: FilePropertyFactory
+        get() = host.service()
+
+    private
+    val buildOperationExecutor: BuildOperationExecutor
+        get() = host.service()
 
     private
     fun classLoaderFor(classPath: ClassPath) =
