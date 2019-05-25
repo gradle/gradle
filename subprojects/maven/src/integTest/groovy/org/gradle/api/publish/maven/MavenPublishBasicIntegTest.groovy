@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.Ignore
 
 /**
  * Tests “simple” maven publishing scenarios
@@ -274,38 +273,5 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
-    }
-
-    @Ignore("Not yet implemented - currently the second publication will overwrite")
-    def "cannot publish multiple maven publications with the same identity"() {
-        given:
-        settingsFile << "rootProject.name = 'bad-project'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'war'
-
-            group = 'org.gradle.test'
-            version = '1.0'
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    mavenJava(MavenPublication) {
-                        from components.java
-                    }
-                    mavenWeb(MavenPublication) {
-                        from components.web
-                    }
-                }
-            }
-        """
-        when:
-        fails 'publish'
-
-        then:
-        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
-        failure.assertHasCause("Publication with name 'mavenJava' already exists")
     }
 }
