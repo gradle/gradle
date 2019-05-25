@@ -46,13 +46,13 @@ class ReadStrings {
 
     fun readString(decoder: Decoder): String = decoder.run {
         when (readBoolean()) {
-            true -> strings[readSmallInt()]!!
+            true -> strings[readSmallInt()]
             else -> readString().also {
-                strings[strings.size] = it
+                strings.add(it)
             }
         }
     }
 
     private
-    val strings = HashMap<Int, String>()
+    val strings = mutableListOf<String>()
 }
