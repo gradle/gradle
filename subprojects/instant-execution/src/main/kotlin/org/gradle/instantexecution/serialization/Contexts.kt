@@ -74,8 +74,7 @@ class DefaultReadContext(
     private
     lateinit var projectProvider: ProjectProvider
 
-    private
-    lateinit var classLoader: ClassLoader
+    override lateinit var classLoader: ClassLoader
 
     internal
     fun initialize(projectProvider: ProjectProvider, classLoader: ClassLoader) {
@@ -89,9 +88,6 @@ class DefaultReadContext(
 
     override val isolate: ReadIsolate
         get() = getIsolate()
-
-    override val taskClassLoader: ClassLoader
-        get() = classLoader
 
     override fun getProject(path: String): ProjectInternal =
         projectProvider(path)

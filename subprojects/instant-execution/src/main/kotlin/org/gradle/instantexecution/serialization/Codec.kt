@@ -53,7 +53,7 @@ interface ReadContext : IsolateContext, Decoder {
 
     override val isolate: ReadIsolate
 
-    val taskClassLoader: ClassLoader
+    val classLoader: ClassLoader
 
     fun getProject(path: String): ProjectInternal
 
