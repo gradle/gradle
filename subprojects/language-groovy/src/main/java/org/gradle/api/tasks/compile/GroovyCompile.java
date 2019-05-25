@@ -55,7 +55,7 @@ import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.inject.Inject;
-import java.io.*;
+import java.io.File;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
@@ -90,7 +90,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Classpath
     @Incubating
-    public FileCollection getCompilerPluginClasspath() {
+    public ConfigurableFileCollection getCompilerPluginClasspath() {
         return compilerPluginClasspath;
     }
 
