@@ -109,7 +109,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
 
     /**
      * A classloader that produces classes with CodeSource objects containing the full resource URL,
-     * similar to how the Netbeans JarClassLoader works.
+     * similar to how the NetBeans JarClassLoader works.
      */
     class NetBeansLikeClassLoader extends TestClassLoader {
         NetBeansLikeClassLoader(ClassLoader classLoader, List<File> classpath) {

@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
+
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
@@ -34,6 +35,7 @@ class CPCHCompilerTest extends GccCompatibleNativeCompilerTest {
 
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
-        return [ '-x', 'c-header' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        def arguments = super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        return [ '-x', 'c-header' ] + arguments
     }
 }

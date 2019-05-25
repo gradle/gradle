@@ -141,10 +141,15 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         def gradleVersion = GradleVersion.current().version
         def gradleBaseVersion = GradleVersion.current().baseVersion.version
         def groovyVersion = getGradleGroovyVersion()
-        outputContains("gradleApi() files: [gradle-api-${gradleVersion}.jar, groovy-all-${groovyVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar]")
-        outputContains("gradleApi() ids: [gradle-api-${gradleVersion}.jar (Gradle API), groovy-all-${groovyVersion}.jar (Gradle API), gradle-installation-beacon-${gradleBaseVersion}.jar (Gradle API)]")
-        outputContains("gradleTestKit() files: [gradle-test-kit-${gradleVersion}.jar, gradle-api-${ gradleVersion}.jar, groovy-all-${groovyVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar]")
-        outputContains("gradleTestKit() ids: [gradle-test-kit-${gradleVersion}.jar (Gradle TestKit), gradle-api-${gradleVersion}.jar (Gradle TestKit), groovy-all-${groovyVersion}.jar (Gradle TestKit), gradle-installation-beacon-${gradleBaseVersion}.jar (Gradle TestKit)]")
+        def kotlinVersion = getGradleKotlinVersion()
+        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, groovy-all-${groovyVersion}.jar, kotlin-stdlib-jdk8-${kotlinVersion}.jar, kotlin-stdlib-${kotlinVersion}.jar, kotlin-stdlib-common-${kotlinVersion}.jar, kotlin-stdlib-jdk7-${kotlinVersion}.jar, kotlin-reflect-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
+        def expectedGradleApiIds = { id ->
+            "gradle-api-${gradleVersion}.jar ($id), groovy-all-${groovyVersion}.jar ($id), kotlin-stdlib-jdk8-${kotlinVersion}.jar ($id), kotlin-stdlib-${kotlinVersion}.jar ($id), kotlin-stdlib-common-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk7-${kotlinVersion}.jar ($id), kotlin-reflect-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
+        }
+        outputContains("gradleApi() files: [$expectedGradleApiFiles]")
+        outputContains("gradleApi() ids: [${expectedGradleApiIds("Gradle API")}]")
+        outputContains("gradleTestKit() files: [gradle-test-kit-${gradleVersion}.jar, $expectedGradleApiFiles]")
+        outputContains("gradleTestKit() ids: [gradle-test-kit-${gradleVersion}.jar (Gradle TestKit), ${expectedGradleApiIds("Gradle TestKit")}]")
         outputContains("localGroovy() files: [groovy-all-${groovyVersion}.jar]")
         outputContains("localGroovy() ids: [groovy-all-${groovyVersion}.jar (Local Groovy)]")
     }
@@ -158,6 +163,13 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         def gradleGroovyVersionResource = DependencyHandlerApiResolveIntegrationTest.getResource("/gradle-groovy-all-version.properties")
         gradleGroovyVersionProps.load(new StringReader(gradleGroovyVersionResource.text))
         return gradleGroovyVersionProps.version
+    }
+
+    private static String getGradleKotlinVersion() {
+        def props = new Properties()
+        def resource = DependencyHandlerApiResolveIntegrationTest.getResource("/gradle-kotlin-dsl-versions.properties")
+        props.load(new StringReader(resource.text))
+        return props.kotlin
     }
 
     private static String javaClassReferencingTestKit() {

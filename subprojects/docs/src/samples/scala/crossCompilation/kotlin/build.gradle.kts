@@ -27,19 +27,19 @@ fun javaExecutable(execName: String): String {
     return executable.toString()
 }
 
-tasks.withType<ScalaCompile> {
+tasks.withType<ScalaCompile>().configureEach {
     options.apply {
         isFork = true
         forkOptions.javaHome = file(java6Home)
     }
 }
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     executable = javaExecutable("java")
 }
-tasks.withType<JavaExec> {
+tasks.withType<JavaExec>().configureEach {
     executable = javaExecutable("java")
 }
-tasks.withType<Javadoc> {
+tasks.withType<Javadoc>().configureEach {
     executable = javaExecutable("javadoc")
 }
 // end::scala-cross-compilation[]

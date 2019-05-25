@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the the lifecycle state of a project, with regard to configuration.
+ * Represents the lifecycle state of a project, with regard to configuration.
  *
  * There are three synonymous terms mixed in here (configure, evaluate, execute) for legacy reasons.
  * Where not bound to backwards compatibility constraints, we use the term “configure”.

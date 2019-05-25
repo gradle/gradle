@@ -19,12 +19,15 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
+import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -546,6 +549,11 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         failures == [failure]
     }
 
+    def "returns root project"() {
+        expect:
+        taskGraph.rootProject == project
+    }
+
     def newTask(String name) {
         def mock = Mock(TaskInternal, name: name)
         _ * mock.name >> name
@@ -563,6 +571,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         _ * mock.destroyables >> Stub(TaskDestroyablesInternal)
         _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
+        _ * mock.taskIdentity >> TaskIdentity.create(name, DefaultTask, project as ProjectInternal)
         return mock
     }
 
@@ -597,6 +606,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         _ * mock.destroyables >> Stub(TaskDestroyablesInternal)
         _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
+        _ * mock.taskIdentity >> TaskIdentity.create(name, DefaultTask, project as ProjectInternal)
         return mock
     }
 }

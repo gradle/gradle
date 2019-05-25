@@ -32,12 +32,12 @@ class S3RegionalResourceTest extends Specification {
         expect:
         S3RegionalResource regionalResource = new S3RegionalResource(uri)
         regionalResource.region == expectedRegion
-        regionalResource.bucketName == epectedBucket
+        regionalResource.bucketName == expectedBucket
         regionalResource.key == expectedKey
 
 
         where:
-        uri                                                                        | expectedRegion                                                      | epectedBucket   | expectedKey
+        uri                                                                        | expectedRegion                                                      | expectedBucket  | expectedKey
         new URI("s3://somebucket.au/a/b/file.txt")                                 | Optional.absent()                                                   | 'somebucket.au' | 'a/b/file.txt'
         new URI("s3://somebucket.au.s3.amazonaws.com/a/b/file.txt")                | Optional.absent()                                                   | 'somebucket.au' | 'a/b/file.txt'
         new URI("s3://somebucket.au.s3-external-1.amazonaws.com/a/b/file.txt")     | Optional.of(getRegion(Regions.US_EAST_1))                           | 'somebucket.au' | 'a/b/file.txt'

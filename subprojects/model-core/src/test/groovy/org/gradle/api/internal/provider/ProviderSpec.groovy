@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
+import org.gradle.internal.state.Managed
 import spock.lang.Specification
 
 abstract class ProviderSpec<T> extends Specification {
@@ -28,6 +29,10 @@ abstract class ProviderSpec<T> extends Specification {
     abstract T someValue()
 
     abstract T someOtherValue()
+
+    boolean isNoValueProviderImmutable() {
+        return false
+    }
 
     def "can query value when it has as value"() {
         given:
@@ -204,4 +209,31 @@ abstract class ProviderSpec<T> extends Specification {
         t.message == "No value has been specified for this provider."
     }
 
+    def "can unpack state and recreate instance when provider has no value"() {
+        given:
+        def provider = providerWithNoValue()
+
+        expect:
+        provider instanceof Managed
+        provider.immutable() == noValueProviderImmutable
+        def state = provider.unpackState()
+        def copy = provider.managedFactory().fromState(provider.publicType(), state)
+        !copy.is(provider) || noValueProviderImmutable
+        !copy.present
+        copy.getOrNull() == null
+    }
+
+    def "can unpack state and recreate instance when provider has value"() {
+        given:
+        def provider = providerWithValue(someValue())
+
+        expect:
+        provider instanceof Managed
+        !provider.immutable()
+        def state = provider.unpackState()
+        def copy = provider.managedFactory().fromState(provider.publicType(), state)
+        !copy.is(provider)
+        copy.present
+        copy.getOrNull() == someValue()
+    }
 }

@@ -34,6 +34,7 @@ public class CategorisedOutputEvent extends OutputEvent {
         return timestamp;
     }
 
+    @Override
     public LogLevel getLogLevel() {
         return logLevel;
     }

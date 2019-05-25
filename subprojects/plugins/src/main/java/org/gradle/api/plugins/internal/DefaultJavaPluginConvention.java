@@ -31,7 +31,6 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import java.io.File;
@@ -53,9 +52,11 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
 
-    public DefaultJavaPluginConvention(ProjectInternal project, Instantiator instantiator) {
+    private boolean autoTargetJvm = true;
+
+    public DefaultJavaPluginConvention(ProjectInternal project, ObjectFactory objectFactory) {
         this.project = project;
-        sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.getFileResolver(), project.getTasks(), instantiator, project.getServices().get(ObjectFactory.class));
+        sourceSets = objectFactory.newInstance(DefaultSourceSetContainer.class);
         docsDirName = "docs";
         testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
         testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
@@ -179,5 +180,15 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     @Override
     public ProjectInternal getProject() {
         return project;
+    }
+
+    @Override
+    public void disableAutoTargetJvm() {
+        this.autoTargetJvm = false;
+    }
+
+    @Override
+    public boolean getAutoTargetJvmDisabled() {
+        return !autoTargetJvm;
     }
 }

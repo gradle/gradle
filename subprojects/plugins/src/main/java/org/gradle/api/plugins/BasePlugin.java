@@ -69,6 +69,7 @@ public class BasePlugin implements Plugin<Project> {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
@@ -85,36 +86,37 @@ public class BasePlugin implements Plugin<Project> {
 
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(new Action<AbstractArchiveTask>() {
+            @Override
             public void execute(AbstractArchiveTask task) {
 
-                // This is here because the JvmComponentPlugin Jar task configuration runs before this action.
-                // It has already set the destination directory for this task. The BasePlugin needs to respect that.
-                if (!task.getDestinationDirectory().isPresent()) {
-                    Callable<String> destinationDir;
-                    if (task instanceof Jar) {
-                        destinationDir = new Callable<String>() {
-                            public String call() {
-                                return pluginConvention.getLibsDirName();
-                            }
-                        };
-                    } else {
-                        destinationDir = new Callable<String>() {
-                            public String call() {
-                                return pluginConvention.getDistsDirName();
-                            }
-                        };
-                    }
-                    task.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir(project.provider(destinationDir)));
+                Callable<String> destinationDir;
+                if (task instanceof Jar) {
+                    destinationDir = new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return pluginConvention.getLibsDirName();
+                        }
+                    };
+                } else {
+                    destinationDir = new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return pluginConvention.getDistsDirName();
+                        }
+                    };
                 }
+                task.getDestinationDirectory().convention(project.getLayout().getBuildDirectory().dir(project.provider(destinationDir)));
 
-                task.getArchiveVersion().set(project.provider(new Callable<String>() {
+                task.getArchiveVersion().convention(project.provider(new Callable<String>() {
+                    @Override
                     @Nullable
                     public String call() {
                         return project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString();
                     }
                 }));
 
-                task.getArchiveBaseName().set(project.provider(new Callable<String>() {
+                task.getArchiveBaseName().convention(project.provider(new Callable<String>() {
+                    @Override
                     public String call() {
                         return pluginConvention.getArchivesBaseName();
                     }
@@ -132,8 +134,9 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureUploadArchivesTask() {
-        configurationActionContainer.add(new Action<Project>() {
-            public void execute(Project project) {
+        configurationActionContainer.add(new Action<ProjectInternal>() {
+            @Override
+            public void execute(ProjectInternal project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(UPLOAD_ARCHIVES_TASK_NAME);
                 if (uploadArchives == null) {
                     return;
@@ -147,7 +150,7 @@ public class BasePlugin implements Plugin<Project> {
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
                 Module module = configuration.getModule();
                 ModuleVersionIdentifier publicationId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-                publicationRegistry.registerPublication(module.getProjectPath(), new DefaultProjectPublication(Describables.of("Ivy publication"), publicationId, true));
+                publicationRegistry.registerPublication(project, new DefaultProjectPublication(Describables.of("Ivy publication"), publicationId, true));
             }
         });
     }
@@ -167,9 +170,11 @@ public class BasePlugin implements Plugin<Project> {
         );
 
         configurations.all(new Action<Configuration>() {
+            @Override
             public void execute(final Configuration configuration) {
                 if (!configuration.equals(archivesConfiguration)) {
                     configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
+                        @Override
                         public void execute(PublishArtifact artifact) {
                             if (configuration.isVisible()) {
                                 defaultArtifacts.addCandidate(artifact);

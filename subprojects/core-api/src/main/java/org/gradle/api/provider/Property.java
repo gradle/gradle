@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
  * A container object that represents a configurable value of a specific type. A {@link Property} is also a {@link Provider} and can be used in the same way as a {@link Provider}. A property's value can be accessed using the methods of {@link Provider} such as {@link Provider#get()}. The value can be modified by using the method {@link #set(Object)} or {@link #set(Provider)}.
  *
  * <p>
- * A property may be used to represent a task output. Such a property carries information about which task produces its value. When attached to a task input, this allows Gradle to automatically add dependencies between tasks based on the values they use as inputs and produce as outputs.
+ * A property may be used to represent a task output. Such a property carries information about which task produces its value. When the property is attached to a task input, this allows Gradle to automatically calculate the dependencies between tasks based on the values they use as inputs and produce as outputs.
  * </p>
  *
  * <p>You can create a {@link Property} instance using {@link org.gradle.api.model.ObjectFactory#property(Class)}. There are also several specialized subtypes of this interface that can be created using various other factory methods.</p>
@@ -65,7 +65,25 @@ public interface Property<T> extends Provider<T> {
      * @return this
      * @since 5.0
      */
-    Property<T> value(T value);
+    Property<T> value(@Nullable T value);
+
+    /**
+     * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
+     *
+     * @param value The value.
+     * @return this
+     * @since 5.1
+     */
+    Property<T> convention(T value);
+
+    /**
+     * Specifies the provider of the value to use as the convention for this property. The convention is used when no value has been set for this property.
+     *
+     * @param valueProvider The provider of the value.
+     * @return this
+     * @since 5.1
+     */
+    Property<T> convention(Provider<? extends T> valueProvider);
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Object)} or {@link #set(Provider)} will fail.

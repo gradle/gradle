@@ -96,7 +96,6 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @throws InvalidUserDataException If a object with the given name already exists in this project.
      * @since 4.10
      */
-    @Incubating
     <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type, Action<? super U> configurationAction) throws InvalidUserDataException;
 
     /**
@@ -111,6 +110,5 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @throws InvalidUserDataException If a object with the given name already exists in this project.
      * @since 4.10
      */
-    @Incubating
     <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type) throws InvalidUserDataException;
 }

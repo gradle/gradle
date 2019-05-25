@@ -141,6 +141,10 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
                                     post.set("devs@lists.example.org")
                                 }
                             }
+                            properties.set(mapOf(
+                                "myProp" to "myValue",
+                                "prop.with.dots" to "anotherValue"
+                            ))
                             withXml {
                                 val dependency = asNode().appendNode("dependencies").appendNode("dependency")
                                 dependency.appendNode("groupId", "junit")
@@ -232,5 +236,10 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
         parsedPom.mailingLists[0].otherArchives.otherArchive.collect { it.text() } == ["http://archive.org/", "http://backup.example.org/"]
         parsedPom.mailingLists[1].name.text() == "Developers"
         parsedPom.mailingLists[1].post.text() == "devs@lists.example.org"
+
+        and:
+        parsedPom.properties.children().size() == 2
+        parsedPom.properties.myProp.text() == "myValue"
+        parsedPom.properties["prop.with.dots"].text() == "anotherValue"
     }
 }

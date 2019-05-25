@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRef
 import spock.lang.Specification
@@ -57,8 +58,8 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveNewClient(WorkerDaemonServer.class, options) >> client
 
         then:
-        1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
-        1 * client.execute(spec)
+        1 * buildOperationExecutor.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
+        1 * client.execute(spec) >> new DefaultWorkResult(true, null)
 
         then:
         1 * clientsManager.release(client)
@@ -72,8 +73,8 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
-        1 * client.execute(spec)
+        1 * buildOperationExecutor.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
+        1 * client.execute(spec) >> new DefaultWorkResult(true, null)
 
         then:
         1 * clientsManager.release(client)

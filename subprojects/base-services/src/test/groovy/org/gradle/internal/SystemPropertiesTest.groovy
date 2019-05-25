@@ -21,7 +21,7 @@ import spock.lang.Specification
 class SystemPropertiesTest extends Specification {
     def "can be queried for standard system properties"() {
         expect:
-        SystemProperties.instance.standardProperties.contains("os.name")
-        !SystemProperties.instance.standardProperties.contains("foo.bar")
+        SystemProperties.instance.isStandardProperty("os.name")
+        !SystemProperties.instance.isStandardProperty("foo.bar")
     }
 }

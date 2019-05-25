@@ -25,6 +25,7 @@ import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Optional;
 
 public class OverlappingOutputs {
     private final String propertyName;
@@ -35,18 +36,17 @@ public class OverlappingOutputs {
         this.overlappedFilePath = overlappedFilePath;
     }
 
-    @Nullable
-    public static OverlappingOutputs detect(@Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+    public static Optional<OverlappingOutputs> detect(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
         for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : current.entrySet()) {
             String propertyName = entry.getKey();
             CurrentFileCollectionFingerprint beforeExecution = entry.getValue();
             FileCollectionFingerprint afterPreviousExecution = getFingerprintAfterPreviousExecution(previous, propertyName);
             OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(propertyName, afterPreviousExecution, beforeExecution);
             if (overlappingOutputs != null) {
-                return overlappingOutputs;
+                return Optional.of(overlappingOutputs);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     private static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous, String propertyName) {

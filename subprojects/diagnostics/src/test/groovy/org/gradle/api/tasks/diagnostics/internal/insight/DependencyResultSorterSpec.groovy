@@ -43,7 +43,7 @@ class DependencyResultSorterSpec extends Specification {
     }
 
     @Unroll
-    def "throws exception if dependencyt or requested component selector is null (#d1, #d2)"() {
+    def "throws exception if dependency or requested component selector is null (#d1, #d2)"() {
         when:
         DependencyResultSorter.sort([d1, d2], versionSelectorScheme, versionComparator, versionParser)
 

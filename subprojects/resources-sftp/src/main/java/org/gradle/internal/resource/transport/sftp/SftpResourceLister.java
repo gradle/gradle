@@ -35,6 +35,7 @@ public class SftpResourceLister implements ExternalResourceLister {
         this.credentials = credentials;
     }
 
+    @Override
     public List<String> list(URI directory) {
         LockableSftpClient client = sftpClientFactory.createSftpClient(directory, credentials);
 

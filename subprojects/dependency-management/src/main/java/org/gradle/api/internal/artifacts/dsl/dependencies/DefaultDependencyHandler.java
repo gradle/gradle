@@ -27,12 +27,17 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
+import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Factory;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -43,7 +48,7 @@ import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
-public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
+public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
@@ -54,6 +59,7 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     private final AttributesSchema attributesSchema;
     private final VariantTransformRegistry transforms;
     private final Factory<ArtifactTypeContainer> artifactTypeContainer;
+    private final NamedObjectInstantiator namedObjectInstantiator;
     private final DynamicAddDependencyMethods dynamicMethods;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
@@ -65,7 +71,8 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
                                     ArtifactResolutionQueryFactory resolutionQueryFactory,
                                     AttributesSchema attributesSchema,
                                     VariantTransformRegistry transforms,
-                                    Factory<ArtifactTypeContainer> artifactTypeContainer) {
+                                    Factory<ArtifactTypeContainer> artifactTypeContainer,
+                                    NamedObjectInstantiator namedObjectInstantiator) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
@@ -76,6 +83,7 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         this.attributesSchema = attributesSchema;
         this.transforms = transforms;
         this.artifactTypeContainer = artifactTypeContainer;
+        this.namedObjectInstantiator = namedObjectInstantiator;
         configureSchema();
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
     }
@@ -161,22 +169,27 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         return dependencyConstraintHandler;
     }
 
+    @Override
     public void components(Action<? super ComponentMetadataHandler> configureAction) {
         configureAction.execute(getComponents());
     }
 
+    @Override
     public ComponentMetadataHandler getComponents() {
         return componentMetadataHandler;
     }
 
+    @Override
     public void modules(Action<? super ComponentModuleMetadataHandler> configureAction) {
         configureAction.execute(getModules());
     }
 
+    @Override
     public ComponentModuleMetadataHandler getModules() {
         return componentModuleMetadataHandler;
     }
 
+    @Override
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
         return resolutionQueryFactory.createArtifactResolutionQuery();
     }
@@ -212,10 +225,15 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     }
 
     @Override
+    public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        transforms.registerTransform(actionType, registrationAction);
+    }
+
+    @Override
     public Dependency platform(Object notation) {
         Dependency dependency = create(notation);
         if (dependency instanceof HasConfigurableAttributes) {
-            PlatformSupport.addPlatformAttribute((HasConfigurableAttributes<Object>) dependency, PlatformSupport.REGULAR_PLATFORM);
+            PlatformSupport.addPlatformAttribute((HasConfigurableAttributes<Object>) dependency, toCategory(Category.REGULAR_PLATFORM));
         }
         return dependency;
     }
@@ -233,7 +251,9 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         if (platformDependency instanceof ExternalModuleDependency) {
             ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
             externalModuleDependency.setForce(true);
-            PlatformSupport.addPlatformAttribute(externalModuleDependency, PlatformSupport.ENFORCED_PLATFORM);
+            PlatformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
+        } else if (platformDependency instanceof HasConfigurableAttributes) {
+            PlatformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));
         }
         return platformDependency;
     }
@@ -243,6 +263,10 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         Dependency dep = enforcedPlatform(notation);
         configureAction.execute(dep);
         return dep;
+    }
+
+    private Category toCategory(String category) {
+        return namedObjectInstantiator.named(Category.class, category);
     }
 
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {

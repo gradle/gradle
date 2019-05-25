@@ -15,10 +15,12 @@
  */
 package org.gradle.api
 
+import org.gradle.api.internal.FeaturePreviewsActivationFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -39,7 +41,47 @@ class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("The feature flag is no longer relevant, please remove it from your settings file.")
 
         where:
-        feature << FeaturePreviewsFixture.inactiveFeatures()
+        feature << FeaturePreviewsActivationFixture.inactiveFeatures()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/8840")
+    def "can use exec in settings"() {
+        addExecToScript(settingsFile)
+        when:
+        succeeds()
+        then:
+        outputContains("hello from settings")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/8840")
+    def "can use exec in settings applied from another script"() {
+        settingsFile << """
+            apply from: 'other.gradle'
+        """
+        addExecToScript(file("other.gradle"))
+        when:
+        succeeds()
+        then:
+        outputContains("hello from settings")
+    }
+
+    private void addExecToScript(TestFile scriptFile) {
+        file("message") << """
+            hello from settings
+        """
+        if (OperatingSystem.current().windows) {
+            scriptFile << """
+                exec {
+                    commandLine "cmd", "/c", "type", "message"
+                }
+            """
+        } else {
+            scriptFile << """
+                exec {
+                    commandLine "cat", "message"
+                }
+            """
+        }
     }
 
     def "notices changes to settings scripts that do not change the file length"() {

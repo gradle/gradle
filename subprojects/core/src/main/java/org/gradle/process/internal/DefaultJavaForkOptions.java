@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
@@ -39,19 +40,22 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
     private final PathToFileResolver resolver;
     private final JvmOptions options;
+    private final FileCollectionFactory fileCollectionFactory;
     private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
-    public DefaultJavaForkOptions(PathToFileResolver resolver) {
-        this(resolver, Jvm.current());
+    public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory) {
+        this(resolver, fileCollectionFactory, Jvm.current());
     }
 
-    public DefaultJavaForkOptions(PathToFileResolver resolver, Jvm jvm) {
+    public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, Jvm jvm) {
         super(resolver);
         this.resolver = resolver;
-        options = new JvmOptions(resolver);
+        options = new JvmOptions(fileCollectionFactory);
+        this.fileCollectionFactory = fileCollectionFactory;
         setExecutable(jvm.getJavaExecutable());
     }
 
+    @Override
     public List<String> getAllJvmArgs() {
         if (hasJvmArgumentProviders(this)) {
             JvmOptions copy = options.createCopy();
@@ -64,6 +68,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         }
     }
 
+    @Override
     public void setAllJvmArgs(List<String> arguments) {
         options.setAllJvmArgs(arguments);
         if (hasJvmArgumentProviders(this)) {
@@ -71,6 +76,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         }
     }
 
+    @Override
     public void setAllJvmArgs(Iterable<?> arguments) {
         options.setAllJvmArgs(arguments);
         if (hasJvmArgumentProviders(this)) {
@@ -78,23 +84,28 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         }
     }
 
+    @Override
     public List<String> getJvmArgs() {
         return options.getJvmArgs();
     }
 
+    @Override
     public void setJvmArgs(List<String> arguments) {
         options.setJvmArgs(arguments);
     }
 
+    @Override
     public void setJvmArgs(Iterable<?> arguments) {
         options.setJvmArgs(arguments);
     }
 
+    @Override
     public JavaForkOptions jvmArgs(Iterable<?> arguments) {
         options.jvmArgs(arguments);
         return this;
     }
 
+    @Override
     public JavaForkOptions jvmArgs(Object... arguments) {
         jvmArgs(Arrays.asList(arguments));
         return this;
@@ -108,77 +119,95 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         return jvmArgumentProviders;
     }
 
+    @Override
     public Map<String, Object> getSystemProperties() {
         return options.getMutableSystemProperties();
     }
 
+    @Override
     public void setSystemProperties(Map<String, ?> properties) {
         options.setSystemProperties(properties);
     }
 
+    @Override
     public JavaForkOptions systemProperties(Map<String, ?> properties) {
         options.systemProperties(properties);
         return this;
     }
 
+    @Override
     public JavaForkOptions systemProperty(String name, Object value) {
         options.systemProperty(name, value);
         return this;
     }
 
+    @Override
     public FileCollection getBootstrapClasspath() {
         return options.getBootstrapClasspath();
     }
 
+    @Override
     public void setBootstrapClasspath(FileCollection classpath) {
         options.setBootstrapClasspath(classpath);
     }
 
+    @Override
     public JavaForkOptions bootstrapClasspath(Object... classpath) {
         options.bootstrapClasspath(classpath);
         return this;
     }
 
+    @Override
     public String getMinHeapSize() {
         return options.getMinHeapSize();
     }
 
+    @Override
     public void setMinHeapSize(String heapSize) {
         options.setMinHeapSize(heapSize);
     }
 
+    @Override
     public String getMaxHeapSize() {
         return options.getMaxHeapSize();
     }
 
+    @Override
     public void setMaxHeapSize(String heapSize) {
         options.setMaxHeapSize(heapSize);
     }
 
+    @Override
     public String getDefaultCharacterEncoding() {
         return options.getDefaultCharacterEncoding();
     }
 
+    @Override
     public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
         options.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
+    @Override
     public boolean getEnableAssertions() {
         return options.getEnableAssertions();
     }
 
+    @Override
     public void setEnableAssertions(boolean enabled) {
         options.setEnableAssertions(enabled);
     }
 
+    @Override
     public boolean getDebug() {
         return options.getDebug();
     }
 
+    @Override
     public void setDebug(boolean enabled) {
         options.setDebug(enabled);
     }
 
+    @Override
     public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
         options.copyTo(target);
@@ -195,7 +224,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         if (hasJvmArgumentProviders(this) || hasJvmArgumentProviders(options)) {
             throw new UnsupportedOperationException("Cannot merge options with jvmArgumentProviders.");
         }
-        JavaForkOptionsInternal mergedOptions = new DefaultJavaForkOptions(resolver);
+        JavaForkOptionsInternal mergedOptions = new DefaultJavaForkOptions(resolver, fileCollectionFactory);
 
         if (!canBeMerged(getExecutable(), options.getExecutable())) {
             throw new IllegalArgumentException("Cannot merge a fork options object with a different executable (this: " + getExecutable() + ", other: " + options.getExecutable() + ").");

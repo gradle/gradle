@@ -17,11 +17,11 @@ package org.gradle.nativeplatform.toolchain.internal.gcc
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.logging.text.DiagnosticsVisitor
+import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.text.TreeFormatter
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.Architectures
@@ -43,7 +43,7 @@ import org.gradle.platform.base.internal.toolchain.ComponentFound
 import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
-import org.gradle.util.TreeVisitor
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -69,7 +69,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def workerLeaseService = Stub(WorkerLeaseService)
     def systemLibraryDiscovery = Stub(SystemLibraryDiscovery)
 
-    def instantiator = DirectInstantiator.INSTANCE
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def toolChain = new TestNativeToolChain("test", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, toolSearchPath, metaDataProvider, systemLibraryDiscovery, instantiator, workerLeaseService)
     def platform = Stub(NativePlatformInternal)
 
@@ -102,7 +102,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def "is unavailable when no language tools can be found and building any language"() {
         def compilerMissing = Stub(CommandLineToolSearchResult) {
             isAvailable() >> false
-            explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c compiler not found") }
+            explain(_) >> { DiagnosticsVisitor visitor -> visitor.node("c compiler not found") }
         }
 
         given:
@@ -124,7 +124,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def "is unavailable when no C++ compiler can be found and building C++"() {
         def compilerMissing = Stub(CommandLineToolSearchResult) {
             isAvailable() >> false
-            explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c++ compiler not found") }
+            explain(_) >> { DiagnosticsVisitor visitor -> visitor.node("c++ compiler not found") }
         }
 
         given:
@@ -134,7 +134,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         and:
         toolSearchPath.locate(ToolType.CPP_COMPILER, "g++") >> compilerMissing
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         expect:
         def platformToolChain = toolChain.select(NativeLanguage.CPP, platform)
@@ -145,7 +145,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def "is unavailable when a compiler is found with incorrect implementation"() {
         def wrongCompiler = Stub(SearchResult) {
             isAvailable() >> false
-            explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c compiler is not gcc") }
+            explain(_) >> { DiagnosticsVisitor visitor -> visitor.node("c compiler is not gcc") }
         }
 
         given:
@@ -154,7 +154,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         and:
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getCompilerMetaData(_, _, _) >> wrongCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> wrongCompiler
 
         expect:
         def platformToolChain = toolChain.select(language, platform)
@@ -173,7 +173,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         and:
         toolSearchPath.locate(toolType, _) >> tool
         toolSearchPath.locate(_, _) >> missing
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         expect:
         toolChain.select(platform).available
@@ -190,7 +190,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         and:
         toolSearchPath.locate(ToolType.CPP_COMPILER, _) >> tool
         toolSearchPath.locate(_, _) >> missing
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         expect:
         toolChain.select(platform).available
@@ -203,7 +203,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         and:
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         expect:
         toolChain.select(platform).available
@@ -229,7 +229,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform2.operatingSystem >> dummyOs
 
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         given:
         int platformActionApplied = 0
@@ -262,7 +262,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getOperatingSystem() >> dummyOs
         platform.getArchitecture() >> dummyArch
         toolChain.eachPlatform(action)
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         when:
         toolChain.select(platform)
@@ -287,7 +287,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.operatingSystem >> dummyOs
         platform.architecture >> Architectures.forInput(arch)
         toolChain.eachPlatform(action)
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         when:
         toolChain.select(platform)
@@ -316,7 +316,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> new DefaultOperatingSystem("osx", OperatingSystem.MAC_OS)
         platform.architecture >> new DefaultArchitecture(arch)
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         toolChain.target(platform.name)
         toolChain.eachPlatform(action)
@@ -348,7 +348,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         def platformConfig2 = Mock(Action)
 
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         toolChain.target("platform1", platformConfig1)
         toolChain.target("platform2", platformConfig2)
@@ -370,7 +370,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         when:
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getCompilerMetaData(_, _, _) >> correctCompiler
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         and:
         toolChain.target(platform.getName(), new Action<NativePlatformToolChain>() {

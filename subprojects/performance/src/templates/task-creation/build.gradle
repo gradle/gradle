@@ -21,4 +21,12 @@ void createTasks(Project p, int iterations) {
     }
 }
 
-createTasks(project, $taskCount)
+if (tasks.metaClass.respondsTo(tasks, "register")) {
+    for (int i=0; i<$taskCount; i++) {
+       project.tasks.register("foo\$i", Copy)
+    }
+} else {
+    createTasks(project, $taskCount)
+}
+
+

@@ -16,53 +16,46 @@
 
 package org.gradle.integtests.tooling
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ProgressEventsWithStatus
+import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import org.mortbay.jetty.MimeTypes
 import spock.lang.Issue
-
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 @LeaksFileHandles
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
-    @Rule HttpServer server = new HttpServer()
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
+    @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
-    void setup() {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the 'testBinZip' task"
+    def setup() {
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the 'binZip' task"
         server.start()
         toolingApi.requireIsolatedUserHome()
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    @Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
     def "downloads distribution with valid user-agent information"() {
         given:
         settingsFile << "";
         buildFile << "task hello { doLast { println hello } }"
 
         and:
-        server.expectGet("/custom-dist.zip", distribution.binDistribution)
-        server.expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion()))
+        server.expect(server.get("/custom-dist.zip").expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion())).sendFile(distribution.binDistribution))
 
         and:
         toolingApi.withConnector { GradleConnector connector ->
@@ -84,13 +77,12 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    @Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
     def "receives distribution download progress events"() {
         given:
         settingsFile << ""
 
         and:
-        server.expectGet("/custom-dist.zip", distribution.binDistribution)
+        server.expect(server.get("/custom-dist.zip").sendFile(distribution.binDistribution))
 
         and:
         def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
@@ -132,7 +124,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << ""
 
         and:
-        server.expectGetBroken("/custom-dist.zip")
+        server.expect(server.get("/custom-dist.zip").broken())
 
         and:
         def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
@@ -165,16 +157,16 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
     def "can cancel distribution download"() {
         def userHomeDir = file("user-home-dir")
-        server.server.setGracefulShutdown(2 * 1000)
 
         given:
         settingsFile << "";
         buildFile << "task hello { doLast { println hello } }"
-        CancellationTokenSource tokenSource = new DefaultCancellationTokenSource()
-        CountDownLatch latch = new CountDownLatch(1)
-        def distUri = URI.create("http://localhost:${server.port}/cancelled-dist.zip")
+        def tokenSource = new DefaultCancellationTokenSource()
+        def distUri = server.uri("cancelled-dist.zip")
 
-        server.expect("/cancelled-dist.zip", false, ['GET'], new SendDataAndCancelAction("/cancelled-dist.zip", distribution.binDistribution, tokenSource, latch))
+        def content = distribution.binDistribution.bytes[0..30000] as byte[] // more than one progress tick in output
+        def downloadHandle = server.get("cancelled-dist.zip").sendSomeAndBlock(content)
+        server.expect(downloadHandle)
 
         and:
         toolingApi.withConnector { GradleConnector connector ->
@@ -184,17 +176,22 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         def events = new ProgressEventsWithStatus()
+        def handler = new TestResultHandler()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
                 .forTasks("hello")
                 .withCancellationToken(tokenSource.token())
                 .addProgressListener(events)
-                .run()
+                .run(handler)
+            downloadHandle.waitUntilBlocked()
+            tokenSource.cancel()
+            handler.finished()
+            downloadHandle.release()
         }
 
         then:
-        BuildCancelledException e = thrown()
-        e.message.contains('Distribution download cancelled.')
+        handler.assertFailedWith(BuildCancelledException)
+        handler.failure.message.contains('Distribution download cancelled.')
 
         and:
         events.buildOperations.size() == 1
@@ -203,56 +200,5 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         !download.successful
         download.descriptor.displayName == "Download " + distUri
         download.failures.size() == 1
-
-        cleanup:
-        latch.countDown()
-    }
-
-    class SendDataAndCancelAction extends HttpServer.ActionSupport {
-        private final String path
-        private final File srcFile
-        private final CancellationTokenSource tokenSource
-        private final CountDownLatch latch
-
-        SendDataAndCancelAction(String path, File srcFile, CancellationTokenSource tokenSource, CountDownLatch latch) {
-            super("return contents of $srcFile.name")
-            this.srcFile = srcFile
-            this.path = path
-            this.tokenSource = tokenSource
-            this.latch = latch
-        }
-
-        void handle(HttpServletRequest request, HttpServletResponse response) {
-            def file
-            if (request.pathInfo == path) {
-                file = srcFile
-            } else {
-                def relativePath = request.pathInfo.substring(path.length() + 1)
-                file = new File(srcFile, relativePath)
-            }
-            if (file.isFile()) {
-                sendFile(response, file, interaction.contentType)
-            } else {
-                response.sendError(404, "'$request.pathInfo' does not exist")
-            }
-        }
-
-        private sendFile(HttpServletResponse response, File file, String contentType) {
-            response.setContentType(contentType ?: new MimeTypes().getMimeByExtension(file.name).toString())
-
-            def content = file.bytes
-            for (int i = 0; i < content.length; i++) {
-                response.outputStream.write(content[i])
-                if (i == 30000) { // more than one progress tick in output
-                    println('call cancel')
-                    tokenSource.cancel()
-                    println('waiting for test to continue')
-                    latch.await(10, TimeUnit.SECONDS)
-                    println('test continued, closing connection')
-                    break;
-                }
-            }
-            println('server handler done.')
-        }
     }
 }

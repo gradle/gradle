@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests.fixtures
 
-import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -94,12 +92,20 @@ class AbstractIntegrationSpec extends Specification {
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     }
 
-    protected TestFile getBuildFile() {
+    TestFile getBuildFile() {
         testDirectory.file(getDefaultBuildFileName())
+    }
+
+    protected TestFile getBuildKotlinFile() {
+        testDirectory.file(getDefaultBuildKotlinFileName())
     }
 
     protected String getDefaultBuildFileName() {
         'build.gradle'
+    }
+
+    protected String getDefaultBuildKotlinFileName() {
+        'build.gradle.kts'
     }
 
     protected TestFile buildScript(String script) {
@@ -107,17 +113,14 @@ class AbstractIntegrationSpec extends Specification {
         buildFile
     }
 
-    @CompileStatic
     protected TestFile getSettingsFile() {
         testDirectory.file('settings.gradle')
     }
 
-    @CompileStatic
     protected TestFile getSettingsKotlinFile() {
         testDirectory.file('settings.gradle.kts')
     }
 
-    @CompileStatic
     protected TestFile getPropertiesFile() {
         testDirectory.file('gradle.properties')
     }
@@ -161,6 +164,22 @@ class AbstractIntegrationSpec extends Specification {
         file("build/classes/", language, sourceSet, fqcn)
     }
 
+    TestFile javaGeneratedSourceFile(String fqcn) {
+        generatedSourceFile("java", "main", fqcn)
+    }
+
+    TestFile groovyGeneratedSourceFile(String fqcn) {
+        generatedSourceFile("groovy", "main", fqcn)
+    }
+
+    TestFile scalaGeneratedSourceFile(String fqcn) {
+        generatedSourceFile("scala", "main", fqcn)
+    }
+
+    TestFile generatedSourceFile(String language, String sourceSet, String fqcn) {
+        file("build/generated/sources/annotationProcessor/", language, sourceSet, fqcn)
+    }
+
     protected GradleExecuter sample(Sample sample) {
         inDirectory(sample.dir)
     }
@@ -187,6 +206,20 @@ class AbstractIntegrationSpec extends Specification {
         executer
     }
 
+    /**
+     * This is expensive as it creates a complete copy of the distribution inside the test directory.
+     * Only use this for testing custom modifications of a distribution.
+     */
+    protected GradleExecuter requireIsolatedGradleDistribution() {
+        def isolatedGradleHomeDir = getTestDirectory().file("gradle-home")
+        getBuildContext().gradleHomeDir.copyTo(isolatedGradleHomeDir)
+        distribution = new UnderDevelopmentGradleDistribution(getBuildContext(), isolatedGradleHomeDir)
+        executer = createExecuter()
+        executer.requireGradleDistribution()
+        executer.requireIsolatedDaemons() //otherwise we might connect to a running daemon from the original installation location
+        executer
+    }
+
     AbstractIntegrationSpec withBuildCache() {
         executer.withBuildCacheEnabled()
         this
@@ -195,7 +228,6 @@ class AbstractIntegrationSpec extends Specification {
     /**
      * Synonym for succeeds()
      */
-    @CompileStatic(TypeCheckingMode.SKIP)
     protected ExecutionResult run(String... tasks) {
         succeeds(*tasks)
     }

@@ -26,5 +26,6 @@ public interface InternalTestProgressEvent extends InternalProgressEvent {
      *
      * @return The test description
      */
+    @Override
     InternalTestDescriptor getDescriptor();
 }

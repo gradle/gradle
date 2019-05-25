@@ -69,6 +69,7 @@ public class ModuleVersionSelectorParsers {
             visitor.candidate("String or CharSequence values").example("'org.gradle:gradle-core:1.0'");
         }
 
+        @Override
         public void convert(String notation, NotationConvertResult<? super ModuleVersionSelector> result) throws TypeConversionException {
             ParsedModuleStringNotation parsed;
             try {

@@ -47,6 +47,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         this.publicationIdentity = publicationIdentity;
     }
 
+    @Override
     public NotationParser<Object, IvyArtifact> create() {
         FileNotationConverter fileNotationConverter = new FileNotationConverter(fileResolver);
         ArchiveTaskNotationConverter archiveTaskNotationConverter = new ArchiveTaskNotationConverter();
@@ -99,6 +100,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
             this.fileResolverNotationParser = fileResolver.asNotationParser();
         }
 
+        @Override
         public void convert(Object notation, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
             IvyArtifact ivyArtifact = instantiator.newInstance(FileBasedIvyArtifact.class, file, publicationIdentity);

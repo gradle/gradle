@@ -53,14 +53,17 @@ public class UserResolverChain implements ComponentResolvers {
         artifactResolver = new RepositoryChainArtifactResolver();
     }
 
+    @Override
     public DependencyToComponentIdResolver getComponentIdResolver() {
         return componentIdResolver;
     }
 
+    @Override
     public ComponentMetaDataResolver getComponentResolver() {
         return componentResolver;
     }
 
+    @Override
     public ArtifactResolver getArtifactResolver() {
         return artifactResolver;
     }
@@ -81,6 +84,7 @@ public class UserResolverChain implements ComponentResolvers {
     }
 
     private static class ModuleTransformer implements Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> {
+        @Override
         public ModuleComponentResolveMetadata transform(RepositoryChainModuleResolution original) {
             RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(original.repository, original.module.getSource());
             return original.module.withSource(moduleSource);

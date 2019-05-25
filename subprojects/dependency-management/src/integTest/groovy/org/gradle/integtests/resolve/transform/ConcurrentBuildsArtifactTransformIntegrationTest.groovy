@@ -25,7 +25,6 @@ class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependenc
 
     def setup() {
         server.start()
-
         buildFile << """
 enum Color { Red, Green, Blue }
 def type = Attribute.of("artifactType", String)

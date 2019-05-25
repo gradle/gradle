@@ -25,10 +25,12 @@ abstract class AbstractVersionSelector implements VersionSelector {
         this.selector = selector;
     }
 
+    @Override
     public String getSelector() {
         return selector;
     }
 
+    @Override
     public boolean accept(ComponentMetadata candidate) {
         return accept(candidate.getId().getVersion());
     }

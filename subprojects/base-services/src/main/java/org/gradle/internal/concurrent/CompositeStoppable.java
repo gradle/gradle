@@ -36,6 +36,7 @@ import java.util.List;
 public class CompositeStoppable implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeStoppable.class);
     public static final Stoppable NO_OP_STOPPABLE = new Stoppable() {
+        @Override
         public void stop() {
         }
     };
@@ -83,6 +84,7 @@ public class CompositeStoppable implements Stoppable {
                     return closeable.toString();
                 }
 
+                @Override
                 public void stop() {
                     try {
                         closeable.close();
@@ -95,6 +97,7 @@ public class CompositeStoppable implements Stoppable {
         return NO_OP_STOPPABLE;
     }
 
+    @Override
     public synchronized void stop() {
         Throwable failure = null;
         try {

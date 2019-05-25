@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.ivy
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Action
 import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -45,10 +46,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
     final Map extraInfo = [:]
-    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
+    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API_JARS]), new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME_JARS])]
     String branch = null
     String status = "integration"
     MetadataPublish metadataPublish = MetadataPublish.ALL
+    boolean writeGradleMetadataRedirection = false
 
     int publishCount = 1
     XmlTransformer transformer = new XmlTransformer()
@@ -220,6 +222,12 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    @Override
+    IvyModule withGradleMetadataRedirection() {
+        writeGradleMetadataRedirection = true
+        return this
+    }
+
     IvyFileModule nonTransitive(String config) {
         configurations[config].transitive = false
         return this
@@ -361,7 +369,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         }
 
         variants.each {
-            it.artifacts.each {
+            it.artifacts.findAll { it.name }.each {
                 def variantArtifact = moduleDir.file(it.name)
                 publish (variantArtifact) { Writer writer ->
                     writer << "${it.name} : Variant artifact $it.name"
@@ -403,7 +411,8 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                         new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.prefers, d.strictly, d.rejects, d.reason, d.attributes)
                     },
                     v.artifacts ?: defaultArtifacts,
-                    v.capabilities
+                    v.capabilities,
+                    v.availableAt
                 )
             },
             attributes + ['org.gradle.status': status]
@@ -427,6 +436,9 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             infoAttrs.branch = branch
         }
         infoAttrs += extraAttributes.collectEntries { key, value -> ["e:$key", value] }
+        if (writeGradleMetadataRedirection) {
+            ivyFileWriter << "<!-- ${MetaDataParser.GRADLE_METADATA_MARKER} -->"
+        }
         builder.info(infoAttrs) {
             if (extendsFrom) {
                 "extends"(extendsFrom)
@@ -571,6 +583,17 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.ear", "ivy-${revision}.xml")
         parsedIvy.expectArtifact(module, "ear").hasAttributes("ear", "ear", ["master"])
+    }
+
+    IvyFileModule removeGradleMetadataRedirection() {
+        if (ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
+            ivyFile.replace(MetaDataParser.GRADLE_METADATA_MARKER, '')
+        }
+        this
+    }
+
+    boolean hasGradleMetadataRedirectionMarker() {
+        ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)
     }
 
     interface IvyModuleArtifact extends ModuleArtifact {

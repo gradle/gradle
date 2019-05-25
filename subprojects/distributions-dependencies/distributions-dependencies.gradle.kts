@@ -24,12 +24,12 @@
  * Ideally we wound be able to say "lock down all the versions of the dependencies resolved for the distribution"
  */
 plugins {
-    base
+    `java-platform`
 }
 dependencies {
     constraints {
         libraries.keys.forEach { libId ->
-            default(library(libId)) {
+            api(library(libId)) {
                 version {
                     strictly(libraryVersion(libId))
                 }
@@ -38,7 +38,7 @@ dependencies {
         }
 
         // Reject dependencies we do not want completely
-        default("org.sonatype.sisu:sisu-inject-plexus") {
+        api("org.sonatype.sisu:sisu-inject-plexus") {
             version { rejectAll() }
             because("We do not want this dependency injection on the classpath")
         }

@@ -86,6 +86,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
     }
 
+    @Override
     public void filter(Filter filter) throws NoTestsRemainException {
         initExecutions();
         for (Execution execution : executions) {
@@ -295,6 +296,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             return descriptionTranslations.containsKey(description) ? descriptionTranslations.get(description) : description;
         }
 
+        @Override
         public void filter(Filter filter) throws NoTestsRemainException {
             filters.add(filter);
             for (Map.Entry<Description, Description> entry : descriptionTranslations.entrySet()) {
@@ -458,6 +460,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             return test.toString();
         }
 
+        @Override
         public <A extends Annotation> A getAnnotation(Class<A> type) {
             A annotation = test.getAnnotation(type);
             if (annotation != null) {

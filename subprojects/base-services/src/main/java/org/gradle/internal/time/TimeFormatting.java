@@ -49,7 +49,11 @@ public class TimeFormatting {
         if (elapsedTimeInMs > MILLIS_PER_MINUTE) {
             result.append((elapsedTimeInMs % MILLIS_PER_HOUR) / MILLIS_PER_MINUTE).append("m ");
         }
-        result.append((elapsedTimeInMs % MILLIS_PER_MINUTE) / 1000).append("s");
+        if (elapsedTimeInMs >= MILLIS_PER_SECOND) {
+            result.append((elapsedTimeInMs % MILLIS_PER_MINUTE) / 1000).append("s");
+        } else {
+            result.append(elapsedTimeInMs).append("ms");
+        }
         return result.toString();
     }
 

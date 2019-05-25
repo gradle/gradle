@@ -23,8 +23,9 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
-import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
 import org.gradle.util.GUtil;
+import org.junit.ComparisonFailure;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +45,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
     private static final Pattern TASK_PATTERN = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
 
-    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED) in( \\d+[smh])+");
+    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED) in( \\d+m?[smh])+");
 
     private final LogContent output;
     private final LogContent error;
@@ -82,7 +83,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         this.error = error;
 
         // Split out up the output into main content and post build content
-        LogContent filteredOutput = this.output.removeAnsiChars().removeDebugPrefix();
+        LogContent filteredOutput = this.output.ansiCharsToPlainText().removeDebugPrefix();
         Pair<LogContent, LogContent> match = filteredOutput.splitOnFirstMatchingLine(BUILD_RESULT_PATTERN);
         if (match == null) {
             this.mainContent = filteredOutput;
@@ -91,9 +92,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             this.mainContent = match.getLeft();
             this.postBuild = match.getRight().drop(1);
         }
-        this.errorContent = error.removeAnsiChars();
+        this.errorContent = error.ansiCharsToPlainText();
     }
 
+    @Override
     public String getOutput() {
         return output.withNormalizedEol();
     }
@@ -111,9 +113,19 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public String getFormattedOutput() {
+        return output.ansiCharsToColorText().withNormalizedEol();
+    }
+
+    @Override
+    public String getPlainTextOutput() {
+        return output.ansiCharsToPlainText().withNormalizedEol();
+    }
+
+    @Override
     public GroupedOutputFixture getGroupedOutput() {
         if (groupedOutputFixture == null) {
-            groupedOutputFixture = new GroupedOutputFixture(getMainContent().getRawContent().withNormalizedEol());
+            groupedOutputFixture = new GroupedOutputFixture(getMainContent());
         }
         return groupedOutputFixture;
     }
@@ -130,12 +142,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)) {
                 // Remove the "Daemon will be shut down" message
                 i++;
-            } else if (line.contains(LowTenuredSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
+            } else if (line.contains(LowHeapSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
                 // Remove the "Expiring Daemon" message
                 i++;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
-                // Remove the "Deprecated Gradle features..." message and "See https://docs.gradle.org..."
-                i+=2;
+                // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
+                i+=4;
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 i++;
@@ -148,6 +160,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return LogContent.of(result).withNormalizedEol();
     }
 
+    @Override
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
         SequentialOutputMatcher matcher = ignoreLineOrder ? new AnyOrderOutputMatcher() : new SequentialOutputMatcher();
         matcher.assertOutputMatches(expectedOutput, getNormalizedOutput(), ignoreExtraLines);
@@ -184,7 +197,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public boolean hasErrorOutput(String expectedOutput) {
-        return getError().contains(expectedOutput) || getRawError().contains(expectedOutput);
+        return getError().contains(expectedOutput);
     }
 
     @Override
@@ -193,23 +206,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
-        return assertContentContains(getError(), expectedOutput, "Error output");
-    }
-
-    @Override
-    public ExecutionResult assertRawOutputContains(String expectedOutput) {
-        return assertContentContains(getOutput(), expectedOutput, "Build output");
-    }
-
     public String getError() {
         return error.withNormalizedEol();
     }
 
-    public String getRawError() {
-        return errorContent.getRawContent().withNormalizedEol();
-    }
-
+    @Override
     public List<String> getExecutedTasks() {
         return ImmutableList.copyOf(findExecutedTasksInOrderStarted());
     }
@@ -221,6 +222,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return tasks;
     }
 
+    @Override
     public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
         Set<String> allTasks = TaskOrderSpecs.exact(taskPaths).getTasks();
         assertTasksExecuted(allTasks);
@@ -236,6 +238,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             failOnDifferentSets("Build output does not contain the expected tasks.", expectedTasks, actualTasks);
         }
         return this;
+    }
+
+    @Override
+    public ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths) {
+        assertTasksExecuted(taskPaths);
+        return assertTasksNotSkipped(taskPaths);
     }
 
     @Override
@@ -262,6 +270,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
+    @Override
     public Set<String> getSkippedTasks() {
         return new TreeSet<String>(grepTasks(SKIPPED_TASK_PATTERN));
     }
@@ -276,6 +285,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
+    @Override
     public ExecutionResult assertTaskSkipped(String taskPath) {
         Set<String> tasks = new TreeSet<String>(getSkippedTasks());
         if (!tasks.contains(taskPath)) {
@@ -301,6 +311,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
+    @Override
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
         Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
         if (!tasks.contains(taskPath)) {
@@ -318,11 +329,15 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private void failOnMissingOutput(String message, String type, String expected, String actual) {
-        failureOnUnexpectedOutput(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual));
+        throw new ComparisonFailure(unexpectedOutputMessage(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual)), expected, actual);
     }
 
     protected void failureOnUnexpectedOutput(String message) {
-        throw new AssertionError(String.format("%s%nOutput:%n=======%n%s%nError:%n======%n%s", message, getOutput(), getError()));
+        throw new AssertionError(unexpectedOutputMessage(message));
+    }
+
+    private String unexpectedOutputMessage(String message) {
+        return String.format("%s%nOutput:%n=======%n%s%nError:%n======%n%s", message, getOutput(), getError());
     }
 
     private List<String> grepTasks(final Pattern pattern) {
@@ -330,6 +345,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         final List<String> taskStatusLines = Lists.newArrayList();
 
         getMainContent().eachLine(new Action<String>() {
+            @Override
             public void execute(String line) {
                 java.util.regex.Matcher matcher = pattern.matcher(line);
                 if (matcher.matches()) {

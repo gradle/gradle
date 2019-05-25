@@ -20,27 +20,50 @@ import org.gradle.api.publish.maven.MavenArtifact;
 
 import java.io.File;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MavenNormalizedPublication {
 
     private final String name;
+    private final MavenProjectIdentity projectIdentity;
+    private final String groupId;
+    private final String artifactId;
+    private final String version;
     private final String packaging;
     private final MavenArtifact pomArtifact;
-    private final MavenProjectIdentity projectIdentity;
-    private final Set<MavenArtifact> allArtifacts;
     private final MavenArtifact mainArtifact;
+    private final Set<MavenArtifact> allArtifacts;
 
-    public MavenNormalizedPublication(String name, String packaging, MavenArtifact pomArtifact, MavenProjectIdentity projectIdentity, Set<MavenArtifact> allArtifacts, MavenArtifact mainArtifact) {
+    public MavenNormalizedPublication(String name, MavenProjectIdentity projectIdentity, String packaging, MavenArtifact pomArtifact, MavenArtifact mainArtifact, Set<MavenArtifact> allArtifacts) {
         this.name = name;
+        this.projectIdentity = projectIdentity;
+        this.groupId = projectIdentity.getGroupId().get();
+        this.artifactId = projectIdentity.getArtifactId().get();
+        this.version = projectIdentity.getVersion().get();
         this.packaging = packaging;
         this.pomArtifact = pomArtifact;
-        this.projectIdentity = projectIdentity;
-        this.allArtifacts = allArtifacts;
         this.mainArtifact = mainArtifact;
+        this.allArtifacts = allArtifacts;
     }
 
     public String getName() {
         return name;
+    }
+
+    public MavenProjectIdentity getProjectIdentity() {
+        return projectIdentity;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    public String getVersion() {
+        return version;
     }
 
     public String getPackaging() {
@@ -59,16 +82,17 @@ public class MavenNormalizedPublication {
         return pomArtifact;
     }
 
-    public Set<MavenArtifact> getAllArtifacts() {
-        return allArtifacts;
-    }
-
-    public MavenProjectIdentity getProjectIdentity() {
-        return projectIdentity;
-    }
-
     public MavenArtifact getMainArtifact() {
         return mainArtifact;
     }
 
+    public Set<MavenArtifact> getAdditionalArtifacts() {
+        return allArtifacts.stream()
+                .filter(artifact -> artifact != pomArtifact && artifact != mainArtifact)
+                .collect(Collectors.toSet());
+    }
+
+    public Set<MavenArtifact> getAllArtifacts() {
+        return allArtifacts;
+    }
 }

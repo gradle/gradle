@@ -1,0 +1,19 @@
+
+> Task :dependencies
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+compileClasspath - Compile classpath for source set 'main'.
+\--- org.mongodb:mongodb-driver-sync:3.9.1
+     +--- org.mongodb:bson:3.9.1
+     \--- org.mongodb:mongodb-driver-core:3.9.1
+          \--- org.mongodb:bson:3.9.1
+
+(*) - dependencies omitted (listed previously)
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

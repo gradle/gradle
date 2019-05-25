@@ -35,7 +35,7 @@ class HttpResourceUploaderTest extends AbstractHttpClientTest {
             1 * client.performHttpRequest(_) >> new HttpClientResponse("PUT", uri, mockedHttpResponse.response)
             assertIsClosedCorrectly(mockedHttpResponse)
         }
-        IOException exception = thrown()
+        HttpErrorStatusCodeException exception = thrown()
         exception.message.contains('Could not PUT')
     }
 }

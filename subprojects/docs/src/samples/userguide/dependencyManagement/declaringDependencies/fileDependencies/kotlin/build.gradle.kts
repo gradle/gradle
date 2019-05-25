@@ -12,7 +12,7 @@ dependencies {
 }
 // end::file-dependencies[]
 
-task("createLibs") {
+tasks.register("createLibs") {
     doLast {
         file("ant").mkdirs()
         file("libs").mkdirs()
@@ -25,7 +25,7 @@ task("createLibs") {
     }
 }
 
-task<Copy>("copyLibs") {
+tasks.register<Copy>("copyLibs") {
     dependsOn(tasks["createLibs"])
     from(configurations["antContrib"])
     from(configurations["externalLibs"])

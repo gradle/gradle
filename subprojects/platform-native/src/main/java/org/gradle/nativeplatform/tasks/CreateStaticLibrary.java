@@ -64,7 +64,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
         ObjectFactory objectFactory = getProject().getObjects();
         this.source = getProject().files();
         this.outputFile = objectFactory.fileProperty();
-        this.staticLibArgs = getProject().getObjects().listProperty(String.class).empty();
+        this.staticLibArgs = getProject().getObjects().listProperty(String.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
     }
@@ -82,6 +82,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     /**
      * Adds a set of object files to be linked. <p> The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
+    @Override
     public void source(Object source) {
         this.source.from(source);
     }

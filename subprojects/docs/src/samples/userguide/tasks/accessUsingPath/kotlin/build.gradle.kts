@@ -1,8 +1,8 @@
 project(":projectA") {
-    task("hello")
+    tasks.register("hello")
 }
 
-task("hello")
+tasks.register("hello")
 
 println(tasks.getByPath("hello").path)
 println(tasks.getByPath(":hello").path)

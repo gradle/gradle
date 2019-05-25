@@ -88,6 +88,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    @Override
     public void apply(final ProjectInternal project) {
         this.project = project;
         project.getPluginManager().apply(BasePlugin.class);
@@ -109,12 +110,14 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
         PluginContainer plugins = project.getPlugins();
         plugins.withType(JavaPlugin.class, new Action<JavaPlugin>() {
+            @Override
             public void execute(JavaPlugin javaPlugin) {
                 configureJavaScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings());
                 configureInstall(project);
             }
         });
         plugins.withType(WarPlugin.class, new Action<WarPlugin>() {
+            @Override
             public void execute(WarPlugin warPlugin) {
                 configureWarScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings());
             }
@@ -129,6 +132,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     private void configureUploadTasks(final DefaultDeployerFactory deployerFactory) {
         project.getTasks().withType(Upload.class, new Action<Upload>() {
+            @Override
             public void execute(Upload upload) {
                 RepositoryHandler repositories = upload.getRepositories();
                 DefaultRepositoryHandler handler = (DefaultRepositoryHandler) repositories;
@@ -139,8 +143,9 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureUploadArchivesTask() {
-        configurationActionContainer.add(new Action<Project>() {
-            public void execute(Project project) {
+        configurationActionContainer.add(new Action<ProjectInternal>() {
+            @Override
+            public void execute(ProjectInternal project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
                 if (uploadArchives == null) {
                     return;
@@ -155,7 +160,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                             pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
                             pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()
                     );
-                    publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(Describables.withTypeAndName("Maven repository", resolver.getName()), publicationId, true));
+                    publicationRegistry.registerPublication(project, new DefaultProjectPublication(Describables.withTypeAndName("Maven repository", resolver.getName()), publicationId, true));
                 }
             }
         });

@@ -28,12 +28,12 @@ import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.CoreMatchers.notNullValue
 
-@IntegrationTestTimeout(90)
+@IntegrationTestTimeout(180)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     def "uses the worker home directory as working directory for worker execution"() {
         def workerHomeDir = executer.gradleUserHomeDir.file("workers").getAbsolutePath()
-        withRunnableClassInBuildScript()
+        fixture.withRunnableClassInBuildScript()
         buildFile << """
             import org.gradle.workers.IsolationMode
 
@@ -65,7 +65,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
     }
 
     def "setting the working directory of a worker is not supported"() {
-        withRunnableClassInBuildScript()
+        fixture.withRunnableClassInBuildScript()
         buildFile << """
             import org.gradle.workers.IsolationMode
 
@@ -88,7 +88,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
     @Requires(TestPrecondition.JDK_ORACLE)
     def "interesting worker daemon fork options are honored"() {
         Assume.assumeThat(Jvm.current().jre, notNullValue())
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
         outputFileDir.createDir()
 
         buildFile << """
@@ -127,8 +127,8 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         Assume.assumeNotNull(differentJvm)
         def differentJavacExecutablePath = normaliseFileSeparators(differentJvm.getJavaExecutable().absolutePath)
 
-        withJava7CompatibleClasses()
-        withRunnableClassInBuildSrc()
+        fixture.withJava7CompatibleClasses()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
             ${getExecutableVerifyingRunnable(differentJvm)}

@@ -46,6 +46,9 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withLibraryDependencies(library("maven3_plugin_api"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
                 withLibraryDependencies(library("maven3_settings_builder"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
 
+                // We don't need the extra annotations provided by j2objc
+                withLibraryDependencies(library("google_http_client"), DependencyRemovalByNameRule::class, setOf("j2objc-annotations"))
+
                 // Read capabilities declared in capabilities.json
                 readCapabilitiesFromJson()
 
@@ -62,6 +65,9 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
                 withModule("xalan:xalan", DowngradeXmlApisRule::class.java)
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
+
+                // We only need "failureaccess" of Guava's dependencies
+                withLibraryDependencies("com.google.guava:guava", KeepDependenciesByNameRule::class, setOf("failureaccess"))
 
                 // Test dependencies - minify: remove unused transitive dependencies
                 withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
@@ -204,6 +210,19 @@ open class DependencyRemovalByGroupRule @Inject constructor(
 }
 
 
+open class KeepDependenciesByNameRule @Inject constructor(
+    val moduleToKeep: Set<String>
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                removeAll { !moduleToKeep.contains(it.name) }
+            }
+        }
+    }
+}
+
+
 open class MavenDependencyCleaningRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
@@ -251,6 +270,17 @@ open class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
                     add("${it.group}:cglib:3.2.7")
                 }
                 removeAll { it.name == "cglib-nodep" }
+            }
+        }
+    }
+}
+
+
+open class ExcludeDependencies : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                clear()
             }
         }
     }

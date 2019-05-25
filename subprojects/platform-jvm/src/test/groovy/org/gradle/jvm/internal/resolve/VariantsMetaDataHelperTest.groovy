@@ -50,9 +50,9 @@ class VariantsMetaDataHelperTest extends Specification {
         Binary1                             | Binary2                             | ['variant1', 'variant2', 'platform'] | ['variant2']
         Binary2                             | Binary3                             | ['variant1', 'variant2', 'platform'] | ['variant2']
         Binary2                             | Binary4                             | ['variant1', 'variant2', 'platform'] | []
-        ParametrizedBinaryString            | ParametrizedBinaryString            | ['variant']                          | []
-        ParametrizedBinaryVariantDimension1 | ParametrizedBinaryVariantDimension1 | ['variant']                          | []
-        ParametrizedBinaryString            | ParametrizedBinaryVariantDimension1 | ['variant']                          | ['variant']
+        ParameterizedBinaryString            | ParameterizedBinaryString            | ['variant']                          | []
+        ParameterizedBinaryVariantDimension1 | ParameterizedBinaryVariantDimension1 | ['variant']                          | []
+        ParameterizedBinaryString            | ParameterizedBinaryVariantDimension1 | ['variant']                          | ['variant']
     }
 
     private BinarySpecInternal binary(Class<? extends BinarySpecInternal> type) {

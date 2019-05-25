@@ -17,11 +17,12 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
@@ -49,7 +50,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final ExternalResourceFileStore externalResourceFileStore = Stub()
     final MetaDataParser pomParser = Mock()
-    final ModuleMetadataParser metadataParser = Mock()
+    final GradleModuleMetadataParser metadataParser = Mock()
     final ivyContextManager = Mock(IvyContextManager)
     final AuthenticationSchemeRegistry authenticationSchemeRegistry = new DefaultAuthenticationSchemeRegistry()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
@@ -59,7 +60,8 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
         localMavenRepoLocator, fileResolver, transportFactory, locallyAvailableResourceFinder,
         artifactIdentifierFileStore, externalResourceFileStore, pomParser, metadataParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory,
-        TestUtil.instantiatorFactory(), Mock(FileResourceRepository), TestUtil.featurePreviews(), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.valueSnapshotter(), Mock(ObjectFactory)
+        TestUtil.instantiatorFactory(), Mock(FileResourceRepository), TestUtil.featurePreviews(), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.valueSnapshotter(), Mock(ObjectFactory),
+        CollectionCallbackActionDecorator.NOOP
     )
 
     def testCreateFlatDirResolver() {

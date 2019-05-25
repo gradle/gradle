@@ -16,6 +16,10 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.tasks.TaskPropertyUtils
+import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
+import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -25,14 +29,16 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "allows optional @#annotation.simpleName to have null value"() {
         buildFile << """
-            import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
-            import org.gradle.api.internal.tasks.TaskPropertyUtils
-            import org.gradle.api.internal.tasks.properties.PropertyWalker
+            import ${GetInputFilesVisitor.name}
+            import ${TaskPropertyUtils.name}
+            import ${PropertyWalker.name}
+            import ${FileCollectionFactory.name}
 
             class CustomTask extends DefaultTask {
                 @Optional @$annotation.simpleName input
                 @TaskAction void doSomething() {
-                    GetInputFilesVisitor visitor = new GetInputFilesVisitor()
+                    def fileCollectionFactory = project.services.get(FileCollectionFactory)
+                    GetInputFilesVisitor visitor = new GetInputFilesVisitor("ownerName", fileCollectionFactory)
                     def walker = services.get(PropertyWalker)
                     TaskPropertyUtils.visitProperties(walker, this, visitor)
                     def inputFiles = visitor.fileProperties*.propertyFiles*.files.flatten()

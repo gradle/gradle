@@ -26,6 +26,7 @@ public class SimplePluginResolution implements PluginResolution {
         this.plugin = plugin;
     }
 
+    @Override
     public PluginId getPluginId() {
         return plugin.getPluginId();
     }

@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.internal.file.FileResolver
+
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.BaseForkOptions
 import spock.lang.Specification
 
-
 class BaseForkOptionsConverterTest extends Specification {
-    BaseForkOptionsConverter converter = new BaseForkOptionsConverter(Mock(FileResolver))
+    BaseForkOptionsConverter converter = new BaseForkOptionsConverter(TestFiles.execFactory())
 
     def "converts a base fork options to a java fork options"() {
         BaseForkOptions baseForkOptions = new BaseForkOptions()

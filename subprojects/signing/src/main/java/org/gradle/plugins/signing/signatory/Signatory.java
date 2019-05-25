@@ -16,6 +16,8 @@
 package org.gradle.plugins.signing.signatory;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,6 +34,7 @@ public interface Signatory {
      *
      * <p>The name must be constant for the life of the signatory and should uniquely identify it within a project.</p>
      */
+    @Internal
     String getName();
 
     /**
@@ -55,5 +58,6 @@ public interface Signatory {
      *
      * @return The key id
      */
+    @Input
     String getKeyId();
 }

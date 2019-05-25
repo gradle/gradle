@@ -21,8 +21,17 @@ import org.gradle.api.file.CopySpec;
 
 /**
  * Configuration for a Java application, defining how to assemble the application.
+ * <p>
+ * An instance of this type is added as a project extension by the Java application plugin
+ * under the name 'application'.
  *
- * <p>An instance of this type is added as a project extension by the Java application plugin.</p>
+ * <pre class='autoTested'>
+ * apply plugin: 'application'
+ *
+ * application {
+ *   mainClassName 'com.foo.bar.FooBar'
+ * }
+ * </pre>
  *
  * @since 4.10
  */

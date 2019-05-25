@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.plugin.use.PluginId;
 

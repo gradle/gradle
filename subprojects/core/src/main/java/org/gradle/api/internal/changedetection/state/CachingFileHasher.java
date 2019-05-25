@@ -120,6 +120,7 @@ public class CachingFileHasher implements FileHasher {
     private static class FileInfoSerializer extends AbstractSerializer<FileInfo> {
         private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
+        @Override
         public FileInfo read(Decoder decoder) throws Exception {
             HashCode hash = hashCodeSerializer.read(decoder);
             long timestamp = decoder.readLong();
@@ -127,6 +128,7 @@ public class CachingFileHasher implements FileHasher {
             return new FileInfo(hash, length, timestamp);
         }
 
+        @Override
         public void write(Encoder encoder, FileInfo value) throws Exception {
             hashCodeSerializer.write(encoder, value.hash);
             encoder.writeLong(value.timestamp);

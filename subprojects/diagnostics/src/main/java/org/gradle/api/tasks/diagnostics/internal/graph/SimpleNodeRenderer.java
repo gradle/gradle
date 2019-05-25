@@ -35,6 +35,9 @@ public class SimpleNodeRenderer implements NodeRenderer {
                     output.withStyle(Info).text(" (*)");
                 }
                 break;
+            case RESOLVED_CONSTRAINT:
+                output.withStyle(Info).text(" (c)");
+                break;
             case UNRESOLVED:
                 output.withStyle(Info).text(" (n)");
                 break;

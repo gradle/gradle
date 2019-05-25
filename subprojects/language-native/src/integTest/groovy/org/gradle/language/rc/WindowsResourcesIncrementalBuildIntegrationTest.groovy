@@ -34,7 +34,7 @@ class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledT
     ExecutableFixture mainExe
     File mainResourceFile
     def unusedHeaderFile
-    def compilerOutputFileNamingScheme = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), temporaryFolder.testDirectory, TestFiles.getPatternSetFactory())).create()
+    def compilerOutputFileNamingScheme = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(temporaryFolder.testDirectory, TestFiles.getPatternSetFactory())).create()
 
 
     def "setup"() {

@@ -97,6 +97,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         return state.contains(key) || (parent != null && parent.contains(key));
     }
 
+    @Override
     public ImmutableAttributes asImmutable() {
         if (parent == null) {
             return state;

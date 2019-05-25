@@ -9,7 +9,7 @@ plugins {
 // tag::builder[]
 // tag::customize-pom[]
 // tag::multiple-poms[]
-tasks.getByName<Upload>("uploadArchives") {
+tasks.named<Upload>("uploadArchives") {
     repositories.withGroovyBuilder {
         "mavenDeployer" {
             "repository"("url" to "file://localhost/tmp/myRepo/")
@@ -64,7 +64,7 @@ dependencies {
     deployerJars("org.apache.maven.wagon:wagon-ssh:2.2")
 }
 
-tasks.getByName<Upload>("uploadArchives") {
+tasks.named<Upload>("uploadArchives") {
     repositories.withGroovyBuilder {
         "mavenDeployer" {
             setProperty("configuration", deployerJars)
@@ -90,7 +90,7 @@ tasks.install {
 // end::customize-installer[]
 
 // tag::mappings[]
-task("mappings") {
+tasks.register("mappings") {
     doLast {
         println(maven.conf2ScopeMappings.mappings)
     }

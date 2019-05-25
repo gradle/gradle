@@ -24,6 +24,7 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
@@ -50,12 +51,17 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
     private final BuildDashboardReports reports;
 
     public GenerateBuildDashboard() {
-        reports = getInstantiator().newInstance(DefaultBuildDashboardReports.class, this);
+        reports = getInstantiator().newInstance(DefaultBuildDashboardReports.class, this, getCollectionCallbackActionDecorator());
         reports.getHtml().setEnabled(true);
     }
 
     @Inject
     protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected CollectionCallbackActionDecorator getCollectionCallbackActionDecorator() {
         throw new UnsupportedOperationException();
     }
 
@@ -78,6 +84,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
 
         Set<NamedDomainObjectSet<? extends Report>> enabledReportSets = CollectionUtils.collect(allAggregatedReports,
             new Transformer<NamedDomainObjectSet<? extends Report>, Reporting<? extends ReportContainer<?>>>() {
+            @Override
             public NamedDomainObjectSet<? extends Report> transform(Reporting<? extends ReportContainer<?>> reporting) {
                 return reporting.getReports().getEnabled();
             }
@@ -148,6 +155,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      * @param closure The configuration
      * @return The reports container
      */
+    @Override
     public BuildDashboardReports reports(Closure closure) {
         return reports(new ClosureBackedAction<BuildDashboardReports>(closure));
     }
@@ -170,6 +178,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      * @param configureAction The configuration
      * @return The reports container
      */
+    @Override
     public BuildDashboardReports reports(Action<? super BuildDashboardReports> configureAction) {
         configureAction.execute(reports);
         return reports;

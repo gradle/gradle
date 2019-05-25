@@ -24,6 +24,7 @@ import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.plugins.DslObject;
@@ -48,8 +49,8 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     private final MutationGuard parentMutationGuard;
 
-    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
-        super(type, instantiator, NAMER);
+    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard, CollectionCallbackActionDecorator decorator) {
+        super(type, instantiator, NAMER, decorator);
         this.project = project;
         this.parentMutationGuard = parentMutationGuard;
     }
@@ -60,6 +61,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         this.parentMutationGuard = parentMutationGuard;
     }
 
+    @Override
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
         return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard);
     }
@@ -79,10 +81,12 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
+    @Override
     public Action<? super T> whenTaskAdded(Action<? super T> action) {
         return whenObjectAdded(action);
     }
 
+    @Override
     public void whenTaskAdded(Closure closure) {
         whenObjectAdded(closure);
     }

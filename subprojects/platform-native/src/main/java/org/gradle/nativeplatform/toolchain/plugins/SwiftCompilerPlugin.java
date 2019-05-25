@@ -63,6 +63,7 @@ public class SwiftCompilerPlugin implements Plugin<Project> {
             final WorkerLeaseService workerLeaseService = serviceRegistry.get(WorkerLeaseService.class);
 
             toolChainRegistry.registerFactory(Swiftc.class, new NamedDomainObjectFactory<Swiftc>() {
+                @Override
                 public Swiftc create(String name) {
                     return instantiator.newInstance(SwiftcToolChain.class, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory.swiftc(), instantiator, workerLeaseService);
                 }

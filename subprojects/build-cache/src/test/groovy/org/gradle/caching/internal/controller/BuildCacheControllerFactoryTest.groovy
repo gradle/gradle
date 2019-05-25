@@ -30,9 +30,9 @@ import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperation
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 
 import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.DISABLED
 import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.ENABLED
@@ -42,7 +42,7 @@ class BuildCacheControllerFactoryTest extends Specification {
 
     def buildCacheEnabled = true
     def buildOperationExecuter = new TestBuildOperationExecutor()
-    def config = new DefaultBuildCacheConfiguration(DirectInstantiator.INSTANCE, [
+    def config = new DefaultBuildCacheConfiguration(TestUtil.instantiatorFactory().inject(), [
         new DefaultBuildCacheServiceRegistration(DirectoryBuildCache, TestDirectoryBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestOtherRemoteBuildCache, TestOtherRemoteBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
@@ -65,7 +65,7 @@ class BuildCacheControllerFactoryTest extends Specification {
             ONLINE,
             logStacktraces,
             emitDebugLogging,
-            DirectInstantiator.INSTANCE
+            TestUtil.instantiatorFactory().inject()
         )
         assert controllerType.isInstance(controller)
         controllerType.cast(controller)

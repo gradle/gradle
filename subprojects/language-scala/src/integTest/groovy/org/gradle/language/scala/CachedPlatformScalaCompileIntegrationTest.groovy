@@ -28,7 +28,7 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
     def setupProjectInDirectory(TestFile project) {
         project.with {
             file('settings.gradle') << localCacheConfiguration()
-            def scalaFixture = new LanuageScalaCompilationFixture(project)
+            def scalaFixture = new LanguageScalaCompilationFixture(project)
             scalaFixture.baseline()
             file('build.gradle').text = scalaFixture.buildScript()
         }
@@ -77,7 +77,8 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         then:
         compiledJavaClass.exists()
         compiledScalaClass.exists()
-        output ==~ /(?s).*Caching disabled for task ':compileMainJarMainScala': Gradle does not know how file '.*build.*/
+        output.contains("Caching disabled for task ':compileMainJarMainScala' because:" +
+            "\n  Gradle does not know how file 'build")
     }
 
     def "incremental compilation works with caching"() {
@@ -85,7 +86,7 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         setupProjectInDirectory(warmupDir)
         warmupDir.file('settings.gradle') << localCacheConfiguration()
 
-        def classes = new LanuageScalaCompilationFixture(warmupDir)
+        def classes = new LanguageScalaCompilationFixture(warmupDir)
         classes.baseline()
         classes.classDependingOnBasicClassSource.change()
 
@@ -108,7 +109,7 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         warmupDir.deleteDir()
         setupProjectInDirectory(testDirectory)
         executer.inDirectory(testDirectory)
-        classes = new LanuageScalaCompilationFixture(testDirectory)
+        classes = new LanguageScalaCompilationFixture(testDirectory)
         classes.baseline()
         withBuildCache().succeeds compilationTask
 

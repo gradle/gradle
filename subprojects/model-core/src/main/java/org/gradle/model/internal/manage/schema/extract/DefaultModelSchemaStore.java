@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;

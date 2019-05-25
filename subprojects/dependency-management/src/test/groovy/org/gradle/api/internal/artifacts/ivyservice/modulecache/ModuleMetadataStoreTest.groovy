@@ -69,6 +69,6 @@ class ModuleMetadataStoreTest extends Specification {
         1 * pathKeyFileStore.add("org.test/testArtifact/1.0/repositoryId/descriptor.bin", _) >> { path, action ->
             action.execute(descriptorFile); fileStoreEntry
         };
-        1 * serializer.write(_, descriptor)
+        1 * serializer.write(_, descriptor, _)
     }
 }

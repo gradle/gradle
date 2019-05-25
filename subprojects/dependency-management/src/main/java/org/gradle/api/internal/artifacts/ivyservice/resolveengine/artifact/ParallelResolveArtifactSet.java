@@ -32,6 +32,7 @@ public abstract class ParallelResolveArtifactSet {
     private static final EmptySet EMPTY = new EmptySet();
 
     public abstract void visit(ArtifactVisitor visitor);
+
     public static ParallelResolveArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
         if (artifacts == ResolvedArtifactSet.EMPTY) {
             return EMPTY;
@@ -54,6 +55,7 @@ public abstract class ParallelResolveArtifactSet {
             this.buildOperationProcessor = buildOperationProcessor;
         }
 
+        @Override
         public void visit(final ArtifactVisitor visitor) {
             // Start preparing the result
             StartVisitAction visitAction = new StartVisitAction(visitor);

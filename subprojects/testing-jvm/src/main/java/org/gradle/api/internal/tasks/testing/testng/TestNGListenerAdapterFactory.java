@@ -97,7 +97,7 @@ class TestNGListenerAdapterFactory {
 
         private <T, R> R invoke(Class<T> listenerType, Object listener, Class<R> returnType, Method method, Object[] args) {
             T listenerCast = listenerType.cast(listener);
-            JavaMethod<T, R> javaMethod = JavaReflectionUtil.method(listenerType, returnType, method.getName(), method.getParameterTypes());
+            JavaMethod<T, R> javaMethod = JavaMethod.of(listenerType, returnType, method.getName(), method.getParameterTypes());
             return javaMethod.invoke(listenerCast, args);
         }
 

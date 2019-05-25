@@ -17,7 +17,7 @@
 package org.gradle.model.internal.report;
 
 import com.google.common.collect.ImmutableList;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -33,6 +33,7 @@ public class AmbiguousBindingReporter {
 
     private final static String INDENT = "  ";
     private static final Comparator<Provider> PROVIDER_COMPARATOR = new Comparator<Provider>() {
+        @Override
         public int compare(Provider o1, Provider o2) {
             return o1.getPath().compareTo(o2.getPath());
         }

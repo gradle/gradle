@@ -29,6 +29,9 @@ Now dependencies can be declared against major or minor version range, enabling 
 * Teams that want to always use the latest of their dependencies can use dynamic versions, locking their dependencies only for releases.
 The release tag will contain the lock states, allowing that build to be fully reproducible when bug fixes need to be developed.
 
+Combined with <<publishing_maven.adoc#publishing_maven:resolved_dependencies,publishing resolved versions>>, you can also replace the declared dynamic version part at publication time.
+Consumers will instead see the versions that your release resolved.
+
 Locking is enabled per <<managing_dependency_configurations.adoc#managing_dependency_configurations,dependency configuration>>.
 Once enabled, you must create an initial lock state.
 It will cause Gradle to verify that resolution results do not change, resulting in the same selected dependencies even if newer versions are produced.

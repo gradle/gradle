@@ -31,7 +31,11 @@ class MavenPom {
             pom.dependencies.dependency.each { dep ->
                 def scope = createScope(dep.scope)
                 MavenDependency mavenDependency = createDependency(dep)
-                scope.dependencies[mavenDependency.getKey()] = mavenDependency
+                if (mavenDependency.optional) {
+                    scope.optionalDependencies[mavenDependency.getKey()] = mavenDependency
+                } else {
+                    scope.dependencies[mavenDependency.getKey()] = mavenDependency
+                }
                 scopesByDependency.put(mavenDependency.getKey(), scope.name)
             }
 
@@ -111,12 +115,24 @@ class MavenPom {
         return pom?.distributionManagement[0]
     }
 
+    Node getDependencyManagement() {
+        return pom?.dependencyManagement[0]
+    }
+
     NodeList getMailingLists() {
         return pom?.mailingLists?.mailingList
     }
 
+    Node getProperties() {
+        return pom?.properties[0]
+    }
+
     private MavenDependency createDependency(def dep) {
         def exclusions = []
+        boolean optional = false
+        if (dep.optional) {
+            optional = "true"==dep.optional.text()
+        }
         if (dep.exclusions) {
             dep.exclusions.exclusion.each { excl ->
                 MavenDependencyExclusion exclusion = new MavenDependencyExclusion(
@@ -134,6 +150,7 @@ class MavenPom {
             classifier: dep.classifier ? dep.classifier.text() : null,
             type: dep.type ? dep.type.text() : null,
             exclusions: exclusions,
+            optional: optional
         )
     }
 
@@ -145,5 +162,20 @@ class MavenPom {
             scopes[scopeName] = scope
         }
         scope
+    }
+
+    void scope(String scopeName, @DelegatesTo(value=MavenScope, strategy=Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def scope = scopes[scopeName]
+        if (scope) {
+            spec.delegate = scope
+            spec.resolveStrategy = Closure.DELEGATE_FIRST
+            spec()
+        } else {
+            throw new AssertionError("Expected scope $scopeName but only found ${scopes.keySet()}")
+        }
+    }
+
+    void hasNoScope(String scopeName) {
+        assert scopes[scopeName] == null : "Didn't expect to find scope $scopeName"
     }
 }

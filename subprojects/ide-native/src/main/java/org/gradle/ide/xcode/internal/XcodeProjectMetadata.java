@@ -17,6 +17,8 @@
 package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.Task;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 
 import java.io.File;
@@ -30,6 +32,11 @@ public class XcodeProjectMetadata implements IdeProjectMetadata {
     public XcodeProjectMetadata(DefaultXcodeProject xcodeProject, Task projectTask) {
         this.xcodeProject = xcodeProject;
         this.projectTask = projectTask;
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return Describables.withTypeAndName("Xcode project", projectTask.getProject().getName());
     }
 
     @Override

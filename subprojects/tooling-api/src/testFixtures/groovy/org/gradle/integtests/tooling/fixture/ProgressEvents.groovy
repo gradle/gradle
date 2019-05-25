@@ -28,8 +28,11 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessResult
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.tooling.events.transform.TransformOperationDescriptor
+import org.gradle.tooling.events.work.WorkItemOperationDescriptor
 import org.gradle.util.GradleVersion
 
 class ProgressEvents implements ProgressListener {
@@ -83,6 +86,7 @@ class ProgressEvents implements ProgressListener {
                             || descriptor.displayName.startsWith('Cross-configure project ')
                             || descriptor.displayName.startsWith('Resolve files of')
                             || descriptor.displayName.startsWith('Executing ')
+                            || descriptor.displayName.startsWith('Execute container callback action')
                             || descriptor.displayName.startsWith('Resolving ')
                         ) {
                             // Ignore this for now
@@ -315,8 +319,35 @@ class ProgressEvents implements ProgressListener {
             return descriptor instanceof TaskOperationDescriptor
         }
 
+        boolean isWorkItem() {
+            try {
+                // the class is not present in pre 5.1 TAPI
+                return descriptor instanceof WorkItemOperationDescriptor
+            } catch (NoClassDefFoundError ignore) {
+                false
+            }
+        }
+
+        boolean isProjectConfiguration() {
+            try {
+                // the class is not present in pre 5.1 TAPI
+                return descriptor instanceof ProjectConfigurationOperationDescriptor
+            } catch (NoClassDefFoundError ignore) {
+                false
+            }
+        }
+
+        boolean isTransform() {
+            try {
+                // the class is not present in pre 5.1 TAPI
+                return descriptor instanceof TransformOperationDescriptor
+            } catch (NoClassDefFoundError ignore) {
+                false
+            }
+        }
+
         boolean isBuildOperation() {
-            return !test && !task
+            return !test && !task && !workItem && !projectConfiguration && !transform
         }
 
         boolean isSuccessful() {

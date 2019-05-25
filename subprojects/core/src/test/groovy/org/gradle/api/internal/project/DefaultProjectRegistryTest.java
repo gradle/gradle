@@ -27,10 +27,9 @@ import org.junit.Test;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static junit.framework.Assert.assertSame;
 import static org.gradle.util.WrapUtil.toSet;
 import static org.gradle.util.WrapUtil.toSortedSet;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 public class DefaultProjectRegistryTest {
@@ -92,7 +91,7 @@ public class DefaultProjectRegistryTest {
     }
 
     @Test
-    public void accessMethodsForNonExistingsPaths() {
+    public void accessMethodsForNonexistentsPaths() {
         projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         Project otherRoot = TestUtil.create(temporaryFolder.getTestDirectory()).rootProject();
         assertNull(projectRegistry.getProject(otherRoot.getPath()));

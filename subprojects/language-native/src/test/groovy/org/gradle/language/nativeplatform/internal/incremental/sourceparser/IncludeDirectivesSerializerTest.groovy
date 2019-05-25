@@ -76,8 +76,8 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def macro4 = new MacroWithComplexExpression("FOUR", IncludeType.MACRO_FUNCTION, "abc", [new SimpleExpression("abc.h", IncludeType.QUOTED)])
         def macro5 = new MacroWithComplexExpression("FIVE", IncludeType.MACRO_FUNCTION, "abc", [new ComplexExpression(IncludeType.MACRO_FUNCTION, "macro", [new SimpleExpression("abc.h", IncludeType.QUOTED)])])
         def macro6 = new MacroWithComplexExpression("SIX", IncludeType.TOKEN_CONCATENATION, null, [new SimpleExpression("X", IncludeType.IDENTIFIER), new SimpleExpression("Y", IncludeType.IDENTIFIER)])
-        def macro7 = new UnresolveableMacro("SEVEN")
-        def macro8 = new UnresolveableMacro("EIGHT")
+        def macro7 = new UnresolvableMacro("SEVEN")
+        def macro8 = new UnresolvableMacro("EIGHT")
         def directives = DefaultIncludeDirectives.of(ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8]), ImmutableList.of())
 
         expect:
@@ -90,8 +90,8 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def macro3 = new ReturnParameterMacroFunction("THREE", 12, 4)
         def macro4 = new ArgsMappingMacroFunction("FOUR", 3, [0, 1, 2] as int[], IncludeType.MACRO_FUNCTION, "macro", [new SimpleExpression("abc.h", IncludeType.QUOTED)])
         def macro5 = new ArgsMappingMacroFunction("FOUR", 3, [2, 1] as int[], IncludeType.TOKEN_CONCATENATION, null, [new SimpleExpression("abc.h", IncludeType.QUOTED)])
-        def macro6 = new UnresolveableMacroFunction("SIX", 3)
-        def macro7 = new UnresolveableMacroFunction("SEVEN", 3)
+        def macro6 = new UnresolvableMacroFunction("SIX", 3)
+        def macro7 = new UnresolvableMacroFunction("SEVEN", 3)
         def directives = DefaultIncludeDirectives.of(ImmutableList.of(), ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4, macro5, macro6, macro7]))
 
         expect:

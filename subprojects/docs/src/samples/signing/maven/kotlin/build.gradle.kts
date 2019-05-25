@@ -24,7 +24,7 @@ signing {
 // end::sign-archives[]
 
 // tag::sign-pom[]
-tasks.getByName<Upload>("uploadArchives") {
+tasks.named<Upload>("uploadArchives") {
     repositories {
         withConvention(MavenRepositoryHandlerConvention::class) {
             mavenDeployer {

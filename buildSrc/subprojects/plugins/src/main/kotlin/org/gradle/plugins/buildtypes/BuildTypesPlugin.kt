@@ -110,7 +110,7 @@ fun Project.insertBuildTypeTasksInto(
     }
 
     if (taskList.isEmpty()) {
-        taskList.add("help") //do not trigger the default tasks
+        taskList.add("help") // do not trigger the default tasks
     }
 }
 

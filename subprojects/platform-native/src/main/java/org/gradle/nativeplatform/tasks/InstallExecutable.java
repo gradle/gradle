@@ -15,12 +15,9 @@
  */
 package org.gradle.nativeplatform.tasks;
 
-import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -52,6 +49,7 @@ import org.gradle.util.GFileUtils;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
@@ -78,15 +76,10 @@ public class InstallExecutable extends DefaultTask {
         this.libs = getProject().files();
         this.installDirectory = objectFactory.directoryProperty();
         this.installedExecutable = objectFactory.fileProperty();
-        this.installedExecutable.set(getLibDirectory().map(new Transformer<RegularFile, Directory>() {
-            @Override
-            public RegularFile transform(Directory directory) {
-                return directory.file(executable.getAsFile().get().getName());
-            }
-        }));
         this.executable = objectFactory.fileProperty();
+        this.installedExecutable.set(getLibDirectory().map(directory -> directory.file(executable.getAsFile().get().getName())));
         // A further work around for missing ability to skip task when input file is missing (see #getInputFileIfExists below)
-        dependsOn(executable);
+        getInputs().file(executable);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
     }
@@ -189,13 +182,7 @@ public class InstallExecutable extends DefaultTask {
      */
     @Internal("covered by getInstallDirectory")
     public Provider<RegularFile> getRunScriptFile() {
-        return installDirectory.file(executable.map(new Transformer<CharSequence, RegularFile>() {
-            @Override
-            public CharSequence transform(RegularFile regularFile) {
-                OperatingSystem operatingSystem = OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName());
-                return operatingSystem.getScriptName(regularFile.getAsFile().getName());
-            }
-        }));
+        return installDirectory.file(executable.map(executableFile -> OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName()).getScriptName(executableFile.getAsFile().getName())));
     }
 
     @Inject
@@ -210,15 +197,19 @@ public class InstallExecutable extends DefaultTask {
 
     @TaskAction
     public void install() {
+        NativePlatform nativePlatform = targetPlatform.get();
+        File executable = getExecutableFile().get().getAsFile();
+        File libDirectory = getLibDirectory().get().getAsFile();
+        File runScript = getRunScriptFile().get().getAsFile();
+        Collection<File> libs = getLibs().getFiles();
+
         // TODO: Migrate this to the worker API once the FileSystem and FileOperations services can be injected
-        workerLeaseService.withoutProjectLock(new Runnable() {
-            @Override
-            public void run() {
-                if (targetPlatform.get().getOperatingSystem().isWindows()) {
-                    installWindows();
-                } else {
-                    installUnix();
-                }
+        workerLeaseService.withoutProjectLock(() -> {
+            installToDir(libDirectory, executable, libs);
+            if (nativePlatform.getOperatingSystem().isWindows()) {
+                installWindows(executable, runScript);
+            } else {
+                installUnix(executable, runScript);
             }
         });
     }
@@ -227,11 +218,7 @@ public class InstallExecutable extends DefaultTask {
         return getInstallDirectory().dir("lib");
     }
 
-    private void installWindows() {
-        final File executable = getExecutableFile().get().getAsFile();
-
-        installToDir(getLibDirectory().get().getAsFile());
-
+    private void installWindows(File executable, File runScript) {
         StringBuilder toolChainPath = new StringBuilder();
 
         NativeToolChain toolChain = getToolChain().get();
@@ -253,15 +240,10 @@ public class InstallExecutable extends DefaultTask {
             + "\nEXIT /B %ERRORLEVEL%"
             + "\nENDLOCAL"
             + "\n";
-        GFileUtils.writeFile(runScriptText, getRunScriptFile().get().getAsFile());
+        GFileUtils.writeFile(runScriptText, runScript);
     }
 
-    private void installUnix() {
-        final File destination = getInstallDirectory().get().getAsFile();
-        final File executable = getExecutableFile().get().getAsFile();
-
-        installToDir(new File(destination, "lib"));
-
+    private void installUnix(File executable, File runScript) {
         String runScriptText =
               "#!/bin/sh"
             + "\nAPP_BASE_NAME=`dirname \"$0\"`"
@@ -271,20 +253,17 @@ public class InstallExecutable extends DefaultTask {
             + "\nexport LD_LIBRARY_PATH"
             + "\nexec \"$APP_BASE_NAME/lib/" + executable.getName() + "\" \"$@\""
             + "\n";
-        File runScript = getRunScriptFile().get().getAsFile();
+
         GFileUtils.writeFile(runScriptText, runScript);
 
         getFileSystem().chmod(runScript, 0755);
     }
 
-    private void installToDir(final File binaryDir) {
-        getFileOperations().sync(new Action<CopySpec>() {
-            public void execute(CopySpec copySpec) {
-                copySpec.into(binaryDir);
-                copySpec.from(getExecutableFile());
-                copySpec.from(getLibs());
-            }
-
+    private void installToDir(final File binaryDir, final File executableFile, final Collection<File> libs) {
+        getFileOperations().sync(copySpec -> {
+            copySpec.into(binaryDir);
+            copySpec.from(executableFile);
+            copySpec.from(libs);
         });
     }
 }

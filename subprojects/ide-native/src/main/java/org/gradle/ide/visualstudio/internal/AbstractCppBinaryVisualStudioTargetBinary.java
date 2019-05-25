@@ -18,10 +18,12 @@ package org.gradle.ide.visualstudio.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
+import org.gradle.language.nativeplatform.internal.Dimensions;
+import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
@@ -34,34 +36,21 @@ import org.gradle.util.VersionNumber;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 abstract public class AbstractCppBinaryVisualStudioTargetBinary implements VisualStudioTargetBinary {
+    public static final VersionNumber DEFAULT_SDK_VERSION = VersionNumber.parse("8.1");
+    public static final VersionNumber DEFAULT_VISUAL_STUDIO_VERSION = VersionNumber.version(14);
     protected final String projectName;
     private final String projectPath;
     private final CppComponent component;
-    private final VersionNumber visualStudioVersion;
-    private final VersionNumber windowsSdkVersion;
+    private final ProjectLayout projectLayout;
 
-    protected AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, CppBinary binary) {
+    protected AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, ProjectLayout projectLayout) {
         this.projectName = projectName;
         this.projectPath = projectPath;
         this.component = component;
-        PlatformToolProvider provider = ((DefaultCppBinary) binary).getPlatformToolProvider();
-        CompilerMetadata compilerMetadata = provider.getCompilerMetadata(ToolType.CPP_COMPILER);
-        if (compilerMetadata instanceof VisualCppMetadata) {
-            visualStudioVersion = ((VisualCppMetadata) compilerMetadata).getVisualStudioVersion();
-        } else {
-            // Assume VS 2015
-            visualStudioVersion = VersionNumber.version(14);
-        }
-        SystemLibraries systemLibraries = provider.getSystemLibraries(ToolType.CPP_COMPILER);
-        if (systemLibraries instanceof WindowsSdkLibraries) {
-            WindowsSdkLibraries sdkLibraries = (WindowsSdkLibraries) systemLibraries;
-            windowsSdkVersion = sdkLibraries.getSdkVersion();
-        } else {
-            // Assume 8.1
-            windowsSdkVersion = VersionNumber.parse("8.1");
-        }
+        this.projectLayout = projectLayout;
     }
 
     abstract CppBinary getBinary();
@@ -84,11 +73,15 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
     @Override
     public String getVisualStudioConfigurationName() {
         // TODO: this is terrible
+        String buildType = "debug";
         if (getBinary().isOptimized()) {
-            return "release";
-        } else {
-            return "debug";
+            buildType = "release";
         }
+
+        String operatingSystemFamilySuffix = Dimensions.createDimensionSuffix(getBinary().getTargetMachine().getOperatingSystemFamily(), component.getBinaries().get().stream().map(CppBinary::getTargetMachine).map(TargetMachine::getOperatingSystemFamily).collect(Collectors.toSet()));
+        String architectureSuffix = Dimensions.createDimensionSuffix(getBinary().getTargetMachine().getArchitecture(), component.getBinaries().get().stream().map(CppBinary::getTargetMachine).map(TargetMachine::getArchitecture).collect(Collectors.toSet()));
+
+        return buildType + operatingSystemFamilySuffix + architectureSuffix;
     }
 
     protected String taskPath(final String taskName) {
@@ -101,12 +94,31 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public VersionNumber getVisualStudioVersion() {
-        return visualStudioVersion;
+        PlatformToolProvider provider = ((DefaultCppBinary) getBinary()).getPlatformToolProvider();
+        if (provider.isAvailable()) {
+            CompilerMetadata compilerMetadata = provider.getCompilerMetadata(ToolType.CPP_COMPILER);
+            if (compilerMetadata instanceof VisualCppMetadata) {
+                return ((VisualCppMetadata) compilerMetadata).getVisualStudioVersion();
+            }
+        }
+
+        // Assume VS 2015
+        return DEFAULT_VISUAL_STUDIO_VERSION;
     }
 
     @Override
     public VersionNumber getSdkVersion() {
-        return windowsSdkVersion;
+        PlatformToolProvider provider = ((DefaultCppBinary) getBinary()).getPlatformToolProvider();
+        if (provider.isAvailable()) {
+            SystemLibraries systemLibraries = provider.getSystemLibraries(ToolType.CPP_COMPILER);
+            if (systemLibraries instanceof WindowsSdkLibraries) {
+                WindowsSdkLibraries sdkLibraries = (WindowsSdkLibraries) systemLibraries;
+                return sdkLibraries.getSdkVersion();
+            }
+        }
+
+        // Assume 8.1
+        return DEFAULT_SDK_VERSION;
     }
 
     @Override
@@ -121,7 +133,7 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public FileCollection getResourceFiles() {
-        return ImmutableFileCollection.of();
+        return projectLayout.files();
     }
 
     @Override

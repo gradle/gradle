@@ -67,7 +67,7 @@ For more control over what gets executed, use qualified names (the second approa
 
 This approach works for any task, so if you want to know what tasks are in a particular subproject, just use the `tasks` task, e.g. `gradle :services:webservice:tasks` .
 
-Regardless of which technique you use to execute tasks, Gradle will take care of building any subprojects that the target depends on. You don’t have to worry about the inter-project dependencies yourself. If you’re interested in how this is configured, you can read about writing multi-project builds <<multi_project_builds.adoc#multi_project_builds,later in the user guide>>.
+Regardless of which technique you use to execute tasks, Gradle will take care of building any subprojects that the target depends on. You don’t have to worry about the inter-project dependencies yourself. If you’re interested in how this is configured, you can read about writing multi-project builds <<multi_project_builds.adoc#multi_project_builds,later in the user manual>>.
 
 There’s one last thing to note. When you’re using the Gradle wrapper, the first approach doesn’t work well because you have to specify the path to the wrapper script if you’re not in the project root. For example, if you’re in the _webservice_ subproject directory, you would have to run `../../gradlew build`.
 

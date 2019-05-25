@@ -53,6 +53,7 @@ public class BufferingStyledTextOutput extends AbstractStyledTextOutput {
         }
         hasContent = true;
         events.add(new Action<StyledTextOutput>() {
+            @Override
             public void execute(StyledTextOutput styledTextOutput) {
                 styledTextOutput.text(text);
             }
@@ -70,6 +71,7 @@ public class BufferingStyledTextOutput extends AbstractStyledTextOutput {
             this.style = style;
         }
 
+        @Override
         public void execute(StyledTextOutput styledTextOutput) {
             styledTextOutput.style(style);
         }

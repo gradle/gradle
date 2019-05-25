@@ -65,12 +65,14 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
     private String createJoinedClasspath(Iterable<String> classpath) {
         if (windows) {
             return Joiner.on(";").join(Iterables.transform(classpath, new Function<String, String>() {
+                @Override
                 public String apply(String input) {
                     return "%APP_HOME%\\" + input.replace("/", "\\");
                 }
             }));
         } else {
             return Joiner.on(":").join(Iterables.transform(classpath, new Function<String, String>() {
+                @Override
                 public String apply(String input) {
                     return "$APP_HOME/" + input.replace("\\", "/");
                 }
@@ -85,6 +87,7 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
             }
 
             Iterable<String> quotedDefaultJvmOpts = Iterables.transform(CollectionUtils.toStringList(defaultJvmOpts), new Function<String, String>() {
+                @Override
                 public String apply(String jvmOpt) {
                     return "\"" + escapeWindowsJvmOpt(jvmOpt) + "\"";
                 }
@@ -98,6 +101,7 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
             }
 
             Iterable<String> quotedDefaultJvmOpts = Iterables.transform(CollectionUtils.toStringList(defaultJvmOpts), new Function<String, String>() {
+                @Override
                 public String apply(String jvmOpt) {
                     //quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on them
                     jvmOpt = jvmOpt.replace("\\", "\\\\");

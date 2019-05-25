@@ -54,36 +54,44 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         return force == dependencyRhs.isForce() && changing == dependencyRhs.isChanging();
     }
 
+    @Override
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
         return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }
 
+    @Override
     public String getGroup() {
         return moduleIdentifier.getGroup();
     }
 
+    @Override
     public String getName() {
         return moduleIdentifier.getName();
     }
 
+    @Override
     public String getVersion() {
         return Strings.emptyToNull(versionConstraint.getVersion());
     }
 
+    @Override
     public boolean isForce() {
         return force;
     }
 
+    @Override
     public ExternalModuleDependency setForce(boolean force) {
         validateMutation(this.force, force);
         this.force = force;
         return this;
     }
 
+    @Override
     public boolean isChanging() {
         return changing;
     }
 
+    @Override
     public ExternalModuleDependency setChanging(boolean changing) {
         validateMutation(this.changing, changing);
         this.changing = changing;

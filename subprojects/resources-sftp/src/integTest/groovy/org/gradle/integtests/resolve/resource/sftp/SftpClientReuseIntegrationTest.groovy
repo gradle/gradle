@@ -17,15 +17,17 @@
 package org.gradle.integtests.resolve.resource.sftp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 
 class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
     @Rule final SFTPServer sftpServer = new SFTPServer(temporaryFolder)
-    @Rule final CyclicBarrierHttpServer coordinator = new CyclicBarrierHttpServer()
+    @Rule final BlockingHttpServer coordinator = new BlockingHttpServer()
 
     def "does not attempt to reuse a client that has been disconnected"() {
+        coordinator.start()
+
         buildFile << """
             ${sftpTask}
             
@@ -35,7 +37,7 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
             
             task block {
                 doLast {
-                    new URL("${coordinator.uri}").text
+                    ${coordinator.callFromBuild('sync')}
                 }
                 dependsOn firstUse
             }
@@ -46,10 +48,11 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         sftpServer.expectLstat("/")
+        def sync = coordinator.expectAndBlock('sync')
 
         when:
         def gradle = executer.withTasks('reuseClient').withArgument("--info").start()
-        def coordinatorWaitForResult = coordinator.waitFor(false, 60)
+        sync.waitForAllPendingCalls()
 
         then:
         sftpServer.clearSessions()
@@ -57,11 +60,10 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
         sleep(1000)
 
         when:
-        coordinator.release()
+        sync.releaseAll()
 
         then:
         gradle.waitForFinish()
-        coordinatorWaitForResult
     }
 
     String getSftpTask() {

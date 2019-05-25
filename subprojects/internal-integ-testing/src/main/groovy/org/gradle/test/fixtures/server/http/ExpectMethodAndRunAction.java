@@ -19,8 +19,6 @@ package org.gradle.test.fixtures.server.http;
 import com.sun.net.httpserver.HttpExchange;
 import org.gradle.api.Action;
 
-import java.io.IOException;
-
 class ExpectMethodAndRunAction implements ResourceHandler, BlockingHttpServer.ExpectedRequest, ResourceExpectation {
     private final String method;
     private final String path;
@@ -28,15 +26,8 @@ class ExpectMethodAndRunAction implements ResourceHandler, BlockingHttpServer.Ex
 
     ExpectMethodAndRunAction(String method, String path, Action<? super HttpExchange> action) {
         this.method = method;
-        this.path = removeLeadingSlash(path);
+        this.path = path;
         this.action = action;
-    }
-
-    static String removeLeadingSlash(String path) {
-        if (path.startsWith("/")) {
-            return path.substring(1);
-        }
-        return path;
     }
 
     @Override
@@ -55,7 +46,7 @@ class ExpectMethodAndRunAction implements ResourceHandler, BlockingHttpServer.Ex
     }
 
     @Override
-    public void writeTo(int requestId, HttpExchange exchange) throws IOException {
+    public void writeTo(int requestId, HttpExchange exchange) {
         action.execute(exchange);
     }
 }

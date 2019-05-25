@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 public class ByTypeAndNameBuildOutcomeAssociator<T extends BuildOutcome> extends ByTypeAndCharacteristicBuildOutcomeAssociator<T> {
     public ByTypeAndNameBuildOutcomeAssociator(Class<? extends T> type) {
         super(type, new Transformer<String, T>() {
+            @Override
             public String transform(T outcome) {
                 return outcome.getName();
             }

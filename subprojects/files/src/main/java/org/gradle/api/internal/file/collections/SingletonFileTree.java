@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file.collections;
 
+import org.gradle.api.tasks.util.PatternSet;
+
 import java.io.File;
 
 /**
@@ -23,4 +25,5 @@ import java.io.File;
  */
 public interface SingletonFileTree extends MinimalFileTree {
     File getFile();
+    PatternSet getPatterns();
 }

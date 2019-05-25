@@ -20,7 +20,7 @@ import org.gradle.internal.reflect.Instantiator;
 public class TestContainer extends AbstractNamedDomainObjectContainer<TestObject> {
 
     public TestContainer(org.gradle.internal.reflect.Instantiator instantiator) {
-        super(TestObject.class, instantiator, new DynamicPropertyNamer());
+        super(TestObject.class, instantiator, new DynamicPropertyNamer(), CollectionCallbackActionDecorator.NOOP);
     }
 
     protected TestObject doCreate(String name) {

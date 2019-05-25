@@ -22,9 +22,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 
 public class DefaultLibraryComponentSelector implements LibraryComponentSelector {
     private final String projectPath;
@@ -71,6 +74,7 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
         return variant;
     }
 
+    @Override
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
@@ -87,6 +91,11 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
     @Override
     public AttributeContainer getAttributes() {
         return ImmutableAttributes.EMPTY;
+    }
+
+    @Override
+    public List<Capability> getRequestedCapabilities() {
+        return Collections.emptyList();
     }
 
     @Override

@@ -41,6 +41,7 @@ public class DefaultPolymorphicNamedEntityInstantiator<T> implements Polymorphic
         this.baseType = type;
     }
 
+    @Override
     public <S extends T> S create(String name, Class<S> type) {
         @SuppressWarnings("unchecked")
         NamedDomainObjectFactory<S> factory = (NamedDomainObjectFactory<S>) factories.get(type);

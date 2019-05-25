@@ -1,6 +1,6 @@
 ant.importBuild("build.xml")
 
-task("intro") {
+tasks.register("intro") {
     dependsOn("hello")
     doLast {
         println("Hello, from Gradle")

@@ -35,7 +35,7 @@ class DefaultManifestTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def testInitWithFileReolver() {
+    def testInitWithFileResolver() {
         expect:
         gradleManifest.attributes == MANIFEST_VERSION_MAP
         !gradleManifest.sections
@@ -138,7 +138,7 @@ class DefaultManifestTest extends Specification {
     }
 
     def writeWithPath() {
-        TestFile manifestFile = tmpDir.file('someNonexistingDir').file('someFile')
+        TestFile manifestFile = tmpDir.file('someNonexistentDir').file('someFile')
         DefaultManifest manifest = new DefaultManifest(fileResolver).attributes(key1: 'value1')
         fileResolver.resolve('file') >> manifestFile
 

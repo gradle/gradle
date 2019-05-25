@@ -37,7 +37,6 @@ import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor
 import org.gradle.internal.rules.DefaultRuleActionAdapter
@@ -77,7 +76,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
 
     MetadataResolutionContext context = Mock()
     def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
-    def instantiator = DirectInstantiator.INSTANCE
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def stringInterner = SimpleMapInterner.notThreadSafe()
     def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
     def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory())

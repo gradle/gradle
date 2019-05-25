@@ -24,13 +24,13 @@ import org.gradle.api.specs.Spec
 import static org.gradle.util.WrapUtil.toList
 
 class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
-    DefaultDomainObjectCollection<CharSequence> container = new DefaultDomainObjectCollection<CharSequence>(CharSequence.class, new IterationOrderRetainingSetElementSource<CharSequence>())
+    DefaultDomainObjectCollection<CharSequence> container = new DefaultDomainObjectCollection<CharSequence>(CharSequence.class, new IterationOrderRetainingSetElementSource<CharSequence>(), callbackActionDecorator)
     StringBuffer a = new StringBuffer("a")
     StringBuffer b = new StringBuffer("b")
     StringBuffer c = new StringBuffer("c")
     StringBuilder d = new StringBuilder("d")
     boolean externalProviderAllowed = true
-
+    boolean supportsBuildOperations = true
     def canGetAllMatchingDomainObjectsOrderedByOrderAdded() {
         def spec = new Spec<CharSequence>() {
             boolean isSatisfiedBy(CharSequence element) {
@@ -304,7 +304,9 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         container.addLater(provider)
 
         def iterator = container.iteratorNoFlush()
-        while(iterator.hasNext()) { iterator.next() }
+        while (iterator.hasNext()) {
+            iterator.next()
+        }
 
         when:
         iterator.remove()

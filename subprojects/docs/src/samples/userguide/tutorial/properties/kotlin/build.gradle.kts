@@ -3,7 +3,7 @@ val commandLineProjectProp: String by project
 val gradlePropertiesProp: String by project
 val systemProjectProp: String by project
 
-task("printProps") {
+tasks.register("printProps") {
     doLast {
         println(commandLineProjectProp)
         println(gradlePropertiesProp)

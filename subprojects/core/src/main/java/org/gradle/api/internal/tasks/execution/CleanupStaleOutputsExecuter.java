@@ -21,10 +21,9 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.internal.tasks.properties.FilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.history.OutputFilesRepository;
@@ -33,6 +32,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashSet;
@@ -42,7 +43,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
     public static final String CLEAN_STALE_OUTPUTS_DISPLAY_NAME = "Clean stale outputs";
 
-    private final Logger logger = Logging.getLogger(CleanupStaleOutputsExecuter.class);
+    private final Logger logger = LoggerFactory.getLogger(CleanupStaleOutputsExecuter.class);
     private final BuildOperationExecutor buildOperationExecutor;
     private final OutputChangeListener outputChangeListener;
     private final TaskExecuter executer;
@@ -60,8 +61,8 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         final Set<File> filesToDelete = new HashSet<File>();
-        TaskProperties taskProperties = context.getTaskProperties();
-        for (TaskOutputFilePropertySpec outputFileSpec : taskProperties.getOutputFileProperties()) {
+        TaskProperties properties = context.getTaskProperties();
+        for (FilePropertySpec outputFileSpec : properties.getOutputFileProperties()) {
             FileCollection files = outputFileSpec.getPropertyFiles();
             for (File file : files) {
                 if (cleanupRegistry.isOutputOwnedByBuild(file) && !outputFilesRepository.isGeneratedByGradle(file) && file.exists()) {

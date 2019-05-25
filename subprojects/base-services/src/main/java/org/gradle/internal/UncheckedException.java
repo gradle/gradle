@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.Callable;
 
 /**
  * Wraps a checked exception. Carries no other context.
@@ -64,6 +65,14 @@ public final class UncheckedException extends RuntimeException {
             throw new UncheckedException(t.getMessage(), t);
         } else {
             throw new UncheckedException(t);
+        }
+    }
+
+    public static <T> T callUnchecked(Callable<T> callable) {
+        try {
+            return callable.call();
+        } catch (Exception e) {
+            throw throwAsUncheckedException(e);
         }
     }
 

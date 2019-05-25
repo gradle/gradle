@@ -42,7 +42,7 @@ dependencies {
 }
 // end::reject-version-1-1[]
 
-task("printRejectConfig") {
+tasks.register("printRejectConfig") {
     doLast {
         configurations["rejectConfig"].forEach { println("Resolved: ${it.name}") }
     }
@@ -76,7 +76,7 @@ dependencies {
     "metadataRulesConfig"("org.sample:lib:+")
 }
 
-task("printMetadataRulesConfig") {
+tasks.register("printMetadataRulesConfig") {
     doLast {
         configurations["metadataRulesConfig"].forEach { println("Resolved: ${it.name}") }
     }
@@ -102,7 +102,7 @@ dependencies {
     "targetConfig"("org.sample:api:1.+")
 }
 
-task("printTargetConfig") {
+tasks.register("printTargetConfig") {
     doLast {
         configurations["targetConfig"].forEach { println("Resolved: ${it.name}") }
     }
@@ -133,7 +133,7 @@ dependencies {
     "ruleSourceConfig"("org.sample:api:1.+")
 }
 
-task("printRuleSourceConfig") {
+tasks.register("printRuleSourceConfig") {
     doLast {
         configurations["ruleSourceConfig"].forEach { println("Resolved: ${it.name}") }
     }
@@ -161,7 +161,7 @@ dependencies {
     "sampleConfig"(group = "org.sample", name = "api", version = "1+")
 }
 
-task("resolveConfiguration") {
+tasks.register("resolveConfiguration") {
     doLast {
         configurations["sampleConfig"].forEach { println(it) }
     }

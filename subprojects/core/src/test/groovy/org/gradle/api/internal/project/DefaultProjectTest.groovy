@@ -35,21 +35,23 @@ import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
-import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
@@ -69,6 +71,7 @@ import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -125,7 +128,7 @@ class DefaultProjectTest extends Specification {
     RepositoryHandler repositoryHandlerMock = Stub(RepositoryHandler)
     DependencyHandler dependencyHandlerMock = Stub(DependencyHandler)
     ComponentMetadataHandler moduleHandlerMock = Stub(ComponentMetadataHandler)
-    ScriptHandler scriptHandlerMock = Mock(ScriptHandler)
+    ScriptHandlerInternal scriptHandlerMock = Mock(ScriptHandlerInternal)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = Stub(DependencyMetaDataProvider)
     GradleInternal build = Stub(GradleInternal)
     ConfigurationTargetIdentifier configurationTargetIdentifier = Stub(ConfigurationTargetIdentifier)
@@ -173,7 +176,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock = Stub(ServiceRegistry)
 
         projectServiceRegistryFactoryMock.createFor({ it != null }) >> serviceRegistryMock
-        serviceRegistryMock.newInstance(TaskContainerInternal) >> taskContainerMock
+        serviceRegistryMock.get(TaskContainerInternal) >> taskContainerMock
         taskContainerMock.getTasksAsDynamicObject() >> new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))
         serviceRegistryMock.get((Type) RepositoryHandler) >> repositoryHandlerMock
         serviceRegistryMock.get(ConfigurationContainer) >> configurationContainerMock
@@ -185,12 +188,14 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) InputNormalizationHandler) >> inputNormalizationHandler
         serviceRegistryMock.get(ProjectEvaluator) >> projectEvaluator
         serviceRegistryMock.getFactory(AntBuilder) >> antBuilderFactoryMock
-        serviceRegistryMock.get((Type) ScriptHandler) >> scriptHandlerMock
+        serviceRegistryMock.get((Type) ScriptHandlerInternal) >> scriptHandlerMock
         serviceRegistryMock.get((Type) LoggingManagerInternal) >> loggingManagerMock
         serviceRegistryMock.get(projectRegistryType) >> projectRegistry
         serviceRegistryMock.get(DependencyMetaDataProvider) >> dependencyMetaDataProviderMock
         serviceRegistryMock.get(FileResolver) >> Stub(FileResolver)
+        serviceRegistryMock.get(CollectionCallbackActionDecorator) >> Stub(CollectionCallbackActionDecorator)
         serviceRegistryMock.get(Instantiator) >> instantiatorMock
+        serviceRegistryMock.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
         serviceRegistryMock.get((Type) FileOperations) >> fileOperationsMock
         serviceRegistryMock.get((Type) ProviderFactory) >> propertyStateFactoryMock
         serviceRegistryMock.get((Type) ProcessOperations) >> processOperationsMock
@@ -200,10 +205,11 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) PluginManagerInternal) >> pluginManager
         serviceRegistryMock.get((Type) TextResourceLoader) >> textResourceLoader
         serviceRegistryMock.get(ManagedProxyFactory) >> managedProxyFactory
-        serviceRegistryMock.get(AttributesSchema)  >> attributesSchema
-        serviceRegistryMock.get(BuildOperationExecutor)  >> buildOperationExecutor
-        serviceRegistryMock.get((Type) ListenerBuildOperationDecorator)  >> listenerBuildOperationDecorator
-        serviceRegistryMock.get((Type) CrossProjectConfigurator)  >> crossProjectConfigurator
+        serviceRegistryMock.get(AttributesSchema) >> attributesSchema
+        serviceRegistryMock.get(BuildOperationExecutor) >> buildOperationExecutor
+        serviceRegistryMock.get((Type) ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
+        serviceRegistryMock.get((Type) CrossProjectConfigurator) >> crossProjectConfigurator
+        serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)
@@ -223,7 +229,7 @@ class DefaultProjectTest extends Specification {
         ModelSchemaStore modelSchemaStore = Stub(ModelSchemaStore)
         serviceRegistryMock.get((Type) ModelSchemaStore) >> modelSchemaStore
         serviceRegistryMock.get(ModelSchemaStore) >> modelSchemaStore
-        serviceRegistryMock.get((Type) DefaultProjectLayout) >> new DefaultProjectLayout(rootDir, TestFiles.resolver(rootDir), Stub(TaskResolver))
+        serviceRegistryMock.get((Type) DefaultProjectLayout) >> new DefaultProjectLayout(rootDir, TestFiles.resolver(rootDir), Stub(TaskResolver), Stub(FileCollectionFactory))
 
         build.getProjectEvaluationBroadcaster() >> Stub(ProjectEvaluationListener)
         build.getParent() >> null
@@ -233,22 +239,21 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
 
-        AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
-        project = defaultProject(classGenerator, 'root', null, rootDir, rootProjectClassLoaderScope)
+        project = defaultProject('root', null, rootDir, rootProjectClassLoaderScope)
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1")
-        child1 = defaultProject(classGenerator, "child1", project, new File("child1"), child1ClassLoaderScope)
+        child1 = defaultProject("child1", project, new File("child1"), child1ClassLoaderScope)
         project.addChildProject(child1)
-        childchild = defaultProject(classGenerator, "childchild", child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild"))
+        childchild = defaultProject("childchild", child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild"))
         child1.addChildProject(childchild)
-        child2 = defaultProject(classGenerator, "child2", project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2"))
+        child2 = defaultProject("child2", project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2"))
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
         }
     }
 
-    private DefaultProject defaultProject(AsmBackedClassGenerator classGenerator, String name, def parent, File rootDir, ClassLoaderScope scope) {
-        classGenerator.newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, this.projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
+    private DefaultProject defaultProject(String name, def parent, File rootDir, ClassLoaderScope scope) {
+        TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, this.projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
     }
 
     Type getProjectRegistryType() {
@@ -533,14 +538,14 @@ class DefaultProjectTest extends Specification {
         project.someTask.is(testTask)
     }
 
-    def propertyShortCutForTaskCallWithNonExistingTask() {
+    def propertyShortCutForTaskCallWithNonexistentTask() {
         when:
         project.unknownTask
         then:
         thrown(MissingPropertyException)
     }
 
-    def methodShortCutForTaskCallWithNonExistingTask() {
+    def methodShortCutForTaskCallWithNonexistentTask() {
         when:
         project.unknownTask([dependsOn: '/task2'])
         then:
@@ -746,7 +751,7 @@ def scriptMethod(Closure closure) {
         project.ext.someProp = "somePropValue"
         then:
         project.findProperty('someProp') == "somePropValue"
-        project.findProperty("someNonExistingProp") == null
+        project.findProperty("someNonexistentProp") == null
     }
 
     def setPropertyNullValue() {
@@ -986,13 +991,10 @@ def scriptMethod(Closure closure) {
     }
 
     def createsADomainObjectContainer() {
-        when:
-        def container = Stub(FactoryNamedDomainObjectContainer)
-        instantiatorMock.newInstance(FactoryNamedDomainObjectContainer, _) >> container
-        then:
-        project.container(String).is(container)
-        project.container(String, Stub(NamedDomainObjectFactory)).is(container)
-        project.container(String, {}).is(container)
+        expect:
+        project.container(String) instanceof FactoryNamedDomainObjectContainer
+        project.container(String, Stub(NamedDomainObjectFactory)) instanceof FactoryNamedDomainObjectContainer
+        project.container(String, {}) instanceof FactoryNamedDomainObjectContainer
     }
 
 }

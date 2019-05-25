@@ -25,7 +25,14 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum SwiftVersion {
-    SWIFT3(3), SWIFT4(4);
+    SWIFT3(3), SWIFT4(4),
+
+    /**
+     * Swift 5 major version.
+     *
+     * @since 5.4
+     */
+    SWIFT5(5);
 
     private final int version;
 

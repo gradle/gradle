@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -157,4 +158,27 @@ public abstract class JavaPluginConvention {
     public abstract SourceSetContainer getSourceSets();
 
     public abstract ProjectInternal getProject();
+
+    /**
+     * If this method is called, Gradle will not automatically try to fetch
+     * dependencies which have a JVM version compatible with this module.
+     * This should be used whenever the default behavior is not
+     * applicable, in particular when for some reason it's not possible to split
+     * a module and that this module only has some classes which require dependencies
+     * on higher versions.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    public abstract void disableAutoTargetJvm();
+
+    /**
+     * Tells if automatic JVM targetting is enabled. When disabled, Gradle
+     * will not automatically try to get dependencies corresponding to the
+     * same (or compatible) level as the target compatibility of this module.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    public abstract boolean getAutoTargetJvmDisabled();
 }

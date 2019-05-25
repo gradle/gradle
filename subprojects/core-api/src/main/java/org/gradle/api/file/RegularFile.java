@@ -33,5 +33,6 @@ public interface RegularFile extends FileSystemLocation {
     /**
      * Returns the location of this file, as an absolute {@link File}.
      */
+    @Override
     File getAsFile();
 }

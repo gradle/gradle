@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -24,6 +26,7 @@ public class RecompilationSpec {
 
     private final Collection<String> classesToCompile = new NormalizingClassNamesSet();
     private final Collection<String> classesToProcess = new NormalizingClassNamesSet();
+    private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<GeneratedResource>();
     private String fullRebuildCause;
 
     public Collection<String> getClassesToCompile() {
@@ -32,6 +35,10 @@ public class RecompilationSpec {
 
     public Collection<String> getClassesToProcess() {
         return classesToProcess;
+    }
+
+    public Collection<GeneratedResource> getResourcesToGenerate() {
+        return resourcesToGenerate;
     }
 
     public boolean isBuildNeeded() {

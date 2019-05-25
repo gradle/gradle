@@ -17,7 +17,9 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileLookup;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.util.PatternSet;
@@ -33,11 +35,11 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -84,16 +86,20 @@ public class BasicGlobalScopeServices {
         return new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
     }
 
-    ExecFactory createExecFactory(FileResolver fileResolver) {
-        return new DefaultExecActionFactory(fileResolver);
+    ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {
+        return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory);
     }
 
     FileResolver createFileResolver(FileLookup lookup) {
         return lookup.getFileResolver();
     }
 
-    FileLookup createFileLookup(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
-        return new DefaultFileLookup(fileSystem, patternSetFactory);
+    FileLookup createFileLookup(Factory<PatternSet> patternSetFactory) {
+        return new DefaultFileLookup(patternSetFactory);
+    }
+
+    FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver) {
+        return new DefaultFileCollectionFactory(fileResolver, null);
     }
 
     PatternSpecFactory createPatternSpecFactory() {

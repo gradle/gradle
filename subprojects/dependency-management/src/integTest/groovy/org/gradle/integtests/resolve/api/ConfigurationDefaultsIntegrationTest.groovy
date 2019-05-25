@@ -260,4 +260,52 @@ configurations.conf.incoming.beforeResolve {
         and:
         failure.assertHasCause "Cannot change dependencies of configuration ':conf' after it has been included in dependency resolution."
     }
+
+    def "copied configuration has independent set of listeners"() {
+        buildFile << """
+configurations {
+  conf
+}
+
+def calls = []
+
+def conf = configurations.conf
+conf.incoming.beforeResolve { incoming ->
+    calls << "sharedBeforeResolve"
+}
+conf.withDependencies { incoming ->
+    calls << "sharedWithDependencies"
+}
+
+def confCopy = conf.copyRecursive()
+configurations.add(confCopy)
+
+conf.incoming.beforeResolve { incoming ->
+    calls << "confBeforeResolve"
+}
+conf.withDependencies { incoming ->
+    calls << "confWithDependencies"
+}
+confCopy.incoming.beforeResolve { incoming ->
+    calls << "copyBeforeResolve"
+}
+confCopy.withDependencies { incoming ->
+    calls << "copyWithDependencies"
+}
+
+task check {
+    doLast {
+        conf.resolve()
+        assert calls == ["sharedWithDependencies", "confWithDependencies", "sharedBeforeResolve", "confBeforeResolve"]
+        calls.clear()
+
+        confCopy.resolve()
+        assert calls == ["sharedWithDependencies", "copyWithDependencies", "sharedBeforeResolve", "copyBeforeResolve"]
+    }
+}
+"""
+
+        expect:
+        succeeds ":check"
+    }
 }

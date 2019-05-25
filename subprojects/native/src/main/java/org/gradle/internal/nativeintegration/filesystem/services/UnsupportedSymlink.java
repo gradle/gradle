@@ -23,7 +23,7 @@ import java.io.IOException;
 
 class UnsupportedSymlink implements Symlink {
     @Override
-    public boolean isSymlinkSupported() {
+    public boolean isSymlinkCreationSupported() {
         return false;
     }
 

@@ -43,9 +43,9 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
                     implementation project(':cppGreeter')
                 }
                 application.binaries.configureEach {
-                    if (targetPlatform.operatingSystemFamily.macOs) {
+                    if (targetMachine.operatingSystemFamily.macOs) {
                         linkTask.get().linkerArgs.add("-lc++")
-                    } else if (targetPlatform.operatingSystemFamily.linux) {
+                    } else if (targetMachine.operatingSystemFamily.linux) {
                         linkTask.get().linkerArgs.add("-lstdc++")
                     }
                 }
@@ -122,9 +122,9 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
                     api project(':cppGreeter')
                 }
                 library.binaries.configureEach {
-                    if (targetPlatform.operatingSystemFamily.macOs) {
+                    if (targetMachine.operatingSystemFamily.macOs) {
                         linkTask.get().linkerArgs.add("-lc++")
-                    } else if (targetPlatform.operatingSystemFamily.linux) {
+                    } else if (targetMachine.operatingSystemFamily.linux) {
                         linkTask.get().linkerArgs.add("-lstdc++")
                     }
                 }
@@ -172,9 +172,9 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
                     implementation project(':cppGreeter')
                 }
                 application.binaries.configureEach {
-                    if (targetPlatform.operatingSystemFamily.macOs) {
+                    if (targetMachine.operatingSystemFamily.macOs) {
                         linkTask.get().linkerArgs.add("-lc++")
-                    } else if (targetPlatform.operatingSystemFamily.linux) {
+                    } else if (targetMachine.operatingSystemFamily.linux) {
                         linkTask.get().linkerArgs.add("-lstdc++")
                     }
                 }

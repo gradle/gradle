@@ -29,6 +29,7 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,18 +88,15 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 context.add(dependency);
             } else if (dependency instanceof TaskDependency) {
                 context.add(dependency);
+            } else if (dependency instanceof ProviderInternal) {
+                // When a Provider is used as a task dependency (rather than as a task input), need to unpack the value
+                ProviderInternal<?> provider = (ProviderInternal<?>) dependency;
+                if (!provider.maybeVisitBuildDependencies(context)) {
+                    // The provider does not know how to produce the value, so use the value instead
+                    queue.addFirst(provider.get());
+                }
             } else if (dependency instanceof TaskDependencyContainer) {
-                ((TaskDependencyContainer) dependency).visitDependencies(new AbstractTaskDependencyResolveContext() {
-                    @Override
-                    public void add(Object dependency) {
-                        queue.addFirst(dependency);
-                    }
-
-                    @Override
-                    public Task getTask() {
-                        return context.getTask();
-                    }
-                });
+                ((TaskDependencyContainer) dependency).visitDependencies(context);
             } else if (dependency instanceof Closure) {
                 Closure closure = (Closure) dependency;
                 Object closureResult = closure.call(context.getTask());
@@ -118,7 +116,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                         queue.addFirst(item);
                     }
                 }
-            } else if (dependency instanceof Iterable) {
+            } else if (dependency instanceof Iterable && !(dependency instanceof Path)) {
+                // Path is Iterable, but we don't want to unpack it
                 Iterable<?> iterable = (Iterable) dependency;
                 addAllFirst(queue, toArray(iterable, Object.class));
             } else if (dependency instanceof Map) {
@@ -139,9 +138,9 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
                     formats.add("A String or CharSequence task name or path");
-                    formats.add("A TaskReference instance");
                 }
                 formats.add("A Task instance");
+                formats.add("A TaskReference instance");
                 formats.add("A Buildable instance");
                 formats.add("A TaskDependency instance");
                 formats.add("A Provider that represents a task output");

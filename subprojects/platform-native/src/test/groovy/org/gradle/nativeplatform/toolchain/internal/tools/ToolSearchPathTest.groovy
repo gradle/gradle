@@ -17,10 +17,10 @@
 package org.gradle.nativeplatform.toolchain.internal.tools
 
 import org.gradle.api.GradleException
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TreeVisitor
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -133,7 +133,7 @@ class ToolSearchPathTest extends Specification {
     }
 
     def "executable is unavailable when not found in path"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
         def dir1 = tmpDir.createDir("some-dir")
         def dir2 = tmpDir.createDir("some-dir-2")
 
@@ -160,7 +160,7 @@ class ToolSearchPathTest extends Specification {
     }
 
     def "executable is unavailable when not found in system path"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         given:
         os.getExecutableName("cc") >> "cc.bin"

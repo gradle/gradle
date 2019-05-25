@@ -30,6 +30,16 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         'api':              'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))',
     ]
 
+    def setup() {
+        // apply Java ecosystem rules
+        buildFile << """
+            org.gradle.api.internal.artifacts.JavaEcosystemSupport.configureSchema(
+                dependencies.attributesSchema,
+                project.objects
+            )
+        """
+    }
+
     private static boolean leaksRuntime(testVariant, repoType, prevRepoType = null) {
         if (testVariant == 'runtime' || testVariant == 'default') {
             // the runtime variant is supposed to include everything

@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.FileChange;
+import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
@@ -50,20 +50,23 @@ public class AbsolutePathFingerprintCompareStrategy extends AbstractFingerprintC
                 FileSystemLocationFingerprint previousFingerprint = previous.get(currentAbsolutePath);
                 HashCode previousContentHash = previousFingerprint.getNormalizedContentHash();
                 if (!currentContentHash.equals(previousContentHash)) {
-                    if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType()))) {
+                    DefaultFileChange modified = DefaultFileChange.modified(currentAbsolutePath, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType(), currentAbsolutePath);
+                    if (!visitor.visitChange(modified)) {
                         return false;
                     }
                 }
                 // else, unchanged; check next file
             } else if (includeAdded) {
-                if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType()))) {
+                DefaultFileChange added = DefaultFileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType(), currentAbsolutePath);
+                if (!visitor.visitChange(added)) {
                     return false;
                 }
             }
         }
 
         for (String previousAbsolutePath : unaccountedForPreviousFingerprints) {
-            if (!visitor.visitChange(FileChange.removed(previousAbsolutePath, propertyTitle, previous.get(previousAbsolutePath).getType()))) {
+            DefaultFileChange removed = DefaultFileChange.removed(previousAbsolutePath, propertyTitle, previous.get(previousAbsolutePath).getType(), previousAbsolutePath);
+            if (!visitor.visitChange(removed)) {
                 return false;
             }
         }

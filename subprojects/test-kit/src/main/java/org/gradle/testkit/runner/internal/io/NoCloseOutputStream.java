@@ -27,22 +27,27 @@ public class NoCloseOutputStream extends OutputStream {
         this.delegate = delegate;
     }
 
+    @Override
     public synchronized void write(int b) throws IOException {
         delegate.write(b);
     }
 
+    @Override
     public synchronized void flush() throws IOException {
         delegate.flush();
     }
 
+    @Override
     public synchronized void write(byte[] b, int off, int len) throws IOException {
         delegate.write(b, off, len);
     }
 
+    @Override
     public synchronized void write(byte[] b) throws IOException {
         delegate.write(b);
     }
 
+    @Override
     public synchronized void close() throws IOException {
         // don't forward
     }

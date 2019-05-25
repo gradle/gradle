@@ -16,7 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
-import org.fusesource.jansi.Ansi
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.integtests.fixtures.executer.LogContent
 
 /**
  * A trait for testing console behavior.
@@ -24,45 +25,11 @@ import org.fusesource.jansi.Ansi
  * <b>Note:</b> The console output contains formatting characters.
  */
 trait RichConsoleStyling {
-    public final static String CONTROL_SEQUENCE_START = "\u001B["
-    public final static String CONTROL_SEQUENCE_SEPARATOR = ";"
-    public final static String CONTROL_SEQUENCE_END = "m"
-    public final static String DEFAULT_TEXT = "0;39"
-
-    /**
-     * Wraps the text in the proper control characters for styled output in the rich console
-     */
-    static String styledText(String plainText, Ansi.Color color, Ansi.Attribute... attributes) {
-        String styledString = CONTROL_SEQUENCE_START
-        if (color) {
-            styledString += color.fg()
-        }
-        if (attributes) {
-            attributes.each { attribute ->
-                if (styledString.length() > CONTROL_SEQUENCE_START.length()) {
-                    styledString += CONTROL_SEQUENCE_SEPARATOR
-                }
-                styledString += attribute.value()
-            }
-        }
-        styledString += CONTROL_SEQUENCE_END + plainText + CONTROL_SEQUENCE_START
-        if (color) {
-            styledString += DEFAULT_TEXT
-        }
-        styledString += CONTROL_SEQUENCE_END
-
-        return styledString
-    }
-
     static String workInProgressLine(String plainText) {
-        return boldOn() + plainText + reset()
+        return "{bold-on}" + plainText + "{bold-off}"
     }
 
-    private static String boldOn() {
-        "${CONTROL_SEQUENCE_START}1m"
-    }
-
-    private static String reset() {
-        "${CONTROL_SEQUENCE_START}m"
+    static void assertHasWorkInProgress(GradleHandle handle, String plainText) {
+        assert LogContent.of(handle.standardOutput).ansiCharsToColorText().withNormalizedEol().contains(workInProgressLine(plainText))
     }
 }

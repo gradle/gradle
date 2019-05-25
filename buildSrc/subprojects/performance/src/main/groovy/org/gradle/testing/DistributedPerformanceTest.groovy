@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Splitter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
@@ -26,15 +27,15 @@ import groovyx.net.http.HttpResponseException
 import groovyx.net.http.RESTClient
 import org.apache.commons.io.input.CloseShieldInputStream
 import org.gradle.api.GradleException
+import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestOutputListener
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.process.CommandLineArgumentProvider
 import org.openmbee.junit.JUnitMarshalling
@@ -44,8 +45,8 @@ import org.openmbee.junit.model.JUnitTestSuite
 
 import javax.inject.Inject
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.ZipInputStream
-
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
  *
@@ -75,15 +76,23 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @Internal
     String teamCityPassword
 
+    /**
+     * In FlakinessDetectionPerformanceTest, we simply repeat all scenarios several times.
+     * This field is used to control the iteration count.
+     */
+    @Internal
+    int repeat = 1
+
     @OutputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioList
 
     private RESTClient client
 
-    private Map<String, Scenario> scheduledBuilds = [:]
+    protected Map<String, Scenario> scheduledBuilds = [:]
 
-    private Map<String, ScenarioResult> finishedBuilds = [:]
+    @Internal
+    @VisibleForTesting
+    Map<String, ScenarioResult> finishedBuilds = [:]
 
     private final JUnitXmlTestEventsGenerator testEventsGenerator
 
@@ -118,9 +127,12 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @TaskAction
     @Override
     void executeTests() {
-        println("Running against baseline ${determineBaselinesForWorkers()}")
+        println("Running against baseline ${determinedBaselines.getOrElse('defaults')}")
         try {
             doExecuteTests()
+        } catch (Throwable e) {
+            e.printStackTrace()
+            throw e
         } finally {
             generatePerformanceReport()
             testEventsGenerator.release()
@@ -128,13 +140,17 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @Override
+    @TypeChecked(TypeCheckingMode.SKIP)
     protected List<ScenarioBuildResultData> generateResultsForReport() {
         finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
                 teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
-                webUrl: scenarioResult.buildResult.webUrl.toString(),
-                status: scenarioResult.buildResult.status.toString(),
+                scenarioClass: scenarioResult.testSuite.name,
+                webUrl: scenarioResult.buildResult.webUrl,
+                status: scenarioResult.buildResult.status,
+                agentName: scenarioResult.buildResult.agent.name,
+                agentUrl: scenarioResult.buildResult.agent.webUrl,
                 testFailure: collectFailures(scenarioResult.testSuite))
         }
     }
@@ -151,25 +167,18 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         def coordinatorBuild = resolveCoordinatorBuild()
         testEventsGenerator.coordinatorBuild = coordinatorBuild
 
-        scenarios.each {
-            schedule(it, coordinatorBuild?.lastChangeId)
+        repeat.times {
+            scenarios.each {
+                schedule(it, coordinatorBuild?.lastChangeId)
+            }
+            waitForTestsCompletion()
         }
-
-        waitForTestsCompletion()
 
         checkForErrors()
     }
 
     private void fillScenarioList() {
         super.executeTests()
-    }
-
-    private String determineBaselinesForWorkers() {
-        if (!baselines || baselines == 'force-defaults') {
-            return "defaults"
-        } else {
-            return baselines
-        }
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -180,14 +189,15 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 property: [
                     [name: 'scenario', value: scenario.id],
                     [name: 'templates', value: scenario.templates.join(' ')],
-                    [name: 'baselines', value: determineBaselinesForWorkers()],
+                    [name: 'baselines', value: determinedBaselines.getOrElse('defaults')],
                     [name: 'warmups', value: warmups ?: 'defaults'],
                     [name: 'runs', value: runs ?: 'defaults'],
                     [name: 'checks', value: checks ?: 'all'],
-                    [name: 'channel', value: channel ?: 'commits'],
+                    [name: 'channel', value: channel ?: 'commits']
                 ]
             ]
         ]
+
         if (branchName) {
             requestBody['branchName'] = branchName
         }
@@ -233,11 +243,13 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         */
 
         String workerBuildId = response.id
+
+        println("Scheduled ${scenario.id} and worker id: ${workerBuildId}")
         cancellationToken.addCallback {
             cancel(workerBuildId)
         }
         def scheduledChangeId = findLastChangeIdInJson(response)
-        if (lastChangeId && scheduledChangeId != lastChangeId) {
+        if (lastChangeId && lastChangeId != scheduledChangeId) {
             throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $buildId, actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: $response")
         }
         scheduledBuilds.put(workerBuildId, scenario)
@@ -253,8 +265,8 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private String findLastChangeIdInJson(Map responseJson) {
-        responseJson.lastChanges.change[0].id
+    private static String findLastChangeIdInJson(Map responseJson) {
+        responseJson?.lastChanges?.change?.get(0)?.id
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -340,7 +352,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         }
     }
 
-    private void rethrowIfNonRecoverable(HttpResponseException e) {
+    private static void rethrowIfNonRecoverable(HttpResponseException e) {
         if (e.statusCode != 404) {
             throw e
         }
@@ -393,7 +405,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         return testSuite
     }
 
-    JUnitTestSuite parseXmlsInZip(InputStream inputStream) {
+    private static JUnitTestSuite parseXmlsInZip(InputStream inputStream) {
         List<JUnitTestSuite> parsedXmls = []
         new ZipInputStream(inputStream).withStream { zipInput ->
             def entry
@@ -418,8 +430,8 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     private RESTClient createClient() {
         client = new RESTClient("$teamCityUrl/httpAuth/app/rest/9.1")
         client.auth.basic(teamCityUsername, teamCityPassword)
-        client.headers['Origin'] = teamCityUrl
-        client.headers['Accept'] = ContentType.JSON.toString()
+        client.headers.putAt('Origin', teamCityUrl)
+        client.headers.putAt('Accept', ContentType.JSON.toString())
         client
     }
 
@@ -436,9 +448,27 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         }
     }
 
-    private static class ScenarioResult {
+    static class ScenarioResult {
         String name
         Map buildResult
         JUnitTestSuite testSuite
+
+        String getTestClassFullName() {
+            return testSuite.name
+        }
+
+        boolean isSuccessful() {
+            return buildResult.status == 'SUCCESS'
+        }
+
+        TestMethodResult toMethodResult(AtomicLong counter) {
+            return new TestMethodResult(
+                counter.incrementAndGet(),
+                name,
+                name,
+                isSuccessful() ? TestResult.ResultType.SUCCESS : TestResult.ResultType.FAILURE,
+                0L,
+                0L)
+        }
     }
 }

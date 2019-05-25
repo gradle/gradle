@@ -160,6 +160,7 @@ class VisualStudioProjectFileTest extends Specification {
                 getIncludePaths() >> includes.collect { file(it) }
                 getOutputFile() >> new File("out")
             }
+            isBuildable() >> true
         }
     }
 

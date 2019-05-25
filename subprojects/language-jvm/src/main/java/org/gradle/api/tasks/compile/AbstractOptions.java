@@ -18,7 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
@@ -74,11 +74,11 @@ public abstract class AbstractOptions implements Serializable {
     }
 
     private void setProperty(String property, Object value) {
-        JavaReflectionUtil.writeableProperty(getClass(), property, value == null ? null : value.getClass()).setValue(this, value);
+        JavaPropertyReflectionUtil.writeableProperty(getClass(), property, value == null ? null : value.getClass()).setValue(this, value);
     }
 
     private void addValueToMapIfNotNull(Map<String, Object> map, Field field) {
-        Object value = JavaReflectionUtil.readableProperty(this, Object.class, field.getName()).getValue(this);
+        Object value = JavaPropertyReflectionUtil.readableProperty(this, Object.class, field.getName()).getValue(this);
         if (value != null) {
             map.put(getAntPropertyName(field.getName()), getAntPropertyValue(field.getName(), value));
         }

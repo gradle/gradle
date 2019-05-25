@@ -30,18 +30,22 @@ public class DefaultPublishingExtension implements PublishingExtension {
         this.publications = publications;
     }
 
+    @Override
     public RepositoryHandler getRepositories() {
         return repositories;
     }
 
+    @Override
     public void repositories(Action<? super RepositoryHandler> configure) {
         configure.execute(repositories);
     }
 
+    @Override
     public PublicationContainer getPublications() {
         return publications;
     }
 
+    @Override
     public void publications(Action<? super PublicationContainer> configure) {
         configure.execute(publications);
     }

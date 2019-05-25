@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.tasks
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.publish.internal.PublicationArtifactSet
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
@@ -35,8 +34,6 @@ class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
     def publication = Mock(IvyPublicationInternal) {
         asNormalisedPublication() >> normalizedPublication
     }
-
-    def repository = Mock(IvyArtifactRepository) {}
 
     def setup() {
         publish = createPublish("publish")

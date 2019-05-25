@@ -14,20 +14,16 @@ plugins {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.WORKER
 }
 
 dependencies {
-    api(project(":distributionsDependencies"))
-
-    api(library("guava"))
     api(library("jsr305"))
-    api(library("fastutil"))
 
     implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
-    implementation(library("jcip"))
     implementation(library("asm"))
 
     jmh(library("bouncycastle_provider")) {
@@ -35,6 +31,8 @@ dependencies {
             prefer(libraryVersion("bouncycastle_provider"))
         }
     }
+
+    integTestImplementation(project(":logging"))
 }
 
 testFixtures {
@@ -51,7 +49,7 @@ val buildReceiptPackage: String by rootProject.extra
 
 val buildReceiptResource = tasks.register<Copy>("buildReceiptResource") {
     from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
-    destinationDir = file("${gradlebuildJava.generatedTestResourcesDir}/$buildReceiptPackage")
+    destinationDir = file("${gradlebuildJava.generatedResourcesDir}/$buildReceiptPackage")
 }
 
-sourceSets.main { output.dir(gradlebuildJava.generatedTestResourcesDir, "builtBy" to buildReceiptResource) }
+sourceSets.main { output.dir(gradlebuildJava.generatedResourcesDir, "builtBy" to buildReceiptResource) }

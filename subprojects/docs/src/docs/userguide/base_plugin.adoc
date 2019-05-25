@@ -75,7 +75,7 @@ Note that the `assemble` task generates all artifacts that are attached to the `
 The Base Plugin only adds conventions related to the creation of archives, such as ZIPs, TARs and JARs. Specifically, it provides the following project properties that you can set:
 
 `archivesBaseName` — default: `$project.name`::
-Provides the default link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:baseName[AbstractArchiveTask.getBaseName()] for archive tasks.
+Provides the default link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveBaseName[AbstractArchiveTask.getArchiveBaseName()] for archive tasks.
 
 `distsDirName` — default: _distributions_::
 Default name of the directory in which distribution archives, i.e. non-JARs, are created.
@@ -85,11 +85,11 @@ Default name of the directory in which library archives, i.e. JARs, are created.
 
 The plugin also provides default values for the following properties on any task that extends link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]:
 
-`destinationDir`::
+`destinationDirectory`::
 Defaults to __``$buildDir``/``$distsDirName``__ for non-JAR archives and __``$buildDir``/``$libsDirName``__ for JARs and derivatives of JAR, such as WARs.
 
-`version`::
+`archiveVersion`::
 Defaults to `$project.version` or 'unspecified' if the project has no version.
 
-`baseName`::
+`archiveBaseName`::
 Defaults to `$archivesBaseName`.

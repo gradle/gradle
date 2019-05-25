@@ -25,6 +25,8 @@ import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.TextUtil
 import org.junit.Assume
 
+import static org.gradle.util.TestPrecondition.SUPPORTS_TARGETING_JAVA6
+
 @TargetVersions(["1.6", "1.7", "1.8"])
 class ScalaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
     JavaVersion getJavaVersion() {
@@ -39,6 +41,7 @@ class ScalaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
         Assume.assumeTrue(target != null)
         // Java Compiler does not fork for joint compilation - therefore we cannot compile for a Java Version bigger than the current JVM
         Assume.assumeTrue(javaVersion.compareTo(JavaVersion.current()) <= 0)
+        Assume.assumeFalse(javaVersion.java6 && !SUPPORTS_TARGETING_JAVA6.fulfilled)
         def java = TextUtil.escapeString(target.getJavaExecutable())
         def javaHome = TextUtil.escapeString(target.javaHome.absolutePath)
 

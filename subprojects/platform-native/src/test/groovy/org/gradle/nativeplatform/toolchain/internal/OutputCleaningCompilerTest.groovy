@@ -33,7 +33,7 @@ class OutputCleaningCompilerTest extends Specification {
 
     TestFile outputDir = tmpDirProvider.createDir("objs")
 
-    def compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), tmpDirProvider.testDirectory, TestFiles.getPatternSetFactory()))
+    def compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(tmpDirProvider.testDirectory, TestFiles.getPatternSetFactory()))
     def namingScheme = compilerOutputFileNamingSchemeFactory.create()
 
     private static final String O_EXT = ".o"

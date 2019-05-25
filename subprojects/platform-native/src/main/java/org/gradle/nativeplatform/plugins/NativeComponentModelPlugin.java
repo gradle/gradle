@@ -26,7 +26,9 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -117,19 +119,21 @@ import java.io.File;
 @Incubating
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
+    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public NativeComponentModelPlugin(Instantiator instantiator) {
+    public NativeComponentModelPlugin(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.instantiator = instantiator;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
 
-        project.getExtensions().create(BuildTypeContainer.class, "buildTypes", DefaultBuildTypeContainer.class, instantiator);
-        project.getExtensions().create(FlavorContainer.class, "flavors", DefaultFlavorContainer.class, instantiator);
-        project.getExtensions().create(NativeToolChainRegistry.class, "toolChains", DefaultNativeToolChainRegistry.class, instantiator);
+        project.getExtensions().create(BuildTypeContainer.class, "buildTypes", DefaultBuildTypeContainer.class, instantiator, collectionCallbackActionDecorator);
+        project.getExtensions().create(FlavorContainer.class, "flavors", DefaultFlavorContainer.class, instantiator, collectionCallbackActionDecorator);
+        project.getExtensions().create(NativeToolChainRegistry.class, "toolChains", DefaultNativeToolChainRegistry.class, instantiator, collectionCallbackActionDecorator);
     }
 
     static class Rules extends RuleSource {
@@ -154,13 +158,18 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        Repositories repositories(ServiceRegistry serviceRegistry, FlavorContainer flavors, PlatformContainer platforms, BuildTypeContainer buildTypes) {
+        Repositories repositories(ServiceRegistry serviceRegistry,
+                                  FlavorContainer flavors,
+                                  PlatformContainer platforms,
+                                  BuildTypeContainer buildTypes,
+                                  CollectionCallbackActionDecorator callbackActionDecorator) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             ObjectFactory sourceDirectorySetFactory = serviceRegistry.get(ObjectFactory.class);
             NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
             FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
             Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, fileCollectionFactory, nativePlatforms, platforms.withType(NativePlatform.class), buildTypes, flavors);
-            return new DefaultRepositories(instantiator, sourceDirectorySetFactory, initializer);
+            DomainObjectCollectionFactory domainObjectCollectionFactory = serviceRegistry.get(DomainObjectCollectionFactory.class);
+            return new DefaultRepositories(instantiator, sourceDirectorySetFactory, initializer, callbackActionDecorator, domainObjectCollectionFactory);
         }
 
         @Model
@@ -186,6 +195,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Defaults
         public void registerFactoryForCustomNativePlatforms(PlatformContainer platforms, final Instantiator instantiator) {
             NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = new NamedDomainObjectFactory<NativePlatform>() {
+                @Override
                 public NativePlatform create(String name) {
                     return instantiator.newInstance(DefaultNativePlatform.class, name);
                 }
@@ -323,7 +333,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                     linkTask.getToolChain().set(binary.getToolChain());
                     linkTask.getTargetPlatform().set(binary.getTargetPlatform());
                     linkTask.getLinkedFile().set(binary.getSharedLibraryFile());
-                    linkTask.setInstallName(binary.getSharedLibraryFile().getName());
+                    linkTask.getInstallName().set(binary.getSharedLibraryFile().getName());
                     linkTask.getLinkerArgs().set(binary.getLinker().getArgs());
                     linkTask.getImportLibrary().set(binary.getSharedLibraryLinkFile());
 
@@ -416,11 +426,16 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
-        private DefaultRepositories(final Instantiator instantiator, final ObjectFactory objectFactory, final Action<PrebuiltLibrary> binaryFactory) {
-            super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer());
+        private DefaultRepositories(Instantiator instantiator,
+                                    ObjectFactory objectFactory,
+                                    Action<PrebuiltLibrary> binaryFactory,
+                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+                                    DomainObjectCollectionFactory domainObjectCollectionFactory) {
+            super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer(), collectionCallbackActionDecorator);
             registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
+                @Override
                 public PrebuiltLibraries create(String name) {
-                    return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, objectFactory, binaryFactory);
+                    return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, objectFactory, binaryFactory, collectionCallbackActionDecorator, domainObjectCollectionFactory);
                 }
             });
         }

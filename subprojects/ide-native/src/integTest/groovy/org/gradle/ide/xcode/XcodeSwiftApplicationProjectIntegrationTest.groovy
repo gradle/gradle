@@ -16,6 +16,16 @@
 
 package org.gradle.ide.xcode
 
+import groovy.transform.NotYetImplemented
+import org.gradle.nativeplatform.fixtures.app.SwiftApp
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
+import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Issue
+
+import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
+
 class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProjectIntegrationTest {
     @Override
     void makeSingleProject() {
@@ -27,5 +37,138 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
     @Override
     String getComponentUnderTestDsl() {
         return 'application'
+    }
+
+    @Override
+    protected SwiftSourceElement getComponentUnderTest() {
+        return new SwiftApp()
+    }
+
+    @Requires(TestPrecondition.XCODE)
+    def "can create xcode project for unbuildable Swift application with library"() {
+        useXcodebuildTool()
+
+        given:
+        settingsFile << """
+            include 'app', 'greeter'
+        """
+
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+
+                application {
+                    targetMachines = [machines.os('os-family')]
+                    dependencies {
+                        implementation project(':greeter')
+                    }
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+            }
+        """
+        def app = new SwiftAppWithLibrary()
+        app.library.writeToProject(file('greeter'))
+        app.executable.writeToProject(file('app'))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcode",
+                ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme", ":greeter:xcode",
+                ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        rootXcodeWorkspace.contentFile
+                .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
+
+        def project = xcodeProject("app/app.xcodeproj").projectFile
+        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == null
+        // TODO: SWIFT_INCLUDE_PATHS should contains ("greeter/build/modules/main/debug")
+
+        when:
+        def resultApp = xcodebuild
+                .withWorkspace(rootXcodeWorkspace)
+                .withScheme('App')
+                .fails()
+
+        then:
+        resultApp.error.contains('The workspace named "app" does not contain a scheme named "App".')
+
+        when:
+        def resultLib = xcodebuild
+                .withWorkspace(rootXcodeWorkspace)
+                .withScheme('Greeter')
+                .succeeds()
+
+        then:
+        resultLib.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:linkDebug', ':greeter:_xcode___Greeter_Debug')
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle-native/issues/130")
+    @Requires(TestPrecondition.XCODE)
+    def "can create xcode project for Swift application with unbuildable library"() {
+        useXcodebuildTool()
+
+        given:
+        settingsFile << """
+            include 'app', 'greeter'
+        """
+
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+
+                application {
+                    dependencies {
+                        implementation project(':greeter')
+                    }
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+
+                library.targetMachines = [machines.os('os-family')]
+            }
+        """
+        def app = new SwiftAppWithLibrary()
+        app.library.writeToProject(file('greeter'))
+        app.executable.writeToProject(file('app'))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+                ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcode",
+                ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        rootXcodeWorkspace.contentFile
+                .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
+
+        def project = xcodeProject("app/app.xcodeproj").projectFile
+        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/modules/main/debug"))
+
+        when:
+        def resultApp = xcodebuild
+                .withWorkspace(rootXcodeWorkspace)
+                .withScheme('App')
+                .fails()
+
+        then:
+        resultApp.assertHasCause("Could not resolve all task dependencies for configuration ':app:nativeRuntimeDebug'.")
+        resultApp.assertHasCause("Could not resolve project :greeter.")
+
+
+        when:
+        def resultLib = xcodebuild
+                .withWorkspace(rootXcodeWorkspace)
+                .withScheme('Greeter')
+                .fails()
+
+        then:
+        resultLib.error.contains('The workspace named "app" does not contain a scheme named "Greeter".')
     }
 }

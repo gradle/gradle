@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.fixtures.FullyQualifiedGarbageCollector
 
-import static org.gradle.launcher.daemon.fixtures.JavaGarbageCollector.*
+import static org.gradle.integtests.fixtures.daemon.JavaGarbageCollector.*
 import static org.gradle.launcher.daemon.fixtures.JdkVendor.*
 
 class DaemonPerformanceMonitoringCoverage {

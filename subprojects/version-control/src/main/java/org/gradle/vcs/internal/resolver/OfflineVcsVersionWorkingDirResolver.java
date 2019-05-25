@@ -36,7 +36,7 @@ public class OfflineVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
     public File selectVersion(ModuleComponentSelector selector, VersionControlRepositoryConnection repository) {
         VersionRef previousVersion = persistentCache.getVersionForSelector(repository, selector.getVersionConstraint());
         if (previousVersion == null) {
-            throw new ModuleVersionResolveException(selector, String.format("Cannot resolve %s from %s in offline mode.", selector.getDisplayName(), repository.getDisplayName()));
+            throw new ModuleVersionResolveException(selector, () -> String.format("Cannot resolve %s from %s in offline mode.", selector.getDisplayName(), repository.getDisplayName()));
         }
 
         // Reuse the same version as last build

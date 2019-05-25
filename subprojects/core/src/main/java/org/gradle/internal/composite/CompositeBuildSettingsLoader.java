@@ -35,7 +35,7 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
 
         // Lock-in explicitly included builds
-        buildRegistry.registerRootBuild(settings);
+        buildRegistry.finalizeIncludedBuilds();
 
         return settings;
     }

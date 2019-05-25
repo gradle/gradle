@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.util.TreeVisitor;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 
 public interface ToolSearchResult {
     boolean isAvailable();
@@ -24,5 +24,5 @@ public interface ToolSearchResult {
     /**
      * Writes some diagnostics about why the tool is not available.
      */
-    void explain(TreeVisitor<? super String> visitor);
+    void explain(DiagnosticsVisitor visitor);
 }

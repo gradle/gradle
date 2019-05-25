@@ -1,0 +1,79 @@
+!include C4.puml
+
+' Scope: A single software system.
+' Primary elements: The software system in scope.
+' Supporting elements: People and software systems directly connected to the software system in scope.
+' Intended audience: Everybody, both technical and non-technical people, inside and outside of the software development team.
+
+' Colors
+' ##################################
+
+!define PERSON_BG_COLOR #08427B
+!define EXTERNAL_PERSON_BG_COLOR #686868
+!define SYSTEM_BG_COLOR #1168BD
+!define EXTERNAL_SYSTEM_BG_COLOR #999999
+
+' Styling
+' ##################################
+
+skinparam rectangle<<person>> {
+    StereotypeFontColor ELEMENT_FONT_COLOR
+    FontColor ELEMENT_FONT_COLOR
+    BackgroundColor PERSON_BG_COLOR
+    BorderColor #073B6F
+}
+
+skinparam rectangle<<external_person>> {
+    StereotypeFontColor ELEMENT_FONT_COLOR
+    FontColor ELEMENT_FONT_COLOR
+    BackgroundColor EXTERNAL_PERSON_BG_COLOR
+    BorderColor #8A8A8A
+}
+
+skinparam rectangle<<system>> {
+    StereotypeFontColor ELEMENT_FONT_COLOR
+    FontColor ELEMENT_FONT_COLOR
+    BackgroundColor SYSTEM_BG_COLOR
+    BorderColor #3C7FC0
+}
+
+skinparam rectangle<<external_system>> {
+    StereotypeFontColor ELEMENT_FONT_COLOR
+    FontColor ELEMENT_FONT_COLOR
+    BackgroundColor EXTERNAL_SYSTEM_BG_COLOR
+    BorderColor #8A8A8A
+}
+
+' Layout
+' ##################################
+
+!definelong LAYOUT_WITH_LEGEND
+hide stereotype
+legend right
+|=              |= Type |
+|<PERSON_BG_COLOR>      | person |
+|<EXTERNAL_PERSON_BG_COLOR>      | external person |
+|<SYSTEM_BG_COLOR>   | system |
+|<EXTERNAL_SYSTEM_BG_COLOR>      | external system |
+endlegend
+!enddefinelong
+
+' Elements
+' ##################################
+
+!define Person(e_alias, e_label) rectangle "==e_label" <<person>> as e_alias
+!define Person(e_alias, e_label, e_descr) rectangle "==e_label\n\n e_descr" <<person>> as e_alias
+
+!define Person_Ext(e_alias, e_label) rectangle "==e_label" <<external_person>> as e_alias
+!define Person_Ext(e_alias, e_label, e_descr) rectangle "==e_label\n\n e_descr" <<external_person>> as e_alias
+
+!define System(e_alias, e_label) rectangle "==e_label" <<system>> as e_alias
+!define System(e_alias, e_label, e_descr) rectangle "==e_label\n\n e_descr" <<system>> as e_alias
+
+!define System_Ext(e_alias, e_label) rectangle "==e_label" <<external_system>> as e_alias
+!define System_Ext(e_alias, e_label, e_descr) rectangle "==e_label\n\n e_descr" <<external_system>> as e_alias
+
+' Boundaries
+' ##################################
+
+!define System_Boundary(e_alias, e_label) rectangle "==e_label [System]" <<boundary>> as e_alias

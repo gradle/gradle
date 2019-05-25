@@ -23,7 +23,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
@@ -66,6 +66,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
         final Class<? extends Throwable> playExceptionClass = Cast.uncheckedCast(classLoader.loadClass(PLAY_EXCEPTION_CLASSNAME));
 
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
+            @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if (method.getName().equals("projectPath")) {
                     return projectPath;
@@ -150,7 +151,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     public InetSocketAddress runDevHttpServer(ClassLoader classLoader, ClassLoader docsClassLoader, Object buildLink, Object buildDocHandler, int httpPort) throws ClassNotFoundException {
         ScalaMethod runMethod = ScalaReflectionUtil.scalaMethod(classLoader, "play.core.server.NettyServer", "mainDevHttpMode", getBuildLinkClass(classLoader), getBuildDocHandlerClass(docsClassLoader), int.class);
         Object reloadableServer = runMethod.invoke(buildLink, buildDocHandler, httpPort);
-        return JavaReflectionUtil.method(reloadableServer, InetSocketAddress.class, "mainAddress").invoke(reloadableServer);
+        return JavaMethod.of(reloadableServer, InetSocketAddress.class, "mainAddress").invoke(reloadableServer);
     }
 
 }

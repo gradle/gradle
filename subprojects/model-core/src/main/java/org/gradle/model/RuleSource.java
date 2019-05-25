@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * A rule source is not used like a regular Java object.
  * It is a stateless container of methods and possibly constants.
  * <p>
- * Please consult the “Rule based model configuration” chapter of the Gradle User Guide for general information about “rules”.
+ * Please consult the “Rule based model configuration” chapter of the Gradle User Manual for general information about “rules”.
  *
  * <h3>Rule methods</h3>
  * <p>

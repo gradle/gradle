@@ -59,6 +59,6 @@ public class SecurityManagerTest {
         fails('test')
         failure.assertHasCause("""Process 'Gradle Test Executor 1' finished with non-zero exit value 1
 This problem might be caused by incorrect test process configuration.
-Please refer to the test execution section in the user guide at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#sec:test_execution""")
+Please refer to the test execution section in the User Manual at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#sec:test_execution""")
     }
 }

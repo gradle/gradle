@@ -35,7 +35,7 @@ First, you should change the test so that
  - only the version you are interested in is used as a reference
  - only the test you are interested in is executed
  - tighten the regression limits to get significant results
- - only search for memory/execution time regresssions depending on what you are interested in
+ - only search for memory/execution time regressions depending on what you are interested in
  
 For our example, let's assume we want to track down a performance regression for `native build medium header file change`. 
 
@@ -73,7 +73,6 @@ In order to include only performance regressions we modify `CrossVersionPerforma
     void assertCurrentVersionHasNotRegressed() {
         def slower = checkBaselineVersion({ it.fasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
 //        def larger = checkBaselineVersion({ it.usesLessMemoryThan(current) }, { it.getMemoryStatsAgainst(displayName, current) })
-        assertEveryBuildSucceeds()
 //        if (slower && larger) {
 //            throw new AssertionError("$slower\n$larger")
 //        }

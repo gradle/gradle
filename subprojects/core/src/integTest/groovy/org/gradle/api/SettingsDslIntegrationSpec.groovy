@@ -127,4 +127,17 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         succeeds('help')
     }
 
+    def 'settings script classpath has proper usage attribute'() {
+        settingsFile << """
+buildscript {
+    configurations.classpath {
+        def value = attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+        assert value.name == Usage.JAVA_RUNTIME
+    }
+}    
+"""
+        expect:
+        succeeds()
+    }
+
 }

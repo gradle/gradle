@@ -19,5 +19,5 @@ package org.gradle.model.internal.manage.binding;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
 public interface StructMethodImplementationBinding extends StructMethodBinding {
-    WeaklyTypeReferencingMethod<?, ?> getImplementorMethod();
+    WeaklyTypeReferencingMethod<?, ?> getImplementerMethod();
 }

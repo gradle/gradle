@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppStaticLibrary;
@@ -25,8 +26,8 @@ import java.io.File;
 public class CppStaticLibraryVisualStudioTargetBinary extends AbstractCppBinaryVisualStudioTargetBinary {
     private final CppStaticLibrary binary;
 
-    public CppStaticLibraryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, CppStaticLibrary binary) {
-        super(projectName, projectPath, component, binary);
+    public CppStaticLibraryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, CppStaticLibrary binary, ProjectLayout projectLayout) {
+        super(projectName, projectPath, component, projectLayout);
         this.binary = binary;
     }
 

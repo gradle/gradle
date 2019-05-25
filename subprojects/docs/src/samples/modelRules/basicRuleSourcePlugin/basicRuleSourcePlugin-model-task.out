@@ -112,6 +112,12 @@ Root project
           | Creator: 	Project.<init>.tasks.model()
           | Rules:
              ⤷ copyToTaskContainer
+    + prepareKotlinBuildScriptModel
+          | Type:   	org.gradle.api.DefaultTask
+          | Value:  	task ':prepareKotlinBuildScriptModel'
+          | Creator: 	Project.<init>.tasks.prepareKotlinBuildScriptModel()
+          | Rules:
+             ⤷ copyToTaskContainer
     + projects
           | Type:   	org.gradle.api.tasks.diagnostics.ProjectReportTask
           | Value:  	task ':projects'

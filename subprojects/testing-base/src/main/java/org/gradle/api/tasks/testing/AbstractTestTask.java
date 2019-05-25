@@ -31,6 +31,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
@@ -118,7 +119,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
-        reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
+        reports = instantiator.newInstance(DefaultTestTaskReports.class, this, getCallbackActionDecorator());
         reports.getJunitXml().setEnabled(true);
         reports.getHtml().setEnabled(true);
 
@@ -152,6 +153,16 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected ListenerManager getListenerManager() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Required for decorating reports container callbacks for tracing user code application.
+     *
+     * @since 5.1
+     */
+    @Inject
+    protected CollectionCallbackActionDecorator  getCallbackActionDecorator() {
         throw new UnsupportedOperationException();
     }
 
@@ -276,6 +287,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * {@inheritDoc}
      */
     @Internal
+    @Override
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
@@ -283,6 +295,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
@@ -568,6 +581,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @return The reports that this task potentially produces
      */
+    @Override
     @Nested
     public TestTaskReports getReports() {
         return reports;
@@ -579,6 +593,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param closure The configuration
      * @return The reports that this task potentially produces
      */
+    @Override
     public TestTaskReports reports(Closure closure) {
         return reports(new ClosureBackedAction<TestTaskReports>(closure));
     }
@@ -589,6 +604,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param configureAction The configuration
      * @return The reports that this task potentially produces
      */
+    @Override
     public TestTaskReports reports(Action<? super TestTaskReports> configureAction) {
         configureAction.execute(reports);
         return reports;

@@ -44,6 +44,9 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPOutputStream
 
+/**
+ * Due to be replaced by {@link BlockingHttpServer}. You should prefer using that class where possible, however there is a bunch of stuff on this fixture that is missing from {@link BlockingHttpServer}.
+ */
 class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     private final static Logger logger = LoggerFactory.getLogger(HttpServer.class)

@@ -55,7 +55,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.child('Clean stale outputs')
     }
 
-    //This is the current behavior. Snapshoting might become not-a-task-action in the future.
+    //This is the current behavior. Snapshotting might become not-a-task-action in the future.
     def "snapshot task inputs action has an informative name"() {
         given:
         buildFile << "task custom { doLast {} }"

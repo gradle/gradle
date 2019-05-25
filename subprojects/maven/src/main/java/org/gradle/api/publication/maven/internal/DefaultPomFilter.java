@@ -31,22 +31,27 @@ public class DefaultPomFilter implements PomFilter {
         this.filter = filter;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public MavenPom getPomTemplate() {
         return pom;
     }
 
+    @Override
     public void setPomTemplate(MavenPom pom) {
         this.pom = pom;
     }
 
+    @Override
     public PublishFilter getFilter() {
         return filter;
     }
 
+    @Override
     public void setFilter(PublishFilter filter) {
         this.filter = filter;
     }

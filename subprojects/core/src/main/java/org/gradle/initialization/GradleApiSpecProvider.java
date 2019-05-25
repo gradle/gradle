@@ -55,7 +55,7 @@ public interface GradleApiSpecProvider {
     }
 
     /**
-     * Empty {@link Spec} implementation to be extended by SPI implementors to isolate them
+     * Empty {@link Spec} implementation to be extended by SPI implementers to isolate them
      * from changes to the interface.
      */
     class SpecAdapter implements Spec {

@@ -19,14 +19,23 @@ package org.gradle.internal.locking;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,15 +47,24 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
     private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
+    private static ComponentSelector toComponentSelector(ModuleComponentIdentifier lockIdentifier) {
+        String lockedVersion = lockIdentifier.getVersion();
+        VersionConstraint versionConstraint = DefaultMutableVersionConstraint.withVersion(lockedVersion);
+        return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockIdentifier.getGroup(), lockIdentifier.getModule()), versionConstraint);
+
+    }
+
     private final DependencyLockingNotationConverter converter = new DependencyLockingNotationConverter();
     private final LockFileReaderWriter lockFileReaderWriter;
     private final boolean writeLocks;
     private final boolean partialUpdate;
     private final LockEntryFilter lockEntryFilter;
     private final DomainObjectContext context;
+    private DependencySubstitutionRules dependencySubstitutionRules;
 
-    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context) {
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules) {
         this.context = context;
+        this.dependencySubstitutionRules = dependencySubstitutionRules;
         this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context);
         this.writeLocks = startParameter.isWriteDependencyLocks();
         if (writeLocks) {
@@ -65,7 +83,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                 Set<ModuleComponentIdentifier> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
                     ModuleComponentIdentifier lockedIdentifier = parseLockNotation(configurationName, module);
-                    if (!lockEntryFilter.isSatisfiedBy(lockedIdentifier)) {
+                    if (!lockEntryFilter.isSatisfiedBy(lockedIdentifier) && !isSubstitutedInComposite(lockedIdentifier)) {
                         results.add(lockedIdentifier);
                     }
                 }
@@ -78,6 +96,15 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
+    }
+
+    private boolean isSubstitutedInComposite(ModuleComponentIdentifier lockedIdentifier) {
+        if (dependencySubstitutionRules.hasRules()) {
+            LockingDependencySubstitution lockingDependencySubstitution = new LockingDependencySubstitution(toComponentSelector(lockedIdentifier));
+            dependencySubstitutionRules.getRuleAction().execute(lockingDependencySubstitution);
+            return lockingDependencySubstitution.didSubstitute();
+        }
+        return false;
     }
 
     private ModuleComponentIdentifier parseLockNotation(String configurationName, String module) {
@@ -116,4 +143,51 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         return modules;
     }
 
+    private static class LockingDependencySubstitution implements DependencySubstitutionInternal {
+
+        private ComponentSelector selector;
+        private boolean didSubstitute = false;
+
+        private LockingDependencySubstitution(ComponentSelector selector) {
+            this.selector = selector;
+        }
+        @Override
+        public ComponentSelector getRequested() {
+            return selector;
+        }
+
+        @Override
+        public void useTarget(Object notation) {
+            didSubstitute = true;
+        }
+
+        @Override
+        public void useTarget(Object notation, String reason) {
+            didSubstitute = true;
+        }
+
+        boolean didSubstitute() {
+            return didSubstitute;
+        }
+
+        @Override
+        public void useTarget(Object notation, ComponentSelectionDescriptor ruleDescriptor) {
+            didSubstitute = true;
+        }
+
+        @Override
+        public ComponentSelector getTarget() {
+            return selector;
+        }
+
+        @Override
+        public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
+            return null;
+        }
+
+        @Override
+        public boolean isUpdated() {
+            return false;
+        }
+    }
 }

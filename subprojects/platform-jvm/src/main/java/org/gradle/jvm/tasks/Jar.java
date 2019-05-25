@@ -56,8 +56,10 @@ public class Jar extends Zip {
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(new Callable<FileTreeAdapter>() {
+            @Override
             public FileTreeAdapter call() throws Exception {
                 GeneratedSingletonFileTree manifestSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), "MANIFEST.MF", new Action<OutputStream>() {
+                    @Override
                     public void execute(OutputStream outputStream) {
                         Manifest manifest = getManifest();
                         if (manifest == null) {
@@ -77,6 +79,7 @@ public class Jar extends Zip {
             }
         });
         getMainSpec().appendCachingSafeCopyAction(new Action<FileCopyDetails>() {
+            @Override
             public void execute(FileCopyDetails details) {
                 if (details.getPath().equalsIgnoreCase("META-INF/MANIFEST.MF")) {
                     details.exclude();

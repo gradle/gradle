@@ -19,6 +19,7 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
+import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.util.Requires
@@ -31,8 +32,8 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
     def "can create xcode project for C++ application"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
         def app = new CppApp()
         app.writeToProject(testDirectory)
@@ -54,17 +55,75 @@ apply plugin: 'cpp-application'
 
         project.targets.size() == 2
         assertTargetIsTool(project.targets[0], 'App', 'app')
-        assertTargetIsIndexer(project.targets[1], 'App')
+        project.targets[1].assertIsIndexerFor(project.targets[0])
 
         project.products.children.size() == 1
         project.products.children[0].path == exe("build/install/main/debug/lib/app").absolutePath
     }
 
+    def "can create xcode project for C++ application with multiple architecture"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-application'
+
+            application.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
+        """
+
+        def app = new CppApp()
+        app.writeToProject(testDirectory)
+        file('src/main/headers/ignore.cpp') << 'broken!'
+        file('src/main/cpp/ignore.h') << 'broken!'
+        file('src/main/cpp/ignore.swift') << 'broken!'
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        def project = rootXcodeProject.projectFile
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Headers'])
+        project.sources.assertHasChildren(app.sources.files*.name)
+        project.headers.assertHasChildren(app.headers.files*.name)
+
+        project.targets.size() == 2
+
+        project.targets[0].productReference.path == exe("build/install/main/debug/x86-64/lib/app").absolutePath
+        project.targets[0].buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
+
+        project.targets[0].assertIsTool()
+        project.targets[0].name == "App"
+        project.targets[0].assertProductNameEquals("App")
+        project.targets[0].assertSupportedArchitectures(MachineArchitecture.X86, MachineArchitecture.X86_64)
+        project.targets[0].buildConfigurationList.buildConfigurations.size() == 4
+
+        project.targets[0].buildConfigurationList.buildConfigurations[0].name == "${DefaultXcodeProject.BUILD_DEBUG}X86"
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "i386"
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/x86/lib").absolutePath
+
+        project.targets[0].buildConfigurationList.buildConfigurations[1].name == "${DefaultXcodeProject.BUILD_DEBUG}X86-64"
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/x86-64/lib").absolutePath
+
+        project.targets[0].buildConfigurationList.buildConfigurations[2].name == "${DefaultXcodeProject.BUILD_RELEASE}X86"
+        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.ARCHS == "i386"
+        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/x86/lib").absolutePath
+
+        project.targets[0].buildConfigurationList.buildConfigurations[3].name == "${DefaultXcodeProject.BUILD_RELEASE}X86-64"
+        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.ARCHS == "x86_64"
+        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/x86-64/lib").absolutePath
+
+        project.targets[1].assertIsIndexerFor(project.targets[0])
+
+        project.products.children.size() == 1
+        project.products.children[0].path == exe("build/install/main/debug/x86-64/lib/app").absolutePath
+    }
+
     def "can create xcode project for C++ library"() {
         given:
         buildFile << """
-apply plugin: 'cpp-library'
-"""
+            apply plugin: 'cpp-library'
+        """
 
         def lib = new CppLib()
         lib.writeToProject(testDirectory)
@@ -87,11 +146,69 @@ apply plugin: 'cpp-library'
 
         project.targets.size() == 2
         assertTargetIsDynamicLibrary(project.targets[0], 'App', 'app')
-        assertTargetIsIndexer(project.targets[1], 'App')
+        project.targets[1].assertIsIndexerFor(project.targets[0])
         project.targets[1].buildConfigurationList.buildConfigurations[0].buildSettings.HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("src/main/public"), file("src/main/headers"))
 
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("build/lib/main/debug/app").absolutePath
+    }
+
+    def "can create xcode project for C++ library with multiple architecture"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+
+            library.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
+        """
+
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+        file('src/main/public/ignore.cpp') << 'broken!'
+        file('src/main/headers/ignore.cpp') << 'broken!'
+        file('src/main/cpp/ignore.h') << 'broken!'
+        file('src/main/cpp/ignore.swift') << 'broken!'
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        def project = rootXcodeProject.projectFile
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Headers'])
+        project.sources.assertHasChildren(lib.sources.files*.name)
+        project.headers.assertHasChildren(lib.headers.files*.name)
+
+        project.targets.size() == 2
+        project.targets[0].productReference.path == sharedLib("build/lib/main/debug/x86-64/app").absolutePath
+        project.targets[0].buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
+
+        project.targets[0].assertIsDynamicLibrary()
+        project.targets[0].name == "App"
+        project.targets[0].assertProductNameEquals("App")
+        project.targets[0].assertSupportedArchitectures(MachineArchitecture.X86, MachineArchitecture.X86_64)
+        project.targets[0].buildConfigurationList.buildConfigurations.size() == 4
+
+        project.targets[0].buildConfigurationList.buildConfigurations[0].name == "${DefaultXcodeProject.BUILD_DEBUG}X86"
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "i386"
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug/x86").absolutePath
+
+        project.targets[0].buildConfigurationList.buildConfigurations[1].name == "${DefaultXcodeProject.BUILD_DEBUG}X86-64"
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug/x86-64").absolutePath
+
+        project.targets[0].buildConfigurationList.buildConfigurations[2].name == "${DefaultXcodeProject.BUILD_RELEASE}X86"
+        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.ARCHS == "i386"
+        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/x86/stripped").absolutePath
+
+        project.targets[0].buildConfigurationList.buildConfigurations[3].name == "${DefaultXcodeProject.BUILD_RELEASE}X86-64"
+        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.ARCHS == "x86_64"
+        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/x86-64/stripped").absolutePath
+
+        project.targets[1].assertIsIndexerFor(project.targets[0])
+
+        project.products.children.size() == 1
+        project.products.children[0].path == sharedLib("build/lib/main/debug/x86-64/app").absolutePath
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -100,11 +217,11 @@ apply plugin: 'cpp-library'
 
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
-        def lib = new CppLib()
-        lib.writeToProject(testDirectory)
+        def app = new CppApp()
+        app.writeToProject(testDirectory)
         succeeds("xcode")
 
         when:
@@ -143,8 +260,8 @@ apply plugin: 'cpp-application'
 
         given:
         buildFile << """
-apply plugin: 'cpp-library'
-"""
+            apply plugin: 'cpp-library'
+        """
 
         def lib = new CppLib()
         lib.writeToProject(testDirectory)
@@ -189,8 +306,8 @@ apply plugin: 'cpp-library'
 
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -219,6 +336,52 @@ apply plugin: 'cpp-application'
         then:
         resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         resultRelease.assertTasksNotSkipped(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
+        releaseBinary.exec().out == app.expectedOutput
+        fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
+    }
+
+    @Requires(TestPrecondition.XCODE)
+    def "can build C++ executable from Xcode with multiple architecture"() {
+        useXcodebuildTool()
+        def app = new CppApp()
+        def debugBinary = exe("build/exe/main/debug/x86-64/App")
+        def releaseBinary = exe("build/exe/main/release/x86-64/App")
+
+        given:
+        buildFile << """
+            apply plugin: 'cpp-application'
+
+            application.targetMachines = [machines.macOS.x86, machines.macOS.x86_64]
+        """
+
+        app.writeToProject(testDirectory)
+        succeeds("xcode")
+
+        when:
+        debugBinary.assertDoesNotExist()
+        def resultDebug = xcodebuild
+                .withProject(rootXcodeProject)
+                .withScheme('App')
+                .withConfiguration("DebugX86-64")
+                .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
+        resultDebug.assertTasksNotSkipped(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
+        debugBinary.exec().out == app.expectedOutput
+        fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
+
+        when:
+        releaseBinary.assertDoesNotExist()
+        def resultRelease = xcodebuild
+                .withProject(rootXcodeProject)
+                .withScheme('App')
+                .withConfiguration("ReleaseX86-64")
+                .succeeds()
+
+        then:
+        resultRelease.assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
+        resultRelease.assertTasksNotSkipped(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }
@@ -266,11 +429,57 @@ apply plugin: 'cpp-library'
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
     }
 
+    @Requires(TestPrecondition.XCODE)
+    def "can build C++ library from Xcode with multiple architecture"() {
+        useXcodebuildTool()
+        def lib = new CppLib()
+        def debugBinary = sharedLib("build/lib/main/debug/x86-64/App")
+        def releaseBinary = sharedLib("build/lib/main/release/x86-64/App")
+
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+
+            library.targetMachines = [machines.macOS.x86, machines.macOS.x86_64]
+        """
+
+        lib.writeToProject(testDirectory)
+        succeeds("xcode")
+
+        when:
+        debugBinary.assertDoesNotExist()
+        def resultDebug = xcodebuild
+                .withProject(rootXcodeProject)
+                .withScheme('App')
+                .withConfiguration("DebugX86-64")
+                .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
+        resultDebug.assertTasksNotSkipped(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
+        debugBinary.assertExists()
+        fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
+
+        when:
+        releaseBinary.assertDoesNotExist()
+        def resultRelease = xcodebuild
+                .withProject(rootXcodeProject)
+                .withScheme('App')
+                .withConfiguration("ReleaseX86-64")
+                .succeeds()
+
+        then:
+        resultRelease.assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
+        resultRelease.assertTasksNotSkipped(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
+        releaseBinary.assertExists()
+        fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
+    }
+
     def "adds new source files in the project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
         when:
         def app = new CppApp()
@@ -293,8 +502,8 @@ apply plugin: 'cpp-application'
     def "removes deleted source files from the project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
         when:
         def app = new CppApp()
@@ -318,13 +527,13 @@ apply plugin: 'cpp-application'
     def "includes source files in a non-default location in C++ executable project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
+            apply plugin: 'cpp-application'
 
-application {
-    source.from 'Sources'
-    privateHeaders.from 'Sources/include'
-}
-"""
+            application {
+                source.from 'Sources'
+                privateHeaders.from 'Sources/include'
+            }
+        """
 
         when:
         def app = new CppApp()
@@ -342,14 +551,14 @@ application {
     def "includes source files in a non-default location in C++ library project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-library'
+            apply plugin: 'cpp-library'
 
-library {
-    source.from 'Sources'
-    privateHeaders.from 'Sources/include'
-    publicHeaders.from 'Includes'
-}
-"""
+            library {
+                source.from 'Sources'
+                privateHeaders.from 'Sources/include'
+                publicHeaders.from 'Includes'
+            }
+        """
 
         when:
         def lib = new CppLib()
@@ -369,10 +578,10 @@ library {
     def "honors changes to application output locations"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-buildDir = 'output'
-application.baseName = 'test_app'
-"""
+            apply plugin: 'cpp-application'
+            buildDir = 'output'
+            application.baseName = 'test_app'
+        """
 
         def app = new CppApp()
         app.writeToProject(testDirectory)
@@ -399,10 +608,10 @@ application.baseName = 'test_app'
     def "honors changes to library output locations"() {
         given:
         buildFile << """
-apply plugin: 'cpp-library'
-buildDir = 'output'
-library.baseName = 'test_lib'
-"""
+            apply plugin: 'cpp-library'
+            buildDir = 'output'
+            library.baseName = 'test_lib'
+        """
 
         def lib = new CppLib()
         lib.writeToProject(testDirectory)

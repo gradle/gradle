@@ -14,7 +14,7 @@ open class Greeting : DefaultTask() {
     }
 }
 
-task<Greeting>("greeting") {
+tasks.register<Greeting>("greeting") {
     // Configure the greeting
     greeting.set("Hi")
 }

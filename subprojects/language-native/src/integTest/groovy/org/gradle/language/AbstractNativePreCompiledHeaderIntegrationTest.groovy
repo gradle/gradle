@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.spockframework.util.TextUtil
 
 abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -400,7 +400,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         then:
         fails "helloSharedLibrary"
         failure.assertHasDescription("Execution failed for task ':${getPCHCompileTaskName("hello", "shared")}'.")
-        failure.assertThatCause(Matchers.containsString("compiler failed while compiling prefix-headers"))
+        failure.assertThatCause(CoreMatchers.containsString("compiler failed while compiling prefix-headers"))
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -540,7 +540,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     String getUniquePragmaOutput(String message) {
-        if (toolChain.displayName == "clang") {
+        if (toolChain.displayName.startsWith("clang")) {
             return "warning: ${message}"
         } else if (toolChain.displayName.startsWith("gcc") || toolChain.displayName == "mingw") {
             return "message: ${message}"
@@ -557,7 +557,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         updateCommonHeaderPath(app.getAlternateLibrarySources(), headerPath)
     }
 
-    SourceFile getCommonHeader(String path) {
+    SourceFile getCommonHeader(String path = "") {
         updateSourceFilePath(app.getCommonHeader(), path)
     }
 

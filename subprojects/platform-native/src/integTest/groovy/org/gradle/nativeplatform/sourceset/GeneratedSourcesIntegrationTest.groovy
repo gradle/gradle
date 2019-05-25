@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 // TODO: Test incremental
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -250,6 +251,7 @@ model {
         executableBuilt(app)
     }
 
+    @RequiresInstalledToolChain(SUPPORTS_32)
     def "generator task produces assembler sources"() {
         given:
         def app = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)

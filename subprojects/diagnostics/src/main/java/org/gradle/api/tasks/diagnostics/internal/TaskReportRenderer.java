@@ -49,7 +49,7 @@ public class TaskReportRenderer extends TextReportRenderer {
     @Override
     protected String createHeader(Project project) {
         String header = super.createHeader(project);
-        return "All tasks runnable from " + StringUtils.uncapitalize(header);
+        return "Tasks runnable from " + StringUtils.uncapitalize(header);
     }
 
     public void showDetail(boolean detail) {

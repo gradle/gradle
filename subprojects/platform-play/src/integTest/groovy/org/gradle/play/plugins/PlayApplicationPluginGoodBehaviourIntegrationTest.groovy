@@ -19,9 +19,27 @@ package org.gradle.play.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class PlayApplicationPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
+
+    def setup() {
+        executer.expectDeprecationWarnings(3)
+    }
+
     @Override
     String getMainTask() {
         // assemble task will fail because the binary is not 100% buildable without a repository
         return "playBinary"
+    }
+
+    def "emits deprecation warning"() {
+        given:
+        applyPlugin()
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-application plugin instead.")
+        outputContains("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-twirl plugin instead.")
+        outputContains("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-routes plugin instead.")
     }
 }

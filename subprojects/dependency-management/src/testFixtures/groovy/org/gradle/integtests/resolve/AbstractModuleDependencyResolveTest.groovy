@@ -165,6 +165,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
             }
         """
         resolve.addDefaultVariantDerivationStrategy()
+        resolve.addJavaEcosystemSchema()
     }
 
     void repository(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {

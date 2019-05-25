@@ -15,6 +15,9 @@
  */
 package org.gradle.internal;
 
+import com.google.common.collect.Maps;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
@@ -72,11 +75,6 @@ public class SystemProperties {
     private SystemProperties() {
     }
 
-    @SuppressWarnings("unchecked")
-    public Map<String, String> asMap() {
-        return (Map) System.getProperties();
-    }
-
     public String getLineSeparator() {
         return System.getProperty("line.separator");
     }
@@ -101,10 +99,6 @@ public class SystemProperties {
         return new File(System.getProperty("user.dir"));
     }
 
-    public File getJavaHomeDir() {
-        return new File(System.getProperty("java.home"));
-    }
-
     /**
      * Creates instance for Factory implementation with the provided Java home directory. Setting the "java.home" system property is thread-safe
      * and is set back to the original value of "java.home" after the operation.
@@ -125,45 +119,87 @@ public class SystemProperties {
      * @param value The value to temporarily set the property to
      * @param factory Instance created by the Factory implementation
      */
-    public synchronized  <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
-        String originalValue = System.getProperty(propertyName);
-        System.setProperty(propertyName, value);
+    public synchronized <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
+        String originalValue = overrideProperty(propertyName, value);
 
         try {
             return factory.create();
         } finally {
-            if (originalValue != null) {
-                System.setProperty(propertyName, originalValue);
-            } else {
-                System.clearProperty(propertyName);
-            }
+            restoreProperty(propertyName, originalValue);
         }
     }
 
     /**
      * Provides safe access to the system properties, preventing concurrent {@link #withSystemProperty(String, String, Factory)} calls.
+     *
      * This can be used to wrap 3rd party APIs that iterate over the system properties, so they won't result in {@link java.util.ConcurrentModificationException}s.
+     *
+     * This method should not be used when you need to temporarily change system properties.
      */
-    public synchronized  <T> T withSystemProperties(Factory<T> factory) {
+    public synchronized <T> T withSystemProperties(Factory<T> factory) {
         return factory.create();
     }
 
     /**
-     * Returns the keys that are guaranteed to be contained in System.getProperties() by default,
-     * as specified in the Javadoc for that method.
+     * Provides safe access to the system properties, preventing concurrent calls to change system properties.
+     *
+     * This can be used to wrap 3rd party APIs that iterate over the system properties, so they won't result in {@link java.util.ConcurrentModificationException}s.
+     *
+     * This method can be used to override system properties temporarily.  The original values of the given system properties are restored before returning.
      */
-    public Set<String> getStandardProperties() {
-        return STANDARD_PROPERTIES;
+    public synchronized <T> T withSystemProperties(Map<String, String> properties, Factory<T> factory) {
+        Map<String, String> originalProperties = Maps.newHashMap();
+        for (Map.Entry<String, String> property : properties.entrySet()) {
+            String propertyName = property.getKey();
+            String value = property.getValue();
+            String originalValue = overrideProperty(propertyName, value);
+            originalProperties.put(propertyName, originalValue);
+        }
+
+        try {
+            return factory.create();
+        } finally {
+            for (Map.Entry<String, String> property : originalProperties.entrySet()) {
+                String propertyName = property.getKey();
+                String originalValue = property.getValue();
+                restoreProperty(propertyName, originalValue);
+            }
+        }
+    }
+
+    @Nullable
+    private String overrideProperty(String propertyName, String value) {
+        // Overwrite property
+        String originalValue = System.getProperty(propertyName);
+        if (value != null) {
+            System.setProperty(propertyName, value);
+        } else {
+            System.clearProperty(propertyName);
+        }
+        return originalValue;
+    }
+
+    private void restoreProperty(String propertyName, @Nullable String originalValue) {
+        if (originalValue != null) {
+            System.setProperty(propertyName, originalValue);
+        } else {
+            System.clearProperty(propertyName);
+        }
     }
 
     /**
-     * Returns the names of properties that are not guaranteed to be contained in System.getProperties()
-     * but are usually there and if there should not be adjusted.
-     *
-     * @return the set of keys of {@code System.getProperties()} which should not be adjusted
-     *   by client code. This method never returns {@code null}.
+     * Returns true if the given key is guaranteed to be contained in System.getProperties() by default,
+     * as specified in the Javadoc for that method.
      */
-    public Set<String> getNonStandardImportantProperties() {
-        return IMPORTANT_NON_STANDARD_PROPERTIES;
+    public boolean isStandardProperty(String key) {
+        return STANDARD_PROPERTIES.contains(key);
+    }
+
+    /**
+     * Returns true if the key is an important property that is not guaranteed to be contained in System.getProperties().
+     * The property is usually there and should not be adjusted.
+     */
+    public boolean isNonStandardImportantProperty(String key) {
+        return IMPORTANT_NON_STANDARD_PROPERTIES.contains(key);
     }
 }

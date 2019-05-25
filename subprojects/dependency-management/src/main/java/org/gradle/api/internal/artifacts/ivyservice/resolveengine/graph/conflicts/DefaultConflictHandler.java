@@ -39,7 +39,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 
     private final CompositeConflictResolver compositeResolver = new CompositeConflictResolver();
-    private final ConflictContainer<ModuleIdentifier, ComponentResolutionState> conflicts = new ConflictContainer<ModuleIdentifier, ComponentResolutionState>();
+    private final ConflictContainer<ModuleIdentifier, Object> conflicts = new ConflictContainer<ModuleIdentifier, Object>();
     private final ModuleReplacementsData moduleReplacements;
 
     public DefaultConflictHandler(ModuleConflictResolver conflictResolver, ModuleReplacementsData moduleReplacements) {
@@ -55,6 +55,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     /**
      * Registers new newModule and returns an instance of a conflict if conflict exists.
      */
+    @Override
     @Nullable
     public PotentialConflict registerCandidate(CandidateModule candidate) {
         ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
@@ -65,6 +66,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     /**
      * Informs if there are any batched up conflicts.
      */
+    @Override
     public boolean hasConflicts() {
         return !conflicts.isEmpty();
     }
@@ -72,18 +74,22 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     /**
      * Resolves the conflict by delegating to the conflict resolver who selects single version from given candidates. Executes provided action against the conflict resolution result object.
      */
+    @Override
+    @SuppressWarnings("unchecked")
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
-        ConflictContainer<ModuleIdentifier, ComponentResolutionState>.Conflict conflict = conflicts.popConflict();
-        ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails<ComponentResolutionState>(conflict.candidates);
+        ConflictContainer<ModuleIdentifier, ?>.Conflict conflict = conflicts.popConflict();
+        ConflictResolverDetails<Object> details = new DefaultConflictResolverDetails<Object>(conflict.candidates);
         compositeResolver.select(details);
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         }
-        ComponentResolutionState selected = details.getSelected();
+        Object selected = details.getSelected();
         ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict.participants, selected);
         resolutionAction.execute(result);
-        maybeSetReason(conflict.participants, selected);
+        if (selected instanceof ComponentResolutionState) {
+            maybeSetReason(conflict.participants, (ComponentResolutionState) selected);
+        }
         LOGGER.debug("Selected {} from conflicting modules {}.", selected, conflict.candidates);
     }
 
@@ -101,6 +107,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
         }
     }
 
+    @Override
     public void registerResolver(ModuleConflictResolver conflictResolver) {
         compositeResolver.addFirst(conflictResolver);
     }

@@ -40,6 +40,31 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    def "can define task with abstract ListProperty getter"() {
+        given:
+        buildFile << """
+            abstract class ATask extends DefaultTask {
+                @Input
+                abstract ListProperty<String> getProp()
+                
+                @TaskAction
+                void go() {
+                    println("prop = \${prop.get()}")
+                }
+            }
+            
+            tasks.create("thing", ATask) {
+                prop = ["a", "b", "c"]
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("prop = [a, b, c]")
+    }
+
     def "can finalize the value of a property using API"() {
         given:
         buildFile << """
@@ -143,6 +168,28 @@ task thing {
 
         then:
         output.contains("prop = [value 1]")
+    }
+
+    def "can use property with no value as optional ad hoc task input property"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.listProperty(String)
+prop.set((List)null)
+
+task thing {
+    inputs.property("prop", prop).optional(true)
+    doLast {
+        println "prop = " + prop.getOrNull()
+    }
+}
+"""
+
+        when:
+        run("thing")
+
+        then:
+        output.contains("prop = null")
     }
 
     @Unroll

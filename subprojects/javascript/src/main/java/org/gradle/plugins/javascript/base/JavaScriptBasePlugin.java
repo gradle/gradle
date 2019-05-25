@@ -22,6 +22,7 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionAware;
 
 public class JavaScriptBasePlugin implements Plugin<Project> {
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(BasePlugin.class);
         project.getExtensions().create(JavaScriptExtension.NAME, JavaScriptExtension.class);

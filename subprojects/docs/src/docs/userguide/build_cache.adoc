@@ -28,9 +28,9 @@ Essentially, task output caching leverages the same intelligence as <<more_about
 But instead of being limited to the previous build in the same workspace, task output caching allows Gradle to reuse task outputs from any earlier build in any location on the local machine.
 When using a shared build cache for task output caching this even works across developer machines and build agents.
 
-Apart from task output caching, we expect other features to use the build cache in the future.
+Apart from tasks, <<dependency_management_attribute_based_matching.adoc#sec:abm_artifact_transforms,artifact transforms>> can also leverage the build cache and re-use their outputs similarly to task output caching.
 
-NOTE: A complete guide is available about https://guides.gradle.org/using-build-cache/[using the build cache]. It covers the different scenarios caching can improve, and detailed discussions of the different caveats you need to be aware of when enabling caching for a build.
+TIP: For a hands-on approach to learning how to use the build cache, try the https://guides.gradle.org/using-build-cache/[Using the Build Cache] guide. It covers the different scenarios that caching can improve and has detailed discussions of the different caveats you need to be aware of when enabling caching for a build.
 
 [[sec:build_cache_enable]]
 == Enable the Build Cache
@@ -210,7 +210,7 @@ When possible, it is better to use delegation instead of creating a subclass.
 That is the case for the built in `JavaExec`, `Exec`, `Copy` and `Sync` tasks, which have a method on `Project` to do the actual work.
 
 If you're a modern JavaScript developer, you know that bundling can be quite long, and is worth caching.
-To achieve that, we need to tell Gradle that it's allowed to cache the output of that task, using the link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html] annotation.
+To achieve that, we need to tell Gradle that it's allowed to cache the output of that task, using the link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[@CacheableTask] annotation.
 
 This is sufficient to make the task cacheable on your own machine.
 However, input files are identified by default by their absolute path.
@@ -316,7 +316,7 @@ include::sample[dir="buildCache/http-build-cache/kotlin",files="settings.gradle.
 [[sec:build_cache_configure_use_cases]]
 === Configuration use cases
 
-The recommended use case for the build cache is that your continuous integration server populates the remote build cache from clean builds while developers load from the remote build cache and store in the local build cache.
+The recommended use case for the remote build cache is that your continuous integration server populates it from clean builds while developers only load from it.
 The configuration would then look as follows.
 
 .Recommended setup for CI push use case

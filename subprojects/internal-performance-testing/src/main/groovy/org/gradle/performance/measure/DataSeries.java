@@ -24,6 +24,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A collection of measurements of some given units.
@@ -108,6 +109,10 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
 
     public static double confidenceInDifference(DataSeries first, DataSeries second) {
         return 1 - new MannWhitneyUTest().mannWhitneyUTest(first.asDoubleArray(), second.asDoubleArray());
+    }
+
+    public List<Double> asDoubleList() {
+        return stream().map(Amount::getValue).map(BigDecimal::doubleValue).collect(Collectors.toList());
     }
 
     private double[] asDoubleArray() {

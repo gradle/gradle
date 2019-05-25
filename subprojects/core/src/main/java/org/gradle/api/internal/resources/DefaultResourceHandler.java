@@ -31,17 +31,20 @@ public class DefaultResourceHandler implements ResourceHandler {
 
     public DefaultResourceHandler(FileOperations fileOperations, ResourceResolver resourceResolver, TemporaryFileProvider tempFileProvider, TextResourceLoader textResourceLoader) {
         this.resourceResolver = resourceResolver;
-        textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textResourceLoader);
+        this.textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textResourceLoader);
     }
 
+    @Override
     public ReadableResourceInternal gzip(Object path) {
         return new GzipArchiver(resourceResolver.resolveResource(path));
     }
 
+    @Override
     public ReadableResourceInternal bzip2(Object path) {
         return new Bzip2Archiver(resourceResolver.resolveResource(path));
     }
 
+    @Override
     public TextResourceFactory getText() {
         return textResourceFactory;
     }

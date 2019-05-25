@@ -43,6 +43,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractSampleIntegrati
     }
 
     def setup() {
+        executer.noDeprecationChecks()
         executer.withPluginRepositoryMirror()
         initScript = file("initFile") << """
             gradle.allprojects {
@@ -65,6 +66,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractSampleIntegrati
         succeeds "assemble"
 
         when:
+        executer.noDeprecationChecks()
         sample playSample
         executer.usingInitScript(initScript).withStdinPipe().withForceInteractive(true)
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
@@ -77,6 +79,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractSampleIntegrati
         checkContent()
 
         when:
+        executer.noDeprecationChecks()
         gradleHandle.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"

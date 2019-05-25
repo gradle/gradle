@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -30,16 +33,38 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme;
+import org.gradle.api.internal.artifacts.transform.CacheableTransformTypeAnnotationHandler;
+import org.gradle.api.internal.artifacts.transform.InputArtifactAnnotationHandler;
+import org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
+import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
+import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
+import org.gradle.work.Incremental;
 
 class DependencyManagementGlobalScopeServices {
-    FileResourceRepository createFileResourceRepository(FileSystem fileSystem){
+    FileResourceRepository createFileResourceRepository(FileSystem fileSystem) {
         return new FileResourceConnector(fileSystem);
     }
 
@@ -84,5 +109,65 @@ class DependencyManagementGlobalScopeServices {
 
     ProducerGuard<ExternalResourceName> createProducerAccess() {
         return ProducerGuard.adaptive();
+    }
+
+    TypeAnnotationHandler createCacheableTransformAnnotationHandler() {
+        return new CacheableTransformTypeAnnotationHandler();
+    }
+
+    InputArtifactAnnotationHandler createInputArtifactAnnotationHandler() {
+        return new InputArtifactAnnotationHandler();
+    }
+
+    InputArtifactDependenciesAnnotationHandler createInputArtifactDependenciesAnnotationHandler() {
+        return new InputArtifactDependenciesAnnotationHandler();
+    }
+
+    ArtifactTransformParameterScheme createArtifactTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+        // TODO - should decorate
+        InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme();
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
+            ImmutableSet.of(
+                Console.class,
+                Input.class,
+                InputDirectory.class,
+                InputFile.class,
+                InputFiles.class,
+                Internal.class,
+                ReplacedBy.class
+            ),
+            ImmutableSet.of(
+                Classpath.class,
+                CompileClasspath.class,
+                Incremental.class,
+                Optional.class,
+                PathSensitive.class
+            ),
+            instantiationScheme
+        );
+        return new ArtifactTransformParameterScheme(instantiationScheme, inspectionScheme);
+    }
+
+    ArtifactTransformActionScheme createArtifactTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+        InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(
+            InputArtifact.class,
+            InputArtifactDependencies.class
+        ));
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
+            ImmutableSet.of(
+                InputArtifact.class,
+                InputArtifactDependencies.class
+            ),
+            ImmutableSet.of(
+                Classpath.class,
+                CompileClasspath.class,
+                Incremental.class,
+                Optional.class,
+                PathSensitive.class
+            ),
+            instantiationScheme
+        );
+        InstantiationScheme legacyInstantiationScheme = instantiatorFactory.injectScheme();
+        return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme, legacyInstantiationScheme);
     }
 }

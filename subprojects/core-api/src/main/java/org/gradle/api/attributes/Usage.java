@@ -45,6 +45,14 @@ public interface Usage extends Named {
     String JAVA_API_CLASSES = "java-api-classes";
 
     /**
+     * The Java API of a library, packaged as a JAR only. Must not include classes directories.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    String JAVA_API_JARS = "java-api-jars";
+
+    /**
      * The Java runtime of a component, packaged as class path elements, either a JAR or a classes directory.
      *
      * @since 4.0

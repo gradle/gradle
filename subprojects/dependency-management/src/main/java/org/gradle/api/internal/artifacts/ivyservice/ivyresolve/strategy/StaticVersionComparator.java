@@ -35,6 +35,7 @@ class StaticVersionComparator implements Comparator<Version> {
     /**
      * Compares 2 versions. Algorithm is inspired by PHP version_compare one.
      */
+    @Override
     public int compare(Version version1, Version version2) {
         if (version1.equals(version2)) {
             return 0;
@@ -66,7 +67,11 @@ class StaticVersionComparator implements Comparator<Version> {
                 return -1;
             }
             if (is1Number && is2Number) {
-                return numericPart1.compareTo(numericPart2);
+                int result = numericPart1.compareTo(numericPart2);
+                if (result == 0) {
+                    continue;
+                }
+                return result;
             }
             // both are strings, we compare them taking into account special meaning
             Integer sm1 = SPECIAL_MEANINGS.get(part1.toLowerCase(Locale.US));

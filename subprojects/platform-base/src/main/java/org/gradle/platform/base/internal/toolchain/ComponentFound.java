@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.util.TreeVisitor;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 
 public class ComponentFound<T> implements SearchResult<T> {
     private final T component;
@@ -25,14 +25,17 @@ public class ComponentFound<T> implements SearchResult<T> {
         this.component = component;
     }
 
+    @Override
     public T getComponent() {
         return component;
     }
 
+    @Override
     public boolean isAvailable() {
         return true;
     }
 
-    public void explain(TreeVisitor<? super String> visitor) {
+    @Override
+    public void explain(DiagnosticsVisitor visitor) {
     }
 }

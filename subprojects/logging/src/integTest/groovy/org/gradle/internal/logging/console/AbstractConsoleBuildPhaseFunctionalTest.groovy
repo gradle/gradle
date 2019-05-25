@@ -16,25 +16,21 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RichConsoleStyling
+
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
+abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
     GradleHandle gradle
 
     def setup() {
-        executer.withConsole(consoleType)
         server.start()
     }
-
-    abstract ConsoleOutput getConsoleType()
 
     def "shows progress bar and percent phase completion"() {
         settingsFile << """
@@ -307,13 +303,24 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         buildFile << """
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
-                
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
+                  
+            abstract class FileSizer implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getSuffix()
+                    void setSuffix(String suffix)
+                }
+
+                @InputArtifactDependencies
+                abstract FileCollection getDependencies()
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     ${server.callFromBuild('size-transform')}
-                    File output = new File(outputDirectory, input.name + ".txt")
+                    File output = outputs.registerOutput(input.name + parameters.suffix)
                     output.text = String.valueOf(input.length())
-                    return [output]
                 }
             }
             
@@ -359,10 +366,12 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                         to.attribute(artifactType, "double")
                         artifactTransform(FileDoubler)
                     }
-                    registerTransform {
+                    registerTransform(FileSizer) {
                         from.attribute(artifactType, "double")
                         to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
+                        parameters {
+                            suffix = ".txt"
+                        }
                     }
                 }
                 task resolve {

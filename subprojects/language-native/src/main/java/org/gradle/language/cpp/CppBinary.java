@@ -73,7 +73,7 @@ public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDepend
     FileCollection getRuntimeLibraries();
 
     /**
-     * {@inheritDoc}
+     * Returns the target platform for this component.
      *
      * @since 4.5
      */

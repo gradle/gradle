@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.Unroll
 
 class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
@@ -36,7 +36,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         fails "foo"
 
         then:
-        failure.assertThatDescription(Matchers.startsWith("Task 'foo' not found in root project"))
+        failure.assertThatDescription(CoreMatchers.startsWith("Task 'foo' not found in root project"))
     }
 
     def "can remove task in after evaluate"() {
@@ -53,7 +53,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         fails "foo"
 
         then:
-        failure.assertThatDescription(Matchers.startsWith("Task 'foo' not found in root project"))
+        failure.assertThatDescription(CoreMatchers.startsWith("Task 'foo' not found in root project"))
     }
 
     @Unroll
@@ -81,7 +81,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         fails "dependencies"
 
         then:
-        failure.assertThatCause(Matchers.startsWith("The following model rules could not be applied"))
+        failure.assertThatCause(CoreMatchers.startsWith("The following model rules could not be applied"))
 
         where:
         annotationClass << ["Defaults", "Mutate", "Finalize", "Validate"]
@@ -106,7 +106,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         then:
         executer.expectDeprecationWarning()
         fails ":bar"
-        failure.assertThatCause(Matchers.startsWith("Tried to remove model 'tasks.foo' but it is depended on by: 'tasks.bar'"))
+        failure.assertThatCause(CoreMatchers.startsWith("Tried to remove model 'tasks.foo' but it is depended on by: 'tasks.bar'"))
     }
 
     @Unroll

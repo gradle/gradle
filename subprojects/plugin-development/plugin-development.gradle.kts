@@ -18,21 +18,46 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(library("groovy"))
-    compile(project(":core"))
-    compile(project(":plugins"))
-    compile(project(":publish"))
-    compile(project(":maven"))
-    compile(project(":ivy"))
-    testRuntime(project(":toolingApi"))
-    testRuntime(project(":launcher"))
-    testRuntime(project(":testKit"))
-    integTestRuntime(project(":toolingApiBuilders"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":maven"))
+    implementation(project(":ivy"))
+    implementation(project(":platformJvm"))
+    implementation(project(":reporting"))
+    implementation(project(":testingBase"))
+    implementation(project(":testingJvm"))
+    implementation(project(":plugins"))
+    implementation(project(":pluginUse"))
+    implementation(project(":publish"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
+    implementation(library("commons_io"))
+    implementation(library("guava"))
+    implementation(library("inject"))
+    implementation(library("asm"))
+
+    testImplementation(project(":files"))
+
+    testRuntimeOnly(project(":toolingApi"))
+    testRuntimeOnly(project(":launcher"))
+    testRuntimeOnly(project(":testKit"))
+
+    integTestImplementation(project(":baseServicesGroovy"))
+    integTestImplementation(library("jetbrains_annotations"))
+    
+    integTestRuntimeOnly(project(":toolingApiBuilders"))
 }
 
 gradlebuildJava {

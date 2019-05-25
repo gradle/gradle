@@ -20,7 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomContributor;
@@ -64,6 +66,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     private MavenPomCiManagement ciManagement;
     private MavenPomDistributionManagementInternal distributionManagement;
     private final List<MavenPomMailingList> mailingLists = new ArrayList<MavenPomMailingList>();
+    private final MapProperty<String, String> properties;
 
     public DefaultMavenPom(MavenPublicationInternal mavenPublication, Instantiator instantiator, ObjectFactory objectFactory) {
         this.mavenPublication = mavenPublication;
@@ -73,16 +76,30 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         this.description = objectFactory.property(String.class);
         this.url = objectFactory.property(String.class);
         this.inceptionYear = objectFactory.property(String.class);
+        this.properties = objectFactory.mapProperty(String.class, String.class);
     }
 
+    @Override
     public void withXml(Action<? super XmlProvider> action) {
         xmlAction.add(new UserCodeAction<XmlProvider>("Could not apply withXml() to generated POM", action));
     }
 
+    @Override
     public Action<XmlProvider> getXmlAction() {
         return xmlAction;
     }
 
+    @Override
+    public VersionMappingStrategyInternal getVersionMappingStrategy() {
+        return mavenPublication.getVersionMappingStrategy();
+    }
+
+    @Override
+    public boolean writeGradleMetadataMarker() {
+        return mavenPublication.writeGradleMetadataMarker();
+    }
+
+    @Override
     public String getPackaging() {
         if (packaging == null) {
             return mavenPublication.determinePackagingFromArtifacts();
@@ -90,6 +107,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return packaging;
     }
 
+    @Override
     public void setPackaging(String packaging) {
         this.packaging = packaging;
     }
@@ -239,6 +257,12 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return mailingLists;
     }
 
+    @Override
+    public MapProperty<String, String> getProperties() {
+        return properties;
+    }
+
+    @Override
     public MavenProjectIdentity getProjectIdentity() {
         return mavenPublication.getMavenProjectIdentity();
     }
@@ -248,6 +272,12 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return mavenPublication.getApiDependencies();
     }
 
+    @Override
+    public Set<MavenDependencyInternal> getOptionalDependencies() {
+        return mavenPublication.getOptionalDependencies();
+    }
+
+    @Override
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return mavenPublication.getRuntimeDependencies();
     }

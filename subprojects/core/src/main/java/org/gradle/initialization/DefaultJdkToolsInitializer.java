@@ -32,6 +32,7 @@ public class DefaultJdkToolsInitializer implements JdkToolsInitializer {
         this.classLoaderFactory = classLoaderFactory;
     }
 
+    @Override
     public void initializeJdkTools() {
         // Add in tools.jar to the systemClassloader parent
         File toolsJar = Jvm.current().getToolsJar();

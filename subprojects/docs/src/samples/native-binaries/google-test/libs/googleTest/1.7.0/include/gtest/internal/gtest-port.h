@@ -838,7 +838,7 @@ struct CompileAssert {
 //   expr is a compile-time constant.  (Template arguments must be
 //   determined at compile-time.)
 //
-// - The outter parentheses in CompileAssert<(bool(expr))> are necessary
+// - The outer parentheses in CompileAssert<(bool(expr))> are necessary
 //   to work around a bug in gcc 3.4.4 and 4.0.1.  If we had written
 //
 //     CompileAssert<bool(expr)>
@@ -1081,7 +1081,7 @@ inline void FlushInfoLog() { fflush(NULL); }
 // const Foo*).  When you use ImplicitCast_, the compiler checks that
 // the cast is safe.  Such explicit ImplicitCast_s are necessary in
 // surprisingly many situations where C++ demands an exact type match
-// instead of an argument type convertable to a target type.
+// instead of an argument type convertible to a target type.
 //
 // The syntax for using ImplicitCast_ is the same as for static_cast:
 //

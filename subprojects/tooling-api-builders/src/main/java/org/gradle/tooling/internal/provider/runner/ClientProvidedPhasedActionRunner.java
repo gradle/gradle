@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.BuildResult;
-import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildEventConsumer;
@@ -25,16 +24,14 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
-import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import javax.annotation.Nullable;
 
@@ -56,7 +53,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
         ActionRunningListener listener = new ActionRunningListener(phasedAction, gradle);
 
         Throwable buildFailure = null;
-        Throwable clientFailure = null;
+        RuntimeException clientFailure = null;
         try {
             gradle.addBuildListener(listener);
             if (clientProvidedPhasedAction.isRunTasks()) {
@@ -64,21 +61,18 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
             } else {
                 buildController.configure();
             }
-        } catch (BuildCancelledException e) {
-            buildFailure = e;
-            clientFailure = new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {
             buildFailure = e;
-            clientFailure = new BuildExceptionVersion1(e);
+            clientFailure = e;
         }
-        if (listener.actionFailure != null && !(listener.actionFailure instanceof BuildCancelledException)) {
+        if (listener.actionFailure != null) {
             clientFailure = new InternalBuildActionFailureException(listener.actionFailure);
         }
 
         if (buildFailure != null) {
-            return Result.of(new BuildActionResult(null, payloadSerializer.serialize(clientFailure)), buildFailure);
+            return Result.failed(buildFailure, clientFailure);
         }
-        return Result.of(new BuildActionResult(payloadSerializer.serialize(null), null));
+        return Result.of(null);
     }
 
     private PayloadSerializer getPayloadSerializer(GradleInternal gradle) {
@@ -113,13 +107,13 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
 
         private void run(@Nullable InternalBuildActionVersion2<?> action, PhasedActionResult.Phase phase) {
             if (action != null) {
-                BuildActionResult result = runAction(action, gradle);
-                PhasedBuildActionResult res = new PhasedBuildActionResult(result.result, phase);
+                SerializedPayload result = runAction(action, gradle);
+                PhasedBuildActionResult res = new PhasedBuildActionResult(result, phase);
                 getBuildEventConsumer(gradle).dispatch(res);
             }
         }
 
-        private <T> BuildActionResult runAction(InternalBuildActionVersion2<T> action, GradleInternal gradle) {
+        private <T> SerializedPayload runAction(InternalBuildActionVersion2<T> action, GradleInternal gradle) {
             DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
             T model;
             try {
@@ -130,7 +124,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
             }
 
             PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
-            return new BuildActionResult(payloadSerializer.serialize(model), null);
+            return payloadSerializer.serialize(model);
         }
     }
 }

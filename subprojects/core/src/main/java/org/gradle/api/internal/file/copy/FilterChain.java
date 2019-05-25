@@ -58,6 +58,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
     /**
      * Transforms the given InputStream. The original InputStream will be closed by the returned InputStream.
      */
+    @Override
     public InputStream transform(InputStream original) {
         try {
             return new ReaderInputStream(transform(new InputStreamReader(original, charset)), charset);
@@ -76,6 +77,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
 
     public void add(final Class<? extends FilterReader> filterType, final Map<String, ?> properties) {
         transformers.add(new Transformer<Reader, Reader>() {
+            @Override
             public Reader transform(Reader original) {
                 try {
                     Constructor<? extends FilterReader> constructor = filterType.getConstructor(Reader.class);
@@ -107,6 +109,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
 
     public void expand(final Map<String, ?> properties) {
         transformers.add(new Transformer<Reader, Reader>() {
+            @Override
             public Reader transform(Reader original) {
                 try {
                     Template template;

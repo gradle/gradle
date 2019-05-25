@@ -154,11 +154,6 @@ class DefaultLenientConfigurationTest extends Specification {
         }
 
         @Override
-        Long getNodeId() {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
         Collection<? extends DependencyGraphNodeResult> getOutgoingEdges() {
             throw new UnsupportedOperationException()
         }

@@ -22,4 +22,11 @@ public interface OutputChangeListener {
      * This happens for example just before the task actions are executed or the outputs are loaded from the cache.
      */
     void beforeOutputChange();
+
+    /**
+     * Like {@link #beforeOutputChange()}, only that the outputs which are about to change are known
+     *
+     * @param affectedOutputPaths The files which are affected by the change.
+     */
+    void beforeOutputChange(Iterable<String> affectedOutputPaths);
 }

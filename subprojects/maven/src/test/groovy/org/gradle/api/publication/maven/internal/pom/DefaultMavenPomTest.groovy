@@ -185,7 +185,7 @@ class DefaultMavenPomTest extends Specification {
 
     void writeToWritesCorrectPom() {
         mavenPom.configurations = null
-        TestFile pomFile = tmpDir.file('someNonexistingDir').file('someFile')
+        TestFile pomFile = tmpDir.file('someNonexistentDir').file('someFile')
         fileResolver.resolve('file') >> pomFile
 
         when:

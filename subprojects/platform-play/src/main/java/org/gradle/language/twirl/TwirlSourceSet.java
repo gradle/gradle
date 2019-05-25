@@ -45,6 +45,7 @@ import java.util.List;
  * </pre>
  */
 @Incubating
+@Deprecated
 public interface TwirlSourceSet extends LanguageSourceSet {
     /**
      * The default imports that should be added to generated source files

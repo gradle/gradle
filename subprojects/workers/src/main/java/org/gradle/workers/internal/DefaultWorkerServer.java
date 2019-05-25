@@ -17,7 +17,9 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -26,8 +28,8 @@ public class DefaultWorkerServer implements WorkerProtocol {
     private final Instantiator instantiator;
 
     @Inject
-    public DefaultWorkerServer(Instantiator instantiator) {
-        this.instantiator = instantiator;
+    public DefaultWorkerServer(ServiceRegistry serviceRegistry) {
+        this.instantiator = serviceRegistry.get(InstantiatorFactory.class).inject(serviceRegistry);
     }
 
     @Override

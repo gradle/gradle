@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
+import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.internal.NativeBinaryRenderer;
 import org.gradle.nativeplatform.internal.NativeExecutableBinaryRenderer;
 import org.gradle.nativeplatform.internal.NativePlatformResolver;
@@ -60,6 +61,7 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
         registration.add(NativeExecutableBinaryRenderer.class);
         registration.add(NativePlatforms.class);
         registration.add(NativePlatformResolver.class);
+        registration.add(DefaultTargetMachineFactory.class);
     }
 
     @Override

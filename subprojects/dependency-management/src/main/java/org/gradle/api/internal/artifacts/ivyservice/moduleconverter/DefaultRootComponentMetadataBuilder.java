@@ -112,6 +112,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         }
     }
 
+    @Override
     public RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider alternateProvider) {
         return new DefaultRootComponentMetadataBuilder(
             metadataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, localComponentMetadataBuilder, alternateProvider,

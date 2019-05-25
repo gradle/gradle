@@ -26,6 +26,7 @@ import org.gradle.internal.serialize.Encoder;
 class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetadataCacheEntry> {
     private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
 
+    @Override
     public void write(Encoder encoder, ModuleMetadataCacheEntry value) throws Exception {
         encoder.writeByte(value.type);
         switch (value.type) {
@@ -42,6 +43,7 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
         }
     }
 
+    @Override
     public ModuleMetadataCacheEntry read(Decoder decoder) throws Exception {
         byte type = decoder.readByte();
         switch (type) {

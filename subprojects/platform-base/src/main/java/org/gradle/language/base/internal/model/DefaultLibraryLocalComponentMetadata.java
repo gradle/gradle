@@ -163,7 +163,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         return new LocalComponentDependencyMetadata(
             new OpaqueComponentIdentifier("TODO"),
             selector, usageConfigurationName, null, ImmutableAttributes.EMPTY, mappedUsageConfiguration,
-            ImmutableList.<IvyArtifactName>of(),
+                ImmutableList.<IvyArtifactName>of(),
             EXCLUDE_RULES,
             false, false, true, false, null);
     }

@@ -34,6 +34,7 @@ public class DefaultBuildConfigurationActionExecuter implements BuildConfigurati
         this.projectStateRegistry = projectStateRegistry;
     }
 
+    @Override
     public void select(final GradleInternal gradle) {
         // We know that we're running single-threaded here, so we can use lenient project locking
         projectStateRegistry.withLenientState(new Runnable() {
@@ -55,10 +56,12 @@ public class DefaultBuildConfigurationActionExecuter implements BuildConfigurati
             return;
         }
         processingConfigurationActions.get(index).configure(new BuildExecutionContext() {
+            @Override
             public GradleInternal getGradle() {
                 return gradle;
             }
 
+            @Override
             public void proceed() {
                 configure(processingConfigurationActions, gradle, index + 1);
             }

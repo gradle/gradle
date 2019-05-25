@@ -17,7 +17,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 /*
- * Groovy specific adaptions to the model management.
+ * Groovy specific adaptations to the model management.
  */
 plugins {
     `java-library`
@@ -26,17 +26,17 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":modelCore"))
-    api(library("groovy"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
     implementation(project(":baseServicesGroovy"))
-    implementation(library("jcip"))
+
+    implementation(library("groovy"))
     implementation(library("guava"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

@@ -33,7 +33,7 @@ class Git {
     private Git() {
         def repository = new FileRepositoryBuilder().findGitDir().build()
         try {
-            branchName = repository.branch
+            branchName = System.getenv("BUILD_BRANCH") ?: repository.branch
             commitId = repository.resolve(repository.fullBranch).name
         } finally {
             repository.close()

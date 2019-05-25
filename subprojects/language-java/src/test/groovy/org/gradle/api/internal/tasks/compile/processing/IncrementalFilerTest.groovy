@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
+import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource
 import spock.lang.Specification
 
 import javax.annotation.processing.Filer
@@ -24,7 +26,6 @@ import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.Name
 import javax.lang.model.element.PackageElement
 import javax.lang.model.element.TypeElement
-import javax.tools.StandardLocation
 
 abstract class IncrementalFilerTest extends Specification {
     Filer delegate = Stub(Filer)
@@ -32,18 +33,10 @@ abstract class IncrementalFilerTest extends Specification {
     Filer filer
 
     def setup() {
-        filer = new IncrementalFiler(delegate, getStrategy(result))
+        filer = new IncrementalFiler(delegate, getStrategy(new AnnotationProcessorResult(result, "TestProcessor")))
     }
 
-    abstract IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result)
-
-    def "does a full rebuild  when trying to write resources"() {
-        when:
-        filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt")
-
-        then:
-        result.fullRebuildCause == "an annotation processor generated a resource"
-    }
+    abstract IncrementalProcessingStrategy getStrategy(AnnotationProcessorResult result)
 
     PackageElement pkg(String packageName) {
         Stub(PackageElement) {
@@ -67,5 +60,9 @@ abstract class IncrementalFilerTest extends Specification {
         Stub(ExecutableElement) {
             getEnclosingElement() >> type(typeName)
         }
+    }
+
+    GeneratedResource sourceResource(String path) {
+        new GeneratedResource(GeneratedResource.Location.SOURCE_OUTPUT, path)
     }
 }

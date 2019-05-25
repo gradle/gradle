@@ -434,7 +434,7 @@
                     <plugin>
                         <!--
                         The goal is to sign all artifacts so that the user may verify them before downloading.
-                        The automatic build system may reuire your key ID, and passphrase specified using system properties:
+                        The automatic build system may require your key ID, and passphrase specified using system properties:
                         -Dgpg.passphrase="<passphrase>" -Dgpg.keyname="<your key ID>"
                         In order to create the key pair, use the command "gpg &ndash;&ndash;gen-key".
                         (&ndash;&ndash; stands for double dash)

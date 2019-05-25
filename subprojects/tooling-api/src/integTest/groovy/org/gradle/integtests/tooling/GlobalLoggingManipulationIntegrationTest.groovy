@@ -17,7 +17,7 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.BlockingResultHandler
 import org.gradle.tooling.model.GradleProject
@@ -32,11 +32,12 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     RedirectStdIn stdIn
     @Rule
-    CyclicBarrierHttpServer sync = new CyclicBarrierHttpServer()
+    BlockingHttpServer sync = new BlockingHttpServer()
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     def setup() {
         toolingApi.requireIsolatedToolingApi()
+        sync.start()
     }
 
     def cleanup() {
@@ -69,9 +70,10 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         def outInstance = System.out
         def errInstance = System.err
         def inInstance = System.in
+        def handle = sync.expectAndBlock("waiting")
 
         buildFile << """
-            new URL("${sync.uri}").text
+            ${sync.callFromBuild("waiting")}
             task hey
         """
 
@@ -82,11 +84,11 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
             builder.standardOutput = outInstance
             builder.standardError = errInstance
             builder.get(handler)
-            sync.waitFor(60)
+            handle.waitForAllPendingCalls()
             assert System.out.is(outInstance)
             assert System.err.is(errInstance)
             assert System.in.is(inInstance)
-            sync.release()
+            handle.releaseAll()
             handler.result
         }
 
@@ -141,9 +143,11 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         //this gives some confidence that the LogManager was not reset
         given:
         toolingApi.requireDaemons()
+        def handle = sync.expectAndBlock("waiting")
+
         LogManager.getLogManager().getLogger("").setLevel(OFF);
         buildFile << """
-            new URL("${sync.uri}").text
+            ${sync.callFromBuild("waiting")}
             task hey
         """
 
@@ -155,9 +159,9 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
             builder.standardOutput = System.out
             builder.standardError = System.err
             builder.get(handler)
-            sync.waitFor()
+            handle.waitForAllPendingCalls()
             assertJavaUtilLoggingNotModified()
-            sync.release()
+            handle.releaseAll()
             handler.result
         }
 

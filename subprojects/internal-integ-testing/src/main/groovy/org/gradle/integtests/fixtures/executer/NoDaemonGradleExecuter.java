@@ -53,6 +53,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
+    @Override
     public void assertCanExecute() throws AssertionError {
         if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
             Map<String, String> environmentVars = buildInvocation().environmentVars;
@@ -129,6 +130,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
+    @Override
     protected boolean supportsWhiteSpaceInEnvVars() {
         final Jvm current = Jvm.current();
         if (getJavaHome().equals(current.getJavaHome())) {
@@ -148,6 +150,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     protected Factory<? extends AbstractExecHandleBuilder> getExecHandleFactory() {
         return new Factory<DefaultExecHandleBuilder>() {
+            @Override
             public DefaultExecHandleBuilder create() {
                 TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
                 if (!gradleHomeDir.isDirectory()) {
@@ -191,10 +194,12 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
     }
 
+    @Override
     protected ExecutionResult doRun() {
         return startHandle().waitForFinish();
     }
 
+    @Override
     protected ExecutionFailure doRunWithFailure() {
         return start().waitForFailure();
     }
@@ -204,6 +209,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private class WindowsConfigurer implements ExecHandlerConfigurer {
+        @Override
         public void configure(ExecHandleBuilder builder) {
             String cmd;
             if (getExecutable() != null) {
@@ -234,6 +240,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private class UnixConfigurer implements ExecHandlerConfigurer {
+        @Override
         public void configure(ExecHandleBuilder builder) {
             if (getExecutable() != null) {
                 File exe = new File(getExecutable());

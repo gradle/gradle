@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import com.google.common.base.Function;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistry;

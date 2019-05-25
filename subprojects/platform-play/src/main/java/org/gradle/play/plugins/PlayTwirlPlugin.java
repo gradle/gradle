@@ -46,6 +46,7 @@ import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.TwirlCompile;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -56,10 +57,12 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
+@Deprecated
 public class PlayTwirlPlugin extends RuleSource {
 
     @ComponentType
     void registerTwirlLanguageType(TypeBuilder<TwirlSourceSet> builder) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Twirl", "org.gradle.playframework-twirl");
         builder.defaultImplementation(DefaultTwirlSourceSet.class);
     }
 
@@ -127,14 +130,17 @@ public class PlayTwirlPlugin extends RuleSource {
         @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
+                @Override
                 public String getTaskPrefix() {
                     return "compile";
                 }
 
+                @Override
                 public Class<? extends DefaultTask> getTaskType() {
                     return TwirlCompile.class;
                 }
 
+                @Override
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
                     TwirlSourceSet twirlSourceSet = (TwirlSourceSet) sourceSet;

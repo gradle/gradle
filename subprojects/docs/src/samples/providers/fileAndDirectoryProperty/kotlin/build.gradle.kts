@@ -19,7 +19,7 @@ open class GenerateSource @javax.inject.Inject constructor(objects: ObjectFactor
 }
 
 // Create the source generation task
-task<GenerateSource>("generate") {
+tasks.register<GenerateSource>("generate") {
     // Configure the locations, relative to the project and build directories
     configFile.set(project.layout.projectDirectory.file("src/config.txt"))
     outputDir.set(project.layout.buildDirectory.dir("generated-source"))

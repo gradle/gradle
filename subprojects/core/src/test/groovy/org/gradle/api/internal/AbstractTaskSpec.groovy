@@ -23,7 +23,7 @@ import org.gradle.util.TestUtil
 import static org.junit.Assert.assertTrue
 
 class AbstractTaskSpec extends AbstractProjectBuilderSpec {
-    def instantiator = TestUtil.instantiatorFactory().decorate()
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     static class TestTask extends AbstractTask {
     }

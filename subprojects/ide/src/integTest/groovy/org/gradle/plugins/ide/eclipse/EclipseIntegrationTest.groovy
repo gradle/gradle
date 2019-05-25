@@ -256,8 +256,8 @@ eclipse {
 
 tasks.eclipse {
     doLast {
-        assert beforeConfiguredObjects == 5 : "beforeConfigured() hooks shoold be fired for domain model objects"
-        assert whenConfiguredObjects == 5 : "whenConfigured() hooks shoold be fired for domain model objects"
+        assert beforeConfiguredObjects == 5 : "beforeConfigured() hooks should be fired for domain model objects"
+        assert whenConfiguredObjects == 5 : "whenConfigured() hooks should be fired for domain model objects"
     }
 }
 ''')
@@ -496,7 +496,7 @@ dependencies {
         } catch (AssertionFailedError error) {
             println "EXPECTED:\n${expectedXml}"
             println "ACTUAL:\n${actualXml}"
-            throw new ComparisonFailure("Comparison filure: expected: $expectedFile, actual: $actualFile"
+            throw new ComparisonFailure("Comparison failure: expected: $expectedFile, actual: $actualFile"
                 + "\nUnexpected content for generated actualFile: ${error.message}", expectedXml, actualXml).initCause(error)
         }
     }

@@ -117,16 +117,14 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         buildFile << '''
             def jarFile = file("jar-1.jar")
             jarFile << 'content'
-            def libFiles = new org.gradle.api.internal.file.collections.ListBackedFileSet(jarFile) {
-                Set<File> getFiles() {
-                    println "FILES REQUESTED"
-                    return super.getFiles()
-                }
+            def libFiles = {
+                println "FILES REQUESTED"
+                [jarFile]
             }
             
             configurations { compile }
             dependencies { 
-                compile new org.gradle.api.internal.file.collections.FileCollectionAdapter(libFiles)
+                compile files(libFiles)
             }
             
             task checkFiles {

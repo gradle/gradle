@@ -176,5 +176,4 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
         return componentId;
     }
 
-    protected abstract ConfigurationMetadata withAttributes(ImmutableAttributes attributes);
 }

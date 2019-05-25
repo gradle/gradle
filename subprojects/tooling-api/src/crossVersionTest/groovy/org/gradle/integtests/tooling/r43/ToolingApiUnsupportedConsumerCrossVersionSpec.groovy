@@ -17,57 +17,68 @@
 package org.gradle.integtests.tooling.r43
 
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion("current")
 class ToolingApiUnsupportedConsumerCrossVersionSpec extends ToolingApiVersionSpecification {
     @ToolingApiVersion("<1.2")
-    def "provider rejects build request from a tooling API client older than 1.2"() {
+    def "provider rejects build request from a tooling API client 1.2 or older"() {
         when:
         build()
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.cause.message.contains('Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You should upgrade your tooling API client to version 3.0 or later.')
+        GradleConnectionException connectionException = thrown()
+        connectionException.cause.message.contains('Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You should upgrade your tooling API client to version 3.0 or later.')
     }
 
     @ToolingApiVersion(">=1.2 <3.0")
-    def "provider rejects build request from a tooling API client older than 2.0"() {
+    def "provider rejects build request from a tooling API client older than 3.0"() {
         when:
         build()
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.cause.message.contains("Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You are currently using tooling API version ${GradleVersion.current().version}. You should upgrade your tooling API client to version 3.0 or later.")
+        GradleConnectionException connectionException = thrown()
+        connectionException.cause.message.contains("Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You are currently using tooling API version ${GradleVersion.current().version}. You should upgrade your tooling API client to version 3.0 or later.")
     }
 
     @ToolingApiVersion("<1.2")
-    def "provider rejects model request from a tooling API client older than 1.2"() {
+    def "provider rejects model request from a tooling API client 1.2 or older"() {
         when:
         getModel()
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.cause.message.contains('Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You should upgrade your tooling API client to version 3.0 or later.')
+        GradleConnectionException connectionException = thrown()
+        connectionException.cause.message.contains('Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You should upgrade your tooling API client to version 3.0 or later.')
     }
 
     @ToolingApiVersion(">=1.2 <3.0")
-    def "provider rejects model request from a tooling API client older than 2.0"() {
+    def "provider rejects model request from a tooling API client older than 3.0"() {
         when:
         getModel()
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.cause.message.contains("Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You are currently using tooling API version ${GradleVersion.current().version}. You should upgrade your tooling API client to version 3.0 or later.")
+        GradleConnectionException connectionException = thrown()
+        connectionException.cause.message.contains("Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You are currently using tooling API version ${GradleVersion.current().version}. You should upgrade your tooling API client to version 3.0 or later.")
     }
 
     @ToolingApiVersion(">=1.8 <3.0")
-    def "provider rejects build action request from a tooling API client older than 2.0"() {
+    def "provider rejects build action request from a tooling API client older than 3.0"() {
         when:
         buildAction()
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.cause.message.contains("Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You are currently using tooling API version ${GradleVersion.current().version}. You should upgrade your tooling API client to version 3.0 or later.")
+        GradleConnectionException connectionException = thrown()
+        connectionException.cause.message.contains("Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You are currently using tooling API version ${GradleVersion.current().version}. You should upgrade your tooling API client to version 3.0 or later.")
+    }
+
+    @ToolingApiVersion(">=2.6 <3.0")
+    def "provider rejects test execution request from a tooling API older than 3.0"() {
+        when:
+        testExecution()
+
+        then:
+        GradleConnectionException connectionException = thrown()
+        connectionException.cause.message.contains("Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. You are currently using tooling API version ${GradleVersion.current().version}. You should upgrade your tooling API client to version 3.0 or later.")
     }
 }

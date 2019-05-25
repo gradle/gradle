@@ -120,7 +120,7 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     private void renderNow(long now) {
         if (progressBar != null) {
-            buildStatusLabel.setText(progressBar.formatProgress(consoleMetaData.getCols(), timerEnabled, now - buildStartTimestamp));
+            buildStatusLabel.setText(progressBar.formatProgress(timerEnabled, now - buildStartTimestamp));
         }
         console.flush();
     }
@@ -152,7 +152,8 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     @VisibleForTesting
     public ProgressBar newProgressBar(String initialSuffix, int initialProgress, int totalProgress) {
-        return new ProgressBar(PROGRESS_BAR_PREFIX,
+        return new ProgressBar(consoleMetaData,
+            PROGRESS_BAR_PREFIX,
             PROGRESS_BAR_WIDTH,
             PROGRESS_BAR_SUFFIX,
             PROGRESS_BAR_COMPLETE_CHAR,

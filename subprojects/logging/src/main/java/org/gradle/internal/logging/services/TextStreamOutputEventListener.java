@@ -36,6 +36,7 @@ public class TextStreamOutputEventListener implements OutputEventListener {
         this.listener = listener;
     }
 
+    @Override
     public void onOutput(OutputEvent event) {
         if (event instanceof StyledTextOutputEvent) {
             onTextEvent((StyledTextOutputEvent) event);

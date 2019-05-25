@@ -17,7 +17,6 @@
 package org.gradle.internal.nativeintegration.services
 
 import org.gradle.internal.reflect.JavaMethod
-import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
@@ -31,7 +30,7 @@ class NativeServicesInitializationTest extends Specification {
         // that's guaranteed not to have been initialized before
         ClassLoader classLoader = new URLClassLoader(((URLClassLoader) getClass().getClassLoader()).getURLs(), (ClassLoader)null)
         Class nativeServicesClass = classLoader.loadClass("org.gradle.internal.nativeintegration.services.NativeServices")
-        JavaMethod nativeServicesGetInstance = JavaReflectionUtil.staticMethod(nativeServicesClass, nativeServicesClass, "getInstance")
+        JavaMethod nativeServicesGetInstance = JavaMethod.ofStatic(nativeServicesClass, nativeServicesClass, "getInstance")
 
         when:
         nativeServicesGetInstance.invokeStatic()

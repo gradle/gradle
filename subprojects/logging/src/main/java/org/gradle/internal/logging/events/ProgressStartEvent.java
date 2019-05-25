@@ -69,10 +69,12 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         return parentProgressOperationId;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     @Nullable
     public String getLoggingHeader() {
         return loggingHeader;

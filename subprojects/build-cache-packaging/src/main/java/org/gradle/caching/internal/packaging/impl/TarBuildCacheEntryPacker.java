@@ -128,10 +128,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private long pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, TarArchiveOutputStream tarOutput) {
         MutableLong entries = new MutableLong();
-        entity.visitTrees((treeName, type, root) -> {
-            if (root == null) {
-                return;
-            }
+        entity.visitOutputTrees((treeName, type, root) -> {
             CurrentFileCollectionFingerprint fingerprint = fingerprints.get(treeName);
             try {
                 entries.increment(packTree(treeName, type, fingerprint, tarOutput));
@@ -164,10 +161,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private UnpackResult unpack(CacheableEntity entity, TarArchiveInputStream tarInput, OriginReader readOriginAction) throws IOException {
         ImmutableMap.Builder<String, CacheableTree> treesBuilder = ImmutableMap.builder();
-        entity.visitTrees((name, type, root) -> {
-            if (root != null) {
-                treesBuilder.put(name, new CacheableTree(type, root));
-            }
+        entity.visitOutputTrees((name, type, root) -> {
+            treesBuilder.put(name, new CacheableTree(type, root));
         });
         ImmutableMap<String, CacheableTree> treesByName = treesBuilder.build();
 
@@ -295,7 +290,6 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         TarArchiveEntry entry;
 
         while ((entry = input.getNextTarEntry()) != null) {
-            entries.increment(1);
             boolean isDir = entry.isDirectory();
             int directoriesLeft = parser.nextPath(entry.getName(), isDir);
             for (int i = 0; i < directoriesLeft; i++) {
@@ -304,14 +298,15 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             if (parser.getDepth() == 0) {
                 break;
             }
+            entries.increment(1);
 
             File file = new File(treeRoot, parser.getRelativePath());
             if (isDir) {
                 FileUtils.forceMkdir(file);
                 chmodUnpackedFile(entry, file);
                 String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
-                String indernedDirName = stringInterner.intern(parser.getName());
-                builder.preVisitDirectory(internedAbsolutePath, indernedDirName);
+                String internedDirName = stringInterner.intern(parser.getName());
+                builder.preVisitDirectory(internedAbsolutePath, internedDirName);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
                 builder.visit(fileSnapshot);

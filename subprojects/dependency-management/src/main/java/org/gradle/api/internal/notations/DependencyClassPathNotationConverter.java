@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_KOTLIN_DSL;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
 
@@ -76,6 +77,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         visitor.candidate("ClassPathNotation").example("gradleApi()");
     }
 
+    @Override
     public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
@@ -116,27 +118,27 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private FileCollectionInternal gradleApiFileCollection(Collection<File> apiClasspath) {
         // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
+        // Remove optional Kotlin DSL and Kotlin jars
+        List<File> kotlinDsl = classPathRegistry.getClassPath(GRADLE_KOTLIN_DSL.name()).getAsFiles();
+        List<File> kotlinImpl = kotlinImplFrom(apiClasspath);
         List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
         apiClasspath.removeAll(groovyImpl);
+        apiClasspath.removeAll(kotlinDsl);
         apiClasspath.removeAll(installationBeacon);
-        removeGradleScriptKotlin(apiClasspath);
 
         return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", RuntimeShadedJarType.API)
-            .plus(fileResolver.resolveFiles(groovyImpl, installationBeacon));
+            .plus(fileResolver.resolveFiles(groovyImpl, kotlinImpl, installationBeacon));
     }
 
-    /**
-     * Gradle script kotlin should not be part of the public Gradle API
-     * We remove this in a very hacky way for 3.0. Going forward, there
-     * will be a cleaner solution
-     */
-    private void removeGradleScriptKotlin(Collection<File> apiClasspath) {
-        for (File file : new ArrayList<File>(apiClasspath)) {
-            // TODO: replace by something cleaner
-            if (file.getName().contains("kotlin")) {
-                apiClasspath.remove(file);
+    private List<File> kotlinImplFrom(Collection<File> classPath) {
+        ArrayList<File> files = new ArrayList<>();
+        for (File file : classPath) {
+            String name = file.getName();
+            if (name.startsWith("kotlin-stdlib-") || name.startsWith("kotlin-reflect-")) {
+                files.add(file);
             }
         }
+        return files;
     }
 
     private FileCollectionInternal gradleTestKitFileCollection(Collection<File> testKitClasspath) {

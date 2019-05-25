@@ -474,15 +474,19 @@ task show {
         then:
         failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
   - Configuration ':a:compile' variant var1:
-      - Found artifactType 'jar' but wasn't required.
-      - Found buildType 'debug' but wasn't required.
-      - Found flavor 'one' but wasn't required.
-      - Required usage 'compile' and found compatible value 'compile'.
+      - Unmatched attributes:
+          - Found artifactType 'jar' but wasn't required.
+          - Found buildType 'debug' but wasn't required.
+          - Found flavor 'one' but wasn't required.
+      - Compatible attribute:
+          - Required usage 'compile' and found compatible value 'compile'.
   - Configuration ':a:compile' variant var2:
-      - Found artifactType 'jar' but wasn't required.
-      - Found buildType 'debug' but wasn't required.
-      - Found flavor 'two' but wasn't required.
-      - Required usage 'compile' and found compatible value 'compile'.""")
+      - Unmatched attributes:
+          - Found artifactType 'jar' but wasn't required.
+          - Found buildType 'debug' but wasn't required.
+          - Found flavor 'two' but wasn't required.
+      - Compatible attribute:
+          - Required usage 'compile' and found compatible value 'compile'.""")
 
         where:
         expression                                                    | _
@@ -694,9 +698,13 @@ ${showFailuresTask(expression)}
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("""Unable to find a matching variant of project :a:
-  - Variant 'compile': Required volume '11' and found incompatible value '8'.""")
+  - Variant 'compile' capability test:a:unspecified:
+      - Incompatible attribute:
+          - Required volume '11' and found incompatible value '8'.""")
         failure.assertHasCause("""Unable to find a matching variant of project :b:
-  - Variant 'compile': Required volume '11' and found incompatible value '9'.""")
+  - Variant 'compile' capability test:b:unspecified:
+      - Incompatible attribute:
+          - Required volume '11' and found incompatible value '9'.""")
 
         where:
         expression                                                    | _
@@ -888,8 +896,12 @@ Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact.jar (org:broken-artifact:1.0)")
         outputContains("""failure 6: More than one variant of project :a matches the consumer attributes:
-  - Configuration ':a:default' variant v1: Required usage 'compile' but no value provided.
-  - Configuration ':a:default' variant v2: Required usage 'compile' but no value provided.""")
+  - Configuration ':a:default' variant v1:
+      - Unmatched attribute:
+          - Required usage 'compile' but no value provided.
+  - Configuration ':a:default' variant v2:
+      - Unmatched attribute:
+          - Required usage 'compile' but no value provided.""")
     }
 
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {

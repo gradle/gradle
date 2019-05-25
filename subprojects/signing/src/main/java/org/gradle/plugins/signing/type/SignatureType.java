@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing.type;
 
+import org.gradle.api.tasks.Input;
 import org.gradle.plugins.signing.signatory.Signatory;
 
 import java.io.File;
@@ -29,6 +30,7 @@ public interface SignatureType {
     /**
      * The file extension (without the leading dot) associated to this type of signature.
      */
+    @Input
     String getExtension();
 
     /**

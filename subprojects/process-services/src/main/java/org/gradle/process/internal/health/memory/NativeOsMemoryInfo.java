@@ -16,9 +16,9 @@
 
 package org.gradle.process.internal.health.memory;
 
-import net.rubygrapefruit.platform.Memory;
-import net.rubygrapefruit.platform.MemoryInfo;
 import net.rubygrapefruit.platform.NativeException;
+import net.rubygrapefruit.platform.memory.Memory;
+import net.rubygrapefruit.platform.memory.MemoryInfo;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 

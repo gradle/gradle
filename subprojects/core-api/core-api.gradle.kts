@@ -1,5 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2017 the original author or authors.
@@ -22,24 +22,29 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":baseServicesGroovy"))
-    api(project(":buildCache"))
-    api(project(":logging"))
-    api(project(":persistentCache"))
-    api(project(":processServices"))
-    api(project(":resources"))
+    implementation(project(":baseServices"))
+    implementation(project(":baseServicesGroovy"))
+    implementation(project(":logging"))
+    implementation(project(":persistentCache"))
+    implementation(project(":processServices"))
+    implementation(project(":resources"))
 
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
     implementation(library("ant"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
-    implementation(library("jcip"))
+    implementation(library("inject"))
 
+    testImplementation(library("asm"))
+    testImplementation(library("asm_commons"))
+    
     testFixturesImplementation(project(":internalTesting"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

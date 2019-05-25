@@ -90,4 +90,17 @@ task foo {
         then:
         outputDoesNotContain('Original bar')
     }
+
+    def 'buildscript classpath has proper usage attribute'() {
+        buildFile << """
+buildscript {
+    configurations.classpath {
+        def value = attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+        assert value.name == Usage.JAVA_RUNTIME
+    }
+}
+"""
+        expect:
+        succeeds()
+    }
 }

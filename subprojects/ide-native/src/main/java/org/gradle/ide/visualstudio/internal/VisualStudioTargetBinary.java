@@ -17,9 +17,9 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.util.VersionNumber;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.List;

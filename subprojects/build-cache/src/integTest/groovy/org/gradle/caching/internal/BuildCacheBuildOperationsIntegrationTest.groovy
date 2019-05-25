@@ -113,6 +113,9 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
                  
                 @OutputDirectory
                 File dir = project.file("build/dir")
+                
+                @OutputDirectory
+                File otherDir = project.file("build/otherDir")
 
                 @TaskAction
                 void generate() {
@@ -145,7 +148,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         packOp.details.cacheKey != null
         packOp.result.archiveSize == localCache.cacheArtifact(packOp.details.cacheKey.toString()).length()
-        packOp.result.archiveEntryCount == 4
+        packOp.result.archiveEntryCount == 5
 
         when:
         succeeds("clean", "t")
@@ -162,7 +165,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         def sizeDiff = cacheArtifact.length() - unpackOp.details.archiveSize.toLong()
         sizeDiff > -100 && sizeDiff < 100
 
-        unpackOp.result.archiveEntryCount == 4
+        unpackOp.result.archiveEntryCount == 5
     }
 
     @Unroll
@@ -224,24 +227,30 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "records unpack failure"() {
-        when:
-        local("reader.execute(new File('not.there'))", "writer.writeTo(new ${NullOutputStream.name}())")
-        settingsFile << """
-            buildCache { local($localCacheClass) }
-        """
+        def localCache = new TestBuildCache(file("local-cache"))
+        settingsFile << localCache.localCacheConfiguration()
+
         buildFile << cacheableTask() << """
             apply plugin: "base"
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
 
+        run("t")
+
+        // Corrupt cached artifact
+        localCache.listCacheFiles().each {
+            it.bytes = [1, 2, 3, 4]
+        }
+
+        when:
         executer.withStackTraceChecksDisabled()
-        succeeds("t")
+        succeeds("clean", "t")
 
         then:
         def failedUnpackOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
         failedUnpackOp.details.cacheKey != null
         failedUnpackOp.result == null
-        failedUnpackOp.failure =~ /org.gradle.api.UncheckedIOException:.* not.there/
+        failedUnpackOp.failure =~ /java.util.zip.ZipException: Not in GZIP format/
     }
 
     def "records ops for miss then store"() {
@@ -262,6 +271,10 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
 
+        if (expectDeprecation) {
+            executer.expectDeprecationWarning()
+        }
+
         when:
         succeeds("t")
 
@@ -278,21 +291,17 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             assert !localCacheArtifact.exists()
         }
 
-        packOp.result.archiveEntryCount == 4
+        packOp.result.archiveEntryCount == 5
         remoteStoreOp.details.archiveSize == packOp.result.archiveSize
 
         operations.orderedSerialSiblings(remoteMissLoadOp, packOp, remoteStoreOp)
 
         where:
-        config << [
-            "remote($remoteCacheClass) { push = true }",
-            "local.push = false; remote($remoteCacheClass) { push = true }",
-            "local.enabled = false; remote($remoteCacheClass) { push = true }",
-            "local($remoteCacheClass) { push = true }; remote($remoteCacheClass) { push = true }; "
-        ]
-        localStore << [
-            true, false, false, false
-        ]
+        localStore | expectDeprecation | config
+        true       | false             | "remote($remoteCacheClass) { push = true }"
+        false      | false             | "local.push = false; remote($remoteCacheClass) { push = true }"
+        false      | false             | "local.enabled = false; remote($remoteCacheClass) { push = true }"
+        false      | true              | "local($remoteCacheClass) { push = true }; remote($remoteCacheClass) { push = true }; "
     }
 
     def "records ops for remote hit"() {
@@ -336,7 +345,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             assert !localCacheArtifact.exists()
         }
 
-        unpackOp.result.archiveEntryCount == 4
+        unpackOp.result.archiveEntryCount == 5
         unpackOp.details.archiveSize == remoteHitLoadOp.result.archiveSize
 
         operations.orderedSerialSiblings(remoteHitLoadOp, unpackOp)
@@ -371,6 +380,8 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
 
+        executer.expectDeprecationWarning()
+
         when:
         succeeds("t")
 
@@ -382,7 +393,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         def localCacheArtifact = localCache.cacheArtifact(packOp.details.cacheKey.toString())
         !localCacheArtifact.exists()
 
-        packOp.result.archiveEntryCount == 4
+        packOp.result.archiveEntryCount == 5
 
         operations.orderedSerialSiblings(remoteMissLoadOp, packOp)
     }

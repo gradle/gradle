@@ -19,9 +19,9 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
-import org.gradle.util.TreeVisitor;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -80,7 +80,7 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
         }
 
         @Override
-        public void explain(TreeVisitor<? super String> visitor) {
+        public void explain(DiagnosticsVisitor visitor) {
             windowsKitSearchResult.explain(visitor);
         }
     }

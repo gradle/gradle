@@ -22,7 +22,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -54,7 +54,7 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (ConfigurationMetadata configuration : configurations.values()) {
-                formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, configuration, variantAware);
+                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, configuration, variantAware, false);
             }
         }
         formatter.endChildren();

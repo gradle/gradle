@@ -21,7 +21,7 @@ apply(plugin = "org.samples.greeting")
 // end::use-plugin[]
 // tag::use-task[]
 
-task<org.gradle.GreetingTask>("greeting") {
+tasks.register<org.gradle.GreetingTask>("greeting") {
     greeting = "howdy!"
 }
 // end::use-task[]

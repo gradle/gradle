@@ -20,10 +20,10 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.util.GUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class JavaCompilerArgumentsBuilder {
-    public static final Logger LOGGER = Logging.getLogger(JavaCompilerArgumentsBuilder.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(JavaCompilerArgumentsBuilder.class);
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
     public static final String EMPTY_SOURCE_PATH_REF_DIR = "emptySourcePathRef";
 
@@ -91,13 +91,21 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     private void validateCompilerArgs(List<String> compilerArgs) {
-        if (compilerArgs.contains("-sourcepath") || compilerArgs.contains("--source-path")) {
-            throw new InvalidUserDataException("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. " +
-                "Use the `CompileOptions.sourcepath` property instead.");
-        }
-        if (compilerArgs.contains("-processorpath") || compilerArgs.contains("--processor-path")) {
-            throw new InvalidUserDataException("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. " +
-                "Use the `CompileOptions.annotationProcessorPath` property instead.");
+        for (String arg : compilerArgs) {
+            if ("-sourcepath".equals(arg) || "--source-path".equals(arg)) {
+                throw new InvalidUserDataException("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. " +
+                    "Use the `CompileOptions.sourcepath` property instead.");
+            }
+
+            if ("-processorpath".equals(arg) || "--processor-path".equals(arg)) {
+                throw new InvalidUserDataException("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. " +
+                    "Use the `CompileOptions.annotationProcessorPath` property instead.");
+            }
+
+            if (arg != null && arg.startsWith("-J")) {
+                throw new InvalidUserDataException("Cannot specify -J flags via `CompileOptions.compilerArgs`. " +
+                    "Use the `CompileOptions.forkOptions.jvmArgs` property instead.");
+            }
         }
     }
 
@@ -163,10 +171,6 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-extdirs");
             args.add(compileOptions.getExtensionDirs());
         }
-        if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
-            args.add("-s");
-            args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
-        }
         if (compileOptions.getHeaderOutputDirectory() != null) {
             args.add("-h");
             args.add(compileOptions.getHeaderOutputDirectory().getPath());
@@ -191,6 +195,10 @@ public class JavaCompilerArgumentsBuilder {
             } else {
                 args.add("-processorpath");
                 args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
+            }
+            if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
+                args.add("-s");
+                args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
             }
         }
 

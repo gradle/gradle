@@ -19,6 +19,8 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
+import static org.gradle.util.GUtil.loadProperties
+
 class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "empty properties are written properly"() {
         given:
@@ -156,6 +158,20 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Property 'someProp' is not allowed to have a null value.")
         where:
         propValue << [ "null", "{ null }" ]
+    }
+
+    def "value can be provided"() {
+        given:
+        buildFile << """
+            task props(type: WriteProperties) {
+                property "provided", provider { "42" }
+                outputFile = file("output.properties")
+            }
+        """
+        when:
+        succeeds "props"
+        then:
+        loadProperties(file('output.properties'))['provided'] == '42'
     }
 
     private static String normalize(String text) {

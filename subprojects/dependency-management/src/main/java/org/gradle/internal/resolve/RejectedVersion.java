@@ -17,7 +17,7 @@ package org.gradle.internal.resolve;
 
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 public abstract class RejectedVersion {
     private final ModuleComponentIdentifier id;

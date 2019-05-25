@@ -19,6 +19,7 @@ package org.gradle.api.reporting.internal
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.reporting.Report
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskPropertyTestUtils
@@ -31,6 +32,7 @@ class TaskReportContainerTest extends Specification {
 
     final Project project = ProjectBuilder.builder().build()
     final TestTask task = project.task("testTask", type: TestTask)
+
     def container = createContainer {
         dir("b")
         file("a")
@@ -43,7 +45,7 @@ class TaskReportContainerTest extends Specification {
 
     static class TestReportContainer extends TaskReportContainer<Report> {
         TestReportContainer(Task task, Closure c) {
-            super(Report, task)
+            super(Report, task, CollectionCallbackActionDecorator.NOOP)
 
             c.delegate = new Object() {
                 Report file(String name) {

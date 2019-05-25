@@ -55,7 +55,7 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData)
         !dependencyMetaData.changing
         !dependencyMetaData.force
-        dependencyMetaData.selector == new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root", ImmutableAttributes.EMPTY)
+        dependencyMetaData.selector == new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root", ImmutableAttributes.EMPTY, [])
         projectDependency == dependencyMetaData.source
     }
 

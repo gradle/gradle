@@ -39,7 +39,7 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 In order to make changes to Gradle, you'll need:
 
 * A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/).
-* A [Java Development Kit](http://jdk.java.net/) (JDK) version 9 or 10.
+* A [Java Development Kit](http://jdk.java.net/) (JDK) version 11.
 * [git](https://git-scm.com/) and a [GitHub account](https://github.com/join).
 
 Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github.com/gradle/gradle) and clone your fork. Configure your Git username and email with
@@ -49,11 +49,16 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
 
 ### IntelliJ
 
-You can generate the IntelliJ projects by running
+You require IntelliJ 2018.3.1 or newer.
+- Open the `build.gradle.kts` file with IntelliJ and choose "Open as Project"
+- Make sure "Create separate module per source set" is selected
+- Make sure  "Use default gradle wrapper" is selected
+- Select a Java 11 VM as "Gradle JVM"
+- In the "File already exists" dialogue, choose "Yes" to overwrite
+- In the "Open Project" dialogue, choose "Delete Existing Project and Import"
+- Revert the Git changes to files in the `.idea` folder
 
-    ./gradlew idea
-
-then open the generated `gradle.ipr` file.
+NOTE: Due to the project size, the initial import can take a while and IntelliJ might become unresponsive for several seconds during this period.
 
 ### Eclipse
 
@@ -62,7 +67,7 @@ You can generate the Eclipse projects by running
     ./gradlew eclipse
 
 Then you can import the generated projects into Eclipse
-  
+
 1. Install Eclipse 4.5 (Mars) at least
 2. Install the Groovy Eclipse plugin from http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
 3. Make sure you have a Java 8 compatible JDK configured in your workspace
@@ -70,18 +75,18 @@ Then you can import the generated projects into Eclipse
 5. Import all projects using the "Import Existing Projects into Workspace" wizard
 
 
- 
+
 ### Code Change Guidelines
 
 All code contributions should contain the following:
 
 * Unit Tests (using [Spock](http://spockframework.org/spock/docs/1.1-rc-2/index.html)) for any logic introduced
 * Integration Test coverage of the bug/feature at the level of build execution. Please annotate tests guarding against a specific GitHub issue `@Issue("gradle/gradle#123")`.
-* Documentation in the User Guide and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
+* Documentation in the User Manual and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
 
 Your code needs to run on all supported Java versions and operating systems. The [Gradle CI](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
-* Avoid using features introduced in Java 1.7 or later. Several parts of Gradle still need to run on Java 6.
+* Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
 * Normalise file paths in tests. The `org.gradle.util.TextUtil` class has some useful functions for this purpose.
 
 ### Development Workflow
@@ -94,6 +99,8 @@ To try out a change in behavior manually, install Gradle locally and use it.
 Install: `./gradlew install -Pgradle_installPath=/any/path`. Use: `/any/path/bin/gradle taskName`.
 
 You can debug Gradle by adding `-Dorg.gradle.debug=true` when executing. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
+
+If you made changes to build logic in `buildSrc`, you can test them by executing `./gradlew help -PbuildSrcCheck=true`.
 
 ### Creating Commits And Writing Commit Messages
 

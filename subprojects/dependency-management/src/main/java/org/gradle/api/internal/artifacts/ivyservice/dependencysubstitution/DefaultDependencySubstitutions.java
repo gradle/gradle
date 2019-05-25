@@ -104,6 +104,13 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         return Actions.composite(substitutionRules);
     }
 
+    private void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
+        addRule(rule);
+        if (projectInvolved) {
+            hasDependencySubstitutionRule = true;
+        }
+    }
+
     private void addRule(Action<? super DependencySubstitution> rule) {
         mutationValidator.validateMutation(MutationValidator.MutationType.STRATEGY);
         substitutionRules.add(rule);
@@ -146,6 +153,12 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             public void with(ComponentSelector substitute) {
                 DefaultDependencySubstitution.validateTarget(substitute);
 
+                boolean projectInvolved = false;
+                if (substituted instanceof ProjectComponentSelector || substitute instanceof ProjectComponentSelector) {
+                    // A project is involved, need to be aware of it
+                    projectInvolved = true;
+                }
+
                 if (substituted instanceof UnversionedModuleComponentSelector) {
                     final ModuleIdentifier moduleId = ((UnversionedModuleComponentSelector) substituted).getModuleIdentifier();
                     if (substitute instanceof ModuleComponentSelector) {
@@ -154,9 +167,9 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                             substitutionReason = substitutionReason.markAsEquivalentToForce();
                         }
                     }
-                    all(new ModuleMatchDependencySubstitutionAction(substitutionReason, moduleId, substitute));
+                    addSubstitution(new ModuleMatchDependencySubstitutionAction(substitutionReason, moduleId, substitute), projectInvolved);
                 } else {
-                    all(new ExactMatchDependencySubstitutionAction(substitutionReason, substituted, substitute));
+                    addSubstitution(new ExactMatchDependencySubstitutionAction(substitutionReason, substituted, substitute), projectInvolved);
                 }
             }
         };

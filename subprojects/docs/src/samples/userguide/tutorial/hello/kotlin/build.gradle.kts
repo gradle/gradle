@@ -1,4 +1,4 @@
-task("hello") {
+tasks.register("hello") {
     doLast {
         println("Hello world!")
     }

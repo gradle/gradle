@@ -94,7 +94,7 @@ class OriginFixture extends UserInitScriptExecuterFixture {
         def rawOrigins = (Map<String, Map<String, String>>) new JsonSlurper().parse(file)
         origins.clear()
         rawOrigins.each {
-            origins[it.key] = it.value == null ? null : OriginMetadata.fromPreviousBuild(
+            origins[it.key] = it.value == null ? null : new OriginMetadata(
                 UniqueId.from(it.value.buildInvocationId as String),
                 it.value.executionTime as long
             )

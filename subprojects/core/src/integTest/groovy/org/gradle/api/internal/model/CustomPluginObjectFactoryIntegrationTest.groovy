@@ -67,9 +67,7 @@ class CustomPluginObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
                 void apply(Project project) {
                     project.extensions.create('custom', CustomExtension, factory.newInstance(NestedExtension))
                 }
-                
             }
-           
             
             apply plugin: CustomPlugin
             

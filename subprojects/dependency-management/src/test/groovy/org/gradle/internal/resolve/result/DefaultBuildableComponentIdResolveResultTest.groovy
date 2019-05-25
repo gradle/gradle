@@ -61,7 +61,8 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
     }
 
     def "can mark as failed"() {
-        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), "broken")
+        org.gradle.internal.Factory<String> broken = { "too bad" }
+        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), broken)
 
         when:
         result.failed(failure)

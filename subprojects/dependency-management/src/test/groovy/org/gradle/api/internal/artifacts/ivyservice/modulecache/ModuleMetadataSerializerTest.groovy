@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
+import com.google.common.collect.Maps
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -25,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
@@ -58,7 +59,7 @@ class ModuleMetadataSerializerTest extends Specification {
     private final ModuleMetadataSerializer serializer = moduleMetadataSerializer()
     private GradlePomModuleDescriptorParser pomModuleDescriptorParser = pomParser()
     private MetaDataParser<MutableIvyModuleResolveMetadata> ivyDescriptorParser = ivyParser()
-    private ModuleMetadataParser gradleMetadataParser = gradleMetadataParser()
+    private GradleModuleMetadataParser gradleMetadataParser = gradleMetadataParser()
 
     def "all samples are different"() {
         given:
@@ -95,12 +96,12 @@ class ModuleMetadataSerializerTest extends Specification {
     }
 
     private MutableModuleComponentResolveMetadata deserialize(byte[] serializedForm) {
-        serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(serializedForm)), moduleIdentifierFactory)
+        serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(serializedForm)), moduleIdentifierFactory, Maps.newHashMap())
     }
 
     private byte[] serialize(MutableModuleComponentResolveMetadata metadata) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream()
-        serializer.write(new OutputStreamBackedEncoder(baos), metadata.asImmutable())
+        serializer.write(new OutputStreamBackedEncoder(baos), metadata.asImmutable(), Maps.newHashMap())
         baos.toByteArray()
     }
 
@@ -131,11 +132,11 @@ class ModuleMetadataSerializerTest extends Specification {
     }
 
     MutableMavenModuleResolveMetadata parsePom(File pomFile) {
-        pomModuleDescriptorParser.parseMetaData(Mock(DescriptorParseContext), resource(pomFile))
+        pomModuleDescriptorParser.parseMetaData(Mock(DescriptorParseContext), resource(pomFile)).result
     }
 
     MutableIvyModuleResolveMetadata parseIvy(File ivyFile) {
-        ivyDescriptorParser.parseMetaData(Stub(DescriptorParseContext), resource(ivyFile))
+        ivyDescriptorParser.parseMetaData(Stub(DescriptorParseContext), resource(ivyFile)).result
     }
 
     MutableModuleComponentResolveMetadata parseGradle(File gradleFile) {
@@ -174,8 +175,8 @@ class ModuleMetadataSerializerTest extends Specification {
         )
     }
 
-    private ModuleMetadataParser gradleMetadataParser() {
-        new ModuleMetadataParser(
+    private GradleModuleMetadataParser gradleMetadataParser() {
+        new GradleModuleMetadataParser(
             AttributeTestUtil.attributesFactory(),
             moduleIdentifierFactory,
             NamedObjectInstantiator.INSTANCE

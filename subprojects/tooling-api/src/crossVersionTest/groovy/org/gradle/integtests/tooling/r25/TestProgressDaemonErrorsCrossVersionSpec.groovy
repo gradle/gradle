@@ -17,14 +17,15 @@
 package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.junit.Rule
 
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
     boolean killed = false
 
     void setup() {
@@ -34,6 +35,7 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
     def "should received failed event when daemon disappears unexpectedly with TAPI higher 2.4"() {
         given:
         goodCode()
+        def sync = server.expectAndBlock('sync')
 
         when:
         def result = []
@@ -41,28 +43,32 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
             connection.newBuild().forTasks('test').addProgressListener({ ProgressEvent event ->
                 result << event
                 if (!killed) {
-                    server.waitFor()
+                    sync.waitForAllPendingCalls()
+                    sync.releaseAll()
                     toolingApi.daemons.daemon.kill()
-                    server.release()
                     killed = true
                 }
             }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then: "build fails with a DaemonDisappearedException"
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.cause.message.contains('Gradle build daemon disappeared unexpectedly')
+        GradleConnectionException ex = thrown()
+        ex.cause.message.contains('Gradle build daemon disappeared unexpectedly')
 
         and:
         !result.empty
     }
 
     def goodCode() {
+        server.start()
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
-            test.doLast { new URL("$server.uri").text }
+            test.doLast { 
+                ${server.callFromBuild('sync')} 
+                Thread.sleep(120000)
+            }
         """
 
         file("src/test/java/example/MyTest.java") << """

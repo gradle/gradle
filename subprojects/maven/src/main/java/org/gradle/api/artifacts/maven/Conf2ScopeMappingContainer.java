@@ -35,7 +35,7 @@ public interface Conf2ScopeMappingContainer {
      * Maven scope. A configuration can be mapped to one and only one scope. If this method is called
      * more than once for a particular configuration, the last call wins.</p>
      *
-     * See {@link #getMapping(java.util.Collection)} for the rules how a scope is choosen from a set of mappings.
+     * See {@link #getMapping(java.util.Collection)} for the rules how a scope is chosen from a set of mappings.
      *
      * @param priority a number that is used for comparison with the priority of other scopes.
      * @param configuration a Gradle configuration name (must not be null).

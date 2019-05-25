@@ -233,11 +233,11 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         def metadata = createMetadata(id)
 
         given:
-        def v1 = metadata.addVariant("api", attributes(usage: "compile"),)
-        v1.addDependency("g1", "m1", v("v1"), [], null, ImmutableAttributes.EMPTY)
-        v1.addDependency("g2", "m2", v("v2"), [], "v2 is tested", ImmutableAttributes.EMPTY)
-        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"),)
-        v2.addDependency("g1", "m1", v("v1"), [], null, ImmutableAttributes.EMPTY)
+        def v1 = metadata.addVariant("api", attributes(usage: "compile"))
+        v1.addDependency("g1", "m1", v("v1"), [], null, ImmutableAttributes.EMPTY, [])
+        v1.addDependency("g2", "m2", v("v2"), [], "v2 is tested", ImmutableAttributes.EMPTY, [])
+        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"))
+        v2.addDependency("g1", "m1", v("v1"), [], null, ImmutableAttributes.EMPTY, [])
 
         expect:
         metadata.variants.size() == 2
@@ -285,11 +285,11 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         def v1 = metadata.addVariant("api", attributes1,)
         v1.addFile("f1.jar", "f1.jar")
         v1.addFile("f2.jar", "f2-1.2.jar")
-        v1.addDependency("g1", "m1", v("v1"), [], null, ImmutableAttributes.EMPTY)
+        v1.addDependency("g1", "m1", v("v1"), [], null, ImmutableAttributes.EMPTY, [])
         def v2 = metadata.addVariant("runtime", attributes2,)
         v2.addFile("f2", "f2-version.zip")
-        v2.addDependency("g2", "m2", v("v2"), [], null, ImmutableAttributes.EMPTY)
-        v2.addDependency("g3", "m3", v("v3"), [], null, ImmutableAttributes.EMPTY)
+        v2.addDependency("g2", "m2", v("v2"), [], null, ImmutableAttributes.EMPTY, [])
+        v2.addDependency("g3", "m3", v("v3"), [], null, ImmutableAttributes.EMPTY, [])
 
         expect:
         def immutable = metadata.asImmutable()

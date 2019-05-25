@@ -25,10 +25,12 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 
 public class S3ResourcesPluginServiceRegistry extends AbstractPluginServiceRegistry {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new AuthenticationSchemeAction());
     }

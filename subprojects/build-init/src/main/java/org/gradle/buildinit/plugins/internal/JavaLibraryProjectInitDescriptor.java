@@ -17,7 +17,8 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor {
     private final static Description DESCRIPTION = new Description(
@@ -26,13 +27,11 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
         "java_library_plugin",
         "java-library"
     );
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
 
-    public JavaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory,
-                                            TemplateOperationFactory templateOperationFactory,
-                                            FileResolver fileResolver,
-                                            TemplateLibraryVersionProvider libraryVersionProvider,
-                                            DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
+    public JavaLibraryProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(libraryVersionProvider, documentationRegistry);
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -41,19 +40,26 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     }
 
     @Override
-    protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromClazzTemplate("javalibrary/Library.java.template",  settings, "main");
+    public ComponentType getComponentType() {
+        return ComponentType.LIBRARY;
     }
 
     @Override
-    protected TemplateOperation testTemplateOperation(InitSettings settings) {
+    protected TemplateOperation sourceTemplateOperation(InitSettings settings, TemplateFactory templateFactory) {
+        return templateFactory.fromSourceTemplate("javalibrary/Library.java.template", "main");
+    }
+
+    @Override
+    protected TemplateOperation testTemplateOperation(InitSettings settings, TemplateFactory templateFactory) {
         switch (settings.getTestFramework()) {
             case SPOCK:
-                return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test", "groovy");
+                return templateFactory.fromSourceTemplate("groovylibrary/LibraryTest.groovy.template", "test", Language.GROOVY);
             case TESTNG:
-                return fromClazzTemplate("javalibrary/testng/LibraryTest.java.template", settings, "test");
+                return templateFactory.fromSourceTemplate("javalibrary/testng/LibraryTest.java.template", "test");
             case JUNIT:
-                return fromClazzTemplate("javalibrary/LibraryTest.java.template", settings, "test");
+                return templateFactory.fromSourceTemplate("javalibrary/LibraryTest.java.template", "test");
+            case JUNIT_JUPITER:
+                return templateFactory.fromSourceTemplate("javalibrary/junitjupiter/LibraryTest.java.template", "test");
             default:
                 throw new IllegalArgumentException();
         }
@@ -65,17 +71,12 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     }
 
     @Override
-    protected String getImplementationConfigurationName() {
-        return "implementation";
-    }
-
-    @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.dependency(
             "api",
             "This dependency is exported to consumers, that is to say found on their compile classpath.",
             "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
-        buildScriptBuilder.dependency(getImplementationConfigurationName(), "This dependency is used internally, and not exposed to consumers on their own compile classpath.",
+        buildScriptBuilder.implementationDependency("This dependency is used internally, and not exposed to consumers on their own compile classpath.",
             "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 }

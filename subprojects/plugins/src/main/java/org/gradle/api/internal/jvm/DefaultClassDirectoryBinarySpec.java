@@ -19,7 +19,8 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
-import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
@@ -43,19 +44,20 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentSpec implements ClassDirectoryBinarySpecInternal {
-    private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final SourceSet sourceSet;
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
     private final BinaryTasksCollection tasks;
     private boolean buildable = true;
 
-    public DefaultClassDirectoryBinarySpec(ComponentSpecIdentifier componentIdentifier, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator) {
+    public DefaultClassDirectoryBinarySpec(ComponentSpecIdentifier componentIdentifier, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         super(componentIdentifier, ClassDirectoryBinarySpec.class);
         this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
-        this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskInstantiator);
+        this.sourceSets = domainObjectCollectionFactory.newDomainObjectSet(LanguageSourceSet.class);
+        this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskInstantiator, collectionCallbackActionDecorator);
     }
 
     @Override
@@ -79,50 +81,62 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentS
         return ClassDirectoryBinarySpec.class;
     }
 
+    @Override
     public BinaryTasksCollection getTasks() {
         return tasks;
     }
 
+    @Override
     public JavaToolChain getToolChain() {
         return toolChain;
     }
 
+    @Override
     public JavaPlatform getTargetPlatform() {
         return platform;
     }
 
+    @Override
     public void setTargetPlatform(JavaPlatform platform) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void setToolChain(JavaToolChain toolChain) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isBuildable() {
         return getBuildAbility().isBuildable();
     }
 
+    @Override
     public void setBuildable(boolean buildable) {
         this.buildable = buildable;
     }
 
+    @Override
     public boolean isLegacyBinary() {
         return true;
     }
 
+    @Override
     public File getClassesDir() {
         return sourceSet.getJava().getOutputDir();
     }
 
+    @Override
     public void setClassesDir(final File classesDir) {
         sourceSet.getJava().setOutputDir(classesDir);
     }
 
+    @Override
     public File getResourcesDir() {
         return sourceSet.getOutput().getResourcesDir();
     }
 
+    @Override
     public void setResourcesDir(File resourcesDir) {
         sourceSet.getOutput().setResourcesDir(resourcesDir);
     }

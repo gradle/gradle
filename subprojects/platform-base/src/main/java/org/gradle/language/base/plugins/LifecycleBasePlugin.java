@@ -53,6 +53,7 @@ public class LifecycleBasePlugin implements Plugin<Project> {
 
     private void addClean(final ProjectInternal project) {
         final Callable<File> buildDir = new Callable<File>() {
+            @Override
             public File call() {
                 return project.getBuildDir();
             }

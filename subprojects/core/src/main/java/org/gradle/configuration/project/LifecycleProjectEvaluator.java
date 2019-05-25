@@ -62,6 +62,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         this.delegate = delegate;
     }
 
+    @Override
     public void evaluate(final ProjectInternal project, final ProjectStateInternal state) {
         if (state.isUnconfigured()) {
             buildOperationExecutor.run(new EvaluateProject(project, state));
@@ -137,7 +138,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             return BuildOperationDescriptor.displayName(displayName)
                 .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
                 .progressDisplayName(progressDisplayName)
-                .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
+                .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath(), project.getRootDir()));
         }
     }
 

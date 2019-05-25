@@ -1,21 +1,20 @@
-task("ok")
+tasks.register("ok")
 
-task("broken") {
+tasks.register("broken") {
     dependsOn("ok")
     doLast {
         throw RuntimeException("broken")
     }
 }
 
- gradle.taskGraph.beforeTask {
+gradle.taskGraph.beforeTask {
     println("executing $this ...")
 }
 
 gradle.taskGraph.afterTask {
     if (state.failure != null) {
         println("FAILED")
-    }
-    else {
+    } else {
         println("done")
     }
 }

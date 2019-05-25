@@ -61,7 +61,7 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
         def ivyModule = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
         ivyModule.assertPublishedAsWebModule()
 
-        and: "correct configurations and depdendencies declared"
+        and: "correct configurations and dependencies declared"
         with (ivyModule.parsedIvy) {
             configurations.keySet() == ["default", "master"] as Set
             configurations.default.extend == ["master"] as Set

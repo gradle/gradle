@@ -29,6 +29,7 @@ import org.gradle.api.component.Component;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
@@ -93,25 +94,30 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
+    @Override
     public ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds) {
         CollectionUtils.addAll(this.componentIds, componentIds);
         return this;
     }
 
+    @Override
     public ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds) {
         CollectionUtils.addAll(this.componentIds, componentIds);
         return this;
     }
 
+    @Override
     public ArtifactResolutionQuery forModule(@Nonnull String group, @Nonnull String name, @Nonnull String version) {
         componentIds.add(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version));
         return this;
     }
 
+    @Override
     public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes) {
         return withArtifacts(componentType, Arrays.asList(artifactTypes));
     }
 
+    @Override
     public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Collection<Class<? extends Artifact>> artifactTypes) {
         if (this.componentType != null) {
             throw new IllegalStateException("Cannot specify component type multiple times.");
@@ -121,13 +127,15 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         return this;
     }
 
+    @Override
     public ArtifactResolutionResult execute() {
         if (componentType == null) {
             throw new IllegalStateException("Must specify component type and artifacts to query.");
         }
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
-        ResolutionStrategyInternal resolutionStrategy = configurationContainer.detachedConfiguration().getResolutionStrategy();
-        ComponentResolvers componentResolvers = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
+        ConfigurationInternal detachedConfiguration = configurationContainer.detachedConfiguration();
+        ResolutionStrategyInternal resolutionStrategy = detachedConfiguration.getResolutionStrategy();
+        ComponentResolvers componentResolvers = ivyFactory.create(detachedConfiguration.getName(), resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
         return createResult(componentMetaDataResolver, artifactResolver);
@@ -140,7 +148,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             try {
                 ComponentIdentifier validId = validateComponentIdentifier(componentId);
                 componentResults.add(buildComponentResult(validId, componentMetaDataResolver, artifactResolver));
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 componentResults.add(new DefaultUnresolvedComponentResult(componentId, t));
             }
         }

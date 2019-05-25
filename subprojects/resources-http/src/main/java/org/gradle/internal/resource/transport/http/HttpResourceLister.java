@@ -33,6 +33,7 @@ public class HttpResourceLister implements ExternalResourceLister {
         this.accessor = accessor;
     }
 
+    @Override
     public List<String> list(final URI directory) {
         final ExternalResourceReadResponse response = accessor.openResource(directory, true);
         if (response == null) {

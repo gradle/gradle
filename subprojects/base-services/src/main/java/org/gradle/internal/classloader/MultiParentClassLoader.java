@@ -63,6 +63,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
         return ImmutableList.copyOf(parents);
     }
 
+    @Override
     public void visit(ClassLoaderVisitor visitor) {
         visitor.visitSpec(new Spec());
         for (ClassLoader parent : parents) {
@@ -137,24 +138,5 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
         public int hashCode() {
             return getClass().getName().hashCode();
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof MultiParentClassLoader)) {
-            return false;
-        }
-
-        MultiParentClassLoader that = (MultiParentClassLoader) o;
-
-        return parents.equals(that.parents);
-    }
-
-    @Override
-    public int hashCode() {
-        return parents.hashCode();
     }
 }

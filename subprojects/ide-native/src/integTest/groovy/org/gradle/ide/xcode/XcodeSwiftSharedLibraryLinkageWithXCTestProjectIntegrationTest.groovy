@@ -16,6 +16,9 @@
 
 package org.gradle.ide.xcode
 
+import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
+
 class XcodeSwiftSharedLibraryLinkageWithXCTestProjectIntegrationTest extends AbstractXcodeSwiftWithXCTestProjectIntegrationTest {
     @Override
     void makeSingleProject() {
@@ -28,5 +31,10 @@ class XcodeSwiftSharedLibraryLinkageWithXCTestProjectIntegrationTest extends Abs
     @Override
     String getTestedComponentDsl() {
         return "library"
+    }
+
+    @Override
+    protected SwiftSourceElement getComponentUnderTest() {
+        return new SwiftLibWithXCTest()
     }
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-import org.gradle.api.Action;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -53,11 +51,5 @@ public class ClasspathSnapshot {
     public boolean isAnyClassDuplicated(File classpathEntry) {
         ClasspathEntrySnapshot snapshot = getSnapshot(classpathEntry);
         return isAnyClassDuplicated(snapshot.getClasses());
-    }
-
-    public void forEachSnapshot(Action<? super ClasspathEntrySnapshot> action) {
-        for (ClasspathEntrySnapshot classpathEntrySnapshot : entrySnapshots.values()) {
-            action.execute(classpathEntrySnapshot);
-        }
     }
 }

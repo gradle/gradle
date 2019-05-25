@@ -40,14 +40,12 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         this.optionValueMethod = optionValueMethod;
     }
 
-    public OptionElement getOptionElement() {
-        return optionElement;
-    }
-
+    @Override
     public String getName() {
         return optionElement.getOptionName();
     }
 
+    @Override
     public Set<String> getAvailableValues() {
         final Set<String> values = optionElement.getAvailableValues();
 
@@ -57,6 +55,7 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         return values;
     }
 
+    @Override
     public Class<?> getArgumentType() {
         return optionElement.getOptionType();
     }
@@ -69,10 +68,12 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         return Collections.emptyList();
     }
 
+    @Override
     public String getDescription() {
         return optionElement.getDescription();
     }
 
+    @Override
     public void apply(Object objectParam, List<String> parameterValues) {
         if (objectParam != object) {
             throw new AssertionError(String.format("Object %s not applyable. Expecting %s", objectParam, object));
@@ -80,6 +81,7 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         optionElement.apply(objectParam, parameterValues);
     }
 
+    @Override
     public int compareTo(OptionDescriptor o) {
         return getName().compareTo(o.getName());
     }

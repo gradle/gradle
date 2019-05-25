@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.MutableVersionConstraint
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer
 import org.gradle.api.internal.model.NamedObjectInstantiator
+import org.gradle.internal.component.external.model.ImmutableCapability
 import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
 
@@ -36,10 +38,10 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
     @Unroll
     def "serializes"() {
         when:
-        def result = serialize(newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar')), serializer)
+        def result = serialize(newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'), [capability("foo")]), serializer)
 
         then:
-        result == newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'))
+        result == newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'), [capability("foo")])
 
         where:
         version | strict   | rejects
@@ -58,5 +60,9 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
             constraint.reject(reject)
         }
         return constraint
+    }
+
+    private static Capability capability(String name) {
+        return new ImmutableCapability("test", name, "1.16")
     }
 }

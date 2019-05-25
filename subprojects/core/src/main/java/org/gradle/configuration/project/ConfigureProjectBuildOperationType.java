@@ -20,6 +20,8 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.Path;
 
+import java.io.File;
+
 /**
  * Configuration of a project.
  *
@@ -34,28 +36,39 @@ public final class ConfigureProjectBuildOperationType implements BuildOperationT
 
         String getBuildPath();
 
+        File getRootDir();
+
     }
 
     public interface Result {
 
     }
 
-    static class DetailsImpl implements Details {
+    public static class DetailsImpl implements Details {
 
         private final Path buildPath;
+        private final File rootDir;
         private final Path projectPath;
 
-        DetailsImpl(Path projectPath, Path buildPath) {
+        public DetailsImpl(Path projectPath, Path buildPath, File rootDir) {
             this.projectPath = projectPath;
             this.buildPath = buildPath;
+            this.rootDir = rootDir;
         }
 
+        @Override
         public String getProjectPath() {
             return projectPath.getPath();
         }
 
+        @Override
         public String getBuildPath() {
             return buildPath.getPath();
+        }
+
+        @Override
+        public File getRootDir() {
+            return rootDir;
         }
 
     }

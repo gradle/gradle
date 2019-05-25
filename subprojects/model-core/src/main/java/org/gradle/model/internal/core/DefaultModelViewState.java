@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.core;
 
-import net.jcip.annotations.NotThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.ReadOnlyModelViewException;

@@ -27,6 +27,7 @@ import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 import org.gradle.plugin.use.resolve.internal.SelfResolvingRequestPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
 
@@ -39,20 +40,24 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private final DocumentationRegistry documentationRegistry;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
+    private final List<PluginResolverContributor> pluginResolverContributors;
     private final VersionSelectorScheme versionSelectorScheme;
     private final PluginInspector pluginInspector;
 
     public PluginResolverFactory(
         PluginRegistry pluginRegistry,
-        PluginInspector pluginInspector, DocumentationRegistry documentationRegistry,
+        PluginInspector pluginInspector,
+        DocumentationRegistry documentationRegistry,
         InjectedClasspathPluginResolver injectedClasspathPluginResolver,
         DependencyResolutionServices dependencyResolutionServices,
+        List<PluginResolverContributor> pluginResolverContributors,
         VersionSelectorScheme versionSelectorScheme) {
         this.pluginRegistry = pluginRegistry;
         this.pluginInspector = pluginInspector;
         this.documentationRegistry = documentationRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
         this.dependencyResolutionServices = dependencyResolutionServices;
+        this.pluginResolverContributors = pluginResolverContributors;
         this.versionSelectorScheme = versionSelectorScheme;
     }
 
@@ -78,6 +83,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      *     <li>{@link SelfResolvingRequestPluginResolver} - resolves "self resolving" plugins (injected from another build)</li>
      *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
      *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
+     *     <li>Resolvers contributed by this distribution.</li>
      *     <li>Resolvers based on the entries of the `pluginRepositories` block</li>
      *     <li>{@link org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
      * </ol>
@@ -94,6 +100,9 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
+        for (PluginResolverContributor contributor : pluginResolverContributors) {
+            contributor.collectResolversInto(resolvers);
+        }
         resolvers.add(ArtifactRepositoriesPluginResolver.createWithDefaults(dependencyResolutionServices, versionSelectorScheme));
     }
 }

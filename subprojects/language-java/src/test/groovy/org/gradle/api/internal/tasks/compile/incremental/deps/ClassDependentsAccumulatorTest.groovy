@@ -31,9 +31,9 @@ class ClassDependentsAccumulatorTest extends Specification {
 
     def "remembers if class is dependency to all"() {
         // a -> b -> c
-        accumulator.addClass("a", false, ["b"], IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("b", true,  ["c"], IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("c", false, ["a"] as Set, IntSets.EMPTY_SET, [] as Set)
+        accumulator.addClass("a", false, ["b"], IntSets.EMPTY_SET)
+        accumulator.addClass("b", true,  ["c"], IntSets.EMPTY_SET)
+        accumulator.addClass("c", false, ["a"] as Set, IntSets.EMPTY_SET)
 
         expect:
         !accumulator.dependentsMap.a.dependencyToAll
@@ -43,9 +43,9 @@ class ClassDependentsAccumulatorTest extends Specification {
 
     def "remembers if class declares non-private constants"() {
         // a -> b -> c
-        accumulator.addClass("a", false, ["b"], new IntOpenHashSet(1, 2, 3, 5, 8), [] as Set)
-        accumulator.addClass("b", false,  ["c"], new IntOpenHashSet([0, 8]), [] as Set)
-        accumulator.addClass("c", false, [], new IntOpenHashSet([3, 4]), [] as Set)
+        accumulator.addClass("a", false, ["b"], new IntOpenHashSet(1, 2, 3, 5, 8))
+        accumulator.addClass("b", false,  ["c"], new IntOpenHashSet([0, 8]))
+        accumulator.addClass("c", false, [], new IntOpenHashSet([3, 4]))
 
         expect:
         accumulator.classesToConstants.get('a') == [1, 2, 3, 5, 8] as Set
@@ -54,10 +54,10 @@ class ClassDependentsAccumulatorTest extends Specification {
     }
 
     def "accumulates dependents"() {
-        accumulator.addClass("d", true, ['x'], IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("a", false, ["b", "c"], IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("b", true,  ["c", "a"], IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("c", false, [] as Set, IntSets.EMPTY_SET, [] as Set)
+        accumulator.addClass("d", true, ['x'], IntSets.EMPTY_SET)
+        accumulator.addClass("a", false, ["b", "c"], IntSets.EMPTY_SET)
+        accumulator.addClass("b", true,  ["c", "a"], IntSets.EMPTY_SET)
+        accumulator.addClass("c", false, [] as Set, IntSets.EMPTY_SET)
 
         expect:
         accumulator.dependentsMap.a.dependentClasses == ['b'] as Set
@@ -68,33 +68,33 @@ class ClassDependentsAccumulatorTest extends Specification {
     }
 
     def "creates keys for all encountered classes which are dependency to another"() {
-        accumulator.addClass("a", false, ["x"], IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("b", true,  ["a", "b"], IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("c", true,  [] as Set, IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("e", false,  [] as Set, IntSets.EMPTY_SET, [] as Set)
+        accumulator.addClass("a", false, ["x"], IntSets.EMPTY_SET)
+        accumulator.addClass("b", true,  ["a", "b"], IntSets.EMPTY_SET)
+        accumulator.addClass("c", true,  [] as Set, IntSets.EMPTY_SET)
+        accumulator.addClass("e", false,  [] as Set, IntSets.EMPTY_SET)
 
         expect:
         accumulator.dependentsMap.keySet() == ["a", "b", "c", "x"] as Set
     }
 
     def "knows when class is dependent to all if that class is added first"() {
-        accumulator.addClass("b", true,  [] as Set, IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("a", false, ["b"], IntSets.EMPTY_SET, [] as Set)
+        accumulator.addClass("b", true,  [] as Set, IntSets.EMPTY_SET)
+        accumulator.addClass("a", false, ["b"], IntSets.EMPTY_SET)
 
         expect:
         accumulator.dependentsMap.b.dependencyToAll
     }
 
     def "knows when class is dependent to all even if that class is added last"() {
-        accumulator.addClass("a", false, ["b"], IntSets.EMPTY_SET, [] as Set)
-        accumulator.addClass("b", true,  [] as Set, IntSets.EMPTY_SET, [] as Set)
+        accumulator.addClass("a", false, ["b"], IntSets.EMPTY_SET)
+        accumulator.addClass("b", true,  [] as Set, IntSets.EMPTY_SET)
 
         expect:
         accumulator.dependentsMap.b.dependencyToAll
     }
 
     def "filters out self dependencies"() {
-        accumulator.addClass("a", false, ["a", "b"], IntSets.EMPTY_SET, [] as Set)
+        accumulator.addClass("a", false, ["a", "b"], IntSets.EMPTY_SET)
 
         expect:
         accumulator.dependentsMap["b"].dependentClasses == ["a"] as Set

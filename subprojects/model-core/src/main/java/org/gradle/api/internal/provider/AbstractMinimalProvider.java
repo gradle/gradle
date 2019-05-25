@@ -19,12 +19,27 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.state.Managed;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 
-public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T> {
+public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
+    private static final Factory FACTORY = new Factory() {
+        @Nullable
+        @Override
+        public <T> T fromState(Class<T> type, Object state) {
+            if (!type.isAssignableFrom(Provider.class)) {
+                return null;
+            }
+            if (state == null) {
+                return type.cast(Providers.notDefined());
+            } else {
+                return type.cast(Providers.of(state));
+            }
+        }
+    };
+
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
         return new TransformBackedProvider<S, T>(transformer, this);
@@ -50,24 +65,14 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T> 
     }
 
     @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return false;
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        // When used as an input, add the producing tasks if known
+        maybeVisitBuildDependencies(context);
     }
 
     @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        if (!maybeVisitBuildDependencies(context)) {
-            T value = get();
-            // TODO - should add methods to the context that take care of this
-            if (value instanceof Collection) {
-                Collection<?> items = (Collection<?>) value;
-                for (Object item : items) {
-                    context.maybeAdd(item);
-                }
-            } else {
-                context.maybeAdd(value);
-            }
-        }
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        return false;
     }
 
     @Override
@@ -83,6 +88,26 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T> 
     public String toString() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
         return String.format("provider(%s)", GUtil.elvis(getType(), "?"));
+    }
+
+    @Override
+    public boolean immutable() {
+        return false;
+    }
+
+    @Override
+    public Class<?> publicType() {
+        return Provider.class;
+    }
+
+    @Override
+    public Factory managedFactory() {
+        return FACTORY;
+    }
+
+    @Override
+    public Object unpackState() {
+        return getOrNull();
     }
 
     private static class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {

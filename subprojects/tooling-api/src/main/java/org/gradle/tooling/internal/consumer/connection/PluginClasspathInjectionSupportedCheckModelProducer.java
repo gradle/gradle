@@ -17,32 +17,29 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.internal.Exceptions;
-import org.gradle.util.GradleVersion;
 
 public class PluginClasspathInjectionSupportedCheckModelProducer implements ModelProducer {
-
-    private final String providerVersion;
     private final ModelProducer delegate;
+    private final VersionDetails versionDetails;
 
-    private static final GradleVersion SUPPORTED_VERSION = GradleVersion.version("2.8-rc-1");
-
-    public PluginClasspathInjectionSupportedCheckModelProducer(String providerVersion, ModelProducer delegate) {
-        this.providerVersion = providerVersion;
+    public PluginClasspathInjectionSupportedCheckModelProducer(ModelProducer delegate, VersionDetails versionDetails) {
+        this.versionDetails = versionDetails;
         this.delegate = delegate;
     }
 
     @Override
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (!operationParameters.getInjectedPluginClasspath().isEmpty() && !isSupported()) {
-            throw Exceptions.unsupportedFeature("plugin classpath injection feature", providerVersion, "2.8");
+            throw Exceptions.unsupportedFeature("plugin classpath injection feature", versionDetails.getVersion(), "2.8");
         }
 
         return delegate.produceModel(type, operationParameters);
     }
 
     private boolean isSupported() {
-        return GradleVersion.version(providerVersion).compareTo(SUPPORTED_VERSION) >= 0;
+        return versionDetails.supportsPluginClasspathInjection();
     }
 
 }

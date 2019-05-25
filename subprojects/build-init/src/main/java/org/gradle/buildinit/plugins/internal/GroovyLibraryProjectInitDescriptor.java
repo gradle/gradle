@@ -17,12 +17,12 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescriptor {
 
-    public GroovyLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
+    public GroovyLibraryProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(libraryVersionProvider, documentationRegistry);
     }
 
     @Override
@@ -31,12 +31,17 @@ public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescrip
     }
 
     @Override
-    protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromClazzTemplate("groovylibrary/Library.groovy.template", settings, "main");
+    public ComponentType getComponentType() {
+        return ComponentType.LIBRARY;
     }
 
     @Override
-    protected TemplateOperation testTemplateOperation(InitSettings settings) {
-        return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test");
+    protected TemplateOperation sourceTemplateOperation(TemplateFactory templateFactory) {
+        return templateFactory.fromSourceTemplate("groovylibrary/Library.groovy.template", "main");
+    }
+
+    @Override
+    protected TemplateOperation testTemplateOperation(TemplateFactory templateFactory) {
+        return templateFactory.fromSourceTemplate("groovylibrary/LibraryTest.groovy.template", "test");
     }
 }

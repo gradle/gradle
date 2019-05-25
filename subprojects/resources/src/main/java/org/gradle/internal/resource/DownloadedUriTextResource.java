@@ -41,13 +41,13 @@ public class DownloadedUriTextResource extends UriTextResource {
 
     @Override
     protected Reader openReader() throws IOException {
-        String charset = extractCharacterEncoding(contentType, DEFAULT_ENCODING);
+        Charset charset = extractCharacterEncoding(contentType, DEFAULT_ENCODING);
         InputStream inputStream = new FileInputStream(downloadedResource);
         return new InputStreamReader(inputStream, charset);
     }
 
     @Override
     public Charset getCharset() {
-        return Charset.forName(extractCharacterEncoding(contentType, DEFAULT_ENCODING));
+        return extractCharacterEncoding(contentType, DEFAULT_ENCODING);
     }
 }

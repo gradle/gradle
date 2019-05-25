@@ -23,8 +23,8 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class PatternMatcherFactoryTest {

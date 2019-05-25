@@ -16,13 +16,20 @@
 package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -55,6 +62,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
         this.scriptClassPathResolver = scriptClassPathResolver;
+        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
     }
 
     @Override
@@ -107,6 +115,10 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
+            AttributeContainer attributes = classpathConfiguration.getAttributes();
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME));
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(JavaVersion.current().getMajorVersion()));
         }
     }
 

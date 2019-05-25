@@ -23,14 +23,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.ImmutableDirectoryTree;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 class WatchPointsRegistry {
-    private final static Logger LOG = Logging.getLogger(WatchPointsRegistry.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WatchPointsRegistry.class);
     private final CombinedRootSubset rootSubset = new CombinedRootSubset();
     private ImmutableSet<? extends File> allRequestedRoots;
     private final boolean createNewStartingPointsUnderExistingRoots;

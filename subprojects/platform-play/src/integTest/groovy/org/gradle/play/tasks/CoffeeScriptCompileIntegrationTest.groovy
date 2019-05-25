@@ -124,6 +124,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         succeeds "assemble"
 
         when:
+        executer.noDeprecationChecks()
         succeeds "assemble"
 
         then:
@@ -140,6 +141,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         succeeds "assemble"
 
         when:
+        executer.noDeprecationChecks()
         assets("test.coffee") << '\nalert "this is a change!"'
         succeeds "assemble"
 
@@ -157,6 +159,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         succeeds "assemble"
 
         when:
+        executer.noDeprecationChecks()
         hasProcessedCoffeeScript("test")
         compiledCoffeeScript("test.js").delete()
         processedJavaScript("test.js").delete()
@@ -191,6 +194,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         )
 
         when:
+        executer.noDeprecationChecks()
         source2.delete()
         succeeds "assemble"
 

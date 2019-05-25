@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class SamplesGroovyMultiProjectIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder)

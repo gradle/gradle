@@ -14,80 +14,77 @@
  * limitations under the License.
  */
 
-import org.gradle.plugins.ide.idea.model.IdeaModel
-
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import java.io.File
 import java.util.Properties
 
 plugins {
-    `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.15" apply false
+    `java`
+    `kotlin-dsl` apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.3.0" apply false
 }
 
 subprojects {
+    if (name != "buildPlatform") {
+        apply(plugin = "java-library")
 
-    apply(plugin = "java-library")
 
-    if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
-
-        applyGroovyProjectConventions()
-    }
-
-    if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-
-        applyKotlinProjectConventions()
-    }
-
-    configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    
-    apply(plugin = "idea")
-    apply(plugin = "eclipse")
-
-    configure<IdeaModel> {
-        module.name = "buildSrc-${this@subprojects.name}"
-    }
-
-    dependencies {
-        compile(gradleApi())
-    }
-
-    afterEvaluate {
-        if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
-            val validateTaskProperties by tasks.registering(ValidateTaskProperties::class) {
-                outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
-
-                val mainSourceSet = project.sourceSets.main.get()
-                classes.setFrom(mainSourceSet.output.classesDirs)
-                classpath.setFrom(mainSourceSet.compileClasspath)
-                dependsOn(mainSourceSet.output)
-            }
-            tasks.check { dependsOn(validateTaskProperties) }
+        if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
+            applyGroovyProjectConventions()
         }
-    }
 
-    tasks.withType<ValidateTaskProperties> {
-        failOnWarning = true
-        enableStricterValidation = true
+        if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
+            applyKotlinProjectConventions()
+        }
+
+        java {
+            sourceCompatibility = JavaVersion.VERSION_1_8
+            targetCompatibility = JavaVersion.VERSION_1_8
+        }
+
+        dependencies {
+            implementation(gradleApi())
+        }
+
+        afterEvaluate {
+            if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
+                val validateTaskProperties by tasks.registering(ValidateTaskProperties::class) {
+                    outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
+
+                    val mainSourceSet = project.sourceSets.main.get()
+                    classes.setFrom(mainSourceSet.output.classesDirs)
+                    dependsOn(mainSourceSet.output)
+                    classpath.setFrom(mainSourceSet.runtimeClasspath)
+                }
+                tasks.check { dependsOn(validateTaskProperties) }
+            }
+        }
+
+        tasks.withType<ValidateTaskProperties> {
+            failOnWarning = true
+            enableStricterValidation = true
+        }
+
+        apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
     }
+    apply(plugin = "eclipse")
 }
 
 allprojects {
     repositories {
-        gradlePluginPortal()
         maven {
             name = "Gradle libs"
             url = uri("https://repo.gradle.org/gradle/libs")
         }
+        gradlePluginPortal()
         maven {
             name = "Gradle snapshot libs"
             url = uri("https://repo.gradle.org/gradle/libs-snapshots")
+        }
+        maven {
+            name = "kotlinx"
+            url = uri("https://dl.bintray.com/kotlin/kotlinx")
         }
         maven {
             name = "kotlin-eap"
@@ -98,23 +95,34 @@ allprojects {
 
 dependencies {
     subprojects.forEach {
-        runtime(project(it.path))
+        runtimeOnly(project(it.path))
     }
 }
 
-// Set gradlebuild.skipBuildSrcChecks Gradle property to "true" to disable all buildSrc verification tasks
-if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
+
+// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
+val isCiServer: Boolean by extra { "CI" in System.getenv() }
+
+
+/**
+ * Controls whether verification tasks are skipped.
+ *
+ * Set the `buildSrcCheck` Gradle property to `true` to run the verification tasks.
+ * Set it to `false` to skip the verification tasks.
+ *
+ * When that property is unset, defaults to `false` on CI, to `true` otherwise.
+ */
+val isSkipBuildSrcVerification: Boolean =
+    (findProperty("buildSrcCheck") as String?)
+        ?.let { it == "false" }
+        ?: !isCiServer
+
+if (isSkipBuildSrcVerification) {
     allprojects {
         tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach {
             enabled = false
         }
     }
-}
-
-// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
-val isCiServer: Boolean by extra { "CI" in System.getenv() }
-if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply(from = "../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 }
 
 if (isCiServer) {
@@ -171,12 +179,12 @@ fun Project.applyGroovyProjectConventions() {
     apply(plugin = "groovy")
 
     dependencies {
-        compile(localGroovy())
-        testCompile("org.spockframework:spock-core:1.2-groovy-2.5") {
+        implementation(localGroovy())
+        testImplementation("org.spockframework:spock-core:1.2-groovy-2.5") {
             exclude(group = "org.codehaus.groovy")
         }
-        testCompile("net.bytebuddy:byte-buddy:1.8.21")
-        testCompile("org.objenesis:objenesis:2.6")
+        testImplementation("net.bytebuddy:byte-buddy:1.8.21")
+        testImplementation("org.objenesis:objenesis:2.6")
     }
 
     tasks.withType<GroovyCompile>().configureEach {
@@ -193,12 +201,11 @@ fun Project.applyGroovyProjectConventions() {
     }
 
     tasks.withType<Test>().configureEach {
-        if (JavaVersion.current().isJava9Compatible()) {
+        if (JavaVersion.current().isJava9Compatible) {
             //allow ProjectBuilder to inject legacy types into the system classloader
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             jvmArgs("--illegal-access=deny")
         }
-        
     }
 
     val compileGroovy by tasks.existing(GroovyCompile::class)
@@ -217,11 +224,19 @@ fun Project.applyGroovyProjectConventions() {
 
 fun Project.applyKotlinProjectConventions() {
     apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-    apply(plugin = "org.gradle.kotlin.ktlint-convention")
+    apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
     plugins.withType<KotlinDslPlugin> {
-        kotlinDslPluginOptions {
+        configure<KotlinDslPluginOptions> {
             experimentalWarning.set(false)
         }
     }
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        // TODO:kotlin-dsl remove precompiled script plugins accessors exclusion from ktlint checks
+        filter {
+            exclude("gradle/kotlin/dsl/accessors/_*/**")
+        }
+    }
 }
+

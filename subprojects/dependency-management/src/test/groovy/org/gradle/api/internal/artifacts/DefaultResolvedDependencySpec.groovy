@@ -21,7 +21,7 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class DefaultResolvedDependencySpec extends Specification {
-    final dependency = new DefaultResolvedDependency(123L, new ResolvedConfigurationIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "config"), new TestBuildOperationExecutor())
+    final dependency = new DefaultResolvedDependency(new ResolvedConfigurationIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "config"), new TestBuildOperationExecutor())
 
     def "provides meta-data about the module"() {
         expect:

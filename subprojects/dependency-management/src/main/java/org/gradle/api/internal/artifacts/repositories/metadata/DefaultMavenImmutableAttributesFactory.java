@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -76,11 +76,11 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
 
     @Override
     public ImmutableAttributes libraryWithUsage(ImmutableAttributes original, String usage) {
-        ComponentTypeEntry entry = new ComponentTypeEntry(original, PlatformSupport.LIBRARY, usage);
+        ComponentTypeEntry entry = new ComponentTypeEntry(original, Category.LIBRARY, usage);
         ImmutableAttributes result = concatCache.get(entry);
         if (result == null) {
             result = concat(original, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
-            result = concat(result, PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.LIBRARY);
+            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
             concatCache.put(entry, result);
         }
         return result;
@@ -88,12 +88,12 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
 
     @Override
     public ImmutableAttributes platformWithUsage(ImmutableAttributes original, String usage, boolean enforced) {
-        String componentType = enforced ? PlatformSupport.ENFORCED_PLATFORM : PlatformSupport.REGULAR_PLATFORM;
+        String componentType = enforced ? Category.ENFORCED_PLATFORM : Category.REGULAR_PLATFORM;
         ComponentTypeEntry entry = new ComponentTypeEntry(original, componentType, usage);
         ImmutableAttributes result = concatCache.get(entry);
         if (result == null) {
             result = concat(original, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
-            result = concat(result, PlatformSupport.COMPONENT_CATEGORY, componentType);
+            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(componentType, objectInstantiator));
             concatCache.put(entry, result);
         }
         return result;

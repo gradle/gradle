@@ -87,8 +87,12 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
 
         then:
         failure.assertHasCause("""Unable to find a matching variant of project :dep:
-  - Variant 'blueVariant': Required color 'green' and found incompatible value 'blue'.
-  - Variant 'redVariant': Required color 'green' and found incompatible value 'red'.""")
+  - Variant 'blueVariant' capability test:dep:unspecified:
+      - Incompatible attribute:
+          - Required color 'green' and found incompatible value 'blue'.
+  - Variant 'redVariant' capability test:dep:unspecified:
+      - Incompatible attribute:
+          - Required color 'green' and found incompatible value 'red'.""")
     }
 
     def "dependency attributes override configuration attributes"() {

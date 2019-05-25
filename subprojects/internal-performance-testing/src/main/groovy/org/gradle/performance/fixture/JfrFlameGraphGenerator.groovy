@@ -18,6 +18,11 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
+import org.openjdk.jmc.common.item.IItemCollection
+import org.openjdk.jmc.flightrecorder.JfrLoaderToolkit
+
+import static org.gradle.performance.fixture.JfrToStacksConverter.EventType
+import static org.gradle.performance.fixture.JfrToStacksConverter.Options
 
 /**
  * Generates flame graphs based on JFR recordings.
@@ -29,25 +34,27 @@ class JfrFlameGraphGenerator {
     private JfrToStacksConverter stacksConverter = new JfrToStacksConverter()
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
 
-    void generateGraphs(File jfrRecording) {
+    void generateGraphs(File jfrOutputDir) {
+        List<IItemCollection> recordings = jfrOutputDir.listFiles()
+            .findAll { it.name.endsWith(".jfr") }
+            .collect { JfrLoaderToolkit.loadEvents(it) }
+        File flamegraphDir = jfrOutputDir.getParentFile()
         EventType.values().each { EventType type ->
             DetailLevel.values().each { DetailLevel level ->
-                def stacks = generateStacks(jfrRecording, type, level)
+                def stacks = generateStacks(flamegraphDir, recordings, type, level)
                 generateFlameGraph(stacks, type, level)
                 generateIcicleGraph(stacks, type, level)
             }
         }
     }
 
-    private File generateStacks(File jfrRecording, EventType type, DetailLevel level) {
+    private File generateStacks(File baseDir, Collection<IItemCollection> recordings, EventType type, DetailLevel level) {
         File stacks = File.createTempFile("stacks", ".txt")
-        String[] options = level.stackConversionOptions + ["--event", type.id]
-        stacksConverter.convertToStacks(jfrRecording, stacks, options)
-        File baseDir = jfrRecording.parentFile
+        stacksConverter.convertToStacks(recordings, stacks, new Options(type, level.isShowArguments(), level.isShowLineNumbers()))
         File sanitizedStacks = stacksFileName(baseDir, type, level)
-        level.sanitizer.sanitize(stacks, sanitizedStacks)
+        level.getSanitizer().sanitize(stacks, sanitizedStacks)
         stacks.delete()
-        sanitizedStacks
+        return sanitizedStacks
     }
 
     void generateDifferentialGraphs(File baseDir) {
@@ -119,51 +126,42 @@ class JfrFlameGraphGenerator {
         icicles
     }
 
-    private static enum EventType {
-        CPU("cpu", "CPU", "samples"),
-        ALLOCATION("allocation-tlab", "Allocation in new TLAB", "kB"),
-        MONITOR_BLOCKED("monitor-blocked", "Java Monitor Blocked", "ms"),
-        IO("io", "File and Socket IO", "ms");
-
-        private final String id
-        private final String displayName
-        private final String unitOfMeasure
-
-        private EventType(String id, String displayName, String unitOfMeasure) {
-            this.unitOfMeasure = unitOfMeasure
-            this.displayName = displayName
-            this.id = id
-        }
-    }
-
-    private static enum DetailLevel {
+    enum DetailLevel {
         RAW(
-            [],
-            ["--minwidth", "0.5"],
-            ["--minwidth", "1"],
-            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS)
+            true,
+            true,
+            Arrays.asList("--minwidth", "0.5"),
+            Arrays.asList("--minwidth", "1"),
+            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS, FlameGraphSanitizer.NORMALIZE_LAMBDA_NAMES)
         ),
         SIMPLIFIED(
-            ["--hide-arguments", "--ignore-line-numbers"],
-            ["--minwidth", "1"],
-            ["--minwidth", "2"],
-            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS, FlameGraphSanitizer.COLLAPSE_GRADLE_INFRASTRUCTURE, FlameGraphSanitizer.SIMPLE_NAMES)
+            false,
+            false,
+            Arrays.asList("--minwidth", "1"),
+            Arrays.asList("--minwidth", "2"),
+            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS, FlameGraphSanitizer.NORMALIZE_LAMBDA_NAMES, FlameGraphSanitizer.COLLAPSE_GRADLE_INFRASTRUCTURE, FlameGraphSanitizer.SIMPLE_NAMES)
         )
 
-        private List<String> stackConversionOptions
+        private final boolean showArguments
+        private final boolean showLineNumbers
         private List<String> flameGraphOptions
         private List<String> icicleGraphOptions
         private FlameGraphSanitizer sanitizer
 
-        DetailLevel(List<String> stackConversionOptions, List<String> flameGraphOptions, List<String> icicleGraphOptions, FlameGraphSanitizer sanitizer) {
-            this.stackConversionOptions = stackConversionOptions
+        DetailLevel(boolean showArguments, boolean showLineNumbers, List<String> flameGraphOptions, List<String> icicleGraphOptions, FlameGraphSanitizer sanitizer) {
+            this.showArguments = showArguments
+            this.showLineNumbers = showLineNumbers
             this.flameGraphOptions = flameGraphOptions
             this.icicleGraphOptions = icicleGraphOptions
             this.sanitizer = sanitizer
         }
 
-        List<String> getStackConversionOptions() {
-            return stackConversionOptions
+        boolean isShowArguments() {
+            return showArguments
+        }
+
+        boolean isShowLineNumbers() {
+            return showLineNumbers
         }
 
         List<String> getFlameGraphOptions() {
@@ -177,6 +175,7 @@ class JfrFlameGraphGenerator {
         FlameGraphSanitizer getSanitizer() {
             return sanitizer
         }
+
     }
 
 }

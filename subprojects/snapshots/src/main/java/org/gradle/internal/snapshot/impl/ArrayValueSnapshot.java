@@ -16,34 +16,15 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.isolation.IsolationException;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
+public class ArrayValueSnapshot extends AbstractArraySnapshot<ValueSnapshot> implements ValueSnapshot {
+    public static final ArrayValueSnapshot EMPTY = new ArrayValueSnapshot(ImmutableList.of());
 
-public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
-    public static final ArrayValueSnapshot EMPTY = new ArrayValueSnapshot(new ValueSnapshot[0]);
-    private final ValueSnapshot[] elements;
-
-    public ArrayValueSnapshot(ValueSnapshot[] elements) {
-        this.elements = elements;
-    }
-
-    public ValueSnapshot[] getElements() {
-        return elements;
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putString("Array");
-        hasher.putInt(elements.length);
-        for (ValueSnapshot element : elements) {
-            element.appendToHasher(hasher);
-        }
+    public ArrayValueSnapshot(ImmutableList<ValueSnapshot> elements) {
+        super(elements);
     }
 
     @Override
@@ -58,48 +39,10 @@ public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
     private boolean isEqualArrayValueSnapshot(ValueSnapshot other) {
         if (other instanceof ArrayValueSnapshot) {
             ArrayValueSnapshot otherArray = (ArrayValueSnapshot) other;
-            if (Arrays.equals(elements, otherArray.elements)) {
+            if (elements.equals(otherArray.elements)) {
                 return true;
             }
         }
         return false;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        ArrayValueSnapshot other = (ArrayValueSnapshot) obj;
-        return Arrays.equals(elements, other.elements);
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(elements);
-    }
-
-    @Override
-    public Object[] isolate() {
-        ValueSnapshot[] elements = getElements();
-        Object[] toReturn = new Object[elements.length];
-        for (int i = 0; i < elements.length; i++) {
-            ValueSnapshot snapshot = elements[i];
-            if (snapshot instanceof Isolatable) {
-                toReturn[i] = ((Isolatable) snapshot).isolate();
-            } else {
-                throw new IsolationException(snapshot);
-            }
-        }
-        return toReturn;
-    }
-
-    @Nullable
-    @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
-        return null;
     }
 }

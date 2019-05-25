@@ -33,7 +33,7 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
             .fileComment(
                 "The settings file is used to specify which projects to include in your build.\n\n"
                     + "Detailed information about configuring a multi-project build in Gradle can be found\n"
-                    + "in the user guide at " + documentationRegistry.getDocumentationFor("multi_project_builds"))
+                    + "in the user manual at " + documentationRegistry.getDocumentationFor("multi_project_builds"))
             .propertyAssignment(null, "rootProject.name", settings.getProjectName())
             .create()
             .generate();

@@ -27,7 +27,7 @@ books {
     create("developerGuide")
 }
 
-task("books") {
+tasks.register("books") {
     doLast {
         books.forEach { book ->
             println("${book.name} -> ${book.sourceFile}")

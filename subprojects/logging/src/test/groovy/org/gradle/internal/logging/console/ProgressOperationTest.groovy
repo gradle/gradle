@@ -22,7 +22,7 @@ class ProgressOperationTest extends Specification {
 
     def "message prefers status"() {
         given:
-        ProgressOperation progressOperation = new ProgressOperation("STATUS", "CATEGORY", new OperationIdentifier(1), null)
+        ProgressOperation progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
 
         expect:
         progressOperation.getMessage() == "STATUS"
@@ -30,7 +30,7 @@ class ProgressOperationTest extends Specification {
 
     def "message is null if all inputs are null"() {
         given:
-        ProgressOperation progressOperation = new ProgressOperation(null, "CATEGORY", new OperationIdentifier(1), null)
+        ProgressOperation progressOperation = new ProgressOperation(null, "VARIANT_CATEGORY", new OperationIdentifier(1), null)
 
         expect:
         progressOperation.getMessage() == null
@@ -38,7 +38,7 @@ class ProgressOperationTest extends Specification {
 
     def "allows children to be managed"() {
         given:
-        ProgressOperation progressOperation = new ProgressOperation("STATUS", "CATEGORY", new OperationIdentifier(1), null)
+        ProgressOperation progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
         def mockOperation = Mock(ProgressOperation)
 
         when:

@@ -16,11 +16,11 @@
 
 package org.gradle.internal.filewatch;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SingleFirePendingChangesListener implements PendingChangesListener {
-    private static final Logger LOGGER = Logging.getLogger(SingleFirePendingChangesListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SingleFirePendingChangesListener.class);
 
     private final PendingChangesListener delegate;
     private boolean seenChanges;

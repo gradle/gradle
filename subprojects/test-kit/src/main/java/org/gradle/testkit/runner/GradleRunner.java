@@ -16,12 +16,15 @@
 
 package org.gradle.testkit.runner;
 
+import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Writer;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Executes a Gradle build, allowing inspection of the outcome.
@@ -45,7 +48,7 @@ import java.util.List;
  * GradleRunner instances are not thread safe and cannot be used concurrently.
  * However, multiple instances are able to be used concurrently.
  * <p>
- * Please see <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">the Gradle TestKit User Guide chapter</a> for more information.
+ * Please see the Gradle <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">TestKit</a> User Manual chapter for more information.
  *
  * @since 2.6
  */
@@ -239,13 +242,13 @@ public abstract class GradleRunner {
      * If the plugin metadata file cannot be resolved an {@link InvalidPluginMetadataException} is thrown.
      * <p>
      * Plugins from classpath are able to be resolved using the <code>plugins { }</code> syntax in the build under test.
-     * Please consult the TestKit Gradle User Guide chapter for more information and usage examples.
+     * Please consult the TestKit Gradle User Manual chapter for more information and usage examples.
      * <p>
      * Calling this method will replace any previous classpath specified via {@link #withPluginClasspath(Iterable)} and vice versa.
      * <p>
      * <b>Note:</b> this method will cause an {@link InvalidRunnerConfigurationException} to be emitted when the build is executed,
      * if the version of Gradle executing the build (i.e. not the version of the runner) is earlier than Gradle 2.8 as those versions do not support this feature.
-     * Please consult the TestKit Gradle User Guide chapter alternative strategies that can be used for older Gradle versions.
+     * Please consult the TestKit Gradle User Manual chapter alternative strategies that can be used for older Gradle versions.
      *
      * @return this
      * @see #withPluginClasspath(Iterable)
@@ -258,11 +261,11 @@ public abstract class GradleRunner {
      * Sets the injected plugin classpath for the build.
      * <p>
      * Plugins from the given classpath are able to be resolved using the <code>plugins { }</code> syntax in the build under test.
-     * Please consult the TestKit Gradle User Guide chapter for more information and usage examples.
+     * Please consult the TestKit Gradle User Manual chapter for more information and usage examples.
      * <p>
      * <b>Note:</b> this method will cause an {@link InvalidRunnerConfigurationException} to be emitted when the build is executed,
      * if the version of Gradle executing the build (i.e. not the version of the runner) is earlier than Gradle 2.8 as those versions do not support this feature.
-     * Please consult the TestKit Gradle User Guide chapter alternative strategies that can be used for older Gradle versions.
+     * Please consult the TestKit Gradle User Manual chapter alternative strategies that can be used for older Gradle versions.
      *
      * @param classpath the classpath of plugins to make available to the build under test
      * @return this
@@ -281,6 +284,9 @@ public abstract class GradleRunner {
      * Debug support is off (i.e. {@code false}) by default.
      * It can be enabled by setting the system property {@code org.gradle.testkit.debug} to {@code true} for the test process,
      * or by using the {@link #withDebug(boolean)} method.
+     * <p>
+     * When {@link #withEnvironment(Map)} is specified, running with debug is not allowed.
+     * Debug mode runs "in process" and we need to fork a separate process to pass environment variables.
      *
      * @return whether the build should be executed in the same process
      * @since 2.9
@@ -296,6 +302,31 @@ public abstract class GradleRunner {
      * @since 2.9
      */
     public abstract GradleRunner withDebug(boolean flag);
+
+    /**
+     * Environment variables for the build.
+     * {@code null} is valid and indicates the build will use the system environment.
+     *
+     * @return environment variables
+     * @since 5.2
+     */
+    @Nullable
+    @Incubating
+    public abstract Map<String, String> getEnvironment();
+
+    /**
+     * Sets the environment variables for the build.
+     * {@code null} is permitted and will make the build use the system environment.
+     * <p>
+     * When environment is specified, running with {@link #isDebug()} is not allowed.
+     * Debug mode runs in-process and TestKit must fork a separate process to pass environment variables.
+     *
+     * @param environmentVariables the variables to use, {@code null} is allowed.
+     * @return this
+     * @since 5.2
+     */
+    @Incubating
+    public abstract GradleRunner withEnvironment(Map<String, String> environmentVariables);
 
     /**
      * Configures the runner to forward standard output from builds to the given writer.

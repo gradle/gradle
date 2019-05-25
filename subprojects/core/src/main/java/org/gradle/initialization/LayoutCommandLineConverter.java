@@ -27,19 +27,24 @@ import java.util.List;
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
     private List<BuildOption<BuildLayoutParameters>> buildOptions = BuildLayoutParametersBuildOptions.get();
 
+    @Override
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
         for (BuildOption<BuildLayoutParameters> option : buildOptions) {
             option.applyFromCommandLine(options, target);
         }
 
-        // Don't search upwards when the `init` task is called.
         if (options.getExtraArguments().contains("init")) {
+            target.setSearchUpwards(false);
+        }
+
+        if (target.getSearchDir().getName().equals("buildSrc")) {
             target.setSearchUpwards(false);
         }
 
         return target;
     }
 
+    @Override
     public void configure(CommandLineParser parser) {
         for (BuildOption<BuildLayoutParameters> option : buildOptions) {
             option.configure(parser);

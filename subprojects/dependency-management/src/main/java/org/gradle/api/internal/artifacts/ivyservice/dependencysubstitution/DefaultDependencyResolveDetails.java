@@ -109,7 +109,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
             if (delegate.getTarget() instanceof ModuleComponentSelector) {
                 ModuleComponentSelector target = (ModuleComponentSelector) delegate.getTarget();
                 if (!useVersion.equals(target.getVersionConstraint())) {
-                    delegate.useTarget(DefaultModuleComponentSelector.newSelector(target.getModuleIdentifier(), useVersion, target.getAttributes()), selectionReason);
+                    delegate.useTarget(DefaultModuleComponentSelector.newSelector(target.getModuleIdentifier(), useVersion, target.getAttributes(), target.getRequestedCapabilities()), selectionReason);
                 } else {
                     // Still 'updated' with reason when version remains the same.
                     delegate.useTarget(delegate.getTarget(), selectionReason);

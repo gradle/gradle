@@ -58,7 +58,7 @@ buildscript {
         succeeds 'buildEnvironment'
 
         then:
-        outputContains('org.foo:foo-plugin:1.0')
+        outputContains('org.foo:foo-plugin:[1.0,2.0) -> 1.0')
         outputDoesNotContain('org.foo:foo-plugin:1.1')
     }
 
@@ -104,7 +104,7 @@ plugins {
         succeeds 'buildEnvironment'
 
         then:
-        outputContains('org.foo:foo-plugin:1.0')
+        outputContains('org.foo:foo-plugin:[1.0,2.0) -> 1.0')
         outputDoesNotContain('org.foo:foo-plugin:1.1')
     }
 

@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.BuildListener
 import org.gradle.BuildResult
-import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.ProjectConfigurer
@@ -28,7 +27,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
@@ -68,72 +66,58 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
     def "can run action and returns result when completed"() {
         given:
         def model = new Object()
-        def output = Mock(SerializedPayload)
         def internalAction = Mock(InternalBuildAction)
 
         when:
         def result = runner.run(clientProvidedBuildAction, buildController)
 
         then:
-        result.clientResult.result == output
-        result.clientResult.failure == null
+        result.clientResult == model
         result.buildFailure == null
         result.clientFailure == null
 
         and:
         1 * internalAction.execute(_) >> model
         1 * payloadSerializer.deserialize(action) >> internalAction
-        1 * payloadSerializer.serialize(model) >> output
     }
 
     def "can run action and reports failure"() {
         given:
         def failure = new RuntimeException()
-        def output = Mock(SerializedPayload)
         def internalAction = Mock(InternalBuildAction)
 
         when:
         def result = runner.run(clientProvidedBuildAction, buildController)
 
         then:
-        result.clientResult.result == null
-        result.clientResult.failure == output
+        result.clientResult == null
         result.buildFailure == failure
-        result.clientFailure == null
+        result.clientFailure instanceof InternalBuildActionFailureException
+        result.clientFailure.cause == failure
 
         and:
         1 * payloadSerializer.deserialize(action) >> internalAction
         1 * internalAction.execute(_) >> { throw failure }
-        1 * payloadSerializer.serialize(_) >> { Throwable t ->
-            assert t instanceof InternalBuildActionFailureException
-            assert t.cause == failure
-            return output
-        }
     }
 
-    def "can run action and propagate cancellation exception"() {
+    def "can run action and propagate build exception"() {
         given:
-        def cancellation = new BuildCancelledException()
-        def output = Mock(SerializedPayload)
+        def failure = new RuntimeException()
+        def buildController = Mock(BuildController)
         def internalAction = Mock(InternalBuildAction)
 
         when:
         def result = runner.run(clientProvidedBuildAction, buildController)
 
         then:
-        result.clientResult.result == null
-        result.clientResult.failure == output
-        result.buildFailure == cancellation
-        result.clientFailure == null
+        result.clientResult == null
+        result.buildFailure == failure
+        result.clientFailure == failure
 
         and:
         1 * payloadSerializer.deserialize(action) >> internalAction
-        1 * internalAction.execute(_) >> { throw cancellation }
-        1 * payloadSerializer.serialize(_) >> { Throwable t ->
-            assert t instanceof InternalBuildCancelledException
-            assert t.cause == cancellation
-            return output
-        }
+        _ * buildController.gradle >> gradle
+        1 * buildController.configure() >> { throw failure }
     }
 
     def "can run tasks before run action"() {
@@ -150,21 +134,18 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
     def "can run action InternalActionVersion2"() {
         given:
         def model = new Object()
-        def output = Mock(SerializedPayload)
         def internalAction = Mock(InternalBuildActionVersion2)
 
         when:
         def result = runner.run(clientProvidedBuildAction, buildController)
 
         then:
-        result.clientResult.result == output
-        result.clientResult.failure == null
+        result.clientResult == model
         result.buildFailure == null
         result.clientFailure == null
 
         and:
         1 * internalAction.execute(_) >> model
         1 * payloadSerializer.deserialize(action) >> internalAction
-        1 * payloadSerializer.serialize(model) >> output
     }
 }

@@ -5,7 +5,7 @@ plugins {
 
 version = "1.0.0"
 
-task<Zip>("packageDistribution") {
+tasks.register<Zip>("packageDistribution") {
     from("$buildDir/toArchive") {
         exclude("**/*.pdf")
     }

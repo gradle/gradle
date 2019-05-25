@@ -38,13 +38,10 @@ public interface TaskDependencyResolveContext {
      * <li>{@link TransformationDependency}</li>
      *
      * <li>{@link FinalizeAction}</li>
+     *
+     * <li>{@link WorkNodeAction}</li>
      */
     void add(Object dependency);
-
-    /**
-     * Adds an object that <em>may</em> be able to contribute tasks to the result.
-     */
-    void maybeAdd(Object dependency);
 
     /**
      * Visits a failure to visit the dependencies of an object.

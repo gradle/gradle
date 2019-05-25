@@ -23,12 +23,12 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.Actions
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class CopySpecMatchingTest extends Specification {
 
-    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), DirectInstantiator.INSTANCE)
+    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), TestUtil.instantiatorFactory().decorateLenient())
 
     FileTree fileTree = Mock()
 
@@ -140,7 +140,7 @@ class CopySpecMatchingTest extends Specification {
 
     def matchingSpecInherited() {
         given:
-        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.resolver(), DirectInstantiator.INSTANCE)
+        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.resolver(), TestUtil.instantiatorFactory().decorateLenient())
         CopySpecResolver childResolver = childSpec.buildResolverRelativeToParent(copySpec.buildRootResolver())
 
         when:

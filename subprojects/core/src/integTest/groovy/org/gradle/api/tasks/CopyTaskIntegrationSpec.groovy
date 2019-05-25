@@ -1281,21 +1281,21 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file("src.txt").createNewFile()
         buildFile << """
             task copy(type: Copy) {
+                outputs.cacheIf { true }
                 ${mutation}
                 from "src.txt"
                 into "destination"
             }
-
-            task check {
-                dependsOn copy
-                doLast {
-                    assert !copy.state.taskOutputCaching.enabled
-                }
-            }
         """
 
-        expect:
-        succeeds "check"
+        withBuildCache().run "copy"
+        file("destination").deleteDir()
+
+        when:
+        withBuildCache().run"copy"
+
+        then:
+        skippedTasks.empty
 
         where:
         description                 | mutation

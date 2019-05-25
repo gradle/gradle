@@ -22,7 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.integtests.fixtures.TestClassExecutionResult;
 import org.gradle.util.CollectionUtils;
-import org.hamcrest.Matchers;
+import org.hamcrest.CoreMatchers;
 
 import java.util.List;
 import java.util.Set;
@@ -73,6 +73,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
         return "test";
     }
 
+    @Override
     public SourceFile getSourceFile() {
         return sourceFile("swift", getTestSuiteName() + ".swift",
                 renderImports()
@@ -145,7 +146,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
 
         for (XCTestCaseElement testCase : getTestCases()) {
             if (testCase.isExpectFailure()) {
-                testExecutionResult.assertTestFailed(testCase.getName(), Matchers.anything());
+                testExecutionResult.assertTestFailed(testCase.getName(), CoreMatchers.anything());
             } else {
                 testExecutionResult.assertTestPassed(testCase.getName());
             }

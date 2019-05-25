@@ -23,6 +23,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.internal.Describables
+import org.gradle.util.Path
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -34,7 +35,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
     def publication = Mock(ProjectPublication)
 
     def setup() {
-        project.path >> ":path"
+        project.identityPath >> Path.path(":path")
         project.displayName >> "<project>"
     }
 
@@ -119,7 +120,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         when:
         def publication = pub('mock', "pub-group", "pub-name", "pub-version")
         def publication2 = pub('mock', "pub-group", "pub-name", "pub-version")
-        def publication3 = Stub(ProjectPublication)
+        def publication3 = Stub(ProjectComponentPublication)
         publication3.getCoordinates(_) >> null
 
         dependentProjectHasPublications(publication, publication3, publication2)
@@ -214,22 +215,22 @@ Found the following publications in <project>:
         return resolve(ModuleVersionIdentifier)
     }
 
-    private def resolve(Class type) {
+    private ModuleVersionIdentifier resolve(Class type) {
         def resolver = new DefaultProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer)
         return resolver.resolve(type, projectDependency)
     }
 
-    private void dependentProjectHasPublications(ProjectPublication... added) {
+    private void dependentProjectHasPublications(ProjectComponentPublication... added) {
         projectDependency.dependencyProject >> project
         projectConfigurer.configureFully(project)
-        publicationRegistry.getPublications(":path") >> (added as LinkedHashSet)
+        publicationRegistry.getPublications(ProjectComponentPublication, Path.path(":path")) >> (added as LinkedHashSet)
     }
 
-    private ProjectPublication pub(def name, def group, def module, def version) {
-        def publication = Mock(ProjectPublication)
+    private ProjectComponentPublication pub(def name, def group, def module, def version) {
+        def publication = Mock(ProjectComponentPublication)
         publication.name >> name
         publication.displayName >> Describables.of("publication '" + name + "'")
-        publication.getCoordinates(ModuleVersionIdentifier) >> new DefaultModuleVersionIdentifier(group, module, version)
+        publication.getCoordinates(ModuleVersionIdentifier) >> DefaultModuleVersionIdentifier.newId(group, module, version)
         return publication
     }
 

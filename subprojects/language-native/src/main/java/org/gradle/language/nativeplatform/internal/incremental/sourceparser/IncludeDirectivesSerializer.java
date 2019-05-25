@@ -214,7 +214,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 return new MacroWithComplexExpression(name, type, value, args);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
-                return new UnresolveableMacro(name);
+                return new UnresolvableMacro(name);
             } else {
                 throw new IllegalArgumentException();
             }
@@ -233,7 +233,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 enumSerializer.write(encoder, value.getType());
                 encoder.writeNullableString(value.getValue());
                 expressionSerializer.write(encoder, value.getArguments());
-            } else if (value instanceof UnresolveableMacro) {
+            } else if (value instanceof UnresolvableMacro) {
                 encoder.writeByte(UNRESOLVED);
                 encoder.writeString(value.getName());
             } else {
@@ -285,7 +285,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
-                return new UnresolveableMacroFunction(name, parameters);
+                return new UnresolvableMacroFunction(name, parameters);
             } else {
                 throw new IllegalArgumentException();
             }
@@ -320,7 +320,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 for (int anArgsMap : argsMap) {
                     encoder.writeSmallInt(anArgsMap);
                 }
-            } else if (value instanceof UnresolveableMacroFunction) {
+            } else if (value instanceof UnresolvableMacroFunction) {
                 encoder.writeByte(UNRESOLVED);
                 encoder.writeString(value.getName());
                 encoder.writeSmallInt(value.getParameterCount());

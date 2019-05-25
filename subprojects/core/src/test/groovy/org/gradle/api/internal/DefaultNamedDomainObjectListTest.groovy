@@ -18,7 +18,7 @@ package org.gradle.api.internal
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Namer
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 
 class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollectionSpec<CharSequence> {
     final Namer<Object> toStringNamer = new Namer<Object>() {
@@ -26,7 +26,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
             return object.toString()
         }
     }
-    final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, DirectInstantiator.INSTANCE, toStringNamer)
+    final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, TestUtil.instantiatorFactory().decorateLenient(), toStringNamer, callbackActionDecorator)
 
     final DefaultNamedDomainObjectList<String> container = list
     final StringBuffer a = new StringBuffer("a")
@@ -34,6 +34,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     final StringBuffer c = new StringBuffer("c")
     final StringBuilder d = new StringBuilder("d")
     final boolean externalProviderAllowed = true
+    final boolean supportsBuildOperations = true
 
     def "can add element at given index"() {
         given:
@@ -212,7 +213,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         list.addAll(['a', 'b', 'a'])
 
         expect:
-        list.lastIndexOf('a') == 2
+        list.lastIndexOf('a') == 0  // Duplicates are omitted
         list.lastIndexOf('other') == -1
     }
 

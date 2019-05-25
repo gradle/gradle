@@ -25,6 +25,8 @@ import com.google.common.base.MoreObjects
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget.ProductType
 import org.gradle.test.fixtures.file.TestFile
 
+import javax.annotation.Nullable
+
 class ProjectFile {
     private final TestFile file
     final NSDictionary content
@@ -136,9 +138,12 @@ class ProjectFile {
             this.object = object
         }
 
+        @Nullable
         def getProperty(String name) {
             def value = object.get(name)
-            if (isId(value)) {
+            if (value == null) {
+                return null
+            } else if (isId(value)) {
                 return toPbxObject(toNSString(value).getContent())
             } else if (value instanceof NSArray) {
                 def list = []
@@ -191,6 +196,10 @@ class ProjectFile {
             super(id, object)
         }
 
+        String getName() {
+            return getProperty("name")
+        }
+
         List<PBXObject> getChildren() {
             return getProperty("children")
         }
@@ -200,6 +209,13 @@ class ProjectFile {
             assert children.size() == entries.size()
             assert children*.name.containsAll(entries)
             return true
+        }
+
+        @Override
+        String toString() {
+            MoreObjects.toStringHelper(this)
+                    .add('name', getName())
+                    .toString()
         }
     }
 
@@ -216,24 +232,60 @@ class ProjectFile {
             return getProperty("productName")
         }
 
+        @Nullable
         PBXObject getProductReference() {
             return getProperty("productReference")
         }
 
+        void assertProductNameEquals(String expectedProductName) {
+            assert this.productName == expectedProductName
+            assert this.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        }
+
+        ProductType getProductType() {
+            return ProductType.values().find { it.identifier == getProperty("productType")}
+        }
+
         void assertIsTool() {
             assertIs(ProductType.TOOL)
+            this.buildConfigurationList.buildConfigurations.each { ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(it.buildSettings) }
         }
 
         void assertIsDynamicLibrary() {
             assertIs(ProductType.DYNAMIC_LIBRARY)
+            this.buildConfigurationList.buildConfigurations.each { ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(it.buildSettings) }
         }
 
         void assertIsStaticLibrary() {
             assertIs(ProductType.STATIC_LIBRARY)
+            this.buildConfigurationList.buildConfigurations.each { ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(it.buildSettings) }
         }
 
         void assertIsUnitTest() {
-            assert isUnitTest()
+            assertIs(ProductType.UNIT_TEST)
+            this.buildConfigurationList.buildConfigurations.each {
+                if (it.name.startsWith("__GradleTestRunner_")) {
+                    ProjectFile.PBXTarget.assertUnitTestBuildSettings(it.buildSettings)
+                } else {
+                    ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(it.buildSettings)
+                }
+            }
+        }
+
+        private static void assertNotUnitTestBuildSettings(Map<String, String> buildSettings) {
+            assert buildSettings.OTHER_CFLAGS == null
+            assert buildSettings.OTHER_LDFLAGS == null
+            assert buildSettings.OTHER_SWIFT_FLAGS == null
+            assert buildSettings.SWIFT_INSTALL_OBJC_HEADER == null
+            assert buildSettings.SWIFT_OBJC_INTERFACE_HEADER_NAME == null
+        }
+
+        private static void assertUnitTestBuildSettings(Map<String, String> buildSettings) {
+            assert buildSettings.OTHER_CFLAGS == "-help"
+            assert buildSettings.OTHER_LDFLAGS == "-help"
+            assert buildSettings.OTHER_SWIFT_FLAGS == "-help"
+            assert buildSettings.SWIFT_INSTALL_OBJC_HEADER == "NO"
+            assert buildSettings.SWIFT_OBJC_INTERFACE_HEADER_NAME == "\$(PRODUCT_NAME).h"
         }
 
         void assertIs(ProductType productType) {
@@ -245,7 +297,7 @@ class ProjectFile {
         }
 
         boolean is(ProductType productType) {
-            return getProperty("productType") == productType.identifier
+            return getProductType() == productType
         }
 
         @Override
@@ -253,7 +305,38 @@ class ProjectFile {
             MoreObjects.toStringHelper(this)
                 .add('name', getName())
                 .add('productName', getProductName())
+                .add('productType', getProductType())
                 .toString()
+        }
+
+        void assertSupportedArchitectures(String... architectures) {
+            def toXcodeArchitecture = [x86: 'i386', 'x86-64': 'x86_64'].withDefault { it }
+            String expectedValidArchitectures = architectures.collect { toXcodeArchitecture.get(it) }.join(" ")
+            assert this.buildConfigurationList.buildConfigurations.every { it.buildSettings.VALID_ARCHS == expectedValidArchitectures }
+        }
+
+        void assertIsIndexerFor(PBXTarget target) {
+            assertIsIndexer()
+            assert this.name == "[INDEXING ONLY] ${target.name}"
+            this.assertProductNameEquals(target.productName)
+            int expectedBuildConfigurationsCount = target.buildConfigurationList.buildConfigurations.size()
+            if (target.isUnitTest()) {
+                expectedBuildConfigurationsCount--
+            }
+            assert this.buildConfigurationList.buildConfigurations.size() == expectedBuildConfigurationsCount
+            this.buildConfigurationList.buildConfigurations.eachWithIndex { buildConfiguration, idx ->
+                assert buildConfiguration.name == target.buildConfigurationList.buildConfigurations[idx].name
+                assert buildConfiguration.buildSettings.ARCHS == target.buildConfigurationList.buildConfigurations[idx].buildSettings.ARCHS
+                assert buildConfiguration.buildSettings.VALID_ARCHS == target.buildConfigurationList.buildConfigurations[idx].buildSettings.VALID_ARCHS
+            }
+        }
+
+        void assertIsIndexer() {
+            assertIs(ProductType.INDEXER)
+            assert this.name.startsWith("[INDEXING ONLY] ")
+            this.buildConfigurationList.buildConfigurations.each { buildConfiguration ->
+                ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(buildConfiguration.buildSettings)
+            }
         }
     }
 

@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
+import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -64,7 +64,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         return new StateCollectingIncrementalCompiler(task, includeDirs, sourceFiles, macros, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileVarFactory, buildOperationExecutor, importAware);
     }
 
-    private static class StateCollectingIncrementalCompiler implements IncrementalCompiler, MinimalFileSet, LifecycleAwareTaskProperty {
+    private static class StateCollectingIncrementalCompiler implements IncrementalCompiler, MinimalFileSet, LifecycleAwareValue {
         private final Map<String, String> macros;
         private final FileSystemSnapshotter fileSystemSnapshotter;
         private final CompilationStateCacheFactory compilationStateCacheFactory;

@@ -129,6 +129,11 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     private CommandLineToolContext context(CommandLineToolConfigurationInternal toolConfiguration) {
         MutableCommandLineToolContext baseInvocation = new DefaultMutableCommandLineToolContext();
         baseInvocation.setArgAction(toolConfiguration.getArgAction());
+
+        String developerDir = System.getenv("DEVELOPER_DIR");
+        if (developerDir != null) {
+            baseInvocation.addEnvironmentVar("DEVELOPER_DIR", developerDir);
+        }
         return baseInvocation;
     }
 

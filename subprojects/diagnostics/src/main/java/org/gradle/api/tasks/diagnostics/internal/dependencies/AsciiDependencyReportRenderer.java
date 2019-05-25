@@ -126,6 +126,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     private class ConfigurationAction implements Action<StyledTextOutput> {
         private Configuration configuration;
 
+        @Override
         public void execute(StyledTextOutput styledTextOutput) {
             getTextOutput().withStyle(Identifier).text(configuration.getName());
             getTextOutput().withStyle(Description).text(getDescription(configuration));

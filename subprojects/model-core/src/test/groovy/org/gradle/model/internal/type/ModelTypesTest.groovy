@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.type
 
+import org.gradle.api.JavaVersion
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -27,9 +28,24 @@ class ModelTypesTest extends Specification {
 
         where:
         types             | closed
-        [Integer]         | [Integer, Number, Comparable, Serializable]
-        [Integer, Double] | [Integer, Double, Number, Comparable, Serializable]
+        [Integer]         | typeHierarchyForInteger
+        [Integer, Double] | typeHierarchyForInteger + typeHierarchyForDouble
         [Object]          | []
         [GroovyObject]    | []
+    }
+
+    static def getTypeHierarchyForDouble() {
+        return maybeWithJava12ConstantTypes([Double, Number, Comparable, Serializable])
+    }
+
+    static def getTypeHierarchyForInteger() {
+        return maybeWithJava12ConstantTypes([Integer, Number, Comparable, Serializable])
+    }
+
+    static def maybeWithJava12ConstantTypes(types) {
+        if (JavaVersion.current().java12Compatible) {
+            types += [Class.forName("java.lang.constant.Constable"), Class.forName("java.lang.constant.ConstantDesc")]
+        }
+        return types
     }
 }

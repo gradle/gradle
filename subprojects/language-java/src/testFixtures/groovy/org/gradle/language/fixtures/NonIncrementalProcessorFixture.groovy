@@ -22,8 +22,6 @@ import groovy.transform.CompileStatic
  * An annotation processor which does all the things that we don't support for
  * incremental compilation:
  *
- *  - reading resources
- *  - writing resources
  *  - generating files without originating elements
  *
  *  Useful for testing error reporting.
@@ -32,8 +30,6 @@ import groovy.transform.CompileStatic
 class NonIncrementalProcessorFixture extends AnnotationProcessorFixture {
 
     private boolean providesNoOriginatingElements
-    private boolean readsResources
-    private boolean writesResources
 
     NonIncrementalProcessorFixture() {
         super("Thing")
@@ -41,16 +37,6 @@ class NonIncrementalProcessorFixture extends AnnotationProcessorFixture {
 
     NonIncrementalProcessorFixture providingNoOriginatingElements() {
         providesNoOriginatingElements = true
-        this
-    }
-
-    NonIncrementalProcessorFixture readingResources() {
-        readsResources = true
-        this
-    }
-
-    NonIncrementalProcessorFixture writingResources() {
-        writesResources = true
         this
     }
 
@@ -73,12 +59,6 @@ for (Element element : elements) {
         }
     } catch (IOException e) {
         messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate source file " + className);
-    }
-    try {
-        ${readsResources ? 'filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "thing.txt");' : ""}
-        ${writesResources ? 'filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "thing.txt");' : ""}
-    } catch (Exception e) {
-        messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate resource file thing.txt");
     }
 }
 """

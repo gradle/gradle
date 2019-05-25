@@ -28,7 +28,7 @@ import java.io.File;
 /**
  * Provides access to several important locations for a project.
  *
- * An instance of the factory can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getLayout()}.
+ * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getLayout()}.
  *
  * @since 4.1
  */
@@ -180,6 +180,8 @@ public interface ProjectLayout {
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.
      * @since 4.8
+     * @deprecated Please use {@link ObjectFactory#fileCollection()} instead.
      */
+    @Deprecated
     ConfigurableFileCollection configurableFiles(Object... paths);
 }

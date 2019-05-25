@@ -36,6 +36,7 @@ public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
 
     private final Spec<SpecRuleAction<? super ComponentSelection>> withNoInputs = new Spec<SpecRuleAction<? super ComponentSelection>>() {
+        @Override
         public boolean isSatisfiedBy(SpecRuleAction<? super ComponentSelection> element) {
             return element.getAction().getInputTypes().isEmpty();
         }

@@ -22,14 +22,27 @@ import org.apache.commons.lang.StringUtils
 
 class MavenScope {
     String name
+    Map<String, MavenDependency> optionalDependencies = [:]
     Map<String, MavenDependency> dependencies = [:]
     Map<String, MavenDependency> dependencyManagement = [:]
 
-    void assertDependsOn(String[] expected) {
+    void assertNoDependencies() {
+        assert dependencies.isEmpty()
+    }
+
+    void assertNoDependencyManagement() {
+        assert dependencyManagement.isEmpty()
+    }
+
+    void assertDependsOn(String... expected) {
+        assertDependencies(dependencies, expected)
+    }
+
+    private void assertDependencies(Map<String, MavenDependency> dependencies, String... expected) {
         assert dependencies.size() == expected.length
         expected.each {
             String key = StringUtils.substringBefore(it, "@")
-            def dependency = expectDependency(key)
+            def dependency = expectDependency(key, dependencies)
 
             String type = null
             if (it != key) {
@@ -39,7 +52,11 @@ class MavenScope {
         }
     }
 
-    void assertDependencyManagement(String[] expected) {
+    void assertOptionalDependencies(String... expected) {
+        assertDependencies(optionalDependencies, expected)
+    }
+
+    void assertDependencyManagement(String... expected) {
         assert dependencyManagement.size() == expected.length
         expected.each {
             String key = StringUtils.substringBefore(it, "@")
@@ -58,10 +75,10 @@ class MavenScope {
         dep.exclusions.contains(exclusion)
     }
 
-    MavenDependency expectDependency(String key) {
-        final dependency = dependencies[key]
+    MavenDependency expectDependency(String key, Map<String, MavenDependency> lookup = dependencies) {
+        final dependency = lookup[key]
         if (dependency == null) {
-            throw new AssertionError("Could not find expected dependency $key. Actual: ${dependencies.values()}")
+            throw new AssertionError("Could not find expected dependency $key. Actual: ${lookup.values()}")
         }
         return dependency
     }

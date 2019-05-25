@@ -20,8 +20,8 @@ import org.gradle.util.VersionNumber;
 
 class BuildScanPluginCompatibility {
 
-    public static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("2.0.1");
-    private static final String MIN_SUPPORTED_VERSION_DISPLAY = "2.0.1";
+    public static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("2.0.2");
+    private static final String MIN_SUPPORTED_VERSION_DISPLAY = "2.0.2";
     public static final String UNSUPPORTED_PLUGIN_VERSION_MESSAGE =
         "This version of Gradle requires version " + MIN_SUPPORTED_VERSION_DISPLAY + " of the build scan plugin or later.\n"
             + "Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.";
@@ -30,20 +30,15 @@ class BuildScanPluginCompatibility {
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
 
-    String unsupportedReason(VersionNumber pluginVersion) {
-        if (isEarlierThan(pluginVersion, MIN_SUPPORTED_VERSION)) {
-            return UNSUPPORTED_PLUGIN_VERSION_MESSAGE;
-        }
-
+    String unsupportedReason() {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             return UNSUPPORTED_TOGGLE_MESSAGE;
         }
-
         return null;
     }
 
-    private static boolean isEarlierThan(VersionNumber pluginVersion, VersionNumber minSupportedVersion) {
-        return pluginVersion.compareTo(minSupportedVersion) < 0;
+    static boolean isNotSupported(VersionNumber pluginVersion) {
+        return pluginVersion.compareTo(BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION) < 0;
     }
 
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.swiftpm
 
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
@@ -187,6 +189,8 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
+    // See https://github.com/gradle/gradle-native/issues/1007
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4_OR_OLDER)
     def "produces manifest for Swift component with declared Swift language version"() {
         given:
         buildFile << """

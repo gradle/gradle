@@ -21,9 +21,11 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
+
+import java.io.File;
 
 import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Details;
 import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Result;
@@ -68,9 +70,9 @@ public class BuildOperationSettingsProcessor implements SettingsProcessor {
 
                         @Override
                         public String getSettingsFile() {
-                            return settingsLocation.getSettingsScriptSource().getFileName();
+                            File settingsFile = settingsLocation.getSettingsFile();
+                            return settingsFile != null ? settingsFile.getPath() : null;
                         }
-
 
                     });
             }

@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.internal
 
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable
@@ -30,7 +31,7 @@ class DefaultNativeTestSuiteBinarySpecTest extends Specification {
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
     final def testUtil = TestUtil.create(testDir)
 
-    def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null))
+    def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null, CollectionCallbackActionDecorator.NOOP))
 
     def "returns null for link, install and run when none defined"() {
         expect:

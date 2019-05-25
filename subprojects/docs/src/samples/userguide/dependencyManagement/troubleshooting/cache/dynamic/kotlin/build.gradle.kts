@@ -32,7 +32,7 @@ configurations.all {
 }
 // end::dynamic-version-cache-control[]
 
-task<Copy>("copyLibs") {
+tasks.register<Copy>("copyLibs") {
     from(configurations.compileClasspath)
     into("$buildDir/libs")
 }

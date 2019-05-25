@@ -67,6 +67,15 @@ class BlockDoc implements DslElementDoc {
         return blockProperty.incubating || blockMethod.incubating
     }
 
+    boolean isReplaced() {
+        return blockProperty.replaced
+    }
+
+    @Override
+    String getReplacement() {
+        return blockProperty.replacement
+    }
+
     PropertyDoc getBlockProperty() {
         return blockProperty
     }

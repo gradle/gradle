@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
-import net.jcip.annotations.NotThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;

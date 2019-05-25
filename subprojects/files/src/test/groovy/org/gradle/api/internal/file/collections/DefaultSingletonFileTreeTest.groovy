@@ -15,13 +15,19 @@
  */
 package org.gradle.api.internal.file.collections
 
-import org.gradle.util.UsesNativeServices
-import spock.lang.Specification
-import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Issue
+import spock.lang.Specification
 
 @UsesNativeServices
 class DefaultSingletonFileTreeTest extends Specification {
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
     def hasUsefulDisplayName() {
         File f = new File('test-file')
         DefaultSingletonFileTree tree = new DefaultSingletonFileTree(f)
@@ -44,5 +50,47 @@ class DefaultSingletonFileTreeTest extends Specification {
             assert details.path == 'test-file'
         }
         0 * visitor._
+    }
+    
+    def "can be converted to a directory tree"() {
+        File f = temporaryFolder.file('test-file')
+        f.createNewFile()
+        DefaultSingletonFileTree singletonFileTree = new DefaultSingletonFileTree(f)
+        def tree = new FileTreeAdapter(singletonFileTree)
+
+        when:
+        def fileTrees = tree.getAsFileTrees()
+        then:
+        fileTrees.size() == 1
+        def directoryTree = fileTrees[0]
+        directoryTree.dir == f.parentFile
+        new FileTreeAdapter(directoryTree).files == [f] as Set
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/8394")
+    def "convert filtered tree to empty file trees"() {
+        File rootFile = temporaryFolder.file('test-file')
+        rootFile.createNewFile()
+        DefaultSingletonFileTree singletonFileTree = new DefaultSingletonFileTree(rootFile)
+        def tree = new FileTreeAdapter(singletonFileTree).matching {
+            it.include 'different'
+        }
+
+        when:
+        def fileTrees = tree.getAsFileTrees()
+        then:
+        fileTrees.size() == 0
+    }
+
+    def "contains delegates correctly"() {
+        File rootFile = temporaryFolder.file('test-file')
+        rootFile.createNewFile()
+        DefaultSingletonFileTree singletonFileTree = new DefaultSingletonFileTree(rootFile)
+        def tree = new FileTreeAdapter(singletonFileTree)
+
+        expect:
+        tree.contains(rootFile)
+        !tree.contains(temporaryFolder.file('test-file-new'))
+        !tree.matching { it.include 'different' }.contains(rootFile)
     }
 }

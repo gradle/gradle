@@ -27,7 +27,11 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         using m2
         buildFile << """
                 repositories {
-                    mavenLocal()
+                    mavenLocal {
+                        content {
+                            excludeGroup 'unused'
+                        }
+                    }
                 }
                 configurations { compile }
                 dependencies {

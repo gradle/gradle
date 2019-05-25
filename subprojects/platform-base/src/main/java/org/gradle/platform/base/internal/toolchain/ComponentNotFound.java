@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.util.TreeVisitor;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,15 +35,18 @@ public class ComponentNotFound<T> implements SearchResult<T> {
         this.locations = locations;
     }
 
+    @Override
     public T getComponent() {
         return null;
     }
 
+    @Override
     public boolean isAvailable() {
         return false;
     }
 
-    public void explain(TreeVisitor<? super String> visitor) {
+    @Override
+    public void explain(DiagnosticsVisitor visitor) {
         visitor.node(message);
         if (!locations.isEmpty()) {
             visitor.startChildren();

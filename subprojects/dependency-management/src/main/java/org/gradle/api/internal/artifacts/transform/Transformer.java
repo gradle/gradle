@@ -16,21 +16,46 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.util.BiFunction;
+import org.gradle.work.InputChanges;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.List;
 
 /**
  * The actual code which needs to be executed to transform a file.
  *
- * This encapsulates the public interface {@link ArtifactTransform} into an internal type.
+ * This encapsulates the public interface {@link org.gradle.api.artifacts.transform.TransformAction} into an internal type.
  */
-public interface Transformer extends BiFunction<List<File>, File, File>, Describable {
-    Class<? extends ArtifactTransform> getImplementationClass();
+public interface Transformer extends Describable, TaskDependencyContainer {
+    Class<?> getImplementationClass();
+
+    ImmutableAttributes getFromAttributes();
+
+    /**
+     * Whether the transformer requires dependencies of the transformed artifact to be injected.
+     */
+    boolean requiresDependencies();
+
+    /**
+     * Whether the transformer requires {@link InputChanges} to be injected.
+     */
+    boolean requiresInputChanges();
+
+    /**
+     * Whether the transformer is cacheable.
+     */
+    boolean isCacheable();
+
+    ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges);
 
     /**
      * The hash of the secondary inputs of the transformer.
@@ -38,4 +63,12 @@ public interface Transformer extends BiFunction<List<File>, File, File>, Describ
      * This includes the parameters and the implementation.
      */
     HashCode getSecondaryInputHash();
+
+    void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry);
+
+    Class<? extends FileNormalizer> getInputArtifactNormalizer();
+
+    Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer();
+
+    boolean isIsolated();
 }

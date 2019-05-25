@@ -27,7 +27,9 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.AppliedPlugin;
@@ -40,11 +42,16 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -113,6 +120,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      */
     static final String VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION = "Validates task property annotations for the plugin.";
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
@@ -120,9 +128,21 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         configureJarTask(project, extension);
         configureTestKit(project, extension);
         configurePublishing(project);
+        registerPlugins(project, extension);
         configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
         configureTaskPropertiesValidation(project);
+    }
+
+    private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
+        ProjectInternal projectInternal = (ProjectInternal) project;
+        ProjectPublicationRegistry registry = projectInternal.getServices().get(ProjectPublicationRegistry.class);
+        extension.getPlugins().all(new Action<PluginDeclaration>() {
+            @Override
+            public void execute(PluginDeclaration pluginDeclaration) {
+                registry.registerPublication(projectInternal, new LocalPluginPublication(pluginDeclaration));
+            }
+        });
     }
 
     private void applyDependencies(Project project) {
@@ -168,6 +188,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
                 pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
                 pluginUnderTestMetadataTask.getPluginClasspath().from(new Callable<Object>() {
+                    @Override
                     public Object call() {
                         final Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
                         FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
@@ -271,6 +292,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             this.classes = classes;
         }
 
+        @Override
         public void execute(Task task) {
             if (descriptors == null || descriptors.isEmpty()) {
                 LOGGER.warn(String.format(NO_DESCRIPTOR_WARNING_MESSAGE, task.getPath()));
@@ -318,6 +340,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             this.descriptors = descriptors;
         }
 
+        @Override
         public void execute(FileCopyDetails fileCopyDetails) {
             PluginDescriptor descriptor;
             try {
@@ -343,6 +366,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             this.classList = classList;
         }
 
+        @Override
         public void execute(FileCopyDetails fileCopyDetails) {
             classList.add(fileCopyDetails.getRelativePath().toString());
         }
@@ -385,4 +409,21 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         }
     }
 
+    private static class LocalPluginPublication implements PluginPublication {
+        private final PluginDeclaration pluginDeclaration;
+
+        LocalPluginPublication(PluginDeclaration pluginDeclaration) {
+            this.pluginDeclaration = pluginDeclaration;
+        }
+
+        @Override
+        public DisplayName getDisplayName() {
+            return Describables.withTypeAndName("plugin", pluginDeclaration.getName());
+        }
+
+        @Override
+        public PluginId getPluginId() {
+            return DefaultPluginId.of(pluginDeclaration.getId());
+        }
+    }
 }

@@ -17,4 +17,14 @@
 package org.gradle.nativeplatform.test.cpp
 
 abstract class AbstractCppUnitTestComponentWithTestedComponentIntegrationTest extends AbstractCppUnitTestComponentIntegrationTest {
+    @Override
+    protected String configureTargetMachines(String... targetMachines) {
+        return """
+            ${testedComponentDsl} {
+                targetMachines = [${targetMachines.join(",")}]
+            }
+        """ + super.configureTargetMachines(targetMachines)
+    }
+
+    abstract String getTestedComponentDsl()
 }

@@ -60,6 +60,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                 }
             }
             
+            def artifactType = Attribute.of('artifactType', String)
             def USAGE = Usage.USAGE_ATTRIBUTE
             def CUSTOM = objects.named(Usage.class, "custom")
             def C_PLUS_PLUS_API = objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
@@ -75,22 +76,22 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                 }
                 
                 registerTransform {
-                    from.attribute(USAGE, CUSTOM)
-                    to.attribute(USAGE, C_PLUS_PLUS_API)
+                    from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
+                    to.attribute(USAGE, C_PLUS_PLUS_API).attribute(artifactType, 'directory')
                     artifactTransform(UnzipTransform) {
                         params(file('lib/src/main/headers'))
                     }
                 }
                 
                 registerTransform {
-                    from.attribute(USAGE, CUSTOM)
-                    to.attribute(USAGE, NATIVE_RUNTIME)
+                    from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
+                    to.attribute(USAGE, NATIVE_RUNTIME).attribute(artifactType, 'directory')
                     artifactTransform(EmptyTransform)
                 }
                 
                 registerTransform {
-                    from.attribute(USAGE, CUSTOM)
-                    to.attribute(USAGE, NATIVE_LINK)
+                    from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
+                    to.attribute(USAGE, NATIVE_LINK).attribute(artifactType, 'directory')
                     artifactTransform(EmptyTransform)
                 }
             }

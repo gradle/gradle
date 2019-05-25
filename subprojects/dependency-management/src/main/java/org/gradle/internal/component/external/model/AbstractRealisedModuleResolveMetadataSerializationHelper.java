@@ -82,12 +82,12 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         }
     }
 
-    public void writeRealisedConfigurationsData(Encoder encoder, AbstractRealisedModuleComponentResolveMetadata transformed) throws IOException {
+    public void writeRealisedConfigurationsData(Encoder encoder, AbstractRealisedModuleComponentResolveMetadata transformed, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
         encoder.writeSmallInt(transformed.getConfigurationNames().size());
         for (String configurationName: transformed.getConfigurationNames()) {
             ConfigurationMetadata configuration = transformed.getConfiguration(configurationName);
             writeConfiguration(encoder, configuration);
-            writeDependencies(encoder, configuration);
+            writeDependencies(encoder, configuration, deduplicationDependencyCache);
         }
     }
 
@@ -137,16 +137,29 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         int capabilitiesCount = decoder.readSmallInt();
         List<Capability> rawCapabilities = Lists.newArrayListWithCapacity(capabilitiesCount);
         for (int j = 0; j < capabilitiesCount; j++) {
-            rawCapabilities.add(new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString()));
+            String appendix = decoder.readNullableString();
+            CapabilityInternal capability = new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
+            if (appendix != null) {
+                capability = new DefaultShadowedCapability(capability, appendix);
+            }
+            rawCapabilities.add(capability);
         }
         return ImmutableCapabilities.of(rawCapabilities);
     }
 
-    protected abstract void writeDependencies(Encoder encoder, ConfigurationMetadata configuration) throws IOException;
+    protected abstract void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException;
 
     private void writeCapabilities(Encoder encoder, List<? extends Capability> capabilities) throws IOException {
         encoder.writeSmallInt(capabilities.size());
         for (Capability capability: capabilities) {
+            boolean shadowed = capability instanceof ShadowedCapability;
+            if (shadowed) {
+                ShadowedCapability shadowedCapability = (ShadowedCapability) capability;
+                encoder.writeNullableString(shadowedCapability.getAppendix());
+                capability = shadowedCapability.getShadowedCapability();
+            } else {
+                encoder.writeNullableString(null);
+            }
             encoder.writeString(capability.getGroup());
             encoder.writeString(capability.getName());
             encoder.writeString(capability.getVersion());

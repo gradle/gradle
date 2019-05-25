@@ -16,7 +16,7 @@
 
 package org.gradle.internal.filewatch;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.concurrent.Stoppable;
 

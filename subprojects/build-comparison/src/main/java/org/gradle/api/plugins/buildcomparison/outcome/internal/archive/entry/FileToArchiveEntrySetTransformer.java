@@ -34,6 +34,7 @@ import java.util.zip.ZipInputStream;
 
 public class FileToArchiveEntrySetTransformer implements Transformer<Set<ArchiveEntry>, File> {
 
+    @Override
     public Set<ArchiveEntry> transform(File archiveFile) {
         FileInputStream fileInputStream;
         try {

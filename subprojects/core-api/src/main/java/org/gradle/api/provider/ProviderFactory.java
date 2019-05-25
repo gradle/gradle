@@ -22,24 +22,9 @@ import java.util.concurrent.Callable;
 
 /**
  * A factory for creating instances of {@link Provider}.
+ *
  * <p>
- * An instance of the factory can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}.
- *
- * <pre class='autoTested'>
- * public class MyTask extends DefaultTask {
- *   // injection into a constructor
- *   {@literal @}javax.inject.Inject
- *   public MyTask(ProviderFactory providerFactory) { }
- *
- *   // injection into a method
- *   {@literal @}javax.inject.Inject
- *   public ProviderFactory getProviderFactory() {
- *     throw new UnsupportedOperationException();
- *   }
- * }
- * </pre>
- *
- * <p>An instance of the factory is also available using {@link org.gradle.api.Project#getProviders()}</p>
+ * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}. It is also available via  {@link org.gradle.api.Project#getProviders()}.
  *
  * @since 4.0
  */

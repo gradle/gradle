@@ -15,10 +15,11 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal
+
 import org.gradle.api.GradleException
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability
-import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class UnavailableNativePlatformToolProviderTest extends Specification {
@@ -29,7 +30,7 @@ class UnavailableNativePlatformToolProviderTest extends Specification {
         expect:
         !toolChain.available
 
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         when:
         toolChain.explain(visitor)

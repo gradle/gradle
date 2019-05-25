@@ -59,19 +59,23 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
         return getThis();
     }
 
+    @Override
     public T run() throws GradleConnectionException {
         BlockingResultHandler<Object> handler = new BlockingResultHandler<Object>(Object.class);
         run(handler);
         return (T) handler.getResult();
     }
 
+    @Override
     public void run(ResultHandler<? super T> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         connection.run(new ConsumerAction<T>() {
+            @Override
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
 
+            @Override
             public T run(ConsumerConnection connection) {
                 T result = connection.run(buildAction, operationParameters);
                 return result;

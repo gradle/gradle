@@ -21,14 +21,18 @@ import org.gradle.cache.FileLockReleasedSignal;
 
 public class NoOpFileLockContentionHandler implements FileLockContentionHandler {
 
+    @Override
     public void start(long lockId, Action<FileLockReleasedSignal> whenContended) {}
 
+    @Override
     public void stop(long lockId) {}
 
+    @Override
     public int reservePort() {
         return -1;
     }
 
+    @Override
     public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
         return false;
     }

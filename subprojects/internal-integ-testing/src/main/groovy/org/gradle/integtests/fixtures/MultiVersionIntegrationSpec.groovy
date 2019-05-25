@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.fixtures
 
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.gradle.util.VersionNumber
 
 @RunWith(MultiVersionSpecRunner)
+@Category(ContextualMultiVersionTest.class)
 abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
     static def version
 

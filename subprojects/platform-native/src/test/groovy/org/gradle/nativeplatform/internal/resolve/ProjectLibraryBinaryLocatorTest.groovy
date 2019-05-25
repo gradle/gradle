@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform.internal.resolve
 
 import org.gradle.api.UnknownProjectException
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.resolve.ProjectModelResolver
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.registry.ModelRegistry
@@ -24,6 +23,7 @@ import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.platform.base.ComponentSpecContainer
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
@@ -35,8 +35,8 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def binary = Mock(MockNativeLibraryBinary)
     def binaries = Mock(ModelMap)
     def nativeBinaries = Mock(ModelMap)
-    def convertedBinaries = new DefaultDomainObjectSet(NativeLibraryBinary)
-    def locator = new ProjectLibraryBinaryLocator(projectLocator)
+    def convertedBinaries = TestUtil.domainObjectCollectionFactory().newDomainObjectSet(NativeLibraryBinary)
+    def locator = new ProjectLibraryBinaryLocator(projectLocator, TestUtil.domainObjectCollectionFactory())
 
     def setup() {
         convertedBinaries.add(binary)

@@ -55,6 +55,7 @@ public class PackageListGenerator extends DefaultTask {
         "javax/annotation",
         "javax/inject",
         "javax/xml",
+        "kotlin",
         "groovy",
         "groovyjarjarantlr",
         "net/rubygrapefruit",

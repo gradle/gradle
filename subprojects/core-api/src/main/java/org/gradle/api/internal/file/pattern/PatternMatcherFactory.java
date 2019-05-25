@@ -72,6 +72,7 @@ public class PatternMatcherFactory {
             return pathMatcher;
         }
 
+        @Override
         public boolean isSatisfiedBy(RelativePath element) {
             if (element.isFile() || !partialMatchDirs) {
                 return pathMatcher.matches(element.getSegments(), 0);

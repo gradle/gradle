@@ -22,6 +22,4 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleBuildResu
 
 class VerboseConsoleBuildResultReportingFunctionalTest extends AbstractConsoleBuildResultFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Verbose
-    String failureMessage = buildFailedStyled.errorOutput
-    String successMessage = buildSuccessStyled.output
 }

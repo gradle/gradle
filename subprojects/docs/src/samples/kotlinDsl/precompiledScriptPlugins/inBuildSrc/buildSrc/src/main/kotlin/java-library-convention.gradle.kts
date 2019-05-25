@@ -3,12 +3,12 @@ plugins {
     checkstyle
 }
 
-configure<JavaPluginConvention> {
+java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-configure<CheckstyleExtension> {
+checkstyle {
     maxWarnings = 0
     // ...
 }
@@ -19,6 +19,6 @@ tasks.withType<JavaCompile> {
 }
 
 dependencies {
-    "testImplementation"("junit:junit:4.12")
+    testImplementation("junit:junit:4.12")
     // ...
 }

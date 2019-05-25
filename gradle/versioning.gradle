@@ -9,6 +9,7 @@ if (buildTypes.promotionBuild.active) {
 ext.milestoneNumber = project.hasProperty("milestoneNumber") ? project.milestoneNumber.toInteger() : null
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
+ext.versionQualifier = project.hasProperty("versionQualifier") ? project.versionQualifier: null
 if ((milestoneNumber != null && rcNumber != null) ||
     (rcNumber != null && finalRelease) ||
     (milestoneNumber != null && finalRelease)) {
@@ -137,6 +138,9 @@ if (finalRelease) {
     version += "-rc-$rcNumber"
 } else if (milestoneNumber != null) {
     version += "-milestone-$milestoneNumber"
+} else if (versionQualifier != null ) {
+    isSnapshot = true
+    version += "-$versionQualifier-$buildTimestamp"
 } else {
     isSnapshot = true
     version += "-$buildTimestamp"

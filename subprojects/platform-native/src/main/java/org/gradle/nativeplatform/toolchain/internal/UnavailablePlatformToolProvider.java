@@ -17,15 +17,14 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
-import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
-import org.gradle.util.TreeVisitor;
 
 import java.io.File;
 
@@ -40,20 +39,18 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider, Co
         this.failure = failure;
     }
 
-    public UnavailablePlatformToolProvider(OperatingSystemInternal targetOperatingSystem, String failure) {
-        this.targetOperatingSystem = targetOperatingSystem;
-        ToolChainAvailability result = new ToolChainAvailability();
-        result.unavailable(failure);
-        this.failure = result;
-    }
-
     @Override
     public boolean isAvailable() {
         return false;
     }
 
     @Override
-    public void explain(TreeVisitor<? super String> visitor) {
+    public boolean isSupported() {
+        return true;
+    }
+
+    @Override
+    public void explain(DiagnosticsVisitor visitor) {
         failure.explain(visitor);
     }
 

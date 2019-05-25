@@ -59,7 +59,7 @@
 /*  Max string lengths for names (includes terminating NULL. */
 /** Maximum length of a test name string. */
 #define CU_MAX_TEST_NAME_LENGTH 256
-/** Maximim length of a suite name string. */
+/** Maximum length of a suite name string. */
 #define CU_MAX_SUITE_NAME_LENGTH 256
 
 /* Global type Definitions to be used for boolean operators. */

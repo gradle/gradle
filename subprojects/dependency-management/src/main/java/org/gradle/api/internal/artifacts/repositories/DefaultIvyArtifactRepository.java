@@ -29,16 +29,16 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvid
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.RedirectingGradleMetadataModuleMetadataSource;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
@@ -97,7 +97,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final InstantiatorFactory instantiatorFactory;
     private final FileResourceRepository fileResourceRepository;
-    private final ModuleMetadataParser moduleMetadataParser;
+    private final GradleModuleMetadataParser moduleMetadataParser;
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final IsolatableFactory isolatableFactory;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
@@ -111,12 +111,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                         InstantiatorFactory instantiatorFactory,
                                         FileResourceRepository fileResourceRepository,
-                                        ModuleMetadataParser moduleMetadataParser,
+                                        GradleModuleMetadataParser moduleMetadataParser,
                                         FeaturePreviews featurePreviews,
                                         IvyMutableModuleMetadataFactory metadataFactory,
                                         IsolatableFactory isolatableFactory,
                                         ObjectFactory objectFactory) {
-        super(instantiatorFactory.decorate(), authenticationContainer, objectFactory);
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -131,7 +131,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.isolatableFactory = isolatableFactory;
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
-        this.instantiator = instantiatorFactory.decorate();
+        this.instantiator = instantiatorFactory.decorateLenient();
         this.ivyContextManager = ivyContextManager;
         this.metadataSources.setDefaults(featurePreviews);
     }
@@ -145,10 +145,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return super.getDisplayName() + '(' + url + ')';
     }
 
-    public ModuleVersionPublisher createPublisher() {
+    @Override
+    public IvyResolver createPublisher() {
         return createRealResolver();
     }
 
+    @Override
     public ConfiguredModuleComponentRepository createResolver() {
         return createRealResolver();
     }
@@ -236,11 +238,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private ImmutableMetadataSources createMetadataSources() {
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
+        DefaultGradleModuleMetadataSource gradleModuleMetadataSource = new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory, true);
         if (metadataSources.gradleMetadata) {
-            sources.add(new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory, true));
+            sources.add(gradleModuleMetadataSource);
         }
         if (metadataSources.ivyDescriptor) {
-            sources.add(new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory));
+            DefaultIvyDescriptorMetadataSource ivyDescriptorMetadataSource = new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory);
+            sources.add(new RedirectingGradleMetadataModuleMetadataSource(ivyDescriptorMetadataSource, gradleModuleMetadataSource));
         }
         if (metadataSources.artifact) {
             sources.add(new DefaultArtifactMetadataSource(metadataFactory));
@@ -252,6 +256,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository, metadataFactory));
     }
 
+    @Override
     public URI getUrl() {
         return baseUrl == null ? null : fileResolver.resolveUri(baseUrl);
     }
@@ -318,6 +323,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         config.execute(layout);
     }
 
+    @Override
     public IvyArtifactRepositoryMetaDataProvider getResolve() {
         return metaDataProvider;
     }
@@ -334,6 +340,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             this.fileResolver = fileResolver;
         }
 
+        @Override
         public void apply(URI baseUri, PatternBasedResolver resolver) {
             for (String artifactPattern : artifactPatterns) {
                 ResolvedPattern resolvedPattern = new ResolvedPattern(artifactPattern, fileResolver);
@@ -371,10 +378,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private static class MetaDataProvider implements IvyArtifactRepositoryMetaDataProvider {
         boolean dynamicResolve;
 
+        @Override
         public boolean isDynamicMode() {
             return dynamicResolve;
         }
 
+        @Override
         public void setDynamicMode(boolean mode) {
             this.dynamicResolve = mode;
         }

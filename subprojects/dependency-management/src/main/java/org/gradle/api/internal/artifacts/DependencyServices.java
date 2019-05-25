@@ -17,16 +17,17 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformationNodeFactory;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeExecutor;
-import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory;
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 public class DependencyServices extends AbstractPluginServiceRegistry {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementGlobalScopeServices());
     }
@@ -56,12 +57,12 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return listenerManager.getBroadcaster(ArtifactTransformListener.class);
         }
 
-        TransformationNodeFactory createTransformationNodeFactory() {
-            return new DefaultTransformationNodeFactory();
+        TransformationNodeRegistry createTransformationNodeRegistry() {
+            return new DefaultTransformationNodeRegistry();
         }
 
-        TransformationNodeDependencyResolver createTransformationNodeDependencyResolver(TransformationNodeFactory transformationNodeFactory) {
-            return new TransformationNodeDependencyResolver(transformationNodeFactory);
+        TransformationNodeDependencyResolver createTransformationNodeDependencyResolver(TransformationNodeRegistry transformationNodeRegistry) {
+            return new TransformationNodeDependencyResolver(transformationNodeRegistry);
         }
 
         TransformationNodeExecutor createTransformationNodeExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {

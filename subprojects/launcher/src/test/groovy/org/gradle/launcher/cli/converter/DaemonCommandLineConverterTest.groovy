@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.cli.converter
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.launcher.daemon.configuration.DaemonParameters
@@ -49,10 +50,10 @@ class DaemonCommandLineConverterTest extends Specification {
         def converted = convert(options)
 
         then:
-        converted.foreground == foregound
+        converted.foreground == foreground
 
         where:
-        options                         | foregound
+        options                         | foreground
         []                              | false
         ['--foreground']                | true
         ['--foreground', '--no-daemon'] | true
@@ -91,6 +92,6 @@ class DaemonCommandLineConverterTest extends Specification {
         CommandLineParser parser = new CommandLineParser()
         def converter = new DaemonCommandLineConverter()
         converter.configure(parser)
-        converter.convert(args, new DaemonParameters(new BuildLayoutParameters()))
+        converter.convert(args, new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory()))
     }
 }

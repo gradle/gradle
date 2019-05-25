@@ -45,7 +45,7 @@ import java.util.concurrent.Executor
 abstract class NativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
-    protected CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), tmpDirProvider.root, TestFiles.getPatternSetFactory()))
+    protected CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(tmpDirProvider.root, TestFiles.getPatternSetFactory()))
     private static final String O_EXT = ".o"
 
     protected abstract NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile)

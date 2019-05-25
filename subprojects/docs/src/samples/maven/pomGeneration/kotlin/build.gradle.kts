@@ -45,7 +45,7 @@ dependencies {
 
 task<Zip>("javadocZip") {
     dependsOn("javadoc")
-    classifier = "javadoc"
+    archiveClassifier.set("javadoc")
     from(tasks.javadoc)
 }
 

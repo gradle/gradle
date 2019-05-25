@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 
 /**
@@ -49,6 +49,13 @@ public interface BuildOperationExecutor {
      * <p>Rethrows any exception thrown by the action.</p>
      */
     <T> T call(CallableBuildOperation<T> buildOperation);
+
+    /**
+     * Starts an operation that can be finished later through its context available via {@link ExecutingBuildOperation#getContext()}.
+     *
+     * When a parent operation is finished any unfinished child operations will be failed.
+     */
+    ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor);
 
     /**
      * Submits an arbitrary number of runnable operations, created synchronously by the scheduling action, to be executed in the global

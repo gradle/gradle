@@ -28,6 +28,9 @@ repositories {
     jcenter()
     jcenter { // just test this syntax works.
         name = "otherJcenter"
+        content {
+            includeGroup 'org.sample'
+        }
     }
 }
 

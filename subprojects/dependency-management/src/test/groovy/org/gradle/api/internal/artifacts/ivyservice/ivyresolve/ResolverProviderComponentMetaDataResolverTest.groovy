@@ -31,6 +31,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 class ResolverProviderComponentMetaDataResolverTest extends Specification {
+    final org.gradle.internal.Factory<String> broken = { "broken" }
     final metaData = metaData("1.2")
     final moduleComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "project"), "1.0")
     final componentRequestMetaData = Mock(ComponentOverrideMetadata)
@@ -445,7 +446,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.failed(new ModuleVersionResolveException(id, "broken"))
+            result.failed(new ModuleVersionResolveException(id, broken))
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
@@ -478,7 +479,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         then:
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.failed(new ModuleVersionResolveException(id, "broken"))
+            result.failed(new ModuleVersionResolveException(id, broken))
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
@@ -503,7 +504,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
 
     def "rethrows failure to resolve local dependency when not available in any repository"() {
         given:
-        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), "broken")
+        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), broken)
         def repo1 = addRepo1()
         def repo2 = addRepo2()
 
@@ -530,7 +531,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
 
     def "rethrows failure to resolve remote dependency when not available in any repository"() {
         given:
-        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), "broken")
+        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), broken)
         def repo1 = addRepo1()
         def repo2 = addRepo2()
 

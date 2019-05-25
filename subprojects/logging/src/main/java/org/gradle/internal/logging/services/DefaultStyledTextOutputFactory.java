@@ -32,6 +32,7 @@ public class DefaultStyledTextOutputFactory extends AbstractStyledTextOutputFact
         this.clock = clock;
     }
 
+    @Override
     public StyledTextOutput create(String logCategory, LogLevel logLevel) {
         return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, logLevel, clock);
     }

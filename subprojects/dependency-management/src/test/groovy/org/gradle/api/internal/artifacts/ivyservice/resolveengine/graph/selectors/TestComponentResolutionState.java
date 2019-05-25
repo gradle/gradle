@@ -18,11 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Set;
 
 public class TestComponentResolutionState implements ComponentResolutionState {
     private ComponentIdentifier componentIdentifier;
@@ -79,4 +82,13 @@ public class TestComponentResolutionState implements ComponentResolutionState {
         return rejected;
     }
 
+    @Override
+    public Set<VirtualPlatformState> getPlatformOwners() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public VirtualPlatformState getPlatformState() {
+        return null;
+    }
 }

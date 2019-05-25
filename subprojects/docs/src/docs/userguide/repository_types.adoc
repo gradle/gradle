@@ -232,7 +232,7 @@ The following metadata sources are supported:
 
 [NOTE]
 ====
-The defaults for Ivy and Maven repositories change with Gradle 5.0. Before 5.0, `artifact()` was included in the defaults. Leading to some inefficiency when modules are missing completely. To restore this behavior, for example, for Maven central you can use `mavenCentral { mavenPom(); artifact() }`. In a similar way, you can opt into the new behavior in older Gradle verisions using `mavenCentral { mavenPom() }`
+The defaults for Ivy and Maven repositories change with Gradle 5.0. Before 5.0, `artifact()` was included in the defaults. Leading to some inefficiency when modules are missing completely. To restore this behavior, for example, for Maven central you can use `mavenCentral { mavenPom(); artifact() }`. In a similar way, you can opt into the new behavior in older Gradle versions using `mavenCentral { mavenPom() }`
 ====
 
 [[sub:supported_transport_protocols]]

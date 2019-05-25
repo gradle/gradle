@@ -100,7 +100,7 @@ public class SerializedValueSnapshot implements ValueSnapshot {
         return Objects.equal(implementationHash, other.implementationHash) && Arrays.equals(serializedValue, other.serializedValue);
     }
 
-    protected  Object populateClass(Class<?> originalClass) {
+    protected Object populateClass(Class<?> originalClass) {
         Object populated;
         try {
             populated = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), originalClass.getClassLoader()).readObject();

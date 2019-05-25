@@ -164,7 +164,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         };
     }
 
-    // This is final - use {@link TaskDependencyContainer#resolve} to provide the dependencies instead.
+    // This is final - use {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
     @Override
     public final TaskDependency getBuildDependencies() {
         return new AbstractTaskDependency() {

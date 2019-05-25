@@ -16,39 +16,68 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Action;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ProcessForkOptions;
 
+import java.io.File;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
-public class DefaultExecActionFactory implements ExecFactory, Stoppable {
-    private final FileResolver fileResolver;
-    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
-    private final Executor executor;
-    private final BuildCancellationToken buildCancellationToken;
+public class DefaultExecActionFactory implements ExecFactory {
+    protected final FileResolver fileResolver;
+    protected final Executor executor;
+    protected final FileCollectionFactory fileCollectionFactory;
+    protected final BuildCancellationToken buildCancellationToken;
 
-    public DefaultExecActionFactory(FileResolver fileResolver) {
-        this(fileResolver, new DefaultBuildCancellationToken());
-    }
-
-    public DefaultExecActionFactory(FileResolver fileResolver, BuildCancellationToken buildCancellationToken) {
+    private DefaultExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken) {
         this.fileResolver = fileResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.buildCancellationToken = buildCancellationToken;
-        executor = executorFactory.create("Exec process");
+        this.executor = executor;
+    }
+
+    // Do not use this. It's here because some of the services this type needs are not easily accessed in certain cases and will be removed ay some point. Use one of the other methods instead
+    public static DefaultExecActionFactory root() {
+        IdentityFileResolver resolver = new IdentityFileResolver();
+        return of(resolver, new DefaultFileCollectionFactory(resolver, null), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+    }
+
+    public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {
+        return of(fileResolver, fileCollectionFactory, executorFactory, new DefaultBuildCancellationToken());
+    }
+
+    public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory, BuildCancellationToken buildCancellationToken) {
+        return new RootExecFactory(fileResolver, fileCollectionFactory, executorFactory, buildCancellationToken);
     }
 
     @Override
-    public void stop() {
-        executorFactory.stop();
+    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator) {
+        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken);
     }
 
     @Override
-    public ExecFactory forContext(FileResolver fileResolver, Instantiator instantiator) {
-        return new DecoratingExecActionFactory(fileResolver, instantiator, executor, buildCancellationToken);
+    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken) {
+        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken);
     }
 
     @Override
@@ -62,13 +91,25 @@ public class DefaultExecActionFactory implements ExecFactory, Stoppable {
     }
 
     @Override
+    public JavaForkOptionsInternal newJavaForkOptions() {
+        return new DefaultJavaForkOptions(fileResolver, fileCollectionFactory);
+    }
+
+    @Override
+    public JavaForkOptionsInternal immutableCopy(JavaForkOptionsInternal options) {
+        JavaForkOptionsInternal copy = newJavaForkOptions();
+        options.copyTo(copy);
+        return new ImmutableJavaForkOptions(copy);
+    }
+
+    @Override
     public JavaExecAction newDecoratedJavaExecAction() {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return new DefaultJavaExecAction(fileResolver, executor, buildCancellationToken);
+        return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
     }
 
     @Override
@@ -78,45 +119,40 @@ public class DefaultExecActionFactory implements ExecFactory, Stoppable {
 
     @Override
     public JavaExecHandleBuilder newJavaExec() {
-        return new JavaExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
     }
 
-    private static class DecoratingExecActionFactory implements ExecFactory {
-        private final FileResolver fileResolver;
+    @Override
+    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
+        JavaExecAction execAction = newDecoratedJavaExecAction();
+        action.execute(execAction);
+        return execAction.execute();
+    }
+
+    @Override
+    public ExecResult exec(Action<? super ExecSpec> action) {
+        ExecAction execAction = newDecoratedExecAction();
+        action.execute(execAction);
+        return execAction.execute();
+    }
+
+    private static class RootExecFactory extends DefaultExecActionFactory implements Stoppable {
+        public RootExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory, BuildCancellationToken buildCancellationToken) {
+            super(fileResolver, fileCollectionFactory, executorFactory.create("Exec process"), buildCancellationToken);
+        }
+
+        @Override
+        public void stop() {
+            CompositeStoppable.stoppable(executor).stop();
+        }
+    }
+
+    private static class DecoratingExecActionFactory extends DefaultExecActionFactory {
         private final Instantiator instantiator;
-        private final Executor executor;
-        private final BuildCancellationToken buildCancellationToken;
 
-        DecoratingExecActionFactory(FileResolver fileResolver, Instantiator instantiator, Executor executor, BuildCancellationToken buildCancellationToken) {
-            this.fileResolver = fileResolver;
+        DecoratingExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Executor executor, BuildCancellationToken buildCancellationToken) {
+            super(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
             this.instantiator = instantiator;
-            this.executor = executor;
-            this.buildCancellationToken = buildCancellationToken;
-        }
-
-        @Override
-        public ExecFactory forContext(FileResolver fileResolver, Instantiator instantiator) {
-            return new DecoratingExecActionFactory(fileResolver, instantiator, executor, buildCancellationToken);
-        }
-
-        @Override
-        public ExecAction newExecAction() {
-            return new DefaultExecAction(fileResolver, executor, buildCancellationToken);
-        }
-
-        @Override
-        public JavaExecAction newJavaExecAction() {
-            return new DefaultJavaExecAction(fileResolver, executor, buildCancellationToken);
-        }
-
-        @Override
-        public ExecHandleBuilder newExec() {
-            return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationToken);
-        }
-
-        @Override
-        public JavaExecHandleBuilder newJavaExec() {
-            return new JavaExecHandleBuilder(fileResolver, executor, buildCancellationToken);
         }
 
         @Override
@@ -126,7 +162,225 @@ public class DefaultExecActionFactory implements ExecFactory, Stoppable {
 
         @Override
         public JavaExecAction newDecoratedJavaExecAction() {
-            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, executor, buildCancellationToken);
+            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, executor, buildCancellationToken);
+        }
+    }
+
+    private static class ImmutableJavaForkOptions implements JavaForkOptionsInternal {
+        private final JavaForkOptionsInternal delegate;
+
+        public ImmutableJavaForkOptions(JavaForkOptionsInternal delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String getExecutable() {
+            return delegate.getExecutable();
+        }
+
+        @Override
+        public void setExecutable(String executable) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Map<String, Object> getSystemProperties() {
+            return ImmutableMap.copyOf(delegate.getSystemProperties());
+        }
+
+        @Override
+        public void setExecutable(Object executable) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setSystemProperties(Map<String, ?> properties) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ProcessForkOptions executable(Object executable) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public JavaForkOptions systemProperties(Map<String, ?> properties) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public File getWorkingDir() {
+            return delegate.getWorkingDir();
+        }
+
+        @Override
+        public void setWorkingDir(File dir) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public JavaForkOptions systemProperty(String name, Object value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setWorkingDir(Object dir) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getDefaultCharacterEncoding() {
+            return delegate.getDefaultCharacterEncoding();
+        }
+
+        @Override
+        public ProcessForkOptions workingDir(Object dir) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Map<String, Object> getEnvironment() {
+            return ImmutableMap.copyOf(delegate.getEnvironment());
+        }
+
+        @Override
+        public void setEnvironment(Map<String, ?> environmentVariables) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getMinHeapSize() {
+            return delegate.getMinHeapSize();
+        }
+
+        @Override
+        public void setMinHeapSize(String heapSize) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ProcessForkOptions environment(String name, Object value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ProcessForkOptions copyTo(ProcessForkOptions options) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getMaxHeapSize() {
+            return delegate.getMaxHeapSize();
+        }
+
+        @Override
+        public void setMaxHeapSize(String heapSize) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<String> getJvmArgs() {
+            return ImmutableList.copyOf(delegate.getJvmArgs());
+        }
+
+        @Override
+        public void setJvmArgs(List<String> arguments) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setJvmArgs(Iterable<?> arguments) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public JavaForkOptions jvmArgs(Iterable<?> arguments) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public JavaForkOptions jvmArgs(Object... arguments) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public FileCollection getBootstrapClasspath() {
+            return delegate.getBootstrapClasspath();
+        }
+
+        @Override
+        public void setBootstrapClasspath(FileCollection classpath) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public JavaForkOptions bootstrapClasspath(Object... classpath) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean getEnableAssertions() {
+            return delegate.getEnableAssertions();
+        }
+
+        @Override
+        public void setEnableAssertions(boolean enabled) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean getDebug() {
+            return delegate.getDebug();
+        }
+
+        @Override
+        public void setDebug(boolean enabled) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<String> getAllJvmArgs() {
+            return ImmutableList.copyOf(delegate.getAllJvmArgs());
+        }
+
+        @Override
+        public void setAllJvmArgs(List<String> arguments) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setAllJvmArgs(Iterable<?> arguments) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public JavaForkOptions copyTo(JavaForkOptions options) {
+            return delegate.copyTo(options);
+        }
+
+        @Override
+        public JavaForkOptionsInternal mergeWith(JavaForkOptions options) {
+            return new ImmutableJavaForkOptions(delegate.mergeWith(options));
+        }
+
+        @Override
+        public boolean isCompatibleWith(JavaForkOptions options) {
+            return delegate.isCompatibleWith(options);
         }
     }
 }

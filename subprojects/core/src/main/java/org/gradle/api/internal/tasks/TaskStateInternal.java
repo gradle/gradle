@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.util.CollectionUtils;
@@ -30,9 +29,9 @@ public class TaskStateInternal implements TaskState {
     private boolean actionable = true;
     private boolean didWork;
     private RuntimeException failure;
-    private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
 
+    @Override
     public boolean getDidWork() {
         return didWork;
     }
@@ -41,6 +40,7 @@ public class TaskStateInternal implements TaskState {
         this.didWork = didWork;
     }
 
+    @Override
     public boolean getExecuted() {
         return outcome != null;
     }
@@ -93,32 +93,29 @@ public class TaskStateInternal implements TaskState {
         this.executing = executing;
     }
 
-    public void setTaskOutputCaching(TaskOutputCachingState taskOutputCaching) {
-        this.taskOutputCaching = taskOutputCaching;
-    }
-
-    public TaskOutputCachingState getTaskOutputCaching() {
-        return taskOutputCaching;
-    }
-
+    @Override
     public Throwable getFailure() {
         return failure;
     }
 
+    @Override
     public void rethrowFailure() {
         if (failure != null) {
             throw failure;
         }
     }
 
+    @Override
     public boolean getSkipped() {
         return outcome != null && outcome.isSkipped();
     }
 
+    @Override
     public String getSkipMessage() {
         return outcome != null ? outcome.getMessage() : null;
     }
 
+    @Override
     public boolean getUpToDate() {
         return outcome != null && outcome.isUpToDate();
     }

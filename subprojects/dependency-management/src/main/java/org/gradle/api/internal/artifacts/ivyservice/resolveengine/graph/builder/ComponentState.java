@@ -16,27 +16,31 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedVariantDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -44,23 +48,24 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.StreamSupport;
 
 /**
  * Resolution state for a given component
  */
 public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
-    private static final DisplayName UNKNOWN_VARIANT = Describables.of("unknown");
-
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
-    private final VariantNameBuilder variantNameBuilder;
     private final List<NodeState> nodes = Lists.newLinkedList();
     private final Long resultId;
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
     private final ImmutableCapability implicitCapability;
+    private final int hashCode;
 
     private volatile ComponentResolveMetadata metadata;
 
@@ -71,15 +76,16 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     private boolean rejected;
     private boolean root;
+    private Pair<Capability, Collection<NodeState>> capabilityReject;
 
-    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver, VariantNameBuilder variantNameBuilder) {
+    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
         this.module = module;
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
-        this.variantNameBuilder = variantNameBuilder;
         this.implicitCapability = new ImmutableCapability(id.getGroup(), id.getName(), id.getVersion());
+        this.hashCode = 31 * id.hashCode() ^ resultId.hashCode();
     }
 
     @Override
@@ -132,8 +138,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return nodes;
     }
 
-    public ModuleResolveState getModule() {
+    ModuleResolveState getModule() {
         return module;
+    }
+
+    public void selectAndRestartModule() {
+        module.restart(this);
     }
 
     @Override
@@ -185,12 +195,32 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         ComponentOverrideMetadata componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelectedBy.getDependencyMetadata());
 
         DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
+        if (tryResolveVirtualPlatform()) {
+            return;
+        }
         resolver.resolve(componentIdentifier, componentOverrideMetadata, result);
+
         if (result.getFailure() != null) {
             metadataResolveFailure = result.getFailure();
             return;
         }
         metadata = result.getMetadata();
+    }
+
+    private boolean tryResolveVirtualPlatform() {
+        if (module.isVirtualPlatform()) {
+            for (ComponentState version : module.getAllVersions()) {
+                if (version != this) {
+                    ComponentResolveMetadata metadata = version.getMetadata();
+                    if (metadata instanceof LenientPlatformResolveMetadata) {
+                        LenientPlatformResolveMetadata lenient = (LenientPlatformResolveMetadata) metadata;
+                        this.metadata = lenient.withVersion((ModuleComponentIdentifier) componentIdentifier, id);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public void setMetadata(ComponentResolveMetadata metaData) {
@@ -202,10 +232,15 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         nodes.add(node);
     }
 
+    private ComponentSelectionReason cachedReason;
+
     @Override
     public ComponentSelectionReason getSelectionReason() {
         if (root) {
             return ComponentSelectionReasons.root();
+        }
+        if (cachedReason != null) {
+            return cachedReason;
         }
         ComponentSelectionReasonInternal reason = ComponentSelectionReasons.empty();
         for (final SelectorState selectorState : module.getSelectors()) {
@@ -216,7 +251,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         for (ComponentSelectionDescriptorInternal selectionCause : VersionConflictResolutionDetails.mergeCauses(selectionCauses)) {
             reason.addCause(selectionCause);
         }
+        cachedReason = reason;
         return reason;
+    }
+
+    boolean isForced() {
+        return StreamSupport.stream(module.getSelectors().spliterator(), false)
+            .filter(s -> s.getFailure() == null)
+            .anyMatch(SelectorState::isForce);
     }
 
     @Override
@@ -229,25 +271,35 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public DisplayName getVariantName() {
-        DisplayName name = null;
-        List<String> names = null;
+    public List<ResolvedVariantDetails> getResolvedVariants() {
+        List<ResolvedVariantDetails> result = null;
+        ResolvedVariantDetails cur = null;
         for (NodeState node : nodes) {
             if (node.isSelected()) {
-                if (names == null) {
-                    names = Lists.newArrayListWithCapacity(nodes.size());
+                ConfigurationMetadata metadata = node.getMetadata();
+                DisplayName name = Describables.of(metadata.getName());
+                List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
+                AttributeContainer attributes = node.desugar(metadata.getAttributes());
+                List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(implicitCapability) : ImmutableList.copyOf(capabilities);
+                ResolvedVariantDetails details = new DefaultVariantDetails(name, attributes, resolvedVariantCapabilities);
+                if (result != null) {
+                    result.add(details);
+                } else if (cur != null) {
+                    result = Lists.newArrayList();
+                    result.add(cur);
+                    result.add(details);
+                } else {
+                    cur = details;
                 }
-                names.add(node.getMetadata().getName());
             }
         }
-        name = variantNameBuilder.getVariantName(names);
-        return name == null ? UNKNOWN_VARIANT : name;
-    }
-
-    @Override
-    public AttributeContainer getVariantAttributes() {
-        NodeState selected = getSelectedNode();
-        return selected == null ? ImmutableAttributes.EMPTY : AttributeDesugaring.desugar(selected.getMetadata().getAttributes(), selected.getAttributesFactory());
+        if (result != null) {
+            return result;
+        }
+        if (cur != null) {
+            return Collections.singletonList(cur);
+        }
+        return Collections.emptyList();
     }
 
     /**
@@ -306,7 +358,24 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public void reject() {
         this.rejected = true;
+    }
 
+    public void rejectForCapabilityConflict(Capability capability, Collection<NodeState> conflictedNodes) {
+        this.rejected = true;
+        if (this.capabilityReject == null) {
+            this.capabilityReject = Pair.of(capability, conflictedNodes);
+        } else {
+            mergeCapabilityRejects(capability, conflictedNodes);
+        }
+    }
+
+    private void mergeCapabilityRejects(Capability capability, Collection<NodeState> conflictedNodes) {
+        // Only merge if about the same capability, otherwise last wins
+        if (this.capabilityReject.getLeft().equals(capability)) {
+            this.capabilityReject.getRight().addAll(conflictedNodes);
+        } else {
+            this.capabilityReject = Pair.of(capability, conflictedNodes);
+        }
     }
 
     @Override
@@ -314,6 +383,34 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return rejected;
     }
 
+    public String getRejectedErrorMessage() {
+        if (capabilityReject != null) {
+            return formatCapabilityRejectMessage(module.getId(), capabilityReject);
+        } else {
+            return new RejectedModuleMessageBuilder().buildFailureMessage(module);
+        }
+
+    }
+
+    private String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        StringBuilder sb = new StringBuilder("Module '");
+        sb.append(id).append("' has been rejected:\n");
+        sb.append("   Cannot select module with conflict on ");
+        Capability capability = capabilityConflict.left;
+        sb.append("capability '").append(capability.getGroup()).append(":").append(capability.getName()).append(":").append(capability.getVersion()).append("' also provided by ");
+        sb.append(capabilityConflict.getRight());
+        return sb.toString();
+    }
+
+    @Override
+    public Set<VirtualPlatformState> getPlatformOwners() {
+        return module.getPlatformOwners();
+    }
+
+    @Override
+    public VirtualPlatformState getPlatformState() {
+        return module.getPlatformState();
+    }
 
     public void removeOutgoingEdges() {
         for (NodeState configuration : getNodes()) {
@@ -355,40 +452,47 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-
-    public void forEachCapability(Action<? super Capability> action) {
-        // check conflict for each target node
-        for (NodeState target : nodes) {
-            List<? extends Capability> capabilities = target.getMetadata().getCapabilities().getCapabilities();
-            // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list
-            // because it still creates an inner class for an iterator, which delegates to an Array iterator, which does... nothing.
-            // so just adding this check has a significant impact because most components do not declare any capability
-            if (!capabilities.isEmpty()) {
-                for (Capability capability : capabilities) {
-                    action.execute(capability);
-                }
-            }
-        }
+    Capability getImplicitCapability() {
+        return implicitCapability;
     }
 
-    public Capability findCapability(String group, String name) {
+    Capability findCapability(String group, String name) {
         if (id.getGroup().equals(group) && id.getName().equals(name)) {
             return implicitCapability;
         }
-        return findCapabilityOnTarget(group, name);
+        return null;
     }
 
-    private Capability findCapabilityOnTarget(String group, String name) {
-        for (NodeState target : nodes) {
-            List<? extends Capability> capabilities = target.getMetadata().getCapabilities().getCapabilities();
-            if (!capabilities.isEmpty()) { // Not required, but Guava's performance bad for an empty immutable list
-                for (Capability capability : capabilities) {
-                    if (capability.getGroup().equals(group) && capability.getName().equals(name)) {
-                        return capability;
-                    }
+    boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
+        int count = 0;
+        for (NodeState node : nodes) {
+            if (node.isSelectedByVariantAwareResolution()) {
+                count++;
+                if (count == 2) {
+                    return true;
                 }
             }
         }
-        return null;
+        return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ComponentState that = (ComponentState) o;
+
+        return that.resultId == resultId;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
     }
 }

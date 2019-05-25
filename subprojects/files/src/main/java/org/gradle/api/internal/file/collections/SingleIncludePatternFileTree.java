@@ -63,6 +63,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
         this.excludeSpec = excludeSpec;
     }
 
+    @Override
     public void visit(FileVisitor visitor) {
         doVisit(visitor, baseDir, new LinkedList<String>(), 0, new AtomicBoolean());
     }
@@ -129,6 +130,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
         }
     }
 
+    @Override
     public String getDisplayName() {
         return "directory '" + baseDir + "' include '" + includePattern + "'";
     }

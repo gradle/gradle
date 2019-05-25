@@ -24,14 +24,17 @@ public class DefaultGenerationListener implements GenerationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGenerationListener.class);
     private final LinkedList<String> contextStack = new LinkedList<String>();
 
+    @Override
     public void warning(String message) {
         LOGGER.warn(String.format("%s: %s", contextStack.getFirst(), message));
     }
 
+    @Override
     public void start(String context) {
         contextStack.addFirst(context);
     }
 
+    @Override
     public void finish() {
         contextStack.removeFirst();
     }

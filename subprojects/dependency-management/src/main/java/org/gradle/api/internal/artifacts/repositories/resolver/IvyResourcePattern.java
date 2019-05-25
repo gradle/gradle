@@ -41,20 +41,24 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
         return "Ivy pattern '" + getPattern() + "'";
     }
 
+    @Override
     public ExternalResourceName getLocation(ModuleComponentArtifactMetadata artifact) {
         Map<String, String> attributes = toAttributes(artifact);
         return getBase().getRoot().resolve(substituteTokens(getBase().getPath(), attributes));
     }
 
+    @Override
     public ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
         Map<String, String> attributes = toAttributes(module, artifact);
         return getBase().getRoot().resolve(substituteTokens(getBase().getPath(), attributes));
     }
 
+    @Override
     public ExternalResourceName toModulePath(ModuleIdentifier module) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
         ImmutableMap<String, String> attributes = ImmutableMap.of(
             "organisation", componentIdentifier.getGroup(),

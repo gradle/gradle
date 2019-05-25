@@ -16,12 +16,29 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
+import org.gradle.testing.internal.util.Specification
+import org.gradle.tooling.events.BinaryPluginIdentifier
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.task.*
+import org.gradle.tooling.events.ScriptPluginIdentifier
+import org.gradle.tooling.events.task.TaskFailureResult
+import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskSkippedResult
+import org.gradle.tooling.events.task.TaskStartEvent
+import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalFailure
-import org.gradle.tooling.internal.protocol.events.*
-import spock.lang.Specification
+import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor
+import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier
+import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
+import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult
+import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult
+import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult
+import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDescriptor
 
 class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
@@ -355,12 +372,167 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         }
     }
 
+    def "convert task dependencies"() {
+        given:
+        def listener = Mock(ProgressListener)
+        def adapter = createAdapter(listener)
+
+        def dependencyTaskDescriptor = Stub(InternalTaskWithExtraInfoDescriptor)
+        _ * dependencyTaskDescriptor.getId() >> ':dependency'
+        _ * dependencyTaskDescriptor.getName() >> 'dependency task'
+        _ * dependencyTaskDescriptor.getParentId() >> null
+        _ * dependencyTaskDescriptor.getTaskPath() >> ':dependency:path'
+        _ * dependencyTaskDescriptor.getDependencies() >> []
+
+        def dependencyStartEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * dependencyStartEvent.getEventTime() >> 800
+        _ * dependencyStartEvent.getDisplayName() >> 'task started'
+        _ * dependencyStartEvent.getDescriptor() >> dependencyTaskDescriptor
+
+        def dependencyTaskResult = Stub(InternalTaskSuccessResult)
+        _ * dependencyTaskResult.getStartTime() >> 1
+        _ * dependencyTaskResult.getEndTime() >> 2
+
+        def dependencyFinishEvent = Stub(InternalOperationFinishedProgressEvent)
+        _ * dependencyFinishEvent.getEventTime() >> 900
+        _ * dependencyFinishEvent.getDisplayName() >> 'task finished'
+        _ * dependencyFinishEvent.getDescriptor() >> dependencyTaskDescriptor
+        _ * dependencyFinishEvent.getResult() >> dependencyTaskResult
+
+        def taskDescriptor = Stub(InternalTaskWithExtraInfoDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+        _ * taskDescriptor.getTaskPath() >> ':some:path'
+        _ * taskDescriptor.getDependencies() >> [dependencyTaskDescriptor]
+        _ * taskDescriptor.getOriginPlugin() >> null
+
+        def startEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 1000
+        _ * startEvent.getDisplayName() >> 'task started'
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        when:
+        adapter.onEvent(dependencyStartEvent)
+        adapter.onEvent(dependencyFinishEvent)
+
+        then:
+        2 * listener.statusChanged(_)
+
+        when:
+        adapter.onEvent(startEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
+            assert event.eventTime == 1000
+            assert event.displayName == "task started"
+            assert event.descriptor.name == 'some task'
+            assert event.descriptor.taskPath == ':some:path'
+            assert event.descriptor.parent == null
+            assert event.descriptor.dependencies.size() == 1
+            assert event.descriptor.originPlugin == null
+            with(event.descriptor.dependencies[0]) {
+                assert it.name == 'dependency task'
+                assert it.taskPath == ':dependency:path'
+                assert it.parent == null
+                assert it.dependencies.empty
+            }
+        }
+    }
+
+    def "convert task origin for script plugin"() {
+        given:
+        def listener = Mock(ProgressListener)
+        def adapter = createAdapter(listener)
+
+        def taskOrigin = Stub(InternalScriptPluginIdentifier)
+        _ * taskOrigin.getDisplayName() >> "build.gradle"
+        _ * taskOrigin.getUri() >> URI.create("http://example.com/build.gradle")
+
+        def taskDescriptor = Stub(InternalTaskWithExtraInfoDescriptor)
+        _ * taskDescriptor.getParentId() >> null
+        _ * taskDescriptor.getOriginPlugin() >> taskOrigin
+
+        def startEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        when:
+        adapter.onEvent(startEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
+            assert event.descriptor.originPlugin instanceof ScriptPluginIdentifier
+            assert event.descriptor.originPlugin.displayName == 'build.gradle'
+            assert event.descriptor.originPlugin.uri == URI.create("http://example.com/build.gradle")
+        }
+    }
+
+    def "convert task origin for binary plugin"() {
+        given:
+        def listener = Mock(ProgressListener)
+        def adapter = createAdapter(listener)
+
+        def taskOrigin = Stub(InternalBinaryPluginIdentifier)
+        _ * taskOrigin.getDisplayName() >> "org.example"
+        _ * taskOrigin.getClassName() >> "org.example.MyPlugin"
+        _ * taskOrigin.getPluginId() >> "org.example"
+
+        def taskDescriptor = Stub(InternalTaskWithExtraInfoDescriptor)
+        _ * taskDescriptor.getParentId() >> null
+        _ * taskDescriptor.getOriginPlugin() >> taskOrigin
+
+        def startEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        when:
+        adapter.onEvent(startEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
+            assert event.descriptor.originPlugin instanceof BinaryPluginIdentifier
+            assert event.descriptor.originPlugin.displayName == 'org.example'
+            assert event.descriptor.originPlugin.className == 'org.example.MyPlugin'
+            assert event.descriptor.originPlugin.pluginId == 'org.example'
+        }
+    }
+
+    def "ignores unknown dependencies"() {
+        given:
+        def listener = Mock(ProgressListener)
+        def adapter = createAdapter(listener)
+
+        def taskDescriptor = Stub(InternalTaskWithExtraInfoDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+        _ * taskDescriptor.getTaskPath() >> ':some:path'
+        _ * taskDescriptor.getDependencies() >> [Stub(InternalOperationDescriptor)]
+
+        def startEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 1000
+        _ * startEvent.getDisplayName() >> 'task started'
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        when:
+        adapter.onEvent(startEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
+            assert event.eventTime == 1000
+            assert event.displayName == "task started"
+            assert event.descriptor.name == 'some task'
+            assert event.descriptor.taskPath == ':some:path'
+            assert event.descriptor.parent == null
+            assert event.descriptor.dependencies.empty
+        }
+    }
+
     private static BuildProgressListenerAdapter createAdapter() {
-        new BuildProgressListenerAdapter([], [], [])
+        new BuildProgressListenerAdapter([:])
     }
 
     private static BuildProgressListenerAdapter createAdapter(ProgressListener taskListener) {
-        new BuildProgressListenerAdapter([], [taskListener], [])
+        new BuildProgressListenerAdapter([(OperationType.TASK): [taskListener]])
     }
 
 }

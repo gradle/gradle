@@ -21,14 +21,16 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.workers.IsolationMode
 import spock.lang.Unroll
 
+import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
+
 @IntegrationTestTimeout(120)
 class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Unroll
     def "produces a sensible error when there is a failure in the worker runnable in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
-            $runnableThatFails
+            ${fixture.runnableThatFails}
 
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
@@ -51,10 +53,10 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error when there is a failure in the worker runnable and work completes before the task in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
-            $runnableThatFails
+            ${fixture.runnableThatFails}
             $workerTaskThatWaits
 
             task runInWorker(type: WorkerTaskThatWaits) {
@@ -78,7 +80,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     def "produces a sensible error when there is a failure starting a worker daemon"() {
         executer.withStackTraceChecksDisabled()
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
             task runInDaemon(type: WorkerTask) {
@@ -104,11 +106,11 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error when a parameter can't be serialized to the worker in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
         withParameterMemberThatFailsSerialization()
 
         buildFile << """
-            $alternateRunnable
+            ${fixture.alternateRunnable}
 
             task runAgainInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
@@ -141,11 +143,11 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     @Unroll
     def "produces a sensible error when a parameter can't be de-serialized in the worker in #isolationMode"() {
         def parameterJar = file("parameter.jar")
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
         withParameterMemberThatFailsDeserialization()
 
         buildFile << """  
-            $alternateRunnable
+            ${fixture.alternateRunnable}
 
             task runAgainInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.$isolationMode
@@ -178,10 +180,10 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error even if the action failure cannot be fully serialized in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
-            $alternateRunnable
+            ${fixture.alternateRunnable}
 
             task runAgainInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
@@ -214,7 +216,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error when the runnable cannot be instantiated in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableThatFailsInstantiation
@@ -239,7 +241,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error when parameters are incorrect in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableWithDifferentConstructor
@@ -264,7 +266,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error when worker configuration is incorrect in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableWithDifferentConstructor
@@ -294,28 +296,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         } else {
             return "Unrecognized option: -foo"
         }
-    }
-
-    String getRunnableThatFails() {
-        return """
-            public class RunnableThatFails implements Runnable {
-                private final File outputDir;
-                
-                @javax.inject.Inject
-                public RunnableThatFails(List<String> files, File outputDir, Foo foo) { 
-                    this.outputDir = outputDir;
-                }
-
-                public void run() {
-                    try {
-                        throw new RuntimeException("Failure from runnable");
-                    } finally {
-                        outputDir.mkdirs();
-                        new File(outputDir, "finished").createNewFile();
-                    }                    
-                }
-            }
-        """
     }
 
     String getWorkerTaskThatWaits() {
@@ -425,7 +405,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
             $parameterClassWithUnserializableMember
         """
 
-        addImportToBuildScript("org.gradle.other.FooWithUnserializableBar")
+        fixture.addImportToBuildScript("org.gradle.other.FooWithUnserializableBar")
     }
 
     void withParameterMemberThatFailsDeserialization() {
@@ -439,7 +419,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
             $classThatFailsDeserialization
         """
 
-        addImportToBuildScript("org.gradle.other.FooWithUnserializableBar")
+        fixture.addImportToBuildScript("org.gradle.other.FooWithUnserializableBar")
     }
 
     String getRunnableWithDifferentConstructor() {

@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.ClassPath;
 import java.util.Arrays;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_KOTLIN_DSL;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
 
@@ -38,6 +39,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         this.pluginModuleRegistry = pluginModuleRegistry;
     }
 
+    @Override
     public ClassPath findClassPath(String name) {
         if (name.equals(GRADLE_API.name())) {
             return gradleApi();
@@ -47,6 +49,9 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         }
         if (name.equals(LOCAL_GROOVY.name())) {
             return localGroovy();
+        }
+        if (name.equals(GRADLE_KOTLIN_DSL.name())) {
+            return gradleKotlinDsl();
         }
         return null;
     }
@@ -60,10 +65,8 @@ public class DependencyClassPathProvider implements ClassPathProvider {
 
     private ClassPath initGradleApi() {
         ClassPath classpath = ClassPath.EMPTY;
-        for (String moduleName : Arrays.asList("gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
-            for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
-                classpath = classpath.plus(module.getClasspath());
-            }
+        for (String moduleName : Arrays.asList("gradle-worker-processes", "gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
+            classpath = classpath.plus(moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath());
         }
         for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
             classpath = classpath.plus(pluginModule.getClasspath());
@@ -77,5 +80,9 @@ public class DependencyClassPathProvider implements ClassPathProvider {
 
     private ClassPath localGroovy() {
         return moduleRegistry.getExternalModule("groovy-all").getClasspath();
+    }
+
+    private ClassPath gradleKotlinDsl() {
+        return moduleRegistry.getModule("gradle-kotlin-dsl").getAllRequiredModulesClasspath();
     }
 }

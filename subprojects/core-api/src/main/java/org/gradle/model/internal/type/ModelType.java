@@ -18,7 +18,7 @@ package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;

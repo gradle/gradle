@@ -16,11 +16,12 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSortedSet;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
@@ -47,14 +48,14 @@ public class VersionSpecificCacheDirectoryScanner {
     }
 
     public SortedSet<VersionSpecificCacheDirectory> getExistingDirectories() {
-        SortedSet<VersionSpecificCacheDirectory> result = Sets.newTreeSet();
+        ImmutableSortedSet.Builder<VersionSpecificCacheDirectory> builder = ImmutableSortedSet.naturalOrder();
         for (File subDir : listVersionSpecificCacheDirs()) {
             GradleVersion version = tryParseGradleVersion(subDir);
             if (version != null) {
-                result.add(new VersionSpecificCacheDirectory(subDir, version));
+                builder.add(new VersionSpecificCacheDirectory(subDir, version));
             }
         }
-        return result;
+        return builder.build();
     }
 
     private Collection<File> listVersionSpecificCacheDirs() {
@@ -63,6 +64,7 @@ public class VersionSpecificCacheDirectoryScanner {
         return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
     }
 
+    @Nullable
     private GradleVersion tryParseGradleVersion(File dir) {
         try {
             return GradleVersion.version(dir.getName());

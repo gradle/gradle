@@ -105,6 +105,13 @@ class CompilationOutputsFixture {
         assert changedFileNames == asSet(classNames)
     }
 
+    //asserts files deleted since last snapshot.
+    void deletedFiles(String... fileNames) {
+        def expectedNames = fileNames.collect({ removeExtension(it) }) as Set
+        def deleted = snapshot.findAll { !it.exists() }.collect { removeExtension(it.name) } as Set
+        assert deleted == expectedNames
+    }
+
     //asserts classes deleted since last snapshot. Class means file name without extension.
     void deletedClasses(String... classNames) {
         def deleted = snapshot.findAll { !it.exists() }.collect { removeExtension(it.name) } as Set

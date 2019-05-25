@@ -16,10 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.platform.base.internal.toolchain.SearchResult
-import org.gradle.util.TreeVisitor
 import spock.lang.Specification
-
 
 class DefaultWindowsSdkLocatorTest extends Specification {
     final SearchResult<WindowsSdkInstall> legacySdkLookup = Stub(SearchResult)
@@ -67,7 +66,7 @@ class DefaultWindowsSdkLocatorTest extends Specification {
     }
 
     def "does not find an sdk if neither locator is successful"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         given:
         legacySdkLookup.available >> false

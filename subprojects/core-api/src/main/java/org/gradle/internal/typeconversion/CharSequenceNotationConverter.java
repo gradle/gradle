@@ -25,6 +25,7 @@ class CharSequenceNotationConverter<N, T> implements NotationConverter<N, T> {
         this.delegate = delegate;
     }
 
+    @Override
     public void convert(N notation, NotationConvertResult<? super T> result) throws TypeConversionException {
         if (notation instanceof CharSequence) {
             CharSequence charSequence = (CharSequence) notation;

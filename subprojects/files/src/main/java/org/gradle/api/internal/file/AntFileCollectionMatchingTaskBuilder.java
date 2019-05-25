@@ -35,6 +35,7 @@ public class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
         this.fileTrees = fileTrees;
     }
 
+    @Override
     public Object addToAntBuilder(final Object node, final String childNodeName) {
         final DynamicObject dynamicObject = new BeanDynamicObject(node);
 

@@ -18,25 +18,43 @@ import java.util.*
  * limitations under the License.
  */
 plugins {
+    java
     gradlebuild.classycle
 }
 
 dependencies {
-    implementation("org.codehaus.plexus:plexus-container-default")
-    implementation("org.apache.maven:maven-compat")
-    implementation("org.apache.maven:maven-plugin-api")
-    implementation(library("groovy"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
     implementation(project(":core"))
+    implementation(project(":files"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformNative"))
     implementation(project(":plugins"))
     implementation(project(":wrapper"))
 
-    testFixturesImplementation(project(":internalTesting"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
+    implementation("org.codehaus.plexus:plexus-container-default")
+    implementation("org.apache.maven:maven-compat")
+    implementation("org.apache.maven:maven-plugin-api")
+
+    testImplementation(project(":cli"))
+    testImplementation(project(":baseServicesGroovy"))
+
+    integTestImplementation(testLibrary("jetty"))
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra
     allTestRuntimeDependencies.forEach {
-        integTestRuntime(it)
+        integTestRuntimeOnly(it)
     }
+    
+    testFixturesImplementation(project(":internalTesting"))
 }
 
 gradlebuildJava {
@@ -45,31 +63,35 @@ gradlebuildJava {
 
 testFixtures {
     from(":core")
+    from(":platformNative")
 }
 
 tasks {
     register("updateInitPluginTemplateVersionFile") {
+        group = "Build init"
         doLast {
 
             val versionProperties = Properties()
 
+            // Currently no scalatest for 2.13
             findLatest("scala-library", "org.scala-lang:scala-library:2.12.+", versionProperties)
             val scalaVersion = VersionNumber.parse(versionProperties["scala-library"] as String)
             versionProperties["scala"] = "${scalaVersion.major}.${scalaVersion.minor}"
 
             findLatest("scalatest", "org.scalatest:scalatest_${versionProperties["scala"]}:(3.0,)", versionProperties)
             findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:latest.release", versionProperties)
-            findLatest("groovy", "org.codehaus.groovy:groovy:(2.4,2.5]", versionProperties)
+            findLatest("groovy", "org.codehaus.groovy:groovy:(2.5,)", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
+            findLatest("junit-jupiter", "org.junit.jupiter:junit-jupiter-api:(5,)", versionProperties)
             findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
 
             val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-            versionProperties["spock"] = "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+            versionProperties["spock"] = "1.2-groovy-${groovyVersion.major}.${groovyVersion.minor}"
 
             findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
             findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)
-            findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.2,)", versionProperties)
+            findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.3,)", versionProperties)
 
             val libraryVersionFile = file("src/main/resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
             org.gradle.build.ReproduciblePropertiesWriter.store(
@@ -108,6 +130,7 @@ val devSuffixes = arrayOf(
     "-beta-?\\d+",
     "-dev-?\\d+",
     "-rc-?\\d+",
+    "-RC-?\\d+",
     "-M\\d+",
     "-eap-?\\d+"
 )

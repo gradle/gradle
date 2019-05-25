@@ -52,10 +52,12 @@ public class ModuleDependency implements Dependency {
     /**
      * The scope for this dependency. If null the scope attribute is not added.
      */
+    @Override
     public String getScope() {
         return scope;
     }
 
+    @Override
     public void setScope(String scope) {
         this.scope = scope;
     }

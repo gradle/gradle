@@ -16,24 +16,48 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.Task;
-import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
-import org.gradle.util.DeferredUtil;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-public class StaticValue implements ValidatingValue {
+/**
+ * A {@link PropertyValue} backed by a fixed value.
+ */
+public class StaticValue implements PropertyValue {
     private final Object value;
 
     public StaticValue(@Nullable Object value) {
         this.value = value;
     }
 
+    public static PropertyValue of(@Nullable Object value) {
+        return new StaticValue(value);
+    }
+
+    @Override
+    public TaskDependencyContainer getTaskDependencies() {
+        if (value instanceof TaskDependencyContainer) {
+            return (TaskDependencyContainer) value;
+        } else if (value instanceof Buildable) {
+            return new TaskDependencyContainer() {
+                @Override
+                public void visitDependencies(TaskDependencyResolveContext context) {
+                    context.add(value);
+                }
+            };
+        }
+
+        return TaskDependencyContainer.EMPTY;
+    }
+
     @Override
     public void attachProducer(Task producer) {
-        if (value instanceof ProducerAwareProperty) {
-            ((ProducerAwareProperty)value).attachProducer(producer);
+        if (value instanceof PropertyInternal) {
+            ((PropertyInternal)value).attachProducer(producer);
         }
     }
 
@@ -47,18 +71,18 @@ public class StaticValue implements ValidatingValue {
     @Nullable
     @Override
     public Object call() {
+        // Replace absent Provider with null.
+        // This is required for allowing optional provider properties - all code which unpacks providers calls Provider.get() and would fail if an optional provider is passed.
+        // Returning null from a Callable is ignored, and PropertyValue is a callable.
+        if (value instanceof Provider && !((Provider<?>) value).isPresent()) {
+            return null;
+        }
         return value;
     }
 
+    @Nullable
     @Override
-    public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-        Object unpacked = DeferredUtil.unpack(value);
-        if (unpacked == null) {
-            if (!optional) {
-                context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
-            }
-        } else {
-            valueValidator.validate(propertyName, unpacked, context);
-        }
+    public Object getUnprocessedValue() {
+        return value;
     }
 }

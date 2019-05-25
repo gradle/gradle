@@ -46,7 +46,9 @@ class SwiftMissingToolchainIntegrationTest extends AbstractIntegrationSpec imple
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
-        failure.assertHasCause("""No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}': Tool chain 'swiftc' (Swift Compiler):
-  - Could not find Swift compiler 'swiftc'. Searched in: ${file('swift-bin')}""")
+        failure.assertHasCause("""No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}':
+  - Tool chain 'swiftc' (Swift Compiler):
+      - Could not find Swift compiler 'swiftc'. Searched in:
+          - ${file('swift-bin')}""")
     }
 }

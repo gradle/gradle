@@ -24,6 +24,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
@@ -37,6 +38,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
+    @Inject
     public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
     }

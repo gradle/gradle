@@ -22,7 +22,7 @@ import org.junit.Test
 class ArtifactPatternTest {
 
     private
-    val GRADLE_REPO = "https://gradle.artifactoryonline.com/gradle"
+    val GRADLE_REPO = "https://repo.gradle.org/gradle"
 
     @Test
     fun `given snapshot library and typical other values it returns a correct URL`() {

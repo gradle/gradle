@@ -18,8 +18,8 @@ package org.gradle.api.internal.file.copy
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.WorkspaceTest
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 
 @UsesNativeServices
@@ -28,7 +28,7 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
     FileCopier copier
 
     def setup() {
-        copier = new FileCopier(DirectInstantiator.INSTANCE, TestFiles.resolver(testDirectory), TestFiles.fileLookup(), new DefaultDirectoryFileTreeFactory())
+        copier = new FileCopier(TestUtil.instantiatorFactory().decorateLenient(), TestFiles.fileSystem(), TestFiles.resolver(testDirectory), TestFiles.fileLookup(), new DefaultDirectoryFileTreeFactory())
     }
 
     void deletesExtraFilesFromDestinationDirectoryAtTheEndOfVisit() {
@@ -54,7 +54,7 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
 
         then:
         result.didWork
-        file("dest").assertHasDescendants("subdir/included.txt", "included.txt");
+        file("dest").assertHasDescendants("subdir/included.txt", "included.txt")
     }
 
 }

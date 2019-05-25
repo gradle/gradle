@@ -44,6 +44,9 @@
             <tr>
                 <td>setArtifacts</td>
             </tr>
+            <tr>
+                <td>versionMapping</td>
+            </tr>
         </table>
     </section>
 </section>

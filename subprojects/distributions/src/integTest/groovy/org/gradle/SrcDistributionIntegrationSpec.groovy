@@ -22,7 +22,7 @@ import org.gradle.util.AntUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 
 class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
@@ -40,6 +40,9 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def sourceZipContents() {
         given:
+        // workaround for https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/270
+        // can be removed once 1.5.9.3/1.5.10 is released
+        executer.noDeprecationChecks()
         TestFile contentsDir = unpackDistribution()
 
         expect:

@@ -16,10 +16,12 @@
 
 package org.gradle.nativeplatform.test.xctest.internal
 
-import org.gradle.api.internal.file.FileOperations
+
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
+import org.gradle.nativeplatform.TargetMachine
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,7 +33,7 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    def testSuite = new DefaultSwiftXCTestSuite("test", project.services.get(FileOperations), project.objects)
+    def testSuite = project.objects.newInstance(DefaultSwiftXCTestSuite, "test")
 
     def "has display name"() {
 
@@ -66,7 +68,15 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
 
     private NativeVariantIdentity getIdentity() {
         return Stub(NativeVariantIdentity) {
-            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
+            getTargetMachine() >> targetMachine(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64)
+        }
+    }
+
+    private TargetMachine targetMachine(String os, String arch) {
+        def objectFactory = TestUtil.objectFactory()
+        return Stub(TargetMachine) {
+            getOperatingSystemFamily() >> objectFactory.named(OperatingSystemFamily.class, os)
+            getArchitecture() >> objectFactory.named(MachineArchitecture.class, arch)
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.parameters
 
 import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.internal.DefaultFinishEvent
@@ -347,11 +348,11 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
     }
 
     private static BuildProgressListenerAdapter createAdapter() {
-        new BuildProgressListenerAdapter([], [], [])
+        new BuildProgressListenerAdapter([:])
     }
 
     private static BuildProgressListenerAdapter createAdapter(ProgressListener buildListener) {
-        new BuildProgressListenerAdapter([], [], [buildListener])
+        new BuildProgressListenerAdapter([(OperationType.GENERIC): [buildListener]])
     }
 
 }

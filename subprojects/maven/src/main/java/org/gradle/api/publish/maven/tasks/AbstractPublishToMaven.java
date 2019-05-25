@@ -19,9 +19,9 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.Factory;
@@ -42,6 +42,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build
         getInputs().files(new Callable<FileCollection>() {
+            @Override
             public FileCollection call() throws Exception {
                 MavenPublicationInternal publicationInternal = getPublicationInternal();
                 return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
@@ -98,13 +99,14 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         }
     }
 
+    @Deprecated
     @Inject
     protected Factory<LoggingManagerInternal> getLoggingManagerFactory() {
         throw new UnsupportedOperationException();
     }
 
     @Inject
-    protected LocalMavenRepositoryLocator getMavenRepositoryLocator() {
+    protected MavenPublishers getMavenPublishers() {
         throw new UnsupportedOperationException();
     }
 

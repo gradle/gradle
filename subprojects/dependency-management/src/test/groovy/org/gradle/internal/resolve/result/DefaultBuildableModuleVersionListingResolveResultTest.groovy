@@ -45,7 +45,8 @@ class DefaultBuildableModuleVersionListingResolveResultTest extends Specificatio
     }
 
     def "can mark as failed"() {
-        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), "broken")
+        org.gradle.internal.Factory<String> broken = { "too bad" }
+        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
 
         when:
         descriptor.failed(failure)

@@ -27,7 +27,7 @@ import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 
-@TargetGradleVersion(">=4.0")
+@TargetGradleVersion(">=4.0 <5.1")
 class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates plugin application events for single project build"() {

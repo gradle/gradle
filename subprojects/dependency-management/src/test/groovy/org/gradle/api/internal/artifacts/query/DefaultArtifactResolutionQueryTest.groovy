@@ -133,7 +133,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private def withArtifactResolutionInteractions(int numberOfComponentsToResolve = 1) {
-        1 * resolveIvyFactory.create(_, _, _, _, _, _, _) >> repositoryChain
+        1 * resolveIvyFactory.create(_, _, _, _, _, _, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
         numberOfComponentsToResolve * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->

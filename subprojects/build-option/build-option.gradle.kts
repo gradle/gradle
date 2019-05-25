@@ -6,11 +6,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":cli"))
-    api(library("jsr305"))
+    implementation(project(":cli"))
+
+    implementation(library("jsr305"))
     implementation(library("commons_lang"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.WORKER
 }

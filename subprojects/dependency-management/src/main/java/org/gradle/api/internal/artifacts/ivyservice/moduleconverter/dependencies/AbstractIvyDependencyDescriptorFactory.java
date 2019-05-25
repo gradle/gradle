@@ -25,6 +25,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +49,10 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         });
     }
 
-    protected ImmutableList<IvyArtifactName> convertArtifacts(Set<DependencyArtifact> dependencyArtifacts) {
+    protected List<IvyArtifactName> convertArtifacts(Set<DependencyArtifact> dependencyArtifacts) {
+        if (dependencyArtifacts.isEmpty()) {
+            return Collections.emptyList();
+        }
         ImmutableList.Builder<IvyArtifactName> names = ImmutableList.builder();
         for (DependencyArtifact dependencyArtifact : dependencyArtifacts) {
             DefaultIvyArtifactName name = new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());

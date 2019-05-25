@@ -26,18 +26,22 @@ import java.util.Set;
 public class DefaultResourceAwareResolveResult implements ResourceAwareResolveResult {
     private final Set<String> attempted = Sets.newLinkedHashSet();
 
+    @Override
     public List<String> getAttempted() {
         return ImmutableList.copyOf(attempted);
     }
 
+    @Override
     public void attempted(String locationDescription) {
         attempted.add(locationDescription);
     }
 
+    @Override
     public void attempted(ExternalResourceName location) {
         attempted(location.getDisplayName());
     }
 
+    @Override
     public void applyTo(ResourceAwareResolveResult target) {
         for (String location : attempted) {
             target.attempted(location);

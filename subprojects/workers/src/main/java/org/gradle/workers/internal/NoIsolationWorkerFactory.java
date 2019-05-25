@@ -16,14 +16,10 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.InstantiatorFactory;
-import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
@@ -31,41 +27,35 @@ import org.gradle.workers.WorkerExecutor;
 public class NoIsolationWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker workTracker;
-    private final InstantiatorFactory instantiatorFactory;
-    private Instantiator actionInstantiator;
+    private final ServiceRegistry parent;
+    private DefaultServiceRegistry serviceRegistry;
     private WorkerExecutor workerExecutor;
 
-    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker workTracker, InstantiatorFactory instantiatorFactory) {
+    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker workTracker, ServiceRegistry parent) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.workTracker = workTracker;
-        this.instantiatorFactory = instantiatorFactory;
+        this.parent = parent;
     }
 
     // Attaches the owning WorkerExecutor to this factory
     public void setWorkerExecutor(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;
-        DefaultServiceRegistry services = new DefaultServiceRegistry();
-        services.add(WorkerExecutor.class, workerExecutor);
-        actionInstantiator = instantiatorFactory.inject(services);
+        this.serviceRegistry = new DefaultServiceRegistry(parent);
+        serviceRegistry.add(WorkerExecutor.class, workerExecutor);
     }
 
     @Override
     public Worker getWorker(final DaemonForkOptions forkOptions) {
         final WorkerExecutor workerExecutor = this.workerExecutor;
-        return new Worker() {
+        return new AbstractWorker(buildOperationExecutor) {
             @Override
-            public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                return execute(spec, buildOperationExecutor.getCurrentOperation());
-            }
-
-            @Override
-            public DefaultWorkResult execute(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
-                return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
+            public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
+                return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
                     @Override
-                    public DefaultWorkResult call(BuildOperationContext context) {
+                    public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         DefaultWorkResult result;
                         try {
-                            WorkerProtocol workerServer = new DefaultWorkerServer(actionInstantiator);
+                            WorkerProtocol workerServer = new DefaultWorkerServer(serviceRegistry);
                             result = workerServer.execute(spec);
                         } finally {
                             //TODO the async work tracker should wait for children of an operation to finish first.
@@ -73,11 +63,6 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                             workerExecutor.await();
                         }
                         return result;
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
                     }
                 });
             }

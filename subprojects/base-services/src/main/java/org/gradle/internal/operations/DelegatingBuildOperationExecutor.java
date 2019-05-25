@@ -37,6 +37,11 @@ public class DelegatingBuildOperationExecutor implements BuildOperationExecutor 
     }
 
     @Override
+    public ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor) {
+        return delegate.start(descriptor);
+    }
+
+    @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         delegate.runAll(schedulingAction);
     }

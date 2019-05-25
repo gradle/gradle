@@ -17,7 +17,7 @@
 package org.gradle.api.internal.project;
 
 import com.google.common.collect.Lists;
-import net.jcip.annotations.NotThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Project;
 
 import java.util.List;

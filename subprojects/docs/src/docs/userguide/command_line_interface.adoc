@@ -61,6 +61,8 @@ $ gradle myTask
 
 You can learn about what projects and tasks are available in the <<#sec:command_line_project_reporting, project reporting section>>.
 
+Most builds support a common set of tasks known as <<more_about_tasks#sec:lifecycle_tasks,_lifecycle tasks_>>. These include the `build`, `assemble`, and `check` tasks.
+
 === Executing tasks in multi-project builds
 In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_.
 
@@ -215,6 +217,12 @@ By default, this report shows only those tasks which have been assigned to a tas
 $ gradle tasks --all
 ----
 
+If you need to be more precise, you can display only the tasks from a specific group using the `--group` option.
+
+----
+$ gradle tasks --group="build setup"
+----
+
 [[sec:show_task_details]]
 === Show task usage details
 
@@ -293,10 +301,8 @@ Learn more about <<software_model.adoc#model-report,the model report>> in the so
 
 Gradle provides bash and zsh tab completion support for tasks, options, and Gradle properties through https://github.com/gradle/gradle-completion[gradle-completion], installed separately.
 
-ifdef::basebackend-html5[]
 .Gradle Completion
 image::gradle-completion-4.0.gif[]
-endif::basebackend-html5[]
 
 [[sec:command_line_debugging]]
 == Debugging options

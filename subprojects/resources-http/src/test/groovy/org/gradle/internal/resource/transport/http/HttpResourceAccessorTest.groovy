@@ -22,7 +22,7 @@ import spock.lang.Specification
 class HttpResourceAccessorTest extends Specification {
     URI uri = new URI("http://somewhere")
 
-    def "should call close() on ClosableHttpResource when getMetaData is called"() {
+    def "should call close() on CloseableHttpResource when getMetaData is called"() {
         def response = Mock(CloseableHttpResponse)
         def http = Mock(HttpClientHelper) {
             performHead(uri.toString(), _) >> new HttpClientResponse("GET", uri, response)

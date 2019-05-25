@@ -22,13 +22,9 @@ import java.util.List;
 import java.util.Set;
 
 public interface OptionElement {
-    Class<?> getDeclaredClass();
-
     Set<String> getAvailableValues();
 
     Class<?> getOptionType();
-
-    String getElementName();
 
     String getOptionName();
 

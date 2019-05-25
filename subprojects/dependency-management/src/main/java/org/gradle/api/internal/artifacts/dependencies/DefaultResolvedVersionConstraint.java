@@ -29,6 +29,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     private final VersionSelector requiredVersionSelector;
     private final VersionSelector rejectedVersionsSelector;
     private final boolean rejectAll;
+    private final boolean isDynamic;
 
     public DefaultResolvedVersionConstraint(VersionConstraint parent, VersionSelectorScheme scheme) {
         this(parent.getRequiredVersion(), parent.getPreferredVersion(), parent.getStrictVersion(), parent.getRejectedVersions(), scheme);
@@ -45,7 +46,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
 
         if (strict) {
             if (!rejectedVersions.isEmpty()) {
-                throw new IllegalArgumentException("Cannot combine 'strict' and'reject' in a single version constraint.");
+                throw new IllegalArgumentException("Cannot combine 'strict' and 'reject' in a single version constraint.");
             }
             this.rejectedVersionsSelector = getRejectionForStrict(version, scheme);
             rejectAll = false;
@@ -53,6 +54,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
             this.rejectedVersionsSelector = toRejectSelector(scheme, rejectedVersions);
             rejectAll = isRejectAll(version, rejectedVersions);
         }
+        this.isDynamic = doComputeIsDynamic();
     }
 
     private VersionSelector getRejectionForStrict(String version, VersionSelectorScheme versionSelectorScheme) {
@@ -85,6 +87,21 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     @Override
     public boolean isRejectAll() {
         return rejectAll;
+    }
+
+    @Override
+    public boolean isDynamic() {
+        return isDynamic;
+    }
+
+    private boolean doComputeIsDynamic() {
+        if (requiredVersionSelector != null) {
+            return requiredVersionSelector.isDynamic();
+        }
+        if (preferredVersionSelector != null) {
+            return preferredVersionSelector.isDynamic();
+        }
+        return false;
     }
 
     private static boolean isRejectAll(String preferredVersion, List<String> rejectedVersions) {

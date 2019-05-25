@@ -20,12 +20,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult
-import org.gradle.internal.DisplayName
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedVariantDetails
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -249,11 +248,11 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         moduleVersion
     }
 
-    private void resolvedConf(String module, List<DependencyResult> deps) {
+    private void resolvedConf(String module, List<ResolvedGraphDependency> deps) {
         builder.visitOutgoingEdges(id(module), deps)
     }
 
-    private DependencyResult dep(String requested, Exception failure = null, String selected = requested) {
+    private ResolvedGraphDependency dep(String requested, Exception failure = null, String selected = requested) {
         def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("x", requested), DefaultImmutableVersionConstraint.of("1"))
         def moduleVersionSelector = newSelector(DefaultModuleIdentifier.newId("x", requested), "1")
         failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
@@ -264,20 +263,20 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         return module.hashCode()
     }
 
-    class DummyModuleVersionSelection implements ComponentResult {
+    class DummyModuleVersionSelection implements ResolvedGraphComponent {
         Long resultId
         ModuleVersionIdentifier moduleVersion
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
-        DisplayName variantName
-        AttributeContainer variantAttributes
         String repositoryName
+        List<ResolvedVariantDetails> resolvedVariants = []
     }
 
-    class DummyInternalDependencyResult implements DependencyResult {
+    class DummyInternalDependencyResult implements ResolvedGraphDependency {
         ComponentSelector requested
         Long selected
         ModuleVersionResolveException failure
         ComponentSelectionReason reason
+        boolean constraint
     }
 }

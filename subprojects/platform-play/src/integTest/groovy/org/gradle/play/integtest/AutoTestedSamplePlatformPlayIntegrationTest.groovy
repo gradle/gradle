@@ -22,6 +22,7 @@ import org.junit.Test
 class AutoTestedSamplePlatformPlayIntegrationTest extends AbstractAutoTestedSamplesTest {
     @Test
     void runSamples() {
+        executer.noDeprecationChecks()
         runSamplesFrom("subprojects/platform-play/src/main")
     }
 }

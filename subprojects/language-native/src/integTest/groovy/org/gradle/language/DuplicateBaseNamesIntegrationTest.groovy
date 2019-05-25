@@ -30,10 +30,12 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
+    @RequiresInstalledToolChain(SUPPORTS_32)
     def "can have sourcefiles with same base name but different directories"() {
         setup:
         testApp.writeSources(file("src/main"))
@@ -75,6 +77,7 @@ model {
      * story-language-source-sets-filter-source-files-by-file-extension
      * is implemented
      * */
+    @RequiresInstalledToolChain(SUPPORTS_32)
     def "can have sourcefiles with same base name in same directory"() {
         setup:
         def testApp = new DuplicateMixedSameBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)

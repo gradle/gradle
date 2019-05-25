@@ -18,10 +18,12 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.NonExtensible;
 
 import java.util.Collections;
 import java.util.List;
 
+@NonExtensible
 public class DefaultActionConfiguration implements ActionConfiguration {
     private final List<Object> params = Lists.newArrayList();
 

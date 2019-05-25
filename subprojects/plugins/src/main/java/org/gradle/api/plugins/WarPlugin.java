@@ -22,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.java.WebApplication;
@@ -53,25 +52,30 @@ public class WarPlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         final WarPluginConvention pluginConvention = new DefaultWarPluginConvention(project);
         project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).configureEach(new Action<War>() {
+            @Override
             public void execute(War task) {
                 task.from(new Callable() {
+                    @Override
                     public Object call() throws Exception {
                         return pluginConvention.getWebAppDir();
                     }
                 });
                 task.dependsOn(new Callable() {
+                    @Override
                     public Object call() throws Exception {
                         return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
                                 SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
                 task.classpath(new Object[] {new Callable() {
+                    @Override
                     public Object call() throws Exception {
                         FileCollection runtimeClasspath = project.getConvention().getPlugin(JavaPluginConvention.class)
                                 .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
@@ -108,6 +112,6 @@ public class WarPlugin implements Plugin<Project> {
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {
-        project.getComponents().add(objectFactory.newInstance(WebApplication.class, warArtifact, objectFactory.named(Usage.class, "master")));
+        project.getComponents().add(objectFactory.newInstance(WebApplication.class, warArtifact, "master"));
     }
 }

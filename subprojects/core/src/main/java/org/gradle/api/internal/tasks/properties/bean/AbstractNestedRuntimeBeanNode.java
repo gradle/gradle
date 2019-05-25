@@ -18,28 +18,25 @@ package org.gradle.api.internal.tasks.properties.bean;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.PropertyMetadata;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyValueVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Optional;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.DeferredUtil;
+import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Queue;
@@ -49,34 +46,33 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         super(parentNode, propertyName, bean, typeMetadata);
     }
 
-    public void visitProperties(PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
+    protected void visitProperties(PropertyVisitor visitor, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory, ParameterValidationContext validationContext) {
         TypeMetadata typeMetadata = getTypeMetadata();
-        for (final PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
-            PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
-            if (propertyValueVisitor == null || !propertyValueVisitor.shouldVisit(visitor)) {
-                continue;
+        typeMetadata.collectValidationFailures(getPropertyName(), validationContext);
+        for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
+            PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
+            if (annotationHandler.shouldVisit(visitor)) {
+                String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
+                PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
+                annotationHandler.visitPropertyValue(propertyName, value, propertyMetadata, visitor, new BeanPropertyContext() {
+                    @Override
+                    public void addNested(String propertyName, Object bean) {
+                        queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, bean));
+                    }
+                });
             }
-            String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
-            PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata, getBean(), propertyMetadata.getMethod());
-            propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
-                @Override
-                public void addNested(String propertyName, Object bean) {
-                    queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, bean));
-                }
-            });
         }
     }
 
-    private static class DefaultPropertyValue implements PropertyValue {
-        private final String propertyName;
-        private final PropertyMetadata propertyMetadata;
-        private final Object bean;
+    private static class BeanPropertyValue implements PropertyValue {
         private final Method method;
+        private final Object bean;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
             @Override
             @Nullable
             public Object get() {
                 return DeprecationLogger.whileDisabled(new Factory<Object>() {
+                    @Override
                     public Object create() {
                         try {
                             return method.invoke(bean);
@@ -90,48 +86,40 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
         });
 
-        public DefaultPropertyValue(String propertyName, PropertyMetadata propertyMetadata, Object bean, Method method) {
-            this.propertyName = propertyName;
-            this.propertyMetadata = propertyMetadata;
+        public BeanPropertyValue(Object bean, Method method) {
             this.bean = bean;
             this.method = method;
             method.setAccessible(true);
         }
 
         @Override
-        public String getPropertyName() {
-            return propertyName;
-        }
-
-        @Override
-        public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-            return propertyMetadata.isAnnotationPresent(annotationType);
-        }
-
-        @Nullable
-        @Override
-        public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-            return propertyMetadata.getAnnotation(annotationType);
-        }
-
-        @Override
-        public boolean isOptional() {
-            return isAnnotationPresent(Optional.class);
+        public TaskDependencyContainer getTaskDependencies() {
+            if (isProvider()) {
+                return (TaskDependencyContainer) valueSupplier.get();
+            } else if (isBuildable()) {
+                return new TaskDependencyContainer() {
+                    @Override
+                    public void visitDependencies(TaskDependencyResolveContext context) {
+                        context.add(valueSupplier.get());
+                    }
+                };
+            }
+            return TaskDependencyContainer.EMPTY;
         }
 
         @Override
         public void attachProducer(Task producer) {
-            if (Provider.class.isAssignableFrom(method.getReturnType())) {
+            if (isProvider()) {
                 Object value = valueSupplier.get();
-                if (value instanceof ProducerAwareProperty) {
-                    ((ProducerAwareProperty) value).attachProducer(producer);
+                if (value instanceof PropertyInternal) {
+                    ((PropertyInternal) value).attachProducer(producer);
                 }
             }
         }
 
         @Override
         public void maybeFinalizeValue() {
-            if (Provider.class.isAssignableFrom(method.getReturnType())) {
+            if (isProvider()) {
                 Object value = valueSupplier.get();
                 if (value instanceof PropertyInternal) {
                     ((PropertyInternal) value).finalizeValueOnReadAndWarnAboutChanges();
@@ -139,9 +127,17 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
         }
 
+        private boolean isProvider() {
+            return Provider.class.isAssignableFrom(method.getReturnType());
+        }
+
+        private boolean isBuildable() {
+            return Buildable.class.isAssignableFrom(method.getReturnType());
+        }
+
         @Nullable
         @Override
-        public Object getValue() {
+        public Object call() {
             Object value = valueSupplier.get();
             // Replace absent Provider with null.
             // This is required for allowing optional provider properties - all code which unpacks providers calls Provider.get() and would fail if an optional provider is passed.
@@ -154,20 +150,8 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         @Nullable
         @Override
-        public Object call() {
-            return getValue();
-        }
-
-        @Override
-        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            Object unpacked = DeferredUtil.unpack(getValue());
-            if (unpacked == null) {
-                if (!optional) {
-                    context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
-                }
-            } else {
-                valueValidator.validate(propertyName, unpacked, context);
-            }
+        public Object getUnprocessedValue() {
+            return valueSupplier.get();
         }
     }
 }

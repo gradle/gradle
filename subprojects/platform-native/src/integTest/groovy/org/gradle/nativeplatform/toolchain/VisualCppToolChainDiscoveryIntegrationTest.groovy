@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.toolchain
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
-import org.hamcrest.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP)
 class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -59,8 +59,9 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}'"))
-        failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Visual Studio installation."))
+        failure.assertHasCause("""No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}':
+  - ${toolChain.instanceDisplayName}:
+      - The specified installation directory '${file('does-not-exist')}' does not appear to contain a Visual Studio installation.""")
     }
 
     def "tool chain is not available when SDK install is not available"() {
@@ -78,7 +79,8 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}'"))
-        failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Windows SDK installation."))
+        failure.assertHasCause("""No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}':
+  - ${toolChain.instanceDisplayName}:
+      - The specified installation directory '${file('does-not-exist')}' does not appear to contain a Windows SDK installation.""")
     }
 }

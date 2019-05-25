@@ -25,7 +25,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.RuleSource;
@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 public class ModelRuleSourceDetector {
 
     private static final Comparator<Class<?>> COMPARE_BY_CLASS_NAME = new Comparator<Class<?>>() {
+        @Override
         public int compare(Class<?> left, Class<?> right) {
             return left.getName().compareTo(right.getName());
         }

@@ -155,7 +155,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                     if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
                         artifact 'variant1'
                     }
-                    attribute 'format', 'will be overriden'
+                    attribute 'format', 'will be overridden'
                 }
             }
         }
@@ -195,8 +195,8 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                         } else {
                             if (GradleMetadataResolveRunner.useIvy()) {
                                 // Ivy doesn't derive any variant
-                                expectedTargetVariant = 'default+customVariant'
-                                expectedAttributes = ['org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
+                                expectedTargetVariant = 'customVariant'
+                                expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
                             } else {
                                 // for Maven, we derive variants for compile/runtime. Variants are then used during selection, and are subject
                                 // to metadata rules. In this case, we have multiple variants (default, runtime, compile), but only the "compile"
@@ -205,7 +205,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                                 // the format attribute is added by the rule
                                 expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
                                 expectedAttributes['org.gradle.usage'] = 'java-api'
-                                expectedAttributes['org.gradle.component.category'] = 'library'
+                                expectedAttributes['org.gradle.category'] = 'library'
                             }
                         }
                         variant(expectedTargetVariant, expectedAttributes)
@@ -245,7 +245,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                 artifactTypes {
                     jar {
                         // declares that the 'jar' artifact type wants a 'format' attribute with value 'custom'
-                        // and this is missing from component and variant metatada
+                        // and this is missing from component and variant metadata
                         attributes.attribute(formatAttribute, 'custom')
                     }
                 }

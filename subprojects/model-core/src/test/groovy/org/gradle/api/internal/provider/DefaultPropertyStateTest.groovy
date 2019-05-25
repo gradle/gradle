@@ -18,21 +18,24 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 
 class DefaultPropertyStateTest extends PropertySpec<String> {
-    @Override
     DefaultPropertyState<String> property() {
         return new DefaultPropertyState<String>(String)
     }
 
     @Override
-    Provider<String> providerWithNoValue() {
+    DefaultPropertyState<String> propertyWithNoValue() {
         return property()
     }
 
     @Override
-    Provider<String> providerWithValue(String value) {
+    DefaultPropertyState<String> propertyWithDefaultValue() {
+        return property()
+    }
+
+    @Override
+    DefaultPropertyState<String> providerWithValue(String value) {
         def p = property()
         p.set(value)
         return p
@@ -51,6 +54,21 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
     @Override
     String someOtherValue() {
         return "value2"
+    }
+
+    def "has no value by default"() {
+        expect:
+        def property = property()
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse(someValue()) == someValue()
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'No value has been specified for this provider.'
     }
 
     def "toString() does not realize value"() {

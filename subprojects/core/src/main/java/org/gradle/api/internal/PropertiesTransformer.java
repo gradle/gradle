@@ -44,6 +44,7 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
      * @param original the properties to transform
      * @return the transformed properties
      */
+    @Override
     public Properties transform(Properties original) {
         return doTransform(original);
     }

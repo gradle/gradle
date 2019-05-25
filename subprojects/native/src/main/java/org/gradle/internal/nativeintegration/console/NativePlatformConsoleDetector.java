@@ -16,11 +16,11 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-import net.rubygrapefruit.platform.Terminals;
+import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.internal.os.OperatingSystem;
 
-import static net.rubygrapefruit.platform.Terminals.Output.Stderr;
-import static net.rubygrapefruit.platform.Terminals.Output.Stdout;
+import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stderr;
+import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stdout;
 
 public class NativePlatformConsoleDetector implements ConsoleDetector {
     private final Terminals terminals;

@@ -22,9 +22,11 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.state.Managed;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -33,7 +35,7 @@ import java.util.Set;
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed {
     private final Set<Object> files;
     private final String displayName;
     private final PathToFileResolver resolver;
@@ -63,6 +65,35 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             this.files.addAll(files);
         }
         buildDependency = new DefaultTaskDependency(taskResolver);
+    }
+
+    @Override
+    public boolean immutable() {
+        return false;
+    }
+
+    @Override
+    public Class<?> publicType() {
+        return ConfigurableFileCollection.class;
+    }
+
+    @Override
+    public Object unpackState() {
+        return getFiles();
+    }
+
+    @Override
+    public Factory managedFactory() {
+        return new Factory() {
+            @Nullable
+            @Override
+            public <T> T fromState(Class<T> type, Object state) {
+                if (!type.isAssignableFrom(ConfigurableFileCollection.class)) {
+                    return null;
+                }
+                return type.cast(new DefaultConfigurableFileCollection(resolver, null, (Set<File>) state));
+            }
+        };
     }
 
     @Override

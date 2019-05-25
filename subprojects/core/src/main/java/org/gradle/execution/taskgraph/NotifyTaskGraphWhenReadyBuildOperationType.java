@@ -46,6 +46,7 @@ public class NotifyTaskGraphWhenReadyBuildOperationType implements BuildOperatio
             this.buildPath = buildPath;
         }
 
+        @Override
         public String getBuildPath() {
             return buildPath.getPath();
         }

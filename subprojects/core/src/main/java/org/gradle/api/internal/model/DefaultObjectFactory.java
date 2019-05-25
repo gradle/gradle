@@ -16,21 +16,29 @@
 
 package org.gradle.api.internal.model;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.DefaultListProperty;
+import org.gradle.api.internal.provider.DefaultMapProperty;
 import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
@@ -42,6 +50,7 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultObjectFactory implements ObjectFactory {
@@ -50,13 +59,17 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FilePropertyFactory filePropertyFactory;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory) {
+    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.fileResolver = fileResolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.filePropertyFactory = filePropertyFactory;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.domainObjectCollectionFactory = domainObjectCollectionFactory;
     }
 
     @Override
@@ -67,6 +80,11 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
         return instantiator.newInstance(type, parameters);
+    }
+
+    @Override
+    public ConfigurableFileCollection fileCollection() {
+        return fileCollectionFactory.configurableFiles();
     }
 
     @Override
@@ -91,6 +109,21 @@ public class DefaultObjectFactory implements ObjectFactory {
     }
 
     @Override
+    public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType) {
+        return domainObjectCollectionFactory.newNamedDomainObjectContainer(elementType);
+    }
+
+    @Override
+    public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
+        return domainObjectCollectionFactory.newNamedDomainObjectContainer(elementType, factory);
+    }
+
+    @Override
+    public <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType) {
+        return domainObjectCollectionFactory.newDomainObjectSet(elementType);
+    }
+
+    @Override
     public <T> Property<T> property(Class<T> valueType) {
         if (valueType == null) {
             throw new IllegalArgumentException("Class cannot be null");
@@ -104,6 +137,8 @@ public class DefaultObjectFactory implements ObjectFactory {
             DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() to create a property of type List<T>", "ObjectFactory.listProperty()");
         } else if (Set.class.isAssignableFrom(valueType)) {
             DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Set<T>", "ObjectFactory.setProperty()");
+        } else if (Map.class.isAssignableFrom(valueType)) {
+            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Map<K, V>", "ObjectFactory.mapProperty()");
         } else if (Directory.class.isAssignableFrom(valueType)) {
             DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Directory", "ObjectFactory.directoryProperty()");
         } else if (RegularFile.class.isAssignableFrom(valueType)) {
@@ -115,11 +150,32 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
+        if (elementType.isPrimitive()) {
+            // Kotlin passes these types for its own basic types
+            return Cast.uncheckedCast(listProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
+        }
         return new DefaultListProperty<T>(elementType);
     }
 
     @Override
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
+        if (elementType.isPrimitive()) {
+            // Kotlin passes these types for its own basic types
+            return Cast.uncheckedCast(setProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
+        }
         return new DefaultSetProperty<T>(elementType);
+    }
+
+    @Override
+    public <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
+        if (keyType.isPrimitive()) {
+            // Kotlin passes these types for its own basic types
+            return Cast.uncheckedCast(mapProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(keyType), valueType));
+        }
+        if (valueType.isPrimitive()) {
+            // Kotlin passes these types for its own basic types
+            return Cast.uncheckedCast(mapProperty(keyType, JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
+        }
+        return new DefaultMapProperty<K, V>(keyType, valueType);
     }
 }

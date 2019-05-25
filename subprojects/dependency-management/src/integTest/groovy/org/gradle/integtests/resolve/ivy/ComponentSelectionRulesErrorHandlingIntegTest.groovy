@@ -49,7 +49,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         fails ':checkDeps'
         failure.assertHasDescription("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(38)
+        failure.assertHasLineNumber(45)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("Could not find method foo()")
     }
@@ -80,7 +80,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         fails ':checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(37)
+        failure.assertHasLineNumber(44)
         failureHasCause("The closure provided is not valid as a rule for 'ComponentSelectionRules'.")
         failureHasCause(message)
 
@@ -118,7 +118,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         fails ':checkDeps'
         failure.assertHasDescription("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(37)
+        failure.assertHasLineNumber(44)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("From test")
     }
@@ -149,7 +149,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         fails ':checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(37)
+        failure.assertHasLineNumber(44)
         failureHasCause("Could not add a component selection rule for module 'org.utils'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
     }
@@ -176,7 +176,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         fails ':checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(33)
+        failure.assertHasLineNumber(40)
         failureHasCause("""Type BadRuleSource is not a valid rule source:
 - Method select(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentSelection""")
     }
@@ -218,7 +218,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         fails ':checkDeps'
         failure.assertHasDescription("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(49)
+        failure.assertHasLineNumber(56)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }

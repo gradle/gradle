@@ -43,6 +43,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     def localPush = true
     def remote = Mock(BuildCacheService)
     def remotePush = true
+    def loadmetadata = Mock(Object)
 
     BuildCacheService legacyLocal = null
 
@@ -71,7 +72,7 @@ class DefaultBuildCacheControllerTest extends Specification {
 
                 @Override
                 Object getMetadata() {
-                    return null
+                    return loadmetadata
                 }
             }
         }

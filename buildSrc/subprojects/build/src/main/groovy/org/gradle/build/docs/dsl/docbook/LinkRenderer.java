@@ -59,10 +59,12 @@ public class LinkRenderer {
         final Element linkElement = document.createElement("classname");
 
         type.visitSignature(new TypeMetaData.SignatureVisitor() {
+            @Override
             public void visitText(String text) {
                 linkElement.appendChild(document.createTextNode(text));
             }
 
+            @Override
             public void visitType(String name) {
                 linkElement.appendChild(addType(name, listener));
             }

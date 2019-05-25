@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-/**
- * This project defines the "Gradle buildSrc platform", which is the set of constraints that are shared
- * by all buildSrc subprojects. We're abusing the fact that this project has the java-library project
- * applied. Ideally we'd need a "java-platform" plugin applied, but this thing is just not yet ready.
- */
+plugins {
+    `java-platform`
+}
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.6.11"

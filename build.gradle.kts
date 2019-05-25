@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.GradleInternal
 import org.gradle.build.BuildReceipt
 import org.gradle.build.Install
-import org.gradle.gradlebuild.ProjectGroups
-import org.gradle.modules.PatchExternalModules
-import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
+import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
-import org.gradle.util.GradleVersion
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 
@@ -32,11 +28,12 @@ plugins {
     `java-base`
     gradlebuild.`build-types`
     gradlebuild.`ci-reporting`
+    gradlebuild.security
     // TODO Apply this plugin in the BuildScanConfigurationPlugin once binary plugins can apply plugins via the new plugin DSL
     // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
     // the plugin has been already applied. For that the plugin has to be applied with the new plugin DSL syntax.
     com.gradle.`build-scan`
-    id("org.gradle.ci.tag-single-build")
+    id("org.gradle.ci.tag-single-build") version("0.67")
 }
 
 defaultTasks("assemble")
@@ -45,7 +42,7 @@ base.archivesBaseName = "gradle"
 
 buildTypes {
     create("compileAllBuild") {
-        tasks(":createBuildReceipt", "compileAll")
+        tasks(":createBuildReceipt", "compileAll", ":docs:distDocs")
         projectProperties("ignoreIncomingBuildReceipt" to true)
     }
 
@@ -53,7 +50,7 @@ buildTypes {
         tasks(
             "classes", "doc:checkstyleApi", "codeQuality", "allIncubationReportsZip",
             "docs:check", "distribution:checkBinaryCompatibility", "javadocAll",
-            "architectureTest:test")
+            "architectureTest:test", "toolingApi:toolingApiShadedJar")
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
@@ -61,7 +58,7 @@ buildTypes {
         tasks("test", "integTest", "crossVersionTest")
     }
 
-    // Used for builds to run all tests, but not necessarily on all platforms
+    // Used for builds to run all tests
     create("fullTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
         projectProperties("testAllVersions" to true)
@@ -70,10 +67,7 @@ buildTypes {
     // Used for builds to test the code on certain platforms
     create("platformTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties(
-            "testAllVersions" to true,
-            "testAllPlatforms" to true
-        )
+        projectProperties("testPartialVersions" to true)
     }
 
     // Tests not using the daemon mode
@@ -111,9 +105,14 @@ buildTypes {
         tasks("performance:distributedFullPerformanceTest")
     }
 
+    create("distributedFlakinessDetections") {
+        tasks("performance:distributedFlakinessDetection")
+    }
+
     // Used for cross version tests on CI
     create("allVersionsCrossVersionTest") {
-        tasks("allVersionsCrossVersionTests")
+        tasks("allVersionsCrossVersionTests", "integMultiVersionTest")
+        projectProperties("testAllVersions" to true)
     }
 
     create("quickFeedbackCrossVersionTest") {
@@ -161,6 +160,13 @@ allprojects {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
+        maven {
+            name = "sonatype-snapshots"
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+            content {
+                includeGroup("org.openjdk.jmc")
+            }
+        }
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
@@ -196,6 +202,10 @@ subprojects {
         apply(plugin = "gradlebuild.java-projects")
     }
 
+    if (project in publicJavaProjects) {
+        apply(plugin = "gradlebuild.public-java-projects")
+    }
+
     if (project in publishedProjects) {
         apply(plugin = "gradlebuild.publish-public-libraries")
     }
@@ -226,15 +236,6 @@ val externalModules by configurations.creating {
 }
 
 /**
- * Configuration used to resolve external modules before patching them with versions from core runtime
- */
-val externalModulesRuntime by configurations.creating {
-    isVisible = false
-    extendsFrom(coreRuntime)
-    extendsFrom(externalModules)
-}
-
-/**
  * Combines the 'coreRuntime' with the patched external module jars
  */
 val runtime by configurations.creating {
@@ -247,7 +248,7 @@ val gradlePlugins by configurations.creating {
 }
 
 val testRuntime by configurations.creating {
-    extendsFrom(runtime)
+    extendsFrom(coreRuntime)
     extendsFrom(gradlePlugins)
 }
 
@@ -257,7 +258,7 @@ configurations {
         isVisible = false
         isCanBeResolved = false
         isCanBeConsumed = true
-        extendsFrom(runtime)
+        extendsFrom(coreRuntime)
         extendsFrom(gradlePlugins)
         attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "metadata")
     }
@@ -277,7 +278,7 @@ configurations {
         isVisible = false
         isCanBeResolved = false
         isCanBeConsumed = true
-        extendsFrom(runtime)
+        extendsFrom(coreRuntime)
         attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "core")
     }
 }
@@ -326,22 +327,13 @@ configurations {
 
 extra["allTestRuntimeDependencies"] = testRuntime.allDependencies
 
-val patchedExternalModulesDir = buildDir / "external/files"
-val patchedExternalModules = files(provider { fileTree(patchedExternalModulesDir).files.sorted() })
-patchedExternalModules.builtBy("patchExternalModules")
-
 dependencies {
-
-    externalModules("org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}")
-    externalModules("org.gradle:gradle-kotlin-dsl-provider-plugins:${BuildEnvironment.gradleKotlinDslVersion}")
-    externalModules("org.gradle:gradle-kotlin-dsl-tooling-builders:${BuildEnvironment.gradleKotlinDslVersion}")
 
     coreRuntime(project(":launcher"))
     coreRuntime(project(":runtimeApiInfo"))
-
-    runtime(project(":wrapper"))
-    runtime(project(":installationBeacon"))
-    runtime(patchedExternalModules)
+    coreRuntime(project(":wrapper"))
+    coreRuntime(project(":installationBeacon"))
+    coreRuntime(project(":kotlinDsl"))
 
     pluginProjects.forEach { gradlePlugins(it) }
     implementationPluginProjects.forEach { gradlePlugins(it) }
@@ -353,20 +345,13 @@ dependencies {
     coreRuntimeExtensions(project(":dependencyManagement")) //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
     coreRuntimeExtensions(project(":pluginUse"))
     coreRuntimeExtensions(project(":workers"))
-    coreRuntimeExtensions(patchedExternalModules)
+    coreRuntimeExtensions(project(":kotlinDslProviderPlugins"))
+    coreRuntimeExtensions(project(":kotlinDslToolingBuilders"))
 
     testRuntime(project(":apiMetadata"))
 }
 
 extra["allCoreRuntimeExtensions"] = coreRuntimeExtensions.allDependencies
-
-tasks.register<PatchExternalModules>("patchExternalModules") {
-    allModules = externalModulesRuntime
-    coreModules = coreRuntime
-    modulesToPatch = this@Build_gradle.externalModules
-    destination = patchedExternalModulesDir
-    outputs.doNotCacheIfSlowInternetConnection()
-}
 
 evaluationDependsOn(":distributions")
 
@@ -402,3 +387,13 @@ tasks.register<Zip>("allIncubationReportsZip") {
 }
 
 fun Project.collectAllIncubationReports() = subprojects.flatMap { it.tasks.withType(IncubatingApiReportTask::class) }
+
+// Ensure the archives produced are reproducible
+allprojects {
+    tasks.withType<AbstractArchiveTask>().configureEach {
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
+        dirMode = Integer.parseInt("0755", 8)
+        fileMode = Integer.parseInt("0644", 8)
+    }
+}

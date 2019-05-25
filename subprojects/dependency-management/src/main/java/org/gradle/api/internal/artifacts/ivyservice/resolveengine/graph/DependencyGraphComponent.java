@@ -23,10 +23,10 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
- * A {@link ComponentResult} that is used during the resolution of the dependency graph.
+ * A {@link ResolvedGraphComponent} that is used during the resolution of the dependency graph.
  * Additional fields in this interface are not required to reconstitute the serialized graph.
  */
-public interface DependencyGraphComponent extends ComponentResult {
+public interface DependencyGraphComponent extends ResolvedGraphComponent {
     /**
      * Returns the meta-data for the component. Resolves if not already resolved.
      *

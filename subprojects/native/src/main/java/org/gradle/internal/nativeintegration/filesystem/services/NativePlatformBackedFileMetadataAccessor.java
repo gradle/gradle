@@ -16,8 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.FileInfo;
-import net.rubygrapefruit.platform.Files;
+import net.rubygrapefruit.platform.file.FileInfo;
+import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;

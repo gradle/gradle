@@ -35,6 +35,9 @@
                 <td>outputs</td>
             </tr>
             <tr>
+                <td>localState</td>
+            </tr>
+            <tr>
                 <td>destroyables</td>
             </tr>
             <tr>

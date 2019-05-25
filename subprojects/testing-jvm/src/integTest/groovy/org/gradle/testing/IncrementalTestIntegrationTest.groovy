@@ -126,4 +126,28 @@ public class BarTest {
         then:
         result.assertTaskSkipped(":test")
     }
+
+    def "does not re-run tests when parameter of disabled report changes"() {
+        buildFile << """
+            test {
+                reports.html {
+                    enabled = true
+                }
+                reports.junitXml {
+                    enabled = false
+                    outputPerTestCase = Boolean.parseBoolean(project.property('outputPerTestCase'))
+                }
+            }
+        """
+
+        when:
+        succeeds("test", "-PoutputPerTestCase=true")
+        then:
+        executedAndNotSkipped(":test")
+
+        when:
+        succeeds("test", "-PoutputPerTestCase=false")
+        then:
+        skipped(":test")
+    }
 }

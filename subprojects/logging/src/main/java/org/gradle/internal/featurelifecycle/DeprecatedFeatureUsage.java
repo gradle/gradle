@@ -119,6 +119,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return type;
     }
 
+    @Override
     public String formattedMessage() {
         StringBuilder outputBuilder = new StringBuilder(getSummary());
         append(outputBuilder, removalDetails);

@@ -18,13 +18,36 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
 public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T>> implements ListProperty<T> {
     public DefaultListProperty(Class<T> elementType) {
         super(List.class, elementType);
+    }
+
+    @Override
+    public Class<?> publicType() {
+        return ListProperty.class;
+    }
+
+    @Override
+    public Factory managedFactory() {
+        return new Factory() {
+            @Nullable
+            @Override
+            public <S> S fromState(Class<S> type, Object state) {
+                if (!type.isAssignableFrom(ListProperty.class)) {
+                    return null;
+                }
+                DefaultListProperty<T> property = new DefaultListProperty<>(DefaultListProperty.this.getElementType());
+                property.set((List<T>) state);
+                return type.cast(property);
+            }
+        };
     }
 
     @Override
@@ -35,6 +58,18 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     @Override
     public ListProperty<T> empty() {
         super.empty();
+        return this;
+    }
+
+    @Override
+    public ListProperty<T> convention(Iterable<? extends T> elements) {
+        super.convention(elements);
+        return this;
+    }
+
+    @Override
+    public ListProperty<T> convention(Provider<? extends Iterable<? extends T>> provider) {
+        super.convention(provider);
         return this;
     }
 }

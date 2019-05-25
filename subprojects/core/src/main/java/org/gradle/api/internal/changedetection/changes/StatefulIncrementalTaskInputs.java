@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
-abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputs {
+public abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputs {
     private boolean outOfDateProcessed;
     private boolean removedProcessed;
 

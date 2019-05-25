@@ -43,13 +43,16 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
         this.metaData = delegate.getMetaData();
     }
 
+    @Override
     public void stop() {
     }
 
+    @Override
     public String getDisplayName() {
         return metaData.getDisplayName();
     }
 
+    @Override
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         if (type.equals(BuildEnvironment.class)) {
             return adapter.adapt(type, doGetBuildEnvironment());
@@ -61,6 +64,7 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
         return new VersionOnlyBuildEnvironment(version);
     }
 
+    @Override
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw unsupported();
     }
@@ -70,6 +74,7 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
         throw unsupported();
     }
 
+    @Override
     public void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
         throw unsupported();
     }

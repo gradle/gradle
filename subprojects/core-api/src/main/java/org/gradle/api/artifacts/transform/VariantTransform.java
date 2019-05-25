@@ -24,7 +24,9 @@ import org.gradle.api.attributes.AttributeContainer;
  * Registration of an variant transform.
  *
  * @since 3.5
+ * @deprecated Use {@link TransformSpec} instead.
  */
+@Deprecated
 public interface VariantTransform {
     /**
      * Attributes that match the variant that is consumed.

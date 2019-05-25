@@ -3,7 +3,6 @@ dependencies {
     implementation(project(":kotlinDsl"))
     // TODO remove dependency once docs has publications
     implementation(project(":docs"))
-    implementation("org.jsoup:jsoup:1.11.3")
     implementation("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.4.2")
 }
 

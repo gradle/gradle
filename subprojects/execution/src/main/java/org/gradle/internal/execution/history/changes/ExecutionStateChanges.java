@@ -16,34 +16,22 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Represents the complete changes in execution state
  */
 public interface ExecutionStateChanges {
 
-    int MAX_OUT_OF_DATE_MESSAGES = 3;
+    /**
+     * Returns all change messages for inputs and outputs.
+     */
+    ImmutableList<String> getAllChangeMessages();
+
+    InputChangesInternal createInputChanges();
 
     /**
-     * Returns changes to input files only.
+     * Turn these changes into ones forcing a rebuild with the given reason.
      */
-    Iterable<Change> getInputFilesChanges();
-
-    /**
-     * Visits any change to inputs or outputs.
-     */
-    void visitAllChanges(ChangeVisitor visitor);
-
-    /**
-     * Whether there are changes that force an incremental task to fully rebuild.
-     */
-    boolean isRebuildRequired();
-
-    /**
-     * The base execution the changes are calculated against.
-     */
-    AfterPreviousExecutionState getPreviousExecution();
+    ExecutionStateChanges withEnforcedRebuild(String rebuildReason);
 }

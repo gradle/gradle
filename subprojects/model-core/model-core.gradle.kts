@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -16,41 +14,46 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
-/*
- * The model management core.
- */
+import build.kotlinVersion
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     `java-library`
     gradlebuild.classycle
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":coreApi"))
-    api(library("groovy"))
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
 
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":persistentCache"))
+    implementation(project(":coreApi"))
     implementation(project(":baseServicesGroovy"))
+
+    implementation(library("inject"))
+    implementation(library("groovy"))
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
-    implementation(library("jcip"))
     implementation(library("asm"))
-    implementation(library("asm_tree"))
 
-    integTestImplementation(project(":core"))
-    integTestRuntimeOnly(project(":plugins"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+
+    testImplementation(project(":processServices"))
+    testImplementation(project(":files"))
+
+    integTestImplementation(project(":platformBase"))
+    
     integTestRuntimeOnly(project(":apiMetadata"))
-
-    testFixturesImplementation(project(":internalTesting"))
-    testFixturesImplementation(project(":core"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {
-    from(":core")
+    from(":core", "testFixtures")
     from(":coreApi")
     from(":diagnostics", "testFixtures")
 }
@@ -61,6 +64,7 @@ classycle {
         "org/gradle/model/internal/inspect/**",
         "org/gradle/api/internal/tasks/**",
         "org/gradle/model/internal/manage/schema/**",
-        "org/gradle/model/internal/type/**"
+        "org/gradle/model/internal/type/**",
+        "org/gradle/api/internal/plugins/*"
     ))
 }

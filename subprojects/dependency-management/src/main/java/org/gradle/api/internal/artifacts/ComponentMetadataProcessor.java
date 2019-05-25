@@ -30,6 +30,7 @@ public interface ComponentMetadataProcessor {
             return metadata;
         }
 
+        @Override
         public int getRulesHash() {
             return 0;
         };

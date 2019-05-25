@@ -42,22 +42,27 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return version.toString();
     }
 
+    @Override
     public TestFile getGradleHomeDir() {
         return gradleHomeDir;
     }
 
+    @Override
     public TestFile getBinDistribution() {
         return binDistribution;
     }
 
+    @Override
     public GradleVersion getVersion() {
         return version;
     }
 
+    @Override
     public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
         return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext).withWarningMode(null);
     }
 
+    @Override
     public boolean worksWith(Jvm jvm) {
         // Milestone 4 was broken on the IBM jvm
         if (jvm.isIbmJvm() && isVersion("1.0-milestone-4")) {
@@ -101,9 +106,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
         }
 
-        return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
+        return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0;
     }
 
+    @Override
     public boolean worksWith(OperatingSystem os) {
         // 1.0-milestone-5 was broken where jna was not available
         //noinspection SimplifiableIfStatement
@@ -114,10 +120,12 @@ public class DefaultGradleDistribution implements GradleDistribution {
         }
     }
 
+    @Override
     public boolean isDaemonIdleTimeoutConfigurable() {
         return isSameOrNewer("1.0-milestone-7");
     }
 
+    @Override
     public boolean isToolingApiSupported() {
         return isSameOrNewer("1.0-milestone-3");
     }
@@ -125,22 +133,6 @@ public class DefaultGradleDistribution implements GradleDistribution {
     @Override
     public boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion) {
         return worksWith(javaVersion);
-    }
-
-    public boolean isToolingApiNonAsciiOutputSupported() {
-        if (OperatingSystem.current().isWindows()) {
-            return !isVersion("1.0-milestone-7") && !isVersion("1.0-milestone-8") && !isVersion("1.0-milestone-8a");
-        }
-        return true;
-    }
-
-    public boolean isToolingApiDaemonBaseDirSupported() {
-        return isSameOrNewer("2.2-rc-1");
-    }
-
-    @Override
-    public boolean isToolingApiEventsInEmbeddedModeSupported() {
-        return isSameOrNewer("2.6-rc-1");
     }
 
     @Override
@@ -153,6 +145,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("2.9-rc-1");
     }
 
+    @Override
     public CacheVersion getArtifactCacheLayoutVersion() {
         if (isSameOrNewer("1.9-rc-2")) {
             return CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(this.version).get();
@@ -171,6 +164,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
         }
     }
 
+    @Override
     public boolean wrapperCanExecute(GradleVersion version) {
         if (version.equals(GradleVersion.version("0.8")) || isVersion("0.8")) {
             // There was a breaking change after 0.8
@@ -189,14 +183,17 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return true;
     }
 
+    @Override
     public boolean isWrapperSupportsGradleUserHomeCommandLineOption() {
         return isSameOrNewer("1.7");
     }
 
+    @Override
     public boolean isSupportsSpacesInGradleAndJavaOpts() {
         return isSameOrNewer("1.0-milestone-5");
     }
 
+    @Override
     public boolean isFullySupportsIvyRepository() {
         return isSameOrNewer("1.0-milestone-7");
     }
@@ -207,14 +204,53 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
-    public boolean isLogsConfigureSummary() {
+    public boolean isToolingApiRetainsOriginalFailureOnCancel() {
+        // Versions before 5.1 would unpack the exception and throw part of it, losing some context
+        return isSameOrNewer("5.1-rc-1");
+    }
+
+    @Override
+    public boolean isToolingApiDoesNotAddCausesOnTaskCancel() {
+        // Versions before 5.1 would sometimes add some additional 'build cancelled' exceptions
+        return isSameOrNewer("5.1-rc-1");
+    }
+
+    @Override
+    public boolean isToolingApiHasCauseOnCancel() {
+        // Versions before 3.2 would throw away the cause. There was also a regression in 4.0.x
+        return isSameOrNewer("3.2") && !(isSameOrNewer("4.0") && isSameOrOlder("4.0.2"));
+    }
+
+    @Override
+    public boolean isToolingApiHasCauseOnForcedCancel() {
+        // Versions before 5.1 would discard context on forced cancel
+        return isSameOrNewer("5.1-rc-1");
+    }
+
+    @Override
+    public boolean isToolingApiLogsFailureOnCancel() {
+        // Versions before 4.1 would log "CONFIGURE SUCCESSFUL" for model/action execution (but "BUILD FAILED" for task/test execution)
+        return isSameOrNewer("4.1");
+    }
+
+    @Override
+    public boolean isToolingApiHasCauseOnPhasedActionFail() {
+        return isSameOrNewer("5.1-rc-1");
+    }
+
+    @Override
+    public boolean isToolingApiMergesStderrIntoStdout() {
+        return isSameOrNewer("4.7") && isSameOrOlder("5.0");
+    }
+
+    @Override
+    public boolean isToolingApiLogsConfigureSummary() {
         return isSameOrNewer("2.14");
     }
 
     @Override
     public <T> T selectOutputWithFailureLogging(T stdout, T stderr) {
-        if (isSameOrNewer("4.0") && isSameOrOlder("4.6")) {
-            // This only worked as expected for a while
+        if (isSameOrNewer("4.0") && isSameOrOlder("4.6") || isSameOrNewer("5.1-rc-1")) {
             return stderr;
         }
         return stdout;

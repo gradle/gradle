@@ -286,7 +286,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenStdOutAndStdErrAreConsole() {
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, true, true, metaData)
+        renderer.addRichConsoleWithErrorOutputOnStdout(console, metaData, true)
 
         when:
         renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -297,12 +297,14 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.buildOutputArea.toString().readLines() == ['', '{header}> description{info} status{normal}', 'info', '{error}error', '{normal}']
+        outputs.stdOut == ''
+        outputs.stdErr == ''
     }
 
-    def rendersLogEventsWhenOnlyStdOutIsConsole() {
+    def rendersLogEventsWhenStdOutAndStdErrAreSeparateConsoles() {
         def snapshot = renderer.snapshot()
-        renderer.attachSystemOutAndErr()
-        renderer.addRichConsole(console, true, false, metaData)
+        def stderrConsole = new ConsoleStub()
+        renderer.addRichConsole(console, stderrConsole, metaData, true)
 
         when:
         renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -313,15 +315,36 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.buildOutputArea.toString().readLines() == ['', '{header}> description{info} status{normal}', 'info']
+        stderrConsole.buildOutputArea.toString().readLines() == ['{error}error', '{normal}']
+        outputs.stdOut == ''
+        outputs.stdErr == ''
+    }
+
+    def rendersLogEventsWhenOnlyStdOutIsConsole() {
+        def snapshot = renderer.snapshot()
+        renderer.attachSystemOutAndErr()
+        renderer.addRichConsole(console, outputs.stdErrPrintStream, metaData, true)
+
+        when:
+        renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
+        renderer.onOutput(event('info', LogLevel.INFO, 1L))
+        renderer.onOutput(event('error', LogLevel.ERROR, 1L))
+        renderer.onOutput(complete('status'))
+        renderer.restore(snapshot) // close console to flush
+
+        then:
+        console.buildOutputArea.toString().readLines() == ['', '{header}> description{info} status{normal}', 'info']
+        outputs.stdOut == ''
+        outputs.stdErr.readLines() == ['error']
     }
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
         def snapshot = renderer.snapshot()
         renderer.attachSystemOutAndErr()
-        renderer.addRichConsole(console, false, true, metaData)
+        renderer.addRichConsole(outputs.stdOutPrintStream, console, true)
 
         when:
-        renderer.onOutput(start('description'))
+        renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
@@ -329,12 +352,14 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.buildOutputArea.toString().readLines() == ['{error}error', '{normal}']
+        outputs.stdOut.readLines() == ['info', '> description status']
+        outputs.stdErr == ''
     }
 
     def rendersLogEventsInConsoleWhenLogLevelIsDebug() {
         renderer.configure(LogLevel.DEBUG)
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, true, true, metaData)
+        renderer.addRichConsoleWithErrorOutputOnStdout(console, metaData, false)
 
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
@@ -343,13 +368,15 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.buildOutputArea.toString().readLines() == ['10:00:00.000 [INFO] [category] info', '{error}10:00:00.000 [ERROR] [category] error', '{normal}']
+        outputs.stdOut == ''
+        outputs.stdErr == ''
     }
 
     def attachesConsoleWhenStdOutAndStdErrAreAttachedToConsole() {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, true, true, metaData)
+        renderer.addRichConsoleWithErrorOutputOnStdout(console, metaData, false)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -364,7 +391,7 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, true, false, metaData)
+        renderer.addRichConsole(console, outputs.stdErrPrintStream, metaData, false)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -379,7 +406,7 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, false, true, metaData)
+        renderer.addRichConsole(outputs.stdOutPrintStream, console, false)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -405,8 +432,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        output.toString().readLines() == ['un-grouped error', '', '> description status', 'info', 'error']
-        error.toString().empty
+        output.toString().readLines() == ['', '> description status', 'info']
+        error.toString().readLines() == ['un-grouped error', 'error']
     }
 
     def "renders log events in plain console when log level is debug"() {
@@ -422,8 +449,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        output.toString().readLines() == ['10:00:00.000 [INFO] [category] info', '10:00:00.000 [ERROR] [category] error']
-        error.toString().empty
+        output.toString().readLines() == ['10:00:00.000 [INFO] [category] info']
+        error.toString().readLines() == ['10:00:00.000 [ERROR] [category] error']
     }
 
     def "attaches plain console when stdout and stderr are attached"() {
@@ -438,8 +465,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        output.toString().readLines() == ['info', 'error']
-        error.toString().empty
+        output.toString().readLines() == ['info']
+        error.toString().readLines() == ['error']
         outputs.stdOut == ''
         outputs.stdErr == ''
     }

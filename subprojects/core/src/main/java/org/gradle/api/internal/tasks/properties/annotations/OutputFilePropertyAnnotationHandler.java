@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.tasks.OutputFile;
 
 import java.lang.annotation.Annotation;
@@ -30,7 +28,7 @@ public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyA
     }
 
     @Override
-    protected DeclaredTaskOutputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory) {
-        return specFactory.createOutputFileSpec(propertyValue);
+    protected OutputFilePropertyType getFilePropertyType() {
+        return OutputFilePropertyType.FILE;
     }
 }

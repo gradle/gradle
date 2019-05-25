@@ -52,7 +52,7 @@ class DefaultNestedBuildTest extends Specification {
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
 
-        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, Stub(BuildStateListener))
+        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner)
     }
 
     def "stops launcher on stop"() {

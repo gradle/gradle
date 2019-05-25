@@ -104,9 +104,9 @@ public class CandidateMethods {
      */
     Map<Equivalence.Wrapper<Method>, Collection<Method>> overloadedMethodsNamed(String methodName) {
         if (candidates.containsKey(methodName)) {
-            Map<Equivalence.Wrapper<Method>, Collection<Method>> overloadeds = candidates.get(methodName);
-            if (overloadeds.size() > 1) {
-                return overloadeds;
+            Map<Equivalence.Wrapper<Method>, Collection<Method>> overloads = candidates.get(methodName);
+            if (overloads.size() > 1) {
+                return overloads;
             }
         }
         return Collections.<Equivalence.Wrapper<Method>, Collection<Method>>emptyMap();

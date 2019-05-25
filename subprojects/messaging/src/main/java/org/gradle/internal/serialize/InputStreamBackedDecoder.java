@@ -39,30 +39,37 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
         return inputStream.skip(count);
     }
 
+    @Override
     public long readLong() throws IOException {
         return inputStream.readLong();
     }
 
+    @Override
     public int readInt() throws EOFException, IOException {
         return inputStream.readInt();
     }
 
+    @Override
     public boolean readBoolean() throws EOFException, IOException {
         return inputStream.readBoolean();
     }
 
+    @Override
     public String readString() throws EOFException, IOException {
         return inputStream.readUTF();
     }
 
+    @Override
     public byte readByte() throws IOException {
         return (byte)(inputStream.readByte() & 0xff);
     }
 
+    @Override
     public void readBytes(byte[] buffer, int offset, int count) throws IOException {
         inputStream.readFully(buffer, offset, count);
     }
 
+    @Override
     public void close() throws IOException {
         inputStream.close();
     }

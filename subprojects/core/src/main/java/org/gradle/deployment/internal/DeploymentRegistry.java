@@ -16,7 +16,7 @@
 
 package org.gradle.deployment.internal;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import javax.annotation.Nullable;
 

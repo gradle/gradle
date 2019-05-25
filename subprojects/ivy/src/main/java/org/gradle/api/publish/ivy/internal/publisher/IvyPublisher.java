@@ -16,11 +16,11 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 
 /**
  * Used by the `ivy-publish` plugin to publish Ivy modules.
  */
 public interface IvyPublisher {
-    void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository);
+    void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository);
 }

@@ -16,11 +16,19 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.fixtures.app.SwiftXCTest
+
 class SwiftXCTestComponentWithoutComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest {
     @Override
     protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'xctest'
         """
+    }
+
+    @Override
+    protected SourceElement getComponentUnderTest() {
+        return new SwiftXCTest('project')
     }
 }

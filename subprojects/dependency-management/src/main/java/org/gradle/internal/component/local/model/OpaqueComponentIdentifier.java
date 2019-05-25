@@ -26,6 +26,7 @@ public class OpaqueComponentIdentifier implements ComponentIdentifier {
         this.displayName = displayName;
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }

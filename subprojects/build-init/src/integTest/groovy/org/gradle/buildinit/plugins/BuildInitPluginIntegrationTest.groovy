@@ -22,9 +22,9 @@ import org.hamcrest.Matcher
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
-import static org.hamcrest.Matchers.allOf
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
+import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -56,6 +56,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
             allOf(
                 containsString("This is a general purpose Gradle build"),
                 containsString("Learn how to create Gradle builds at")))
+        outputContains("Get more help with your project: ")
 
         expect:
         succeeds 'tasks'
@@ -198,13 +199,18 @@ include("child")
         fails('init', '--type', 'some-unknown-library')
 
         then:
-        failure.assertHasCause("""The requested build setup type 'some-unknown-library' is not supported. Supported types:
+        failure.assertHasCause("""The requested build type 'some-unknown-library' is not supported. Supported types:
   - 'basic'
+  - 'cpp-application'
+  - 'cpp-library'
   - 'groovy-application'
+  - 'groovy-gradle-plugin'
   - 'groovy-library'
   - 'java-application'
+  - 'java-gradle-plugin'
   - 'java-library'
   - 'kotlin-application'
+  - 'kotlin-gradle-plugin'
   - 'kotlin-library'
   - 'pom'
   - 'scala-library'""")
@@ -225,7 +231,8 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'fake')
 
         then:
-        failure.assertHasCause("The requested test framework 'fake' is not supported for 'basic' setup type. Supported frameworks: 'none'")
+        failure.assertHasCause("""The requested test framework 'fake' is not supported for 'basic' build type. Supported frameworks:
+  - 'none'""")
     }
 
     def "gives decent error message when test framework is not supported by specific type"() {
@@ -233,7 +240,8 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'spock')
 
         then:
-        failure.assertHasCause("The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks: 'none'")
+        failure.assertHasCause("""The requested test framework 'spock' is not supported for 'basic' build type. Supported frameworks:
+  - 'none'""")
     }
 
     def "gives decent error message when project name option is not supported by specific type"() {
@@ -241,7 +249,7 @@ include("child")
         fails('init', '--type', 'pom', '--project-name', 'thing')
 
         then:
-        failure.assertHasCause("Project name is not supported for 'pom' setup type.")
+        failure.assertHasCause("Project name is not supported for 'pom' build type.")
     }
 
     def "gives decent error message when package name option is not supported by specific type"() {
@@ -249,7 +257,7 @@ include("child")
         fails('init', '--type', 'basic', '--package', 'thing')
 
         then:
-        failure.assertHasCause("Package name is not supported for 'basic' setup type.")
+        failure.assertHasCause("Package name is not supported for 'basic' build type.")
     }
 
     def "displays all build types and modifiers in help command output"() {
@@ -270,6 +278,7 @@ include("child")
      --test-framework     Set the test framework to be used.
                           Available values are:
                                junit
+                               junit-jupiter
                                kotlintest
                                scalatest
                                spock
@@ -278,11 +287,16 @@ include("child")
      --type     Set the type of project to generate.
                 Available values are:
                      basic
+                     cpp-application
+                     cpp-library
                      groovy-application
+                     groovy-gradle-plugin
                      groovy-library
                      java-application
+                     java-gradle-plugin
                      java-library
                      kotlin-application
+                     kotlin-gradle-plugin
                      kotlin-library
                      pom
                      scala-library""")

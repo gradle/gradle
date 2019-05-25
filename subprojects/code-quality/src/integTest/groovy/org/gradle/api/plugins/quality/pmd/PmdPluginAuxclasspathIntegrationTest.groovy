@@ -22,7 +22,7 @@ import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 
@@ -39,7 +39,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
                 apply plugin: 'java'
 
-                ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
+                ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.7" : ""}
             }
 
             project("pmd-rule") {

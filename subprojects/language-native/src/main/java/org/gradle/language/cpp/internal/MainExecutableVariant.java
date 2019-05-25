@@ -20,14 +20,18 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.model.ObjectFactory;
 
 import java.util.Set;
 
 public class MainExecutableVariant implements SoftwareComponentInternal, ComponentWithVariants {
-    private final DomainObjectSet<SoftwareComponent> variants = new DefaultDomainObjectSet<SoftwareComponent>(SoftwareComponent.class);
+    private final DomainObjectSet<SoftwareComponent> variants;
+
+    public MainExecutableVariant(ObjectFactory objectFactory) {
+        variants = objectFactory.domainObjectSet(SoftwareComponent.class);
+    }
 
     @Override
     public String getName() {

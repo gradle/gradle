@@ -395,12 +395,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
   - foo2
   - foo3
 All of them match the consumer attributes:
-  - Variant 'foo2':
-      - Required buildType 'debug' and found compatible value 'debug'.
-      - Required flavor 'free' and found compatible value 'ONE'.
-  - Variant 'foo3':
-      - Required buildType 'debug' and found compatible value 'debug'.
-      - Required flavor 'free' and found compatible value 'ONE'."""
+  - Variant 'foo2' capability test:b:unspecified:
+      - Compatible attributes:
+          - Required buildType 'debug' and found compatible value 'debug'.
+          - Required flavor 'free' and found compatible value 'ONE'.
+  - Variant 'foo3' capability test:b:unspecified:
+      - Compatible attributes:
+          - Required buildType 'debug' and found compatible value 'debug'.
+          - Required flavor 'free' and found compatible value 'ONE'."""
     }
 
     def "can select best compatible match when single best matches are found on individual attributes"() {

@@ -18,11 +18,12 @@ package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.jcip.annotations.NotThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
@@ -62,12 +63,14 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final UserCodeApplicationContext userCodeApplicationContext;
+    private DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
-        this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
+        this.domainObjectCollectionFactory = domainObjectCollectionFactory;
+        this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this, callbackDecorator);
         this.buildOperationExecutor = buildOperationExecutor;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
@@ -87,6 +90,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return pluginClass.cast(instances.get(pluginClass));
     }
 
+    @Override
     public <P extends Plugin> P addImperativePlugin(Class<P> type) {
         return addImperativePlugin(pluginRegistry.inspect(type));
     }
@@ -113,6 +117,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         };
     }
 
+    @Override
     public PluginContainer getPluginContainer() {
         return pluginContainer;
     }
@@ -122,6 +127,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         doApply(plugin);
     }
 
+    @Override
     public void apply(String pluginId) {
         PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(pluginId));
         if (plugin == null) {
@@ -130,6 +136,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         doApply(plugin);
     }
 
+    @Override
     public void apply(Class<?> type) {
         doApply(pluginRegistry.inspect(type));
     }
@@ -206,11 +213,12 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return null;
     }
 
+    @Override
     public DomainObjectSet<PluginWithId> pluginsForId(String id) {
         PluginId pluginId = DefaultPluginId.unvalidated(id);
         DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
         if (pluginsForId == null) {
-            pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class);
+            pluginsForId = domainObjectCollectionFactory.newDomainObjectSet(PluginWithId.class);
             idMappings.put(pluginId, pluginsForId);
             for (PluginImplementation<?> plugin : plugins.values()) {
                 if (plugin.isAlsoKnownAs(pluginId)) {
@@ -222,6 +230,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return pluginsForId;
     }
 
+    @Override
     public AppliedPlugin findPlugin(final String id) {
         DomainObjectSet<PluginWithId> pluginWithIds = pluginsForId(id);
         if (!pluginWithIds.isEmpty()) {
@@ -230,12 +239,15 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return null;
     }
 
+    @Override
     public boolean hasPlugin(String id) {
         return findPlugin(id) != null;
     }
 
+    @Override
     public void withPlugin(final String id, final Action<? super AppliedPlugin> action) {
         Action<PluginWithId> wrappedAction = new Action<PluginWithId>() {
+            @Override
             public void execute(PluginWithId pluginWithId) {
                 action.execute(pluginWithId.asAppliedPlugin());
             }
@@ -296,6 +308,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             this.applicationId = applicationId;
         }
 
+        @Override
         @Nullable
         public String getPluginId() {
             PluginId pluginId = pluginImplementation.getPluginId();

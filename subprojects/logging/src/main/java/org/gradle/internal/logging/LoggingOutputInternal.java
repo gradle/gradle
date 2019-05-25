@@ -22,6 +22,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
 import java.io.OutputStream;
 
 /**
@@ -64,7 +65,7 @@ public interface LoggingOutputInternal extends LoggingOutput {
      * @param consoleMetadata The metadata associated with this console
      * @param consoleOutput The output format.
      */
-    void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata);
+    void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, @Nullable ConsoleMetaData consoleMetadata);
 
     /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout logging formatted according to the current logging settings and

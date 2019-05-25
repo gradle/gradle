@@ -24,6 +24,10 @@ import spock.lang.Unroll
 
 @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        requireGradleDistribution()
+    }
+
     @Unroll
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
@@ -31,7 +35,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("help")
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
+        failure.assertHasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")

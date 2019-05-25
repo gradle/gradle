@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Resources
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Assert
 import org.junit.Rule
 import spock.lang.Unroll
@@ -143,6 +143,6 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new RecursiveElementNameAndTextQualifier())
         XMLAssert.assertXMLEqual(diff, true);
-        Assert.assertThat(actualXml, Matchers.startsWith(String.format('<?xml version="1.0" encoding="UTF-8"?>')))
+        Assert.assertThat(actualXml, CoreMatchers.startsWith(String.format('<?xml version="1.0" encoding="UTF-8"?>')))
     }
 }

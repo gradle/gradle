@@ -18,8 +18,10 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.AbstractSwiftComponentIntegrationTest
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.Swift3XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4XCTest
+import org.gradle.nativeplatform.fixtures.app.Swift5XCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.junit.Assume
 
@@ -28,6 +30,21 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
     def setup() {
         // TODO: Temporarily disable XCTests with Swift3 on macOS
         Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
+    }
+
+    def "check task warns when current operating system family is excluded"() {
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        succeeds "check"
+
+        and:
+        outputContains("'${componentName}' component in project ':' does not target this operating system.")
     }
 
     @Override
@@ -56,7 +73,17 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
     }
 
     @Override
+    SourceElement getSwift5Component() {
+        return new Swift5XCTest('project')
+    }
+
+    @Override
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
+    }
+
+    @Override
+    String getComponentName() {
+        return "test"
     }
 }

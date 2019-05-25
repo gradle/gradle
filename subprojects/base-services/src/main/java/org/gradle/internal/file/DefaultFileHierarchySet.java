@@ -18,6 +18,7 @@ package org.gradle.internal.file;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.file.internal.FilePathUtil;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -16,9 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
-
-class CppUnitTestWithoutComponentIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
+class CppUnitTestWithoutComponentIntegrationTest extends AbstractCppUnitTestIntegrationTest {
     @Override
     protected void makeSingleProject() {
         buildFile << """
@@ -78,7 +76,7 @@ int main() {
     }
 
     @Override
-    String[] getTasksToBuildAndRunUnitTest() {
-        return [":compileTestCpp", ":linkTest", ":installTest", ":runTest"]
+    protected String getComponentUnderTestDsl() {
+        return null
     }
 }

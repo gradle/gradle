@@ -21,7 +21,7 @@ import java.util.List;
  * "groovycVersion". If such a field is found, a field initializer is added
  * and the search ends. The initializer sets the field to a String containing
  * the groovyc version detected (currently "1.6"). Any existing initializer
- * is overriden. If the field's type is not compatible with String, a compile-
+ * is overridden. If the field's type is not compatible with String, a compile-
  * time or runtime error will occur.
  * Because transforms have only been introduced in Groovy 1.6, this transform
  * will have no effect on classes compiled with earlier Groovy versions.

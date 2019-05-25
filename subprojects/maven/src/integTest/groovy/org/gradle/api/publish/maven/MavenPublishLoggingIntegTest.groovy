@@ -48,22 +48,6 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         """
     }
 
-    def "logs missing metadata as info and not error"() {
-        when:
-        succeeds 'publish'
-
-        then:
-        !errorOutput.contains("Could not find metadata")
-        !output.contains("Could not find metadata")
-
-        when:
-        mavenRepo.rootDir.deleteDir()
-        succeeds 'publish', "-i"
-
-        then:
-        output.contains("Could not find metadata")
-    }
-
     def "logging is associated to task"() {
         when:
         succeeds 'publish', "-i"
@@ -71,14 +55,19 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         then:
         def output = result.groupedOutput.task(":publishMavenPublicationToMavenRepository").output
 
-        // Logging from LoggingMavenTransferListener
-        output.contains("Deploying to")
-        output.contains("Uploading: group/root/1.0/root-1.0.jar")
-        output.contains("Uploading: group/root/1.0/root-1.0.pom")
-        output.contains("group/root/1.0/root-1.0.module")
-        output.contains("Downloading: group/root/maven-metadata.xml from repository")
-        output.contains("Could not find metadata")
-        output.contains("Uploading: group/root/maven-metadata.xml to repository")
+        output.contains("Publishing to repository 'maven'")
+        output.contains("Uploading root-1.0.jar to ")
+        output.contains("Uploading root-1.0.pom to ")
+        output.contains("Uploading root-1.0.module to ")
+        output.contains("Uploading maven-metadata.xml to ")
     }
 
+    def "does not log uploads when installing to mavenLocal"() {
+        when:
+        succeeds 'publishToMavenLocal', '-i'
+
+        then:
+        output.contains("Publishing to maven local repository")
+        !output.contains("Uploading")
+    }
 }

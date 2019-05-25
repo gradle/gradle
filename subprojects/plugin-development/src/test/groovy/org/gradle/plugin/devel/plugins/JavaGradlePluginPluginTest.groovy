@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.api.internal.plugins.PluginDescriptor
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.internal.logging.ConfigureLogging
@@ -27,6 +28,8 @@ import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.plugin.devel.PluginDeclaration
+import org.gradle.plugin.use.internal.DefaultPluginId
+import org.gradle.plugin.use.resolve.internal.local.PluginPublication
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.junit.Rule
 
@@ -189,6 +192,23 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         def validateTaskProperties = project.tasks.getByName(JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_NAME)
         validateTaskProperties.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
         validateTaskProperties.description == JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION
+    }
+
+    def "registers local publication for each plugin"() {
+        when:
+        project.pluginManager.apply(JavaGradlePluginPlugin)
+        project.gradlePlugin {
+            plugins {
+                a { id = "a.plugin" }
+                b { id = "b.plugin" }
+            }
+        }
+
+        then:
+        def publications = project.services.get(ProjectPublicationRegistry).getPublications(PluginPublication, project.identityPath)
+        publications.size() == 2
+        publications[0].pluginId == DefaultPluginId.of("a.plugin")
+        publications[1].pluginId == DefaultPluginId.of("b.plugin")
     }
 
     static class ResettableOutputEventListener implements OutputEventListener {

@@ -28,7 +28,7 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
 
-class   CppApplicationPluginTest extends Specification {
+class CppApplicationPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")

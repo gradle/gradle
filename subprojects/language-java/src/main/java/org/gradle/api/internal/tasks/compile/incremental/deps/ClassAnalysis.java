@@ -30,14 +30,12 @@ public class ClassAnalysis {
     private final Set<String> classDependencies;
     private final boolean dependencyToAll;
     private final IntSet constants;
-    private final Set<String> superTypes;
 
-    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, IntSet constants, Set<String> superTypes) {
+    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, IntSet constants) {
         this.className = className;
         this.classDependencies = ImmutableSet.copyOf(classDependencies);
         this.dependencyToAll = dependencyToAll;
         this.constants = constants.isEmpty() ? IntSets.EMPTY_SET : constants;
-        this.superTypes = ImmutableSet.copyOf(superTypes);
     }
 
     public String getClassName() {
@@ -54,9 +52,5 @@ public class ClassAnalysis {
 
     public boolean isDependencyToAll() {
         return dependencyToAll;
-    }
-
-    public Set<String> getSuperTypes() {
-        return superTypes;
     }
 }

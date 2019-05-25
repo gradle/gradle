@@ -21,11 +21,13 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Properties;
+
+import static org.gradle.wrapper.Download.UNKNOWN_VERSION;
 
 public class GradleWrapperMain {
     public static final String GRADLE_USER_HOME_OPTION = "g";
@@ -60,7 +62,7 @@ public class GradleWrapperMain {
         WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile);
         wrapperExecutor.execute(
                 args,
-                new Install(logger, new Download(logger, "gradlew", wrapperVersion()), new PathAssembler(gradleUserHome)),
+                new Install(logger, new Download(logger, "gradlew", UNKNOWN_VERSION), new PathAssembler(gradleUserHome)),
                 new BootstrapMainStarter());
     }
 
@@ -87,28 +89,10 @@ public class GradleWrapperMain {
         if (!location.getScheme().equals("file")) {
             throw new RuntimeException(String.format("Cannot determine classpath for wrapper Jar from codebase '%s'.", location));
         }
-        return new File(location.getPath());
-    }
-
-    static String wrapperVersion() {
         try {
-            InputStream resourceAsStream = GradleWrapperMain.class.getResourceAsStream("/build-receipt.properties");
-            if (resourceAsStream == null) {
-                throw new RuntimeException("No build receipt resource found.");
-            }
-            Properties buildReceipt = new Properties();
-            try {
-                buildReceipt.load(resourceAsStream);
-                String versionNumber = buildReceipt.getProperty("versionNumber");
-                if (versionNumber == null) {
-                    throw new RuntimeException("No version number specified in build receipt resource.");
-                }
-                return versionNumber;
-            } finally {
-                resourceAsStream.close();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Could not determine wrapper version.", e);
+            return Paths.get(location).toFile();
+        } catch (NoClassDefFoundError e) {
+            return new File(location.getPath());
         }
     }
 

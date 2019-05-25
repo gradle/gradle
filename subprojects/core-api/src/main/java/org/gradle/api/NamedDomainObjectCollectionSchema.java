@@ -24,7 +24,6 @@ import org.gradle.api.reflect.TypeOf;
  * @since 4.10
  * @see NamedDomainObjectCollection
  */
-@Incubating
 public interface NamedDomainObjectCollectionSchema {
     /**
      * Returns an iterable of the schemas for each element in the collection.
@@ -36,7 +35,6 @@ public interface NamedDomainObjectCollectionSchema {
      *
      * @since 4.10
      */
-    @Incubating
     interface NamedDomainObjectSchema {
         /**
          * The name of the domain object.

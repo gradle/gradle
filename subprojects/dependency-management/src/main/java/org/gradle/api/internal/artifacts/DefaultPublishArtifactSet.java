@@ -53,10 +53,12 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
         return displayName.getDisplayName();
     }
 
+    @Override
     public FileCollection getFiles() {
         return files;
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return builtBy;
     }

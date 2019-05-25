@@ -169,7 +169,6 @@ model {
 
         then:
         resultDebug.size() == 1
-        resultDebug[0].assertTasksExecuted(':compileMainWin32DebugExecutableMainCpp', ':linkMainWin32DebugExecutable', ':mainWin32DebugExecutable', ':installMainWin32DebugExecutable')
         debugBinary.assertExists()
         installation('build/install/main/win32/debug').assertInstalled()
     }
@@ -202,8 +201,6 @@ model {
 
         then:
         resultDebug.size() == 2
-        resultDebug[0].assertTasksExecuted(':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
-        resultDebug[1].assertTasksExecuted(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary')
         debugBinaryLib.assertExists()
         debugBinaryDll.assertExists()
     }
@@ -864,9 +861,9 @@ model {
         and:
         final mainSolution = solutionFile("app.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll", "helloLib")
-        mainSolution.assertReferencesProject(exeProject, ['win32', 'x64'])
-        mainSolution.assertReferencesProject(dllProject, ['win32Debug', 'x64Debug', 'win32Release', 'x64Release'])
-        mainSolution.assertReferencesProject(libProject, ['win32Debug', 'x64Debug', 'win32Release', 'x64Release'])
+        mainSolution.assertReferencesProject(exeProject, ['win32':'win32', 'x64':'x64', 'win32Debug':'x64', 'win32Release':'x64', 'x64Debug':'x64', 'x64Release':'x64'])
+        mainSolution.assertReferencesProject(dllProject, ['win32Debug':'win32Debug', 'win32Release':'win32Release', 'x64Debug':'x64Debug', 'x64Release':'x64Release', 'win32':'x64Release', 'x64':'x64Release'])
+        mainSolution.assertReferencesProject(libProject, ['win32Debug':'win32Debug', 'win32Release':'win32Release', 'x64Debug':'x64Debug', 'x64Release':'x64Release', 'win32':'x64Release', 'x64':'x64Release'])
     }
 
     def "only create visual studio projects for buildable binaries"() {

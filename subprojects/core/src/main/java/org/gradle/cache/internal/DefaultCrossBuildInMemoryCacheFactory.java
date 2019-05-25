@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
@@ -50,6 +50,7 @@ public class DefaultCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCac
      *
      * Note: this should be used to create _only_ global scoped instances.
      */
+    @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
         DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>(new HashMap<K, SoftReference<V>>());
         listenerManager.addListener(cache);
@@ -61,6 +62,7 @@ public class DefaultCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCac
      *
      * Note: this should be used to create _only_ global scoped instances.
      */
+    @Override
     public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
         DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<Class<?>, V>(new WeakHashMap<Class<?>, SoftReference<V>>());
         listenerManager.addListener(cache);

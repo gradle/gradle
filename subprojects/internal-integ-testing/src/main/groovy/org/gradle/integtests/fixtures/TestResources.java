@@ -49,6 +49,7 @@ public class TestResources implements MethodRule {
         return testWorkDirProvider.getTestDirectory();
     }
 
+    @Override
     public Statement apply(Statement base, final FrameworkMethod method, Object target) {
         final Statement statement = resources.apply(base, method, target);
         return new Statement() {

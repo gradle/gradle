@@ -28,6 +28,13 @@ import java.lang.annotation.Target;
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
+ * <p>
+ *     For jar files, the normalized path is empty.
+ *     The content of the jar file is normalized so that time stamps and order of the zip entries in the jar file do not matter.
+ *     If a directory is a classpath entry, then the root directory itself is ignored.
+ *     The files in the directory are sorted and the relative path to the root directory is used as normalized path.
+ * </p>
+ *
  * <p><strong>Note:</strong> to stay compatible with versions prior to Gradle 3.2, classpath
  * properties need to be annotated with {@literal @}{@link InputFiles} as well.</p>
  *

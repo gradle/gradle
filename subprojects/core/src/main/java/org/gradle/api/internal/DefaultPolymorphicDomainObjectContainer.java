@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Set;
 
@@ -27,13 +28,22 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         implements ExtensiblePolymorphicDomainObjectContainer<T> {
     protected final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator;
 
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, instantiator, namer);
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+        super(type, instantiator, namer, callbackDecorator);
         namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
     }
 
+    /**
+     * This internal constructor is used by the 'nebula.lint' plugin which we test as part of our ci pipeline.
+     * */
+    @Deprecated
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        this(type, instantiator, Named.Namer.forType(type));
+        this(type, instantiator, Named.Namer.forType(type), CollectionCallbackActionDecorator.NOOP);
+        DeprecationLogger.nagUserOfDeprecated("Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)");
+    }
+
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
+        this(type, instantiator, Named.Namer.forType(type), callbackDecorator);
     }
 
     @Override
@@ -41,6 +51,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         return namedEntityInstantiator;
     }
 
+    @Override
     protected T doCreate(String name) {
         try {
             return namedEntityInstantiator.create(name, getType());
@@ -55,6 +66,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         }
     }
 
+    @Override
     protected <U extends T> U doCreate(String name, Class<U> type) {
         return namedEntityInstantiator.create(name, type);
     }
@@ -64,21 +76,26 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         registerFactory(castType, factory);
     }
 
+    @Override
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
         namedEntityInstantiator.registerFactory(type, factory);
     }
 
+    @Override
     public <U extends T> void registerFactory(Class<U> type, final Closure<? extends U> factory) {
         registerFactory(type, new NamedDomainObjectFactory<U>() {
+            @Override
             public U create(String name) {
                 return factory.call(name);
             }
         });
     }
 
+    @Override
     public <U extends T> void registerBinding(Class<U> type, final Class<? extends U> implementationType) {
         registerFactory(type, new NamedDomainObjectFactory<U>() {
             boolean named = Named.class.isAssignableFrom(implementationType);
+            @Override
             public U create(String name) {
                 return named ? getInstantiator().newInstance(implementationType, name)
                         : getInstantiator().newInstance(implementationType);
@@ -86,6 +103,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         });
     }
 
+    @Override
     public Set<? extends Class<? extends T>> getCreateableTypes() {
         return namedEntityInstantiator.getCreatableTypes();
     }

@@ -17,21 +17,16 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
+@LeaksFileHandles
 class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.kt"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.kt"
-
-    def setup() {
-        executer.beforeExecute {
-            // Run Kotlin compiler in-process to avoid file locking issues
-            executer.withArgument("-Dkotlin.compiler.execution.strategy=in-process")
-        }
-    }
 
     def "defaults to kotlin build scripts"() {
         when:
@@ -51,10 +46,9 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
-        executer.expectDeprecationWarning()
         run("build")
 
         then:
@@ -74,10 +68,9 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/kotlin").assertHasDescendants("my/lib/LibraryTest.kt")
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
-        executer.expectDeprecationWarning()
         run("build")
 
         then:
@@ -111,7 +104,6 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
-        executer.expectDeprecationWarning()
         run("build")
 
         then:

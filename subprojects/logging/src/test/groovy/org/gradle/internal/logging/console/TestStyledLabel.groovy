@@ -27,13 +27,13 @@ class TestStyledLabel implements StyledLabel {
         display
     }
 
-    StyledTextOutput.Style styleOf(String text) {
-        stringToStyleMap[text]
+    void setText(String text) {
+        display = text
     }
 
     @Override
-    void setText(String text) {
-        display = text
+    void setText(StyledTextOutputEvent.Span span) {
+        throw new UnsupportedOperationException()
     }
 
     @Override
@@ -46,7 +46,6 @@ class TestStyledLabel implements StyledLabel {
         setText(text)
     }
 
-    @Override
     void setText(StyledTextOutputEvent.Span... spans) {
         setText(Arrays.asList(spans))
     }

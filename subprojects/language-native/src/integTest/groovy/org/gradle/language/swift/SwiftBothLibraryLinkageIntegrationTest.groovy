@@ -16,12 +16,18 @@
 
 package org.gradle.language.swift
 
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
 class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTest {
     @Override
-    protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [":compileDebugSharedSwift", ":linkDebugShared"]
+    protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {
+        return [":compileDebugShared${variant.capitalize()}Swift", ":linkDebugShared${variant.capitalize()}"]
+    }
+
+    @Override
+    protected SourceElement getComponentUnderTest() {
+        return new SwiftLib()
     }
 
     @Override

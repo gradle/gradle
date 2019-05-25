@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
@@ -56,6 +57,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
     def resolution = Mock(DependencyResolutionServices) {
         getResolveRepositoryHandler() >> repositories
         getConfigurationContainer() >> configurations
+        getAttributesSchema() >> Stub(AttributesSchema)
     }
     def result = Mock(PluginResolutionResult)
 

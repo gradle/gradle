@@ -1,12 +1,12 @@
 // Using Kotlin delegated properties
 
-val hello by tasks.creating {
+val hello by tasks.registering {
     doLast {
         println("hello")
     }
 }
 
-val copy by tasks.creating(Copy::class) {
+val copy by tasks.registering(Copy::class) {
     from(file("srcDir"))
     into(buildDir)
 }

@@ -23,12 +23,10 @@ import org.gradle.internal.logging.events.OutputEventListener;
 class ErrorOutputDispatchingListener implements OutputEventListener {
     private final OutputEventListener stderrChain;
     private final OutputEventListener stdoutChain;
-    private final boolean redirectStderr;
 
-    public ErrorOutputDispatchingListener(OutputEventListener stderrChain, OutputEventListener stdoutChain, boolean redirectStderr) {
+    public ErrorOutputDispatchingListener(OutputEventListener stderrChain, OutputEventListener stdoutChain) {
         this.stderrChain = stderrChain;
         this.stdoutChain = stdoutChain;
-        this.redirectStderr = redirectStderr;
     }
 
     @Override
@@ -39,14 +37,8 @@ class ErrorOutputDispatchingListener implements OutputEventListener {
         } else if (event.getLogLevel() != LogLevel.ERROR) {
             stdoutChain.onOutput(event);
         } else {
-            // Write anything that isn't the build failure report to the output stream if there is a console attached.
-            // This is to avoid interleaving of error and non-error output generated at approximately the same time, as the process stdout and stderr may be forwarded on different pipes and so ordering is lost
-            // TODO - should attempt to flush the output stream prior to writing to the error stream
-            if (redirectStderr) {
-                stdoutChain.onOutput(event);
-            } else {
-                stderrChain.onOutput(event);
-            }
+            // TODO - should attempt to flush the output stream prior to writing to the error stream (and vice versa)
+            stderrChain.onOutput(event);
         }
     }
 }

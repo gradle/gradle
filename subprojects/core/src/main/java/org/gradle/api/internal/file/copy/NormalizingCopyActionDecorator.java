@@ -46,15 +46,18 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         this.chmod = chmod;
     }
 
+    @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
         final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
         final ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs = ArrayListMultimap.create();
 
         WorkResult result = delegate.execute(new CopyActionProcessingStream() {
+            @Override
             public void process(final CopyActionProcessingStreamAction action) {
 
 
                 stream.process(new CopyActionProcessingStreamAction() {
+                    @Override
                     public void processFile(FileCopyDetailsInternal details) {
                         if (details.isDirectory()) {
                             RelativePath path = details.getRelativePath();
@@ -114,6 +117,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
             this.includeEmptyDirs = includeEmptyDirs;
         }
 
+        @Override
         public boolean isIncludeEmptyDirs() {
             return includeEmptyDirs;
         }
@@ -123,86 +127,107 @@ public class NormalizingCopyActionDecorator implements CopyAction {
             return path.toString();
         }
 
+        @Override
         public File getFile() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean isDirectory() {
             return !path.isFile();
         }
 
+        @Override
         public long getLastModified() {
             return lastModified;
         }
 
+        @Override
         public long getSize() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public InputStream open() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public RelativePath getRelativePath() {
             return path;
         }
 
+        @Override
         public void exclude() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void setName(String name) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void setPath(String path) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void setRelativePath(RelativePath path) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void setMode(int mode) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public DuplicatesStrategy getDuplicatesStrategy() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public String getSourceName() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public String getSourcePath() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public RelativePath getRelativeSourcePath() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public ContentFilterable filter(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public ContentFilterable filter(Class<? extends FilterReader> filterType) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public ContentFilterable filter(Closure closure) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public ContentFilterable filter(Transformer<String, String> transformer) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public ContentFilterable expand(Map<String, ?> properties) {
             throw new UnsupportedOperationException();
         }

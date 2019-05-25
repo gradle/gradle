@@ -38,17 +38,19 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
-    protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, instantiator, namer);
+    protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+        super(type, instantiator, namer, callbackDecorator);
     }
 
     protected abstract <U extends T> U doCreate(String name, Class<U> type);
 
+    @Override
     public <U extends T> U create(String name, Class<U> type) {
         assertMutable("create(String, Class)");
         return create(name, type, null);
     }
 
+    @Override
     public <U extends T> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException {
         T item = findByName(name);
         if (item != null) {
@@ -57,6 +59,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         return create(name, type);
     }
 
+    @Override
     public <U extends T> U create(String name, Class<U> type, Action<? super U> configuration) {
         assertMutable("create(String, Class, Action)");
         assertCanAdd(name);
@@ -159,6 +162,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
     }
 
+    @Override
     public <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
         return getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this);
     }

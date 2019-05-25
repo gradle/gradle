@@ -17,6 +17,10 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
+import org.gradle.api.attributes.CompatibilityCheckDetails
+import org.gradle.api.attributes.MultipleCandidatesDetails
+import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -34,7 +38,10 @@ import org.gradle.platform.base.BinarySpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.reflect.TypeOf.typeOf
@@ -126,6 +133,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
         set.output.resourcesDir == new File(project.buildDir, 'resources/custom')
+        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
 
         def processResources = project.tasks['processCustomResources']
         processResources.description == "Processes custom resources."
@@ -163,6 +171,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
         set.java.outputDir == new File(project.buildDir, 'classes/java/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
+        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
 
         def processResources = project.tasks.processResources
         processResources.description == "Processes main resources."
@@ -207,6 +216,19 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def compileJava = project.tasks['compileCustomJava']
         compileJava.destinationDir == classesDir
+    }
+
+    void sourceSetReflectChangesToTasksConfiguration() {
+        def generatedSourcesDir = project.file('target/generated-sources')
+
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets.create('custom')
+        def compileJava = project.tasks['compileCustomJava']
+        compileJava.options.annotationProcessorGeneratedSourcesDirectory = generatedSourcesDir
+
+        then:
+        project.sourceSets.custom.output.generatedSourcesDirs.files == toLinkedSet(generatedSourcesDir)
     }
 
     void createsConfigurationsForNewSourceSet() {
@@ -400,5 +422,124 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         binary.tasks.contains(classesTask)
         binary.tasks.contains(project.tasks.findByName("compileCustomJava"))
         binary.tasks.contains(project.tasks.findByName("processCustomResources"))
+    }
+
+    @Unroll
+    void "check Java usage compatibility rules (consumer value=#consumer, producer value=#producer, compatible=#compatible)"() {
+        given:
+        JavaEcosystemSupport.UsageCompatibilityRules rules = new JavaEcosystemSupport.UsageCompatibilityRules()
+        def details = Mock(CompatibilityCheckDetails)
+        when:
+        rules.execute(details)
+
+        then:
+        1 * details.getConsumerValue() >> Stub(Usage) { getName() >> consumer }
+        1 * details.getProducerValue() >> Stub(Usage) { getName() >> producer }
+        if (producer == consumer) {
+            // implementations are NOT required to say "compatible" because
+            // they should not even be called in this case
+            0 * details._()
+        } else if (compatible) {
+            1 * details.compatible()
+        } else {
+            0 * details._()
+        }
+
+        where:
+        consumer                     | producer                     | compatible
+        Usage.JAVA_API               | Usage.JAVA_API               | true
+        Usage.JAVA_API               | Usage.JAVA_API_CLASSES       | true
+        Usage.JAVA_API               | Usage.JAVA_API_JARS          | true
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME_CLASSES   | true
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_API               | true
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_API_CLASSES       | true
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_API_JARS          | true
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_CLASSES   | true
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_API_JARS          | Usage.JAVA_API               | true
+        Usage.JAVA_API_JARS          | Usage.JAVA_API_CLASSES       | false
+        Usage.JAVA_API_JARS          | Usage.JAVA_API_JARS          | true
+        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME_CLASSES   | false
+        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_API_CLASSES       | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_API_JARS          | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_CLASSES   | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API               | false
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API_CLASSES       | false
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API_JARS          | false
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_CLASSES   | true
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API               | false
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API_CLASSES       | false
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API_JARS          | false
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_CLASSES   | false
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_RESOURCES | true
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API               | false
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API_CLASSES       | false
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API_JARS          | false
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_CLASSES   | false
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_JARS      | true
+    }
+
+    @Issue("gradle/gradle#8700")
+    @Unroll
+    def "check default disambiguation rules (consumer=#consumer, candidates=#candidates, selected=#preferred)"() {
+        given:
+        JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
+                usage(Usage.JAVA_API),
+                usage(Usage.JAVA_API_JARS),
+                usage(Usage.JAVA_API_CLASSES),
+                usage(Usage.JAVA_RUNTIME),
+                usage(Usage.JAVA_RUNTIME_JARS),
+                usage(Usage.JAVA_RUNTIME_CLASSES),
+                usage(Usage.JAVA_RUNTIME_RESOURCES)
+        )
+        MultipleCandidatesDetails details = Mock()
+
+        when:
+        rules.execute(details)
+
+        then:
+        1 * details.getConsumerValue() >> usage(consumer)
+        1 * details.getCandidateValues() >> candidates.collect { usage(it) }
+        1 * details.closestMatch(usage(preferred))
+
+        where: // not exhaustive, tests pathological cases
+        consumer                | candidates                                            | preferred
+        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_API_CLASSES]         | Usage.JAVA_API_CLASSES
+        Usage.JAVA_API          | [Usage.JAVA_RUNTIME_CLASSES, Usage.JAVA_API_CLASSES]  | Usage.JAVA_API_CLASSES
+        Usage.JAVA_API          | [Usage.JAVA_RUNTIME_CLASSES, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_RUNTIME_CLASSES
+        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS]        | Usage.JAVA_API_JARS
+
+        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_RUNTIME_JARS]         | Usage.JAVA_RUNTIME
+        Usage.JAVA_RUNTIME_JARS | [Usage.JAVA_RUNTIME, Usage.JAVA_RUNTIME_JARS]         | Usage.JAVA_RUNTIME_JARS
+
+    }
+
+    private Usage usage(String value) {
+        TestUtil.objectFactory().named(Usage, value)
     }
 }

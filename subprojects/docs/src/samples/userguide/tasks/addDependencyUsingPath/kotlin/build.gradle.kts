@@ -1,5 +1,5 @@
 project("projectA") {
-    task("taskX") {
+    tasks.register("taskX") {
         dependsOn(":projectB:taskY")
         doLast {
             println("taskX")
@@ -8,7 +8,7 @@ project("projectA") {
 }
 
 project("projectB") {
-    task("taskY") {
+    tasks.register("taskY") {
         doLast {
             println("taskY")
         }

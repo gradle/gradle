@@ -18,9 +18,6 @@
 boolean isCiServer = System.getenv().containsKey("CI")
 
 buildCache {
-    local {
-        enabled = !isCiServer
-    }
     remote(HttpBuildCache) {
         url = 'https://example.com:8123/cache/'
         push = isCiServer

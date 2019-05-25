@@ -16,14 +16,18 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.provider.Provider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultProjectLayoutTest extends Specification {
     @Rule
@@ -33,7 +37,7 @@ class DefaultProjectLayoutTest extends Specification {
 
     def setup() {
         projectDir = tmpDir.createDir("project")
-        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir), Stub(TaskResolver))
+        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir), Stub(TaskResolver), Stub(FileCollectionFactory))
     }
 
     def "can query the project directory"() {
@@ -455,7 +459,89 @@ class DefaultProjectLayoutTest extends Specification {
         !var.present
     }
 
-    def "can query and mutate the build directory using resolveable type"() {
+    def "producer task for a directory is not known by default"() {
+        def var = layout.directoryProperty()
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        def visited = var.maybeVisitBuildDependencies(context)
+
+        then:
+        !visited
+        0 * context._
+    }
+
+    def "can specify the producer task for a directory"() {
+        def var = layout.directoryProperty()
+        def task = Mock(Task)
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        var.attachProducer(task)
+        def visited = var.maybeVisitBuildDependencies(context)
+
+        then:
+        visited
+        1 * context.add(task)
+        0 * context._
+    }
+
+    def "can discard the producer task for a directory"() {
+        def var = layout.directoryProperty()
+        def task = Mock(Task)
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        var.attachProducer(task)
+        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+
+        then:
+        !visited
+        0 * context._
+    }
+
+    def "producer task for a regular file is not known by default"() {
+        def var = layout.fileProperty()
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        def visited = var.maybeVisitBuildDependencies(context)
+
+        then:
+        !visited
+        0 * context._
+    }
+
+    def "can specify the producer task for a regular file"() {
+        def var = layout.fileProperty()
+        def task = Mock(Task)
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        var.attachProducer(task)
+        def visited = var.maybeVisitBuildDependencies(context)
+
+        then:
+        visited
+        1 * context.add(task)
+        0 * context._
+    }
+
+    def "can discard the producer task for a regular file"() {
+        def var = layout.fileProperty()
+        def task = Mock(Task)
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        var.attachProducer(task)
+        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+
+        then:
+        !visited
+        0 * context._
+    }
+
+    def "can query and mutate the build directory using resolvable type"() {
         expect:
         def buildDirectory = layout.buildDirectory
         def fileProvider = buildDirectory.asFile
@@ -558,6 +644,26 @@ class DefaultProjectLayoutTest extends Specification {
 
         file1.getAsFile() == projectDir.file("build/a")
         file2.getAsFile() == projectDir.file("build/b")
+    }
+
+    def "directories are equal when their paths are equal"() {
+        expect:
+        def dir = layout.projectDirectory.dir("child")
+        strictlyEquals(dir, layout.projectDirectory.dir("child"))
+
+        dir != layout.projectDirectory.dir("other")
+        dir != layout.projectDirectory.dir("child/child2")
+        dir != layout.projectDirectory.file("child")
+    }
+
+    def "regular files are equal when their paths are equal"() {
+        expect:
+        def file = layout.projectDirectory.file("child")
+        strictlyEquals(file, layout.projectDirectory.file("child"))
+
+        file != layout.projectDirectory.file("other")
+        file != layout.projectDirectory.file("child/child2")
+        file != layout.projectDirectory.dir("child")
     }
 
     def "can wrap File provider"() {

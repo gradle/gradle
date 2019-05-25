@@ -18,13 +18,16 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader apiOnlyClassLoader;
     private final ClassLoader apiAndPluginsClassLoader;
     private final ClassLoader pluginsClassLoader;
+    private final Instantiator instantiator;
 
-    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {
+    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport, Instantiator instantiator) {
+        this.instantiator = instantiator;
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
         this.apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
         this.pluginsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, classPathRegistry.getClassPath("GRADLE_EXTENSIONS"), legacyTypesSupport);
@@ -39,22 +42,8 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         return new FilteringClassLoader(parent, spec);
     }
 
-    private static FilteringClassLoader.Spec apiSpecFor(ClassLoader classLoader) {
-        FilteringClassLoader.Spec apiSpec = new FilteringClassLoader.Spec();
-        GradleApiSpecProvider.Spec apiAggregate = new GradleApiSpecAggregator(classLoader).aggregate();
-        for (String resource : apiAggregate.getExportedResources()) {
-            apiSpec.allowResource(resource);
-        }
-        for (String resourcePrefix : apiAggregate.getExportedResourcePrefixes()) {
-            apiSpec.allowResources(resourcePrefix);
-        }
-        for (Class<?> clazz : apiAggregate.getExportedClasses()) {
-            apiSpec.allowClass(clazz);
-        }
-        for (String packageName : apiAggregate.getExportedPackages()) {
-            apiSpec.allowPackage(packageName);
-        }
-        return apiSpec;
+    private FilteringClassLoader.Spec apiSpecFor(ClassLoader classLoader) {
+        return GradleApiUtil.apiSpecFor(classLoader, instantiator);
     }
 
     @Override

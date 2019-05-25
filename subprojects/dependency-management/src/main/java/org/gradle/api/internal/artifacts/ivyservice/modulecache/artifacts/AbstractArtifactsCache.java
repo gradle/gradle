@@ -33,6 +33,7 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
         this.timeProvider = timeProvider;
     }
 
+    @Override
     public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
         ArtifactsAtRepositoryKey key = new ArtifactsAtRepositoryKey(repository.getId(), componentId, context);
         ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(ImmutableSet.copyOf(artifacts), timeProvider.getCurrentTime(), descriptorHash);
@@ -42,6 +43,7 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
 
     protected abstract void store(ArtifactsAtRepositoryKey key, ModuleArtifactsCacheEntry entry);
 
+    @Override
     public CachedArtifacts getCachedArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context) {
         ArtifactsAtRepositoryKey key = new ArtifactsAtRepositoryKey(repository.getId(), componentId, context);
         ModuleArtifactsCacheEntry entry = get(key);

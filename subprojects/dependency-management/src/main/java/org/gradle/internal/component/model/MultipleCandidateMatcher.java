@@ -193,15 +193,44 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         remaining = new BitSet(candidates.size());
         remaining.or(compatible);
 
-        disambiguateWithRequestedAttributes();
+        disambiguateWithRequestedAttributeValues();
         if (remaining.cardinality() > 1) {
             disambiguateWithExtraAttributes();
         }
-
+        if (remaining.cardinality() > 1) {
+            disambiguateWithRequestedAttributeKeys();
+        }
         return remaining.cardinality() == 0 ? getCandidates(compatible) : getCandidates(remaining);
     }
 
-    private void disambiguateWithRequestedAttributes() {
+    private void disambiguateWithRequestedAttributeKeys() {
+        if (requestedAttributes.isEmpty()) {
+            return;
+        }
+        for (Attribute<?> extraAttribute : extraAttributes) {
+            // We consider only extra attributes which are NOT on every candidate:
+            // Because they are EXTRA attributes, we consider that a
+            // candidate which does NOT provide this value is a better match
+            int candidateCount = candidateAttributeSets.length;
+            BitSet any = new BitSet(candidateCount);
+            for (int c = 0; c < candidateCount; c++) {
+                ImmutableAttributes candidateAttributeSet = candidateAttributeSets[c];
+                if (candidateAttributeSet.getAttributes().contains(extraAttribute)) {
+                    any.set(c);
+                }
+            }
+            if (any.cardinality() > 0 && any.cardinality() != candidateCount) {
+                // there is at least one candidate which does NOT provide this attribute
+                remaining.andNot(any);
+                if (remaining.cardinality() == 0) {
+                    // there are no left candidate, do not bother checking other attributes
+                    break;
+                }
+            }
+        }
+    }
+
+    private void disambiguateWithRequestedAttributeValues() {
         for (int a = 0; a < requestedAttributes.size(); a++) {
             disambiguateWithAttribute(a);
             if (remaining.cardinality() == 0) {

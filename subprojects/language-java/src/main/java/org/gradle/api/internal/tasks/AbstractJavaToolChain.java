@@ -20,13 +20,13 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.TreeVisitor;
 
 public abstract class AbstractJavaToolChain implements JavaToolChainInternal {
     private final JavaCompilerFactory compilerFactory;
@@ -92,7 +92,7 @@ public abstract class AbstractJavaToolChain implements JavaToolChainInternal {
         }
 
         @Override
-        public void explain(TreeVisitor<? super String> visitor) {
+        public void explain(DiagnosticsVisitor visitor) {
         }
     }
 
@@ -119,7 +119,7 @@ public abstract class AbstractJavaToolChain implements JavaToolChainInternal {
         }
 
         @Override
-        public void explain(TreeVisitor<? super String> visitor) {
+        public void explain(DiagnosticsVisitor visitor) {
             visitor.node(getMessage());
         }
 

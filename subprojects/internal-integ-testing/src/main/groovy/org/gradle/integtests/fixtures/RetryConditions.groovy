@@ -17,8 +17,11 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestPrecondition
+
+import javax.annotation.Nullable
 
 class RetryConditions {
 
@@ -66,7 +69,7 @@ class RetryConditions {
         return shouldRetry(specification, failure, daemonsFixture)
     }
 
-    private static boolean shouldRetry(Object specification, Throwable failure, daemonsFixture) {
+    private static boolean shouldRetry(Object specification, Throwable failure, @Nullable DaemonLogsAnalyzer daemonsFixture) {
         String releasedGradleVersion = specification.hasProperty("releasedGradleVersion") ? specification.releasedGradleVersion : null
         def caughtGradleConnectionException = specification.hasProperty("caughtGradleConnectionException") ? specification.caughtGradleConnectionException : null
 
@@ -127,6 +130,19 @@ class RetryConditions {
 
             println "Retrying cross version test because daemon connection is broken."
             return cleanProjectDir(specification)
+        }
+
+        // known problem with Gradle versions < 3.5
+        // See https://github.com/gradle/gradle-private/issues/744
+        if (targetDistVersion < GradleVersion.version('3.5') && daemonsFixture != null && getRootCauseMessage(failure) == 'Build cancelled.') {
+            for (daemon in daemonsFixture.daemons) {
+                if (daemon.log.contains('Could not receive message from client.')
+                    && daemon.log.contains('java.lang.NullPointerException')
+                    && daemon.log.contains('org.gradle.launcher.daemon.server.exec.LogToClient')) {
+                    println "Retrying test because the dispatcher was not ready for receiving a log event. Check log of daemon with PID ${daemon.context.pid}."
+                    return cleanProjectDir(specification)
+                }
+            }
         }
 
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111

@@ -31,6 +31,7 @@ public class NotSpec<T> implements Spec<T> {
         return sourceSpec;
     }
 
+    @Override
     public boolean isSatisfiedBy(T element) {
         return !sourceSpec.isSatisfiedBy(element);
     }

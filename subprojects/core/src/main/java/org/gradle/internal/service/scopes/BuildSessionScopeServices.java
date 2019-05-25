@@ -29,6 +29,7 @@ import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterC
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.SplitFileHasher;
 import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCacheService;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
@@ -46,6 +47,8 @@ import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
@@ -56,9 +59,12 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.filewatch.PendingChangesManager;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
@@ -73,6 +79,7 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
@@ -90,17 +97,17 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
-import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
  */
 public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
-    public BuildSessionScopeServices(final ServiceRegistry parent, CrossBuildSessionScopeServices crossBuildSessionScopeServices, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken) {
+    public BuildSessionScopeServices(final ServiceRegistry parent, CrossBuildSessionScopeServices crossBuildSessionScopeServices, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken, BuildClientMetaData buildClientMetaData, BuildEventConsumer buildEventConsumer) {
         super(parent);
         addProvider(crossBuildSessionScopeServices);
         register(new Action<ServiceRegistration>() {
@@ -112,9 +119,11 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
-        add(BuildCancellationToken.class, buildCancellationToken);
         add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
+        add(BuildCancellationToken.class, buildCancellationToken);
         add(BuildRequestMetaData.class, buildRequestMetaData);
+        add(BuildClientMetaData.class, buildClientMetaData);
+        add(BuildEventConsumer.class, buildEventConsumer);
         addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
 
         // Must be no higher than this scope as needs cache repository services.
@@ -160,32 +169,36 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new SplitFileHasher(globalHasher, localHasher, wellKnownFileLocations);
     }
 
-    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher) {
-        return new DefaultScriptSourceHasher(fileHasher);
+    ScriptSourceHasher createScriptSourceHasher() {
+        return new DefaultScriptSourceHasher();
     }
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
         return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
-    AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+        return new AbsolutePathFileCollectionFingerprinter(fileSystemSnapshotter);
     }
 
     RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
         return new RelativePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
     }
 
-    NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new NameOnlyFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+        return new NameOnlyFileCollectionFingerprinter(fileSystemSnapshotter);
     }
 
-    IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new IgnoredPathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+        return new IgnoredPathFileCollectionFingerprinter(fileSystemSnapshotter);
     }
 
-    OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new OutputFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+        return new OutputFileCollectionFingerprinter(fileSystemSnapshotter);
+    }
+
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
+        return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
     }
 
     ResourceSnapshotterCacheService createResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, CrossBuildFileHashCache store, WellKnownFileLocations wellKnownFileLocations) {
@@ -227,8 +240,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CleanupActionFactory(buildOperationExecutor);
     }
 
-    protected ExecFactory createExecFactory(FileResolver fileResolver, BuildCancellationToken buildCancellationToken) {
-        return new DefaultExecActionFactory(fileResolver, buildCancellationToken);
+    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken) {
+        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, buildCancellationToken);
     }
 
     DeprecatedUsageBuildOperationProgressBroadaster createDeprecatedUsageBuildOperationProgressBroadaster(

@@ -128,6 +128,7 @@ abstract class PlayIdeaPluginIntegrationTest extends PlayIdePluginIntegrationTes
         applyIdePlugin()
         succeeds("assemble") // Need generated directories to exist
         when:
+        executer.noDeprecationChecks()
         succeeds(ideTask)
         then:
 

@@ -29,14 +29,10 @@ import java.io.IOException;
  */
 public class IncrementalFiler implements Filer {
     private final Filer delegate;
-    private IncrementalProcessingStrategy strategy;
+    private final IncrementalProcessingStrategy strategy;
 
     IncrementalFiler(Filer delegate, IncrementalProcessingStrategy strategy) {
         this.delegate = delegate;
-        setStrategy(strategy);
-    }
-
-    public void setStrategy(IncrementalProcessingStrategy strategy) {
         if (strategy == null) {
             throw new NullPointerException("strategy");
         }
@@ -57,8 +53,10 @@ public class IncrementalFiler implements Filer {
 
     @Override
     public final FileObject createResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element... originatingElements) throws IOException {
+        // Prefer having javac validate the location over us, by calling it first.
+        FileObject resource = delegate.createResource(location, pkg, relativeName, originatingElements);
         strategy.recordGeneratedResource(location, pkg, relativeName, originatingElements);
-        return delegate.createResource(location, pkg, relativeName, originatingElements);
+        return resource;
     }
 
     @Override

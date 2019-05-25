@@ -36,6 +36,7 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
         this.projectConfigurer = projectConfigurer;
     }
 
+    @Override
     public void configure(BuildExecutionContext context) {
         StartParameter startParameter = context.getGradle().getStartParameter();
 

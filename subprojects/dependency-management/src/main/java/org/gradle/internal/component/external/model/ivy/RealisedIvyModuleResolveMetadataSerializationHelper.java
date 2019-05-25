@@ -73,7 +73,8 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
         return new RealisedIvyModuleResolveMetadata(resolveMetadata, realisedVariants, readIvyConfigurations(decoder, resolveMetadata));
     }
 
-    protected void writeDependencies(Encoder encoder, ConfigurationMetadata configuration) throws IOException {
+    @Override
+    protected void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
         List<? extends DependencyMetadata> dependencies = configuration.getDependencies();
         encoder.writeSmallInt(dependencies.size());
         for (DependencyMetadata dependency: dependencies) {

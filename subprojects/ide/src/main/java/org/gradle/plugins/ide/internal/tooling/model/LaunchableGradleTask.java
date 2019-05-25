@@ -71,10 +71,12 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
         return this;
     }
 
+    @Override
     public List<String> getArgs() {
         return Collections.singletonList(path);
     }
 
+    @Override
     public String getProjectPath() {
         return null;
     }

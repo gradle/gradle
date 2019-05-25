@@ -39,7 +39,7 @@ public class ManagedPropertyMethodBinding extends AbstractStructMethodBinding {
     public ModelType<?> getDeclaredPropertyType() {
         PropertyAccessorType accessorType = getAccessorType();
         assert accessorType != null;
-        return ModelType.of(accessorType.propertyTypeFor(getViewMethod().getMethod()));
+        return ModelType.of(accessorType.genericPropertyTypeFor(getViewMethod().getMethod()));
     }
 
     @Override

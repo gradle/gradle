@@ -34,7 +34,7 @@ Features can be in one of 4 states:
 [[sec:internal]]
 === Internal
 
-Internal features are not designed for public use and are only intended to be used by Gradle itself. They can change in any way at any point in time without any notice. Therefore, we recommend avoiding the use of such features. Internal features are not documented. If it appears in this User Guide, the DSL Reference or the API Reference documentation then the feature is not internal.
+Internal features are not designed for public use and are only intended to be used by Gradle itself. They can change in any way at any point in time without any notice. Therefore, we recommend avoiding the use of such features. Internal features are not documented. If it appears in this User Manual, the DSL Reference or the API Reference documentation then the feature is not internal.
 
 Internal features may evolve into public features.
 
@@ -45,12 +45,12 @@ Features are introduced in the _incubating_ state to allow real world feedback t
 
 A feature in an incubating state may change in future Gradle versions until it is no longer incubating. Changes to incubating features for a Gradle release will be highlighted in the release notes for that release. The incubation period for new features varies depending on the scope, complexity and nature of the feature.
 
-Features in incubation are clearly indicated to be so. In the source code, all methods/properties/classes that are incubating are annotated with link:{javadocPath}/org/gradle/api/Incubating.html[Incubating], which is also used to specially mark them in the DSL and API references. If an incubating feature is discussed in this User Guide, it will be explicitly said to be in the incubating state.
+Features in incubation are clearly indicated to be so. In the source code, all methods/properties/classes that are incubating are annotated with link:{javadocPath}/org/gradle/api/Incubating.html[Incubating], which is also used to specially mark them in the DSL and API references. If an incubating feature is discussed in this User Manual, it will be explicitly said to be in the incubating state.
 
 [[sec:public]]
 === Public
 
-The default state for a non-internal feature is _public_. Anything that is documented in the User Guide, DSL Reference or API references that is not explicitly said to be incubating or deprecated is considered public. Features are said to be _promoted_ from an incubating state to public. The release notes for each release indicate which previously incubating features are being promoted by the release.
+The default state for a non-internal feature is _public_. Anything that is documented in the User Manual, DSL Reference or API references that is not explicitly said to be incubating or deprecated is considered public. Features are said to be _promoted_ from an incubating state to public. The release notes for each release indicate which previously incubating features are being promoted by the release.
 
 A public feature will _never_ be removed or intentionally changed without undergoing deprecation. All public features are subject to the backwards compatibility policy.
 

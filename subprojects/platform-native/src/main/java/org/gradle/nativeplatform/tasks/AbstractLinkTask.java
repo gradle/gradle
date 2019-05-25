@@ -85,7 +85,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
                 return dirProp.get();
             }
         }));
-        this.linkerArgs = getProject().getObjects().listProperty(String.class).empty();
+        this.linkerArgs = getProject().getObjects().listProperty(String.class);
         this.debuggable = objectFactory.property(Boolean.class).value(false);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
@@ -191,6 +191,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * Adds a set of object files to be linked. The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
+    @Override
     public void source(Object source) {
         this.source.from(source);
     }

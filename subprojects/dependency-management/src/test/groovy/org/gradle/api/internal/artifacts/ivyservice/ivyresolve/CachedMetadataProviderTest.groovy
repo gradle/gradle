@@ -66,7 +66,7 @@ class CachedMetadataProviderTest extends Specification {
         provider.ivyModuleDescriptor
     }
 
-    def 'returns null for IvyModuleDesriptor when not available'() {
+    def 'returns null for IvyModuleDescriptor when not available'() {
         given:
         cachedResult.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
         cachedResult.metaData >> Mock(ModuleComponentResolveMetadata)

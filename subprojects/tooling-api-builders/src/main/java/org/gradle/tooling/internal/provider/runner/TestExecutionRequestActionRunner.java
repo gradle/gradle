@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.internal.invocation.BuildAction;
@@ -24,9 +23,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
-import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import java.util.Collections;
 
@@ -42,7 +39,6 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         if (!(action instanceof TestExecutionRequestAction)) {
             return Result.nothing();
         }
-        GradleInternal gradle = buildController.getGradle();
 
         try {
             TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
@@ -63,8 +59,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
             }
         }
 
-        PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
-        return Result.of(new BuildActionResult(payloadSerializer.serialize(null), null));
+        return Result.of(null);
     }
 
     private void doRun(TestExecutionRequestAction action, BuildController buildController) {

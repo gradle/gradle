@@ -19,10 +19,12 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.language.fixtures.AnnotationProcessorFixture
+import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
+    protected CompileJavaBuildOperationsFixture operations
     protected CompilationOutputsFixture outputs
 
     protected TestFile annotationProjectDir
@@ -32,6 +34,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
     def setup() {
         executer.requireOwnGradleUserHomeDir()
 
+        operations = new CompileJavaBuildOperationsFixture(executer, testDirectoryProvider)
         outputs = new CompilationOutputsFixture(file("build/classes"))
 
         annotationProjectDir = testDirectory.file("annotation").createDir()
@@ -111,4 +114,39 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         outputs.recompiledClasses("A", "B")
     }
 
+    def "recompiles when a resource is removed"() {
+        given:
+        buildFile << """
+            compileJava.inputs.dir 'src/main/resources'
+        """
+        java("class A {}")
+        java("class B {}")
+        def resource = file("src/main/resources/foo.txt")
+        resource.text = 'foo'
+
+        outputs.snapshot { succeeds 'compileJava' }
+
+        when:
+        resource.delete()
+
+        then:
+        succeeds 'compileJava'
+        outputs.recompiledClasses("A", "B")
+    }
+
+    def "compilation is incremental when an empty directory is added"() {
+        given:
+        def a = java("class A {}")
+        java("class B {}")
+
+        outputs.snapshot { succeeds 'compileJava' }
+
+        when:
+        a.text = "class A { /*change*/ }"
+        file('src/main/java/different').createDir()
+
+        then:
+        succeeds 'compileJava'
+        outputs.recompiledClasses("A")
+    }
 }

@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.file;
 
 import groovy.lang.Closure;
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
@@ -50,6 +49,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         cleanup = false;
     }
 
+    @Override
     public void suppressCleanupErrors() {
         suppressCleanupErrors = true;
     }
@@ -63,12 +63,13 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
             ConcurrentTestUtil.poll(new Closure(null, null) {
                 @SuppressWarnings("UnusedDeclaration")
                 void doCall() throws IOException {
-                    FileUtils.forceDelete(dir);
+                    dir.forceDeleteDir();
                 }
             });
         }
     }
 
+    @Override
     public Statement apply(final Statement base, Description description) {
         init(description.getMethodName(), description.getTestClass().getSimpleName());
 
@@ -135,6 +136,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         }
     }
 
+    @Override
     public TestFile getTestDirectory() {
         if (dir == null) {
            dir = createUniqueTestDirectory();

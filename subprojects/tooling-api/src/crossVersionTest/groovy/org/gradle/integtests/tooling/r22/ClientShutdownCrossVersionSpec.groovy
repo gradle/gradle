@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.tooling.r22
 
-
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
 
@@ -27,7 +26,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     private static final JVM_OPTS = ["-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
 
     @Rule
-    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         toolingApi.requireIsolatedToolingApi()
@@ -63,16 +62,18 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 
     def "cleans up busy daemons once they become idle when tooling API session is shutdown"() {
         given:
+        server.start()
         buildFile << """
-task slow { doLast { new URL("${server.uri}").text } }
+task slow { doLast { ${server.callFromBuild('sync')} } }
 """
+        def sync = server.expectAndBlock('sync')
         withConnection { connection ->
             connection.model(GradleBuild).setJvmArguments(JVM_OPTS).get()
         }
         toolingApi.daemons.daemon.assertIdle()
 
         def build = daemonExecutor().withTasks("slow").start()
-        server.waitFor()
+        sync.waitForAllPendingCalls()
         toolingApi.daemons.daemon.assertBusy()
 
         when:
@@ -82,7 +83,7 @@ task slow { doLast { new URL("${server.uri}").text } }
         toolingApi.daemons.daemon.assertBusy()
 
         when:
-        server.release()
+        sync.releaseAll()
         build.waitForFinish()
 
         then:

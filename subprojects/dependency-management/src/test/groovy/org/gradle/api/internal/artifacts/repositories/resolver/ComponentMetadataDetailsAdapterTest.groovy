@@ -35,7 +35,6 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -45,7 +44,7 @@ import spock.lang.Specification
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class ComponentMetadataDetailsAdapterTest extends Specification {
-    private instantiator = DirectInstantiator.INSTANCE
+    private instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe())
     private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, SimpleMapInterner.notThreadSafe())
     private componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create()
@@ -161,7 +160,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
 
-        def configuration = consumer.selectConfigurations(attributes, immutable, schema)[0]
+        def configuration = consumer.selectConfigurations(attributes, immutable, schema, [] as Set)[0]
         configuration.dependencies
     }
 }

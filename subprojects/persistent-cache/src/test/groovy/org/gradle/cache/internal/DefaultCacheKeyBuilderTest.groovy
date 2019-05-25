@@ -64,7 +64,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${compactStringFor(stringHash)}"
+        key == expectedKeyFor(prefix, stringHash)
     }
 
     def 'given a File component, it should hash it and append it to the prefix'() {
@@ -81,7 +81,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${compactStringFor(fileHash)}"
+        key == expectedKeyFor(prefix, fileHash)
     }
 
     def 'given a ClassPath component, it should snapshot it and append it to the prefix'() {
@@ -98,7 +98,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${compactStringFor(classPathHash)}"
+        key == expectedKeyFor(prefix, classPathHash)
     }
 
     def 'given a ClassLoader component, it should hash its hierarchy and append it to the prefix'() {
@@ -115,7 +115,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${compactStringFor(classLoaderHierarchyHash)}"
+        key == expectedKeyFor(prefix, classLoaderHierarchyHash)
     }
 
     def 'given a HashCode component, it should append it to the prefix'() {
@@ -130,7 +130,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${compactStringFor(hash)}"
+        key == expectedKeyFor(prefix, hash)
     }
 
     def 'given more than one component, it should combine their hashes together and append the combined hash to the prefix'() {
@@ -156,7 +156,10 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${compactStringFor(combinedHash)}"
+        key == expectedKeyFor(prefix, combinedHash)
     }
 
+    private String expectedKeyFor(String prefix, HashCode hashCode) {
+        "$prefix/${compactStringFor(hashCode)}"
+    }
 }

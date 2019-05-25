@@ -59,7 +59,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         'connect' | [Mock(Repository), Mock(AuthenticationInfo), Mock(ProxyInfoProvider)]
     }
 
-    def "waggon disconnect should signal disconnection events"() {
+    def "wagon disconnect should signal disconnection events"() {
         setup:
         SessionListener sessionListener = Mock()
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()

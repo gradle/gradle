@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
@@ -34,17 +33,24 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.api.internal.tasks.properties.FileParameterUtils;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.Pair;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
@@ -69,18 +75,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
  */
 @NonNullApi
 public class DefaultExecutionPlan implements ExecutionPlan {
-    private final Set<Node> nodesInUnknownState = Sets.newLinkedHashSet();
     private final Set<TaskNode> entryTasks = new LinkedHashSet<TaskNode>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = Lists.newLinkedList();
@@ -97,7 +104,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<Node, MutationInfo> mutations = Maps.newIdentityHashMap();
     private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
-    private final Set<Node> dependenciesCompleteCache = Sets.newHashSet();
+    private final List<Node> dependenciesWhichRequireMonitoring = Lists.newArrayList();
+    private boolean maybeNodesReady;
     private final WorkerLeaseService workerLeaseService;
     private final GradleInternal gradle;
 
@@ -119,13 +127,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return path.toString();
     }
 
-    @VisibleForTesting
-    TaskNode getNode(Task task) {
+    @Override
+    public TaskNode getNode(Task task) {
         return nodeMapping.get(task);
     }
 
     public void addEntryTasks(Collection<? extends Task> tasks) {
         final Deque<Node> queue = new ArrayDeque<Node>();
+        Set<Node> nodesInUnknownState = Sets.newLinkedHashSet();
 
         List<Task> sortedTasks = new ArrayList<Task>(tasks);
         Collections.sort(sortedTasks);
@@ -189,7 +198,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 node.dependenciesProcessed();
             }
         }
-        resolveNodesInUnknownState();
+        resolveNodesInUnknownState(nodesInUnknownState);
     }
 
     private boolean nodeSatisfiesTaskFilter(Node successor) {
@@ -199,7 +208,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return true;
     }
 
-    private void resolveNodesInUnknownState() {
+    private void resolveNodesInUnknownState(Set<Node> nodesInUnknownState) {
         List<Node> queue = Lists.newArrayList(nodesInUnknownState);
         Set<Node> visiting = Sets.newHashSet();
 
@@ -251,6 +260,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             }
         }));
         int visitingSegmentCounter = nodeQueue.size();
+        Set<Node> dependenciesWhichRequireMonitoring = Sets.newHashSet();
 
         HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
         Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
@@ -262,10 +272,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             int currentSegment = nodeInVisitingSegment.visitingSegment;
             Node node = nodeInVisitingSegment.node;
 
-            if (node.isIncludeInGraph() || nodeMapping.contains(node)) {
+            if (!node.isIncludeInGraph() || nodeMapping.contains(node)) {
                 nodeQueue.remove(0);
                 visitingNodes.remove(node, currentSegment);
                 maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, node);
+                if (node.requiresMonitoring()) {
+                    dependenciesWhichRequireMonitoring.add(node);
+                }
                 continue;
             }
 
@@ -306,6 +319,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 visitingNodes.remove(node, currentSegment);
                 path.pop();
                 nodeMapping.add(node);
+                if (node.requiresMonitoring()) {
+                    dependenciesWhichRequireMonitoring.add(node);
+                }
 
                 MutationInfo mutations = getOrCreateMutationsOf(node);
                 for (Node dependency : node.getDependencySuccessors()) {
@@ -313,33 +329,25 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     mutations.producingNodes.add(dependency);
                 }
 
-                if (node instanceof LocalTaskNode) {
-                    LocalTaskNode taskNode = (LocalTaskNode) node;
-                    TaskInternal task = taskNode.getTask();
-                    Project project = task.getProject();
+                Project project = node.getProject();
+                if (project != null) {
                     projectLocks.put(project, getOrCreateProjectLock(project));
+                }
 
-                    // Add any finalizers to the queue
-                    for (Node finalizer : taskNode.getFinalizers()) {
-                        if (!visitingNodes.containsKey(finalizer)) {
-                            nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
-                        }
+                // Add any finalizers to the queue
+                for (Node finalizer : node.getFinalizers()) {
+                    if (!visitingNodes.containsKey(finalizer)) {
+                        nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
                     }
                 }
             }
         }
         executionQueue.clear();
         Iterables.addAll(executionQueue, nodeMapping);
-    }
-
-    @Override
-    public Set<Task> getDependencies(Task task) {
-        TaskNode node = nodeMapping.get(task);
-        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
-        for (Node dependencyNode : node.getDependencySuccessors()) {
-            dependencyNode.collectTaskInto(builder);
+        for (Node node : executionQueue) {
+            maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
         }
-        return builder.build();
+        this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
     }
 
     private MutationInfo getOrCreateMutationsOf(Node node) {
@@ -510,7 +518,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         mutations.clear();
         canonicalizedFileCache.clear();
         reachableCache.clear();
-        dependenciesCompleteCache.clear();
+        dependenciesWhichRequireMonitoring.clear();
         runningNodes.clear();
     }
 
@@ -534,8 +542,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.filter = filter;
     }
 
-    public void setContinueOnFailure(boolean continueOnFailre) {
-        this.continueOnFailure = continueOnFailre;
+    public void setContinueOnFailure(boolean continueOnFailure) {
+        this.continueOnFailure = continueOnFailure;
     }
 
     @Override
@@ -545,10 +553,22 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return null;
         }
 
+        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
+            Node node = iterator.next();
+            if (node.isComplete()) {
+                updateAllDependenciesCompleteForPredecessors(node);
+                iterator.remove();
+            }
+        }
+        if (!maybeNodesReady) {
+            return null;
+        }
         Iterator<Node> iterator = executionQueue.iterator();
+        boolean foundReadyNode = false;
         while (iterator.hasNext()) {
             Node node = iterator.next();
-            if (node.isReady() && allDependenciesComplete(node)) {
+            if (node.isReady() && node.allDependenciesComplete()) {
+                foundReadyNode = true;
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
                 // TODO: convert output file checks to a resource lock
@@ -564,31 +584,38 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     node.startExecution();
                 } else {
                     node.skipExecution();
+                    updateAllDependenciesCompleteForPredecessors(node);
                 }
                 iterator.remove();
-
                 return node;
             }
         }
+        maybeNodesReady = foundReadyNode;
         return null;
     }
 
+    private void updateAllDependenciesCompleteForPredecessors(Node node) {
+        for (Node predecessor : node.getAllPredecessors()) {
+            maybeNodesReady |= predecessor.updateAllDependenciesComplete() && predecessor.isReady();
+        }
+    }
+
     private boolean tryLockProjectFor(Node node) {
-        if (node instanceof LocalTaskNode) {
-            return getProjectLock((LocalTaskNode) node).tryLock();
+        if (node.getProject() != null) {
+            return getProjectLock(node.getProject()).tryLock();
         } else {
             return true;
         }
     }
 
     private void unlockProjectFor(Node node) {
-        if (node instanceof LocalTaskNode) {
-            getProjectLock((LocalTaskNode) node).unlock();
+        if (node.getProject() != null) {
+            getProjectLock(node.getProject()).unlock();
         }
     }
 
-    private ResourceLock getProjectLock(LocalTaskNode taskNode) {
-        return projectLocks.get(taskNode.getTask().getProject());
+    private ResourceLock getProjectLock(Project project) {
+        return projectLocks.get(project);
     }
 
     private MutationInfo getResolvedMutationInfo(Node node) {
@@ -599,20 +626,68 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return mutations;
     }
 
-    private void resolveMutations(MutationInfo mutations, Node node) {
+    private void resolveMutations(final MutationInfo mutations, Node node) {
         if (node instanceof LocalTaskNode) {
-            LocalTaskNode taskNode = (LocalTaskNode) node;
-            TaskInternal task = taskNode.getTask();
+            final LocalTaskNode taskNode = (LocalTaskNode) node;
+            final TaskInternal task = taskNode.getTask();
             ProjectInternal project = (ProjectInternal) task.getProject();
             ServiceRegistry serviceRegistry = project.getServices();
-            PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
+            final FileResolver resolver = serviceRegistry.get(FileResolver.class);
+            final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
             PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
-            TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, resolver, task);
-            mutations.outputPaths.addAll(getOutputPaths(canonicalizedFileCache, taskNode, taskProperties.getOutputFiles(), taskProperties.getLocalStateFiles()));
-            mutations.destroyablePaths.addAll(getDestroyablePaths(canonicalizedFileCache, taskNode, taskProperties.getDestroyableFiles()));
-            mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
-            mutations.hasOutputs = taskProperties.hasDeclaredOutputs();
-            mutations.hasLocalState = !taskProperties.getLocalStateFiles().isEmpty();
+            try {
+                TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+                    @Override
+                    public void visitOutputFileProperty(final String propertyName, boolean optional, final PropertyValue value, final OutputFilePropertyType filePropertyType) {
+                        withDeadlockHandling(
+                            taskNode,
+                            "an output",
+                            "output property '" + propertyName + "'",
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    FileParameterUtils.resolveOutputFilePropertySpecs(task.toString(), propertyName, value, filePropertyType, fileCollectionFactory, new Consumer<OutputFilePropertySpec>() {
+                                        @Override
+                                        public void accept(OutputFilePropertySpec outputFilePropertySpec) {
+                                            mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()));
+                                        }
+                                    });
+                                }
+                            }
+                        );
+                        mutations.hasOutputs = true;
+                    }
+
+                    @Override
+                    public void visitLocalStateProperty(final Object value) {
+                        withDeadlockHandling(taskNode, "a local state property", "local state properties", new Runnable() {
+                            @Override
+                            public void run() {
+                                mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
+                            }
+                        });
+                        mutations.hasLocalState = true;
+                    }
+
+                    @Override
+                    public void visitDestroyableProperty(final Object value) {
+                        withDeadlockHandling(taskNode, "a destroyable", "destroyables", new Runnable() {
+                            @Override
+                            public void run() {
+                                mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                        mutations.hasFileInputs = true;
+                    }
+                });
+            } catch (Exception e) {
+                throw new TaskExecutionException(task, e);
+            }
+
             mutations.resolved = true;
 
             if (!mutations.destroyablePaths.isEmpty()) {
@@ -629,17 +704,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private boolean allDependenciesComplete(Node node) {
-        if (dependenciesCompleteCache.contains(node)) {
-            return true;
+    private void withDeadlockHandling(TaskNode task, String singular, String description, Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (ResourceDeadlockException e) {
+            throw new IllegalStateException(String.format("A deadlock was detected while resolving the %s for task '%s'. This can be caused, for instance, by %s property causing dependency resolution.", description, task, singular), e);
         }
-
-        boolean dependenciesComplete = node.allDependenciesComplete();
-        if (dependenciesComplete) {
-            dependenciesCompleteCache.add(node);
-        }
-
-        return dependenciesComplete;
     }
 
     private boolean allProjectsLocked() {
@@ -674,19 +744,22 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
         ImmutableSet.Builder<String> builder = ImmutableSet.builder();
         for (File file : files) {
-            String path;
-            try {
-                path = cache.get(file);
-                if (path == null) {
-                    path = file.getCanonicalPath();
-                    cache.put(file, path);
-                }
-                builder.add(path);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            builder.add(canonicalizePath(file, cache));
         }
         return builder.build();
+    }
+
+    private static String canonicalizePath(File file, Map<File, String> cache) {
+        try {
+            String path = cache.get(file);
+            if (path == null) {
+                path = file.getCanonicalPath();
+                cache.put(file, path);
+            }
+            return path;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private boolean hasNodeWithOverlappingMutations(Set<String> candidateMutationPaths) {
@@ -765,26 +838,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return false;
     }
 
-    private static Set<String> getOutputPaths(Map<File, String> canonicalizedFileCache, TaskNode task, FileCollection outputFiles, FileCollection localStateFiles) {
-        try {
-            return canonicalizedPaths(canonicalizedFileCache, Iterables.concat(outputFiles, localStateFiles));
-        } catch (ResourceDeadlockException e) {
-            throw new IllegalStateException(deadlockMessage(task, "an output or local state", "outputs"), e);
-        }
-    }
-
-    private static Set<String> getDestroyablePaths(Map<File, String> canonicalizedFileCache, TaskNode task, FileCollection destroyableFiles) {
-        try {
-            return canonicalizedPaths(canonicalizedFileCache, destroyableFiles);
-        } catch (ResourceDeadlockException e) {
-            throw new IllegalStateException(deadlockMessage(task, "a destroyable", "destroyables"), e);
-        }
-    }
-
-    private static String deadlockMessage(TaskNode task, String singular, String plural) {
-        return String.format("A deadlock was detected while resolving the %s for task '%s'. This can be caused, for instance, by %s property causing dependency resolution.", plural, task, singular);
-    }
-
     @Nullable
     private static String getOverLappedPath(String firstPath, String secondPath) {
         if (firstPath.equals(secondPath)) {
@@ -829,6 +882,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (canRemoveMutation(mutations)) {
             this.mutations.remove(node);
         }
+        updateAllDependenciesCompleteForPredecessors(node);
     }
 
     private static boolean canRemoveMutation(@Nullable MutationInfo mutations) {
@@ -840,6 +894,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         try {
             if (!node.isComplete()) {
                 enforceFinalizers(node);
+                maybeNodesReady = true;
                 if (node.isFailed()) {
                     handleFailure(node);
                 }
@@ -853,12 +908,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private static void enforceFinalizers(Node node) {
-        if (!(node instanceof TaskNode)) {
-            return;
-        }
-        for (Node finalizerNode : ((TaskNode) node).getFinalizers()) {
+        for (Node finalizerNode : node.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
-                enforceWithDependencies(finalizerNode, Sets.<Node>newHashSet());
+                HashSet<Node> enforcedNodes = Sets.newHashSet();
+                enforceWithDependencies(finalizerNode, enforcedNodes);
             }
         }
     }
@@ -876,6 +929,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 if (node.isMustNotRun() || node.isRequired()) {
                     node.enforceRun();
+                    // Completed changed from true to false - inform all nodes depending on this one.
+                    for (Node predecessor : node.getAllPredecessors()) {
+                        predecessor.forceAllDependenciesCompleteUpdate();
+                    }
                 }
             }
         }
@@ -932,16 +989,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 node.abortExecution();
                 aborted = true;
             }
+            updateAllDependenciesCompleteForPredecessors(node);
         }
         return aborted;
     }
 
     @Override
     public void collectFailures(Collection<? super Throwable> failures) {
-        if (buildCancelled) {
+        List<Throwable> collectedFailures = failureCollector.getFailures();
+        failures.addAll(collectedFailures);
+        if (buildCancelled && collectedFailures.isEmpty()) {
             failures.add(new BuildCancelledException());
         }
-        failures.addAll(failureCollector.getFailures());
     }
 
     @Override
@@ -967,7 +1026,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public int size() {
-        return nodeMapping.nodes.size();
+        return nodeMapping.getNumberOfPublicNodes();
     }
 
     private static class GraphEdge {
@@ -1053,6 +1112,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         @Override
         public int size() {
             return nodes.size();
+        }
+
+        public int getNumberOfPublicNodes() {
+            int publicNodes = 0;
+            for (Node node : this) {
+                if (node.isPublicNode()) {
+                    publicNodes++;
+                }
+            }
+            return publicNodes;
         }
 
         public void retainFirst(int count) {

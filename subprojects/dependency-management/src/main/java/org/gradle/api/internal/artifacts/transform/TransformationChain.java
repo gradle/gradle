@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
+import org.gradle.execution.ProjectExecutionServiceRegistry;
+
+import javax.annotation.Nullable;
 
 /**
  * A series of {@link TransformationStep}s.
@@ -25,25 +28,45 @@ public class TransformationChain implements Transformation {
 
     private final Transformation first;
     private final Transformation second;
+    private final int stepsCount;
 
     public TransformationChain(Transformation first, Transformation second) {
         this.first = first;
         this.second = second;
+        this.stepsCount = first.stepsCount() + second.stepsCount();
     }
 
     @Override
-    public TransformationSubject transform(TransformationSubject subject) {
-        TransformationSubject intermediateSubject = first.transform(subject);
-        return second.transform(intermediateSubject);
-    }
-
-    @Override
-    public boolean hasCachedResult(TransformationSubject subject) {
-        if (first.hasCachedResult(subject)) {
-            TransformationSubject intermediate = first.transform(subject);
-            return second.hasCachedResult(intermediate);
+    public boolean endsWith(Transformation otherTransform) {
+        int otherStepsCount = otherTransform.stepsCount();
+        if (otherStepsCount > this.stepsCount) {
+            return false;
+        } else if (otherStepsCount == 1) {
+            return second == otherTransform;
         }
-        return false;
+
+        TransformationChain otherChain = (TransformationChain) otherTransform;
+        if (otherChain.second != second) {
+            return false;
+        } else {
+            return first.endsWith(otherChain.first);
+        }
+    }
+
+    @Override
+    public int stepsCount() {
+        return stepsCount;
+    }
+
+    @Override
+    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable ProjectExecutionServiceRegistry services) {
+        CacheableInvocation<TransformationSubject> invocation = first.createInvocation(subjectToTransform, dependenciesResolver, services);
+        return invocation.flatMap(intermediate -> second.createInvocation(intermediate, dependenciesResolver, services));
+    }
+
+    @Override
+    public boolean requiresDependencies() {
+        return first.requiresDependencies() || second.requiresDependencies();
     }
 
     @Override

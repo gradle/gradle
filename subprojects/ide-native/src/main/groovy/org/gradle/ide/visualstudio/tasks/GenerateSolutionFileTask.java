@@ -31,7 +31,7 @@ import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurat
 import java.io.File;
 
 /**
- * Task for generating a solution file.
+ * Task for generating a Visual Studio solution file (e.g. {@code foo.sln}).
  */
 @Incubating
 public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
@@ -68,10 +68,12 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
     }
 
     private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<VisualStudioSolutionFile> {
+        @Override
         public VisualStudioSolutionFile create() {
             return new VisualStudioSolutionFile();
         }
 
+        @Override
         public void configure(final VisualStudioSolutionFile solutionFile) {
             DefaultVisualStudioSolution solution = (DefaultVisualStudioSolution) getSolution();
 

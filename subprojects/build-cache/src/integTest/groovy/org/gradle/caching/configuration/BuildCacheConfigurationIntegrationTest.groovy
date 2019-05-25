@@ -150,11 +150,17 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             
             assert buildCache.$cache instanceof AnotherBuildCache
         """
+        if (expectDeprecation) {
+            executer.expectDeprecationWarning()
+        }
+
         expect:
         succeeds("help")
 
         where:
-        cache << ["local", "remote"]
+        cache    | expectDeprecation
+        "local"  | true
+        "remote" | false
     }
 
     def "disables remote cache with --offline"() {
@@ -194,7 +200,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("Build cache type 'CustomBuildCache' has not been registered.")
     }
 
-    def "emits a useful incubating message when using the build cache"() {
+    def "emits a useful message when using the build cache"() {
         when:
         executer.withBuildCacheEnabled()
         succeeds("tasks", "--info")
@@ -267,6 +273,37 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         localBuildCache.empty
+    }
+
+    @Unroll
+    def "shows deprecation warning when using custom local cache using #customCacheConfig"() {
+        settingsFile << """
+            class CustomBuildCache extends AbstractBuildCache {}
+            class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
+                    throw new UnsupportedOperationException() 
+                }
+            }
+            
+            buildCache {
+                registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
+                
+                $customCacheConfig
+            }
+        """
+        executer.expectDeprecationWarning()
+
+        when:
+        run "help"
+
+        then:
+        output.contains("Using a local build cache type other than DirectoryBuildCache has been deprecated. This is scheduled to be removed in Gradle 6.0.")
+
+        where:
+        customCacheConfig << [
+            "local(CustomBuildCache).enabled = false",
+            "local(CustomBuildCache) { enabled = false }"
+        ]
     }
 
     private static String customTaskCode() {

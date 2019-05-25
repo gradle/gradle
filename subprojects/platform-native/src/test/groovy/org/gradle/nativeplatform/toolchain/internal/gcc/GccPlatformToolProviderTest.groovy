@@ -58,8 +58,8 @@ class GccPlatformToolProviderTest extends Specification {
 
         then:
         result == libs
-        1 * metaDataProvider.getCompilerMetaData(_, _, _) >> {
-            assert arguments[1] == args
+        1 * metaDataProvider.getCompilerMetaData(_, _) >> {
+            arguments[1].execute(assertingCompilerExecSpecArguments(args))
             new ComponentFound(metaData)
         }
         1 * toolRegistry.getTool(toolType) >> new DefaultGccCommandLineToolConfiguration(toolType, 'exe')
@@ -81,8 +81,8 @@ class GccPlatformToolProviderTest extends Specification {
         platformToolProvider.getCompilerMetadata(toolType)
 
         then:
-        1 * metaDataProvider.getCompilerMetaData(_, _, _) >> {
-            assert arguments[1] == args
+        1 * metaDataProvider.getCompilerMetaData(_, _) >> {
+            arguments[1].execute(assertingCompilerExecSpecArguments(args))
             Mock(SearchResult)
         }
         1 * toolRegistry.getTool(toolType) >> new DefaultGccCommandLineToolConfiguration(toolType, 'exe')
@@ -95,5 +95,25 @@ class GccPlatformToolProviderTest extends Specification {
         ToolType.OBJECTIVEC_COMPILER   | ['-x', 'objective-c']
         ToolType.OBJECTIVECPP_COMPILER | ['-x', 'objective-c++']
         ToolType.ASSEMBLER             | []
+    }
+
+    CompilerMetaDataProvider.CompilerExecSpec assertingCompilerExecSpecArguments(Iterable<String> expectedArgs) {
+        return new CompilerMetaDataProvider.CompilerExecSpec() {
+            @Override
+            CompilerMetaDataProvider.CompilerExecSpec environment(String key, String value) {
+                return this
+            }
+
+            @Override
+            CompilerMetaDataProvider.CompilerExecSpec executable(File executable) {
+                return this
+            }
+
+            @Override
+            CompilerMetaDataProvider.CompilerExecSpec args(Iterable<String> args) {
+                assert args == expectedArgs
+                return this
+            }
+        }
     }
 }

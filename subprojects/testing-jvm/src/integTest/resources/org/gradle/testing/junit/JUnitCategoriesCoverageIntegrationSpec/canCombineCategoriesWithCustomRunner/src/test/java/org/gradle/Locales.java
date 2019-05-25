@@ -32,10 +32,10 @@ public class Locales extends Suite {
     private static final Iterable<Locale> localesToUse = Arrays.asList(Locale.FRENCH, Locale.GERMAN, Locale.ENGLISH);
 
     public Locales(Class<?> klass) throws InitializationError {
-        super(klass, extracAndCreateRunners(klass));
+        super(klass, extractAndCreateRunners(klass));
     }
 
-    private static List<Runner> extracAndCreateRunners(Class<?> klass) throws InitializationError {
+    private static List<Runner> extractAndCreateRunners(Class<?> klass) throws InitializationError {
         List<Runner> runners = new ArrayList<Runner>();
         for (Locale locale : localesToUse) {
             runners.add(new LocalesRunner(locale, klass));

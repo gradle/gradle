@@ -33,6 +33,7 @@ public class AcceptedRegressionsRuleSetup implements SetupRule {
         this.acceptedApiChanges = AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges).keySet();
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContext context) {
         Map<String, Object> userData = (Map<String, Object>) context.getUserData();

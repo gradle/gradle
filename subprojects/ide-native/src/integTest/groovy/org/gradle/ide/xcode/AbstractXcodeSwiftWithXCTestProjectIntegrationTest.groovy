@@ -21,6 +21,8 @@ import org.gradle.nativeplatform.fixtures.app.Swift3WithSwift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift3WithXCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4WithSwift3XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4WithXCTest
+import org.gradle.nativeplatform.fixtures.app.Swift5WithSwift4XCTest
+import org.gradle.nativeplatform.fixtures.app.Swift5WithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
 import spock.lang.Unroll
 
@@ -36,15 +38,42 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
     }
 
     @Override
+    SwiftSourceElement getSwift5Component() {
+        return new Swift5WithXCTest(rootProjectName)
+    }
+
+    @Override
     String getComponentUnderTestDsl() {
         return "xctest"
     }
 
     abstract String getTestedComponentDsl()
 
+    @Override
+    protected String configureTargetMachines(String... targetMachines) {
+        return """
+            ${testedComponentDsl}.targetMachines = [${targetMachines.join(",")}]
+        """ + super.configureTargetMachines(targetMachines)
+    }
+
+    @Override
+    protected void assertXcodeProjectSources(List<String> rootChildren) {
+        def project = rootXcodeProject.projectFile
+        project.mainGroup.assertHasChildren(rootChildren + ['Sources', 'Tests'])
+        project.sources.assertHasChildren(componentUnderTest.main.files*.name)
+        project.tests.assertHasChildren(componentUnderTest.test.files*.name)
+    }
+
+    @Override
+    protected List<ExpectedXcodeTarget> getExpectedXcodeTargets() {
+        return super.getExpectedXcodeTargets() + [new ExpectedXcodeTarget('AppTest')]
+    }
+
     @Unroll
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:
+        // TODO: Generating the Xcode files for incompatible source compatibility shouldn't fail the build
+        //   Thus, we should be able to remove the assumption below.
         assumeSwiftCompilerSupportsLanguageVersion(componentSourceCompatibility)
         fixture.writeToProject(testDirectory)
         makeSingleProject()
@@ -65,5 +94,6 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
         fixture                                     | componentSourceCompatibility | xctestSourceCompatibility
         new Swift3WithSwift4XCTest(rootProjectName) | SwiftVersion.SWIFT3          | SwiftVersion.SWIFT4
         new Swift4WithSwift3XCTest(rootProjectName) | SwiftVersion.SWIFT4          | SwiftVersion.SWIFT3
+        new Swift5WithSwift4XCTest(rootProjectName) | SwiftVersion.SWIFT5          | SwiftVersion.SWIFT4
     }
 }

@@ -46,10 +46,10 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
     private static interface ComboListener extends BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener, BuildCompletionListener {}
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def decorator = new DefaultListenerBuildOperationDecorator(buildOperationExecutor)
-    def context = decorator.@userCodeApplicationContext
+    def context = new TestUserCodeApplicationContext()
+    def decorator = new DefaultListenerBuildOperationDecorator(buildOperationExecutor, context)
 
-    def 'ignores implementors of InternalListener'() {
+    def 'ignores implementers of InternalListener'() {
         given:
         def action = Mock(InternalAction)
         def buildListener = new InternalBuildAdapter()

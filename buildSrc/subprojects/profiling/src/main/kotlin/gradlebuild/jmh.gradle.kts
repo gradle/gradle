@@ -16,20 +16,17 @@
 
 package gradlebuild
 
-import me.champeau.gradle.JMHPluginExtension
-
 plugins {
     id("me.champeau.gradle.jmh")
 }
 
 configurations {
-
-    getByName("jmhImplementation") {
-        extendsFrom(configurations["implementation"])
+    jmhImplementation {
+        extendsFrom(configurations.implementation.get())
     }
 }
 
-configure<JMHPluginExtension> {
+jmh {
     isIncludeTests = false
     resultFormat = "CSV"
 }

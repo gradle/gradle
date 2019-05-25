@@ -25,18 +25,21 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.attributes.Usage
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationInternal
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.tasks.TaskOutputs
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
@@ -48,7 +51,7 @@ class DefaultIvyPublicationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
-    def instantiator = TestUtil.instantiatorFactory().decorate()
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def objectFactory = TestUtil.objectFactory()
     def projectIdentity = new DefaultIvyPublicationIdentity("organisation", "module", "revision")
     def notationParser = Mock(NotationParser)
@@ -132,6 +135,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.targetConfiguration >> "dep-configuration"
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]
+        moduleDependency.attributes >> ImmutableAttributes.EMPTY
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -164,6 +168,7 @@ class DefaultIvyPublicationTest extends Specification {
         projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
         projectDependency.targetConfiguration >> "dep-configuration"
         projectDependency.excludeRules >> [exclude]
+        projectDependency.attributes >> ImmutableAttributes.EMPTY
 
         when:
         publication.from(componentWithDependency(projectDependency))
@@ -284,7 +289,9 @@ class DefaultIvyPublicationTest extends Specification {
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
             attributesFactory,
-            featurePreviews
+            featurePreviews,
+            CollectionCallbackActionDecorator.NOOP,
+            Mock(VersionMappingStrategyInternal)
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
 
@@ -368,7 +375,9 @@ class DefaultIvyPublicationTest extends Specification {
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
             attributesFactory,
-            featurePreviews
+            featurePreviews,
+            CollectionCallbackActionDecorator.NOOP,
+            Mock(VersionMappingStrategyInternal)
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(moduleDescriptorFile))
@@ -376,10 +385,12 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createArtifactGenerator(File file) {
-        return Stub(Task) {
-            getOutputs() >> Stub(TaskOutputs) {
-                getFiles() >> Stub(FileCollection) {
-                    getSingleFile() >> file
+        return Stub(TaskProvider) {
+            get() >> Stub(Task) {
+                getOutputs() >> Stub(TaskOutputs) {
+                    getFiles() >> Stub(FileCollection) {
+                        getSingleFile() >> file
+                    }
                 }
             }
         }
@@ -405,11 +416,10 @@ class DefaultIvyPublicationTest extends Specification {
 
     def createComponent(def artifacts, def dependencies) {
         def usage = Stub(UsageContext) {
-            getUsage() >> Mock(Usage) {
-                getName() >> Usage.JAVA_RUNTIME
-            }
+            getName() >> 'runtime'
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
+            getAttributes() >> ImmutableAttributes.EMPTY
         }
         def component = Stub(SoftwareComponentInternal) {
             getUsages() >> [usage]

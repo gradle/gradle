@@ -23,8 +23,6 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
-
 class InProcessGradleExecuterIntegrationTest extends Specification {
     @Rule
     RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -146,6 +144,6 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
     }
 
     def stripped(String output) {
-        return normaliseLineSeparators(LogContent.stripWorkInProgressArea(output))
+        return LogContent.of(output).withNormalizedEol()
     }
 }

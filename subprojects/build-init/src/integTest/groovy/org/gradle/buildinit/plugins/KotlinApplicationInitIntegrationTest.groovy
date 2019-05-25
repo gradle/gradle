@@ -17,21 +17,16 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
+@LeaksFileHandles
 class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.kt"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.kt"
-
-    def setup() {
-        executer.beforeExecute {
-            // Run Kotlin compiler in-process to avoid file locking issues
-            executer.withArgument("-Dkotlin.compiler.execution.strategy=in-process")
-        }
-    }
 
     def "defaults to kotlin build scripts"() {
         when:
@@ -51,17 +46,15 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
-        executer.expectDeprecationWarning()
         run("build")
 
         then:
         assertTestPassed("some.thing.AppTest", "testAppHasAGreeting")
 
         when:
-        executer.expectDeprecationWarning()
         run("run")
 
         then:
@@ -81,17 +74,15 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/kotlin").assertHasDescendants("my/app/AppTest.kt")
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
-        executer.expectDeprecationWarning()
         run("build")
 
         then:
         assertTestPassed("my.app.AppTest", "testAppHasAGreeting")
 
         when:
-        executer.expectDeprecationWarning()
         run("run")
 
         then:
@@ -125,7 +116,6 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
-        executer.expectDeprecationWarning()
         run("build")
 
         then:

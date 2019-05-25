@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console.taskgrouping
 
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 
+import static org.gradle.api.logging.configuration.ConsoleOutput.Auto
 import static org.gradle.api.logging.configuration.ConsoleOutput.Plain
 import static org.gradle.api.logging.configuration.ConsoleOutput.Verbose
 
@@ -26,7 +27,7 @@ abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsole
         given:
         def helloWorldMessage= 'Hello world'
         def byeWorldMessage= 'Bye world'
-        def hasSilenceTaskOutput = consoleType in [Verbose, Plain]
+        def hasSilenceTaskOutput = consoleType in [Verbose, Plain] || consoleType == Auto && !consoleAttachment.stdoutAttached
 
         buildFile << """
             task helloWorld {
@@ -53,6 +54,23 @@ abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsole
         result.groupedOutput.task(':helloWorld').output == helloWorldMessage
         result.groupedOutput.task(':byeWorld').output == byeWorldMessage
         hasSilenceTaskOutput == result.groupedOutput.hasTask(':silence')
+    }
+
+    def 'failed task result can be rendered'() {
+        given:
+        buildFile << '''
+            task myFailure {
+                doLast {
+                    assert false
+                }
+            }
+        '''
+
+        when:
+        fails('myFailure')
+
+        then:
+        result.groupedOutput.task(':myFailure').outcome == 'FAILED'
     }
 
 }

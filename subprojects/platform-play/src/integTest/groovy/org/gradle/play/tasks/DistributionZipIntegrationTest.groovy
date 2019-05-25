@@ -22,6 +22,7 @@ import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        executer.noDeprecationChecks()
         settingsFile << """ rootProject.name = 'dist-play-app' """
         buildFile << """
             plugins {

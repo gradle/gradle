@@ -32,6 +32,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             'cglib:cglib:3.2.5'()
             'cglib:cglib-nodep:3.2.5' {
                 variant("runtime") {
+                    capability('cglib', 'cglib-nodep', '3.2.5')
                     capability('cglib', 'cglib', '3.2.5')
                 }
             }
@@ -56,7 +57,10 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("Cannot choose between cglib:cglib-nodep:3.2.5 and cglib:cglib:3.2.5 because they provide the same capability: cglib:cglib:3.2.5")
+        failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib:3.2.5(runtime)]""")
+        failure.assertHasCause("""Module 'cglib:cglib' has been rejected:
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5(runtime)]""")
     }
 
     def "can detect conflict with capability in different versions and upgrade automatically to latest version"() {
@@ -65,6 +69,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             'cglib:cglib:3.2.5'()
             'cglib:cglib-nodep:3.2.4' {
                 variant("runtime") {
+                    capability('cglib', 'cglib-nodep', '3.2.4')
                     capability('cglib', 'cglib', '3.2.4')
                 }
             }
@@ -103,6 +108,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         repository {
             'org:test:1.0' {
                 variant("runtime") {
+                    capability('org', 'test', '1.0')
                     capability('org', 'capability', '1.0')
                 }
             }
@@ -133,7 +139,8 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("Cannot choose between :test:unspecified and org:test:1.0 because they provide the same capability: org:capability:1.0")
+        failure.assertHasCause("""Module 'org:test' has been rejected:
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(conf)]""")
     }
 
     /**
@@ -145,11 +152,13 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         repository {
             'org:testA:1.0' {
                 variant('runtime') {
+                    capability('org', 'testA', '1.0')
                     capability('cap')
                 }
             }
             'org:testB:1.0' {
                 variant('runtime') {
+                    capability('org', 'testB', '1.0')
                     capability('cap')
                 }
             }
@@ -174,7 +183,10 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         fails ":checkDeps"
 
         then:
-        failure.assertHasCause("Cannot choose between org:testA:1.0 and org:testB:1.0 because they provide the same capability: org.test:cap:1.0")
+        failure.assertHasCause("""Module 'org:testA' has been rejected:
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by [org:testB:1.0(runtime)]""")
+        failure.assertHasCause("""Module 'org:testB' has been rejected:
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by [org:testA:1.0(runtime)]""")
     }
 
     def "considers all candidates for conflict resolution"() {
@@ -182,11 +194,13 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         repository {
             'org:testA:1.0' {
                 variant('runtime') {
+                    capability('org', 'testA', '1.0')
                     capability('org', 'cap', '1')
                 }
             }
             'org:testB:1.0' {
                 variant('runtime') {
+                    capability('org', 'testB', '1.0')
                     capability('org', 'cap', '4')
                 }
             }
@@ -198,6 +212,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             }
             'org:testCC:1.0' {
                 variant('runtime') {
+                    capability('org', 'testCC', '1.0')
                     capability('org', 'cap', '2')
                 }
             }

@@ -17,20 +17,34 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
+import org.gradle.language.fixtures.ResourceGeneratingProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
 import org.gradle.util.TextUtil
+import spock.lang.Issue
+
+import javax.tools.StandardLocation
+
+import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.ISOLATING
 
 class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
+    private static HelperProcessorFixture writingResourcesTo(String location) {
+        def helperProcessorFixture = new HelperProcessorFixture()
+        helperProcessorFixture.writeResources = true
+        helperProcessorFixture.resourceLocation = location
+        return helperProcessorFixture
+    }
+
     private HelperProcessorFixture helperProcessor
 
     @Override
     def setup() {
-        helperProcessor = new HelperProcessorFixture()
+        helperProcessor = writingResourcesTo(StandardLocation.CLASS_OUTPUT.toString())
         withProcessor(helperProcessor)
     }
 
@@ -46,7 +60,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         run "compileJava"
 
         then:
-        outputs.recompiledClasses("A", "AHelper")
+        outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
     def "annotated files are not recompiled on unrelated changes"() {
@@ -79,7 +93,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         run "compileJava"
 
         then:
-        outputs.recompiledClasses("A", "AHelper", "Dependent")
+        outputs.recompiledFiles("A", "AHelper", "Dependent", "AHelperResource.txt")
     }
 
     def "source file is recompiled when dependency of generated file changes"() {
@@ -110,11 +124,12 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         run "compileJava"
 
         then:
-        outputs.deletedClasses("A", "AHelper")
+        outputs.deletedFiles("A", "AHelper", "AHelperResource.txt")
     }
 
     def "generated files are deleted when annotated file is deleted"() {
         given:
+        withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
         def a = java "@Helper class A {}"
         java "class Unrelated {}"
 
@@ -122,40 +137,45 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/AHelper.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AHelperResource.txt").exists()
 
         when:
         a.delete()
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/AHelper.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AHelperResource.txt").exists()
     }
 
     def "generated files and classes are deleted when processor is removed"() {
         given:
-        def a = java "@Helper class A {}"
+        withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
+        java "@Helper class A {}"
 
         when:
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/AHelper.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AHelperResource.txt").exists()
 
         when:
         buildFile << "compileJava.options.annotationProcessorPath = files()"
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/AHelper.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AHelperResource.txt").exists()
 
         and:
-        outputs.deletedClasses("AHelper")
+        outputs.deletedFiles("AHelper")
     }
 
     def "all files are recompiled when processor changes"() {
         given:
-        def a = java "@Helper class A {}"
+        java "@Helper class A {}"
         outputs.snapshot { run "compileJava" }
 
         when:
@@ -164,7 +184,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         run "compileJava"
 
         then:
-        outputs.recompiledClasses("A", "AHelper")
+        outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
     def "all files are recompiled if compiler does not support incremental annotation processing"() {
@@ -185,7 +205,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         run "compileJava", "--info"
 
         then:
-        outputs.recompiledClasses("A", "AHelper", "Unrelated")
+        outputs.recompiledFiles("A", "AHelper", "Unrelated", "AHelperResource.txt")
 
         and:
         outputContains("the chosen compiler did not support incremental annotation processing")
@@ -199,11 +219,11 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.snapshot { run "compileJava" }
 
         when:
-        file("build/classes/java/main/AHelper.java").delete()
+        file("build/generated/sources/annotationProcessor/java/main/AHelper.java").delete()
         run "compileJava"
 
         then:
-        outputs.recompiledClasses('A', "AHelper", "Unrelated")
+        outputs.recompiledFiles('A', "AHelper", "AHelperResource.txt", "Unrelated")
     }
 
     def "all files are recompiled if a generated class is deleted"() {
@@ -218,7 +238,22 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         run "compileJava"
 
         then:
-        outputs.recompiledClasses('A', "AHelper", "Unrelated")
+        outputs.recompiledFiles('A', "AHelper", "AHelperResource.txt", "Unrelated")
+    }
+
+    def "all files are recompiled if a generated resource is deleted"() {
+        given:
+        java "@Helper class A {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("build/classes/java/main/AHelperResource.txt").delete()
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles('A', "AHelper", "AHelperResource.txt", "Unrelated")
     }
 
     def "processors must provide an originating element for each source element"() {
@@ -237,9 +272,9 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated type 'AThing' must have exactly one originating element, but had 0.")
     }
 
-    def "writing resources triggers a full recompilation"() {
+    def "processors must provide an originating element for each resource"() {
         given:
-        withProcessor(new NonIncrementalProcessorFixture().writingResources().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
+        withProcessor(new ResourceGeneratingProcessorFixture().providingNoOriginatingElements().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
         def a = java "@Thing class A {}"
         outputs.snapshot { succeeds "compileJava" }
 
@@ -250,10 +285,10 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         succeeds "compileJava", "--info"
 
         and:
-        outputContains("Full recompilation is required because an annotation processor generated a resource.")
+        outputContains("Full recompilation is required because the generated resource 'A.txt in SOURCE_OUTPUT' must have exactly one originating element, but had 0.")
     }
 
-    def "processors cannot provide multiple originating elements"() {
+    def "processors cannot provide multiple originating elements for types"() {
         given:
         withProcessor(new ServiceRegistryProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
         def a = java "@Service class A {}"
@@ -269,6 +304,91 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
 
         and:
         outputContains("Full recompilation is required because the generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
+    }
+
+    def "processors cannot provide multiple originating elements for resources"() {
+        given:
+        def proc = new ServiceRegistryProcessorFixture()
+        proc.writeResources = true
+        withProcessor(proc.withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
+        def a = java "@Service class A {}"
+        java "@Service class B {}"
+
+        outputs.snapshot { succeeds "compileJava" }
+
+        when:
+        a.text = "@Service class A { void foo() {} }"
+
+        then:
+        succeeds "compileJava", "--info"
+
+        and:
+        outputContains("Full recompilation is required because the generated resource 'ServiceRegistryResource.txt in CLASS_OUTPUT' must have exactly one originating element, but had 2.")
+    }
+
+    def "processors can generate identical resources in different locations"() {
+        given:
+        // Have to configure a native header output directory otherwise there will be errors; javac NPEs when files are created in NATIVE_HEADER_OUTPUT without any location set.
+        buildFile << '''
+compileJava.options.headerOutputDirectory = file("build/headers/java/main")
+'''
+        def locations = [StandardLocation.SOURCE_OUTPUT.toString(), StandardLocation.NATIVE_HEADER_OUTPUT.toString(), StandardLocation.CLASS_OUTPUT.toString()]
+        withProcessor(new ResourceGeneratingProcessorFixture().withOutputLocations(locations).withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
+        def a = java "@Thing class A {}"
+        java "class Unrelated {}"
+
+        when:
+        outputs.snapshot { succeeds "compileJava" }
+
+        then:
+        file("build/generated/sources/annotationProcessor/java/main/A.txt").exists()
+        file("build/headers/java/main/A.txt").exists()
+        file("build/classes/java/main/A.txt").exists()
+
+        when:
+        a.delete()
+        succeeds "compileJava"
+
+        then: "they all get cleaned"
+        outputs.deletedClasses("A")
+        !file("build/generated/sources/annotationProcessor/java/main/A.txt").exists()
+        !file("build/headers/java/main/A.txt").exists()
+        !file("build/classes/java/main/A.txt").exists()
+    }
+
+    @Issue(["https://github.com/gradle/gradle/issues/8128", "https://bugs.openjdk.java.net/browse/JDK-8162455"])
+    def "incremental processing doesn't trigger unmatched processor option warning"() {
+        buildFile << """
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
+            }
+            compileJava.options.compilerArgs += [ "-Werror", "-Amessage=fromOptions" ]
+        """
+        java "@Helper class A {}"
+
+        outputs.snapshot { succeeds "compileJava" }
+
+        when:
+        java "class B {}"
+
+        then:
+        succeeds "compileJava"
+        outputs.recompiledClasses("B")
+    }
+
+    def "reports isolating processor in build operation"() {
+        java "class Irrelevant {}"
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
+            size() == 1
+            first().className == 'HelperProcessor'
+            first().type == ISOLATING.name()
+        }
     }
 
     /**

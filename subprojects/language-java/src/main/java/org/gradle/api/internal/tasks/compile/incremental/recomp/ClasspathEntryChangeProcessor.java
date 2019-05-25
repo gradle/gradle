@@ -35,5 +35,6 @@ public class ClasspathEntryChangeProcessor {
             return;
         }
         spec.getClassesToCompile().addAll(actualDependents.getDependentClasses());
+        spec.getResourcesToGenerate().addAll(actualDependents.getDependentResources());
     }
 }

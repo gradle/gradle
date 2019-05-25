@@ -316,7 +316,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         def wtp = checkAndGetEclipseWtpComponent()
         assert wtp.sourceDirs == project.sourceSets.main.allSource.srcDirs
         assert wtp.rootConfigurations == [] as Set
-        assert wtp.libConfigurations == [project.configurations.runtime] as Set
+        assert wtp.libConfigurations == [project.configurations.runtimeClasspath] as Set
         assert wtp.minusConfigurations == [] as Set
         assert wtp.deployName == project.name
         assert wtp.contextPath == null
@@ -329,7 +329,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         def wtp = checkAndGetEclipseWtpComponent()
         assert wtp.sourceDirs == project.sourceSets.main.allSource.srcDirs
         assert wtp.rootConfigurations == [] as Set
-        assert wtp.libConfigurations == [project.configurations.runtime] as Set
+        assert wtp.libConfigurations == [project.configurations.runtimeClasspath] as Set
         assert wtp.minusConfigurations == [project.configurations.providedRuntime] as Set
         assert wtp.deployName == project.name
         assert wtp.contextPath == project.war.baseName

@@ -16,25 +16,35 @@
 
 package org.gradle.plugins.buildtypes
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
-
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.tasks.TaskContainer
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
+import org.junit.Before
 import org.junit.Test
 
 
 class BuildTypesPluginTest {
+    private
+    val project = mockk<Project>()
+
+    private
+    val taskContainer = mockk<TaskContainer>()
 
     private
     val buildType = BuildType("BT").apply {
         tasks("BT0", "my:BT1")
+    }
+
+    @Before
+    fun setUp() {
+        every { project.tasks } returns taskContainer
+        every { project.name } returns "project"
+        every { project.findProject(any()) } returns null
+        every { taskContainer.findByPath(any()) } returns null
     }
 
     @Test
@@ -42,7 +52,6 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = ""
-        val project = mock<Project>()
         val taskList = mutableListOf("TL0", "TL1")
 
         // when:
@@ -59,7 +68,6 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = "sub"
-        val project = mock<Project>()
         val taskList = mutableListOf("TL0", "TL1")
 
         // when:
@@ -71,7 +79,7 @@ class BuildTypesPluginTest {
             equalTo(listOf("TL0", "TL1")))
 
         // and:
-        verify(project).findProject(subproject)
+        verify { project.findProject(subproject) }
     }
 
     @Test
@@ -79,15 +87,10 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = "sub"
-        val taskContainer = mock<TaskContainer>(name = "tasks") {
-            on { findByPath("sub:BT0") } doReturn mock<Task>()
-            on { findByPath("sub:my:BT1") } doReturn mock<Task>()
-        }
-        val project = mock<Project>(name = "project") {
-            on { findProject(subproject) } doReturn mock<Project>()
-            on { tasks } doReturn taskContainer
-        }
         val taskList = mutableListOf("TL0", "TL1")
+        every { taskContainer.findByPath("sub:BT0") } returns mockk()
+        every { taskContainer.findByPath("sub:my:BT1") } returns mockk()
+        every { project.findProject(subproject) } returns mockk()
 
         // when:
         project.insertBuildTypeTasksInto(taskList, 1, buildType, subproject)
@@ -98,8 +101,8 @@ class BuildTypesPluginTest {
             equalTo(listOf("TL0", "sub:BT0", "sub:my:BT1", "TL1")))
 
         // and:
-        verify(taskContainer).findByPath("sub:BT0")
-        verify(taskContainer).findByPath("sub:my:BT1")
+        verify { taskContainer.findByPath("sub:BT0") }
+        verify { taskContainer.findByPath("sub:my:BT1") }
     }
 
     @Test
@@ -107,14 +110,9 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = "sub"
-        val taskContainer = mock<TaskContainer>(name = "tasks") {
-            on { findByPath("sub:my:BT1") } doReturn mock<Task>()
-        }
-        val project = mock<Project>(name = "project") {
-            on { findProject(subproject) } doReturn mock<Project>()
-            on { tasks } doReturn taskContainer
-        }
         val taskList = mutableListOf("TL0", "TL1")
+        every { taskContainer.findByPath("sub:my:BT1") } returns mockk()
+        every { project.findProject(subproject) } returns mockk()
 
         // when:
         project.insertBuildTypeTasksInto(taskList, 1, buildType, subproject)
@@ -125,7 +123,7 @@ class BuildTypesPluginTest {
             equalTo(listOf("TL0", "sub:my:BT1", "TL1")))
 
         // and:
-        verify(taskContainer).findByPath("sub:BT0")
-        verify(taskContainer).findByPath("sub:my:BT1")
+        verify { taskContainer.findByPath("sub:BT0") }
+        verify { taskContainer.findByPath("sub:my:BT1") }
     }
 }

@@ -63,7 +63,7 @@ class BuildFileProjectSpecTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Build file '$file' is not part of the build defined by settings 'foo'. If this is an unrelated build, it must have it's own settings file."
+        e.message == "Build file '$file' is not part of the build defined by settings 'foo'. If this is an unrelated build, it must have its own settings file."
     }
 
     def "selectProject() throws when multiple projects have specified build file"() {

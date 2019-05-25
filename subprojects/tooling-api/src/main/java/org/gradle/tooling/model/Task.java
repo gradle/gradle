@@ -47,6 +47,7 @@ public interface Task extends Launchable {
      * @return The description of this task, or {@code null} if it has no description.
      * @since 1.0-milestone-3
      */
+    @Override
     @Nullable
     String getDescription();
 

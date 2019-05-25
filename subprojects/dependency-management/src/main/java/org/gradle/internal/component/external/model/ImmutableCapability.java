@@ -30,9 +30,7 @@ public class ImmutableCapability implements CapabilityInternal {
         this.name = name;
         this.version = version;
 
-        // Do NOT change the order of members used in hash code here, it's been empirically
-        // tested to reduce the number of collisions on a large dependency graph (performance test)
-        this.hashCode = Objects.hashCode(version, name, group);
+        this.hashCode = computeHashcode(group, name, version);
 
         // Using a string instead of a plain ID here might look strange, but this turned out to be
         // the fastest of several experiments, including:
@@ -44,6 +42,19 @@ public class ImmutableCapability implements CapabilityInternal {
         //
         // And none of them reached the performance of just using a good old string
         this.cachedId = group + ":" + name;
+    }
+
+    private int computeHashcode(String group, String name, String version) {
+        // Do NOT change the order of members used in hash code here, it's been empirically
+        // tested to reduce the number of collisions on a large dependency graph (performance test)
+        int hash = safeHash(version);
+        hash = 31 * hash + name.hashCode();
+        hash = 31 * hash + group.hashCode();
+        return  hash;
+    }
+
+    private static int safeHash(String o) {
+        return o == null ? 0 : o.hashCode();
     }
 
     @Override

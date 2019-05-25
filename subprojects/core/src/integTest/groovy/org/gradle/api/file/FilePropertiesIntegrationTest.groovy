@@ -87,7 +87,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 custom.prop = layout.projectDir.dir("dir1")
 assert custom.prop.get().asFile == file("dir1")
 
@@ -99,6 +99,17 @@ assert custom.prop.get().asFile == file("build/dir3")
 
 custom.prop = file("dir4")
 assert custom.prop.get().asFile == file("dir4")
+
+custom.prop.set((Directory)null)
+assert custom.prop.getOrNull() == null
+
+custom.prop = file("foo")
+custom.prop.set(null)
+assert custom.prop.getOrNull() == null
+
+custom.prop = file("foo")
+custom.prop.set((File)null)
+assert custom.prop.getOrNull() == null
 
 """
 
@@ -118,7 +129,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 custom.prop = layout.projectDir.file("file1")
 assert custom.prop.get().asFile == file("file1")
 
@@ -131,6 +142,16 @@ assert custom.prop.get().asFile == file("build/file3")
 custom.prop = file("file4")
 assert custom.prop.get().asFile == file("file4")
 
+custom.prop.set((RegularFile)null)
+assert custom.prop.getOrNull() == null
+
+custom.prop = file("foo")
+custom.prop.set(null)
+assert custom.prop.getOrNull() == null
+
+custom.prop = file("foo")
+custom.prop.set((File)null)
+assert custom.prop.getOrNull() == null
 """
 
         expect:
@@ -149,7 +170,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 
 task useIntTypeDsl {
     doLast {
@@ -230,7 +251,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 
 task useIntTypeDsl {
     doLast {
@@ -847,7 +868,7 @@ class SomeTask extends DefaultTask {
             class ConsumerTask extends DefaultTask {
             
                 @InputFiles
-                ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
+                ConfigurableFileCollection inputFiles = project.objects.fileCollection()
                 
                 @Optional
                 @OutputFile

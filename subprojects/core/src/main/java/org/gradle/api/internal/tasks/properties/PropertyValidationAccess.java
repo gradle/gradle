@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,73 +16,157 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Equivalence;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
-import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
+import org.gradle.api.artifacts.transform.CacheableTransform;
+import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
+import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.service.DefaultServiceLocator;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+
 /**
- * Class for easy access to task property validation from the validator task.
+ * Class for easy access to property validation from the validator task.
  */
 @NonNullApi
 public class PropertyValidationAccess {
-    private final static Map<Class<? extends Annotation>, PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
-        Input.class, new InputOnFileTypeValidator(),
-        InputFiles.class, new MissingPathSensitivityValidator(),
-        InputFile.class, new MissingPathSensitivityValidator(),
-        InputDirectory.class, new MissingPathSensitivityValidator()
+    private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
+        InputFiles.class, new MissingNormalizationValidator(false),
+        InputFile.class, new MissingNormalizationValidator(false),
+        InputDirectory.class, new MissingNormalizationValidator(false)
     );
+    private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> STRICT_PROPERTY_VALIDATORS = ImmutableMap.of(
+        InputFiles.class, new MissingNormalizationValidator(true),
+        InputFile.class, new MissingNormalizationValidator(true),
+        InputDirectory.class, new MissingNormalizationValidator(true)
+    );
+    private static final PropertyValidationAccess INSTANCE = new PropertyValidationAccess();
+
+    private final TaskClassInfoStore taskClassInfoStore;
+    private final List<TypeScheme> typeSchemes;
+
+    @VisibleForTesting
+    PropertyValidationAccess() {
+        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
+        // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the plugin service registries
+        // For now, re-implement the discovery here
+        builder.provider(new Object() {
+            void configure(ServiceRegistration registration) {
+                registration.add(DefaultListenerManager.class, new DefaultListenerManager());
+                registration.add(DefaultCrossBuildInMemoryCacheFactory.class);
+                registration.add(DefaultInstantiatorFactory.class);
+                List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
+                for (PluginServiceRegistry pluginServiceFactory : pluginServiceFactories) {
+                    pluginServiceFactory.registerGlobalServices(registration);
+                }
+            }
+        });
+        ServiceRegistry services = builder.build();
+        taskClassInfoStore = services.get(TaskClassInfoStore.class);
+        typeSchemes = services.getAll(TypeScheme.class);
+    }
 
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
-        DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
-        DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore(cacheFactory);
-        PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
-            new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
-        ), cacheFactory);
+        INSTANCE.collectTypeValidationProblems(topLevelBean, problems, enableStricterValidation);
+    }
+
+    @SuppressWarnings("unused")
+    public static void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
+        INSTANCE.collectTypeValidationProblems(topLevelBean, problems, enableStricterValidation);
+    }
+
+    private void collectTypeValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
+        // Skip this for now
+        if (topLevelBean.equals(TaskInternal.class)) {
+            return;
+        }
+
+        TypeMetadataStore metadataStore = null;
+        for (TypeScheme typeScheme : typeSchemes) {
+            if (typeScheme.appliesTo(topLevelBean)) {
+                metadataStore = typeScheme.getMetadataStore();
+                break;
+            }
+        }
+        if (metadataStore == null) {
+            // Don't know about this type
+            return;
+        }
+
+        boolean cacheable;
+        boolean mapErrorsToWarnings;
+        if (Task.class.isAssignableFrom(topLevelBean)) {
+            cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedNonnullCast(topLevelBean)).isCacheable();
+            // Treat all errors as warnings, for backwards compatibility
+            mapErrorsToWarnings = true;
+        } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
+            cacheable = topLevelBean.isAnnotationPresent(CacheableTransform.class);
+            mapErrorsToWarnings = false;
+        } else {
+            cacheable = false;
+            mapErrorsToWarnings = false;
+        }
+
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
-        boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
         boolean stricterValidation = enableStricterValidation || cacheable;
 
         while (!queue.isEmpty()) {
             BeanTypeNode<?> node = queue.remove();
-            node.visit(topLevelBean, stricterValidation, problems, queue, nodeFactory);
+            node.visit(topLevelBean, stricterValidation, new ProblemCollector(problems, mapErrorsToWarnings), queue, nodeFactory);
+        }
+    }
+
+    private static class ProblemCollector {
+        final Map<String, Boolean> problems;
+        private final boolean mapErrorsToWarnings;
+
+        public ProblemCollector(Map<String, Boolean> problems, boolean mapErrorsToWarnings) {
+            this.problems = problems;
+            this.mapErrorsToWarnings = mapErrorsToWarnings;
+        }
+
+        void error(String message, boolean strict) {
+            problems.put(message, strict || !mapErrorsToWarnings);
         }
     }
 
     private static class BeanTypeNodeFactory {
-        private final PropertyMetadataStore metadataStore;
+        private final TypeMetadataStore metadataStore;
 
-        public BeanTypeNodeFactory(PropertyMetadataStore metadataStore) {
+        public BeanTypeNodeFactory(TypeMetadataStore metadataStore) {
             this.metadataStore = metadataStore;
         }
 
@@ -101,10 +185,10 @@ public class PropertyValidationAccess {
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
             if (!typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
-                    return new MapBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType), typeMetadata);
+                    return new MapBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedNonnullCast(beanType), typeMetadata);
                 }
                 if (Iterable.class.isAssignableFrom(rawType)) {
-                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Iterable<?>>>uncheckedCast(beanType), typeMetadata);
+                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Iterable<?>>>uncheckedNonnullCast(beanType), typeMetadata);
                 }
             }
             return new NestedBeanTypeNode(parentNode, propertyName, beanType, typeMetadata);
@@ -118,11 +202,12 @@ public class PropertyValidationAccess {
             this.beanType = beanType;
         }
 
-        public abstract void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
+        public abstract void visit(Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
 
         public boolean nodeCreatesCycle(TypeToken<?> childType) {
             return findNodeCreatingCycle(childType, Equivalence.equals()) != null;
         }
+
         private final TypeToken<? extends T> beanType;
 
         protected TypeToken<?> extractNestedType(Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
@@ -142,28 +227,19 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
-            for (PropertyMetadata metadata : getTypeMetadata().getPropertiesMetadata()) {
-                String qualifiedPropertyName = getQualifiedPropertyName(metadata.getFieldName());
-                for (String validationMessage : metadata.getValidationMessages()) {
-                    problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
-                }
-                Class<? extends Annotation> propertyType = metadata.getPropertyType();
-                if (propertyType == null) {
-                    if (!Modifier.isPrivate(metadata.getMethod().getModifiers())) {
-                        problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
-                    }
-                    continue;
-                }
-                PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
+        public void visit(final Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+            TypeMetadata typeMetadata = getTypeMetadata();
+            ParameterValidationContext validationContext = new CollectingParameterValidationContext(topLevelBean, problems);
+            typeMetadata.collectValidationFailures(getPropertyName(), validationContext);
+            for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
+                String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
+                Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
+                PropertyValidator validator = stricterValidation ? STRICT_PROPERTY_VALIDATORS.get(propertyType) : PROPERTY_VALIDATORS.get(propertyType);
                 if (validator != null) {
-                    String validationMessage = validator.validate(stricterValidation, metadata);
-                    if (validationMessage != null) {
-                        problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
-                    }
+                    validator.validate(null, propertyMetadata, validationContext);
                 }
-                if (metadata.isAnnotationPresent(Nested.class)) {
-                    TypeToken<?> beanType = unpackProvider(metadata.getMethod());
+                if (propertyMetadata.getPropertyType().equals(Nested.class)) {
+                    TypeToken<?> beanType = unpackProvider(propertyMetadata.getGetterMethod());
                     nodeFactory.createAndAddToQueue(this, qualifiedPropertyName, beanType, queue);
                 }
             }
@@ -173,13 +249,44 @@ public class PropertyValidationAccess {
             Class<?> rawType = method.getReturnType();
             TypeToken<?> genericReturnType = TypeToken.of(method.getGenericReturnType());
             if (Provider.class.isAssignableFrom(rawType)) {
-                    return PropertyValidationAccess.extractNestedType(Cast.<TypeToken<Provider<?>>>uncheckedCast(genericReturnType), Provider.class, 0);
+                return PropertyValidationAccess.extractNestedType(Cast.<TypeToken<Provider<?>>>uncheckedNonnullCast(genericReturnType), Provider.class, 0);
             }
             return genericReturnType;
         }
 
-        private static String propertyValidationMessage(Class<?> task, String qualifiedPropertyName, String validationMessage) {
-            return String.format("Task type '%s': property '%s' %s.", task.getName(), qualifiedPropertyName, validationMessage);
+        private class CollectingParameterValidationContext implements ParameterValidationContext {
+            private final Class<?> topLevelBean;
+            private final ProblemCollector problems;
+
+            public CollectingParameterValidationContext(Class<?> topLevelBean, ProblemCollector problems) {
+                this.topLevelBean = topLevelBean;
+                this.problems = problems;
+            }
+
+            private String decorateMessage(String propertyName, String message) {
+                return String.format("Type '%s': property '%s' %s.",
+                    topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
+            }
+
+            @Override
+            public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+                visitError(decorateMessage(propertyName, message));
+            }
+
+            @Override
+            public void visitError(String message) {
+                problems.error(message, false);
+            }
+
+            @Override
+            public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
+                visitErrorStrict(decorateMessage(propertyName, message));
+            }
+
+            @Override
+            public void visitErrorStrict(String message) {
+                problems.error(message, true);
+            }
         }
     }
 
@@ -196,7 +303,7 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Iterable.class, 0);
             nodeFactory.createAndAddToQueue(this, determinePropertyName(nestedType), nestedType, queue);
         }
@@ -209,41 +316,28 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Map.class, 1);
             nodeFactory.createAndAddToQueue(this, getQualifiedPropertyName("<key>"), nestedType, queue);
         }
     }
 
     private interface PropertyValidator {
-        @Nullable
-        String validate(boolean stricterValidation, PropertyMetadata metadata);
+        void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext);
     }
 
-    private static class InputOnFileTypeValidator implements PropertyValidator {
-        @Nullable
-        @Override
-        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
-            Class<?> valueType = metadata.getDeclaredType();
-            if (File.class.isAssignableFrom(valueType)
-                || java.nio.file.Path.class.isAssignableFrom(valueType)
-                || FileCollection.class.isAssignableFrom(valueType)) {
-                return "has @Input annotation used on property of type " + valueType.getName();
-            }
-            return null;
+    private static class MissingNormalizationValidator implements PropertyValidator {
+        final boolean stricterValidation;
+
+        public MissingNormalizationValidator(boolean stricterValidation) {
+            this.stricterValidation = stricterValidation;
         }
-    }
 
-    private static class MissingPathSensitivityValidator implements PropertyValidator {
-
-        @Nullable
         @Override
-        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
-            PathSensitive pathSensitive = metadata.getAnnotation(PathSensitive.class);
-            if (stricterValidation && pathSensitive == null) {
-                return "is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE";
+        public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
+            if (stricterValidation && !metadata.hasAnnotationForCategory(NORMALIZATION)) {
+                validationContext.visitError(ownerPath, metadata.getPropertyName(), "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE");
             }
-            return null;
         }
     }
 

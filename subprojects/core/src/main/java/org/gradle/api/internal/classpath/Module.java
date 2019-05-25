@@ -47,4 +47,9 @@ public interface Module {
      * Returns the transitive closure of all modules required by this module, including the module itself.
      */
     Set<Module> getAllRequiredModules();
+
+    /**
+     * Returns the implementation + runtime classpath of the transitive closure of all modules required by this module, including the module itself.
+     */
+    ClassPath getAllRequiredModulesClasspath();
 }

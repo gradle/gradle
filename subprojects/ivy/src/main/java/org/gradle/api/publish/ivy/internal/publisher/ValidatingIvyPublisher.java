@@ -19,13 +19,14 @@ package org.gradle.api.publish.ivy.internal.publisher;
 import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedDescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedIvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
-import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
@@ -47,7 +48,8 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository, metadataFactory);
     }
 
-    public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
+    @Override
+    public void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository) {
         validateMetadata(publication);
         validateArtifacts(publication);
         checkNoDuplicateArtifacts(publication);
@@ -84,7 +86,8 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private MutableIvyModuleResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
         try {
-            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getIvyDescriptorFile(), true);
+            MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseResult = moduleDescriptorParser.parseMetaData(parserSettings, publication.getIvyDescriptorFile(), true);
+            return parseResult.getResult();
         } catch (MetaDataParseException pe) {
             throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
         }

@@ -16,12 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
@@ -30,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.internal.time.Clock;
@@ -41,6 +36,12 @@ import org.testng.ISuite;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.TestNG;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.api.tasks.testing.testng.TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY;
 
@@ -142,7 +143,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
     private void invokeVerifiedMethod(TestNG testNg, String methodName, Class<?> paramClass, Object value, Object defaultValue) {
         try {
-            JavaReflectionUtil.method(TestNG.class, Object.class, methodName, paramClass).invoke(testNg, value);
+            JavaMethod.of(TestNG.class, Object.class, methodName, paramClass).invoke(testNg, value);
         } catch (NoSuchMethodException e) {
             if (!value.equals(defaultValue)) {
                 // Should not reach this point as this is validated in the test framework implementation - just propagate the failure

@@ -23,8 +23,8 @@ import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Ignore
 import spock.lang.Issue
 
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
 
 @TargetCoverage({ TestNGCoverage.STANDARD_COVERAGE_WITH_INITIAL_ICLASS_LISTENER })
 class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
@@ -274,6 +274,42 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         result.testClassStartsWith('Gradle Test Executor')
             .assertTestCount(1, 1, 0)
             .assertTestFailed("failed to execute tests", containsString("Could not execute test class 'com.example.Foo'"))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/7878")
+    def "can concurrently execute the same test class multiple times"() {
+        given:
+        file('src/test/java/TestNG7878.java') << """
+            import org.testng.annotations.Factory;
+            import org.testng.annotations.Test;
+            import org.testng.Assert;
+            
+            public class TestNG7878 {
+                @Factory
+                public static Object[] createTests() {
+                    return new Object[]{ 
+                            new TestNG7878(), 
+                            new TestNG7878() 
+                    };
+                }
+            
+                @Test
+                public void runFirst() {}
+                
+                @Test(dependsOnMethods = "runFirst")
+                public void testGet2() {
+                    Assert.assertEquals(true, true);
+                }
+            }
+        """
+
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('TestNG7878')
+            .testClass('TestNG7878').assertTestCount(4, 0, 0)
     }
 
     private static String testListener() {

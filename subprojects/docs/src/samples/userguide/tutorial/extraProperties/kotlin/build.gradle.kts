@@ -6,11 +6,11 @@ plugins {
 
 
 // tag::taskProperties[]
-task("myTask") {
+tasks.register("myTask") {
     extra["myProperty"] = "myValue"
 }
 
-task("printTaskProperties") {
+tasks.register("printTaskProperties") {
     doLast {
         println(tasks["myTask"].extra["myProperty"])
     }
@@ -37,7 +37,7 @@ sourceSets {
     }
 }
 
-task("printProperties") {
+tasks.register("printProperties") {
     doLast {
         println(springVersion)
         println(emailNotification)

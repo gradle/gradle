@@ -51,7 +51,7 @@ import java.lang.annotation.Target;
  *
  * <pre>
  * void setEnabled(boolean enabled);
- * boolean isEnabed();
+ * boolean isEnabled();
  * </pre>
  *
  * <h4>Supported property types</h4>

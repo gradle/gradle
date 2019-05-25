@@ -24,7 +24,7 @@ import java.util.Map;
 public class ClasspathEntrySnapshotData {
 
     private final Map<String, HashCode> hashes;
-    private final ClassSetAnalysisData classAnalyisis;
+    private final ClassSetAnalysisData classAnalysis;
     private final HashCode hash;
 
     /**
@@ -39,7 +39,7 @@ public class ClasspathEntrySnapshotData {
 
         this.hash = hash;
         this.hashes = hashes;
-        this.classAnalyisis = classAnalysis;
+        this.classAnalysis = classAnalysis;
     }
 
     public Map<String, HashCode> getHashes() {
@@ -47,7 +47,7 @@ public class ClasspathEntrySnapshotData {
     }
 
     public ClassSetAnalysisData getClassAnalysis() {
-        return classAnalyisis;
+        return classAnalysis;
     }
 
     public HashCode getHash() {

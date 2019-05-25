@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.logging
 
+import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.samples.executor.ExecutionMetadata
@@ -22,6 +23,7 @@ import org.gradle.samples.test.normalizer.OutputNormalizer
 
 import java.util.regex.Pattern
 
+@CompileStatic
 class SampleOutputNormalizer implements OutputNormalizer {
     private static final String NORMALIZED_SAMPLES_PATH = "/home/user/gradle/samples"
     private static final String NORMALIZED_SAMPLES_FILE_URL = "file:///home/user/gradle/samples/"

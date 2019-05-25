@@ -26,16 +26,14 @@ import java.io.Serializable;
 
 public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
     private final Factory<? extends File> currentJvmJavaHomeFactory;
-    private final Factory<? extends File> systemPropertiesJavaHomeFactory;
     private final Factory<? extends JavaCompiler> systemJavaCompilerFactory;
 
     public JavaHomeBasedJavaCompilerFactory() {
-        this(new CurrentJvmJavaHomeFactory(), new SystemPropertiesJavaHomeFactory(), new SystemJavaCompilerFactory());
+        this(new CurrentJvmJavaHomeFactory(), new SystemJavaCompilerFactory());
     }
 
-    JavaHomeBasedJavaCompilerFactory(Factory<? extends File> currentJvmJavaHomeFactory, Factory<? extends File> systemPropertiesJavaHomeFactory, Factory<? extends JavaCompiler> systemJavaCompilerFactory) {
+    JavaHomeBasedJavaCompilerFactory(Factory<? extends File> currentJvmJavaHomeFactory, Factory<? extends JavaCompiler> systemJavaCompilerFactory) {
         this.currentJvmJavaHomeFactory = currentJvmJavaHomeFactory;
-        this.systemPropertiesJavaHomeFactory = systemPropertiesJavaHomeFactory;
         this.systemJavaCompilerFactory = systemJavaCompilerFactory;
     }
 
@@ -52,11 +50,6 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
 
     private JavaCompiler findCompiler() {
         File realJavaHome = currentJvmJavaHomeFactory.create();
-        File javaHomeFromToolProvidersPointOfView = systemPropertiesJavaHomeFactory.create();
-        if (realJavaHome.equals(javaHomeFromToolProvidersPointOfView)) {
-            return systemJavaCompilerFactory.create();
-        }
-
         return SystemProperties.getInstance().withJavaHome(realJavaHome, systemJavaCompilerFactory);
     }
 
@@ -64,13 +57,6 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
         @Override
         public File create() {
             return Jvm.current().getJavaHome();
-        }
-    }
-
-    public static class SystemPropertiesJavaHomeFactory implements Factory<File>, Serializable {
-        @Override
-        public File create() {
-            return SystemProperties.getInstance().getJavaHomeDir();
         }
     }
 

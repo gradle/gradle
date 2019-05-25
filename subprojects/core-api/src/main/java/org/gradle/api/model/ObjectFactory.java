@@ -16,23 +16,29 @@
 
 package org.gradle.api.model;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * A factory for creating various kinds of model objects.
  * <p>
- * An instance of the factory can be injected into a task or plugin by annotating a public constructor or property getter method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getObjects()}.
+ * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getObjects()}.
  *
  * @since 4.0
  */
@@ -88,12 +94,56 @@ public interface ObjectFactory {
     SourceDirectorySet sourceDirectorySet(String name, String displayName);
 
     /**
+     * Creates a new {@link ConfigurableFileCollection}. The collection is initially empty.
+     *
+     * @since 5.3
+     */
+    ConfigurableFileCollection fileCollection();
+
+    /**
+     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.</p>
+     *
+     * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
+     *
+     * @param elementType The type of objects for the container to contain.
+     * @param <T> The type of objects for the container to contain.
+     * @return The container. Never returns null.
+     * @since 5.5
+     */
+    <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType);
+
+    /**
+     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The given factory is used to create object instances.</p>
+     *
+     * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
+     *
+     *
+     * @param elementType The type of objects for the container to contain.
+     * @param factory The factory to use to create object instances.
+     * @param <T> The type of objects for the container to contain.
+     * @return The container. Never returns null.
+     * @since 5.5
+     */
+    <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory);
+
+    /**
+     * Creates a new {@link DomainObjectSet} for managing objects of the specified type.
+     *
+     * @param elementType The type of objects for the domain object set to contain.
+     * @param <T> The type of objects for the domain object set to contain.
+     * @return The domain object set. Never returns null.
+     * @since 5.5
+     */
+    <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType);
+
+    /**
      * Creates a {@link Property} implementation to hold values of the given type. The property has no initial value.
      *
      * <p>For certain types, there are more specialized property factory methods available:</p>
      * <ul>
      * <li>For {@link List} properties, you should use {@link #listProperty(Class)}.</li>
      * <li>For {@link Set} properties, you should use {@link #setProperty(Class)}.</li>
+     * <li>For {@link Map} properties, you should use {@link #mapProperty(Class, Class)}.</li>
      * <li>For {@link org.gradle.api.file.Directory} properties, you should use {@link #directoryProperty()}.</li>
      * <li>For {@link org.gradle.api.file.RegularFile} properties, you should use {@link #fileProperty()}.</li>
      * </ul>
@@ -105,28 +155,41 @@ public interface ObjectFactory {
     <T> Property<T> property(Class<T> valueType);
 
     /**
-     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property has no initial value.
+     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property has an empty list as its initial value.
      *
      * <p>The implementation will return immutable {@link List} values from its query methods.</p>
      *
      * @param elementType The type of element.
      * @param <T> The type of element.
-     * @return The property. Never returns null;
+     * @return The property. Never returns null.
      * @since 4.3
      */
     <T> ListProperty<T> listProperty(Class<T> elementType);
 
     /**
-     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type {@code T}. The property has no initial value.
+     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type {@code T}. The property has an empty set as its initial value.
      *
      * <p>The implementation will return immutable {@link Set} values from its query methods.</p>
      *
      * @param elementType The type of element.
      * @param <T> The type of element.
-     * @return The property. Never returns null;
+     * @return The property. Never returns null.
      * @since 4.5
      */
     <T> SetProperty<T> setProperty(Class<T> elementType);
+
+    /**
+     * Creates a {@link MapProperty} implementation to hold a {@link Map} of the given key type {@code K} and value type {@code V}. The property has an empty map as its initial value.
+     *
+     * <p>The implementation will return immutable {@link Map} values from its query methods.</p>
+     * @param keyType the type of key.
+     * @param valueType the type of value.
+     * @param <K> the type of key.
+     * @param <V> the type of value.
+     * @return the property. Never returns null.
+     * @since 5.1
+     */
+    <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
 
     /**
      * Creates a new {@link DirectoryProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.

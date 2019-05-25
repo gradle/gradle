@@ -51,7 +51,7 @@ class GradleVersionsPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':dependencyUpdates').outcome == SUCCESS
-        result.output.contains("- junit:junit [4.10 -> 4.12]")
+        result.output.contains("- junit:junit [4.10 -> 4.13")
         result.output.contains("- log4j:log4j [1.2.14 -> 1.2.17]")
         
         file("build/dependencyUpdates/report.txt").exists()

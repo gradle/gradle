@@ -26,10 +26,12 @@ public abstract class BuildOutcomeSupport implements BuildOutcome {
         this.description = description;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }

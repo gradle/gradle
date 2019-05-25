@@ -17,7 +17,7 @@
 package org.gradle.model.dsl.internal;
 
 import groovy.lang.Closure;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.model.InvalidModelRuleDeclarationException;

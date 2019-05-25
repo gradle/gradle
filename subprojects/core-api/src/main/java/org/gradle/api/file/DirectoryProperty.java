@@ -18,10 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-
-import java.io.File;
 
 /**
  * Represents some configurable directory location, whose value is mutable.
@@ -35,27 +32,29 @@ import java.io.File;
  * @since 4.3
  */
 @Incubating
-public interface DirectoryProperty extends Property<Directory> {
-    /**
-     * Views the location of this directory as a {@link File}.
-     */
-    Provider<File> getAsFile();
-
+public interface DirectoryProperty extends FileSystemLocationProperty<Directory> {
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
      */
     FileTree getAsFileTree();
 
     /**
-     * Sets the location of this directory.
+     * {@inheritDoc}
      */
-    void set(File dir);
+    @Override
+    DirectoryProperty value(Directory value);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    DirectoryProperty value(Directory value);
+    DirectoryProperty convention(Directory value);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DirectoryProperty convention(Provider<? extends Directory> valueProvider);
 
     /**
      * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.

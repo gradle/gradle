@@ -18,15 +18,20 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.DisplayName;
+
+import java.util.List;
 
 public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     private final DisplayName displayName;
     private final AttributeContainer attributes;
+    private final List<Capability> capabilities;
 
-    public DefaultResolvedVariantResult(DisplayName displayName, AttributeContainer attributes) {
+    public DefaultResolvedVariantResult(DisplayName displayName, AttributeContainer attributes, List<Capability> capabilities) {
         this.displayName = displayName;
         this.attributes = attributes;
+        this.capabilities = capabilities;
     }
 
     @Override
@@ -37,5 +42,10 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     @Override
     public String getDisplayName() {
         return displayName.getDisplayName();
+    }
+
+    @Override
+    public List<Capability> getCapabilities() {
+        return capabilities;
     }
 }

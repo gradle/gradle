@@ -53,5 +53,35 @@ abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTest
         return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
     }
 
+    @Override
+    protected String getTestComponentDsl() {
+        return "xctest"
+    }
+
+    @Override
+    protected String getComponentUnderTestDsl() {
+        return null
+    }
+
+    @Override
+    protected String[] getTasksToBuildAndRunUnitTest(String architecture) {
+        return tasksToBuildAndRunUnitTest
+    }
+
+    @Override
+    protected String[] getTasksToCompileComponentUnderTest(String architecture) {
+        return tasksToCompileComponentUnderTest
+    }
+
+    @Override
+    protected String[] getTasksToRelocate() {
+        return getTasksToRelocate(null)
+    }
+
     protected abstract XCTestSourceElement getPassingTestFixture()
+
+    @Override
+    String getLanguageTaskSuffix() {
+        return "swift"
+    }
 }

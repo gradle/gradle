@@ -24,7 +24,7 @@ repositories {
 task sourceJar(type: Jar) {
     baseName = 'ivypublishSource'
     from sourceSets.main.java
-    classifier = 'src'
+    archiveClassifier = 'src'
 }
 
 artifacts {

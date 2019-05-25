@@ -12,7 +12,7 @@ jacoco {
     applyTo(tasks.run.get())
 }
 
-task<JacocoReport>("applicationCodeCoverageReport") {
+tasks.register<JacocoReport>("applicationCodeCoverageReport") {
     executionData(tasks.run.get())
     sourceSets(sourceSets.main.get())
 }

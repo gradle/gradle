@@ -38,7 +38,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
- * Task for generating a project file.
+ * Task for generating a Visual Studio project file (e.g. {@code foo.vcxproj}).
  */
 @Incubating
 public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
@@ -107,8 +107,8 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
         DefaultVisualStudioProject vsProject = visualStudioProject;
         projectFile.setGradleCommand(buildGradleCommand());
         projectFile.setProjectUuid(DefaultVisualStudioProject.getUUID(getOutputFile()));
-        projectFile.setVisualStudioVersion(visualStudioProject.getVisualStudioVersion());
-        projectFile.setSdkVersion(visualStudioProject.getSdkVersion());
+        projectFile.setVisualStudioVersion(visualStudioProject.getVisualStudioVersion().get());
+        projectFile.setSdkVersion(visualStudioProject.getSdkVersion().get());
 
         for (File sourceFile : vsProject.getSourceFiles()) {
             projectFile.addSourceFile(sourceFile);
@@ -122,6 +122,9 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
             projectFile.addHeaderFile(headerFile);
         }
 
+        if (vsProject.getConfigurations().stream().noneMatch(it -> it.isBuildable())) {
+            getLogger().warn("'" + vsProject.getComponentName() + "' component in project '" + getProject().getPath() + "' is not buildable.");
+        }
         for (VisualStudioProjectConfiguration configuration : vsProject.getConfigurations()) {
             projectFile.addConfiguration(configuration);
         }

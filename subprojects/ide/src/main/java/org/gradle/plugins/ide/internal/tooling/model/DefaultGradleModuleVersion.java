@@ -33,14 +33,17 @@ public class DefaultGradleModuleVersion implements GradleModuleVersion, Serializ
         this.version = identifier.getVersion();
     }
 
+    @Override
     public String getGroup() {
         return group;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getVersion() {
         return version;
     }

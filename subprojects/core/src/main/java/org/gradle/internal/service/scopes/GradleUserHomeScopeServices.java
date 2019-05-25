@@ -30,11 +30,11 @@ import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampIns
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
@@ -62,8 +62,11 @@ import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
@@ -83,7 +86,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
@@ -137,16 +139,16 @@ public class GradleUserHomeScopeServices {
         return fileHasher;
     }
 
-    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher) {
-        return new DefaultScriptSourceHasher(fileHasher);
+    ScriptSourceHasher createScriptSourceHasher() {
+        return new DefaultScriptSourceHasher();
     }
 
-    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(ScriptSourceHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new CrossBuildInMemoryCachingScriptClassCache(hasher, cacheFactory);
+    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new CrossBuildInMemoryCachingScriptClassCache(cacheFactory);
     }
 
-    ValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        return new DefaultValueSnapshotter(classLoaderHierarchyHasher, NamedObjectInstantiator.INSTANCE);
+    DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        return new DefaultValueSnapshotter(classLoaderHierarchyHasher);
     }
 
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
@@ -163,6 +165,11 @@ public class GradleUserHomeScopeServices {
             @Override
             public void beforeOutputChange() {
                 fileSystemMirror.beforeOutputChange();
+            }
+
+            @Override
+            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+                fileSystemMirror.beforeOutputChange(affectedOutputPaths);
             }
         });
         listenerManager.addListener(new RootBuildLifecycleListener() {
@@ -194,8 +201,8 @@ public class GradleUserHomeScopeServices {
         return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, ResourceFilter.FILTER_NOTHING, stringInterner);
     }
 
-    ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter) {
-        return new DefaultClasspathHasher(fingerprinter);
+    ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
+        return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
     }
 
     HashingClassLoaderFactory createClassLoaderFactory(ClasspathHasher classpathHasher) {
@@ -252,5 +259,9 @@ public class GradleUserHomeScopeServices {
 
     FileAccessTimeJournal createFileAccessTimeJournal(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         return new DefaultFileAccessTimeJournal(cacheRepository, cacheDecoratorFactory);
+    }
+
+    TimeoutHandler createTimeoutHandler(ExecutorFactory executorFactory) {
+        return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1));
     }
 }

@@ -22,7 +22,7 @@ val sharedManifest = the<JavaPluginConvention>().manifest {
     )
 }
 
-task<Jar>("fooJar") {
+tasks.register<Jar>("fooJar") {
     manifest = project.the<JavaPluginConvention>().manifest {
         from(sharedManifest)
     }
@@ -30,7 +30,7 @@ task<Jar>("fooJar") {
 // end::custom-manifest[]
 
 // tag::merge[]
-task<Jar>("barJar") {
+tasks.register<Jar>("barJar") {
     manifest {
         attributes("key1" to "value1")
         from(sharedManifest, "src/config/basemanifest.txt")
@@ -49,5 +49,5 @@ task<Jar>("barJar") {
 // end::merge[]
 
 // tag::write[]
-tasks.getByName<Jar>("jar").manifest.writeTo("$buildDir/mymanifest.mf")
+tasks.named<Jar>("jar") { manifest.writeTo("$buildDir/mymanifest.mf") }
 // end::write[]

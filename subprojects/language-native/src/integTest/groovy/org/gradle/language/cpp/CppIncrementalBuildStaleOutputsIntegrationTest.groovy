@@ -122,7 +122,7 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
 
         executable("app/build/exe/main/debug/app").assertDoesNotExist()
         file("app/build/exe/main/debug").assertDoesNotExist()
-        file("app/build/obj/main/debug").assertHasDescendants()
+        file("app/build/obj/main/debug").assertDoesNotExist()
         installation("app/build/install/main/debug").assertNotInstalled()
 
         sharedLibrary("greeter/build/lib/main/debug/greeter").assertExists()
@@ -159,7 +159,7 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
 
         executable("build/exe/main/debug/app").assertDoesNotExist()
         file("build/exe/main/debug").assertDoesNotExist()
-        file("build/obj/main/debug").assertHasDescendants()
+        file("build/obj/main/debug").assertDoesNotExist()
         installation("build/install/main/debug").assertNotInstalled()
     }
 
@@ -192,7 +192,7 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
 
         sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
         file("build/lib/main/debug").assertDoesNotExist()
-        file("build/obj/main/debug").assertHasDescendants()
+        file("build/obj/main/debug").assertDoesNotExist()
     }
 
     private List<String> expectIntermediateDescendants(SourceElement sourceElement) {

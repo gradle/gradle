@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver

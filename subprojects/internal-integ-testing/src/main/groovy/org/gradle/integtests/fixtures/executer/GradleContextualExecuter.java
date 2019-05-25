@@ -82,6 +82,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         this.executerType = getSystemPropertyExecuter();
     }
 
+    @Override
     protected GradleExecuter configureExecuter() {
         if (!getClass().desiredAssertionStatus()) {
             throw new RuntimeException("Assertions must be enabled when running integration tests.");

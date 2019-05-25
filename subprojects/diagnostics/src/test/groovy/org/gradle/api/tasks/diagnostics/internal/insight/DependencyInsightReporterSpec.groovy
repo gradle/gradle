@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
@@ -191,22 +190,23 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private static DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested()) {
-        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), defaultVariant(), "repoId")
-        new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId(group, name), new DefaultMutableVersionConstraint(requested)),
-            selectedModule,
-            new DefaultResolvedComponentResult(newId("a", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), defaultVariant(), "repoId"))
+        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), [defaultVariant()], "repoId")
+        new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId(group, name), requested),
+                false,
+                selectedModule,
+                new DefaultResolvedComponentResult(newId("a", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), [defaultVariant()], "repoId"))
     }
 
     private static DefaultResolvedVariantResult defaultVariant() {
-        new DefaultResolvedVariantResult(Describables.of("default"), ImmutableAttributes.EMPTY)
+        new DefaultResolvedVariantResult(Describables.of("default"), ImmutableAttributes.EMPTY, [])
     }
 
     private static DefaultResolvedDependencyResult path(String path) {
-        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), defaultVariant(), "repoId")
+        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), [defaultVariant()], "repoId")
         List<DefaultResolvedDependencyResult> pathElements = (path.split(' -> ') as List).reverse().collect {
             def (name, version) = it.split(':')
-            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), ComponentSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), defaultVariant(), "repoId")
-            def result = new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId("group", name), version), componentResult, from)
+            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), ComponentSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), [defaultVariant()], "repoId")
+            def result = new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId("group", name), version), false, componentResult, from)
             from = componentResult
             result
         }

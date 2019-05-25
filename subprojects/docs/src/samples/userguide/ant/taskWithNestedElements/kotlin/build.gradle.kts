@@ -1,4 +1,4 @@
-task("zip") {
+tasks.register("zip") {
     doLast {
         ant.withGroovyBuilder {
             "zip"("destfile" to "archive.zip") {

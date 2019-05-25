@@ -18,12 +18,12 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
@@ -34,21 +34,33 @@ import java.util.List;
  */
 @NonNullApi
 public abstract class AbstractFileCollectionFingerprinter implements FileCollectionFingerprinter {
-    private final StringInterner stringInterner;
     private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FingerprintingStrategy fingerprintingStrategy;
 
-    public AbstractFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        this.stringInterner = stringInterner;
+    public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, FileSystemSnapshotter fileSystemSnapshotter) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.fingerprintingStrategy = fingerprintingStrategy;
     }
 
-    public CurrentFileCollectionFingerprint fingerprint(FileCollection input, FingerprintingStrategy strategy) {
-        FileCollectionInternal fileCollection = (FileCollectionInternal) input;
+    @Override
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
+        FileCollectionInternal fileCollection = (FileCollectionInternal) files;
         List<FileSystemSnapshot> roots = fileSystemSnapshotter.snapshot(fileCollection);
-        return DefaultCurrentFileCollectionFingerprint.from(roots, strategy);
+        return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
     }
 
-    protected StringInterner getStringInterner() {
-        return stringInterner;
+    @Override
+    public CurrentFileCollectionFingerprint fingerprint(Iterable<? extends FileSystemSnapshot> roots) {
+        return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
+    }
+
+    @Override
+    public String normalizePath(FileSystemLocationSnapshot root) {
+        return fingerprintingStrategy.normalizePath(root);
+    }
+
+    @Override
+    public CurrentFileCollectionFingerprint empty() {
+        return fingerprintingStrategy.getEmptyFingerprint();
     }
 }

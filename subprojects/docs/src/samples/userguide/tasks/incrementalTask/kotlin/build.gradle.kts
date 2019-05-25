@@ -1,4 +1,4 @@
-task("originalInputs") {
+tasks.register("originalInputs") {
     doLast {
         file("inputs").mkdir()
         file("inputs/1.txt").writeText("Content for file 1.")
@@ -8,7 +8,7 @@ task("originalInputs") {
 }
 
 // tag::updated-inputs[]
-task("updateInputs") {
+tasks.register("updateInputs") {
     doLast {
         file("inputs/1.txt").writeText("Changed content for existing file 1.")
         file("inputs/4.txt").writeText("Content for new file 4.")
@@ -17,7 +17,7 @@ task("updateInputs") {
 // end::updated-inputs[]
 
 // tag::removed-input[]
-task("removeInput") {
+tasks.register("removeInput") {
     doLast {
         file("inputs/3.txt").delete()
     }
@@ -25,7 +25,7 @@ task("removeInput") {
 // end::removed-input[]
 
 // tag::removed-output[]
-task("removeOutput") {
+tasks.register("removeOutput") {
     doLast {
         file("$buildDir/outputs/1.txt").delete()
     }
@@ -33,55 +33,46 @@ task("removeOutput") {
 // end::removed-output[]
 
 // tag::reverse[]
-task<IncrementalReverseTask>("incrementalReverse") {
-    inputDir = file("inputs")
-    outputDir = file("$buildDir/outputs")
-    inputProperty = project.properties["taskInputProperty"] as String? ?: "original"
+tasks.register<IncrementalReverseTask>("incrementalReverse") {
+    inputDir.set(file("inputs"))
+    outputDir.set(file("$buildDir/outputs"))
+    inputProperty.set(project.properties["taskInputProperty"] as String? ?: "original")
 }
 // end::reverse[]
 
 // tag::incremental-task[]
-open class IncrementalReverseTask : DefaultTask() {
-    @InputDirectory
-    lateinit var inputDir: File
+abstract class IncrementalReverseTask : DefaultTask() {
+    @get:Incremental
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    @get:InputDirectory
+    abstract val inputDir: DirectoryProperty
 
-    @OutputDirectory
-    lateinit var outputDir: File
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
 
-    @Input
-    lateinit var inputProperty: String
+    @get:Input
+    abstract val inputProperty: Property<String>
 
     @TaskAction
-    fun execute(inputs: IncrementalTaskInputs) {
+    fun execute(inputChanges: InputChanges) {
         println(
-            if (inputs.isIncremental) "CHANGED inputs considered out of date"
-            else "ALL inputs considered out of date"
+            if (inputChanges.isIncremental) "Executing incrementally"
+            else "Executing non-incrementally"
         )
-        // tag::handle-non-incremental-inputs[]
-        if (!inputs.isIncremental) {
-            project.delete(outputDir.listFiles())
+
+        // tag::process-changed-inputs[]
+        inputChanges.getFileChanges(inputDir).forEach { change ->
+            if (change.fileType == FileType.DIRECTORY) return@forEach
+
+            println("${change.changeType}: ${change.normalizedPath}")
+            val targetFile = outputDir.file(change.normalizedPath).get().asFile
+            if (change.changeType == ChangeType.REMOVED) {
+                targetFile.delete()
+            } else {
+                targetFile.writeText(change.file.readText().reversed())
+            }
         }
-        // end::handle-non-incremental-inputs[]
-
-        // tag::out-of-date-inputs[]
-        inputs.outOfDate {
-            if (file.isDirectory) return@outOfDate
-
-            println("out of date: ${file.name}")
-            val targetFile = File(outputDir, file.name)
-            targetFile.writeText(file.readText().reversed())
-        }
-        // end::out-of-date-inputs[]
-
-        // tag::removed-inputs[]
-        inputs.removed {
-            if (file.isDirectory) return@removed
-
-            println("removed: ${file.name}")
-            val targetFile = File(outputDir, file.name)
-            targetFile.delete()
-        }
-        // end::removed-inputs[]
+        // end::process-changed-inputs[]
     }
 }
 // end::incremental-task[]

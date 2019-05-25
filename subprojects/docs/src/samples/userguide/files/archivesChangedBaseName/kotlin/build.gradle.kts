@@ -5,20 +5,20 @@ plugins {
 version = "1.0"
 base.archivesBaseName = "gradle"
 
-val myZip by tasks.creating(Zip::class) {
+val myZip by tasks.registering(Zip::class) {
     from("somedir")
 }
 
-val myOtherZip by tasks.creating(Zip::class) {
-    appendix = "wrapper"
-    classifier = "src"
+val myOtherZip by tasks.registering(Zip::class) {
+    archiveAppendix.set("wrapper")
+    archiveClassifier.set("src")
     from("somedir")
 }
 
-task("echoNames") {
+tasks.register("echoNames") {
     doLast {
         println("Project name: ${project.name}")
-        println(myZip.archiveName)
-        println(myOtherZip.archiveName)
+        println(myZip.get().archiveFileName.get())
+        println(myOtherZip.get().archiveFileName.get())
     }
 }

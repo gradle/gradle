@@ -6,10 +6,12 @@ task hello {
 hello.doFirst {
     println 'Hello Venus'
 }
-hello.doLast {
-    println 'Hello Mars'
+hello.configure {
+    doLast {
+        println 'Hello Mars'
+    }
 }
-hello {
+hello.configure {
     doLast {
         println 'Hello Jupiter'
     }

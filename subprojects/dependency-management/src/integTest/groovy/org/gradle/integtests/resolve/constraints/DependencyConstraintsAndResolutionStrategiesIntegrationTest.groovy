@@ -64,7 +64,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edgeFromConstraint("org:foo:1.1","org:foo:1.0")
+                constraint("org:foo:1.1","org:foo:1.0")
                 module("org:bar:1.0") {
                     edge("org:foo:1.0","org:foo:1.0")
                 }
@@ -90,9 +90,8 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause """A conflict was found between the following modules:
-  - org:foo:1.0
-  - org:foo:1.1"""
+        failure.assertHasCause """Conflict(s) found for the following module(s):
+  - org:foo between versions 1.1 and 1.0"""
     }
 
     void "dependency substitution rules are applied to dependency constraints"() {
@@ -117,7 +116,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edgeFromConstraint("org:foo:1.1","org:foo:1.0")
+                constraint("org:foo:1.1","org:foo:1.0")
                 module("org:bar:1.0") {
                     edge("org:foo:1.0","org:foo:1.0")
                 }
@@ -149,7 +148,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edgeFromConstraint("org:foo:1.1","org:foo:1.0")
+                constraint("org:foo:1.1","org:foo:1.0")
                 module("org:bar:1.0") {
                     edge("org:foo:1.0","org:foo:1.0")
                 }

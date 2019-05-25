@@ -23,14 +23,14 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link org.gradle.api.internal.tasks.TaskExecuter} which skips tasks that have no actions.
  */
 public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
-    private static final Logger LOGGER = Logging.getLogger(SkipTaskWithNoActionsExecuter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SkipTaskWithNoActionsExecuter.class);
     private final TaskExecutionGraph taskExecutionGraph;
     private final TaskExecuter executer;
 
@@ -39,6 +39,7 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
+    @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (!task.hasTaskActions()) {
             LOGGER.info("Skipping {} as it has no actions.", task);
@@ -51,7 +52,7 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
             }
             state.setActionable(false);
             state.setOutcome(upToDate ? TaskExecutionOutcome.UP_TO_DATE : TaskExecutionOutcome.EXECUTED);
-            return null;
+            return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
         return executer.execute(task, state, context);
     }

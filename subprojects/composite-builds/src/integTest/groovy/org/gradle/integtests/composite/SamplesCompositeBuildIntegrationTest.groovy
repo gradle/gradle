@@ -100,7 +100,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         executer.withRepositoryMirrors()
 
         when:
-        executer.inDirectory(sample.dir.file("multirepo-app/$dsl"))
+        executer.inDirectory(sample.dir.file("$dsl"))
         succeeds(':run')
 
         then:
@@ -115,7 +115,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     @UsesSample('compositeBuilds/hierarchical-multirepo')
     def "can publish locally and remove submodule from hierarchical composite with #dsl dsl"() {
         given:
-        def multiRepoAppDir = sample.dir.file("multirepo-app/$dsl")
+        def multiRepoAppDir = sample.dir.file("$dsl")
         executer.withRepositoryMirrors()
 
         when:
@@ -147,27 +147,31 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample('compositeBuilds/plugin-dev')
-    def "can develop plugin with composite"() {
+    def "can develop plugin with composite with dsl #dsl"() {
         when:
-        executer.inDirectory(sample.dir.file("consumer")).withArguments("--include-build", "../greeting-plugin")
-        succeeds(':greetBob')
+        executer.inDirectory(sample.dir.file("$dsl/consumer")).withArguments("--include-build", "../greeting-plugin")
+        succeeds('greeting')
 
         then:
-        executed ":greeting-plugin:jar", ":greetBob"
+        executed ":greeting-plugin:jar", ":greeting"
         outputContains("Hi Bob!!!")
 
         when:
-        def greetingTaskSource = sample.dir.file("greeting-plugin/src/main/java/org/sample/GreetingTask.java")
-        greetingTaskSource.text = greetingTaskSource.text.replace("Hi", "G'day")
+        def greetingTaskSource = sample.dir.file("$dsl/greeting-plugin/src/main/java/org/sample/GreetingTask.java")
+        greetingTaskSource.replace("Hi", "G'day")
 
         and:
-        executer.inDirectory(sample.dir.file("consumer")).withArguments("--include-build", "../greeting-plugin")
-        succeeds(':greetBob')
+        executer.inDirectory(sample.dir.file("$dsl/consumer")).withArguments("--include-build", "../greeting-plugin")
+        succeeds('greeting')
 
         then:
-        executed ":greeting-plugin:jar", ":greetBob"
+        executed ":greeting-plugin:jar", ":greeting"
         outputContains("G'day Bob!!!")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
@@ -184,8 +188,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':run'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':runtimeClasspath'.")
-        //TODO:kotlin-dsl uncomment once we're no longer on a kotlin eap
-        //failure.assertHasCause("Cannot resolve external dependency org.sample:number-utils:1.0 because no repositories are defined.")
+        failure.assertHasCause("Cannot resolve external dependency org.sample:number-utils:1.0 because no repositories are defined.")
 
         when:
         executer.inDirectory(myAppDir)

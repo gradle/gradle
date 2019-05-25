@@ -22,7 +22,7 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssoc
 /**
  * The result of a comparison between to associated build outcomes.
  *
- * Implementors exposes information about how the outcomes were different.
+ * Implementers exposes information about how the outcomes were different.
  *
  * @param <T> The type of outcome that was compared.
  */

@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.PropertySpecFactory;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.internal.reflect.AnnotationCategory;
+import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
 
@@ -30,6 +33,17 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
         this.annotationType = annotationType;
     }
 
+    @Override
+    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
+        return ImmutableSet.of();
+    }
+
+    @Override
+    public boolean isPropertyRelevant() {
+        return false;
+    }
+
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return annotationType;
     }
@@ -40,6 +54,10 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
     }
 }

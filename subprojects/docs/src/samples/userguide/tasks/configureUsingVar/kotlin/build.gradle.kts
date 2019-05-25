@@ -1,8 +1,10 @@
-task<Copy>("myCopy")
+tasks.register<Copy>("myCopy")
 
 // tag::configure[]
-val myCopy = tasks.getByName<Copy>("myCopy")
-myCopy.from("resources")
-myCopy.into("target")
-myCopy.include("**/*.txt", "**/*.xml", "**/*.properties")
+val myCopy = tasks.named<Copy>("myCopy")
+myCopy {
+    from("resources")
+    into("target")
+    include("**/*.txt", "**/*.xml", "**/*.properties")
+}
 // end::configure[]

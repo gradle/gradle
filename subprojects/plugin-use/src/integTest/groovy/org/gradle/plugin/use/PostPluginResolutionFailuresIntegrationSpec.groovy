@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 @LeaksFileHandles
 class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpec {
@@ -55,7 +55,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
     }
 
     def "error creating plugin"() {
-        pluginBuilder.addNonConstructablePlugin(PLUGIN_ID)
+        pluginBuilder.addNonConstructiblePlugin(PLUGIN_ID)
         pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
 
         buildScript applyPlugin()

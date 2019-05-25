@@ -20,22 +20,25 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.TaskInstantiationException
+import org.gradle.internal.instantiation.DeserializationInstantiator
+import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TaskFactoryTest extends AbstractProjectBuilderSpec {
-    final ClassGenerator generator = Mock()
-    final Instantiator instantiator = Mock()
+    def instantiationScheme = Mock(InstantiationScheme)
+    def instantiator = Mock(Instantiator)
+    def deserializeInstantiator = Mock(DeserializationInstantiator)
     ITaskFactory taskFactory
 
     def setup() {
-        taskFactory = new TaskFactory(generator).createChild(project, instantiator)
-        _ * generator.generate(_) >> { Class type -> type }
+        taskFactory = new TaskFactory().createChild(project, instantiationScheme)
+        _ * instantiationScheme.instantiator() >> instantiator
+        _ * instantiationScheme.deserializationInstantiator() >> deserializeInstantiator
         _ * instantiator.newInstance(_) >> { args -> JavaReflectionUtil.newInstance(args[0]) }
     }
 
@@ -67,17 +70,13 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         type << [Task, TaskInternal, AbstractTask, DefaultTask]
     }
 
-    void instantiatesAnInstanceOfTheDecoratedTaskType() {
+    void testCreateTaskForDeserialization() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, null, null, 12))
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, null, null, 12), (Object[]) null)
 
         then:
-        task instanceof DecoratedTask
-
-        and:
-        1 * generator.generate(TestDefaultTask) >> DecoratedTask
-        1 * instantiator.newInstance(DecoratedTask) >> { new DecoratedTask() }
-        0 * _._
+        1 * deserializeInstantiator.newInstance(TestDefaultTask, AbstractTask) >> { new TestDefaultTask() }
+        task instanceof TestDefaultTask
     }
 
     void testCreateTaskForTypeWhichDoesNotImplementTask() {

@@ -12,7 +12,7 @@ project(':api') {
         compile project(':shared')
     }
     task spiJar(type: Jar) {
-        baseName = 'api-spi'
+        archiveBaseName = 'api-spi'
         from sourceSets.main.output
         include('org/gradle/sample/api/**')
     }

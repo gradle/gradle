@@ -34,13 +34,19 @@ import java.util.Map;
 public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
     public static final IgnoredPathFingerprintingStrategy INSTANCE = new IgnoredPathFingerprintingStrategy();
+    public static final String IGNORED_PATH = "";
 
     private IgnoredPathFingerprintingStrategy() {
         super("IGNORED_PATH", IgnoredPathCompareStrategy.INSTANCE);
     }
 
     @Override
-    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
+    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+        return IGNORED_PATH;
+    }
+
+    @Override
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<? extends FileSystemSnapshot> roots) {
         final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {

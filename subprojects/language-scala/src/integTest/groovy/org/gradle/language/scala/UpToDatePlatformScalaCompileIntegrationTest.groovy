@@ -36,7 +36,7 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)
 
-        def scalaFixture = new LanuageScalaCompilationFixture(temporaryFolder.testDirectory)
+        def scalaFixture = new LanguageScalaCompilationFixture(temporaryFolder.testDirectory)
         scalaFixture.baseline()
         buildFile << scalaFixture.buildScript()
         when:

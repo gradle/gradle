@@ -1021,13 +1021,13 @@ interface Managed${typeName} {
     }
 
     @Managed
-    interface ManagedTypeWithCovarianceOverriddenMethodExtendingUnamangedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
+    interface ManagedTypeWithCovarianceOverriddenMethodExtendingUnmanagedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
         @Override ByteArrayInputStream doSomething(Object param)
     }
 
     def "accept non-property methods from unmanaged supertype with covariance overridden in managed type"() {
         expect:
-        extract(ManagedTypeWithCovarianceOverriddenMethodExtendingUnamangedTypeWithMethod) instanceof ManagedImplStructSchema
+        extract(ManagedTypeWithCovarianceOverriddenMethodExtendingUnmanagedTypeWithMethod) instanceof ManagedImplStructSchema
     }
 
     interface UnmanagedSuperTypeWithOverloadedMethod {

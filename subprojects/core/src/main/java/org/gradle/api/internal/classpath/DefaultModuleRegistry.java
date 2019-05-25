@@ -17,6 +17,7 @@ package org.gradle.api.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -45,6 +46,14 @@ import java.util.zip.ZipFile;
  * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
 public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore {
+    private static final Spec<File> SATISFY_ALL = new Spec<File>() {
+        @Override
+        public boolean isSatisfiedBy(File element) {
+            return true;
+        }
+    };
+
+    @Nullable
     private final GradleInstallation gradleInstallation;
     private final Map<String, Module> modules = new HashMap<String, Module>();
     private final Map<String, Module> externalModules = new HashMap<String, Module>();
@@ -85,6 +94,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         return gradleInstallation == null ? DefaultClassPath.of(classpath) : ClassPath.EMPTY;
     }
 
+    @Override
     public Module getExternalModule(String name) {
         Module module = externalModules.get(name);
         if (module == null) {
@@ -95,13 +105,17 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     }
 
     private Module loadExternalModule(String name) {
-        File externalJar = findJar(name);
+        File externalJar = findJar(name, SATISFY_ALL);
         if (externalJar == null) {
+            if (gradleInstallation == null) {
+                throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in in classpath: %s.", name, classpath));
+            }
             throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
         }
         return new DefaultModule(name, Collections.singleton(externalJar), Collections.<File>emptySet());
     }
 
+    @Override
     public Module getModule(String name) {
         Module module = modules.get(name);
         if (module == null) {
@@ -135,8 +149,13 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", moduleName, gradleInstallation.getGradleHome()));
     }
 
-    private Module loadOptionalModule(String moduleName) {
-        File jarFile = findJar(moduleName);
+    private Module loadOptionalModule(final String moduleName) {
+        File jarFile = findJar(moduleName, new Spec<File>() {
+            @Override
+            public boolean isSatisfiedBy(File jarFile) {
+                return hasModuleProperties(moduleName, jarFile);
+            }
+        });
         if (jarFile != null) {
             Set<File> implementationClasspath = new LinkedHashSet<File>();
             implementationClasspath.add(jarFile);
@@ -144,7 +163,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
             return module(moduleName, properties, implementationClasspath);
         }
 
-        String resourceName = moduleName + "-classpath.properties";
+        String resourceName = getClasspathManifestName(moduleName);
         Set<File> implementationClasspath = new LinkedHashSet<File>();
         findImplementationClasspath(moduleName, implementationClasspath);
         for (File file : implementationClasspath) {
@@ -196,16 +215,26 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     }
 
     private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
-        List<String> suffixes = getClasspathSuffixes(name);
+        String projectDirName = name.startsWith("kotlin-compiler-embeddable-")
+            ? "kotlin-compiler-embeddable"
+            : projectDirNameFrom(name);
+        List<String> suffixesForProjectDir = getClasspathSuffixesForProjectDir(projectDirName);
         for (File file : classpath) {
             if (file.isDirectory()) {
-                for (String suffix : suffixes) {
-                    if (file.getAbsolutePath().endsWith(suffix)) {
+                String path = file.getAbsolutePath();
+                for (String suffix : suffixesForProjectDir) {
+                    if (path.endsWith(suffix)) {
                         implementationClasspath.add(file);
                     }
                 }
             }
         }
+    }
+
+    private static String projectDirNameFrom(String moduleName) {
+        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(moduleName);
+        matcher.matches();
+        return matcher.group(1);
     }
 
     /**
@@ -214,20 +243,12 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
      *
      * <ul>
      * <li>In Eclipse, they are in the bin/ folder.</li>
-     * <li>In IDEA, they are in a folder derived from their module name.</li>
-     * Due to de-duplication with names in the buildSrc project, that module name can start with "gradle-"
+     * <li>In IDEA (native import), they are in in the out/production/ folder.</li>
      * </ul>
      * <li>In both cases we also include the static and generated resources of the project.</li>
      */
-    private List<String> getClasspathSuffixes(String name) {
+    private List<String> getClasspathSuffixesForProjectDir(String projectDirName) {
         List<String> suffixes = new ArrayList<String>();
-        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
-        matcher.matches();
-        String projectDirName = matcher.group(1);
-        String projectName = toCamelCase(projectDirName);
-
-        suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
-        suffixes.add(("/out/production/gradle-" + projectName).replace('/', File.separatorChar));
 
         suffixes.add(("/" + projectDirName + "/out/production/classes").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/out/production/resources").replace('/', File.separatorChar));
@@ -257,7 +278,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         try {
             ZipFile zipFile = new ZipFile(jarFile);
             try {
-                final String entryName = name + "-classpath.properties";
+                String entryName = getClasspathManifestName(name);
                 ZipEntry entry = zipFile.getEntry(entryName);
                 if (entry == null) {
                     throw new IllegalStateException("Did not find " + entryName + " in " + jarFile.getAbsolutePath());
@@ -271,7 +292,26 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         }
     }
 
-    private File findJar(String name) {
+    private boolean hasModuleProperties(String name, File jarFile) {
+        try {
+            ZipFile zipFile = new ZipFile(jarFile);
+            try {
+                String entryName = getClasspathManifestName(name);
+                ZipEntry entry = zipFile.getEntry(entryName);
+                return entry != null;
+            } finally {
+                zipFile.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not load properties for module '%s' from %s", name, jarFile), e);
+        }
+    }
+
+    private String getClasspathManifestName(String moduleName) {
+        return moduleName + "-classpath.properties";
+    }
+
+    private File findJar(String name, Spec<File> allowedJarFiles) {
         Pattern pattern = Pattern.compile(Pattern.quote(name) + "-\\d.+\\.jar");
         if (gradleInstallation != null) {
             for (File libDir : gradleInstallation.getLibDirs()) {
@@ -283,7 +323,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
             }
         }
         for (File file : classpath) {
-            if (pattern.matcher(file.getName()).matches()) {
+            if (pattern.matcher(file.getName()).matches() && allowedJarFiles.isSatisfiedBy(file)) {
                 return file;
             }
         }
@@ -337,26 +377,40 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
             return "module '" + name + "'";
         }
 
+        @Override
         public Set<Module> getRequiredModules() {
             return getModules(projects);
         }
 
+        @Override
         public ClassPath getImplementationClasspath() {
             return implementationClasspath;
         }
 
+        @Override
         public ClassPath getRuntimeClasspath() {
             return runtimeClasspath;
         }
 
+        @Override
         public ClassPath getClasspath() {
             return classpath;
         }
 
+        @Override
         public Set<Module> getAllRequiredModules() {
             Set<Module> modules = new LinkedHashSet<Module>();
             collectRequiredModules(modules);
             return modules;
+        }
+
+        @Override
+        public ClassPath getAllRequiredModulesClasspath() {
+            ClassPath classPath = ClassPath.EMPTY;
+            for (Module module : getAllRequiredModules()) {
+                classPath = classPath.plus(module.getClasspath());
+            }
+            return classPath;
         }
 
         private void collectRequiredModules(Set<Module> modules) {

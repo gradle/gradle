@@ -35,4 +35,8 @@ public class HttpErrorStatusCodeException extends RuntimeException {
     public boolean isServerError() {
         return statusCode >= 500 && statusCode < 600;
     }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
 }

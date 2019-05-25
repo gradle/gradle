@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-public interface ModuleConflictResolver {
+public interface ModuleConflictResolver<T> {
     /**
      * Selects matching candidate. Returns null if this implementation of the resolver is not able to select a candidate.
      *
      * @param details the conflict resolution details
-     * @param <T> the candidate type
      */
-    <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details);
+    void select(ConflictResolverDetails<T> details);
 }

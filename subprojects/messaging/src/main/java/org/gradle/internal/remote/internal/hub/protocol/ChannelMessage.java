@@ -35,6 +35,7 @@ public class ChannelMessage extends InterHubMessage implements Routable {
         return String.format("[%s channel: %s, payload: %s]", getClass().getSimpleName(), channel, payload);
     }
 
+    @Override
     public ChannelIdentifier getChannel() {
         return channel;
     }

@@ -27,6 +27,7 @@ import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile;
  * Task for compiling CoffeeScript sources into JavaScript.
  */
 @Incubating
+@Deprecated
 public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
     public void setCoffeeScriptJsNotation(String notation) {
         super.setCoffeeScriptJs(getDetachedConfiguration(notation));

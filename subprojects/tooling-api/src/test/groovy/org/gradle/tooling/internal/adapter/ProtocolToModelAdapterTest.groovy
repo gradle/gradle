@@ -144,7 +144,7 @@ class ProtocolToModelAdapterTest extends Specification {
     def cantAdaptInvalidEnumLiteral() {
         setup:
         TestProtocolModel protocolModel = Mock()
-        _ * protocolModel.getTestEnum() >> "NONEXISTING"
+        _ * protocolModel.getTestEnum() >> "NONEXISTENT"
 
         when:
         TestModel model = adapter.adapt(TestModel.class, protocolModel)

@@ -187,7 +187,7 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
 
     }
 
-    protected void "a rule which infers module set from group and version"() {
+    protected void "a rule which infers module set from group and version"(boolean virtual = true) {
         buildFile << """
             dependencies {
                 components.all(InferModuleSetFromGroupAndVersion)
@@ -196,7 +196,7 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
             class InferModuleSetFromGroupAndVersion implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
-                        belongsTo("\${id.group}:platform:\${id.version}")
+                        belongsTo("\${id.group}:platform:\${id.version}", ${virtual})
                     }
                 }
             }

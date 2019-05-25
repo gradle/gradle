@@ -36,9 +36,14 @@ Let's take a look at those steps in more detail:
 
 [[publishing_overview:what]]
 What to publish::
-Gradle needs to know what files and information to publish so that consumers can use your project. This is typically a combination of <<#glossary:artifact,artifacts>> and metadata that Gradle calls a <<#glossary:publication,publication>>. Exactly what a publication contains depends on the type of repository it's being published to.
+Gradle needs to know what files and information to publish so that consumers can use your project.
+This is typically a combination of <<#glossary:artifact,artifacts>> and metadata that Gradle calls a <<#glossary:publication,publication>>.
+Exactly what a publication contains depends on the type of repository it's being published to.
 +
-For example, a publication destined for a Maven repository includes one or more artifacts — typically built by the project — plus a POM file describing the primary artifact and its dependencies. The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
+For example, a publication destined for a Maven repository includes one or more artifacts — typically built by the project — plus a POM file describing the primary artifact and its dependencies.
+The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
++
+In addition, <<publishing_maven.adoc#publishing_maven:resolved_dependencies,Maven>> and <<publishing_ivy.adoc#publishing_ivy:resolved_dependencies,Ivy>> publications support publishing _resolved_ versions of dependencies instead of _declared_ ones.
 
 [[publishing_overview:where]]
 Where to publish::
@@ -154,7 +159,7 @@ The `groupId` and `artifactId` properties are specific to Maven publications. Se
 [[publishing_maven:signing]]
 == Signing artifacts
 
-The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module desciptors. In order to use it:
+The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module descriptors. In order to use it:
 
  1. Apply the Signing Plugin
  2. Configure the <<signing_plugin.adoc#sec:signatory_credentials,signatory credentials>> — follow the link to see how

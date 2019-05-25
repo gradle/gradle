@@ -30,11 +30,13 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
         this.timeProvider = timeProvider;
     }
 
+    @Override
     public CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
         final ModuleComponentAtRepositoryKey key = createKey(repository, id);
         return get(key);
     }
 
+    @Override
     public CachedMetadata cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
         LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", id, false);
         ModuleComponentAtRepositoryKey key = createKey(repository, id);
@@ -44,6 +46,7 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
         return cachedMetaData;
     }
 
+    @Override
     public CachedMetadata cacheMetaData(ModuleComponentRepository repository, ModuleComponentIdentifier id, final ModuleComponentResolveMetadata metadata) {
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", metadata.getId(), metadata.isChanging());
         final ModuleComponentAtRepositoryKey key = createKey(repository, id);

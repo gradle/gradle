@@ -16,14 +16,13 @@
 
 package org.gradle.play.internal
 
-
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.platform.base.binary.BaseBinaryFixtures
 import org.gradle.platform.base.internal.BinaryBuildAbility
 import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.play.platform.PlayPlatform
-import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class DefaultPlayApplicationBinarySpecTest extends Specification {
@@ -46,7 +45,7 @@ class DefaultPlayApplicationBinarySpecTest extends Specification {
         ! buildAbility.buildable
 
         when:
-        buildAbility.explain(Stub(TreeVisitor))
+        buildAbility.explain(Stub(DiagnosticsVisitor))
 
         then:
         1 * result.explain(_)

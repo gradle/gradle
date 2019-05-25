@@ -37,7 +37,7 @@ import org.junit.Assume
 
 import java.util.regex.Pattern
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 
 class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
@@ -113,15 +113,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion).collect { results.baseline(it) }
         def maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
-        runVersion(current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
+        runVersion('current', current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
         baselineVersions.each { baselineVersion ->
-            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
+            runVersion(baselineVersion.version, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
         }
 
         results.endTime = clock.getCurrentTime()
-
-        results.assertEveryBuildSucceeds()
 
         reporter.report(results)
 
@@ -181,7 +179,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
             def releasedVersion = findRelease(releases, version)
             def versionObject = GradleVersion.version(version)
-            if (minimumVersion != null && versionObject < GradleVersion.version(minimumVersion)) {
+            if (minimumVersion != null && targetVersionLowerThanMinimumRequirement(versionObject, GradleVersion.version(minimumVersion))) {
                 //this version is not supported by this scenario, as it uses features not yet available in this version of Gradle
                 continue
             }
@@ -206,9 +204,21 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         baselineVersions
     }
 
+    private static boolean targetVersionLowerThanMinimumRequirement(GradleVersion target, GradleVersion minimum) {
+        if (isCommitVersion(target)) {
+            return target.getBaseVersion() < minimum.getBaseVersion()
+        } else {
+            return target < minimum
+        }
+    }
+
     private static boolean isRcVersion(GradleVersion versionObject) {
         // there is no public API for checking for RC version, this is an internal way
         versionObject.stage.stage == 3
+    }
+
+    private static boolean isCommitVersion(GradleVersion version) {
+        return version.toString().contains("-commit-")
     }
 
     private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {
@@ -232,11 +242,11 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         best
     }
 
-    private void runVersion(GradleDistribution dist, File workingDir, MeasuredOperationList results) {
+    private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
         def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
-            .displayName(dist.version.version)
+            .displayName(displayName)
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
             .listener(buildExperimentListeners)

@@ -82,7 +82,7 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
         1 * listenerManager.removeListener(daemonExpirationListener)
     }
 
-    def "should not deadlock with deamon scan info"() {
+    def "should not deadlock with daemon scan info"() {
         def manager = new DefaultListenerManager()
         def daemonScanInfo = new DefaultDaemonScanInfo(new DaemonRunningStats(), 1000, false, Mock(DaemonRegistry), manager)
         daemonScanInfo.notifyOnUnhealthy {

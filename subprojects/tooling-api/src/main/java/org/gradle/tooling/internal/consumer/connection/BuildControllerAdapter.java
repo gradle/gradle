@@ -83,7 +83,7 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
 
     private <P> void validateParameters(Class<P> parameterType, Action<? super P> parameterInitializer) {
         if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null)) {
-            throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parametrized model request.");
+            throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parameterized model request.");
         }
 
         if (parameterType != null) {

@@ -30,10 +30,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -312,6 +314,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return componentId;
         }
 
+        @Override
         public void addDependency(LocalOriginDependencyMetadata dependency) {
             definedDependencies.add(dependency);
         }
@@ -405,6 +408,15 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                     }
                 }
                 maybeAddGeneratedDependencies(result);
+                AttributeValue<Category> attributeValue = this.getAttributes().findEntry(Category.CATEGORY_ATTRIBUTE);
+                if (attributeValue.isPresent() && attributeValue.get().getName().equals(Category.ENFORCED_PLATFORM)) {
+                    // need to wrap all dependencies to force them
+                    ImmutableList<LocalOriginDependencyMetadata> rawDependencies = result.build();
+                    result = ImmutableList.builder();
+                    for (LocalOriginDependencyMetadata rawDependency : rawDependencies) {
+                        result.add(rawDependency.forced());
+                    }
+                }
                 configurationDependencies = result.build();
             }
             return configurationDependencies;

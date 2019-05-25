@@ -112,8 +112,11 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK10_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_10
     }),
-    OLD_JETTY_COMPATIBLE({
-        JDK9_OR_EARLIER.fulfilled
+    JDK11_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_11
+    }),
+    JDK12_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_12
     }),
     JDK7_POSIX({
         NOT_WINDOWS.fulfilled
@@ -169,7 +172,8 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     MSBUILD({
         // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
         WINDOWS.fulfilled
-    })
+    }),
+    SUPPORTS_TARGETING_JAVA6({!JDK12_OR_LATER.fulfilled})
 
     /**
      * A predicate for testing whether the precondition is fulfilled.

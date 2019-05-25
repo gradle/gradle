@@ -18,24 +18,34 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParser;
 
 public class DefaultProjectDependencyFactory {
     private final ProjectAccessListener projectAccessListener;
     private final Instantiator instantiator;
     private final boolean buildProjectDependencies;
+    private final NotationParser<Object, Capability> capabilityNotationParser;
+    private final ImmutableAttributesFactory attributesFactory;
 
-    public DefaultProjectDependencyFactory(ProjectAccessListener projectAccessListener, Instantiator instantiator, boolean buildProjectDependencies) {
+    public DefaultProjectDependencyFactory(ProjectAccessListener projectAccessListener, Instantiator instantiator, boolean buildProjectDependencies, NotationParser<Object, Capability> capabilityNotationParser, ImmutableAttributesFactory attributesFactory) {
         this.projectAccessListener = projectAccessListener;
         this.instantiator = instantiator;
         this.buildProjectDependencies = buildProjectDependencies;
+        this.capabilityNotationParser = capabilityNotationParser;
+        this.attributesFactory = attributesFactory;
     }
 
     public ProjectDependency create(ProjectInternal project, String configuration) {
-        return instantiator.newInstance(DefaultProjectDependency.class, project, configuration, projectAccessListener, buildProjectDependencies);
+        DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, project, configuration, projectAccessListener, buildProjectDependencies);
+        projectDependency.setAttributesFactory(attributesFactory);
+        projectDependency.setCapabilityNotationParser(capabilityNotationParser);
+        return projectDependency;
     }
 
     public ProjectDependency create(Project project) {

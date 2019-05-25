@@ -23,18 +23,21 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType
 import org.gradle.cache.internal.GeneratedGradleJarCache
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.*
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY
 
 @UsesNativeServices
 class DependencyClassPathNotationConverterTest extends Specification {
@@ -42,7 +45,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
-    def instantiator = DirectInstantiator.INSTANCE
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def classPathRegistry = Mock(ClassPathRegistry)
     def fileResolver = TestFiles.resolver()
     def cache = Mock(GeneratedGradleJarCache)
@@ -59,6 +62,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
         def gradleTestKitFiles = [testDirectoryProvider.file('gradle-test-kit.jar')]
 
         classPathRegistry.getClassPath('GRADLE_API') >> DefaultClassPath.of(gradleApiFiles)
+        classPathRegistry.getClassPath('GRADLE_KOTLIN_DSL') >> ClassPath.EMPTY
         classPathRegistry.getClassPath('GRADLE_TEST_KIT') >> DefaultClassPath.of(gradleTestKitFiles)
         classPathRegistry.getClassPath('LOCAL_GROOVY') >> DefaultClassPath.of(localGroovyFiles)
         classPathRegistry.getClassPath('GRADLE_INSTALLATION_BEACON') >> DefaultClassPath.of(installationBeaconFiles)

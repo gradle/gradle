@@ -11,5 +11,5 @@ open class GreetingTask : DefaultTask() {
 // end::define-task[]
 
 // Create a task using the task type
-task<GreetingTask>("hello")
+tasks.register<GreetingTask>("hello")
 // end::add-action[]

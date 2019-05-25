@@ -17,19 +17,33 @@
 package org.gradle.performance.results
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataSeries
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class ScenarioBuildResultData {
+    public static final String STATUS_SUCCESS = "SUCCESS"
+    public static final String STATUS_FAILURE = "FAILURE"
+    public static final String STATUS_UNKNOWN = "UNKNOWN"
+    public static final int FLAKINESS_DETECTION_THRESHOLD = 99
+    private static final int ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD = 90
     String teamCityBuildId
     String scenarioName
+    String scenarioClass
     String webUrl
+    String agentName
+    String agentUrl
     String testFailure
     String status
     boolean crossBuild
     List<ExecutionData> currentBuildExecutions = []
     List<ExecutionData> recentExecutions = []
+
+    // For rerun scenarios
+    List<ScenarioBuildResultData> rawData = []
+
+    String getFlakyIssueTestName() {
+        return "${scenarioClass}.${scenarioName}"
+    }
 
     boolean isCrossVersion() {
         return !crossBuild
@@ -44,23 +58,23 @@ class ScenarioBuildResultData {
     }
 
     boolean isUnknown() {
-        return status == 'UNKNOWN'
+        return status == STATUS_UNKNOWN
     }
 
     boolean isSuccessful() {
-        return status == 'SUCCESS'
+        return status == STATUS_SUCCESS
     }
 
     boolean isBuildFailed() {
-        return status == 'FAILURE'  && currentBuildExecutions.empty
+        return status == STATUS_FAILURE && currentBuildExecutions.empty
     }
 
     boolean isRegressed() {
-        return status == 'FAILURE' && !currentBuildExecutions.empty
+        return status == STATUS_FAILURE && !currentBuildExecutions.empty
     }
 
     boolean isFromCache() {
-        return status == 'SUCCESS' && currentBuildExecutions.empty
+        return status == STATUS_SUCCESS && currentBuildExecutions.empty
     }
 
     double getDifferenceSortKey() {
@@ -94,28 +108,24 @@ class ScenarioBuildResultData {
     static class ExecutionData {
         Date time
         String commitId
+        String shortCommitId
         MeasuredOperationList baseVersion
         MeasuredOperationList currentVersion
 
         ExecutionData(long time, String commitId, MeasuredOperationList baseVersion, MeasuredOperationList currentVersion) {
             this.time = new Date(time)
             this.commitId = commitId
+            this.shortCommitId = commitId.substring(0, Math.min(7, commitId.length()))
             this.baseVersion = baseVersion
             this.currentVersion = currentVersion
         }
 
         String getDifferenceDisplay() {
-            Amount base = baseVersion.totalTime.median
-            Amount current = currentVersion.totalTime.median
-            Amount diff = current - base
-
-            return String.format("%s (%s)", diff.format(), formattedDifferencePercentage)
+            return FormatSupport.getFormattedDifference(baseVersion.totalTime, currentVersion.totalTime)
         }
 
         double getDifferencePercentage() {
-            double base = baseVersion.totalTime.median.value.doubleValue()
-            double current = currentVersion.totalTime.median.value.doubleValue()
-            return 100.0 * (current - base) / base
+            return FormatSupport.getDifferencePercentage(baseVersion, currentVersion).doubleValue()
         }
 
         double getConfidencePercentage() {
@@ -131,11 +141,11 @@ class ScenarioBuildResultData {
         }
 
         boolean confidentToSayBetter() {
-            return differencePercentage <= 0 && confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
+            return differencePercentage <= 0 && confidencePercentage > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
         }
 
         boolean confidentToSayWorse() {
-            return differencePercentage > 0 && confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
+            return differencePercentage > 0 && confidencePercentage > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
         }
     }
 }

@@ -16,13 +16,13 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.internal.change.FileChange;
+import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.file.FileType;
 
 /**
  * The absolute path and the type of a file.
  *
- * Used to construct {@link FileChange}s.
+ * Used to construct {@link DefaultFileChange}s.
  */
 public class FilePathWithType {
     private final String absolutePath;

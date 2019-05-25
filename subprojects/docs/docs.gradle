@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.asciidoctor.gradle.AsciidoctorTask
+import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
@@ -100,12 +100,13 @@ dependencies {
     jquery "jquery:jquery.min:1.8.0@js"
     jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
-    testCompile testLibraries.jsoup
-    testCompile("org.gebish:geb-spock:2.2")
-    testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
-    testCompile libraries.commons_httpclient.coordinates
-    testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
-    testCompile project(":core")
+    testImplementation project(":baseServices")
+    testImplementation project(":core")
+    testImplementation testLibraries.jsoup
+    testImplementation("org.gebish:geb-spock:2.2")
+    testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
+    testImplementation libraries.commons_httpclient.coordinates
+    testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
 
     gradleApiRuntime project(":")
 }
@@ -279,7 +280,7 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
-def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask) {
+def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include 'userguide_single.adoc' }
     outputDir = userguideSinglePageOutputDir
@@ -289,6 +290,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask)
         toclevels           : 2,
         groovyDslPath       : "https://docs.gradle.org/${version}/dsl",
         javadocPath         : "https://docs.gradle.org/${version}/javadoc",
+        kotlinDslPath       : "https://gradle.github.io/kotlin-dsl-docs/api",
         'source-highlighter': 'coderay'
 }
 
@@ -304,12 +306,11 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (BuildEnvironment.javaVersion.isJava8Compatible()) {
-        options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
-    }
+    options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
+    options.addStringOption "source", "8"
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
-    destinationDir = new File(docsDir, 'javadoc')
+    destinationDir = new File(docsDir, 'javadoc') 
     classpath = configurations.gradleApiRuntime
 
     PublicApi.includes.each {
@@ -321,6 +322,24 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)
     title = "Gradle API $version"
     ext.entryPoint = "$destinationDir/index.html"
+
+    if (BuildEnvironment.javaVersion.isJava11Compatible()) {
+        options.addBooleanOption('html4', true)
+        options.addBooleanOption('-no-module-directories', true)
+        doLast {
+            // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK's side
+            // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it
+            // Here we generate this file manually
+            new File(destinationDir, 'package-list').text = new File(destinationDir, 'element-list').text
+
+            // Commit http://hg.openjdk.java.net/jdk/jdk/rev/89dc31d7572b broke use of JSZip (https://bugs.openjdk.java.net/browse/JDK-8214856) fixed in Java 12 by http://hg.openjdk.java.net/jdk/jdk/rev/b4982a22926b
+            // TODO: Remove this script.js workaround when we distribute Gradle using JDK 12 or higher
+            project.copy { 
+            	from(new File(srcDocsDir, "js/javadoc"))
+                into(destinationDir)
+            }
+        }
+    }
 }
 
 tasks.register("checkstyleApi", Checkstyle) {
@@ -330,7 +349,7 @@ tasks.register("checkstyleApi", Checkstyle) {
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-def distDocs = tasks.register("distDocs", AsciidoctorTask) {
+def distDocs = tasks.register("distDocs", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     outputDir = distDocsDir
     sources { include 'getting-started.adoc' }
@@ -338,19 +357,19 @@ def distDocs = tasks.register("distDocs", AsciidoctorTask) {
 }
 
 asciidoctorj {
+    version = '1.5.8.1'
     noDefaultRepositories = true
-    version = '1.5.7'
 }
 
-tasks.withType(AsciidoctorTask).configureEach {
+tasks.withType(CacheableAsciidoctorTask).configureEach {
     dependsOn css, samples, defaultImports
 
     separateOutputDirs = false
     options doctype: 'book'
 
-    inputs.file "$srcDocsDir/css/manual.css"
-    inputs.dir file("src/main/resources")
-    inputs.dir samplesSrcDir
+    inputs.file("$srcDocsDir/css/manual.css").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(file("src/main/resources")).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(samplesSrcDir).withPathSensitivity(PathSensitivity.RELATIVE)
 
     attributes stylesdir           : '../css/',
         stylesheet          : 'manual.css',
@@ -373,10 +392,10 @@ tasks.withType(AsciidoctorTask).configureEach {
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
         samplesPath         : "../../samples",
-        'samples-dir'       : "$projectDir/src/samples"
+        'samples-dir'       : 'src/samples'
 }
 
-def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
+def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
 
     sources {
@@ -399,7 +418,8 @@ def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
         toclevels           : 1,
         'toc-title'         : 'Contents',
         groovyDslPath       : "../dsl",
-        javadocPath         : "../javadoc"
+        javadocPath         : "../javadoc",
+        kotlinDslPath       : "https://gradle.github.io/kotlin-dsl-docs/api"
 }
 
 // Avoid overlapping outputs by copying exactly what we want from other intermediate tasks

@@ -31,6 +31,7 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
         return prepareNewInstance(new StartParameterInternal());
     }
 
+    @Override
     public StartParameter newBuild() {
         return prepareNewBuild(new StartParameterInternal());
     }

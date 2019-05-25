@@ -8,26 +8,52 @@ plugins {
 }
 
 dependencies {
-    compile(project(":baseServices"))
-    compile(project(":jvmServices"))
-    compile(project(":core"))
-    compile(project(":cli"))
-    compile(project(":buildOption"))
-    compile(project(":toolingApi"))
-    compile(project(":native"))
-    compile(project(":logging"))
-    compile(project(":docs"))
+    implementation(project(":baseServices"))
 
-    compile(library("asm"))
-    compile(library("commons_io"))
-    compile(library("commons_lang"))
-    compile(library("slf4j_api"))
+    compileOnly(project(":launcherBootstrap"))
+    compileOnly(project(":launcherStartup"))
 
-    integTestCompile(project(":internalIntegTesting"))
-    integTestRuntime(project(":plugins"))
-    integTestRuntime(project(":languageNative"))
+    runtimeOnly(project(":baseServices"))
+    runtimeOnly(project(":jvmServices"))
+    runtimeOnly(project(":core"))
+    runtimeOnly(project(":cli"))
+    runtimeOnly(project(":buildOption"))
+    runtimeOnly(project(":toolingApi"))
+    runtimeOnly(project(":native"))
+    runtimeOnly(project(":logging"))
+    runtimeOnly(project(":docs"))
 
-    testFixturesApi(project(":internalIntegTesting"))
+    runtimeOnly(library("asm"))
+    runtimeOnly(library("commons_io"))
+    runtimeOnly(library("commons_lang"))
+    runtimeOnly(library("slf4j_api"))
+
+    testImplementation(project(":native"))
+    testImplementation(project(":cli"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":coreApi"))
+    testImplementation(project(":modelCore"))
+    testImplementation(project(":files"))
+    testImplementation(project(":resources"))
+    testImplementation(project(":persistentCache"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":buildOption"))
+    testImplementation(project(":jvmServices"))
+    testImplementation(library("slf4j_api"))
+    testImplementation(library("guava"))
+    testImplementation(library("ant"))
+
+    integTestImplementation(project(":persistentCache"))
+    integTestImplementation(project(":internalIntegTesting"))
+    integTestImplementation(library("slf4j_api"))
+    integTestImplementation(library("guava"))
+    integTestImplementation(library("commons_lang"))
+    integTestImplementation(library("commons_io"))
+    integTestRuntimeOnly(project(":plugins"))
+    integTestRuntimeOnly(project(":languageNative"))
+
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
 }
 
 val availableJavaInstallations = rootProject.availableJavaInstallations
@@ -49,7 +75,7 @@ if (currentJavaInstallation.javaVersion.isJava8) {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.STARTUP
 }
 
 testFixtures {
@@ -68,9 +94,13 @@ integTestTasks.configureEach {
 val configureJar by tasks.registering {
     doLast {
         val classpath = listOf(":baseServices", ":coreApi", ":core").joinToString(" ") {
-            project(it).tasks.jar.get().archivePath.name
+            project(it).tasks.jar.get().archiveFile.get().asFile.name
         }
-        tasks.jar.get().manifest.attributes("Class-Path" to classpath)
+        tasks.jar {
+            from(project(":launcherBootstrap").sourceSets["main"].output.files)
+            from(project(":launcherStartup").sourceSets["main"].output.files)
+            manifest.attributes("Class-Path" to classpath)
+        }
     }
 }
 
@@ -81,7 +111,7 @@ tasks.jar {
 
 val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
     startScriptsDir = file("$buildDir/startScripts")
-    launcherJar = tasks.jar.get().outputs.files
+    launcherBootstrapClasspathFiles.from(tasks.jar.get().outputs.files)
 }
 
 configurations {

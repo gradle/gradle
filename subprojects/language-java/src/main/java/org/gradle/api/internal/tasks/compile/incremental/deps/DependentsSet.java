@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -24,19 +25,23 @@ import java.util.Set;
 
 public abstract class DependentsSet {
 
-    public static DependentsSet dependents(String... dependentClasses) {
+    public static DependentsSet dependentClasses(String... dependentClasses) {
         if (dependentClasses.length == 0) {
             return empty();
         } else {
-            return new DefaultDependentsSet(ImmutableSet.copyOf(dependentClasses));
+            return new DefaultDependentsSet(ImmutableSet.copyOf(dependentClasses), Collections.<GeneratedResource>emptySet());
         }
     }
 
-    public static DependentsSet dependents(Set<String> dependentClasses) {
-        if (dependentClasses.isEmpty()) {
+    public static DependentsSet dependentClasses(Set<String> dependentClasses) {
+        return dependents(dependentClasses, Collections.<GeneratedResource>emptySet());
+    }
+
+    public static DependentsSet dependents(Set<String> dependentClasses, Set<GeneratedResource> dependentResources) {
+        if (dependentClasses.isEmpty() && dependentResources.isEmpty()) {
             return empty();
         } else {
-            return new DefaultDependentsSet(ImmutableSet.copyOf(dependentClasses));
+            return new DefaultDependentsSet(ImmutableSet.copyOf(dependentClasses), ImmutableSet.copyOf(dependentResources));
         }
     }
 
@@ -54,6 +59,8 @@ public abstract class DependentsSet {
 
     public abstract Set<String> getDependentClasses();
 
+    public abstract Set<GeneratedResource> getDependentResources();
+
     public abstract boolean isDependencyToAll();
 
     public abstract @Nullable String getDescription();
@@ -66,6 +73,11 @@ public abstract class DependentsSet {
 
         @Override
         public Set<String> getDependentClasses() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<GeneratedResource> getDependentResources() {
             return Collections.emptySet();
         }
 
@@ -84,14 +96,21 @@ public abstract class DependentsSet {
     private static class DefaultDependentsSet extends DependentsSet {
 
         private final Set<String> dependentClasses;
+        private final Set<GeneratedResource> dependentResources;
 
-        private DefaultDependentsSet(Set<String> dependentClasses) {
+        private DefaultDependentsSet(Set<String> dependentClasses, Set<GeneratedResource> dependentResources) {
             this.dependentClasses = dependentClasses;
+            this.dependentResources = dependentResources;
         }
 
         @Override
         public Set<String> getDependentClasses() {
             return dependentClasses;
+        }
+
+        @Override
+        public Set<GeneratedResource> getDependentResources() {
+            return dependentResources;
         }
 
         @Override
@@ -121,6 +140,11 @@ public abstract class DependentsSet {
         @Override
         public Set<String> getDependentClasses() {
             throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+        }
+
+        @Override
+        public Set<GeneratedResource> getDependentResources() {
+            throw new UnsupportedOperationException("This instance of dependents set does not have dependent resources information.");
         }
 
         @Override

@@ -67,17 +67,41 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
-    def 'asciidoctor plugin'() {
+    def 'asciidoctor legacy plugin'() {
         given:
         buildFile << """
             buildscript {
                 ${jcenterRepository()}
                 dependencies {
-                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:${TestedVersions.asciidoctor}"
+                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.11"
                 }
             }
 
             apply plugin: 'org.asciidoctor.gradle.asciidoctor'
+            """.stripIndent()
+
+        file('src/docs/asciidoc/test.adoc') << """
+            = Line Break Doc Title
+            :hardbreaks:
+
+            Rubies are red,
+            Topazes are blue.
+            """.stripIndent()
+
+        when:
+        runner('asciidoc').build()
+
+        then:
+        file('build/asciidoc').isDirectory()
+    }
+
+    @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
+    def 'asciidoctor plugin'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'org.asciidoctor.convert' version '${TestedVersions.asciidoctor}'
+            }
             """.stripIndent()
 
         file('src/docs/asciidoc/test.adoc') << """
@@ -110,17 +134,17 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             docker {
                 javaApplication {
                     baseImage = 'dockerfile/java:openjdk-7-jre'
-                    port = 9090
+                    ports = [9090]
                     tag = 'jettyapp:1.115'
                 }
             }
             """.stripIndent()
 
         when:
-        def result = runner(':dockerCopyDistResources').build()
+        def result = runner('assemble').forwardOutput().build()
 
         then:
-        result.task(':dockerCopyDistResources').outcome == SUCCESS
+        result.task(':assemble').outcome == SUCCESS
     }
 
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')
@@ -330,4 +354,34 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':tag').outcome == SUCCESS
         result.task(':checkout').outcome == SUCCESS
     }
+
+    @Issue('https://plugins.gradle.org/plugin/com.github.spotbugs')
+    def 'spotbugs plugin'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.github.spotbugs' version '${TestedVersions.spotbugs}'
+            }
+
+            ${jcenterRepository()}
+
+            """.stripIndent()
+
+        file('src/main/java/example/Application.java') << """
+            package example;
+
+            public class Application {
+                public static void main(String[] args) {}
+            }
+        """.stripIndent()
+
+
+        when:
+        runner('check').build()
+
+        then:
+        file('build/reports/spotbugs').isDirectory()
+    }
+
 }

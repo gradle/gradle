@@ -22,11 +22,11 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatches;
+import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForAmbiguity;
 
 public class AmbiguousVariantSelectionException extends VariantSelectionException {
 
@@ -40,7 +40,7 @@ public class AmbiguousVariantSelectionException extends VariantSelectionExceptio
         formatter.startChildren();
         for (ResolvedVariant variant : variants) {
             formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatches(formatter, consumer, matcher, variant.getAttributes());
+            formatAttributeMatchesForAmbiguity(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable());
         }
         formatter.endChildren();
         return formatter.toString();

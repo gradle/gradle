@@ -25,6 +25,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
@@ -39,52 +40,48 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
-import java.util.concurrent.Callable
 import testLibrary
+import java.util.concurrent.Callable
 import java.util.jar.Attributes
+import kotlin.reflect.full.declaredFunctions
 
 
-enum class ModuleType(val compatibility: JavaVersion) {
+enum class ModuleType(val compatibility: JavaVersion = JavaVersion.VERSION_1_8) {
 
     /**
-     * This module type is used by modules that contain code that is used by one
-     * of the entry points of using Gradle, such as the Wrapper, the Launcher
-     * and the Tooling API.
-     * Such entry points need to run on older Java versions than those parts of
-     * the codebase are executed from builds, if only to print a message
-     * indicating that the old JDK is not supported anymore.
+     * the first modules loaded during startup that support an older Java version
+     * to print a proper error message when running on an old JDK
      */
-    ENTRY_POINT(JavaVersion.VERSION_1_6),
+    STARTUP(JavaVersion.VERSION_1_6),
 
     /**
-     * This module type is used by modules that contain code that needs to
-     * be able to run in worker JVMs where we usually support older Java
-     * versions.
-     * Some of these modules use APIs that are not available in the specified
-     * Java version but only in parts that are not called from workers.
+     * modules that may run as part of a worker process that supports an older JDK version
      */
     WORKER(JavaVersion.VERSION_1_6),
 
     /**
-     * This module type is used by all modules that end up in the distribution
-     * and are not used by entry points or workers.
+     * modules that end up in the distribution in addition to STARTUP and WORKER
      */
-    CORE(JavaVersion.VERSION_1_8),
+    CORE,
 
     /**
-     * This module type is used by internal modules that are not part of
-     * the distribution.
+     * modules that are published as plugins on the portal
      */
-    INTERNAL(JavaVersion.VERSION_1_8),
+    PORTAL_PLUGINS,
 
     /**
-     * This module type is used for one-off modules that would normally use
-     * {@link #ENTRY_POINT} or {@link #WORKER} but explicitly require Java 8,
-     * e.g. due to the requirements of a downstream dependency (e.g. JUnit
-     * Platform).
+     * internal modules, like test fixtures, that are not part of the distribution
      */
-    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8)
+    INTERNAL,
 }
+
+
+/**
+ * By default, we run an extra build step ("GRADLE_RERUNNER") which runs all test classes failed in the previous build step ("GRADLE_RUNNER").
+ * However, if previous test failures are too many (>10), this is probably not caused by flakiness.
+ * In this case, we simply skip the GRADLE_RERUNNER step.
+ */
+const val tooManyTestFailuresThreshold = 10
 
 
 class UnitTestAndCompilePlugin : Plugin<Project> {
@@ -139,6 +136,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
         val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
+        // Remove this IDEA import workaround once we completely migrated to the native IDEA import
+        // See: https://github.com/gradle/gradle-private/issues/1675
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
@@ -152,13 +151,13 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.addDependencies() {
         dependencies {
-            val testCompile = configurations.getByName("testCompile")
-            val testRuntime = configurations.getByName("testRuntime")
-            testCompile(library("junit"))
-            testCompile(library("groovy"))
-            testCompile(testLibrary("spock"))
-            testRuntime(testLibrary("bytebuddy"))
-            testRuntime(library("objenesis"))
+            val testImplementation = configurations.getByName("testImplementation")
+            val testRuntimeOnly = configurations.getByName("testRuntimeOnly")
+            testImplementation(library("junit"))
+            testImplementation(library("groovy"))
+            testImplementation(testLibrary("spock"))
+            testRuntimeOnly(testLibrary("bytebuddy"))
+            testRuntimeOnly(library("objenesis"))
         }
     }
 
@@ -184,26 +183,32 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureTests() {
-        val javaInstallationForTest = rootProject.availableJavaInstallations.javaInstallationForTest
+    fun Test.configureJvmForTest() {
+        val javaInstallationForTest = project.rootProject.availableJavaInstallations.javaInstallationForTest
+        jvmArgumentProviders.add(createCiEnvironmentProvider(this))
+        executable = javaInstallationForTest.jvm.javaExecutable.absolutePath
+        environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
+        if (javaInstallationForTest.javaVersion.isJava7) {
+            // enable class unloading
+            jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
+        }
+        if (javaInstallationForTest.javaVersion.isJava9Compatible) {
+            // allow embedded executer to modify environment variables
+            jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+            // allow embedded executer to inject legacy types into the system classloader
+            jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+        }
+        // Includes JVM vendor and major version
+        inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })
+    }
 
+    private
+    fun Project.configureTests() {
         tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
-            jvmArgumentProviders.add(createCiEnvironmentProvider(this))
-            executable = javaInstallationForTest.jvm.javaExecutable.absolutePath
-            environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
-            if (javaInstallationForTest.javaVersion.isJava7) {
-                // enable class unloading
-                jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
-            }
-            if (javaInstallationForTest.javaVersion.isJava9Compatible) {
-                //allow embedded executer to modify environment variables
-                jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
-                //allow embedded executer to inject legacy types into the system classloader
-                jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
-            }
-            // Includes JVM vendor and major version
-            inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })
+
+            configureJvmForTest()
+
             doFirst {
                 if (BuildEnvironment.isCiServer) {
                     logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
@@ -254,8 +259,10 @@ open class UnitTestAndCompileExtension(val project: Project) {
     var moduleType: ModuleType? = null
         set(value) {
             field = value!!
+            project.addPlatformDependency(value)
             project.java.targetCompatibility = value.compatibility
             project.java.sourceCompatibility = value.compatibility
+            project.java.disableAutoTargetJvmGradle53()
         }
 
     init {
@@ -264,5 +271,26 @@ open class UnitTestAndCompileExtension(val project: Project) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
             }
         }
+    }
+
+    private
+    fun Project.addPlatformDependency(moduleType: ModuleType) {
+        val platformProject = ":distributionsDependencies"
+        dependencies {
+            if (moduleType == ModuleType.PORTAL_PLUGINS) {
+                "compileOnly"(platform(project(platformProject)))
+                "testImplementation"(platform(project(platformProject)))
+            } else {
+                "implementation"(platform(project(platformProject)))
+            }
+        }
+    }
+}
+
+
+fun JavaPluginConvention.disableAutoTargetJvmGradle53() {
+    val function = JavaPluginConvention::class.declaredFunctions.find { it.name == "disableAutoTargetJvm" }
+    function?.also {
+        it.call(this)
     }
 }

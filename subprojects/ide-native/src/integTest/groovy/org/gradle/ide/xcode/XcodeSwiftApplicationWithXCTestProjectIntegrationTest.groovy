@@ -16,6 +16,9 @@
 
 package org.gradle.ide.xcode
 
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
+
 class XcodeSwiftApplicationWithXCTestProjectIntegrationTest extends AbstractXcodeSwiftWithXCTestProjectIntegrationTest {
     @Override
     void makeSingleProject() {
@@ -28,5 +31,10 @@ class XcodeSwiftApplicationWithXCTestProjectIntegrationTest extends AbstractXcod
     @Override
     String getTestedComponentDsl() {
         return "application"
+    }
+
+    @Override
+    protected SwiftSourceElement getComponentUnderTest() {
+        return new SwiftAppWithXCTest()
     }
 }

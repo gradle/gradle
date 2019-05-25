@@ -15,16 +15,18 @@
  */
 package org.gradle.internal.service;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Factory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
 
 /**
- * A registry of services.
+ * A read-only registry of services. May or may not be immutable.
  */
-public interface ServiceRegistry {
+public interface ServiceRegistry extends ServiceLookup {
     /**
      * Locates the service of the given type.
      *
@@ -54,6 +56,7 @@ public interface ServiceRegistry {
      * @throws UnknownServiceException When there is no service of the given type available.
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
+    @Override
     Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException;
 
     /**
@@ -63,6 +66,7 @@ public interface ServiceRegistry {
      * @return The service instance. Returns {@code null} if no such service exists.
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
+    @Override
     Object find(Type serviceType) throws ServiceLookupException;
 
     /**
@@ -86,4 +90,45 @@ public interface ServiceRegistry {
      * @throws ServiceLookupException On failure to lookup the specified service factory.
      */
     <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException;
+
+    ServiceRegistry EMPTY = new ServiceRegistry() {
+        @Override
+        public <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
+            throw emptyServiceRegistryException(serviceType);
+        }
+
+        @Override
+        public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
+            throw emptyServiceRegistryException(serviceType);
+        }
+
+        @Override
+        public Object find(Type serviceType) throws ServiceLookupException {
+            return null;
+        }
+
+        @Override
+        public <T> Factory<T> getFactory(Class<T> type) throws UnknownServiceException, ServiceLookupException {
+            throw emptyServiceRegistryException(type);
+        }
+
+        private UnknownServiceException emptyServiceRegistryException(Type type) {
+            return new UnknownServiceException(type, "Nothing is available in the empty service registry.");
+        }
+
+        @Override
+        public <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException {
+            throw emptyServiceRegistryException(type);
+        }
+
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            throw emptyServiceRegistryException(serviceType);
+        }
+    };
 }

@@ -25,7 +25,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.CollectionUtils;
@@ -37,27 +36,21 @@ import java.net.URI;
 import java.util.List;
 
 public abstract class AbstractFileResolver implements FileResolver {
-    private final FileSystem fileSystem;
     private final NotationParser<Object, Object> fileNotationParser;
     private final Factory<PatternSet> patternSetFactory;
 
-    protected AbstractFileResolver(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
-        this.fileSystem = fileSystem;
+    protected AbstractFileResolver(Factory<PatternSet> patternSetFactory) {
         this.fileNotationParser = FileOrUriNotationConverter.parser();
         this.patternSetFactory = patternSetFactory;
     }
 
-    public FileSystem getFileSystem() {
-        return fileSystem;
-    }
-
     public FileResolver withBaseDir(Object path) {
-        return new BaseDirFileResolver(fileSystem, resolve(path), patternSetFactory);
+        return new BaseDirFileResolver(resolve(path), patternSetFactory);
     }
 
     @Override
     public FileResolver newResolver(File baseDir) {
-        return new BaseDirFileResolver(fileSystem, baseDir, patternSetFactory);
+        return new BaseDirFileResolver(baseDir, patternSetFactory);
     }
 
     @Override

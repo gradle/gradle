@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.plugins.quality.PmdReports;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
@@ -26,17 +27,19 @@ import javax.inject.Inject;
 
 public class PmdReportsImpl extends TaskReportContainer<SingleFileReport> implements PmdReports {
     @Inject
-    public PmdReportsImpl(Task task) {
-        super(SingleFileReport.class, task);
+    public PmdReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(SingleFileReport.class, task, callbackActionDecorator);
 
         add(TaskGeneratedSingleFileReport.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "xml", task);
     }
 
+    @Override
     public SingleFileReport getHtml() {
         return getByName("html");
     }
 
+    @Override
     public SingleFileReport getXml() {
         return getByName("xml");
     }

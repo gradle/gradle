@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.test.cpp.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.Describables;
@@ -44,17 +43,17 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
     private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultCppTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations) {
-        super(name, fileOperations, objectFactory);
+    public DefaultCppTestSuite(String name, ObjectFactory objectFactory) {
+        super(name, objectFactory);
         this.objectFactory = objectFactory;
         this.testedComponent = objectFactory.property(CppComponent.class);
         this.testBinary = objectFactory.property(CppTestExecutable.class);
         this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
-    public CppTestExecutable addExecutable(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, Names.of(getName() + "Executable", getName()), getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider, identity);
-        this.testBinary.set(testBinary);
+    public CppTestExecutable addExecutable(String variantName, NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        Names executableNames = Names.of(getName() + variantName + "Executable", getName() + variantName);
+        CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, executableNames, getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(testBinary);
         return testBinary;
     }

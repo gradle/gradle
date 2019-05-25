@@ -51,6 +51,7 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
         this.pluginBlockMetadataExtractor = new PluginUseScriptBlockMetadataExtractor(scriptSource, documentationRegistry);
     }
 
+    @Override
     public Statement transform(SourceUnit sourceUnit, Statement statement) {
         ScriptBlock scriptBlock = AstUtils.detectScriptBlock(statement, scriptBlockNames);
         if (scriptBlock == null) {

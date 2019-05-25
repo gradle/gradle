@@ -18,10 +18,12 @@ package org.gradle.testkit.runner.internal;
 
 import org.gradle.internal.classpath.ClassPath;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 
 public class GradleExecutionParameters {
 
@@ -35,6 +37,7 @@ public class GradleExecutionParameters {
     private final OutputStream standardOutput;
     private final OutputStream standardError;
     private final InputStream standardInput;
+    private final Map<String, String> environment;
 
     public GradleExecutionParameters(
         GradleProvider gradleProvider,
@@ -46,8 +49,8 @@ public class GradleExecutionParameters {
         boolean embedded,
         OutputStream standardOutput,
         OutputStream standardError,
-        InputStream standardInput
-    ) {
+        InputStream standardInput,
+        Map<String, String> environment) {
         this.gradleProvider = gradleProvider;
         this.gradleUserHome = gradleUserHome;
         this.projectDir = projectDir;
@@ -58,6 +61,7 @@ public class GradleExecutionParameters {
         this.standardOutput = standardOutput;
         this.standardError = standardError;
         this.standardInput = standardInput;
+        this.environment = environment;
     }
 
     public GradleProvider getGradleProvider() {
@@ -98,5 +102,10 @@ public class GradleExecutionParameters {
 
     public InputStream getStandardInput() {
         return standardInput;
+    }
+
+    @Nullable
+    public Map<String, String> getEnvironment() {
+        return environment;
     }
 }

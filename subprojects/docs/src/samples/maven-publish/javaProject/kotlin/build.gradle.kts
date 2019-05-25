@@ -15,13 +15,13 @@ repositories {
 }
 
 // tag::publish-custom-artifact[]
-task<Jar>("sourcesJar") {
-    classifier = "sources"
+tasks.register<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
     from(sourceSets.main.get().allJava)
 }
 
-task<Jar>("javadocJar") {
-    classifier = "javadoc"
+tasks.register<Jar>("javadocJar") {
+    archiveClassifier.set("javadoc")
     from(tasks.javadoc.get().destinationDir)
 }
 

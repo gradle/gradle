@@ -65,6 +65,10 @@ public class TestArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
+    public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         for (ResolvedArtifact artifact : artifacts) {
             context.add(artifact);

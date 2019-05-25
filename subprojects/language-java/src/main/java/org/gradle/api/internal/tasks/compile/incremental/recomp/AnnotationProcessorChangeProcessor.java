@@ -30,7 +30,7 @@ class AnnotationProcessorChangeProcessor {
 
     public void processChange(InputFileDetails input, RecompilationSpec spec) {
         if (jointProcessorPath.contains(input.getFile())) {
-            spec.setFullRebuildCause("Annotation processor path changed", input.getFile());
+            spec.setFullRebuildCause("Annotation processor path has been changed", null);
         }
     }
 }

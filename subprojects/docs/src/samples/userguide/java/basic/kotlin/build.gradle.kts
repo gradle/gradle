@@ -59,7 +59,7 @@ dependencies {
     asciidoclet("org.asciidoctor:asciidoclet:1.+")
 }
 
-task("configureJavadoc") {
+tasks.register("configureJavadoc") {
     doLast {
         tasks.javadoc {
             options.doclet = "org.asciidoctor.Asciidoclet"
@@ -100,15 +100,15 @@ tasks.check { dependsOn(integrationTest) }
 // end::integ-test-task[]
 
 // tag::defining-sources-jar-task[]
-task<Jar>("sourcesJar") {
-    classifier = "sources"
+tasks.register<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
     from(sourceSets.main.get().allJava)
 }
 // end::defining-sources-jar-task[]
 
 
 // tag::defining-custom-javadoc-task[]
-task<Javadoc>("testJavadoc") {
+tasks.register<Javadoc>("testJavadoc") {
     source = sourceSets.test.get().allJava
 }
 // end::defining-custom-javadoc-task[]

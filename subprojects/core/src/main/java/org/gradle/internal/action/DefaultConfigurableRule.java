@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.CacheableRule;
 import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.internal.snapshot.impl.ArrayValueSnapshot;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
+import org.gradle.internal.snapshot.impl.IsolatedArray;
 
 import java.util.Arrays;
 
@@ -41,11 +41,11 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
     }
 
     private static <DETAILS> boolean hasCacheableAnnotation(Class<? extends Action<DETAILS>> rule) {
-        return JavaReflectionUtil.getAnnotation(rule, CacheableRule.class) != null;
+        return JavaPropertyReflectionUtil.getAnnotation(rule, CacheableRule.class) != null;
     }
 
     public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule) {
-        return new DefaultConfigurableRule<DETAILS>(rule, ArrayValueSnapshot.EMPTY);
+        return new DefaultConfigurableRule<DETAILS>(rule, IsolatedArray.EMPTY);
     }
 
     public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule, Action<? super ActionConfiguration> action, IsolatableFactory isolatableFactory) {

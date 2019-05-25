@@ -41,6 +41,7 @@ public class AlwaysRedirectRedirectStrategy extends DefaultRedirectStrategy {
         return true;
     }
 
+    @Override
     public HttpUriRequest getRedirect(HttpRequest request, HttpResponse response, HttpContext context) throws ProtocolException {
         URI uri = this.getLocationURI(request, response, context);
         String method = request.getRequestLine().getMethod();

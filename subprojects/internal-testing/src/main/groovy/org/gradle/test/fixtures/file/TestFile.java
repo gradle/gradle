@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.file;
 
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
@@ -28,6 +27,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
+import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -44,6 +44,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
@@ -56,6 +61,8 @@ import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -174,6 +181,7 @@ public class TestFile extends File {
         }
     }
 
+    @Override
     public TestFile[] listFiles() {
         File[] children = super.listFiles();
         if (children == null) {
@@ -264,10 +272,27 @@ public class TestFile extends File {
     public void copyTo(File target) {
         if (isDirectory()) {
             try {
-                FileUtils.copyDirectory(this, target);
+                final Path targetDir = target.toPath();
+                final Path sourceDir = this.toPath();
+                Files.walkFileTree(sourceDir, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attributes) throws IOException {
+                        Path targetFile = targetDir.resolve(sourceDir.relativize(sourceFile));
+                        Files.copy(sourceFile, targetFile, COPY_ATTRIBUTES, REPLACE_EXISTING);
+
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes) throws IOException {
+                        Path newDir = targetDir.resolve(sourceDir.relativize(dir));
+                        Files.createDirectories(newDir);
+
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
             } catch (IOException e) {
-                throw new RuntimeException(String.format("Could not copy test directory '%s' to '%s'", this,
-                    target), e);
+                throw new RuntimeException(String.format("Could not copy test directory '%s' to '%s'", this, target), e);
             }
         } else {
             try {
@@ -446,11 +471,23 @@ public class TestFile extends File {
     public static HashCode md5(File file) {
         HashingOutputStream hashingStream = Hashing.primitiveStreamHasher();
         try {
-            Files.copy(file, hashingStream);
+            Files.copy(file.toPath(), hashingStream);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
         return hashingStream.hash();
+    }
+
+    public String getSha256Hash() {
+        // Sha256 is not part of core-services (i.e. no Hashing.sha256() available), hence we use plain Guava classes here.
+        com.google.common.hash.HashingOutputStream hashingStream =
+            new com.google.common.hash.HashingOutputStream(com.google.common.hash.Hashing.sha256(), NullOutputStream.INSTANCE);
+        try {
+            Files.copy(this.toPath(), hashingStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return hashingStream.hash().toString();
     }
 
     public void createLink(File target) {
@@ -610,6 +647,54 @@ public class TestFile extends File {
             deleteDir();
         } catch (RuntimeException e) {
             // Ignore
+        }
+        return this;
+    }
+
+    /**
+     * Recursively delete this directory, reporting all failed paths.
+     */
+    public TestFile forceDeleteDir() throws IOException {
+        if (isDirectory()) {
+            if (FileUtils.isSymlink(this)) {
+                if (!delete()) {
+                    throw new IOException("Unable to delete symlink: " + getCanonicalPath());
+                }
+            } else {
+                List<String> errorPaths = new ArrayList<>();
+                Files.walkFileTree(toPath(), new SimpleFileVisitor<Path>() {
+
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        if (!file.toFile().delete()) {
+                            errorPaths.add(file.toFile().getCanonicalPath());
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        if (!dir.toFile().delete()) {
+                            errorPaths.add(dir.toFile().getCanonicalPath());
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+                if (!errorPaths.isEmpty()) {
+                    StringBuilder builder = new StringBuilder()
+                        .append("Unable to recursively delete directory ")
+                        .append(getCanonicalPath())
+                        .append(", failed paths:\n");
+                    for (String errorPath : errorPaths) {
+                        builder.append("\t- ").append(errorPath).append("\n");
+                    }
+                    throw new IOException(builder.toString());
+                }
+            }
+        } else if (exists()) {
+            if (!delete()) {
+                throw new IOException("Unable to delete file: " + getCanonicalPath());
+            }
         }
         return this;
     }

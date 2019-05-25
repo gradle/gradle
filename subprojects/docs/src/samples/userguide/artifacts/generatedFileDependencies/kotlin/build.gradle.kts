@@ -7,13 +7,13 @@ dependencies {
     })
 }
 
-task("compile") {
+tasks.register("compile") {
     doLast {
         println("compiling classes")
     }
 }
 
-task("list") {
+tasks.register("list") {
     dependsOn(configurations["compile"])
     doLast {
         println("classpath = ${configurations["compile"].map { file: File -> file.name }}")

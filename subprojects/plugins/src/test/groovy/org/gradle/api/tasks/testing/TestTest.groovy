@@ -39,7 +39,6 @@ import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.CommandLineArgumentProvider
-import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 
 import java.lang.ref.WeakReference
@@ -268,7 +267,7 @@ class TestTest extends AbstractConventionTaskTest {
                 return ["First", "Second"]
             }
         }
-        def javaForkOptions = new DefaultJavaForkOptions(project.fileResolver)
+        def javaForkOptions = TestFiles.execFactory().newJavaForkOptions()
         test.copyTo(javaForkOptions)
 
         then:

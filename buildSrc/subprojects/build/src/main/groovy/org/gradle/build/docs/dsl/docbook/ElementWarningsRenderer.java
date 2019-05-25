@@ -48,5 +48,13 @@ public class ElementWarningsRenderer {
             link.appendChild(document.createTextNode("incubating"));
             para.appendChild(document.createTextNode(" and may change in a future version of Gradle."));
         }
+        if (elementDoc.isReplaced()) {
+            Document document = parent.getOwnerDocument();
+            Element caution = document.createElement("caution");
+            parent.appendChild(caution);
+            Element para = document.createElement("para");
+            caution.appendChild(para);
+            para.appendChild(document.createTextNode(String.format("Note: This %s has been replaced by %s.", type, elementDoc.getReplacement())));
+        }
     }
 }

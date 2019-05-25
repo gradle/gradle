@@ -35,6 +35,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         super(excludeRuleConverter);
     }
 
+    @Override
     public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
@@ -42,13 +43,16 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean transitive = externalModuleDependency.isTransitive();
 
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
-            ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable(),
-            dependency.getAttributes());
+                DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
+                ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable(),
+                dependency.getAttributes(),
+                dependency.getRequestedCapabilities());
 
         List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-                componentId, selector, clientConfiguration, clientAttributes, dependency.getAttributes(), dependency.getTargetConfiguration(),
+                componentId, selector, clientConfiguration, clientAttributes,
+                dependency.getAttributes(),
+                dependency.getTargetConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
                 excludes, force, changing, transitive, false, dependency.getReason());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
@@ -58,6 +62,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         return input == null ? "" : input;
     }
 
+    @Override
     public boolean canConvert(ModuleDependency dependency) {
         return dependency instanceof ExternalModuleDependency;
     }

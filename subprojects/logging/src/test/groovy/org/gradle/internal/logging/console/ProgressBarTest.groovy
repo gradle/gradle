@@ -17,12 +17,13 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Specification
 import spock.lang.Subject
 
 @Subject(ProgressBar)
 class ProgressBarTest extends Specification {
-    public static final String INCOMPLETE_CHAR = ' '
+    public static final String INCOMPLETE_CHAR = '.'
     public static final String COMPLETE_CHAR = '#'
     public static final String SUFFIX = ']'
     public static final String PREFIX = '['
@@ -32,35 +33,58 @@ class ProgressBarTest extends Specification {
     ProgressBar progressBar
 
     def setup() {
-        progressBar = new ProgressBar(PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10)
+        progressBar = new ProgressBar(Stub(ConsoleMetaData), PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10)
     }
 
     private getProgress() {
-        progressBar.formatProgress(160, false, 0).collect { it.text }.join("")
+        progressBar.formatProgress(false, 0).collect { it.text }.join("")
     }
 
     def "formats progress bar"() {
         expect:
-        progress == "$PREFIX${(INCOMPLETE_CHAR * PROGRESS_BAR_WIDTH)}$SUFFIX 0% $BUILD_PHASE".toString()
+        progress == "[..........] 0% EXECUTING"
     }
 
-    def "fills completed progress"() {
+    def "fills completed progress as work completes"() {
         when:
         progressBar.update(false)
 
         then:
-        progress == "[#         ] 10% EXECUTING"
+        progress == "[#.........] 10% EXECUTING"
 
         when:
         progressBar.update(false)
 
         then:
-        progress == "[##        ] 20% EXECUTING"
+        progress == "[##........] 20% EXECUTING"
+
+        when:
+        8.times {
+            progressBar.update(false)
+        }
+
+        then:
+        progress == "[##########] 100% EXECUTING"
+    }
+
+    def "fills completed progress as work added"() {
+        when:
+        progressBar.update(false)
+        progressBar.update(false)
+
+        then:
+        progress == "[##........] 20% EXECUTING"
+
+        when:
+        progressBar.moreProgress(10)
+
+        then:
+        progress == "[#.........] 10% EXECUTING"
     }
 
     def "formats successful progress green"() {
         expect:
-        progressBar.formatProgress(160, false, 0)[1].style == StyledTextOutput.Style.SuccessHeader
+        progressBar.formatProgress(false, 0)[1].style == StyledTextOutput.Style.SuccessHeader
     }
 
     def "formats failed progress red"() {
@@ -69,6 +93,6 @@ class ProgressBarTest extends Specification {
         progressBar.update(false)
 
         then:
-        progressBar.formatProgress(160, false, 0)[1].style == StyledTextOutput.Style.FailureHeader
+        progressBar.formatProgress(false, 0)[1].style == StyledTextOutput.Style.FailureHeader
     }
 }

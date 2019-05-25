@@ -86,6 +86,7 @@ public class ServiceLifecycle implements AsyncStoppable {
         }
     }
 
+    @Override
     public void requestStop() {
         lock.lock();
         try {
@@ -101,6 +102,7 @@ public class ServiceLifecycle implements AsyncStoppable {
         }
     }
 
+    @Override
     public void stop() {
         lock.lock();
         try {

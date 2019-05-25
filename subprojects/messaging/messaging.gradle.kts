@@ -6,14 +6,16 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(library("slf4j_api"))
-
+    implementation(project(":baseServices"))
+    
+    implementation(library("fastutil"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("kryo"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

@@ -27,11 +27,13 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
     def agedBarney = new DefaultAgeAwarePerson(name: "Barney", age: 42)
 
     def instantiator
+    def collectionCallbackActionDecorator = CollectionCallbackActionDecorator.NOOP
+
     def container
 
     def setup() {
         instantiator = project.services.get(Instantiator)
-        container = instantiator.newInstance(DefaultPolymorphicDomainObjectContainer, Person, instantiator)
+        container = instantiator.newInstance(DefaultPolymorphicDomainObjectContainer, Person, instantiator, collectionCallbackActionDecorator)
         project.extensions.add("container", container)
     }
 

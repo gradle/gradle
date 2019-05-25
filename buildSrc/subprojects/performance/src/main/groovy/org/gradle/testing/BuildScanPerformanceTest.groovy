@@ -30,8 +30,8 @@ class BuildScanPerformanceTest extends ReportGenerationPerformanceTest {
     private static final String TC_URL = "https://builds.gradle.org/viewLog.html?buildId="
 
     @Override
-    String getResultStoreClass() {
-        return "org.gradle.performance.results.BuildScanResultsStore"
+    String getReportGeneratorClass() {
+        return "org.gradle.performance.results.BuildScanReportGenerator"
     }
 
     @Override

@@ -23,11 +23,13 @@ import org.gradle.util.TestPrecondition
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
-        executer.withWelcomeMessageEnabled()
         file("build.gradle") << "task emptyTask"
+        executer.beforeExecute {
+            withWelcomeMessageEnabled()
+        }
     }
 
-    def "wrapper only renders welcome message when executed in quiet mode"() {
+    def "wrapper does not render welcome message when executed in quiet mode"() {
         given:
         prepareWrapper()
 
@@ -36,7 +38,29 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks("emptyTask").run()
 
         then:
+        result.output.empty
+    }
+
+    def "wrapper renders welcome message when executed the first time"() {
+        given:
+        prepareWrapper()
+
+        when:
+        result = wrapperExecuter.withTasks("emptyTask").run()
+
+        then:
         outputContains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
+
+        when:
+        result = wrapperExecuter.withTasks("emptyTask").run()
+
+        then:
+        outputDoesNotContain("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
+    }
+
+    def "wrapper renders welcome message when executed the first time after being executed in quiet mode"() {
+        given:
+        prepareWrapper()
 
         when:
         args '-q'
@@ -44,6 +68,12 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         result.output.empty
+
+        when:
+        result = wrapperExecuter.withTasks("emptyTask").run()
+
+        then:
+        outputContains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)

@@ -30,5 +30,6 @@ public interface Product extends Named {
     /**
      * Returns the name of this product.
      */
+    @Override
     String getName();
 }

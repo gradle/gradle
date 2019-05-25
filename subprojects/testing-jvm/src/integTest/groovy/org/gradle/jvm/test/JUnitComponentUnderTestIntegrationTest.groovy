@@ -159,22 +159,22 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         greeterTestCase()
 
         when:
-        succeeds ':myTestGreeterJava6JarBinaryTest'
-        def result = new DefaultTestExecutionResult(testDirectory, 'build', 'myTest', 'greeterJava6Jar')
+        succeeds ':myTestGreeterJava7JarBinaryTest'
+        def result = new DefaultTestExecutionResult(testDirectory, 'build', 'myTest', 'greeterJava7Jar')
 
         then:
-        executedAndNotSkipped ':myTestGreeterJava6JarBinaryTest', ':compileGreeterJava6JarGreeterJava'
+        executedAndNotSkipped ':myTestGreeterJava7JarBinaryTest', ':compileGreeterJava7JarGreeterJava'
         result.assertTestClassesExecuted('com.acme.GreeterTest')
         result.testClass('com.acme.GreeterTest')
             .assertTestCount(1, 0, 0)
             .assertTestsExecuted('testGreeting')
 
         when:
-        succeeds ':myTestGreeterJava7JarBinaryTest'
-        result = new DefaultTestExecutionResult(testDirectory, 'build', 'myTest', 'greeterJava7Jar')
+        succeeds ':myTestGreeterJava8JarBinaryTest'
+        result = new DefaultTestExecutionResult(testDirectory, 'build', 'myTest', 'greeterJava8Jar')
 
         then:
-        executedAndNotSkipped ':myTestGreeterJava7JarBinaryTest', ':compileGreeterJava7JarGreeterJava'
+        executedAndNotSkipped ':myTestGreeterJava8JarBinaryTest', ':compileGreeterJava8JarGreeterJava'
         result.assertTestClassesExecuted('com.acme.GreeterTest')
         result.testClass('com.acme.GreeterTest')
             .assertTestCount(1, 0, 0)
@@ -283,8 +283,8 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
             model {
                 components {
                     greeter {
-                        targetPlatform 'java6'
                         targetPlatform 'java7'
+                        targetPlatform 'java8'
                     }
                 }
             }

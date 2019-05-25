@@ -15,17 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-public class DefaultConflictResolverDetails<T extends ComponentResolutionState> implements ConflictResolverDetails<T> {
+public class DefaultConflictResolverDetails<T> implements ConflictResolverDetails<T> {
     private final Collection<? extends T> participants;
     private T selected;
     private Throwable failure;
-    private boolean restart;
 
     public DefaultConflictResolverDetails(Collection<? extends T> participants) {
         this.participants = participants;
@@ -38,9 +36,6 @@ public class DefaultConflictResolverDetails<T extends ComponentResolutionState> 
 
     @Override
     public void select(T candidate) {
-        if (restart) {
-            throw new IllegalStateException("Cannot select a candidate if another candidate has been queued for restart");
-        }
         selected = candidate;
     }
 
@@ -52,11 +47,6 @@ public class DefaultConflictResolverDetails<T extends ComponentResolutionState> 
     @Override
     public T getSelected() {
         return selected;
-    }
-
-    @Override
-    public boolean isRestart() {
-        return restart;
     }
 
     @Nullable

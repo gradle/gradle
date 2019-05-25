@@ -20,13 +20,14 @@ import org.gradle.api.Action
 import static org.gradle.util.WrapUtil.toList
 
 class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
-    DefaultDomainObjectSet<CharSequence> set = new DefaultDomainObjectSet<CharSequence>(CharSequence)
+    DefaultDomainObjectSet<CharSequence> set = new DefaultDomainObjectSet<CharSequence>(CharSequence, callbackActionDecorator)
     DefaultDomainObjectSet<CharSequence> container = set
     StringBuffer a = new StringBuffer("a")
     StringBuffer b = new StringBuffer("b")
     StringBuffer c = new StringBuffer("c")
     StringBuilder d = new StringBuilder("d")
     boolean externalProviderAllowed = true
+    final boolean supportsBuildOperations = true
 
     def "findAll() filters elements and retains iteration order"() {
         set.add("a")
@@ -39,11 +40,11 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
     }
 
     def "Set semantics preserved if backing collection is a filtered composite set"() {
-        def c1 = new DefaultDomainObjectSet<String>(String)
-        def c2 = new DefaultDomainObjectSet<String>(String)
+        def c1 = new DefaultDomainObjectSet<String>(String, callbackActionDecorator)
+        def c2 = new DefaultDomainObjectSet<String>(String, callbackActionDecorator)
         given:
         def composite = CompositeDomainObjectSet.<String>create(String, c1, c2)
-        def set = new DefaultDomainObjectSet<String>(String, composite.getStore())
+        def set = new DefaultDomainObjectSet<String>(String, composite.getStore(), callbackActionDecorator)
 
         when:
         c1.add("a")

@@ -46,6 +46,7 @@ public final class ResolveArtifactsBuildOperationType implements BuildOperationT
             this.configuration = configuration;
         }
 
+        @Override
         public String getConfigurationPath() {
             return configuration;
         }

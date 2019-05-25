@@ -21,7 +21,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
@@ -41,7 +40,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "taskname"
 
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
-    def taskFactory = new AnnotationProcessingTaskFactory(taskClassInfoStore, new TaskFactory(new AsmBackedClassGenerator()))
+    def taskFactory = new AnnotationProcessingTaskFactory(DirectInstantiator.INSTANCE, taskClassInfoStore, new TaskFactory())
 
     abstract AbstractTask getTask()
 
@@ -49,12 +48,12 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         return createTask(type, project, TEST_TASK_NAME)
     }
 
-    Task createTask(Project project, String name) {
+    Task createTask(ProjectInternal project, String name) {
         return createTask(getTask().getClass(), project, name)
     }
 
-    def <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = new TaskInstantiator(taskFactory.createChild(project, DirectInstantiator.INSTANCE), project).create(name, type)
+    def <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
+        Task task = new TaskInstantiator(taskFactory.createChild(project, TestUtil.instantiatorFactory().decoratingLenientScheme), project).create(name, type)
         assert type.isAssignableFrom(task.getClass())
         return type.cast(task)
     }

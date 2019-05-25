@@ -26,14 +26,17 @@ public class BuildCancellationTokenAdapter implements InternalCancellationToken 
         this.cancellationToken = cancellationToken;
     }
 
+    @Override
     public boolean isCancellationRequested() {
         return cancellationToken.isCancellationRequested();
     }
 
+    @Override
     public boolean addCallback(Runnable cancellationHandler) {
         return cancellationToken.addCallback(cancellationHandler);
     }
 
+    @Override
     public void removeCallback(Runnable cancellationHandler) {
         cancellationToken.removeCallback(cancellationHandler);
     }

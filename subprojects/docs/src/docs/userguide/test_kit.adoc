@@ -226,6 +226,10 @@ The following table lists the features that are sensitive to the Gradle version 
 | <<#sub:test-kit-automatic-classpath-injection,Automatic plugin classpath injection>>
 | 2.13
 | Injecting the code under test automatically via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath--[GradleRunner.withPluginClasspath()] by applying the Java Gradle Plugin Development plugin.
+
+| Setting environment variables to be used by the build.
+| 3.5
+| The Gradle Tooling API only supports setting environment variables in later versions.
 |===
 
 

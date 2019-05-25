@@ -19,9 +19,14 @@ package org.gradle.performance
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.results.BuildDisplayInfo
 import org.gradle.performance.results.CrossBuildPerformanceResults
+import org.gradle.performance.results.CrossBuildPerformanceTestHistory
 import org.gradle.performance.results.CrossVersionPerformanceResults
+import org.gradle.performance.results.CrossVersionPerformanceTestHistory
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
+import org.gradle.performance.results.MeasuredOperationList
+import org.gradle.performance.results.PerformanceTestHistory
 import org.joda.time.DateTime
 import spock.lang.Specification
 
@@ -89,5 +94,47 @@ abstract class ResultSpecification extends Specification {
         operation.end = args.end instanceof DateTime ? args.end : new DateTime(args?.end ?: 0)
         operation.exception = args?.failure
         return operation
+    }
+
+    BuildDisplayInfo buildDisplayInfo(String displayName) {
+        return new BuildDisplayInfo('test-project', displayName, [], [], [], [], false)
+    }
+
+    PerformanceTestHistory mockCrossVersionHistory() {
+        CrossVersionPerformanceResults result1 = crossVersionResults([startTime: 100])
+        result1.version('5.0-mockbaseline-1').results.addAll(measuredOperations([1]))
+        result1.version('master').results.addAll(measuredOperations([2]))
+
+        CrossVersionPerformanceResults result2 = crossVersionResults([startTime: 200])
+        result2.version('5.0-mockbaseline-2').results.addAll(measuredOperations([2, 2]))
+        result2.version('master').results.addAll(measuredOperations([1, 1]))
+
+        return new CrossVersionPerformanceTestHistory('mockCrossVersion',
+            ['5.0-mockbaseline-1', '5.0-mockbaseline-2'],
+            ['master'],
+            [result2, result1]
+        )
+    }
+
+    PerformanceTestHistory mockCrossBuildHistory() {
+        BuildDisplayInfo info1 = buildDisplayInfo('build1')
+        CrossBuildPerformanceResults result1  = crossBuildResults(startTime: 100)
+        result1.buildResult(info1).addAll(measuredOperations([1]))
+
+        BuildDisplayInfo info2 = buildDisplayInfo('build2')
+        CrossBuildPerformanceResults result2  = crossBuildResults(startTime: 200)
+        result1.buildResult(info2).addAll(measuredOperations([2]))
+
+        return new CrossBuildPerformanceTestHistory('mockCrossBuild', [info1, info2], [result2, result1])
+    }
+
+    List<MeasuredOperation> measuredOperations(List<Integer> values) {
+        return values.collect { new MeasuredOperation(totalTime: Amount.valueOf(it, Duration.SECONDS)) }
+    }
+
+    MeasuredOperationList measuredOperationList(List<Integer> values) {
+        MeasuredOperationList ret = new MeasuredOperationList()
+        ret.addAll(measuredOperations(values))
+        return ret
     }
 }

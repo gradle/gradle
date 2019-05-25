@@ -144,7 +144,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
             macros.add(new MacroWithSimpleExpression(macroName, expression.getType(), expression.getValue()));
         } else {
             // Discard the body when the expression is not resolvable
-            macros.add(new UnresolveableMacro(macroName));
+            macros.add(new UnresolvableMacro(macroName));
         }
     }
 
@@ -207,7 +207,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         }
 
         // Not resolvable. Discard the body when the expression is not resolvable
-        macroFunctions.add(new UnresolveableMacroFunction(macroName, paramNames.size()));
+        macroFunctions.add(new UnresolvableMacroFunction(macroName, paramNames.size()));
     }
 
     private boolean mapArgs(List<String> paramNames, Expression expression, List<Integer> argsMap) {

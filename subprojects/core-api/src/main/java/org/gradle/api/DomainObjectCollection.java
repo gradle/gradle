@@ -168,7 +168,6 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param action A {@link Action} that can configure the element when required.
      * @since 4.9
      */
-    @Incubating
     void configureEach(Action<? super T> action);
 
     // note: this is here to override the default Groovy Collection.findAll { } method.

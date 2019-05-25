@@ -52,6 +52,7 @@ public abstract class Actions {
     }
 
     private static class NullAction<T> implements Action<T>, Serializable {
+        @Override
         public void execute(T t) {
         }
     }
@@ -91,6 +92,7 @@ public abstract class Actions {
      * @param <T> The type of the object that action is for
      * @return The composite action.
      */
+    @SafeVarargs
     public static <T> Action<T> composite(Action<? super T>... actions) {
         List<Action<? super T>> filtered = Lists.newArrayListWithCapacity(actions.length);
         for (Action<? super T> action : actions) {
@@ -108,6 +110,7 @@ public abstract class Actions {
             this.actions = actions;
         }
 
+        @Override
         public void execute(T item) {
             for (Action<? super T> action : actions) {
                 action.execute(item);
@@ -160,6 +163,7 @@ public abstract class Actions {
             this.action = action;
         }
 
+        @Override
         public void execute(I thing) {
             T transformed = transformer.transform(thing);
             action.execute(transformed);
@@ -203,6 +207,7 @@ public abstract class Actions {
             this.runnable = runnable;
         }
 
+        @Override
         public void execute(T t) {
             runnable.run();
         }
@@ -214,7 +219,7 @@ public abstract class Actions {
     }
 
     /**
-     * Creates a new action that only forwards arguments on to the given filter is they are satisfied by the given spec.
+     * Creates a new action that only forwards arguments on to the given filter if they are satisfied by the given spec.
      *
      * @param action The action to delegate filtered items to
      * @param filter The spec to use to filter items by
@@ -234,6 +239,7 @@ public abstract class Actions {
             this.action = action;
         }
 
+        @Override
         public void execute(T t) {
             if (filter.isSatisfiedBy(t)) {
                 action.execute(t);

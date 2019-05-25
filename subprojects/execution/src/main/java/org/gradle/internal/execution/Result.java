@@ -16,10 +16,8 @@
 
 package org.gradle.internal.execution;
 
-import javax.annotation.Nullable;
+import org.gradle.internal.Try;
 
 public interface Result {
-    ExecutionOutcome getOutcome();
-    @Nullable
-    Throwable getFailure();
+    Try<ExecutionOutcome> getOutcome();
 }

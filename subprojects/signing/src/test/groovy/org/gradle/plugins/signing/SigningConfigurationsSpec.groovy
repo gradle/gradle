@@ -41,7 +41,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         then:
         def signingTasks = [signArchives, signMeta]
 
-        // TODO - find way to test that the appopriate dependencies have been setup
+        // TODO - find way to test that the appropriate dependencies have been setup
         //        it would be easy if we could do…
         //
         // configurations.archives.buildArtifacts in signArchives.dependsOn

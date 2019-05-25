@@ -27,7 +27,7 @@ import org.gradle.plugins.publish.createArtifactPattern
 import java.util.*
 
 plugins {
-    `maven`
+    maven
 }
 
 val generatePom = tasks.register("generatePom", GeneratePom::class.java)

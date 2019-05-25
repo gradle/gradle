@@ -21,8 +21,8 @@ import org.hamcrest.Matcher
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
 import static org.junit.Assume.assumeTrue
 
 class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
@@ -44,7 +44,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 classpath = files()
             }"""}
 
-            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
+            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.7" : ""}
         """.stripIndent()
     }
 

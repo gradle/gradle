@@ -54,6 +54,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
         this.connectionParameters = connectionParameters;
     }
 
+    @Override
     public void stop() {
         lock.lock();
         try {
@@ -71,10 +72,12 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
         }
     }
 
+    @Override
     public String getDisplayName() {
         return distribution.getDisplayName();
     }
 
+    @Override
     public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         try {
             ConsumerOperationParameters parameters = action.getParameters();

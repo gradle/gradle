@@ -27,6 +27,12 @@ class MavenGoogleDependencyResolveIntegrationTest extends AbstractDependencyReso
         buildFile << """
             repositories {
                 google()
+                google { // just test this syntax works.
+                    name = "otherGoogle"
+                    content {
+                        includeGroup 'org.sample'
+                    }
+                }
             }
         """
     }
@@ -36,7 +42,7 @@ class MavenGoogleDependencyResolveIntegrationTest extends AbstractDependencyReso
         buildFile << """
             task checkRepoName {
                 doLast {
-                    assert repositories*.name == ['Google']
+                    assert repositories*.name == ['Google', 'otherGoogle']
                 }
             }
         """

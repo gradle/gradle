@@ -17,34 +17,12 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.isolation.IsolationException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-import javax.annotation.Nullable;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
-    private final ImmutableSet<ValueSnapshot> elements;
-
+public class SetValueSnapshot extends AbstractSetSnapshot<ValueSnapshot> implements ValueSnapshot {
     public SetValueSnapshot(ImmutableSet<ValueSnapshot> elements) {
-        this.elements = elements;
-    }
-
-    public ImmutableSet<ValueSnapshot> getElements() {
-        return elements;
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putString("Set");
-        hasher.putInt(elements.size());
-        for (ValueSnapshot element : elements) {
-            element.appendToHasher(hasher);
-        }
+        super(elements);
     }
 
     @Override
@@ -64,42 +42,5 @@ public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
             }
         }
         return false;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        SetValueSnapshot other = (SetValueSnapshot) obj;
-        return elements.equals(other.elements);
-    }
-
-    @Override
-    public int hashCode() {
-        return elements.hashCode();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Set isolate() {
-        Set set = new LinkedHashSet();
-        for (ValueSnapshot snapshot : elements) {
-            if (snapshot instanceof Isolatable) {
-                set.add(((Isolatable) snapshot).isolate());
-            } else {
-                throw new IsolationException(snapshot);
-            }
-        }
-        return set;
-    }
-
-    @Nullable
-    @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
-        return null;
     }
 }

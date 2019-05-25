@@ -35,6 +35,7 @@ public interface FileLock extends Closeable, FileAccess {
     /**
      * Closes this lock, releasing the lock and any resources associated with it.
      */
+    @Override
     void close();
 
     /**

@@ -1,4 +1,4 @@
-task("checksum") {
+tasks.register("checksum") {
     doLast {
         fileList("./antLoadfileResources").forEach { file ->
             ant.withGroovyBuilder {
@@ -9,7 +9,7 @@ task("checksum") {
     }
 }
 
-task("loadfile") {
+tasks.register("loadfile") {
     doLast {
         fileList("./antLoadfileResources").forEach { file ->
             ant.withGroovyBuilder {

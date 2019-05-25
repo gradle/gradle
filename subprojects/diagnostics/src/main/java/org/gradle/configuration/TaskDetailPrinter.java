@@ -17,6 +17,7 @@ package org.gradle.configuration;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
@@ -26,16 +27,25 @@ import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
-import static org.gradle.util.CollectionUtils.sort;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.filter;
-import static org.apache.commons.collections.CollectionUtils.intersection;
+import static org.gradle.util.CollectionUtils.sort;
 
 public class TaskDetailPrinter {
     private final String taskPath;
@@ -58,6 +68,7 @@ public class TaskDetailPrinter {
         final Set<Class> classes = classListMap.keySet();
         boolean multipleClasses = classes.size() > 1;
         final List<Class> sortedClasses = sort(classes, new Comparator<Class>() {
+            @Override
             public int compare(Class o1, Class o2) {
                 return o1.getSimpleName().compareTo(o2.getSimpleName());
             }
@@ -94,11 +105,13 @@ public class TaskDetailPrinter {
 
     private ListMultimap<Class, Task> groupTasksByType(List<Task> tasks) {
         final Set<Class> taskTypes = new TreeSet<Class>(new Comparator<Class>() {
+            @Override
             public int compare(Class o1, Class o2) {
                 return o1.getSimpleName().compareTo(o2.getSimpleName());
             }
         });
         taskTypes.addAll(collect(tasks, new Transformer<Class, Task>() {
+            @Override
             public Class transform(Task original) {
                 return getDeclaredTaskType(original);
             }
@@ -107,6 +120,7 @@ public class TaskDetailPrinter {
         ListMultimap<Class, Task> tasksGroupedByType = ArrayListMultimap.create();
         for (final Class taskType : taskTypes) {
             tasksGroupedByType.putAll(taskType, filter(tasks, new Spec<Task>() {
+                @Override
                 public boolean isSatisfiedBy(Task element) {
                     return getDeclaredTaskType(element).equals(taskType);
                 }
@@ -126,6 +140,7 @@ public class TaskDetailPrinter {
 
     private void printTaskDescription(StyledTextOutput output, List<Task> tasks) {
         printTaskAttribute(output, "Description", tasks, new Transformer<String, Task>() {
+            @Override
             public String transform(Task task) {
                 return task.getDescription();
             }
@@ -134,6 +149,7 @@ public class TaskDetailPrinter {
 
     private void printTaskGroup(StyledTextOutput output, List<Task> tasks) {
         printTaskAttribute(output, "Group", tasks, new Transformer<String, Task>() {
+            @Override
             public String transform(Task task) {
                 return task.getGroup();
             }
@@ -200,7 +216,7 @@ public class TaskDetailPrinter {
         Map<String, Set<String>> result = new LinkedHashMap<String, Set<String>>();
         for (OptionDescriptor optionDescriptor : allOptions) {
             if (result.containsKey(optionDescriptor.getName())) {
-                Collection<String> commonValues = intersection(optionDescriptor.getAvailableValues(), result.get(optionDescriptor.getName()));
+                Collection<String> commonValues = Sets.intersection(optionDescriptor.getAvailableValues(), result.get(optionDescriptor.getName()));
                 result.put(optionDescriptor.getName(), new TreeSet<String>(commonValues));
             } else {
                 result.put(optionDescriptor.getName(), optionDescriptor.getAvailableValues());

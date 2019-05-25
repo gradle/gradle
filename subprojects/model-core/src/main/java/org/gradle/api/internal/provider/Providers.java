@@ -32,6 +32,11 @@ public class Providers {
             throw new IllegalStateException(NULL_VALUE);
         }
 
+        @Override
+        public boolean immutable() {
+            return true;
+        }
+
         @Nullable
         @Override
         public Class<Object> getType() {

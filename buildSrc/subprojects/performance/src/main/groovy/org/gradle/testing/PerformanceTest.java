@@ -16,39 +16,47 @@
 
 package org.gradle.testing;
 
-import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
-import org.gradle.api.specs.Spec;
+import com.google.common.collect.Sets;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Task;
-
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
+import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Map.Entry;
-
-import org.gradle.process.CommandLineArgumentProvider;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * A test that checks execution time and memory consumption.
  */
 @CacheableTask
 public class PerformanceTest extends DistributionTest {
+    public static final Set<String> NON_CACHEABLE_VERSIONS = Sets.newHashSet("last", "nightly", "flakiness-detection-commit");
+    // Baselines configured by command line `--baselines`
+    private Property<String> configuredBaselines = getProject().getObjects().property(String.class);
+    // Baselines determined by determineBaselines task
+    private Property<String> determinedBaselines = getProject().getObjects().property(String.class);
     private String scenarios;
-    private String baselines;
     private String warmups;
     private String runs;
     private String checks;
     private String channel;
-    private String resultStoreClass = "org.gradle.performance.results.AllResultsStore";
+    private String reportGeneratorClass = "org.gradle.performance.results.DefaultReportGenerator";
     private boolean flamegraphs;
 
     private final Map<String, String> databaseParameters = new HashMap<>();
@@ -57,23 +65,16 @@ public class PerformanceTest extends DistributionTest {
 
     public PerformanceTest() {
         getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider());
+        getOutputs().cacheIf("baselines don't contain version 'flakiness-detection-commit', 'last' or 'nightly'", this::notContainsSpecialVersions);
+        getOutputs().upToDateWhen(this::notContainsSpecialVersions);
+    }
 
-        Spec<Task> spec = new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task task) {
-                List<String> baseLineList = new ArrayList<>();
-                if (baselines != null) {
-                    for (String baseline : baselines.split(",")) {
-                        baseLineList.add(baseline.trim());
-                    }
-                }
-
-                return !(baseLineList.contains("last") || baseLineList.contains("nightly"));
-            }
-        };
-
-        getOutputs().cacheIf("baselines don't contain version 'last' or 'nightly'", spec);
-        getOutputs().upToDateWhen(spec);
+    private boolean notContainsSpecialVersions(Task task) {
+        return Stream.of(configuredBaselines.getOrElse(""), determinedBaselines.getOrElse(""))
+            .map(baseline -> baseline.split(","))
+            .flatMap(Arrays::stream)
+            .map(String::trim)
+            .noneMatch(NON_CACHEABLE_VERSIONS::contains);
     }
 
     public void setDebugArtifactsDirectory(File debugArtifactsDirectory) {
@@ -90,19 +91,27 @@ public class PerformanceTest extends DistributionTest {
         this.scenarios = scenarios;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getScenarios() {
         return scenarios;
     }
 
-    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
-    public void setBaselines(@Nullable String baselines) {
-        this.baselines = baselines;
+    @Optional
+    @Input
+    public Property<String> getDeterminedBaselines() {
+        return determinedBaselines;
     }
 
-    @Nullable @Optional @Input
-    public String getBaselines() {
-        return baselines;
+    @Internal
+    public Property<String> getConfiguredBaselines() {
+        return configuredBaselines;
+    }
+
+    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
+    public void setBaselines(@Nullable String baselines) {
+        this.configuredBaselines.set(baselines);
     }
 
     @Option(option = "warmups", description = "Number of warmups before measurements")
@@ -110,7 +119,9 @@ public class PerformanceTest extends DistributionTest {
         this.warmups = warmups;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getWarmups() {
         return warmups;
     }
@@ -120,7 +131,9 @@ public class PerformanceTest extends DistributionTest {
         this.runs = runs;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getRuns() {
         return runs;
     }
@@ -130,7 +143,9 @@ public class PerformanceTest extends DistributionTest {
         this.checks = checks;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getChecks() {
         return checks;
     }
@@ -140,18 +155,22 @@ public class PerformanceTest extends DistributionTest {
         this.channel = channel;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getChannel() {
         return channel;
     }
 
-    public void setResultStoreClass(String resultStoreClass) {
-        this.resultStoreClass = resultStoreClass;
+    public void setReportGeneratorClass(String reportGeneratorClass) {
+        this.reportGeneratorClass = reportGeneratorClass;
     }
 
-    @Nullable @Optional @Input
-    public String getResultStoreClass() {
-        return resultStoreClass;
+    @Nullable
+    @Optional
+    @Input
+    public String getReportGeneratorClass() {
+        return reportGeneratorClass;
     }
 
     @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")
@@ -189,20 +208,22 @@ public class PerformanceTest extends DistributionTest {
         }
 
         private void addJava9HomeSystemProperty(List<String> result) {
-            Object java9Home = getProject().findProperty("java9Home");
-            if (java9Home != null) {
-                addSystemPropertyIfExist(result, "java9Home", java9Home.toString());
-            } else {
-                addSystemPropertyIfExist(result, "java9Home", System.getProperty("java9Home"));
-            }
+            String java9Home = Stream.of(
+                getProject().findProperty("java9Home"),
+                System.getProperty("java9Home"),
+                System.getenv("java9Home"),
+                JavaVersion.current().isJava9Compatible() ? System.getProperty("java.home") : null
+            ).filter(Objects::nonNull).findFirst().map(Object::toString).orElse(null);
+
+            addSystemPropertyIfExist(result, "java9Home", java9Home);
         }
 
         private void addExecutionParameters(List<String> result) {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios);
-            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselines);
+            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", determinedBaselines.getOrNull());
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs);
-            addSystemPropertyIfExist(result, "org.gradle.performance.execution.checks", checks);
+            addSystemPropertyIfExist(result, "org.gradle.performance.regression.checks", checks);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel);
 
             if (flamegraphs) {

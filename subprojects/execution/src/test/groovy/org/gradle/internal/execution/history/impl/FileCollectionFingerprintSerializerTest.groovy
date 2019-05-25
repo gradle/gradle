@@ -31,7 +31,7 @@ class FileCollectionFingerprintSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
     def serializer = new FileCollectionFingerprintSerializer(stringInterner)
 
-    def "reads and writes emtpy fingerprints"() {
+    def "reads and writes empty fingerprints"() {
         when:
         def out = serialize(FileCollectionFingerprint.EMPTY, serializer)
 

@@ -15,15 +15,15 @@ class ScenarioReportRenderer {
                 link(rel: "stylesheet", type: "text/css", href: "scenario-report-style.css")
             }
             def buildsSuccessOrNot = finishedBuilds.sort(false) { build -> getScenarioId(build)?:'' }.groupBy { build -> build.@status.toString() == 'SUCCESS' }
-            def successfullBuilds = buildsSuccessOrNot.get(true)
+            def successfulBuilds = buildsSuccessOrNot.get(true)
             def otherBuilds = buildsSuccessOrNot.get(false)
             if (otherBuilds) {
                 h3 "${otherBuilds.size()} Failed scenarios"
                 renderResultTable(markup, projectName, otherBuilds, testResultsForBuild, true)
             }
-            if (successfullBuilds) {
-                h3 "${successfullBuilds.size()} Successful scenarios"
-                renderResultTable(markup, projectName, successfullBuilds, testResultsForBuild)
+            if (successfulBuilds) {
+                h3 "${successfulBuilds.size()} Successful scenarios"
+                renderResultTable(markup, projectName, successfulBuilds, testResultsForBuild)
             }
         }
     }

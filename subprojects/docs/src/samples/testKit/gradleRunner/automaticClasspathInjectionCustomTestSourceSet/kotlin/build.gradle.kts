@@ -19,7 +19,7 @@ sourceSets {
     }
 }
 
-task<Test>("functionalTest") {
+tasks.register<Test>("functionalTest") {
     testClassesDirs = sourceSets["functionalTest"].output.classesDirs
     classpath = sourceSets["functionalTest"].runtimeClasspath
 }

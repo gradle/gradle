@@ -19,7 +19,12 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.util.ConfigureUtil
@@ -31,13 +36,16 @@ class DefaultScriptHandlerTest extends Specification {
     def configurationContainer = Mock(ConfigurationContainer)
     def configuration = Mock(Configuration)
     def scriptSource = Stub(ScriptSource)
-    def depMgmtServices = Mock(DependencyResolutionServices)
+    def depMgmtServices = Mock(DependencyResolutionServices) {
+        getAttributesSchema() >> Stub(AttributesSchema)
+    }
     def baseClassLoader = new ClassLoader() {}
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader
     }
     def classpathResolver = Mock(ScriptClassPathResolver)
     def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver)
+    def attributes = Mock(AttributeContainerInternal)
 
     def "adds classpath configuration when configuration container is queried"() {
         when:
@@ -47,6 +55,10 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.create('classpath') >> configuration
+        1 * configuration.attributes >> attributes
+        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
+        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
+        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -59,6 +71,10 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.create('classpath') >> configuration
+        1 * configuration.attributes >> attributes
+        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
+        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
+        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         0 * configurationContainer._
         0 * depMgmtServices._
@@ -89,6 +105,10 @@ class DefaultScriptHandlerTest extends Specification {
         and:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.create('classpath') >> configuration
+        1 * configuration.attributes >> attributes
+        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
+        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
+        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
         1 * classpathResolver.resolveClassPath(configuration) >> classpath
     }
 
@@ -115,6 +135,11 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * depMgmtServices.configurationContainer >> configurationContainer
+        1 * configurationContainer.create('classpath') >> configuration
+        1 * configuration.attributes >> attributes
+        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
+        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
+        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
         1 * dependencyHandler.add('config', 'dep')
     }
 }

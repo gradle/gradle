@@ -23,7 +23,6 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.resources.ResourceLock;
@@ -36,7 +35,7 @@ import org.gradle.internal.work.NoAvailableWorkerLeaseException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.util.CollectionUtils;
 import org.gradle.workers.IsolationMode;
@@ -53,19 +52,17 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final WorkerFactory daemonWorkerFactory;
     private final WorkerFactory isolatedClassloaderWorkerFactory;
     private final WorkerFactory noIsolationWorkerFactory;
-    private final PathToFileResolver fileResolver;
+    private final JavaForkOptionsFactory forkOptionsFactory;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final WorkerDirectoryProvider workerDirectoryProvider;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
-                                 PathToFileResolver fileResolver, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor,
-                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
-        this.fileResolver = fileResolver;
+        this.forkOptionsFactory = forkOptionsFactory;
         this.executionQueue = workerExecutionQueueFactory.create();
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -75,7 +72,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Override
     public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
-        WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver);
+        WorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory);
         File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
         configuration.getForkOptions().setWorkingDir(workingDirectory);
         configAction.execute(configuration);
@@ -124,7 +121,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private WorkerFactory getWorkerFactory(IsolationMode isolationMode) {
-        switch(isolationMode) {
+        switch (isolationMode) {
             case AUTO:
             case CLASSLOADER:
                 return isolatedClassloaderWorkerFactory;
@@ -228,16 +225,16 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         Iterable<File> daemonClasspath = classpathBuilder.build();
         Iterable<String> daemonSharedPackages = sharedPackagesBuilder.build();
 
-        JavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver);
+        JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         userForkOptions.copyTo(forkOptions);
         forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
 
-        return new DaemonForkOptionsBuilder(fileResolver)
-                        .javaForkOptions(forkOptions)
-                        .classpath(daemonClasspath)
-                        .sharedPackages(daemonSharedPackages)
-                        .keepAliveMode(KeepAliveMode.DAEMON)
-                        .build();
+        return new DaemonForkOptionsBuilder(forkOptionsFactory)
+            .javaForkOptions(forkOptions)
+            .classpath(daemonClasspath)
+            .sharedPackages(daemonSharedPackages)
+            .keepAliveMode(KeepAliveMode.DAEMON)
+            .build();
     }
 
     private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder, boolean addToSharedPackages) {
@@ -263,6 +260,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         WorkExecutionException(String description) {
             super(toMessage(description));
         }
+
         WorkExecutionException(String description, Throwable cause) {
             super(toMessage(description), cause);
         }

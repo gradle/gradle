@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
@@ -36,6 +37,7 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -52,23 +54,25 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factories
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -76,11 +80,11 @@ import spock.lang.Unroll
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
 import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 import static org.junit.Assert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
-    Instantiator instantiator = DirectInstantiator.INSTANCE
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)
@@ -95,6 +99,8 @@ class DefaultConfigurationSpec extends Specification {
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def projectState = Mock(ProjectState)
     def safeLock = Mock(ProjectStateRegistry.SafeExclusiveLock)
+    def domainObjectCollectioncallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
+    def userCodeApplicationContext = Mock(UserCodeApplicationContext)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
@@ -103,6 +109,8 @@ class DefaultConfigurationSpec extends Specification {
         _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
         _ * safeLock.withLock(_) >> { args -> args[0].run() }
         _ * projectState.withMutableState(_) >> { args -> args[0].create() }
+        _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
+        _ * userCodeApplicationContext.decorateWithCurrent(_) >> { args -> args[0] }
     }
 
     void defaultValues() {
@@ -569,8 +577,8 @@ class DefaultConfigurationSpec extends Specification {
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
-        _ * resolver.resolveBuildDependencies(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
-            resolverResults.graphResolved(visitedArtifactSet)
+        _ * resolver.resolveBuildDependencies(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
+            resolverResults.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifactSet)
         }
 
         expect:
@@ -1126,12 +1134,12 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
 
         and:
         1 * resolver.resolveBuildDependencies(config, _) >> { ConfigurationInternal c, ResolverResults r ->
-            r.graphResolved(visitedArtifacts())
+            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts())
         }
         0 * resolver._
     }
@@ -1180,12 +1188,12 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
 
         and:
         1 * resolver.resolveBuildDependencies(config, _) >> { ConfigurationInternal c, ResolverResults r ->
-            r.graphResolved(visitedArtifacts())
+            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts())
         }
         0 * resolver._
 
@@ -1626,6 +1634,58 @@ All Artifacts:
    none"""
     }
 
+    def "copied configuration has independent listeners"() {
+        def original = conf()
+        def seenOriginal = [] as Set<ResolvableDependencies>
+        original.incoming.beforeResolve { seenOriginal.add(it) }
+
+        def copied = original.copy()
+        def seenCopied = [] as Set<ResolvableDependencies>
+        copied.incoming.beforeResolve { seenCopied.add(it) }
+
+        expectResolved([] as Set)
+
+        when:
+        original.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.incoming] as Set
+        seenCopied.empty
+
+        when:
+        copied.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.incoming, copied.incoming] as Set
+        seenCopied == [copied.incoming] as Set
+    }
+
+    def "copied configuration inherits withDependencies actions"() {
+        def original = conf()
+        def seenOriginal = [] as Set<DependencySet>
+        original.withDependencies { seenOriginal.add(it) }
+
+        def copied = original.copy()
+        def seenCopied = [] as Set<DependencySet>
+        copied.withDependencies { seenCopied.add(it) }
+
+        expectResolved([] as Set)
+
+        when:
+        original.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.dependencies] as Set
+        seenCopied.empty
+
+        when:
+        copied.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.dependencies, copied.dependencies] as Set
+        seenCopied == [copied.dependencies] as Set
+    }
+
     def "collects exclude rules from hierarchy"() {
         given:
         def firstRule = new DefaultExcludeRule("foo", "bar")
@@ -1699,7 +1759,7 @@ All Artifacts:
         def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, projectStateRegistry, Stub(DocumentationRegistry))
+            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, Stub(DocumentationRegistry), userCodeApplicationContext, new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder), TestUtil.domainObjectCollectionFactory())
     }
 
     private DefaultPublishArtifact artifact(String name) {

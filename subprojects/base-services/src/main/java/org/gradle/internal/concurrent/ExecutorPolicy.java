@@ -58,6 +58,7 @@ public interface ExecutorPolicy {
         private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutorFactory.class);
         private final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
+        @Override
         public void onExecute(Runnable command) {
             try {
                 command.run();
@@ -86,6 +87,7 @@ public interface ExecutorPolicy {
             }
         }
 
+        @Override
         public void onStop() {
             // Rethrow the first failure
             Throwable failure = this.failure.getAndSet(null);

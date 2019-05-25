@@ -61,7 +61,7 @@ We have already seen how to define tasks using strings for task names in <<tutor
 
 [NOTE]
 ====
-This API is likely to be replaced in the near future. See the <<task_configuration_avoidance#sec:what_is_new_task_configuration,task configuration avoidance chapter>> for more information.
+The task configuration APIs are described in more detail in the <<task_configuration_avoidance,task configuration avoidance chapter>>.
 ====
 
 .Defining tasks using strings for task names
@@ -78,7 +78,7 @@ include::sample[dir="userguide/tasks/addToTaskContainer/groovy",files="build.gra
 include::sample[dir="userguide/tasks/addToTaskContainer/kotlin",files="build.gradle.kts[]"]
 ====
 
-Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `create()` method. 
+Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `register()` method. 
 
 And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
 
@@ -157,7 +157,7 @@ include::sample[dir="userguide/tasks/configureUsingBlock/groovy",files="build.gr
 include::sample[dir="userguide/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=configure]"]
 ====
 
-This works for _any_ task. Task access is just a shortcut for the `tasks.getByName()` method. It is important to note that if you pass a block to the `getByName()` method, this block is applied to _configure_ the task, not when the task executes.
+This works for _any_ task. Task access is just a shortcut for the `tasks.named()` (Kotlin) or `tasks.getByName()` (Groovy) method. It is important to note that blocks used here are for _configuring_ the task and are not evaluated when the task executes.
 
 Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for configuring tasks.
 
@@ -201,6 +201,12 @@ You can also create the task using a `constructorArgs` Map argument using the Pr
 ====
 include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/groovy",files="build.gradle[tags=on-project]"]
 include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/kotlin",files="build.gradle.kts[tags=on-project]"]
+====
+
+[NOTE]
+.Prefer creating a task with constructor arguments using the TaskContainer
+====
+It's recommended to use the <<task_configuration_avoidance.adoc#,Task Configuration Avoidance>> APIs to improve configuration time.
 ====
 
 In all circumstances, the values passed as constructor arguments must be non-null.
@@ -483,7 +489,7 @@ Things like strings and numbers. More generally, a simple value can have any typ
 
 * Filesystem types
 +
-These consist of the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method - for single file/directory properties - or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)], link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)], and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object...)] methods.
+These consist of the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method - for single file/directory properties - or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)] method.
 
 * Nested values
 +
@@ -551,6 +557,7 @@ This example is particularly interesting because it works with collections of so
 
 Now that you have seen some of the input and output annotations in practice, let’s take a look at all the annotations available to you and when you should use them. The table below lists the available annotations and the corresponding property type you can use with each one.
 
+[[table:incremental_build_annotations]]
 .Incremental build property type annotations
 [cols="a,a,a", options="header"]
 |===
@@ -637,9 +644,19 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 | Any type
 | Indicates that the property is used internally but is neither an input nor an output.
 
+| `@link:{javadocPath}/org/gradle/api/model/ReplacedBy.html[ReplacedBy]`
+| Any type
+| Indicates that the property has been replaced by another and should be ignored as an input or output.
+
 | [#skip-when-empty]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
 | `File`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
+
+Implies `<<#incremental,@Incremental>>`.
+
+| [#incremental]`@link:{javadocPath}/org/gradle/work/Incremental.html[Incremental]`
+| `Provider<FileSystemLocation>` or `FileCollection`
+| Used with `@InputFiles` or `@InputDirectory` to instruct Gradle to track changes to the annotated file property, so the changes can be queried via `@link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges.getFileChanges()]`. Required for <<custom_tasks.adoc#incremental_tasks,incremental tasks>>.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional]`
 | Any type
@@ -654,7 +671,7 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 ====
 [horizontal]
 +++*+++::
-In fact, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] and `Iterable&lt;File&gt;` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)], link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object++...++)], or link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object++...++)].
+In fact, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] and `Iterable&lt;File&gt;` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)].
 This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
 Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
 +++**+++::
@@ -920,9 +937,20 @@ One last benefit of defining task inputs and outputs is that Gradle can use this
 [[sec:how_does_it_work]]
 === How does it work?
 
-Before a task is executed for the first time, Gradle takes a fingerprint of the inputs. This fingerprint contains the paths of input files and a hash of the contents of each file. Gradle then executes the task. If the task completes successfully, Gradle takes a fingerprint of the outputs. This fingerprint contains the set of output files and a hash of the contents of each file. Gradle persists both fingerprints for the next time the task is executed.
+Before a task is executed for the first time, Gradle takes a fingerprint of the inputs.
+This fingerprint contains the paths of input files and a hash of the contents of each file.
+Gradle then executes the task.
+If the task completes successfully, Gradle takes a fingerprint of the outputs.
+This fingerprint contains the set of output files and a hash of the contents of each file.
+Gradle persists both fingerprints for the next time the task is executed.
 
-Each time after that, before the task is executed, Gradle takes a new fingerprint of the inputs and outputs. If the new fingerprints are the same as the previous fingerprints, Gradle assumes that the outputs are up to date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both fingerprints for the next time the task is executed.
+Each time after that, before the task is executed, Gradle takes a new fingerprint of the inputs and outputs.
+If the new fingerprints are the same as the previous fingerprints, Gradle assumes that the outputs are up to date and skips the task.
+If they are not the same, Gradle executes the task.
+Gradle persists both fingerprints for the next time the task is executed.
+
+If the stats of a file (i.e. `lastModified` and `size`) did not change, Gradle will reuse the file's fingerprint from the previous run.
+That means that Gradle does not detect changes when the stats of a file did not change.
 
 Gradle also considers the _code_ of the task as part of the inputs to the task. When a task, its actions, or its dependencies change between executions, Gradle considers the task as out-of-date.
 
@@ -1043,9 +1071,9 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced
 ----
 ====
 
-Alternatively, you can get Gradle to access the appropriate property itself by using one of `project.files()`, `project.layout.files()` or `project.layout.configurableFiles()` in place of `project.fileTree()`:
+Alternatively, you can get Gradle to access the appropriate property itself by using one of `project.files()`, `project.layout.files()` or `project.objects.fileCollection()` in place of `project.fileTree()`:
 
-.Setting up an inferred task dependency with filesFor()
+.Setting up an inferred task dependency with `layout.files()`
 ====
 include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-files]"]
 include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-files]"]
@@ -1057,7 +1085,7 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced
 ----
 ====
 
-Remember that `files()`, `layout.files()` and `layout.configurableFiles()` can take tasks as arguments, whereas `fileTree()` cannot.
+Remember that `files()`, `layout.files()` and `objects.fileCollection()` can take tasks as arguments, whereas `fileTree()` cannot.
 
 The downside of this approach is that all file outputs of the source task become the input files of the target - `instrumentClasses` in this case. That’s fine as long as the source task only has a single file-based output, like the `JavaCompile` task. But if you have to link just one output property among several, then you need to explicitly tell Gradle which task generates the input files using the `builtBy` method:
 
@@ -1120,13 +1148,15 @@ Let's say you want to add a file `build-info.properties` to all your produced ja
 This file is only for auditing purposes, and has no effect on the outcome of running tests.
 Nonetheless, this file is part of the runtime classpath for the `test` task and changes on every build invocation.
 Therefore, the `test` would be never up-to-date or pulled from the build cache.
-In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:normalization(org.gradle.api.Action)[Project.normalization(org.gradle.api.Action)]:
+In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:normalization(org.gradle.api.Action)[Project.normalization(org.gradle.api.Action)] (in the _consuming_ project):
 
 .Runtime classpath normalization
 ====
 include::sample[dir="userguide/tasks/inputNormalization/groovy",files="build.gradle[tags=ignore-build-info-properties]"]
 include::sample[dir="userguide/tasks/inputNormalization/kotlin",files="build.gradle.kts[tags=ignore-build-info-properties]"]
 ====
+
+If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.
 
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task - i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.
@@ -1222,9 +1252,9 @@ Lifecycle tasks are tasks that do not do work themselves. They typically do not 
 * a buildable thing (e.g., create a debug 32-bit executable for native components with `debug32MainExecutable`)
 * a convenience task to execute many of the same logical tasks (e.g., run all compilation tasks with `compileAll`)
 
-Many Gradle plug-ins define their own lifecycle tasks to make it convenient to do specific things. When developing your own plugins, you should consider using your own lifecycle tasks or hooking into some of the tasks already provided by Gradle. See the Java plugin <<java_plugin.adoc#sec:java_tasks,tasks>> for an example.
+The Base Plugin defines several <<base_plugin#sec:base_tasks,standard lifecycle tasks>>, such as `build`, `assemble`, and `check`. All the core language plugins, like the <<java_plugin#java_plugin,Java Plugin>>, apply the Base Plugin and hence have the same base set of lifecycle tasks.
 
-Unless a lifecycle task has actions, its outcome is determined by its dependencies. If any of the task's dependencies are executed, the lifecycle task will be considered executed. If all of the task's dependencies are up-to-date, skipped or from cache, the lifecycle task will be considered up-to-date.
+Unless a lifecycle task has actions, its <<sec:task_outcomes,outcome>> is determined by its task dependencies. If any of those dependencies are executed, the lifecycle task will be considered `EXECUTED`. If all of the task dependencies are up to date, skipped or from cache, the lifecycle task will be considered `UP-TO-DATE`.
 
 [[sec:the_idea_behind_gradle_tasks]]
 == Summary

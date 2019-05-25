@@ -24,6 +24,7 @@ import org.gradle.internal.component.external.model.GradleDependencyMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
@@ -201,7 +202,7 @@ class DependenciesMetadataAdapterTest extends Specification {
 
     class TestDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter {
         TestDependenciesMetadataAdapter(List<DependencyMetadata> dependenciesMetadata) {
-            super(AttributeTestUtil.attributesFactory(), dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe()))
+            super(AttributeTestUtil.attributesFactory(), dependenciesMetadata, TestUtil.instantiatorFactory().decorateLenient(), DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe()))
         }
 
         @Override

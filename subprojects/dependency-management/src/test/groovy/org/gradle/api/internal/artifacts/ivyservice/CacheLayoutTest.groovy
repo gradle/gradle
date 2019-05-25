@@ -54,12 +54,15 @@ class CacheLayoutTest extends Specification {
 
         then:
         cacheLayout.name == 'metadata'
-        cacheLayout.key == 'metadata-2.69'
-        cacheLayout.version == CacheVersion.parse("2.69")
-        cacheLayout.version.toString() == '2.69'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.69')
+        cacheLayout.key == "metadata-2.${expectedVersion}"
+        cacheLayout.version == CacheVersion.parse("2.${expectedVersion}")
+        cacheLayout.version.toString() == "2.${expectedVersion}"
+        cacheLayout.getPath(new File('some/dir')) == new File("some/dir/metadata-2.${expectedVersion}")
         !cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-1")).present
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-2")).get() == CacheVersion.of(2, 1)
+
+        where:
+        expectedVersion = 71
     }
 
     def "use transforms layout"() {
@@ -68,22 +71,10 @@ class CacheLayoutTest extends Specification {
 
         then:
         cacheLayout.name == 'transforms'
-        cacheLayout.key == 'transforms-1'
-        cacheLayout.version == CacheVersion.parse("1")
-        cacheLayout.version.toString() == '1'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/transforms-1')
-    }
-
-    def "use transforms metadata layout"() {
-        when:
-        CacheLayout cacheLayout = CacheLayout.TRANSFORMS_META_DATA
-
-        then:
-        cacheLayout.name == 'metadata'
-        cacheLayout.key == 'metadata-1.1'
-        cacheLayout.version == CacheVersion.parse("1.1")
-        cacheLayout.version.toString() == '1.1'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-1.1')
+        cacheLayout.key == 'transforms-2'
+        cacheLayout.version == CacheVersion.parse("2")
+        cacheLayout.version.toString() == '2'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/transforms-2')
     }
 
     def "use transforms store layout"() {
@@ -92,10 +83,10 @@ class CacheLayoutTest extends Specification {
 
         then:
         cacheLayout.name == 'files'
-        cacheLayout.key == 'files-1.1'
-        cacheLayout.version == CacheVersion.parse("1.1")
-        cacheLayout.version.toString() == '1.1'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/files-1.1')
+        cacheLayout.key == 'files-2.1'
+        cacheLayout.version == CacheVersion.parse("2.1")
+        cacheLayout.version.toString() == '2.1'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/files-2.1')
     }
 
 }

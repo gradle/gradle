@@ -27,12 +27,10 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import java.io.Serializable;
-
 public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> {
-    private final static Transformer<Serializable, ModuleVersionIdentifier> KEY_TO_SNAPSHOTTABLE = new Transformer<Serializable, ModuleVersionIdentifier>() {
+    private final static Transformer<String, ModuleVersionIdentifier> KEY_TO_SNAPSHOTTABLE = new Transformer<String, ModuleVersionIdentifier>() {
         @Override
-        public Serializable transform(ModuleVersionIdentifier moduleVersionIdentifier) {
+        public String transform(ModuleVersionIdentifier moduleVersionIdentifier) {
             return moduleVersionIdentifier.toString();
         }
     };

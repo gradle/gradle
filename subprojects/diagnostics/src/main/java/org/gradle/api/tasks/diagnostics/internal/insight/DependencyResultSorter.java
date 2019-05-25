@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -122,7 +123,7 @@ public abstract class DependencyResultSorter {
                 return byModule;
             }
 
-            //if selected matches requested version comparison is overridden
+            // Prefer a selector that strictly matches the selected version
             boolean leftMatches = leftRequested.matchesStrictly(left.getActual());
             boolean rightMatches = rightRequested.matchesStrictly(right.getActual());
             if (leftMatches && !rightMatches) {
@@ -131,28 +132,34 @@ public abstract class DependencyResultSorter {
                 return 1;
             }
 
-            //order dynamic selectors after static selectors
-            boolean leftDynamic = versionSelectorScheme.parseSelector(leftRequested.getVersion()).isDynamic();
-            boolean rightDynamic = versionSelectorScheme.parseSelector(rightRequested.getVersion()).isDynamic();
-            if (leftDynamic && !rightDynamic) {
-                return 1;
-            } else if (!leftDynamic && rightDynamic) {
-                return -1;
-            }
-
-            int byVersion;
-            if (leftDynamic && rightDynamic) {
-                // order dynamic selectors lexicographically
-                byVersion = leftRequested.getVersion().compareTo(rightRequested.getVersion());
-            } else {
-                // order static selectors semantically
-                byVersion = compareVersions(leftRequested.getVersion(), rightRequested.getVersion());
-            }
+            // Sort based on version
+            int byVersion = compareVersions(leftRequested.getVersionConstraint(), rightRequested.getVersionConstraint());
             if (byVersion != 0) {
                 return byVersion;
             }
 
+            // Sort based on from component
             return compareFromComponentIdentifiers(left.getFrom(), right.getFrom());
+        }
+
+        private int compareVersions(VersionConstraint left, VersionConstraint right) {
+            String leftRequiredVersion = left.getRequiredVersion();
+            String rightRequiredVersion = right.getRequiredVersion();
+            boolean leftDynamic = versionSelectorScheme.parseSelector(leftRequiredVersion).isDynamic();
+            boolean rightDynamic = versionSelectorScheme.parseSelector(rightRequiredVersion).isDynamic();
+
+            // Order dynamic selectors after static selectors
+            if (leftDynamic && !rightDynamic) {
+                return 1;
+            } else if (!leftDynamic && rightDynamic) {
+                return -1;
+            } else if (leftDynamic && rightDynamic) {
+                // Compare 2 dynamic selectors lexicographically
+                return leftRequiredVersion.compareTo(rightRequiredVersion);
+            } else {
+                // Compare 2 static selectors semantically
+                return compareVersions(leftRequiredVersion, rightRequiredVersion);
+            }
         }
 
         private int compareRequestedProjectComponentSelectors(DependencyEdge left, DependencyEdge right) {

@@ -29,7 +29,7 @@ import spock.lang.Shared
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 import static org.junit.Assert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
@@ -44,14 +44,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove a new subproject.
      */
     int getCoreLibJarsCount() {
-        26
+        28
     }
 
     /**
      * Change this if you added or removed dependencies.
      */
     int getThirdPartyLibJarsCount() {
-        181
+        179
     }
 
     int getLibJarsCount() {
@@ -134,7 +134,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 360 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 366 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${baseVersion}.jar"))
@@ -180,9 +180,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
             assert apiDeclaration.size() == 2
             assert apiDeclaration.getProperty("includes").contains(":org/gradle/api/**:")
             assert apiDeclaration.getProperty("excludes").split(":").size() == 1
-            def parameterNames = GUtil.loadProperties(IOUtils.toInputStream(content("gradle-api-parameter-names.properties")))
-            assert parameterNames.size() > 2900
-            assert parameterNames["org.gradle.api.DomainObjectCollection.withType(java.lang.Class,org.gradle.api.Action)"] == "type,configureAction"
         }
     }
 }

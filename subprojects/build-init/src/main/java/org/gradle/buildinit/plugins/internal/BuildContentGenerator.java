@@ -17,5 +17,8 @@
 package org.gradle.buildinit.plugins.internal;
 
 public interface BuildContentGenerator {
+    /**
+     * Generates content for the given build.
+     */
     void generate(InitSettings settings);
 }

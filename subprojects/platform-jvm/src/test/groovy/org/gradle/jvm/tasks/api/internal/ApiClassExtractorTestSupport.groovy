@@ -106,7 +106,7 @@ class ApiClassExtractorTestSupport extends Specification {
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     protected ApiContainer toApi(Map<String, String> sources) {
-        toApi('1.6', [], sources)
+        toApi('1.7', [], sources)
     }
 
     protected ApiContainer toApi(String targetVersion, Map<String, String> sources) {
@@ -114,7 +114,7 @@ class ApiClassExtractorTestSupport extends Specification {
     }
 
     protected ApiContainer toApi(List<String> packages, Map<String, String> sources) {
-        toApi('1.6', packages, sources)
+        toApi('1.7', packages, sources)
     }
 
     protected ApiContainer toApi(String targetVersion, List<String> packages,  Map<String, String> sources) {

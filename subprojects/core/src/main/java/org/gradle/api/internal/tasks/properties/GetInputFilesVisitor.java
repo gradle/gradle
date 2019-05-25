@@ -18,31 +18,46 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.PropertyFileCollection;
+import org.gradle.api.tasks.FileNormalizer;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
-    private final List<TaskInputFilePropertySpec> specs = Lists.newArrayList();
+    private final List<InputFilePropertySpec> specs = Lists.newArrayList();
+    private final FileCollectionFactory fileCollectionFactory;
+    private final String ownerDisplayName;
     private boolean hasSourceFiles;
 
-    private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
+    private ImmutableSortedSet<InputFilePropertySpec> fileProperties;
 
-    public GetInputFilesVisitor() {
+    public GetInputFilesVisitor(String ownerDisplayName, FileCollectionFactory fileCollectionFactory) {
+        this.ownerDisplayName = ownerDisplayName;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
-    public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-        specs.add(inputFileProperty);
-        if (inputFileProperty.isSkipWhenEmpty()) {
+    public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
+        specs.add(new DefaultInputFilePropertySpec(
+            propertyName,
+            FileParameterUtils.normalizerOrDefault(fileNormalizer),
+            new PropertyFileCollection(ownerDisplayName, propertyName, "input", actualValue),
+            value,
+            skipWhenEmpty,
+            incremental
+        ));
+        if (skipWhenEmpty) {
             hasSourceFiles = true;
         }
     }
 
-    public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
+    public ImmutableSortedSet<InputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
-            fileProperties = TaskPropertyUtils.collectFileProperties("input", specs.iterator());
+            fileProperties = FileParameterUtils.collectFileProperties("input", specs.iterator());
         }
         return fileProperties;
     }

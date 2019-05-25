@@ -60,8 +60,8 @@ idea {
 
 tasks.idea {
     doLast {
-        assert beforeConfiguredObjects == 3 : "beforeConfigured() hooks shoold be fired for domain model objects"
-        assert whenConfiguredObjects == 3 : "whenConfigured() hooks shoold be fired for domain model objects"
+        assert beforeConfiguredObjects == 3 : "beforeConfigured() hooks should be fired for domain model objects"
+        assert whenConfiguredObjects == 3 : "whenConfigured() hooks should be fired for domain model objects"
     }
 }
 '''

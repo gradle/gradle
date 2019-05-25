@@ -24,6 +24,7 @@ import org.gradle.play.PlayApplicationBinarySpec;
  * Represents a Play distribution package
  */
 @Incubating
+@Deprecated
 public interface PlayDistribution extends Distribution {
     /**
      * The binary this distribution is associated with

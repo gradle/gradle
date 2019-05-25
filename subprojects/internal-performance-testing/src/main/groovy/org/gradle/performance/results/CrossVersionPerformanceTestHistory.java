@@ -40,11 +40,6 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     @Override
-    public String getId() {
-        return name.replaceAll("\\s+", "-");
-    }
-
-    @Override
     public String getDisplayName() {
         return name;
     }
@@ -88,6 +83,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     @Override
     public List<PerformanceTestExecution> getExecutions() {
         return Lists.transform(getResults(), new Function<CrossVersionPerformanceResults, PerformanceTestExecution>() {
+            @Override
             public PerformanceTestExecution apply(final CrossVersionPerformanceResults result) {
                 return new KnownVersionsPerformanceTestExecution(result);
             }
@@ -172,14 +168,17 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
             return result.getTeamCityBuildId();
         }
 
+        @Override
         public String getVersionUnderTest() {
             return result.getVersionUnderTest();
         }
 
+        @Override
         public String getVcsBranch() {
             return result.getVcsBranch();
         }
 
+        @Override
         public long getStartTime() {
             return result.getStartTime();
         }
@@ -194,8 +193,10 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
             return result.getVcsCommits();
         }
 
+        @Override
         public List<MeasuredOperationList> getScenarios() {
             return Lists.transform(getKnownVersions(), new Function<String, MeasuredOperationList>() {
+                @Override
                 public MeasuredOperationList apply(String version) {
                     return result.version(version).getResults();
                 }

@@ -28,7 +28,6 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -57,14 +56,14 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultCppStaticLibrary(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+    public DefaultCppStaticLibrary(Names names, ObjectFactory objectFactory, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.linkFile = objectFactory.fileProperty();
         this.linkFileProducer = objectFactory.property(Task.class);
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
         this.linkElements = objectFactory.property(Configuration.class);
         this.runtimeElements = objectFactory.property(Configuration.class);
-        this.outputs = fileOperations.configurableFiles();
+        this.outputs = objectFactory.fileCollection();
     }
 
     @Override
@@ -133,6 +132,7 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     public AttributeContainer getRuntimeAttributes() {
         return getIdentity().getRuntimeUsageContext().getAttributes();
     }
+
     @Override
     public ModuleVersionIdentifier getCoordinates() {
         return getIdentity().getCoordinates();

@@ -20,19 +20,30 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.tasks.execution.DefaultTaskProperties
-import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
+import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
+import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
+import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.work.InputChanges
 import spock.lang.Unroll
 
 import java.util.concurrent.Callable
@@ -43,6 +54,7 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputDir
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.NamedBean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskUsingInputChanges
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBooleanInput
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBridgeMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithDestroyable
@@ -54,8 +66,10 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithJavaBeanCornerCaseProperties
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithLocalState
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMixedMultipleIncrementalActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultiParamAction
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleIncrementalActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleMethods
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleProperties
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedBean
@@ -74,18 +88,35 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFile
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedIncrementalAndInputChangesActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenIncrementalAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenInputChangesAction
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithProtectedMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithSingleParamAction
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithStaticMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TestTask
+import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.PROCESSED_PROPERTY_TYPE_ANNOTATIONS
+import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS
 
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
+    def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
-    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
+    def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
+        [],
+        ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS) as Class[]),
+        [Object, GroovyObject],
+        [Object, GroovyObject],
+        [ConfigurableFileCollection, Property],
+        Internal,
+        { false },
+        cacheFactory
+    )
+    def propertyWalker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, cacheFactory))
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -98,13 +129,21 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         delegate = Mock(ITaskFactory)
-        factory = new AnnotationProcessingTaskFactory(taskClassInfoStore, delegate)
+        factory = new AnnotationProcessingTaskFactory(DirectInstantiator.INSTANCE, taskClassInfoStore, delegate)
         testDir = temporaryFolder.testDirectory
         existingFile = testDir.file("file.txt").touch()
         missingFile = testDir.file("missing.txt")
         existingDir = testDir.file("dir").createDir()
         missingDir = testDir.file("missing-dir")
         missingDir2 = testDir.file("missing-dir2")
+    }
+
+    def FileResolver getFileResolver() {
+        return project.fileResolver
+    }
+
+    def FileCollectionFactory getFileCollectionFactory() {
+        return project.services.get(FileCollectionFactory)
     }
 
     def doesNothingToTaskWithNoTaskActionAnnotations() {
@@ -144,6 +183,19 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         0 * _
     }
 
+    def createsContextualActionForInputChangesTaskAction() {
+        given:
+        def action = Mock(Action)
+        def task = expectTaskCreated(TaskUsingInputChanges, action)
+
+        when:
+        execute(task)
+
+        then:
+        1 * action.execute(_ as InputChanges)
+        0 * _
+    }
+
     def createsContextualActionForOverriddenIncrementalTaskAction() {
         given:
         def action = Mock(Action)
@@ -155,6 +207,20 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * action.execute(_ as IncrementalTaskInputs)
+        0 * _
+    }
+
+    def createsContextualActionForOverriddenInputChangesTaskAction() {
+        given:
+        def action = Mock(Action)
+        def superAction = Mock(Action)
+        def task = expectTaskCreated(TaskWithOverriddenInputChangesAction, action, superAction)
+
+        when:
+        execute(task)
+
+        then:
+        1 * action.execute(_ as InputChanges)
         0 * _
     }
 
@@ -177,12 +243,16 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         e.message == failureMessage
 
         where:
-        type                               | failureMessage
-        TaskWithMultipleIncrementalActions | "Cannot have multiple @TaskAction methods accepting an IncrementalTaskInputs parameter."
-        TaskWithStaticMethod               | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
-        TaskWithMultiParamAction           | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
-        TaskWithSingleParamAction          | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
-        TaskWithOverloadedActions          | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedActions.doStuff()"
+        type                                                | failureMessage
+        TaskWithMultipleIncrementalActions                  | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
+        TaskWithStaticMethod                                | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
+        TaskWithMultiParamAction                            | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
+        TaskWithSingleParamAction                           | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
+        TaskWithOverloadedActions                           | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedActions.doStuff()"
+        TaskWithOverloadedInputChangesActions               | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedInputChangesActions.doStuff()"
+        TaskWithOverloadedIncrementalAndInputChangesActions | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedIncrementalAndInputChangesActions.doStuff()"
+        TaskWithMultipleInputChangesActions                 | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
+        TaskWithMixedMultipleIncrementalActions             | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
     }
 
     @Unroll
@@ -630,7 +700,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
 
         when:
-        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task)
 
         then:
         taskProperties.inputPropertyValues.create().keySet() == inputs as Set
@@ -676,7 +746,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithLocalState, localState)
 
         when:
-        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task)
 
         then:
         taskProperties.localStateFiles.files as List == [localState]
@@ -692,7 +762,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithDestroyable, destroyable)
 
         when:
-        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task)
 
         then:
         taskProperties.destroyableFiles.files as List == [destroyable]
@@ -782,14 +852,13 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     }
 
     private TaskInternal expectTaskCreated(final Class type, final Object... params) {
-        final Class decorated = project.getServices().get(ClassGenerator).generate(type)
         final String name = "task"
         TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<TaskInternal>() {
             TaskInternal call() throws Exception {
                 if (params.length > 0) {
-                    return type.cast(decorated.constructors[0].newInstance(params))
+                    return type.cast(type.constructors[0].newInstance(params))
                 } else {
-                    return JavaReflectionUtil.newInstance(decorated)
+                    return JavaReflectionUtil.newInstance(type)
                 }
             }
         })

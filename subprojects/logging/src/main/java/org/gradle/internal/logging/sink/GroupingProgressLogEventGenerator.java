@@ -66,6 +66,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         this.verbose = verbose;
     }
 
+    @Override
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             onStart((ProgressStartEvent) event);

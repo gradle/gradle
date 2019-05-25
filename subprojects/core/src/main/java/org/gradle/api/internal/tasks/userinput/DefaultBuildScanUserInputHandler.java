@@ -23,6 +23,7 @@ public class DefaultBuildScanUserInputHandler implements BuildScanUserInputHandl
         this.userInputHandler = userInputHandler;
     }
 
+    @Override
     public Boolean askYesNoQuestion(String question) {
         return userInputHandler.askYesNoQuestion(question);
     }

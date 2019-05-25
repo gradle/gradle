@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class DefaultPrebuiltLibraryTest extends Specification {
     def "has useful display name"() {
-        def lib = new DefaultPrebuiltLibrary("someLib", TestUtil.objectFactory())
+        def lib = new DefaultPrebuiltLibrary("someLib", TestUtil.objectFactory(), TestUtil.domainObjectCollectionFactory())
 
         expect:
         lib.toString() == "prebuilt library 'someLib'"

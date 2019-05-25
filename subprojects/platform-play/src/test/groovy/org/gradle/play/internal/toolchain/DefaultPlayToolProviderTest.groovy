@@ -19,7 +19,6 @@ package org.gradle.play.internal.toolchain
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
@@ -30,13 +29,14 @@ import org.gradle.play.internal.run.PlayRunAdapterV24X
 import org.gradle.play.internal.run.PlayRunAdapterV25X
 import org.gradle.play.internal.run.PlayRunAdapterV26X
 import org.gradle.play.platform.PlayPlatform
+import org.gradle.process.internal.JavaForkOptionsFactory
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultPlayToolProviderTest extends Specification {
-    def fileResolver = Mock(PathToFileResolver)
+    def forkOptionsFactory = Mock(JavaForkOptionsFactory)
     WorkerDaemonFactory workerDaemonFactory = Mock()
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
@@ -51,7 +51,7 @@ class DefaultPlayToolProviderTest extends Specification {
     DefaultPlayToolProvider playToolProvider
 
     private DefaultPlayToolProvider createProvider() {
-        return new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter)
+        return new DefaultPlayToolProvider(forkOptionsFactory, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter)
     }
 
     @Unroll

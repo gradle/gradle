@@ -18,9 +18,9 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.gradle.internal.text.TreeFormatter
+import org.gradle.internal.logging.text.DiagnosticsVisitor
+import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
@@ -133,7 +133,7 @@ class DefaultUcrtLocatorTest extends Specification {
     def "ucrt not available when specified install dir does not look like a ucrt"() {
         def ucrtDir1 = tmpDir.createDir("dir")
         def ignoredDir = ucrtDir("ignored", "10.0.10150.0")
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         given:
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> ignoredDir.absolutePath

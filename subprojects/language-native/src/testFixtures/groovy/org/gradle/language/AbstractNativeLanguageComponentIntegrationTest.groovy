@@ -16,8 +16,9 @@
 
 package org.gradle.language
 
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -29,8 +30,8 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
             task verifyBinariesPlatformType {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.operatingSystem.name == "${OperatingSystem.current().name}"
-                        assert it.targetPlatform.architecture.name == "${defaultArchitecture}"
+                        assert it.targetMachine.operatingSystemFamily.name == "${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}"
+                        assert it.targetMachine.architecture.name == "${defaultArchitecture}"
                     }
                 }
             }
@@ -57,12 +58,46 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
         succeeds "verifyBinariesToolChainType"
     }
 
+    def "fails configuration when architecture is not supported by any tool chain"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}", "machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')")
+
+        expect:
+        fails taskNameToAssembleDevelopmentBinary
+        executedTasks == []
+        failure.assertHasCause("No tool chain has support to build")
+    }
+
     protected String getDefaultArchitecture() {
         DefaultNativePlatform.currentArchitecture.name
     }
 
-
     protected abstract void makeSingleProject()
 
     protected abstract String getComponentUnderTestDsl()
+
+    protected abstract SourceElement getComponentUnderTest()
+
+    protected abstract String getTaskNameToAssembleDevelopmentBinary()
+
+    protected String getCurrentHostOperatingSystemFamilyDsl() {
+        String osFamily = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+        if (osFamily == OperatingSystemFamily.MACOS) {
+            return "macOS"
+        } else {
+            return osFamily
+        }
+    }
+
+    protected configureTargetMachines(String... targetMachines) {
+        return """
+            ${componentUnderTestDsl} {
+                targetMachines = [${targetMachines.join(",")}]
+            }
+        """
+    }
 }

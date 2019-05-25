@@ -17,6 +17,7 @@
 // This is used as an init script for the smoke tests.
 
 import org.gradle.api.internal.tasks.*
+import org.gradle.api.internal.tasks.properties.*
 
 def taskInfos = []
 
@@ -34,7 +35,7 @@ gradle.addListener(new TaskExecutionAdapter() {
             type = type.superclass
         }
         def outputs = task.outputs.fileProperties
-            .findAll { it instanceof CacheableTaskOutputFilePropertySpec }
+            .findAll { it instanceof CacheableOutputFilePropertySpec }
             .findAll {
                 try {
                     it.outputFile != null

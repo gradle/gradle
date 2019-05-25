@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
+import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
@@ -61,6 +62,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private OutputStream standardError;
     private InputStream standardInput;
     private boolean forwardingSystemStreams;
+    private Map<String, String> environment;
 
     public DefaultGradleRunner() {
         this(new ToolingApiGradleExecutor(), calculateTestKitDirProvider(SystemProperties.getInstance()));
@@ -73,12 +75,16 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private static TestKitDirProvider calculateTestKitDirProvider(SystemProperties systemProperties) {
-        Map<String, String> systemPropertiesMap = systemProperties.asMap();
-        if (systemPropertiesMap.containsKey(TEST_KIT_DIR_SYS_PROP)) {
-            return new ConstantTestKitDirProvider(new File(systemPropertiesMap.get(TEST_KIT_DIR_SYS_PROP)));
-        } else {
-            return new TempTestKitDirProvider(systemProperties);
-        }
+        return systemProperties.withSystemProperties(new Factory<TestKitDirProvider>() {
+            @Override
+            public TestKitDirProvider create() {
+                if (System.getProperties().containsKey(TEST_KIT_DIR_SYS_PROP)) {
+                    return new ConstantTestKitDirProvider(new File(System.getProperty(TEST_KIT_DIR_SYS_PROP)));
+                } else {
+                    return new TempTestKitDirProvider(systemProperties);
+                }
+            }
+        });
     }
 
     public TestKitDirProvider getTestKitDirProvider() {
@@ -184,6 +190,17 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
+    public Map<String, String> getEnvironment() {
+        return environment;
+    }
+
+    @Override
+    public GradleRunner withEnvironment(Map<String, String> environment) {
+        this.environment = environment;
+        return this;
+    }
+
+    @Override
     public GradleRunner forwardStdOutput(Writer writer) {
         if (forwardingSystemStreams) {
             forwardingSystemStreams = false;
@@ -232,6 +249,7 @@ public class DefaultGradleRunner extends GradleRunner {
     @Override
     public BuildResult build() {
         return run(new Action<GradleExecutionResult>() {
+            @Override
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (!gradleExecutionResult.isSuccessful()) {
                     throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult), createBuildResult(gradleExecutionResult));
@@ -243,6 +261,7 @@ public class DefaultGradleRunner extends GradleRunner {
     @Override
     public BuildResult buildAndFail() {
         return run(new Action<GradleExecutionResult>() {
+            @Override
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (gradleExecutionResult.isSuccessful()) {
                     throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult), createBuildResult(gradleExecutionResult));
@@ -278,6 +297,12 @@ public class DefaultGradleRunner extends GradleRunner {
             throw new InvalidRunnerConfigurationException("Please specify a project directory before executing the build");
         }
 
+        if (environment != null && debug) {
+            throw new InvalidRunnerConfigurationException("Debug mode is not allowed when environment variables are specified. " +
+                "Debug mode runs 'in process' but we need to fork a separate process to pass environment variables. " +
+                "To run with debug mode, please remove environment variables.");
+        }
+
         File testKitDir = createTestKitDir(testKitDirProvider);
 
         GradleProvider effectiveDistribution = gradleProvider == null ? findGradleInstallFromGradleRunner() : gradleProvider;
@@ -292,7 +317,8 @@ public class DefaultGradleRunner extends GradleRunner {
             debug,
             standardOutput,
             standardError,
-            standardInput
+            standardInput,
+            environment
         ));
 
         resultVerification.execute(execResult);

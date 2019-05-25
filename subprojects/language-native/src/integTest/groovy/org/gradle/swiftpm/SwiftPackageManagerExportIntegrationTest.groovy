@@ -16,6 +16,8 @@
 
 package org.gradle.swiftpm
 
+import org.gradle.util.VersionNumber
+
 class SwiftPackageManagerExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
     def "produces manifest for build with no native components"() {
@@ -45,7 +47,13 @@ let package = Package(
     ]
 )
 """
-        swiftPmBuildSucceeds()
+        // In Swift PM 5.0+ an error is thrown when there is no buildable target, let's ignore this specific failure for backward compatibility
+        if (swiftc.version.compareTo(VersionNumber.parse("5.0")) < 0) {
+            swiftPmBuildSucceeds()
+        } else {
+            def result = swiftPmBuildFails()
+            result.out.contains("the package does not contain a buildable target")
+        }
     }
 
     def "can configure the location of the generated manifest file"() {

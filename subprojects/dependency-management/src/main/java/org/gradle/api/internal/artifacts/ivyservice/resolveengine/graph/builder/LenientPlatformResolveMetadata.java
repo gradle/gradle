@@ -91,6 +91,10 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
         return Collections.singleton("default");
     }
 
+    LenientPlatformResolveMetadata withVersion(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
+        return new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier, platformState, platformNode, resolveState);
+    }
+
     @Nullable
     @Override
     public ConfigurationMetadata getConfiguration(String name) {

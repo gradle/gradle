@@ -162,8 +162,11 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
-        // <5.1 would log an intermediate exception with the actual exception as its cause, >=5.1 log just the actual exception
-        failure.assertRawOutputContains('actionFailure')
+        if (targetDist.toolingApiHasCauseOnPhasedActionFail) {
+            failure.assertHasDescription('actionFailure')
+        } else {
+            failure.assertHasCause('actionFailure')
+        }
         assertHasConfigureFailedLogging()
     }
 

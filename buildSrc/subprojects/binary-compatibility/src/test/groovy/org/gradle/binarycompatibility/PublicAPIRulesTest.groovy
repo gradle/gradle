@@ -29,6 +29,8 @@ class PublicAPIRulesTest extends Specification {
     TemporaryFolder tmp = new TemporaryFolder()
     File sourceFile
 
+    BinaryCompatibilityRepository repository
+
     def jApiClassifier = Stub(JApiClass) //represents interfaces, enums and annotations
     def jApiMethod = Stub(JApiMethod)
     def jApiField = Stub(JApiField) //represents fields and enum literals
@@ -54,6 +56,12 @@ class PublicAPIRulesTest extends Specification {
         deprecatedAnnotation.fullyQualifiedName >> Deprecated.name
         overrideAnnotation.fullyQualifiedName >> Override.name
         injectAnnotation.fullyQualifiedName >> Inject.name
+
+        repository = BinaryCompatibilityRepository.openRepositoryFor([new File(tmp.root.absolutePath)], [])
+    }
+
+    def cleanup() {
+        repository?.close()
     }
 
     @Unroll
@@ -118,17 +126,21 @@ class PublicAPIRulesTest extends Specification {
             } 
         """
         : apiElement.startsWith('annotation') ? """
-            public @interface $TEST_INTERFACE_SIMPLE_NAME { }
-        """
-        : apiElement in ['class', 'constructor'] ? """
-            public class $TEST_INTERFACE_SIMPLE_NAME {
-                public ApiTest() { }
+            public @interface $TEST_INTERFACE_SIMPLE_NAME {
+                String method();
             }
         """
-        : """
+        : apiElement == 'interface' ? """
             public interface $TEST_INTERFACE_SIMPLE_NAME {
                 String field = "value";
                 void method();
+            }
+        """
+        : """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                public String field = "value";
+                public void method() { }
+                public $TEST_INTERFACE_SIMPLE_NAME() { }
             }
         """
 
@@ -136,10 +148,18 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiType).humanExplanation =~ 'Is not annotated with @since 11.38'
 
         when:
-        sourceFile.text = apiElement.startsWith('enum') ? """
+        repository.emptyCaches()
+        sourceFile.text = apiElement == 'enum' ? """
             /**
              * @since 11.38
              */
+            public enum $TEST_INTERFACE_SIMPLE_NAME {
+                field;
+                
+                void method() { }
+            } 
+        """
+        : apiElement.startsWith('enum') ? """
             public enum $TEST_INTERFACE_SIMPLE_NAME {
                 /**
                  * @since 11.38
@@ -152,33 +172,48 @@ class PublicAPIRulesTest extends Specification {
                 void method() { }
             } 
         """
-        : apiElement.startsWith('annotation') ? """
+        : apiElement == 'annotation' ? """
             /**
              * @since 11.38
              */
-            public @interface $TEST_INTERFACE_SIMPLE_NAME { }
-        """
-        : apiElement.startsWith('class') ? """
-            /**
-             * @since 11.38
-             */
-            public class $TEST_INTERFACE_SIMPLE_NAME {
-                public ApiTest() { }
+            public @interface $TEST_INTERFACE_SIMPLE_NAME {
+                String method();
             }
         """
-        : apiElement.startsWith('constructor') ? """
-            public class $TEST_INTERFACE_SIMPLE_NAME {
+        : apiElement == 'annotation member' ? """
+            public @interface $TEST_INTERFACE_SIMPLE_NAME {
                 /**
                  * @since 11.38
                  */
-                public ApiTest() { }
+                 String method();
             }
         """
-        : """
+        : apiElement == 'class' ? """
+            /**
+             * @since 11.38
+             */
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                public String field = "value";
+                public void method() { }
+                public $TEST_INTERFACE_SIMPLE_NAME() { }
+            }
+        """
+        : apiElement == 'interface' ? """
             /**
              * @since 11.38
              */
             public interface $TEST_INTERFACE_SIMPLE_NAME {
+                String field = "value";
+                void method();
+            }
+        """
+        : """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                /**
+                 * @since 11.38
+                 */
+                public $TEST_INTERFACE_SIMPLE_NAME() { }
+
                 /**
                  * @since 11.38
                  */
@@ -195,16 +230,17 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiType) == null
 
         where:
-        apiElement     | jApiTypeName
-        'interface'    | 'jApiClassifier'
-        'class'        | 'jApiClassifier'
-        'method'       | 'jApiMethod'
-        'field'        | 'jApiField'
-        'constructor'  | 'jApiConstructor'
-        'enum'         | 'jApiClassifier'
-        'enum literal' | 'jApiField'
-        'enum method'  | 'jApiMethod'
-        'annotation'   | 'jApiClassifier'
+        apiElement          | jApiTypeName
+        'interface'         | 'jApiClassifier'
+        'class'             | 'jApiClassifier'
+        'method'            | 'jApiMethod'
+        'field'             | 'jApiField'
+        'constructor'       | 'jApiConstructor'
+        'enum'              | 'jApiClassifier'
+        'enum literal'      | 'jApiField'
+        'enum method'       | 'jApiMethod'
+        'annotation'        | 'jApiClassifier'
+        'annotation member' | 'jApiMethod'
     }
 
     @Unroll
@@ -222,7 +258,7 @@ class PublicAPIRulesTest extends Specification {
                 void method() { }
             }
         """
-        : apiElement == 'constructor' ? """
+            : apiElement == 'constructor' ? """
             /**
              * @since 11.38
              */
@@ -230,7 +266,7 @@ class PublicAPIRulesTest extends Specification {
                 public ApiTest() { }
             }
         """
-        : """
+            : """
             /**
              * @since 11.38
              */
@@ -263,7 +299,7 @@ class PublicAPIRulesTest extends Specification {
 
         when:
         jApiType.annotations >> [deprecatedAnnotation]
-        sourceFile.text =  """
+        sourceFile.text = """
             @Deprecated
             public interface $TEST_INTERFACE_SIMPLE_NAME {
                 @Deprecated
@@ -292,7 +328,7 @@ class PublicAPIRulesTest extends Specification {
         def sinceMissingRule = withContext(new SinceAnnotationMissingRule([:]))
 
         when:
-        sourceFile.text =  """
+        sourceFile.text = """
             public class $TEST_INTERFACE_SIMPLE_NAME {
                 @Override
                 void method() { }
@@ -304,9 +340,9 @@ class PublicAPIRulesTest extends Specification {
         sinceMissingRule.maybeViolation(jApiType) == null
 
         where:
-        apiElement  | jApiTypeName
-        'method'    | 'jApiMethod'
-        'field'     | 'jApiField'
+        apiElement | jApiTypeName
+        'method'   | 'jApiMethod'
+        'field'    | 'jApiField'
     }
 
     def "new incubating API does not fail the check but is reported"() {
@@ -333,7 +369,7 @@ class PublicAPIRulesTest extends Specification {
         annotations.clear()
 
         then:
-        rule.maybeViolation(jApiConstructor).humanExplanation  =~ error
+        rule.maybeViolation(jApiConstructor).humanExplanation =~ error
 
         when:
         annotations.add(injectAnnotation)
@@ -372,10 +408,27 @@ class PublicAPIRulesTest extends Specification {
 
     AbstractContextAwareViolationRule withContext(AbstractContextAwareViolationRule rule) {
         rule.context = new ViolationCheckContext() {
+
+            @Override
             String getClassName() { TEST_INTERFACE_NAME }
-            Map<String, ?> getUserData() {[
-                    apiSourceFolders : [ tmp.root.absolutePath ], currentVersion: '11.38'
-            ]}
+
+            @Override
+            Map<String, ?> getUserData() {
+                [
+                    currentVersion: '11.38',
+                    (BinaryCompatibilityRepositorySetupRule.REPOSITORY_CONTEXT_KEY): repository
+                ]
+            }
+
+            @Override
+            <T> T getUserData(String key) {
+                getUserData()[key]
+            }
+
+            @Override
+            <T> void putUserData(String key, T value) {
+                getUserData().put(key, value)
+            }
         }
         rule
     }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
 
@@ -25,8 +24,6 @@ import java.io.File;
  * Provides access to various services to resolve and locate files.
  */
 public interface FileLookup {
-    FileSystem getFileSystem();
-
     /**
      * Returns a file resolver with no base directory.
      */

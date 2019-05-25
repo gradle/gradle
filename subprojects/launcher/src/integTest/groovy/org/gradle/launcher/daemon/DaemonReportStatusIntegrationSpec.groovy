@@ -53,6 +53,7 @@ task block {
         block.waitForAllPendingCalls()
 
         daemons.daemon.assertBusy()
+        executer.useOnlyRequestedJvmOpts()
         executer.withBuildJvmOpts('-Xmx128m')
         executer.run()
 

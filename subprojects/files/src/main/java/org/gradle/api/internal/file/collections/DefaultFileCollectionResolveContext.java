@@ -21,7 +21,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.util.PatternSet;
@@ -29,6 +28,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.nativeintegration.services.FileSystems;
+import org.gradle.util.DeferredUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -38,9 +38,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultFileCollectionResolveContext implements ResolvableFileCollectionResolveContext {
     protected final PathToFileResolver fileResolver;
@@ -84,6 +81,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     /**
      * Resolves the contents of this context as a list of atomic {@link FileTree} instances.
      */
+    @Override
     public List<FileTreeInternal> resolveAsFileTrees() {
         return doResolve(fileTreeConverter);
     }
@@ -91,6 +89,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     /**
      * Resolves the contents of this context as a list of atomic {@link FileCollection} instances.
      */
+    @Override
     public List<FileCollectionInternal> resolveAsFileCollections() {
         return doResolve(fileCollectionConverter);
     }
@@ -121,16 +120,11 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             } else if (element instanceof TaskOutputs) {
                 TaskOutputs outputs = (TaskOutputs) element;
                 queue.add(0, outputs.getFiles());
-            } else if (element instanceof Callable) {
-                Callable callable = (Callable) element;
-                Object callableResult = uncheckedCall(callable);
-                if (callableResult != null) {
-                    queue.add(0, callableResult);
+            } else if (DeferredUtil.isDeferred(element)) {
+                Object deferredResult = DeferredUtil.unpack(element);
+                if (deferredResult != null) {
+                    queue.add(0, deferredResult);
                 }
-            } else if (element instanceof Provider) {
-                Provider provider = (Provider) element;
-                Object providerResult = provider.get();
-                queue.add(0, providerResult);
             } else if (element instanceof Path) {
                 queue.add(0, ((Path) element).toFile());
             } else if (element instanceof Iterable) {
@@ -166,6 +160,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             this.patternSetFactory = patternSetFactory;
         }
 
+        @Override
         public void convertInto(Object element, Collection<? super FileCollectionInternal> result, PathToFileResolver fileResolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
@@ -197,6 +192,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             this.patternSetFactory = patternSetFactory;
         }
 
+        @Override
         public void convertInto(Object element, Collection<? super FileTreeInternal> result, PathToFileResolver fileResolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
@@ -237,6 +233,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     }
 
     public static class MinimalFileCollectionConverter implements Converter<MinimalFileCollection> {
+        @Override
         public void convertInto(Object element, Collection<? super MinimalFileCollection> result, PathToFileResolver resolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;

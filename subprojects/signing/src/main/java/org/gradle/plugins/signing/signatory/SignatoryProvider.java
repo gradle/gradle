@@ -36,7 +36,7 @@ public interface SignatoryProvider<T extends Signatory> {
     /**
      * <p>Attempts to create a signatory for the project that will be used everywhere something is to be signed and an explicit signatory has not been set (for the task/operation).</p>
      *
-     * <p>This may be called multiple times and the implementor is free to return a different instance if the project state has changed in someway that influences the default signatory.</p>
+     * <p>This may be called multiple times and the implementer is free to return a different instance if the project state has changed in someway that influences the default signatory.</p>
      *
      * @param project The project which the signatory is for
      * @return The signatory, or {@code null} if there is insufficient information available to create one.

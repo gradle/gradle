@@ -96,7 +96,7 @@ class GenericFileSystem implements FileSystem {
         this.stat = stat;
         this.symlink = symlink;
         this.chmod = chmod;
-        canCreateSymbolicLink = symlink.isSymlinkSupported();
+        canCreateSymbolicLink = symlink.isSymlinkCreationSupported();
     }
 
     private void initializeCaseSensitive() {

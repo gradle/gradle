@@ -35,7 +35,12 @@ class CppUnitTestComponentWithBothLibraryLinkageIntegrationTest extends Abstract
     }
 
     @Override
-    protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [':compileDebugSharedCpp', ':compileTestCpp', ':linkTest', ':installTest', ':runTest']
+    protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {
+        return [":compileDebugShared${variant.capitalize()}Cpp", ":compileTest${variant.capitalize()}Cpp", ":linkTest${variant.capitalize()}", ":installTest${variant.capitalize()}", ":runTest${variant.capitalize()}"]
+    }
+
+    @Override
+    String getTestedComponentDsl() {
+        return "library"
     }
 }

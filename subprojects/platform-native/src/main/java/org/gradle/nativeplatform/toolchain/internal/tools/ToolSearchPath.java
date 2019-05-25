@@ -18,12 +18,16 @@ package org.gradle.nativeplatform.toolchain.internal.tools;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.util.TreeVisitor;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -146,7 +150,7 @@ public class ToolSearchPath {
         }
 
         @Override
-        public void explain(TreeVisitor<? super String> visitor) {
+        public void explain(DiagnosticsVisitor visitor) {
         }
     }
 
@@ -162,7 +166,7 @@ public class ToolSearchPath {
         }
 
         @Override
-        public void explain(TreeVisitor<? super String> visitor) {
+        public void explain(DiagnosticsVisitor visitor) {
             if (path.isEmpty()) {
                 visitor.node(String.format("Could not find %s '%s' in system path.", type.getToolName(), exeName));
             } else {

@@ -65,7 +65,7 @@ public class ProjectPageRenderer extends ReportRenderer<Project, HtmlPageBuilder
                         div().classAttr("breadcrumbs");
                             a().href("index.html").text("Projects").end();
                             text(" > ");
-                            span().id("projectBreacrumb").end();
+                            span().id("projectBreadcrumb").end();
                         end();
                         div().id("insight").end();
                         div().id("dependencies").end();

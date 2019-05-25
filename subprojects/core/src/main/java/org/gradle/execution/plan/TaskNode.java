@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 
 import java.util.NavigableSet;
 import java.util.Set;
@@ -27,13 +28,14 @@ import java.util.Set;
 public abstract class TaskNode extends Node {
 
     private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
+    private final Set<Node> mustPredecessors = Sets.newHashSet();
     private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> finalizers = Sets.newTreeSet();
     private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
 
     @Override
-    public boolean allDependenciesComplete() {
-        if (!super.allDependenciesComplete()) {
+    public boolean doCheckDependenciesComplete() {
+        if (!super.doCheckDependenciesComplete()) {
             return false;
         }
         for (Node dependency : mustSuccessors) {
@@ -55,6 +57,7 @@ public abstract class TaskNode extends Node {
         return mustSuccessors;
     }
 
+    @Override
     public Set<Node> getFinalizers() {
         return finalizers;
     }
@@ -67,8 +70,9 @@ public abstract class TaskNode extends Node {
         return shouldSuccessors;
     }
 
-    protected void addMustSuccessor(Node toNode) {
+    protected void addMustSuccessor(TaskNode toNode) {
         mustSuccessors.add(toNode);
+        toNode.mustPredecessors.add(this);
     }
 
     protected void addFinalizingSuccessor(TaskNode finalized) {
@@ -103,6 +107,11 @@ public abstract class TaskNode extends Node {
     }
 
     @Override
+    public Iterable<Node> getAllPredecessors() {
+        return Iterables.concat(mustPredecessors, finalizers, super.getAllPredecessors());
+    }
+
+    @Override
     public boolean hasHardSuccessor(Node successor) {
         if (super.hasHardSuccessor(successor)) {
             return true;
@@ -124,4 +133,11 @@ public abstract class TaskNode extends Node {
     public abstract void appendPostAction(Action<? super Task> action);
 
     public abstract Action<? super Task> getPostAction();
+
+    public abstract TaskInternal getTask();
+
+    @Override
+    public boolean isPublicNode() {
+        return true;
+    }
 }

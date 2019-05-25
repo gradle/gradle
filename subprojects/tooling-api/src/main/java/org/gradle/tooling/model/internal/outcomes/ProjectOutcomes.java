@@ -25,7 +25,9 @@ import java.io.File;
  * The outputs produced by a Gradle project.
  */
 public interface ProjectOutcomes extends HierarchicalElement {
+    @Override
     ProjectOutcomes getParent();
+    @Override
     DomainObjectSet<ProjectOutcomes> getChildren();
     String getPath();
     File getProjectDirectory();

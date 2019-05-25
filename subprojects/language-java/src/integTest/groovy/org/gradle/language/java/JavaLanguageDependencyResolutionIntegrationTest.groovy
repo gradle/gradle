@@ -899,12 +899,12 @@ model {
 model {
     components {
         dep(JvmLibrarySpec) {
-            targetPlatform 'java6'
+            targetPlatform 'java7'
         }
 
         main(JvmLibrarySpec) {
+            targetPlatform 'java8'
             targetPlatform 'java7'
-            targetPlatform 'java6'
             $scope.begin
                 library 'dep'
             $scope.end
@@ -912,11 +912,11 @@ model {
     }
 
     tasks {
-        mainJava6Jar.finalizedBy('checkDependencies')
         mainJava7Jar.finalizedBy('checkDependencies')
+        mainJava8Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depApiJar)
             assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depApiJar)
+            assert compileMainJava8JarMainJava.taskDependencies.getDependencies(compileMainJava8JarMainJava).contains(depApiJar)
         }
     }
 }
@@ -931,10 +931,10 @@ model {
         executedAndNotSkipped ':tasks'
 
         and:
-        succeeds 'mainJava6Jar'
+        succeeds 'mainJava7Jar'
 
         and:
-        succeeds 'mainJava7Jar'
+        succeeds 'mainJava8Jar'
 
         where:
         scope << DependencyScope.values()
@@ -1088,13 +1088,13 @@ model {
 model {
     components {
         dep(JvmLibrarySpec) {
-            targetPlatform 'java6'
             targetPlatform 'java7'
+            targetPlatform 'java8'
         }
 
         main(JvmLibrarySpec) {
             targetPlatform 'java7'
-            targetPlatform 'java6'
+            targetPlatform 'java8'
             $scope.begin
                 library 'dep'
             $scope.end
@@ -1102,11 +1102,11 @@ model {
     }
 
     tasks {
-        mainJava6Jar.finalizedBy('checkDependencies')
         mainJava7Jar.finalizedBy('checkDependencies')
+        mainJava8Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6ApiJar)
             assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7ApiJar)
+            assert compileMainJava8JarMainJava.taskDependencies.getDependencies(compileMainJava8JarMainJava).contains(depJava8ApiJar)
         }
     }
 }
@@ -1121,13 +1121,13 @@ model {
         executedAndNotSkipped ':tasks'
 
         and:
-        succeeds 'mainJava6Jar', 'mainJava7Jar'
+        succeeds 'mainJava7Jar', 'mainJava8Jar'
 
         where:
         scope << DependencyScope.values()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "should not choose higher version than available"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1135,14 +1135,14 @@ model {
 model {
     components {
         dep(JvmLibrarySpec) {
-            targetPlatform 'java6'
             targetPlatform 'java7'
             targetPlatform 'java8'
+            targetPlatform 'java9'
         }
 
         main(JvmLibrarySpec) {
             targetPlatform 'java7'
-            targetPlatform 'java6'
+            targetPlatform 'java8'
             sources {
                 java {
                     dependencies {
@@ -1154,11 +1154,11 @@ model {
     }
 
     tasks {
-        mainJava6Jar.finalizedBy('checkDependencies')
         mainJava7Jar.finalizedBy('checkDependencies')
+        mainJava8Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6ApiJar)
             assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7ApiJar)
+            assert compileMainJava8JarMainJava.taskDependencies.getDependencies(compileMainJava8JarMainJava).contains(depJava8ApiJar)
         }
     }
 }
@@ -1173,10 +1173,10 @@ model {
         executedAndNotSkipped ':tasks'
 
         then:
-        succeeds 'mainJava6Jar'
+        succeeds 'mainJava7Jar'
 
         and:
-        succeeds 'mainJava7Jar'
+        succeeds 'mainJava8Jar'
     }
 
     def "should display candidate platforms if no one matches"() {

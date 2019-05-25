@@ -32,6 +32,7 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         this.instantiator = instantiator;
     }
 
+    @Override
     public <T extends Script, M> ScriptRunner<T, M> create(CompiledScript<T, M> script, ScriptSource source, ClassLoader contextClassLoader) {
         return new ScriptRunnerImpl<T, M>(script, source, contextClassLoader);
     }

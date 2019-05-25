@@ -98,7 +98,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
 
             class MergeTask extends DefaultTask {
                 @InputFiles
-                final SetProperty<RegularFile> inputFiles = project.objects.setProperty(RegularFile).empty()
+                final SetProperty<RegularFile> inputFiles = project.objects.setProperty(RegularFile)
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
                 
@@ -163,7 +163,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFiles
-                final SetProperty<RegularFile> outputFiles = project.objects.setProperty(RegularFile).empty()
+                final SetProperty<RegularFile> outputFiles = project.objects.setProperty(RegularFile)
                 
                 @TaskAction
                 void go() {
@@ -176,7 +176,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
 
             class MergeTask extends DefaultTask {
                 @InputFiles
-                final SetProperty<RegularFile> inputFiles = project.objects.setProperty(RegularFile).empty()
+                final SetProperty<RegularFile> inputFiles = project.objects.setProperty(RegularFile)
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
                 
@@ -243,7 +243,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
 
             class MergeTask extends DefaultTask {
                 @InputFiles
-                final SetProperty<Directory> inputDirs = project.objects.setProperty(Directory).empty()
+                final SetProperty<Directory> inputDirs = project.objects.setProperty(Directory)
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
 
@@ -309,7 +309,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
                 final RegularFileProperty inputFile = project.objects.fileProperty()
 
                 @OutputDirectories
-                final SetProperty<Directory> outputDirs = project.objects.setProperty(Directory).empty()
+                final SetProperty<Directory> outputDirs = project.objects.setProperty(Directory)
 
                 @TaskAction
                 void go() {
@@ -322,7 +322,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
 
             class MergeTask extends DefaultTask {
                 @InputFiles
-                final SetProperty<Directory> inputDirs = project.objects.setProperty(Directory).empty()
+                final SetProperty<Directory> inputDirs = project.objects.setProperty(Directory)
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
 
@@ -398,7 +398,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             
-            def generatedFiles = objects.setProperty(RegularFile).empty() 
+            def generatedFiles = objects.setProperty(RegularFile) 
             
             task createFile1(type: FileOutputTask)
             generatedFiles.add(createFile1.outputFile)
@@ -462,7 +462,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
 
             class MergeTask extends DefaultTask {
                 @InputFiles
-                final SetProperty<Directory> inputDirs = project.objects.setProperty(Directory).empty()
+                final SetProperty<Directory> inputDirs = project.objects.setProperty(Directory)
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
 
@@ -473,7 +473,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            def generatedFiles = objects.setProperty(Directory).empty() 
+            def generatedFiles = objects.setProperty(Directory) 
 
             task createDir1(type: DirOutputTask)
             generatedFiles.add(createDir1.outputDir)

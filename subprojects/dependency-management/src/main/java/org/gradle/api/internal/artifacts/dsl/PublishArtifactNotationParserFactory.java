@@ -50,6 +50,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         this.taskResolver = taskResolver;
     }
 
+    @Override
     public NotationParser<Object, ConfigurablePublishArtifact> create() {
         FileNotationConverter fileConverter = new FileNotationConverter();
         return NotationParserBuilder

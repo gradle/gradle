@@ -90,6 +90,7 @@ public class DefaultImportsReader implements ImportsReader {
         }
     }
 
+    @Override
     public String[] getImportPackages() {
         return importPackages;
     }

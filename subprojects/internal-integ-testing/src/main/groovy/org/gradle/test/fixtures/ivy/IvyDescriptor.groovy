@@ -75,6 +75,7 @@ class IvyDescriptor {
                     org: dep.@org,
                     module: dep.@name,
                     revision: dep.@rev,
+                    revisionConstraint: dep.@revConstraint,
                     conf: dep.@conf,
                     transitive: dep.@transitive
             )

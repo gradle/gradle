@@ -38,6 +38,21 @@ public interface InternalBuildProgressListener {
     String BUILD_EXECUTION = "BUILD_EXECUTION";
 
     /**
+     * The constant for the work item execution operations.
+     */
+    String WORK_ITEM_EXECUTION = "WORK_ITEM_EXECUTION";
+
+    /**
+     * The constant for the project configuration operations.
+     */
+    String PROJECT_CONFIGURATION_EXECUTION = "PROJECT_CONFIGURATION_EXECUTION";
+
+    /**
+     * The constant for the transform operations.
+     */
+    String TRANSFORM_EXECUTION = "TRANSFORM_EXECUTION";
+
+    /**
      * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.
      *
      * The event types implemented in Gradle 2.4 are:
@@ -49,7 +64,7 @@ public interface InternalBuildProgressListener {
      * The event types implemented in Gradle 2.5 are:
      *
      * <ul>
-     *     <li>{@link org.gradle.tooling.internal.protocol.events.InternalProgressEvent} - used for all operation types: task, test and generic.</li>
+     *     <li>{@link org.gradle.tooling.internal.protocol.events.InternalProgressEvent} - used for all operation types.</li>
      *     <li>{@link org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent} - test events also implement these types for backwards compatibility</li>
      * </ul>
      *

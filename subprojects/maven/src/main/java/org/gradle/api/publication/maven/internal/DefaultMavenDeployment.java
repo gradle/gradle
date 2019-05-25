@@ -58,14 +58,17 @@ public class DefaultMavenDeployment implements MavenDeployment {
         return projectIdentity.getVersion().get();
     }
 
+    @Override
     public void addArtifact(PublishArtifact artifact) {
         attachedArtifacts.add(artifact);
     }
 
+    @Override
     public PublishArtifact getPomArtifact() {
         return pomArtifact;
     }
 
+    @Override
     public Set<PublishArtifact> getArtifacts() {
         Set<PublishArtifact> artifacts = new HashSet<PublishArtifact>();
         artifacts.addAll(attachedArtifacts);
@@ -76,10 +79,12 @@ public class DefaultMavenDeployment implements MavenDeployment {
         return artifacts;
     }
 
+    @Override
     public PublishArtifact getMainArtifact() {
         return mainArtifact;
     }
 
+    @Override
     public Set<PublishArtifact> getAttachedArtifacts() {
         return attachedArtifacts;
     }

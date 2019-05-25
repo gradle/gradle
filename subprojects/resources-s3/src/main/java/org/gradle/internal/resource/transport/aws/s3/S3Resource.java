@@ -37,6 +37,7 @@ public class S3Resource implements ExternalResourceReadResponse {
         this.uri = uri;
     }
 
+    @Override
     public InputStream openStream() throws IOException {
         return s3Object.getObjectContent();
     }
@@ -53,6 +54,7 @@ public class S3Resource implements ExternalResourceReadResponse {
         return false;
     }
 
+    @Override
     public ExternalResourceMetaData getMetaData() {
         ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
         Date lastModified = objectMetadata.getLastModified();

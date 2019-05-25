@@ -16,10 +16,11 @@
 
 package org.gradle.language.cpp.internal
 
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.file.FileCollectionInternal
+
 import org.gradle.language.cpp.CppPlatform
+import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
+import org.gradle.nativeplatform.TargetMachine
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,7 +35,7 @@ class DefaultCppLibraryTest extends Specification {
     DefaultCppLibrary library
 
     def setup() {
-        library = new DefaultCppLibrary("main", project.objects, project.fileOperations, project.configurations)
+        library = project.objects.newInstance(DefaultCppLibrary, "main")
     }
 
     def "has display name"() {
@@ -172,8 +173,8 @@ class DefaultCppLibraryTest extends Specification {
     def "uses component name to determine header directories"() {
         def h1 = tmpDir.createFile("src/a/public")
         def h2 = tmpDir.createFile("src/b/public")
-        def c1 = new DefaultCppLibrary("a", project.objects, project.fileOperations, project.configurations)
-        def c2 = new DefaultCppLibrary("b", project.objects, project.fileOperations, project.configurations)
+        def c1 = project.objects.newInstance(DefaultCppLibrary, "a")
+        def c2 = project.objects.newInstance(DefaultCppLibrary, "b")
 
         expect:
         c1.publicHeaderDirs.files == [h1] as Set
@@ -181,14 +182,20 @@ class DefaultCppLibraryTest extends Specification {
     }
 
     private NativeVariantIdentity getIdentity() {
+        // TODO Check that TargetMachine from NativeVariantIdentity is the same as the one from CppPlatform
         return Stub(NativeVariantIdentity) {
             getName() >> "debug"
-            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
+            getTargetMachine() >> targetMachine(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64)
             isDebuggable() >> true
             isOptimized() >> false
         }
     }
 
-    interface TestConfiguration extends Configuration, FileCollectionInternal {
+    private TargetMachine targetMachine(String os, String arch) {
+        def objectFactory = TestUtil.objectFactory()
+        return Stub(TargetMachine) {
+            getOperatingSystemFamily() >> objectFactory.named(OperatingSystemFamily.class, os)
+            getArchitecture() >> objectFactory.named(MachineArchitecture.class, arch)
+        }
     }
 }

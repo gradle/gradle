@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -64,17 +65,19 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
         def putModule = server.expectAndBlock(server.put(m1.moduleMetadata.path))
         server.expect(server.put(m1.moduleMetadata.path + ".sha1"))
         server.expect(server.put(m1.moduleMetadata.path + ".md5"))
-        def getMetaData = server.expectAndBlock(server.missing(m1.rootMetaData.path))
+        def getMetaData = server.expectAndBlock(server.get(m1.rootMetaData.path).missing())
         def putMetaData = server.expectAndBlock(server.put(m1.rootMetaData.path))
         server.expect(server.put(m1.rootMetaData.path + ".sha1"))
         server.expect(server.put(m1.rootMetaData.path + ".md5"))
 
-        def build = executer.withTasks("publish").withArguments("--max-workers=2", "--console=rich").start()
+        executer.withTestConsoleAttached()
+        executer.withConsole(ConsoleOutput.Rich)
+        def build = executer.withTasks("publish").withArguments("--max-workers=2").start()
         putJar.waitForAllPendingCalls()
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.jar"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.jar")
         }
 
         when:
@@ -83,7 +86,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.jar.sha1"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.jar.sha1")
         }
 
         when:
@@ -92,7 +95,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.pom"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.pom")
         }
 
         when:
@@ -101,7 +104,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.pom.sha1"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.pom.sha1")
         }
 
         when:
@@ -110,7 +113,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-             assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.module > 1 KB/1 KB uploaded"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.module > 1 KB/1 KB uploaded")
         }
 
         when:
@@ -120,7 +123,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
         then:
         ConcurrentTestUtil.poll {
             // TODO - where did this one go?
-//            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > maven-metadata.xml"))
+//            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > maven-metadata.xml")
         }
 
         when:
@@ -129,7 +132,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > maven-metadata.xml"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > maven-metadata.xml")
         }
 
         putMetaData.releaseAll()

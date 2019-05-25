@@ -209,10 +209,8 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         def outputDir = new File("build/generated-sources")
         spec.compileOptions.annotationProcessorGeneratedSourcesDirectory = outputDir
 
-        when:
-        def args = builder.build()
-        then:
-        args == ["-s", outputDir.path] + defaultOptions
+        expect:
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", "-s", outputDir.path, USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
     }
 
     def "adds custom compiler args last"() {
@@ -359,6 +357,8 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         '--source-path'    | 'CompileOptions.sourcepath'
         '-processorpath'   | 'CompileOptions.annotationProcessorPath'
         '--processor-path' | 'CompileOptions.annotationProcessorPath'
+        '-J'               | 'CompileOptions.forkOptions.jvmArgs'
+        '-J-Xdiag'         | 'CompileOptions.forkOptions.jvmArgs'
     }
 
     def "removes sourcepath when module-source-path is provided"() {

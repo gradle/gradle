@@ -23,12 +23,14 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 class SelectorStateResolverResults {
     private static final VersionParser VERSION_PARSER = new VersionParser();
@@ -42,11 +44,12 @@ class SelectorStateResolverResults {
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
+        boolean hasSoftForce = hasSoftForce();
         for (Registration entry : results) {
             ResolvableSelectorState selectorState = entry.selector;
             ComponentIdResolveResult idResolveResult = entry.result;
 
-            if (selectorState.isForce()) {
+            if (selectorState.isForce() && !hasSoftForce) {
                 T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
                 return Collections.singletonList(forcedComponent);
             }
@@ -73,6 +76,34 @@ class SelectorStateResolverResults {
         return resolved == null ? Collections.<T>emptyList() : resolved;
     }
 
+    static <T extends ComponentResolutionState> boolean isVersionAllowedByPlatform(T componentState) {
+        Set<VirtualPlatformState> platformOwners = componentState.getPlatformOwners();
+        if (!platformOwners.isEmpty()) {
+            for (VirtualPlatformState platformOwner : platformOwners) {
+                if (platformOwner.isGreaterThanForcedVersion(componentState.getVersion())) {
+                    return false;
+                }
+            }
+        } else {
+            VirtualPlatformState platform = componentState.getPlatformState();
+            if (platform != null && platform.isGreaterThanForcedVersion(componentState.getVersion())) {
+                // the platform itself is greater than the forced version
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasSoftForce() {
+        for (Registration entry : results) {
+            ResolvableSelectorState selectorState = entry.selector;
+            if (selectorState.isSoftForce()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
         T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
         component.selectedBy(selector);
@@ -88,7 +119,7 @@ class SelectorStateResolverResults {
     boolean alreadyHaveResolutionForSelector(ResolvableSelectorState selector) {
         for (Registration registration : results) {
             ComponentIdResolveResult discovered = registration.result;
-            if (included(selector, discovered, registration.selector.isFromLock())) {
+            if (selectorAcceptsCandidate(selector, discovered, registration.selector.isFromLock())) {
                 register(selector, discovered);
                 selector.markResolved();
                 return true;
@@ -97,13 +128,15 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult resolveResult, boolean isFromLock) {
+    boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult candidate, boolean isFromLock) {
         // Check already-resolved dependencies and use this version if it's compatible
         boolean replaces = false;
         for (Registration registration : results) {
-            if (emptyVersion(registration.result) || sameVersion(registration.result, resolveResult) ||
-                (included(registration.selector, resolveResult, isFromLock) && lowerVersion(registration.result, resolveResult))) {
-                registration.result = resolveResult;
+            ComponentIdResolveResult previous = registration.result;
+            ResolvableSelectorState previousSelector = registration.selector;
+            if (emptyVersion(previous) || sameVersion(previous, candidate) ||
+                    (selectorAcceptsCandidate(previousSelector, candidate, isFromLock) && lowerVersion(previous, candidate))) {
+                registration.result = candidate;
                 replaces = true;
             }
         }
@@ -114,21 +147,21 @@ class SelectorStateResolverResults {
         results.add(new Registration(selector, resolveResult));
     }
 
-    private boolean emptyVersion(ComponentIdResolveResult existing) {
+    private static boolean emptyVersion(ComponentIdResolveResult existing) {
         if (existing.getFailure() == null) {
             return existing.getModuleVersionId().getVersion().isEmpty();
         }
         return false;
     }
 
-    private boolean sameVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
+    private static boolean sameVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
         if (existing.getFailure() == null && resolveResult.getFailure() == null) {
             return existing.getId().equals(resolveResult.getId());
         }
         return false;
     }
 
-    private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
+    private static boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
         if (existing.getFailure() == null && resolveResult.getFailure() == null) {
             Version existingVersion = VERSION_PARSER.transform(existing.getModuleVersionId().getVersion());
             Version candidateVersion = VERSION_PARSER.transform(resolveResult.getModuleVersionId().getVersion());
@@ -139,8 +172,8 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    private boolean included(ResolvableSelectorState dep, ComponentIdResolveResult candidate, boolean candidateIsFromLock) {
-        if (candidate.getFailure() != null) {
+    private static boolean selectorAcceptsCandidate(ResolvableSelectorState dep, ComponentIdResolveResult candidate, boolean candidateIsFromLock) {
+        if (hasFailure(candidate)) {
             return false;
         }
         ResolvedVersionConstraint versionConstraint = dep.getVersionConstraint();
@@ -149,7 +182,7 @@ class SelectorStateResolverResults {
         }
         VersionSelector versionSelector = versionConstraint.getRequiredSelector();
         if (versionSelector != null &&
-            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
+                (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
 
             if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
                 // Always assume a candidate from a lock will satisfy the latest version selector
@@ -159,6 +192,10 @@ class SelectorStateResolverResults {
             return versionSelector.accept(candidate.getModuleVersionId().getVersion());
         }
         return false;
+    }
+
+    private static boolean hasFailure(ComponentIdResolveResult candidate) {
+        return candidate.getFailure() != null;
     }
 
     public boolean isEmpty() {

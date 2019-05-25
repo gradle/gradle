@@ -131,7 +131,7 @@ function initializeProjectPage(report) {
             $insightDiv.fadeIn();
         }
 
-        // generates the configuration dependeny trees
+        // generates the configuration dependency trees
         var $dependencies = $('#dependencies');
         var project = report.project;
 
@@ -192,7 +192,7 @@ function initializeProjectPage(report) {
             $(this).toggleClass('closed');
         });
 
-        $('#projectBreacrumb').text(project.name);
+        $('#projectBreadcrumb').text(project.name);
         populateFooter(report);
     });
 }

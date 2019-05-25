@@ -23,25 +23,64 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildActionRunnerRegistration;
+import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+
 public class ToolingApiSubscribableBuildActionRunnerRegistration implements SubscribableBuildActionRunnerRegistration {
+
+    private final OperationResultPostProcessor operationResultPostProcessor;
+
+    ToolingApiSubscribableBuildActionRunnerRegistration(OperationResultPostProcessor operationResultPostProcessor) {
+        this.operationResultPostProcessor = operationResultPostProcessor;
+    }
+
     @Override
-    public Iterable<BuildOperationListener> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer) {
-        List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>();
-        if (clientSubscriptions.isSendTestProgressEvents()) {
-            listeners.add(new ClientForwardingTestOperationListener(consumer, clientSubscriptions));
+    public Iterable<Object> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer) {
+        if (!clientSubscriptions.isAnyOperationTypeRequested()) {
+            return emptyList();
         }
-        if (clientSubscriptions.isSendBuildProgressEvents() || clientSubscriptions.isSendTaskProgressEvents()) {
+        BuildOperationParentTracker parentTracker = new BuildOperationParentTracker();
+        ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, parentTracker);
+        List<Object> listeners = new ArrayList<Object>();
+        listeners.add(parentTracker);
+        if (clientSubscriptions.isRequested(OperationType.TEST)) {
+            listeners.add(new ClientForwardingTestOperationListener(progressEventConsumer, clientSubscriptions));
+        }
+        if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION, OperationType.TRANSFORM)) {
             BuildOperationListener buildListener = NO_OP;
-            if (clientSubscriptions.isSendBuildProgressEvents()) {
-                buildListener = new TestIgnoringBuildOperationListener(new ClientForwardingBuildOperationListener(consumer));
+            if (clientSubscriptions.isRequested(OperationType.GENERIC)) {
+                buildListener = new TestIgnoringBuildOperationListener(new ClientForwardingBuildOperationListener(progressEventConsumer));
             }
-            listeners.add(new ClientForwardingTaskOperationListener(consumer, clientSubscriptions, buildListener));
+            if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM)) {
+                buildListener = new ClientForwardingWorkItemOperationListener(progressEventConsumer, clientSubscriptions, buildListener);
+            }
+            OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
+            if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TRANSFORM)) {
+                ClientForwardingTransformOperationListener transformOperationListener = new ClientForwardingTransformOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationDependenciesResolver);
+                operationDependenciesResolver.addLookup(transformOperationListener);
+                buildListener = transformOperationListener;
+            }
+            PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(parentTracker);
+            if (clientSubscriptions.isAnyRequested(OperationType.PROJECT_CONFIGURATION, OperationType.TASK)) {
+                listeners.add(pluginApplicationTracker);
+            }
+            if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TRANSFORM, OperationType.TASK)) {
+                TaskOriginTracker taskOriginTracker = new TaskOriginTracker(pluginApplicationTracker);
+                if (clientSubscriptions.isAnyRequested(OperationType.TASK)) {
+                    listeners.add(taskOriginTracker);
+                }
+                ClientForwardingTaskOperationListener taskOperationListener = new ClientForwardingTaskOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationResultPostProcessor, taskOriginTracker, operationDependenciesResolver);
+                operationDependenciesResolver.addLookup(taskOperationListener);
+                buildListener = taskOperationListener;
+            }
+            listeners.add(new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, clientSubscriptions, buildListener, parentTracker, pluginApplicationTracker));
         }
         return listeners;
     }

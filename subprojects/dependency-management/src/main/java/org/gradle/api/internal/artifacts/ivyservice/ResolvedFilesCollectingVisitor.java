@@ -36,7 +36,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
         try {
             File file = artifact.getFile(); // triggering file resolve
             this.files.add(file);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             failures.add(t);
         }
     }

@@ -174,8 +174,10 @@ public class ThingTest {
             task mergedReport(type: JacocoReport) {
                 executionData jacocoMerge.destinationFile
                 dependsOn jacocoMerge
-                sourceDirectories = files(sourceSets.main.java.srcDirs, sourceSets.otherMain.java.srcDirs)
-                classDirectories = files(sourceSets.main.output.classesDirs, sourceSets.otherMain.output.classesDirs)
+                sourceDirectories.from(sourceSets.main.java.sourceDirectories)
+                sourceDirectories.from(sourceSets.otherMain.java.sourceDirectories)
+                classDirectories.from(sourceSets.main.output)
+                classDirectories.from(sourceSets.otherMain.output)
             }
         """
         when:
@@ -224,11 +226,11 @@ public class ThingTest {
         ':jacocoTestReport' in nonSkippedTasks
     }
 
-    def "skips report task if none of the execution data files does not exist"() {
+    def "skips report task if all of the execution data files do not exist"() {
         given:
         buildFile << """
             jacocoTestReport {
-                executionData = files('unknown.exec', 'data/test.exec')
+                executionData.from = files('unknown.exec', 'data/test.exec')
             }
         """
 

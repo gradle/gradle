@@ -40,4 +40,6 @@ public interface ConsoleMetaData {
      * @return The height of the console (rows). If no information is available return 0.
      */
     int getRows();
+
+    boolean isWrapStreams();
 }

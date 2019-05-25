@@ -17,14 +17,21 @@
 package org.gradle.vcs.git.internal;
 
 import com.google.common.collect.Sets;
+import com.jcraft.jsch.Session;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.TransportCommand;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
@@ -53,11 +60,16 @@ public class GitVersionControlSystem implements VersionControlSystem {
     public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
         LOGGER.info("Populating VCS workingDir {}/{} with ref {}", workingDir.getParentFile().getName(), workingDir.getName(), ref);
-        if (workingDir.isDirectory() && workingDir.list().length > 0) {
-            resetRepo(workingDir, gitSpec, ref);
-        } else {
-            cloneRepo(workingDir, gitSpec, ref);
+        if (workingDir.isDirectory()) {
+            // Directory has something in it already
+            String[] contents = workingDir.list();
+            if (contents!=null && contents.length > 0) {
+                resetRepo(workingDir, gitSpec, ref);
+                return;
+            }
         }
+
+        cloneRepo(workingDir, gitSpec, ref);
     }
 
     @Override
@@ -77,6 +89,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         GitVersionControlSpec gitSpec = cast(spec);
         Collection<Ref> refs = getRemoteRefs(gitSpec, false, true);
         for (Ref ref : refs) {
+            // TODO: Default branch can be different from just master
             if (ref.getName().equals("refs/heads/master")) {
                 return GitVersionRef.from(ref);
             }
@@ -100,7 +113,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
 
     private Collection<Ref> getRemoteRefs(GitVersionControlSpec gitSpec, boolean tags, boolean heads) {
         try {
-            return Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
+            return configureTransport(Git.lsRemoteRepository()).setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
         } catch (URISyntaxException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         } catch (GitAPIException e) {
@@ -109,17 +122,19 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
-        CloneCommand clone = Git.cloneRepository().
-            setURI(gitSpec.getUrl().toString()).
-            setDirectory(workingDir).
-            setCloneSubmodules(true);
         Git git = null;
         try {
+            CloneCommand clone = configureTransport(Git.cloneRepository()).
+                    setURI(normalizeUri(gitSpec.getUrl())).
+                    setDirectory(workingDir).
+                    setCloneSubmodules(true);
             git = clone.call();
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
         } catch (GitAPIException e) {
             throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
         } catch (JGitInternalException e) {
+            throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
+        } catch (URISyntaxException e) {
             throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
         } finally {
             if (git != null) {
@@ -154,7 +169,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
                 Repository submodule = walker.getRepository();
                 try {
                     Git submoduleGit = Git.wrap(submodule);
-                    submoduleGit.fetch().call();
+                    configureTransport(submoduleGit.fetch()).call();
                     git.submoduleUpdate().addPath(walker.getPath()).call();
                     submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
                     updateSubModules(submoduleGit);
@@ -170,7 +185,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static String normalizeUri(URI uri) throws URISyntaxException {
         // We have to go through URIish and back to deal with differences between how
         // Java File and Git implement file URIs.
-        return new URIish(uri.toString()).toString();
+        return new URIish(uri.toString()).toPrivateASCIIString();
     }
 
     private static GitVersionControlSpec cast(VersionControlSpec spec) {
@@ -185,5 +200,25 @@ public class GitVersionControlSystem implements VersionControlSystem {
             return new GradleException(String.format("Could not run %s for %s", commandName, repoUrl), e);
         }
         return new GradleException(String.format("Could not %s from %s in %s", commandName, repoUrl, workingDir), e);
+    }
+
+    private static <T extends TransportCommand<?, ?>> T configureTransport(T command) {
+        command.setTransportConfigCallback(new DefaultTransportConfigCallback());
+        return command;
+    }
+
+    private static class DefaultTransportConfigCallback implements TransportConfigCallback {
+        @Override
+        public void configure(Transport transport) {
+            if (transport instanceof SshTransport) {
+                SshTransport sshTransport = (SshTransport) transport;
+                sshTransport.setSshSessionFactory(new JschConfigSessionFactory() {
+                    @Override
+                    protected void configure(OpenSshConfig.Host hc, Session session) {
+                        // TODO: This is where the password information would go
+                    }
+                });
+            }
+        }
     }
 }

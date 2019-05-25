@@ -65,7 +65,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
     def "can create component identifier for project dependency in same build"() {
         given:
         def buildId = new DefaultBuildIdentifier("build")
-        def selector = new DefaultProjectComponentSelector(buildId, Path.path(":id:path"), Path.path(":project:path"), "name", ImmutableAttributes.EMPTY)
+        def selector = new DefaultProjectComponentSelector(buildId, Path.path(":id:path"), Path.path(":project:path"), "name", ImmutableAttributes.EMPTY, [])
 
         when:
         def componentIdentifier = componentIdentifierFactory.createProjectComponentIdentifier(selector)

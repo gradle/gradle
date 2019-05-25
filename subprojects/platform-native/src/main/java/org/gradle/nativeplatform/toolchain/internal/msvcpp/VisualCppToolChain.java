@@ -31,6 +31,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.UnsupportedPlatformToolProvider;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
@@ -117,12 +118,13 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
-        VisualCpp platformVisualCpp = visualCpp == null ? null : visualCpp.forPlatform(targetPlatform);
-        if (platformVisualCpp == null) {
-            result.unavailable(String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
-        }
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
+        }
+
+        VisualCpp platformVisualCpp = visualCpp == null ? null : visualCpp.forPlatform(targetPlatform);
+        if (platformVisualCpp == null) {
+            return new UnsupportedPlatformToolProvider(targetPlatform.getOperatingSystem(), String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
         }
         WindowsSdk platformSdk = windowsSdk.forPlatform(targetPlatform);
         SystemLibraries cRuntime = ucrt == null ? new EmptySystemLibraries() : ucrt.getCRuntime(targetPlatform);
@@ -149,7 +151,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             case ANY:
                 return select(targetMachine);
             default:
-                return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
+                return new UnsupportedPlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
         }
     }
 

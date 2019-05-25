@@ -47,6 +47,7 @@ public class ConsumerTargetTypeProvider implements TargetTypeProvider {
         configuredTargetTypes.put(GradleFileBuildOutcome.class.getCanonicalName(), GradleFileBuildOutcome.class);
     }
 
+    @Override
     public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
         Class<?>[] interfaces = protocolObject.getClass().getInterfaces();
         for (Class<?> i : interfaces) {

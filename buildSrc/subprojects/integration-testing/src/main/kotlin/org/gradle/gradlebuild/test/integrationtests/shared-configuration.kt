@@ -9,7 +9,6 @@ import org.gradle.kotlin.dsl.*
 
 import accessors.eclipse
 import accessors.groovy
-import accessors.idea
 import accessors.java
 
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
@@ -27,21 +26,19 @@ internal
 fun Project.addDependenciesAndConfigurations(testType: TestType) {
     val prefix = testType.prefix
     configurations {
-        getByName("${prefix}TestCompile") { extendsFrom(configurations["testCompile"]) }
-        getByName("${prefix}TestRuntime") { extendsFrom(configurations["testRuntime"]) }
         getByName("${prefix}TestImplementation") { extendsFrom(configurations["testImplementation"]) }
         getByName("${prefix}TestRuntimeOnly") { extendsFrom(configurations["testRuntimeOnly"]) }
         getByName("partialDistribution") { extendsFrom(configurations["${prefix}TestRuntimeClasspath"]) }
     }
 
     dependencies {
-        "${prefix}TestCompile"(project(":internalIntegTesting"))
+        "${prefix}TestImplementation"(project(":internalIntegTesting"))
 
-        //so that implicit help tasks are available:
-        "${prefix}TestRuntime"(project(":diagnostics"))
+        // so that implicit help tasks are available:
+        "${prefix}TestRuntimeOnly"(project(":diagnostics"))
 
-        //So that the wrapper and init task are added when integTests are run via commandline
-        "${prefix}TestRuntime"(project(":buildInit"))
+        // So that the wrapper and init task are added when integTests are run via commandline
+        "${prefix}TestRuntimeOnly"(project(":buildInit"))
     }
 }
 
@@ -65,13 +62,20 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     // For all of the other executers, add an executer specific task
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
-        createTestTask(taskName, executer, sourceSet, testType, Action {})
+        createTestTask(taskName, executer, sourceSet, testType, Action {
+            if (testType == TestType.CROSSVERSION) {
+                // the main crossVersion test tasks always only check the latest version,
+                // for true multi-version testing, we set up a test task per Gradle version,
+                // (see CrossVersionTestsPlugin).
+                systemProperties["org.gradle.integtest.versions"] = "default"
+            }
+        })
     }
     // Use the default executer for the simply named task. This is what most developers will run when running check
     val testTask = createTestTask(prefix + "Test", defaultExecuter, sourceSet, testType, Action {})
     // Create a variant of the test suite to force realization of component metadata
     if (testType == TestType.INTEGRATION) {
-        val forceRealizeTestTask = createTestTask(prefix + "ForceRealizeTest", defaultExecuter, sourceSet, testType, Action {
+        createTestTask(prefix + "ForceRealizeTest", defaultExecuter, sourceSet, testType, Action {
             systemProperties["org.gradle.integtest.force.realize.metadata"] = "true"
         })
     }
@@ -119,8 +123,9 @@ fun Project.configureIde(testType: TestType) {
 
     // We apply lazy as we don't want to depend on the order
     plugins.withType<IdeaPlugin> {
-        idea {
+        with(model) {
             module {
+                testSourceDirs = testSourceDirs + sourceSet.java.srcDirs
                 testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs
                 testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
                 scopes["TEST"]!!["plus"]!!.apply {

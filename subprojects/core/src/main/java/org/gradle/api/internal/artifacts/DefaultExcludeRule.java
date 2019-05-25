@@ -29,6 +29,7 @@ public class DefaultExcludeRule implements ExcludeRule {
         this.module = module;
     }
 
+    @Override
     public String getGroup() {
         return group;
     }
@@ -37,6 +38,7 @@ public class DefaultExcludeRule implements ExcludeRule {
         this.group = groupValue;
     }
 
+    @Override
     public String getModule() {
         return module;
     }

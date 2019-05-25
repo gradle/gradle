@@ -18,11 +18,13 @@ package org.gradle.execution.plan
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
+import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -975,6 +977,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         task.getDestroyables() >> emptyTaskDestroys()
         task.getLocalState() >> emptyTaskLocalState()
         task.getInputs() >> emptyTaskInputs()
+        task.getTaskIdentity() >> TaskIdentity.create(name, DefaultTask, root)
         return task
     }
 }

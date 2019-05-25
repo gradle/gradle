@@ -17,10 +17,10 @@
 package org.gradle.language.scala.internal.toolchain;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
-import org.gradle.util.TreeVisitor;
 
 public class NotFoundScalaToolProvider implements ToolProvider {
     private Exception exception;
@@ -51,7 +51,7 @@ public class NotFoundScalaToolProvider implements ToolProvider {
     }
 
     @Override
-    public void explain(TreeVisitor<? super String> visitor) {
+    public void explain(DiagnosticsVisitor visitor) {
         visitor.node("Cannot provide Scala Compiler");
         visitor.startChildren();
         visitor.node(exception.getCause().getMessage());

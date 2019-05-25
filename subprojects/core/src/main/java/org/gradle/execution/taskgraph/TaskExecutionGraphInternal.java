@@ -17,6 +17,7 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
@@ -65,4 +66,10 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Returns the number of work items in the graph.
      */
     int size();
+
+    /**
+     * Returns the root project of this graph.
+     */
+    ProjectInternal getRootProject();
+
 }

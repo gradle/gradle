@@ -21,9 +21,13 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.Swift3WithSwift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4WithSwift3XCTest
+import org.gradle.nativeplatform.fixtures.app.Swift5WithSwift4XCTest
 import spock.lang.Unroll
 
+import static org.junit.Assume.assumeTrue
+
 abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest implements XCTestExecutionResult {
+    // TODO: This test can be generalized so it's not opinionated on Swift 4.x but could also work on Swift 5.x
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
     def "take swift source compatibility from tested component"() {
         given:
@@ -37,7 +41,7 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT3
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
                     }
                 }
             }
@@ -53,10 +57,11 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         swift3Component.assertTestCasesRan(testExecutionResult)
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
     @Unroll
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:
+        assumeSwiftCompilerSupportsLanguageVersion(componentSourceCompatibility)
+        assumeSwiftCompilerSupportsLanguageVersion(xctestSourceCompatibility)
         makeSingleProject()
         fixture.writeToProject(testDirectory)
         buildFile << """
@@ -66,10 +71,10 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${testedComponentDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.${componentSourceCompatibility.name()}
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.${componentSourceCompatibility.name()}
                     }
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.${xctestSourceCompatibility.name()}
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.${xctestSourceCompatibility.name()}
                     }
                 }
             }
@@ -85,9 +90,15 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         fixture.assertTestCasesRan(testExecutionResult)
 
         where:
-        fixture                                           | componentSourceCompatibility | xctestSourceCompatibility
+        fixture                               | componentSourceCompatibility | xctestSourceCompatibility
         new Swift3WithSwift4XCTest('project') | SwiftVersion.SWIFT3          | SwiftVersion.SWIFT4
         new Swift4WithSwift3XCTest('project') | SwiftVersion.SWIFT4          | SwiftVersion.SWIFT3
+        new Swift5WithSwift4XCTest('project') | SwiftVersion.SWIFT5          | SwiftVersion.SWIFT4
+    }
+
+    void assumeSwiftCompilerSupportsLanguageVersion(SwiftVersion swiftVersion) {
+        assert toolChain != null, "You need to specify Swift tool chain requirement with 'requireSwiftToolChain()'"
+        assumeTrue((toolChain.version.major == 5 && swiftVersion.version in [5, 4]) || (toolChain.version.major == 4 && swiftVersion.version in [4, 3]) || (toolChain.version.major == 3 && swiftVersion.version == 3))
     }
 
     abstract String getTestedComponentDsl()
@@ -98,12 +109,16 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
     }
 
     @Override
-    String getTaskNameToAssembleDevelopmentBinary() {
-        return "test"
+    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
+        return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
     }
 
     @Override
-    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
-        return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
+    protected configureTargetMachines(String... targetMachines) {
+        return """
+            ${testedComponentDsl} {
+                targetMachines = [${targetMachines.join(",")}]
+            }
+        """ + super.configureTargetMachines(targetMachines)
     }
 }

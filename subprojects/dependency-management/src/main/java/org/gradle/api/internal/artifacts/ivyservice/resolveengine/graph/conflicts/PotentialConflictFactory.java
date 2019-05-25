@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
 import java.util.Set;
 
@@ -26,7 +25,7 @@ class PotentialConflictFactory {
 
     private static final PotentialConflict NO_CONFLICT = new NoConflict();
 
-    static PotentialConflict potentialConflict(final ConflictContainer<ModuleIdentifier, ? extends ComponentResolutionState>.Conflict conflict) {
+    static <T> PotentialConflict potentialConflict(final ConflictContainer<ModuleIdentifier, T>.Conflict conflict) {
         if (conflict == null) {
             return NO_CONFLICT;
         }

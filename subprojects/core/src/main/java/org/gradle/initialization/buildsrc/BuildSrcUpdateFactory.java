@@ -41,6 +41,7 @@ public class BuildSrcUpdateFactory implements Factory<ClassPath> {
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
+    @Override
     public ClassPath create() {
         Collection<File> classpath = build();
         LOGGER.debug("Gradle source classpath is: {}", classpath);

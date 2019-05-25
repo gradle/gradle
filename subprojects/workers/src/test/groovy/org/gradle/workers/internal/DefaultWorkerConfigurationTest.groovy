@@ -16,14 +16,14 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.internal.file.PathToFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.workers.ForkMode
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerConfiguration
 import spock.lang.Specification
 
 class DefaultWorkerConfigurationTest extends Specification {
-    WorkerConfiguration workerConfiguration = new DefaultWorkerConfiguration(Stub(PathToFileResolver))
+    WorkerConfiguration workerConfiguration = new DefaultWorkerConfiguration(TestFiles.execFactory())
 
     def "can accurately adapt to/from ForkMode"() {
         when:

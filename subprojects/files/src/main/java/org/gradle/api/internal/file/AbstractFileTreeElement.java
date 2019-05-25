@@ -43,14 +43,17 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         return getDisplayName();
     }
 
+    @Override
     public String getName() {
         return getRelativePath().getLastName();
     }
 
+    @Override
     public String getPath() {
         return getRelativePath().getPathString();
     }
 
+    @Override
     public void copyTo(OutputStream output) {
         try {
             InputStream inputStream = open();
@@ -64,6 +67,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         }
     }
 
+    @Override
     public boolean copyTo(File target) {
         validateTimeStamps();
         try {
@@ -96,6 +100,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         }
     }
 
+    @Override
     public int getMode() {
         return isDirectory()
             ? FileSystem.DEFAULT_DIR_MODE

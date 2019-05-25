@@ -15,21 +15,16 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.TextResourceScriptSource;
-import org.gradle.internal.resource.BasicTextResourceLoader;
-import org.gradle.internal.resource.TextResource;
-
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class SettingsLocation {
-    private File settingsDir;
-    private ScriptSource settingsScriptSource;
+    private final File settingsDir;
+    private final File settingsFile;
 
     public SettingsLocation(File settingsDir, File settingsFile) {
         this.settingsDir = settingsDir;
-        TextResource settingsResource = new BasicTextResourceLoader().loadFile("settings file", settingsFile);
-        this.settingsScriptSource = new TextResourceScriptSource(settingsResource);
+        this.settingsFile = settingsFile;
     }
 
     /**
@@ -40,10 +35,11 @@ public class SettingsLocation {
     }
 
     /**
-     * Returns the settings script. Never null.
+     * Returns the settings file. May be null.
      */
-    public ScriptSource getSettingsScriptSource() {
-        return settingsScriptSource;
+    @Nullable
+    public File getSettingsFile() {
+        return settingsFile;
     }
 }
 

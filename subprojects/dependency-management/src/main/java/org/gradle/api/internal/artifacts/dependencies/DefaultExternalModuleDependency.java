@@ -29,12 +29,14 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
         super(assertModuleId(group, name), version, configuration);
     }
 
+    @Override
     public DefaultExternalModuleDependency copy() {
         DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getTargetConfiguration());
         copyTo(copiedModuleDependency);
         return copiedModuleDependency;
     }
 
+    @Override
     public boolean contentEquals(Dependency dependency) {
         if (this == dependency) {
             return true;

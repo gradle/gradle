@@ -226,16 +226,17 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         when:
         def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
         def javaLibrary = project.components.getByName("java")
-        def runtimeUsage = javaLibrary.usages[0]
-        def apiUsage = javaLibrary.usages[1]
+        def runtimeUsage = javaLibrary.usages.find { it.name == 'runtimeElements' }
+        def apiUsage = javaLibrary.usages.find { it.name == 'apiElements' }
 
         then:
-        javaLibrary.artifacts.collect {it.file} == [jarTask.archivePath]
+        runtimeUsage.artifacts.collect {it.file} == [jarTask.archivePath]
         runtimeUsage.dependencies.size() == 2
         runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         runtimeUsage.dependencyConstraints.size() == 2
         runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencyConstraints
 
+        apiUsage.artifacts.collect {it.file} == [jarTask.archivePath]
         apiUsage.dependencies.size() == 1
         apiUsage.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         apiUsage.dependencyConstraints.size() == 1

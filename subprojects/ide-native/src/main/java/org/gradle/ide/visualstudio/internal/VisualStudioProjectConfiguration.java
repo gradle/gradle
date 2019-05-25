@@ -19,6 +19,7 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 
 public class VisualStudioProjectConfiguration {
     private final DefaultVisualStudioProject vsProject;
@@ -49,6 +50,7 @@ public class VisualStudioProjectConfiguration {
         return platformName;
     }
 
+    @Optional
     @Nested
     public VisualStudioTargetBinary getTargetBinary() {
         return binary;
@@ -64,8 +66,17 @@ public class VisualStudioProjectConfiguration {
         return vsProject;
     }
 
+    @Optional
     @Input
     public String getBinaryOutputPath() {
-        return binary.getOutputFile().getAbsolutePath();
+        if (isBuildable()) {
+            return binary.getOutputFile().getAbsolutePath();
+        }
+        return null;
+    }
+
+    @Input
+    public boolean isBuildable() {
+        return binary != null;
     }
 }

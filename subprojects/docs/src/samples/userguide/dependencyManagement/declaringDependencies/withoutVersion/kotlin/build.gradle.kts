@@ -13,12 +13,12 @@ dependencies {
 
 dependencies {
     constraints {
-        add("implementation", "org.springframework:spring-web:5.0.2.RELEASE")
+        implementation("org.springframework:spring-web:5.0.2.RELEASE")
     }
 }
 // end::dependencies-without-version[]
 
-task<Copy>("copyLibs") {
+tasks.register<Copy>("copyLibs") {
     from(configurations.compileClasspath)
     into("$buildDir/libs")
 }

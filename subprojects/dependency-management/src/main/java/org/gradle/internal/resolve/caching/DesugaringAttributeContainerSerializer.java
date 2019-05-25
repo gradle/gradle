@@ -41,6 +41,7 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
     private static final byte STRING_ATTRIBUTE = 1;
     private static final byte BOOLEAN_ATTRIBUTE = 2;
     private static final byte DESUGARED_ATTRIBUTE = 3;
+    private static final byte INTEGER_ATTRIBUTE = 4;
 
     public DesugaringAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator namedObjectInstantiator) {
         this.attributesFactory = attributesFactory;
@@ -59,6 +60,9 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
             } else if (type == STRING_ATTRIBUTE){
                 String value = decoder.readString();
                 attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), value);
+            } else if (type == INTEGER_ATTRIBUTE){
+                int value = decoder.readInt();
+                attributes = attributesFactory.concat(attributes, Attribute.of(name, Integer.class), value);
             } else if (type == DESUGARED_ATTRIBUTE) {
                 String value = decoder.readString();
                 attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, namedObjectInstantiator));
@@ -78,6 +82,9 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
             } else if (attribute.getType().equals(String.class)){
                 encoder.writeByte(STRING_ATTRIBUTE);
                 encoder.writeString((String) container.getAttribute(attribute));
+            } else if (attribute.getType().equals(Integer.class)){
+                encoder.writeByte(INTEGER_ATTRIBUTE);
+                encoder.writeInt((Integer) container.getAttribute(attribute));
             } else {
                 assert Named.class.isAssignableFrom(attribute.getType());
                 Named attributeValue = (Named) container.getAttribute(attribute);

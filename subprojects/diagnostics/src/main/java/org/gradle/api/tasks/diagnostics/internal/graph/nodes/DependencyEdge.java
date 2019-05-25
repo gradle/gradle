@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
+import java.util.List;
 import java.util.Set;
 
 public interface DependencyEdge {
@@ -34,7 +35,7 @@ public interface DependencyEdge {
 
     ComponentSelectionReason getReason();
 
-    ResolvedVariantResult getSelectedVariant();
+    List<ResolvedVariantResult> getSelectedVariants();
 
     Set<? extends RenderableDependency> getChildren();
 }

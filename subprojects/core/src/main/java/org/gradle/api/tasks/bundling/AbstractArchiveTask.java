@@ -23,6 +23,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.AbstractCopyTask;
@@ -101,13 +102,13 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
-     * <code>[baseName]-[appendix]-[version]-[classifier].[extension]</code>
+     * <code>[archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]</code>
      *
      * @return the archive name.
      * @deprecated Use {@link #getArchiveFileName()}
      */
     @Deprecated
-    @Internal("Represented as part of archiveFile")
+    @ReplacedBy("archiveFileName")
     public String getArchiveName() {
         return archiveName.get();
     }
@@ -125,7 +126,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
-     * <code>[baseName]-[appendix]-[version]-[classifier].[extension]</code>
+     * <code>[archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]</code>
      *
      * @return the archive name.
      * @since 5.1
@@ -136,20 +137,20 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * The path where the archive is constructed. The path is simply the {@code destinationDir} plus the {@code archiveName}.
+     * The path where the archive is constructed. The path is simply the {@code destinationDirectory} plus the {@code archiveFileName}.
      *
      * @return a File object with the path to the archive
      * @deprecated Use {@link #getArchiveFile()}
      */
     @Deprecated
-    @Internal("Represented as a part of the archiveFile")
+    @ReplacedBy("archiveFile")
     public File getArchivePath() {
         return getArchiveFile().get().getAsFile();
     }
 
     /**
      * The {@link RegularFile} where the archive is constructed.
-     * The path is simply the {@code destinationDir} plus the {@code archiveName}.
+     * The path is simply the {@code destinationDirectory} plus the {@code archiveFileName}.
      *
      * @return a {@link RegularFile} object with the path to the archive
      * @since 5.1
@@ -175,8 +176,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @return the directory
      * @deprecated Use {@link #getDestinationDirectory()}
      */
-    @Internal("Represented as part of archiveFile")
     @Deprecated
+    @ReplacedBy("destinationDirectory")
     public File getDestinationDir() {
         return archiveDestinationDirectory.getAsFile().get();
     }
@@ -188,7 +189,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setDestinationDir(File destinationDir) {
-        archiveDestinationDirectory.set(destinationDir);
+        archiveDestinationDirectory.set(getProject().file(destinationDir));
     }
 
     /**
@@ -208,8 +209,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveBaseName()}
      */
     @Nullable
-    @Internal("Represented as part of archiveFile")
     @Deprecated
+    @ReplacedBy("archiveBaseName")
     public String getBaseName() {
         return archiveBaseName.getOrNull();
     }
@@ -242,8 +243,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveAppendix()}
      */
     @Nullable
-    @Internal("Represented as part of archiveFile")
     @Deprecated
+    @ReplacedBy("archiveAppendix")
     public String getAppendix() {
         return archiveAppendix.getOrNull();
     }
@@ -276,8 +277,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveVersion()}
      */
     @Nullable
-    @Internal("Represented as part of archiveFile")
     @Deprecated
+    @ReplacedBy("archiveVersion")
     public String getVersion() {
         return archiveVersion.getOrNull();
     }
@@ -308,8 +309,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveExtension()}
      */
     @Nullable
-    @Internal("Represented as part of archiveFile")
     @Deprecated
+    @ReplacedBy("archiveExtension")
     public String getExtension() {
         return archiveExtension.getOrNull();
     }
@@ -340,8 +341,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveClassifier()}
      */
     @Nullable
-    @Internal("Represented as part of archiveFile")
     @Deprecated
+    @ReplacedBy("archiveClassifier")
     public String getClassifier() {
         return archiveClassifier.getOrNull();
     }

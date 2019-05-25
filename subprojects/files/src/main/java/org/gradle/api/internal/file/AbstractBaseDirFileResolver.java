@@ -19,7 +19,6 @@ package org.gradle.api.internal.file;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -29,12 +28,13 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class AbstractBaseDirFileResolver extends AbstractFileResolver {
-    public AbstractBaseDirFileResolver(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
-        super(fileSystem, patternSetFactory);
+    public AbstractBaseDirFileResolver(Factory<PatternSet> patternSetFactory) {
+        super(patternSetFactory);
     }
 
     protected abstract File getBaseDir();
 
+    @Override
     public String resolveAsRelativePath(Object path) {
         List<String> basePath = Arrays.asList(StringUtils.split(getBaseDir().getAbsolutePath(), "/" + File.separator));
         File targetFile = resolve(path);

@@ -16,14 +16,11 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.internal.HasInternalProtocol;
-
 /**
  * Describes an output property of a task that contains zero or more files.
  *
  * @since 3.0
  */
-@HasInternalProtocol
 public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder {
     /**
      * {@inheritDoc}

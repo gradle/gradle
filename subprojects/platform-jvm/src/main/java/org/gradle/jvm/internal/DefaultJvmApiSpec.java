@@ -43,11 +43,8 @@ public class DefaultJvmApiSpec implements JvmApiSpec {
     }
 
     private void validatePackageName(String value) {
-        try {
-            JvmPackageName.of(value);
-        } catch (IllegalArgumentException cause) {
-            throw new InvalidUserDataException(
-                format("Invalid public API specification: %s", cause.getMessage()), cause);
+        if (!JvmPackageName.isValid(value)) {
+            throw new InvalidUserDataException(format("Invalid public API specification: '%s' is not a valid package name", value));
         }
     }
 

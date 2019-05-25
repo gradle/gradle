@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class ClasspathSnapshotMaker implements ClasspathSnapshotProvider {
 
-    private static final Logger LOG = Logging.getLogger(ClasspathSnapshotMaker.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ClasspathSnapshotMaker.class);
 
     private final ClasspathSnapshotFactory classpathSnapshotFactory;
 

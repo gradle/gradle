@@ -64,7 +64,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         withBuildCache().run "customTask"
 
         then:
-        output =~ /Could not store entry .* for task ':customTask' in remote build cache: ${errorPattern}/
+        output =~ /Could not store entry .* in remote build cache: ${errorPattern}/
     }
 
     def "build cache is deactivated for the build if the connection times out"() {
@@ -77,7 +77,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         withBuildCache().run("customTask")
 
         then:
-        output =~ /Could not load entry .* for task ':customTask' from remote build cache: Read timed out/
+        output =~ /Could not load entry .* from remote build cache: Read timed out/
     }
 
     private void startServer() {

@@ -4,6 +4,7 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
     def "honors branch name in channel"() {
         buildFile << """
             plugins {
+                id 'java-library'
                 id 'gradlebuild.int-test-image'
                 id 'gradlebuild.performance-test'
             }
@@ -17,7 +18,7 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
             task assertChannel {
                 doLast {
                     distributedPerformanceTests.each { distributedPerformanceTest ->
-                        assert distributedPerformanceTest.channel.endsWith("-branch")
+                        assert distributedPerformanceTest.channel.endsWith("-myBranch")
                     }
                 }
             }
@@ -27,6 +28,6 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
             include 'internalPerformanceTesting', 'docs', 'launcher', 'apiMetadata'
         """
         expect:
-        build("assertChannel", "-Porg.gradle.performance.branchName=branch")
+        build("assertChannel")
     }
 }

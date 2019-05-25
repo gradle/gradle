@@ -49,19 +49,6 @@ public class FailureCollectingTaskDependencyResolveContext implements TaskDepend
     }
 
     @Override
-    public void maybeAdd(Object dependency) {
-        if (!seen.add(dependency)) {
-            return;
-        }
-        if (dependency instanceof TaskDependencyContainer) {
-            TaskDependencyContainer container = (TaskDependencyContainer) dependency;
-            container.visitDependencies(this);
-        } else {
-            context.maybeAdd(dependency);
-        }
-    }
-
-    @Override
     public void visitFailure(Throwable failure) {
         failures.add(failure);
     }

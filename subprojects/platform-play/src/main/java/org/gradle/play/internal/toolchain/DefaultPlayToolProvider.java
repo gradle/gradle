@@ -16,8 +16,8 @@
 
 package org.gradle.play.internal.toolchain;
 
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -25,16 +25,18 @@ import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompiler;
-import org.gradle.play.internal.routes.RoutesCompilerFactory;
+import org.gradle.play.internal.routes.RoutesCompilerAdapterFactory;
+import org.gradle.play.internal.routes.VersionedRoutesCompilerAdapter;
 import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.run.PlayApplicationRunnerFactory;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
-import org.gradle.play.internal.twirl.TwirlCompilerFactory;
+import org.gradle.play.internal.twirl.TwirlCompilerAdapterFactory;
+import org.gradle.play.internal.twirl.VersionedTwirlCompilerAdapter;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.TreeVisitor;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
@@ -42,7 +44,7 @@ import java.util.Set;
 
 class DefaultPlayToolProvider implements PlayToolProvider {
 
-    private final PathToFileResolver fileResolver;
+    private final JavaForkOptionsFactory forkOptionsFactory;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final File daemonWorkingDir;
     private final PlayPlatform targetPlatform;
@@ -52,11 +54,11 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final Set<File> javaScriptClasspath;
     private final ClasspathFingerprinter fingerprinter;
 
-    public DefaultPlayToolProvider(PathToFileResolver fileResolver, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory,
+    public DefaultPlayToolProvider(JavaForkOptionsFactory forkOptionsFactory, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory,
                                    WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath,
                                    ClasspathFingerprinter fingerprinter) {
-        this.fileResolver = fileResolver;
+        this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
@@ -72,14 +74,13 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     @Override
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
         if (TwirlCompileSpec.class.isAssignableFrom(spec)) {
-            TwirlCompiler twirlCompiler = TwirlCompilerFactory.create(targetPlatform);
-            return cast(new DaemonPlayCompiler<TwirlCompileSpec>(daemonWorkingDir, twirlCompiler, workerDaemonFactory, twirlClasspath, twirlCompiler.getClassLoaderPackages(), fileResolver));
+            VersionedTwirlCompilerAdapter adapter = TwirlCompilerAdapterFactory.createAdapter(targetPlatform);
+            return cast(new DaemonPlayCompiler<TwirlCompileSpec>(daemonWorkingDir, TwirlCompiler.class, new Object[] {adapter}, workerDaemonFactory, twirlClasspath, adapter.getClassLoaderPackages(), forkOptionsFactory));
         } else if (RoutesCompileSpec.class.isAssignableFrom(spec)) {
-            RoutesCompiler routesCompiler = RoutesCompilerFactory.create(targetPlatform);
-            return cast(new DaemonPlayCompiler<RoutesCompileSpec>(daemonWorkingDir, routesCompiler, workerDaemonFactory, routesClasspath, routesCompiler.getClassLoaderPackages(), fileResolver));
+            VersionedRoutesCompilerAdapter adapter = RoutesCompilerAdapterFactory.createAdapter(targetPlatform);
+            return cast(new DaemonPlayCompiler<RoutesCompileSpec>(daemonWorkingDir, RoutesCompiler.class, new Object[] {adapter}, workerDaemonFactory, routesClasspath, adapter.getClassLoaderPackages(), forkOptionsFactory));
         } else if (JavaScriptCompileSpec.class.isAssignableFrom(spec)) {
-            GoogleClosureCompiler javaScriptCompiler = new GoogleClosureCompiler();
-            return cast(new DaemonPlayCompiler<JavaScriptCompileSpec>(daemonWorkingDir, javaScriptCompiler, workerDaemonFactory, javaScriptClasspath, javaScriptCompiler.getClassLoaderPackages(), fileResolver));
+            return cast(new DaemonPlayCompiler<JavaScriptCompileSpec>(daemonWorkingDir, GoogleClosureCompiler.class, new Object[] {}, workerDaemonFactory, javaScriptClasspath, GoogleClosureCompiler.SHARED_PACKAGES, forkOptionsFactory));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }
@@ -104,6 +105,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     @Override
-    public void explain(TreeVisitor<? super String> visitor) {
+    public void explain(DiagnosticsVisitor visitor) {
     }
 }

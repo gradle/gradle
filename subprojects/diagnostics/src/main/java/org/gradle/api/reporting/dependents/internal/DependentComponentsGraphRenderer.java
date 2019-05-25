@@ -56,6 +56,7 @@ public class DependentComponentsGraphRenderer {
 
     private void doRender(final RenderableDependency node, boolean last) {
         renderer.visit(new Action<StyledTextOutput>() {
+            @Override
             public void execute(StyledTextOutput output) {
                 nodeRenderer.renderNode(output, node, false);
             }

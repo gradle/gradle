@@ -592,7 +592,7 @@ class GTEST_API_ TestResult {
 
   // Protects mutable state of the property vector and of owned
   // properties, whose values may be updated.
-  internal::Mutex test_properites_mutex_;
+  internal::Mutex test_properties_mutex_;
 
   // The vector of TestPartResults
   std::vector<TestPartResult> test_part_results_;
@@ -1255,7 +1255,7 @@ class GTEST_API_ UnitTest {
   internal::UnitTestImpl* impl() { return impl_; }
   const internal::UnitTestImpl* impl() const { return impl_; }
 
-  // These classes and funcions are friends as they need to access private
+  // These classes and functions are friends as they need to access private
   // members of UnitTest.
   friend class Test;
   friend class internal::AssertHelper;

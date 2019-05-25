@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;

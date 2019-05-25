@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -126,6 +127,10 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
                                     post = "devs@lists.example.org"
                                 }
                             }
+                            properties = [
+                                myProp: "myValue",
+                                "prop.with.dots": "anotherValue"
+                            ]
                             withXml {
                                 def dependency = asNode().appendNode('dependencies').appendNode('dependency')
                                 dependency.appendNode('groupId', 'junit')
@@ -218,6 +223,11 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         parsedPom.mailingLists[0].otherArchives.otherArchive.collect { it.text() } == ["http://archive.org/", "http://backup.example.org/"]
         parsedPom.mailingLists[1].name.text() == "Developers"
         parsedPom.mailingLists[1].post.text() == "devs@lists.example.org"
+
+        and:
+        parsedPom.properties.children().size() == 2
+        parsedPom.properties.myProp.text() == "myValue"
+        parsedPom.properties["prop.with.dots"].text() == "anotherValue"
     }
 
     def "can generate pom file without publishing"() {
@@ -361,6 +371,49 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         then:
         failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("Invalid publication 'maven': supplied version does not match POM file (cannot edit version directly in the POM file).")
+        failure.assertHasCause("Invalid publication 'maven': supplied version (1.0) does not match value from POM file (2.0). Cannot edit version directly in the POM file.")
+    }
+
+    def "withXml should not loose Gradle metadata marker"() {
+        settingsFile << """
+            rootProject.name = 'customizePom'
+        """
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
+        buildFile << """
+            apply plugin: 'java-library'
+            apply plugin: 'maven-publish'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    mavenCustom(MavenPublication) {
+                        from components.java
+                        pom.withXml {
+                            def dependency = asNode().appendNode('dependencies').appendNode('dependency')
+                            dependency.appendNode('groupId', 'junit')
+                            dependency.appendNode('artifactId', 'junit')
+                            dependency.appendNode('version', '4.12')
+                            dependency.appendNode('scope', 'runtime')
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('org.gradle.test', 'customizePom', '1.0')
+        module.assertPublished()
+        module.hasGradleMetadataRedirectionMarker()
+        def parsedPom = module.parsedPom
+        parsedPom.scope("runtime") {
+            assertDependsOn("junit:junit:4.12")
+        }
     }
 }

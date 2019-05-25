@@ -1,11 +1,11 @@
-tasks.create("hello") {
+tasks.register("hello") {
     doLast {
         println("hello")
     }
 }
 
 tasks {
-    create<Copy>("copy") {
+    register<Copy>("copy") {
         from(file("srcDir"))
         into(buildDir)
     }

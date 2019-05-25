@@ -116,7 +116,7 @@ public class RepositoryTransportFactory {
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
 
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
-        resourceConnector = startParameterResolutionOverride.overrideExternalResourceConnnector(resourceConnector);
+        resourceConnector = startParameterResolutionOverride.overrideExternalResourceConnector(resourceConnector);
 
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
         cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);

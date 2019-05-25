@@ -34,7 +34,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.InvocationSpec
@@ -234,7 +233,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
             results.endTime = clock.getCurrentTime()
 
-            results.assertEveryBuildSucceeds()
             resultStore.report(results)
 
             results
@@ -274,20 +272,9 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 def count = iterationCount("runs", invocationCount)
                 count.times { n ->
                     println "Run #${n + 1}"
-                    def measuredOperation = timer.measure {
+                    versionResults.add(timer.measure {
                         toolingApi.withConnection(wrapAction(action, experimentSpec))
-                    }
-
-                    boolean omit = false
-                    BuildExperimentListener.MeasurementCallback cb = new BuildExperimentListener.MeasurementCallback() {
-                        @Override
-                        void omitMeasurement() {
-                            omit = true
-                        }
-                    }
-                    if (!omit) {
-                        versionResults.add(measuredOperation)
-                    }
+                    })
                 }
             }
         }

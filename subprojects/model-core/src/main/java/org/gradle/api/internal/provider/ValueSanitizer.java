@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
+import javax.annotation.Nullable;
+
 public interface ValueSanitizer<T> {
-    T sanitize(T value);
+    @Nullable
+    T sanitize(@Nullable T value);
 }

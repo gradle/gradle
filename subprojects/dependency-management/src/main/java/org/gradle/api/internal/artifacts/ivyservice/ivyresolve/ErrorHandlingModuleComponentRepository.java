@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
+import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -62,8 +63,8 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     public ErrorHandlingModuleComponentRepository(ModuleComponentRepository delegate, RepositoryBlacklister remoteRepositoryBlacklister) {
         this.delegate = delegate;
-        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryBlacklister.NoOpBlacklister.INSTANCE);
-        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryBlacklister);
+        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryBlacklister.NoOpBlacklister.INSTANCE, getName());
+        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryBlacklister, getName());
     }
 
     @Override
@@ -113,12 +114,14 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         private final RepositoryBlacklister repositoryBlacklister;
         private final int maxTentativesCount;
         private final int initialBackOff;
+        private final String repositoryName;
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister) {
-            this(delegate, repositoryId, repositoryBlacklister, Integer.getInteger(MAX_TENTATIVES_BEFORE_BLACKLISTING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000));
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister, String repositoryName) {
+            this(delegate, repositoryId, repositoryBlacklister, Integer.getInteger(MAX_TENTATIVES_BEFORE_BLACKLISTING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000), repositoryName);
         }
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister, int maxTentativesCount, int initialBackoff) {
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister, int maxTentativesCount, int initialBackoff, String repositoryName) {
+            this.repositoryName = repositoryName;
             assert maxTentativesCount > 0 : "Max tentatives must be > 0";
             assert initialBackoff >= 0 : "Initial backoff must be >= 0";
             this.delegate = delegate;
@@ -136,56 +139,55 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         @Override
         public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.listModuleVersions(dependency, result),
-                () -> new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> {
-                    ModuleComponentSelector selector = dependency.getSelector();
-                    String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
-                    return new ModuleVersionResolveException(selector, message, throwable);
-                });
+                    () -> delegate.listModuleVersions(dependency, result),
+                    () -> new ModuleVersionResolveException(dependency.getSelector(), () -> BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> {
+                        ModuleComponentSelector selector = dependency.getSelector();
+                        return new ModuleVersionResolveException(selector, () -> "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".", throwable);
+                    });
         }
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
-                () -> new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> new ModuleVersionResolveException(moduleComponentIdentifier, throwable)
+                    () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
+                    () -> new ModuleVersionResolveException(moduleComponentIdentifier, () -> BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> new ModuleVersionResolveException(moduleComponentIdentifier, throwable)
             );
         }
 
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.resolveArtifactsWithType(component, artifactType, result),
-                () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> new ArtifactResolveException(component.getId(), throwable)
+                    () -> delegate.resolveArtifactsWithType(component, artifactType, result),
+                    () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> new ArtifactResolveException(component.getId(), throwable)
             );
         }
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.resolveArtifacts(component, result),
-                () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> new ArtifactResolveException(component.getId(), throwable));
+                    () -> delegate.resolveArtifacts(component, result),
+                    () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> new ArtifactResolveException(component.getId(), throwable));
         }
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             performOperationWithRetries(result,
-                () -> {
-                    delegate.resolveArtifact(artifact, moduleSource, result);
-                    if (result.hasResult()) {
-                        ArtifactResolveException failure = result.getFailure();
-                        if (!(failure instanceof ArtifactNotFoundException)) {
-                            return failure;
+                    () -> {
+                        delegate.resolveArtifact(artifact, moduleSource, result);
+                        if (result.hasResult()) {
+                            ArtifactResolveException failure = result.getFailure();
+                            if (!(failure instanceof ArtifactNotFoundException)) {
+                                return failure;
+                            }
                         }
-                    }
-                    return null;
-                },
-                () -> new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> new ArtifactResolveException(artifact.getId(), throwable));
+                        return null;
+                    },
+                    () -> new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> new ArtifactResolveException(artifact.getId(), throwable));
         }
 
         private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
@@ -238,18 +240,19 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                         }
                         return;
                     }
-                } catch (Throwable throwable) {
+                } catch (Exception throwable) {
                     unexpectedFailure = throwable;
                     failure = onError.transform(throwable);
                 }
-                if (retries == maxTentativesCount) {
+                boolean doNotRetry = !NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure);
+                if (doNotRetry || retries == maxTentativesCount) {
                     if (unexpectedFailure != null) {
                         repositoryBlacklister.blacklistRepository(repositoryId, unexpectedFailure);
                     }
                     result.failed(failure);
                     break;
                 } else {
-                    LOGGER.debug("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", repositoryId, backoff, maxTentativesCount - retries);
+                    LOGGER.debug("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", repositoryName, backoff, maxTentativesCount - retries, failure);
                     try {
                         Thread.sleep(backoff);
                         backoff *= 2;

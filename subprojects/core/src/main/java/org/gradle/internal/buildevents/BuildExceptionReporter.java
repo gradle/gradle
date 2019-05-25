@@ -67,6 +67,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         execute(failure);
     }
 
+    @Override
     public void execute(Throwable failure) {
         if (failure instanceof MultipleBuildFailures) {
             List<? extends Throwable> flattenedFailures = ((MultipleBuildFailures) failure).getCauses();

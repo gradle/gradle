@@ -24,26 +24,32 @@ public class DefaultAwsCredentials implements AwsCredentials {
     private String secretKey;
     private String sessionToken;
 
+    @Override
     public String getAccessKey() {
         return accessKey;
     }
 
+    @Override
     public void setAccessKey(String accessKey) {
         this.accessKey = accessKey;
     }
 
+    @Override
     public String getSecretKey() {
         return secretKey;
     }
 
+    @Override
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
     }
 
+    @Override
     public String getSessionToken() {
         return sessionToken;
     }
 
+    @Override
     public void setSessionToken(String token) {
         this.sessionToken = token;
     }

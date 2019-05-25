@@ -16,7 +16,7 @@
 = Installing Gradle
 
 You can install the Gradle build tool on Linux, macOS, or Windows.
-This document covers installing using a package manager like SDKMAN!, Homebrew, or Scoop, as well as manual installation.
+This document covers installing using a package manager like SDKMAN! or Homebrew, as well as manual installation.
 
 Use of the <<gradle_wrapper.adoc#sec:upgrading_wrapper,Gradle Wrapper>> is the recommended way to upgrade Gradle.
 
@@ -39,7 +39,7 @@ Gradle uses whatever JDK it finds in your path. Alternatively, you can set the `
 
 == Installing with a package manager
 
-link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-based systems.
+link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-like systems (macOS, Linux, Cygwin, Solaris and FreeBSD). We deploy and maintain the versions available from SDKMAN!.
 
 ----
 ❯ sdk install gradle
@@ -51,23 +51,7 @@ link:http://brew.sh[Homebrew] is "the missing package manager for macOS".
 ❯ brew install gradle
 ----
 
-link:http://scoop.sh[Scoop] is a command-line installer for Windows inspired by Homebrew.
-
-----
-❯ scoop install gradle
-----
-
-link:https://chocolatey.org[Chocolatey] is "the package manager for Windows".
-
-----
-❯ choco install gradle
-----
-
-link:https://www.macports.org[MacPorts] is a system for managing tools on macOS:
-
-----
-❯ sudo port install gradle
-----
+Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc. Linux package managers may distribute a modified version of Gradle that is incompatible or incomplete when compared to the official version (available from SDKMAN! or below).
 
 <<#sec:installation_next_steps,↓ Proceed to next steps>>
 
@@ -140,13 +124,8 @@ Open a console (or a Windows command prompt) and run `gradle -v` to run gradle a
 Gradle {gradleVersion}
 ------------------------------------------------------------
 
-Build time:   2018-02-21 15:28:42 UTC
-Revision:     819e0059da49f469d3e9b2896dc4e72537c4847d
+(environment specific information)
 
-Groovy:       2.4.15
-Ant:          Apache Ant(TM) version 1.9.9 compiled on February 2 2017
-JVM:          1.8.0_151 (Oracle Corporation 25.151-b12)
-OS:           Mac OS X 10.13.3 x86_64
 ----
 
 If you run into any trouble, see the <<troubleshooting.adoc#sec:troubleshooting_installation,section on troubleshooting installation>>.

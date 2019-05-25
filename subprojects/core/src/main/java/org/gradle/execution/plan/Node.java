@@ -17,10 +17,9 @@
 package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
+import org.gradle.api.Project;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -39,6 +38,7 @@ public abstract class Node implements Comparable<Node> {
 
     private ExecutionState state;
     private boolean dependenciesProcessed;
+    private boolean allDependenciesComplete;
     private Throwable executionFailure;
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
@@ -46,11 +46,6 @@ public abstract class Node implements Comparable<Node> {
     public Node() {
         this.state = ExecutionState.UNKNOWN;
     }
-
-    /**
-     * Adds the task associated with this node, if any, into the given collection.
-     */
-    public abstract void collectTaskInto(ImmutableCollection.Builder<Task> builder);
 
     @VisibleForTesting
     ExecutionState getState() {
@@ -66,7 +61,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isIncludeInGraph() {
-        return state == ExecutionState.NOT_REQUIRED || state == ExecutionState.UNKNOWN;
+        return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN;
     }
 
     public boolean isReady() {
@@ -93,6 +88,10 @@ public abstract class Node implements Comparable<Node> {
 
     public boolean isFailed() {
         return getNodeFailure() != null || getExecutionFailure() != null;
+    }
+
+    public boolean isExecuted() {
+        return state == ExecutionState.EXECUTED;
     }
 
     /**
@@ -125,7 +124,11 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void require() {
-        state = ExecutionState.SHOULD_RUN;
+        if (state != ExecutionState.SHOULD_RUN) {
+            // When the state changes to `SHOULD_RUN`, the dependencies need to be reprocessed since they also may be required now.
+            dependenciesProcessed = false;
+            state = ExecutionState.SHOULD_RUN;
+        }
     }
 
     public void doNotRequire() {
@@ -170,7 +173,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     @OverridingMethodsMustInvokeSuper
-    public boolean allDependenciesComplete() {
+    protected boolean doCheckDependenciesComplete() {
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
                 return false;
@@ -180,6 +183,25 @@ public abstract class Node implements Comparable<Node> {
         return true;
     }
 
+    /**
+     * Returns if all dependencies completed, but have not been completed in the last check.
+     */
+    public boolean updateAllDependenciesComplete() {
+        if (!allDependenciesComplete) {
+            forceAllDependenciesCompleteUpdate();
+            return allDependenciesComplete;
+        }
+        return false;
+    }
+
+    public void forceAllDependenciesCompleteUpdate() {
+        allDependenciesComplete = doCheckDependenciesComplete();
+    }
+
+    public boolean allDependenciesComplete() {
+        return allDependenciesComplete;
+    }
+
     public boolean allDependenciesSuccessful() {
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isSuccessful()) {
@@ -187,6 +209,11 @@ public abstract class Node implements Comparable<Node> {
             }
         }
         return true;
+    }
+
+    @OverridingMethodsMustInvokeSuper
+    protected Iterable<Node> getAllPredecessors() {
+        return getDependencyPredecessors();
     }
 
     public abstract void prepareForExecution();
@@ -219,6 +246,26 @@ public abstract class Node implements Comparable<Node> {
         return dependencySuccessors.contains(successor);
     }
 
+    public abstract Set<Node> getFinalizers();
+
+    public abstract boolean isPublicNode();
+
+    /**
+     * Whether the task needs to be queried if it is completed.
+     *
+     * Everything where the value of {@link #isComplete()} depends on some other state, like another task in an included build.
+     */
+    public abstract boolean requiresMonitoring();
+
+    /**
+     * Returns the project which the node requires access to, if any.
+     *
+     * This should return an identifier or the {@link org.gradle.api.internal.project.ProjectState} container, or some abstract resource, rather than the mutable project state itself.
+     */
+    @Nullable
+    public abstract Project getProject();
+
     @Override
     public abstract String toString();
+
 }

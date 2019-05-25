@@ -19,10 +19,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider;
@@ -56,7 +56,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
                                                FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                                MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                               ModuleMetadataParser metadataParser,
+                                               GradleModuleMetadataParser metadataParser,
                                                AuthenticationContainer authenticationContainer,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                FileResourceRepository fileResourceRepository,
@@ -68,6 +68,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    @Override
     protected MavenResolver createRealResolver() {
         URI rootUri = getUrl();
         if (rootUri == null) {
@@ -95,6 +96,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         return resolver;
     }
 
+    @Override
     protected DefaultMavenPomMetadataSource.MavenMetadataValidator getMetadataValidationServices() {
         return new MavenLocalMetadataValidator();
     }

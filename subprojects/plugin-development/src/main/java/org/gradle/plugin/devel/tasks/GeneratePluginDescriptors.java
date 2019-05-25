@@ -42,7 +42,7 @@ public class GeneratePluginDescriptors extends DefaultTask {
 
     public GeneratePluginDescriptors() {
         ObjectFactory objectFactory = getProject().getObjects();
-        declarations = objectFactory.listProperty(PluginDeclaration.class).empty();
+        declarations = objectFactory.listProperty(PluginDeclaration.class);
         outputDirectory = objectFactory.directoryProperty();
     }
 

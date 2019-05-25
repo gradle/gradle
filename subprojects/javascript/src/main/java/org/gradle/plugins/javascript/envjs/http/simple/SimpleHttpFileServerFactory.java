@@ -34,6 +34,7 @@ import java.net.InetSocketAddress;
 
 public class SimpleHttpFileServerFactory implements HttpFileServerFactory {
 
+    @Override
     public HttpFileServer start(File contentRoot, int port) {
         Container container = new SimpleFileServerContainer(new FileContext(contentRoot));
 
@@ -44,6 +45,7 @@ public class SimpleHttpFileServerFactory implements HttpFileServerFactory {
             InetSocketAddress usedAddress = (InetSocketAddress)connection.connect(address);
 
             return new SimpleHttpFileServer(contentRoot, usedAddress.getPort(), new Stoppable() {
+                @Override
                 public void stop() {
                     try {
                         server.stop();

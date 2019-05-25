@@ -21,13 +21,15 @@ import org.gradle.nativeplatform.platform.internal.Architectures
 
 class OtoolBinaryInfo implements BinaryInfo {
     def binaryFile
+    private final List<String> environments
 
-    OtoolBinaryInfo(File binaryFile) {
+    OtoolBinaryInfo(File binaryFile, List<String> environments) {
         this.binaryFile = binaryFile
+        this.environments = environments
     }
 
     ArchitectureInternal getArch() {
-        def process = ['otool', '-hv', binaryFile.absolutePath].execute()
+        def process = ['otool', '-hv', binaryFile.absolutePath].execute(environments, null)
         def lines = process.inputStream.readLines()
         def archString = lines.last().split()[1]
 
@@ -42,18 +44,18 @@ class OtoolBinaryInfo implements BinaryInfo {
     }
 
     List<String> listObjectFiles() {
-        def process = ['ar', '-t', binaryFile.getAbsolutePath()].execute()
+        def process = ['ar', '-t', binaryFile.getAbsolutePath()].execute(environments, null)
         return process.inputStream.readLines().drop(1)
     }
 
     List<String> listLinkedLibraries() {
-        def process = ['otool', '-L', binaryFile.absolutePath].execute()
+        def process = ['otool', '-L', binaryFile.absolutePath].execute(environments, null)
         def lines = process.inputStream.readLines()
         return lines
     }
 
     List<BinaryInfo.Symbol> listSymbols() {
-        def process = ['nm', '-a', '-f', 'posix', binaryFile.absolutePath].execute()
+        def process = ['nm', '-a', '-f', 'posix', binaryFile.absolutePath].execute(environments, null)
         def lines = process.inputStream.readLines()
         return lines.collect { line ->
             // Looks like:
@@ -71,14 +73,17 @@ class OtoolBinaryInfo implements BinaryInfo {
     }
 
     List<BinaryInfo.Symbol> listDwarfSymbols() {
-        def process = ['dwarfdump', '--diff', binaryFile.absolutePath].execute()
+        def process = ['dwarfdump', '--diff', binaryFile.absolutePath].execute(environments, null)
         def lines = process.inputStream.readLines()
         def symbols = []
 
         lines.each { line ->
-            def findSymbol = (line =~ /.*AT_name\(\s+"(.*)"\s+\)/)
+            // The output changed on Apple toolchain (Xcode):
+            //   10.1 and earlier: `    AT_name( "<...>" )`
+            //   10.2 (and maybe later): `    DW_AT_NAME    ("<...>")`
+            def findSymbol = (line =~ /.*(DW_)?AT_name\s*\(\s*"(.*)"\s*\)/)
             if (findSymbol.matches()) {
-                def name = new File(findSymbol[0][1] as String).name.trim()
+                def name = new File(findSymbol[0][2] as String).name.trim()
                 symbols << new BinaryInfo.Symbol(name, 'D' as char, true)
             }
         }
@@ -86,7 +91,7 @@ class OtoolBinaryInfo implements BinaryInfo {
     }
 
     String getSoName() {
-        def process = ['otool', '-D', binaryFile.absolutePath].execute()
+        def process = ['otool', '-D', binaryFile.absolutePath].execute(environments, null)
         def lines = process.inputStream.readLines()
         return lines[1]
     }

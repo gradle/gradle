@@ -16,10 +16,12 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.util.Requires
 import spock.lang.Unroll
 
-import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
     @Unroll
@@ -41,7 +43,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     @Unroll
     def 'kotlin android #androidPluginVersion plugin'() {
         given:
-        assertAndroidHomeSet()
+        AndroidHome.assertIsSet()
         useSample("android-kotlin-example")
         replaceVariablesInBuildFile(
             kotlinVersion: TestedVersions.kotlin.latest(),
@@ -56,5 +58,23 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         where:
         androidPluginVersion << TestedVersions.androidGradle
+    }
+
+    @Unroll
+    @Requires(KOTLIN_SCRIPT)
+    def 'kotlin js #version plugin'() {
+        given:
+        useSample("kotlin-js-sample")
+        withKotlinBuildFile()
+        replaceVariablesInBuildFile(kotlinVersion: version)
+
+        when:
+        def result = runner('compileKotlin2Js').forwardOutput().build()
+
+        then:
+        result.task(':compileKotlin2Js').outcome == SUCCESS
+
+        where:
+        version << TestedVersions.kotlin
     }
 }

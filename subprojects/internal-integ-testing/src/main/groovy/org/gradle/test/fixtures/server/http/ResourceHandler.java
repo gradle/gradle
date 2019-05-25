@@ -16,11 +16,7 @@
 
 package org.gradle.test.fixtures.server.http;
 
-import com.sun.net.httpserver.HttpExchange;
-
-import java.io.IOException;
-
-interface ResourceHandler {
+interface ResourceHandler extends ResponseProducer {
     /**
      * Returns the method for this handler.
      */
@@ -30,9 +26,4 @@ interface ResourceHandler {
      * Returns the path for this handler.
      */
     String getPath();
-
-    /**
-     * Called to handle a request. Is *not* called under lock.
-     */
-    void writeTo(int requestId, HttpExchange exchange) throws IOException;
 }

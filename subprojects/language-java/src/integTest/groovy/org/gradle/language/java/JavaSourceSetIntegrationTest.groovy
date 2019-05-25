@@ -148,26 +148,26 @@ model {
     def "can build JAR from multiple source sets"() {
         given:
         file("src/main/java/Main.java") << "public class Main {}"
-        file("src/main/resources/main.properties") << "java=6"
-        file("src/main/java7/Java7.java") << "public class Java7 {}"
-        file("src/main/java7-resources/java7.properties") << "java=7"
+        file("src/main/resources/main.properties") << "java=7"
+        file("src/main/java8/Java8.java") << "public class Java8 {}"
+        file("src/main/java8-resources/java8.properties") << "java=8"
 
         applyJavaPlugin(buildFile)
         buildFile << '''
 model {
     components {
         main(JvmLibrarySpec) {
-            targetPlatform 'java6'
             targetPlatform 'java7'
+            targetPlatform 'java8'
             binaries {
                 withType(JarBinarySpec) { binary ->
-                    if (binary.targetPlatform.name == "java7") {
+                    if (binary.targetPlatform.name == "java8") {
                         sources {
-                            java7(JavaSourceSet) {
-                                source.srcDir "src/main/java7"
+                            java8(JavaSourceSet) {
+                                source.srcDir "src/main/java8"
                             }
-                            java7Resources(JvmResourceSet) {
-                                source.srcDir "src/main/java7-resources"
+                            java8Resources(JvmResourceSet) {
+                                source.srcDir "src/main/java8-resources"
                             }
                         }
                     }
@@ -182,10 +182,10 @@ model {
         succeeds "assemble"
 
         then:
-        new JarTestFixture(file("build/jars/main/java6Jar/main.jar")).hasDescendants(
-            "Main.class", "main.properties");
         new JarTestFixture(file("build/jars/main/java7Jar/main.jar")).hasDescendants(
-            "Main.class", "main.properties", "Java7.class", "java7.properties");
+            "Main.class", "main.properties");
+        new JarTestFixture(file("build/jars/main/java8Jar/main.jar")).hasDescendants(
+            "Main.class", "main.properties", "Java8.class", "java8.properties");
     }
 
 }

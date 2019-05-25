@@ -17,17 +17,19 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 plugins {
     `java-library`
-    // DynamicObjectAware and DynamicObjectUtil should move to org.gralde.internal.metaobject (but it breaks third-party plugins)
+    // DynamicObjectAware and DynamicObjectUtil should move to org.gradle.internal.metaobject (but it breaks third-party plugins)
     // gradlebuild.classycle
 }
 
 dependencies {
-    api(library("groovy"))
-    api(project(":baseServices"))
+    implementation(project(":baseServices"))
+    
+    implementation(library("groovy"))
+    implementation(library("guava"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 

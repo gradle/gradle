@@ -316,7 +316,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: failure.assertHasCause("Cannot change dependencies of configuration ':a' after it has been included in dependency resolution.")
     }
 
-    def "allows changing resolution stragegy of a configuration whose child has been resolved"() {
+    def "allows changing resolution strategy of a configuration whose child has been resolved"() {
         buildFile << """
             configurations {
                 a

@@ -32,6 +32,7 @@ public class DefaultTemplateLibraryVersionProvider implements TemplateLibraryVer
         }
     }
 
+    @Override
     public String getVersion(String module) {
         return libraryVersions.getProperty(module);
     }

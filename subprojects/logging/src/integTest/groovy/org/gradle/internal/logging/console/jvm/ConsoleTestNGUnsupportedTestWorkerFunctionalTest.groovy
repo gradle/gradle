@@ -17,13 +17,14 @@
 package org.gradle.internal.logging.console.jvm
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.*
+import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testClass
+import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testableJavaProject
+import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.useTestNG
 
 class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
 
@@ -32,8 +33,8 @@ class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrati
     private static final String SERVER_RESOURCE_2 = 'test-2'
     private static final String TESTNG_DEPENDENCY = 'org.testng:testng:6.3.1'
     private static final String TESTNG_ANNOTATION = 'org.testng.annotations.Test'
-    private static final JavaTestClass TEST_CLASS_1 = JavaTestClass.PRESERVED_TEST1
-    private static final JavaTestClass TEST_CLASS_2 = JavaTestClass.PRESERVED_TEST2
+    private static final String TEST_CLASS_1 = 'Test1'
+    private static final String TEST_CLASS_2 = 'Test2'
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -48,21 +49,15 @@ class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrati
         given:
         buildFile << testableJavaProject(TESTNG_DEPENDENCY, MAX_WORKERS)
         buildFile << useTestNG()
-        file("src/test/java/${TEST_CLASS_1.fileRepresentation}") << testClass(TESTNG_ANNOTATION, TEST_CLASS_1.classNameWithoutPackage, SERVER_RESOURCE_1, server)
-        file("src/test/java/${TEST_CLASS_2.fileRepresentation}") << testClass(TESTNG_ANNOTATION, TEST_CLASS_2.classNameWithoutPackage, SERVER_RESOURCE_2, server)
-        def testExecution = server.expectConcurrentAndBlock(2, SERVER_RESOURCE_1, SERVER_RESOURCE_2)
+        file("src/test/java/${TEST_CLASS_1}.java") << testClass(TESTNG_ANNOTATION, TEST_CLASS_1, SERVER_RESOURCE_1, server)
+        file("src/test/java/${TEST_CLASS_2}.java") << testClass(TESTNG_ANNOTATION, TEST_CLASS_2, SERVER_RESOURCE_2, server)
+        server.expectConcurrent(SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
-        def gradleHandle = executer.withTasks('test').start()
-        testExecution.waitForAllPendingCalls()
+        run('test')
 
         then:
-        ConcurrentTestUtil.poll {
-            assert !containsTestExecutionWorkInProgressLine(gradleHandle, ':test', TEST_CLASS_1.renderedClassName)
-            assert !containsTestExecutionWorkInProgressLine(gradleHandle, ':test', TEST_CLASS_2.renderedClassName)
-        }
-
-        testExecution.release(2)
-        gradleHandle.waitForFinish()
+        outputDoesNotContain(TEST_CLASS_1)
+        outputDoesNotContain(TEST_CLASS_2)
     }
 }

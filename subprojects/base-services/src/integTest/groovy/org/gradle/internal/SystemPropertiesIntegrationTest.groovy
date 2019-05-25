@@ -28,7 +28,7 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
         final int threadCount = 100
         Factory<String> factory = Mock()
         String factoryCreationResult = 'test'
-        File originalJavaHomeDir = SystemProperties.instance.javaHomeDir
+        File originalJavaHomeDir = new File(System.properties['java.home'] as String)
         File providedJavaHomeDir = temporaryFolder.file('my/test/java/home/toolprovider')
 
         when:
@@ -43,10 +43,10 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
 
         then:
         threadCount * factory.create() >> {
-            assert SystemProperties.instance.javaHomeDir == providedJavaHomeDir
+            assert new File(System.properties['java.home'] as String) == providedJavaHomeDir
             factoryCreationResult
         }
-        assert SystemProperties.instance.javaHomeDir == originalJavaHomeDir
+        assert new File(System.properties['java.home'] as String) == originalJavaHomeDir
     }
 
     def "sets a system property for the duration of a Factory operation"() {
@@ -88,7 +88,6 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
         assert System.getProperty(notsetPropertyName) == null
     }
 
-
     def "withProperty and withProperties are never run concurrently"() {
         final int threadCount = 100
         def id = UUID.randomUUID().toString()
@@ -98,6 +97,30 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
             threadCount.times { i ->
                 start {
                     SystemProperties.instance.withSystemProperty(id, "bar", {"baz"})
+                }
+                start {
+                    SystemProperties.instance.withSystemProperties {
+                        System.properties.each {
+                            assert it.key != id
+                        }
+                    }
+                }
+            }
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "withProperties(Map) and withProperties are never run concurrently"() {
+        final int threadCount = 100
+        def id = UUID.randomUUID().toString()
+
+        when:
+        async {
+            threadCount.times { i ->
+                start {
+                    SystemProperties.instance.withSystemProperties((id): "bar", {"baz"})
                 }
                 start {
                     SystemProperties.instance.withSystemProperties {

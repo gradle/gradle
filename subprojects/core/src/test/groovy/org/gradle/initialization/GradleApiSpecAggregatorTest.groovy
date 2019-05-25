@@ -16,6 +16,7 @@
 
 package org.gradle.initialization
 
+import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 import static java.util.Collections.enumeration
@@ -30,7 +31,7 @@ class GradleApiSpecAggregatorTest extends Specification {
         1 * classLoader.loadClass(SpecProvider1.class.name) >> SpecProvider1
         1 * classLoader.loadClass(SpecProvider2.class.name) >> SpecProvider2
 
-        def subject = new GradleApiSpecAggregator(classLoader)
+        def subject = new GradleApiSpecAggregator(classLoader, DirectInstantiator.INSTANCE)
 
         when:
         def aggregate = subject.aggregate()

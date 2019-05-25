@@ -102,6 +102,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask include(String... includes) {
         patternSet.include(includes);
         return this;
@@ -110,6 +111,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask include(Iterable<String> includes) {
         patternSet.include(includes);
         return this;
@@ -118,6 +120,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask include(Spec<FileTreeElement> includeSpec) {
         patternSet.include(includeSpec);
         return this;
@@ -126,6 +129,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask include(Closure includeSpec) {
         patternSet.include(includeSpec);
         return this;
@@ -134,6 +138,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask exclude(String... excludes) {
         patternSet.exclude(excludes);
         return this;
@@ -142,6 +147,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask exclude(Iterable<String> excludes) {
         patternSet.exclude(excludes);
         return this;
@@ -150,6 +156,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask exclude(Spec<FileTreeElement> excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
@@ -158,6 +165,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
@@ -166,6 +174,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     @Internal
     public Set<String> getIncludes() {
         return patternSet.getIncludes();
@@ -174,6 +183,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask setIncludes(Iterable<String> includes) {
         patternSet.setIncludes(includes);
         return this;
@@ -182,6 +192,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     @Internal
     public Set<String> getExcludes() {
         return patternSet.getExcludes();
@@ -190,6 +201,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SourceTask setExcludes(Iterable<String> excludes) {
         patternSet.setExcludes(excludes);
         return this;

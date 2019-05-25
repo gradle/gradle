@@ -22,26 +22,31 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":baseServicesGroovy"))
-    api(project(":coreApi"))
-    api(project(":modelCore"))
-    api(library("guava"))
     api(library("jsr305"))
-    api(library("inject"))
 
+    implementation(project(":baseServices"))
+    implementation(project(":baseServicesGroovy"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
     implementation(project(":logging"))
     implementation(project(":native"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
+    implementation(library("inject"))
 
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":resources"))
+    
     testFixturesImplementation(project(":internalTesting"))
 }
 
 java {
     gradlebuildJava {
-        moduleType = ModuleType.ENTRY_POINT
+        moduleType = ModuleType.CORE
     }
 }
 

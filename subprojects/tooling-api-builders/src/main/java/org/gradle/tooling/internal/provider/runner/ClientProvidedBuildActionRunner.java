@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.BuildResult;
-import org.gradle.api.BuildCancelledException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
@@ -27,11 +26,8 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
-import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
@@ -51,7 +47,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         Object clientAction = payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
         Throwable buildFailure = null;
-        Throwable clientFailure = null;
+        RuntimeException clientFailure = null;
         ResultBuildingListener listener = new ResultBuildingListener(gradle, clientAction);
         try {
             gradle.addBuildListener(listener);
@@ -60,19 +56,16 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
             } else {
                 buildController.configure();
             }
-        } catch (BuildCancelledException e) {
-            buildFailure = e;
-            clientFailure = new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {
             buildFailure = e;
-            clientFailure = new BuildExceptionVersion1(e);
+            clientFailure = e;
         }
-        if (listener.actionFailure != null && !(listener.actionFailure instanceof BuildCancelledException)) {
+        if (listener.actionFailure != null) {
             clientFailure = new InternalBuildActionFailureException(listener.actionFailure);
         }
 
         if (buildFailure != null) {
-            return Result.of(new BuildActionResult(null, payloadSerializer.serialize(clientFailure)), buildFailure);
+            return Result.failed(buildFailure, clientFailure);
         }
         return Result.of(listener.result);
     }
@@ -92,7 +85,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
     private class ResultBuildingListener extends InternalBuildAdapter {
         private final GradleInternal gradle;
         private final Object clientAction;
-        BuildActionResult result;
+        Object result;
         RuntimeException actionFailure;
 
         ResultBuildingListener(GradleInternal gradle, Object clientAction) {
@@ -116,20 +109,16 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         @SuppressWarnings("deprecation")
         private void buildResult(Object clientAction, GradleInternal gradle) {
             DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
-            Object model;
             try {
                 if (clientAction instanceof InternalBuildActionVersion2<?>) {
-                    model = ((InternalBuildActionVersion2) clientAction).execute(internalBuildController);
+                    result = ((InternalBuildActionVersion2) clientAction).execute(internalBuildController);
                 } else {
-                    model = ((org.gradle.tooling.internal.protocol.InternalBuildAction) clientAction).execute(internalBuildController);
+                    result = ((org.gradle.tooling.internal.protocol.InternalBuildAction) clientAction).execute(internalBuildController);
                 }
             } catch (RuntimeException e) {
                 actionFailure = e;
                 throw e;
             }
-
-            PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
-            result = new BuildActionResult(payloadSerializer.serialize(model), null);
         }
     }
 }

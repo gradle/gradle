@@ -33,13 +33,13 @@ class CompilerMetaDataProviderFactoryTest extends Specification {
     def "caches result of actual #compiler metadata provider"() {
         def binary = new File("any")
         when:
-        def metadata = metadataProvider(compiler).getCompilerMetaData(binary, [], [])
+        def metadata = metadataProvider(compiler).getCompilerMetaData([]) { it.executable(binary) }
 
         then:
         interaction compilerShouldBeExecuted
 
         when:
-        def newMetadata = metadataProvider(compiler).getCompilerMetaData(binary, [], [])
+        def newMetadata = metadataProvider(compiler).getCompilerMetaData([]) { it.executable(binary) }
 
         then:
         0 * _
@@ -54,20 +54,20 @@ class CompilerMetaDataProviderFactoryTest extends Specification {
         def firstBinary = new File("first")
         def secondBinary = new File("second")
         when:
-        def firstMetadata = metadataProvider(compiler).getCompilerMetaData(firstBinary, [], [])
+        def firstMetadata = metadataProvider(compiler).getCompilerMetaData([]) { it.executable(firstBinary) }
 
         then:
         interaction compilerShouldBeExecuted
 
         when:
-        def secondMetadata = metadataProvider(compiler).getCompilerMetaData(secondBinary, [], [])
+        def secondMetadata = metadataProvider(compiler).getCompilerMetaData([]) { it.executable(secondBinary) }
 
         then:
         interaction compilerShouldBeExecuted
         firstMetadata != secondMetadata
 
         when:
-        def firstMetadataAgain = metadataProvider(compiler).getCompilerMetaData(firstBinary, [], [])
+        def firstMetadataAgain = metadataProvider(compiler).getCompilerMetaData([]) { it.executable(firstBinary) }
 
         then:
         0 * _
@@ -83,20 +83,20 @@ class CompilerMetaDataProviderFactoryTest extends Specification {
         def firstArgs = ["-m32"]
         def secondArgs = ["-m64"]
         when:
-        def firstMetadata = metadataProvider(compiler).getCompilerMetaData(binary, firstArgs, [])
+        def firstMetadata = metadataProvider(compiler).getCompilerMetaData([]) { it.executable(binary).args(firstArgs) }
 
         then:
         interaction compilerShouldBeExecuted
 
         when:
-        def secondMetadata = metadataProvider(compiler).getCompilerMetaData(binary, secondArgs, [])
+        def secondMetadata = metadataProvider(compiler).getCompilerMetaData([]) { it.executable(binary).args(secondArgs) }
 
         then:
         interaction compilerShouldBeExecuted
         firstMetadata != secondMetadata
 
         when:
-        def firstMetadataAgain = metadataProvider(compiler).getCompilerMetaData(binary, firstArgs, [])
+        def firstMetadataAgain = metadataProvider(compiler).getCompilerMetaData([]) { it.executable(binary).args(firstArgs) }
 
         then:
         0 * _
@@ -112,20 +112,20 @@ class CompilerMetaDataProviderFactoryTest extends Specification {
         def firstPath = []
         def secondPath = [new File("/usr/local/bin")]
         when:
-        def firstMetadata = metadataProvider(compiler).getCompilerMetaData(binary, [], firstPath)
+        def firstMetadata = metadataProvider(compiler).getCompilerMetaData(firstPath) { it.executable(binary) }
 
         then:
         interaction compilerShouldBeExecuted
 
         when:
-        def secondMetadata = metadataProvider(compiler).getCompilerMetaData(binary, [], secondPath)
+        def secondMetadata = metadataProvider(compiler).getCompilerMetaData(secondPath) { it.executable(binary) }
 
         then:
         interaction compilerShouldBeExecuted
         firstMetadata != secondMetadata
 
         when:
-        def firstMetadataAgain = metadataProvider(compiler).getCompilerMetaData(binary, [], firstPath)
+        def firstMetadataAgain = metadataProvider(compiler).getCompilerMetaData(firstPath) { it.executable(binary) }
 
         then:
         0 * _

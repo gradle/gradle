@@ -21,6 +21,7 @@ import org.gradle.util.TextUtil
 class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.noDeprecationChecks()
         buildFile << """
             plugins {
                 id 'play-application'

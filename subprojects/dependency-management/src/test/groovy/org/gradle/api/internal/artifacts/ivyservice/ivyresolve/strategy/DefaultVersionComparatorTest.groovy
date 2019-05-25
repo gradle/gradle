@@ -57,7 +57,9 @@ class DefaultVersionComparatorTest extends Specification {
         where:
         smaller     | larger
         "1.0.a"     | "1.0.b"
+        "1.0.A"     | "1.0.b"
         "1.0-alpha" | "1.0-beta"
+        "1.0-ALPHA" | "1.0-BETA"
         "1.0.alpha" | "1.0.b"
         "alpha"     | "beta"
     }
@@ -117,6 +119,26 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0.0.RC2"   | "1.0.0.RELEASE"
     }
 
+    def "compares special qualifiers against non-special strings"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller        | larger
+        "1.0-dev"      | "1.0-a"
+        "1.0-a"        | "1.0-rc"
+        "1.0-a"        | "1.0-release"
+        "1.0-a"        | "1.0-final"
+
+        "1.0-dev"      | "1.0-SNAPSHOT"
+        "1.0-SNAPSHOT" | "1.0-rc"
+        "1.0-SNAPSHOT" | "1.0-release"
+        "1.0-SNAPSHOT" | "1.0-final"
+    }
+
     def "compares identical versions equal"() {
         expect:
         compare(v1, v2) == 0
@@ -137,6 +159,43 @@ class DefaultVersionComparatorTest extends Specification {
         compare("1_0", "1-0") == 0
         compare("1-0", "1+0") == 0
         compare("1.a.2", "1a2") == 0 // number-word and word-number boundaries are considered separators
+    }
+
+    def "compares versions that differ only in leading zeros equal"() {
+        expect:
+        compare("01.0", "1.0") == 0
+        compare("1.0", "01.0") == 0
+        compare("001.2.003", "0001.02.3") == 0
+    }
+
+    def "compares different versions that also differ in leading zeros"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller        | larger
+        "1.01"         | "1.2"
+        "1.1"          | "1.02"
+        "01.0"         | "2.0"
+        "1.0"          | "02.0"
+    }
+
+    def "compares versions where earlier version parts differ only in leading zeros"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller        | larger
+        "01.1"         | "1.2"
+        "1.1"          | "01.2"
+        "1.01.1"       | "1.1.2"
+        "1.1.1"        | "1.01.2"
     }
 
     def "compares unrelated versions unequal"() {

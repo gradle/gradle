@@ -32,7 +32,7 @@ class EnumFromCharSequenceNotationParserSpec extends Specification {
         TestEnum.ENUM_4_1 == parser.parseNotation("enum_4_1")
     }
 
-    def "reports available values for non convertable strings"() {
+    def "reports available values for non convertible strings"() {
         when:
         parser.parseNotation(value)
 

@@ -35,7 +35,6 @@ configurations {
 }
 
 dependencies {
-    compile(project(":distributionsDependencies"))
     "gradleApiRuntime"(project(":"))
     "testKitPackages"(project(":testKit"))
 }
@@ -44,12 +43,12 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-val generateGradleApiPackageList = tasks.register<PackageListGenerator>("generateGradleApiPackageList") {
+val generateGradleApiPackageList by tasks.registering(PackageListGenerator::class) {
     classpath = configurations["gradleApiRuntime"]
     outputFile = file("$runtimeShadedPath/api-relocated.txt")
 }
 
-val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
+val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
     classpath = configurations["testKitPackages"]
     outputFile = file("$runtimeShadedPath/test-kit-relocated.txt")
 }

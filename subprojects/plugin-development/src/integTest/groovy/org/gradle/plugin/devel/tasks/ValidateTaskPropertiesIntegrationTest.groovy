@@ -16,10 +16,35 @@
 
 package org.gradle.plugin.devel.tasks
 
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.model.ReplacedBy
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Console
+import org.gradle.api.tasks.Destroys
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.intellij.lang.annotations.Language
 import spock.lang.Unroll
+
+import javax.inject.Inject
 
 class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -79,9 +104,21 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                     return null;
                 }
 
+                // Valid because it is annotated
+                @CompileClasspath
+                public java.util.List<java.io.File> getClasspath() {
+                    return null;
+                }
+
                 // Invalid because it has no annotation
                 public long getBadTime() {
                     return System.currentTimeMillis();
+                }
+
+                // Invalid because it has some other annotation
+                @Deprecated
+                public String getOldThing() {
+                    return null;
                 }
 
                 public static class Options {
@@ -102,14 +139,137 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation."
 
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
-            Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation.
+        """.stripIndent().trim()
+    }
+
+    @Unroll
+    def "task can have property with annotation @#annotation.simpleName"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.model.*;
+            import org.gradle.api.tasks.*;
+
+            public class MyTask extends DefaultTask {
+                @${application}
+                ${type.name} getThing() {
+                    return null;
+                }
+            }
+        """
+
+        expect:
+        succeeds("validateTaskProperties")
+
+        where:
+        annotation        | application                   | type
+        Inject            | Inject.name                   | ObjectFactory
+        OptionValues      | "${OptionValues.name}(\"a\")" | List
+        Internal          | 'Internal'                    | String
+        ReplacedBy        | 'ReplacedBy("")'              | String
+        Console           | 'Console'                     | Boolean
+        Destroys          | 'Destroys'                    | FileCollection
+        LocalState        | 'LocalState'                  | FileCollection
+        InputFile         | 'InputFile'                   | File
+        InputFiles        | 'InputFiles'                  | Set
+        InputDirectory    | 'InputDirectory'              | File
+        Input             | 'Input'                       | String
+        OutputFile        | 'OutputFile'                  | File
+        OutputFiles       | 'OutputFiles'                 | Map
+        OutputDirectory   | 'OutputDirectory'             | File
+        OutputDirectories | 'OutputDirectories'           | Map
+        Nested            | 'Nested'                      | List
+    }
+
+    @Unroll
+    def "task cannot have property with annotation @#annotation.simpleName"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+
+            public class MyTask extends DefaultTask {
+                @${annotation.simpleName}
+                String getThing() {
+                    return null;
+                }
+
+                @Nested
+                Options getOptions() { 
+                    return null;
+                }
+
+                public static class Options {
+                    @${annotation.simpleName}
+                    String getNestedThing() {
+                        return null;
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails("validateTaskProperties")
+        failure.assertHasDescription("Execution failed for task ':validateTaskProperties'.")
+        failure.assertHasCause("Task property validation failed. See")
+        failure.assertHasCause("Warning: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.")
+        failure.assertHasCause("Warning: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.")
+
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.
+            Warning: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.
+        """.stripIndent().trim()
+
+        where:
+        annotation                | _
+        InputArtifact             | _
+        InputArtifactDependencies | _
+    }
+
+    def "validates task caching annotations"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+
+            @CacheableTransform 
+            public class MyTask extends DefaultTask {
+                @Nested
+                Options getOptions() { 
+                    return null;
+                }
+
+                @CacheableTask @CacheableTransform 
+                public static class Options {
+                    @Input
+                    String getNestedThing() {
+                        return null;
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails("validateTaskProperties")
+        failure.assertHasDescription("Execution failed for task ':validateTaskProperties'.")
+        failure.assertHasCause("Task property validation failed. See")
+        failure.assertHasCause("Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.")
+        failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
+        failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.")
+
+        file("build/reports/task-properties/report.txt").text == """
+            Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.
+            Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.
+            Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.
         """.stripIndent().trim()
     }
 
@@ -146,12 +306,12 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
 
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
         """.stripIndent().trim()
     }
 
@@ -231,10 +391,45 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/task-properties/report.txt").text == ""
     }
 
+    @Unroll
+    def "report setters for property with mutable type #type"() {
+        @Language("JAVA") myTask = """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.InputFiles;
+
+            public class MyTask extends DefaultTask {
+                // getter and setter
+                @InputFiles public ${type} getMutablePropertyWithSetter() { return null; } 
+                public void setMutablePropertyWithSetter(${type} value) {} 
+
+                // just getter
+                @InputFiles public ${type} getMutablePropertyWithoutSetter() { return null; } 
+
+                // just setter
+                // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
+                public void setMutablePropertyWithoutGetter() {}                
+            }
+        """
+        file("src/main/java/MyTask.java") << myTask
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Type 'MyTask': property 'mutablePropertyWithSetter' with mutable type '${type.replaceAll("<.+>", "")}' is redundant. Use methods on the property value itself to mutate it
+        """.stripIndent().trim()
+
+        where:
+        type << [ConfigurableFileCollection.name, "${Property.name}<String>", RegularFileProperty.name]
+    }
+
     def "detects problems with file inputs"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
+            import java.util.Set;
+            import java.util.Collections;
             import java.io.File;
 
             @CacheableTask
@@ -276,6 +471,16 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 public File getInputDirectory() {
                     return new File("inputDir");
                 }
+
+                @InputFile
+                public File getInputFile() {
+                    return new File("inputFile");
+                }
+
+                @InputFiles
+                public Set<File> getInputFiles() {
+                    return Collections.emptySet();
+                }
                 
                 @Input
                 public File getFile() {
@@ -292,10 +497,57 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Task type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.
-            Warning: Task type 'MyTask': property 'inputDirectory' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
-            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.
+            Warning: Type 'MyTask': property 'inputDirectory' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'inputFile' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'inputFiles' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+        """.stripIndent().trim()
+    }
+
+    def "detects annotations on private getter methods"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                private long getBadTime() {
+                    return 0;
+                }
+
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                public static class Options {
+                    @Input
+                    private String getBadNested() {
+                        return "good";
+                    }
+                }
+                
+                @OutputDirectory
+                private File getOutputDir() {
+                    return new File("outputDir");
+                }
+                
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Type 'MyTask': property 'badTime' is private and annotated with @Input.
+            Warning: Type 'MyTask': property 'options.badNested' is private and annotated with @Input.
+            Warning: Type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.
         """.stripIndent().trim()
     }
 
@@ -387,7 +639,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 compile localGroovy()
             }
             
-            validateTaskProperties.enableStricterValidation = true
+            validateTaskProperties.enableStricterValidation = project.hasProperty('strict')
         """
         file("src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
@@ -395,19 +647,162 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
             class MyTask extends DefaultTask {
                 @InputFile
-                File missingNormalization
+                File fileProp
+                
+                @InputFiles
+                Set<File> filesProp
+
+                @InputDirectory
+                File dirProp
 
                 @javax.inject.Inject
                 org.gradle.api.internal.file.FileResolver fileResolver
             }
         """
 
+        expect:
+        succeeds("validateTaskProperties")
+
         when:
-        fails "validateTaskProperties"
+        fails "validateTaskProperties", "-Pstrict"
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'missingNormalization' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'dirProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'fileProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Type 'MyTask': property 'filesProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
+        """.stripIndent().trim()
+    }
+
+    def "can validate properties of an artifact transform action"() {
+        file("src/main/java/MyTransformAction.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+            import java.io.*;
+
+            public abstract class MyTransformAction implements TransformAction {
+                // Should be ignored because it's not a getter
+                public void getVoid() {
+                }
+
+                // Should be ignored because it's not a getter
+                public int getWithParameter(int count) {
+                    return count;
+                }
+
+                // Ignored because static
+                public static int getStatic() {
+                    return 0;
+                }
+
+                // Ignored because injected
+                @javax.inject.Inject
+                public abstract org.gradle.api.internal.file.FileResolver getInjected();
+
+                // Valid because it is annotated
+                @InputArtifact
+                public abstract Provider<FileSystemLocation> getGoodInput();
+
+                // Invalid because it has no annotation
+                public long getBadTime() {
+                    return System.currentTimeMillis();
+                }
+
+                // Invalid because it has some other annotation
+                @Deprecated
+                public String getOldThing() {
+                    return null;
+                }
+                
+                // Unsupported annotation
+                @InputFile
+                public abstract File getInputFile();
+            }
+        """
+
+        expect:
+        fails "validateTaskProperties"
+        failure.assertHasCause "Task property validation failed"
+        failure.assertHasCause "Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation."
+        failure.assertHasCause "Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile."
+        failure.assertHasCause "Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation."
+
+        file("build/reports/task-properties/report.txt").text == """
+            Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation.
+            Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile.
+            Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation.
+        """.stripIndent().trim()
+    }
+
+    def "can validate properties of an artifact transform parameters object"() {
+        file("src/main/java/MyTransformParameters.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.file.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+            import org.gradle.work.*;
+            import java.io.*;
+
+            public interface MyTransformParameters extends TransformParameters {
+                // Should be ignored because it's not a getter
+                void getVoid();
+
+                // Should be ignored because it's not a getter
+                int getWithParameter(int count);
+
+                // Ignored because injected
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver getInjected();
+
+                // Valid because it is annotated
+                @InputFile
+                File getGoodFileInput();
+
+                // Valid
+                @Incremental
+                @InputFiles
+                FileCollection getGoodIncrementalInput();
+
+                // Valid
+                @Input
+                String getGoodInput();
+                void setGoodInput(String value);
+
+                // Invalid because only file inputs can be incremental
+                @Incremental
+                @Input
+                String getIncrementalNonFileInput();
+                void setIncrementalNonFileInput(String value);
+
+                // Invalid because it has no annotation
+                long getBadTime();
+
+                // Invalid because it has some other annotation
+                @Deprecated
+                String getOldThing();
+                
+                // Unsupported annotation
+                @InputArtifact
+                File getInputFile();
+            }
+        """
+
+        expect:
+        fails "validateTaskProperties"
+        failure.assertHasCause "Task property validation failed"
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."
+
+        file("build/reports/task-properties/report.txt").text == """
+            Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.
+            Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties.
+            Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.
+            Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.
         """.stripIndent().trim()
     }
 
@@ -427,5 +822,41 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         property    | value
         'classes'   | 'output.classesDirs'
         'classpath' | ' compileClasspath '
+    }
+
+    def "reports conflicting types when property is replaced but keeps old annotations"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.model.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.provider.*;
+            
+            public class MyTask extends DefaultTask {
+                private final Property<String> newProperty = getProject().getObjects().property(String.class);
+    
+                @Input
+                @ReplacedBy("newProperty")
+                public String getOldProperty() {
+                    return newProperty.get();
+                }
+    
+                public void setOldProperty(String oldProperty) {
+                    newProperty.set(oldProperty);
+                }
+    
+                @Input
+                public Property<String> getNewProperty() {
+                    return newProperty;
+                }
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Type 'MyTask': property 'oldProperty' has conflicting type annotations declared: @Input, @ReplacedBy; assuming @Input.
+        """.stripIndent().trim()
     }
 }

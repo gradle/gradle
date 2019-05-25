@@ -404,9 +404,6 @@ public class Module extends XmlPersistableConfigurationObject {
     private void addSourceAndExcludeFolderToXml() {
         Node content = findOrCreateContentNode();
         for (Path path : sourceFolders) {
-            if (resourceFolders.contains(path)) {
-                continue;
-            }
             Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "false");
@@ -416,9 +413,6 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : testSourceFolders) {
-            if (testResourceFolders.contains(path)) {
-                continue;
-            }
             Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "true");

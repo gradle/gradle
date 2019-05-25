@@ -62,6 +62,7 @@ public interface IdeaProject extends HierarchicalElement {
      * @return The modules of this IDEA project.
      * @since 1.0-milestone-5
      */
+    @Override
     DomainObjectSet<? extends IdeaModule> getChildren();
 
     /**

@@ -1,6 +1,6 @@
 ant.importBuild("build.xml")
 
-tasks.getByName("hello") {
+tasks.named("hello") {
     doLast {
         println("Hello, from Gradle")
     }

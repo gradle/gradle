@@ -16,8 +16,8 @@
 
 package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.internal.text.TreeFormatter;
-import org.gradle.util.TreeVisitor;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 public class ToolChainAvailability implements ToolSearchResult {
     private ToolSearchResult reason;
@@ -34,7 +34,7 @@ public class ToolChainAvailability implements ToolSearchResult {
     }
 
     @Override
-    public void explain(TreeVisitor<? super String> visitor) {
+    public void explain(DiagnosticsVisitor visitor) {
         reason.explain(visitor);
     }
 
@@ -42,6 +42,14 @@ public class ToolChainAvailability implements ToolSearchResult {
         if (reason == null) {
             reason = new FixedMessageToolSearchResult(unavailableMessage);
         }
+        return this;
+    }
+
+    public ToolChainAvailability unsupported(String unsupportedMessage) {
+        if (reason == null) {
+            reason = new FixedMessageToolSearchResult(unsupportedMessage);
+        }
+
         return this;
     }
 
@@ -65,7 +73,7 @@ public class ToolChainAvailability implements ToolSearchResult {
         }
 
         @Override
-        public void explain(TreeVisitor<? super String> visitor) {
+        public void explain(DiagnosticsVisitor visitor) {
             visitor.node(message);
         }
     }

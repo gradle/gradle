@@ -16,11 +16,10 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.PosixFiles;
+import net.rubygrapefruit.platform.file.PosixFiles;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 
 import java.io.File;
-import java.io.IOException;
 
 class NativePlatformBackedStat implements FileModeAccessor {
     private final PosixFiles posixFiles;
@@ -30,7 +29,7 @@ class NativePlatformBackedStat implements FileModeAccessor {
     }
 
     @Override
-    public int getUnixMode(File f) throws IOException {
+    public int getUnixMode(File f) {
         return posixFiles.getMode(f);
     }
 }

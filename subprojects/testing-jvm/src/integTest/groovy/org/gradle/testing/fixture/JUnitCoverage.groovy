@@ -25,8 +25,8 @@ import org.gradle.api.JavaVersion
  */
 class JUnitCoverage {
     final static String NEWEST = '4.12'
-    final static String LATEST_JUPITER_VERSION = '5.3.1'
-    final static String LATEST_VINTAGE_VERSION = '5.3.1'
+    final static String LATEST_JUPITER_VERSION = '5.4.0'
+    final static String LATEST_VINTAGE_VERSION = '5.4.0'
     final static String JUPITER = 'Jupiter:' + LATEST_JUPITER_VERSION
     final static String VINTAGE = 'Vintage:' + LATEST_VINTAGE_VERSION
     final static String[] LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]

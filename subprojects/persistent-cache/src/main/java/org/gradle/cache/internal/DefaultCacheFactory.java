@@ -71,6 +71,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
     }
 
+    @Override
     public void close() {
         lock.lock();
         try {
@@ -138,6 +139,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
             }
         }
 
+        @Override
         public void close() {
             onClose(cache);
             dirCaches.values().remove(this);

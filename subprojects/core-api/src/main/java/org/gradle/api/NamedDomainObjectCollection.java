@@ -81,6 +81,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param e the item to add to the collection
      * @return {@code true} if the item was added, or {@code} false if an item with the same name already exists.
      */
+    @Override
     boolean add(T e);
 
     /**
@@ -89,6 +90,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param c the items to add to the collection
      * @return {@code true} if any item was added, or {@code} false if all items have non unique names within this collection.
      */
+    @Override
     boolean addAll(Collection<? extends T> c);
 
     /**
@@ -206,16 +208,19 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     /**
      * {@inheritDoc}
      */
+    @Override
     <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     NamedDomainObjectCollection<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     NamedDomainObjectCollection<T> matching(Closure spec);
 
     /**
@@ -226,7 +231,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
      * @since 4.10
      */
-    @Incubating
     NamedDomainObjectProvider<T> named(String name) throws UnknownDomainObjectException;
 
     /**
@@ -238,7 +242,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
      * @since 5.0
      */
-    @Incubating
     NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException;
 
     /**
@@ -250,7 +253,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
      * @since 5.0
      */
-    @Incubating
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException;
 
     /**
@@ -264,7 +266,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
      * @since 5.0
      */
-    @Incubating
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException;
 
     /**
@@ -273,6 +274,5 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @since 4.10
      */
     @Internal
-    @Incubating
     NamedDomainObjectCollectionSchema getCollectionSchema();
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.internal.cache.StringInterner;
 
 @ThreadSafe

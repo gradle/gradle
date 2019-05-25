@@ -32,13 +32,17 @@ import java.util.Set;
 public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectSet<T> {
     private final MutationGuard parentMutationGuard;
 
-    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, new SortedSetElementSource<T>(new Namer.Comparator<T>(namer)), instantiator, namer);
+    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {
+        super(type, new SortedSetElementSource<T>(new Namer.Comparator<T>(namer)), instantiator, namer, decorator);
         this.parentMutationGuard = MutationGuards.identity();
     }
 
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator) {
-        this(type, instantiator, Named.Namer.forType(type));
+        this(type, instantiator, CollectionCallbackActionDecorator.NOOP);
+    }
+
+    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
+        this(type, instantiator, Named.Namer.forType(type), decorator);
     }
 
     // should be protected, but use of the class generator forces it to be public

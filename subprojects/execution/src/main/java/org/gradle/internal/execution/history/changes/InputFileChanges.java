@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,23 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-public class InputFileChanges extends AbstractFingerprintChanges {
+public interface InputFileChanges extends ChangeContainer {
+    boolean accept(String propertyName, ChangeVisitor visitor);
 
-    public InputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-        super(previous, current, "Input");
-    }
+    InputFileChanges EMPTY = new InputFileChanges() {
 
-    @Override
-    public boolean accept(ChangeVisitor visitor) {
-        return accept(visitor, true);
-    }
+        @Override
+        public boolean accept(ChangeVisitor visitor) {
+            return true;
+        }
+
+        @Override
+        public boolean accept(String propertyName, ChangeVisitor visitor) {
+            throw new InvalidUserDataException("Cannot query incremental changes for property " + propertyName + ": No incremental properties declared.");
+        }
+    };
 }

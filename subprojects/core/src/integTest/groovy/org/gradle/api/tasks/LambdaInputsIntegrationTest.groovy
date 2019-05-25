@@ -231,7 +231,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
             myTask.doLast(LambdaAction.ACTION)
         """
-        def nonCacheableActionReason = 'Task action was implemented by the Java lambda \'LambdaAction$$Lambda$<non-deterministic>\'. Using Java lambdas is not supported, use an (anonymous) inner class instead.'
+        def nonCacheableActionReason = 'Additional implementation type was implemented by the Java lambda \'LambdaAction$$Lambda$<non-deterministic>\'. Using Java lambdas is not supported, use an (anonymous) inner class instead.'
 
         when:
         withBuildCache().run "myTask", "-info"
@@ -247,7 +247,8 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
     }
 
     private void assertInvalidNonCacheableTask(String taskPath, String reason) {
-        assert sanitizedOutput.contains("Caching disabled for task '${taskPath}': ${reason}")
+        assert sanitizedOutput.contains("Caching disabled for task '${taskPath}' because:\n" +
+            "  ${reason}")
     }
 
     private String getSanitizedOutput() {

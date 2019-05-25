@@ -21,6 +21,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 public class PublishServices extends AbstractPluginServiceRegistry {
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(DefaultProjectDependencyPublicationResolver.class);
     }

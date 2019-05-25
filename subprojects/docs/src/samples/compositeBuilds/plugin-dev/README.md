@@ -8,19 +8,19 @@ This removes the need for the special `buildSrc` project and makes prototyping p
 
 ### Buildscript dependencies are substituted
 
-In a composite build, dependencies declared for the `buildscript` `classpath` configuration are substituted in the same way as other dependencies. In this sample, the `consumer` build declares a `buildscript` dependency on "org.sample:greeting-plugin:1.0-SNAPSHOT", and this dependency is substituted by the `greeting-plugin` included build.
+In a composite build, dependencies declared in the `plugins { }` block or in the `buildscript` `classpath` configuration are substituted in the same way as other dependencies. In this sample, the `consumer` build declares that plugin 'org.sample.greeting', and this dependency is substituted by the `greeting-plugin` included build.
 
 Without ever publishing the `greeting-plugin` project to a repository, it is possible to build the `consumer` project with the locally developed 'org.sample.greeting' plugin.
 
 ```
-> gradle --include-build ../greeting-plugin greetBob
+> gradle --include-build ../greeting-plugin greeting
 [composite-build] Configuring build: /home/user/gradle/sample/compositeBuilds/plugin-dev/greeting-plugin
 :greeting-plugin:compileJava
 :greeting-plugin:pluginDescriptors
 :greeting-plugin:processResources
 :greeting-plugin:classes
 :greeting-plugin:jar
-:greetBob
+:greeting
 Hi Bob!!!
 ```
 
@@ -29,14 +29,14 @@ Hi Bob!!!
 This sample can be used to demonstrate the development lifecycle of a Gradle plugin. Edit the file `greeting-plugin/src/main/java/org/sample/GreetingTask.java` to change the greeting, and re-execute the consumer build:
 
 ```
-> gradle --include-build ../greeting-plugin greetBob
+> gradle --include-build ../greeting-plugin greeting
 [composite-build] Configuring build: /home/user/gradle/sample/compositeBuilds/plugin-dev/greeting-plugin
 :greeting-plugin:compileJava
 :greeting-plugin:pluginDescriptors
 :greeting-plugin:processResources
 :greeting-plugin:classes
 :greeting-plugin:jar
-:greetBob
+:greeting
 G'day Bob!!!
 ```
 

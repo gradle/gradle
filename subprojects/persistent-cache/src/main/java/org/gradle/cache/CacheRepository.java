@@ -15,6 +15,7 @@
  */
 package org.gradle.cache;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -47,5 +48,5 @@ public interface CacheRepository {
      * <p>By default a cache is opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
      * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
      */
-    CacheBuilder cache(Object scope, String key);
+    CacheBuilder cache(@Nullable Object scope, String key);
 }

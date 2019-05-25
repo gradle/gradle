@@ -24,12 +24,17 @@ public class LegendRenderer {
 
     private boolean hasCyclicDependencies;
     private boolean hasUnresolvableConfigurations;
+    private boolean hasConstraints;
 
     public LegendRenderer(StyledTextOutput output) {
         this.output = output;
     }
 
     public void printLegend() {
+        if (hasConstraints) {
+            output.println();
+            output.withStyle(Info).text("(c) - dependency constraint");
+        }
         if (hasCyclicDependencies) {
             output.println();
             output.withStyle(Info).println("(*) - dependencies omitted (listed previously)");
@@ -46,5 +51,9 @@ public class LegendRenderer {
 
     public void setHasCyclicDependencies(boolean hasCyclicDependencies) {
         this.hasCyclicDependencies = hasCyclicDependencies;
+    }
+
+    public void setHasConstraints(boolean hasConstraints) {
+        this.hasConstraints = hasConstraints;
     }
 }

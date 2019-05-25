@@ -258,7 +258,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         root {
             'build.gradle'(this.applyFromRemote(server))
         }
-        server.expect(server.resource("shared.gradle", "println 'Echo'"))
+        server.expect(server.get("shared.gradle").send("println 'Echo'"))
 
         when:
         run 'tasks'
@@ -283,7 +283,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         }
         def buildHash
         def sharedHash
-        server.expect(server.resource("shared.gradle", "println 'Echo 0'"))
+        server.expect(server.get("shared.gradle").send("println 'Echo 0'"))
 
         when:
         run 'tasks'
@@ -300,7 +300,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         server.expect(server.head("shared.gradle"))
-        server.expect(server.resource("shared.gradle", "println 'Echo 1'"))
+        server.expect(server.get("shared.gradle").send("println 'Echo 1'"))
 
         run 'tasks'
         buildHash = uniqueRemapped('build')

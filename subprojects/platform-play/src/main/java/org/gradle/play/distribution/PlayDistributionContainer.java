@@ -24,5 +24,6 @@ import org.gradle.api.distribution.Distribution;
  * Manages a set of {@link org.gradle.api.distribution.Distribution} objects.
  */
 @Incubating
+@Deprecated
 public interface PlayDistributionContainer extends PolymorphicDomainObjectContainer<Distribution> {
 }

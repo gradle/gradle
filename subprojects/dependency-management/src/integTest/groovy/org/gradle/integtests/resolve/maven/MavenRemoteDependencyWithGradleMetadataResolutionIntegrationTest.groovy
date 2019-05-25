@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser.FORMAT_VERSION
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
 
 class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
@@ -772,47 +772,6 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
-    }
-
-    def "reports failure to accept module metadata with unexpected format version"() {
-        def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
-        m.moduleMetadata.file.text = m.moduleMetadata.file.text.replace(FORMAT_VERSION, "123.67")
-
-        given:
-        buildFile << """
-repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
-
-        m.moduleMetadata.expectGet()
-
-        when:
-        fails("checkDeps")
-
-        then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-        failure.assertHasCause("Could not resolve test:a:1.2.")
-        failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
-        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports format version ${FORMAT_VERSION} only.")
-
-        when:
-        server.resetExpectations()
-        m.moduleMetadata.expectHead()
-
-        fails("checkDeps")
-
-        then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-        failure.assertHasCause("Could not resolve test:a:1.2.")
-        failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
-        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports format version ${FORMAT_VERSION} only.")
     }
 
     def "reports failure to locate files"() {

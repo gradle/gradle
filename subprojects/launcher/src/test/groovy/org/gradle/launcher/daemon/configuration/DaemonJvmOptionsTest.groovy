@@ -62,6 +62,6 @@ class DaemonJvmOptionsTest extends Specification {
     }
 
     private DaemonJvmOptions createOpts() {
-        return new DaemonJvmOptions(TestFiles.pathToFileResolver())
+        return new DaemonJvmOptions(TestFiles.fileCollectionFactory())
     }
 }

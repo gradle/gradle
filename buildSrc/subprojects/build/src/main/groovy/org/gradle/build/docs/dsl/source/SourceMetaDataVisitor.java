@@ -28,6 +28,7 @@ import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.LiteralStringValueExpr;
+import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
 import com.github.javaparser.ast.nodeTypes.NodeWithExtends;
 import com.github.javaparser.ast.nodeTypes.NodeWithImplements;
@@ -35,11 +36,18 @@ import com.github.javaparser.ast.nodeTypes.NodeWithJavadoc;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import org.gradle.build.docs.dsl.source.model.*;
+import org.gradle.build.docs.dsl.source.model.AbstractLanguageElement;
+import org.gradle.build.docs.dsl.source.model.ClassMetaData;
 import org.gradle.build.docs.dsl.source.model.ClassMetaData.MetaType;
+import org.gradle.build.docs.dsl.source.model.MethodMetaData;
+import org.gradle.build.docs.dsl.source.model.PropertyMetaData;
+import org.gradle.build.docs.dsl.source.model.TypeMetaData;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -149,6 +157,7 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
             String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
             PropertyMetaData property = getCurrentClass().addReadableProperty(propName, returnType, rawCommentText, methodMetaData);
             methodMetaData.getAnnotationTypeNames().forEach(property::addAnnotationTypeName);
+            property.setReplacement(methodMetaData.getReplacement());
             return;
         }
 
@@ -218,6 +227,9 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
 
     private void findAnnotations(NodeWithAnnotations<?> node, AbstractLanguageElement currentElement) {
         for (AnnotationExpr child : node.getAnnotations()) {
+            if (child instanceof SingleMemberAnnotationExpr && child.getNameAsString().endsWith("ReplacedBy")) {
+                currentElement.setReplacement(((SingleMemberAnnotationExpr) child).getMemberValue().asLiteralStringValueExpr().getValue());
+            }
             currentElement.addAnnotationTypeName(child.getNameAsString());
         }
     }

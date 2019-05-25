@@ -23,7 +23,8 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.Closeable;
 
-class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory, Closeable {
+// TODO:instant-execution reconsider type visibility
+public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory, Closeable {
     private final ServiceRegistry services;
     private final CompositeStoppable registries = new CompositeStoppable();
 
@@ -31,6 +32,7 @@ class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory, Closea
         this.services = services;
     }
 
+    @Override
     public ServiceRegistry createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
             GradleScopeServices gradleServices = new GradleScopeServices(services, (GradleInternal) domainObject);
@@ -46,6 +48,7 @@ class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory, Closea
                 domainObject.getClass().getSimpleName()));
     }
 
+    @Override
     public void close() {
         registries.stop();
     }

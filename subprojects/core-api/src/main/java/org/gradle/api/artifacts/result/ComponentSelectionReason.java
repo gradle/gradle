@@ -38,7 +38,7 @@ public interface ComponentSelectionReason {
     boolean isForced();
 
     /**
-     * Informs whether the component was selected by conflict resolution. For more information about Gradle's conflict resolution please refer to the user guide. {@link
+     * Informs whether the component was selected by conflict resolution. For more information about Gradle's conflict resolution please refer to the user manual. {@link
      * org.gradle.api.artifacts.ResolutionStrategy} contains information about conflict resolution and includes means to configure it.
      */
     boolean isConflictResolution();

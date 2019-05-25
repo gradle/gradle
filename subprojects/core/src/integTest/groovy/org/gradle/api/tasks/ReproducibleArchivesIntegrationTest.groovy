@@ -22,11 +22,13 @@ import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @Unroll
 class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
+    @Issue("https://github.com/gradle/gradle/issues/8051")
     def "reproducible #taskName for directory - #files"() {
         given:
         files.each {
@@ -52,14 +54,14 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         input << [
-            ['dir1/file11.txt', 'dir2/file22.txt', 'dir3/file33.txt'].permutations(),
+            ['DIR1/FILE11.txt', 'dir2/file22.txt', 'DIR3/file33.txt'].permutations(),
             ['zip', 'tar']
         ].combinations()
         files = input[0]
         taskName = input[1]
         taskType = taskName.capitalize()
         fileExtension = taskName
-        expectedHash = taskName == 'tar' ? 'b99ef9e1ce3d2f85334a4a23a2620932' : 'cecc57bfa8747b4f39fa4a5e1c0dbd31'
+        expectedHash = taskName == 'tar' ? 'eff4909fee3367f576fe26537ff6403a' : '62b93684c0b891fcf905b4a6eaf32976'
     }
 
     def "timestamps are ignored in #taskName"() {
@@ -122,8 +124,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         compression | md5
-        'gzip'      | '9981efce12fd025835922ce0f2961ab9'
-        'bzip2'     | '60f165136a27358d02926f26fb184c86'
+        'gzip'      | 'a9339a2b2bb7f96057c480834d00e29e'
+        'bzip2'     | '3da0b978d23f0a774ea7cf07d73f3283'
     }
 
     def "#taskName preserves order of child specs"() {

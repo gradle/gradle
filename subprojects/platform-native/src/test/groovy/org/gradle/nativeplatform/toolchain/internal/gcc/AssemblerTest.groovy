@@ -33,6 +33,9 @@ class AssemblerTest extends GccCompatibleNativeCompilerTest {
 
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
-        [ '-x', 'assembler' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        def arguments = super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        // We don't properly support includes for assembler
+        arguments.remove("-nostdinc")
+        ['-x', 'assembler' ] + arguments
     }
 }

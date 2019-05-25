@@ -8,7 +8,7 @@ extra["signing.password"] = "gradle"
 extra["signing.secretKeyRingFile"] = file("secKeyRingFile.gpg").absolutePath
 
 // tag::sign-task[]
-task<Zip>("stuffZip") {
+tasks.register<Zip>("stuffZip") {
     baseName = "stuff"
     from("src/stuff")
 }

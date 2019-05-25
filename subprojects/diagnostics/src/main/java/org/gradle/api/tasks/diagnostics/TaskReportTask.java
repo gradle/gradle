@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import com.google.common.base.Strings;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.internal.project.ProjectState;
@@ -46,6 +48,7 @@ public class TaskReportTask extends AbstractReportTask {
     private TaskReportRenderer renderer = new TaskReportRenderer();
 
     private boolean detail;
+    private String group;
 
     @Override
     public ReportRenderer getRenderer() {
@@ -66,12 +69,34 @@ public class TaskReportTask extends AbstractReportTask {
         return detail;
     }
 
+    /**
+     * Set a specific task group to be displayed.
+     *
+     * @since 5.1
+     */
+    @Incubating
+    @Option(option = "group", description = "Show tasks for a specific group.")
+    public void setDisplayGroup(String group) {
+        this.group = group;
+    }
+
+    /**
+     * Get the task group to be displayed.
+     *
+     * @since 5.1
+     */
+    @Incubating
+    @Console
+    public String getDisplayGroup() {
+        return group;
+    }
+
     @Override
     public void generate(Project project) throws IOException {
         renderer.showDetail(isDetail());
         renderer.addDefaultTasks(project.getDefaultTasks());
 
-        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!isDetail(), isDetail());
+        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!isDetail(), isDetail(), getDisplayGroup());
         final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
         SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);
@@ -94,8 +119,10 @@ public class TaskReportTask extends AbstractReportTask {
         }
         renderer.completeTasks();
 
-        for (Rule rule : project.getTasks().getRules()) {
-            renderer.addRule(rule);
+        if (Strings.isNullOrEmpty(group)) {
+            for (Rule rule : project.getTasks().getRules()) {
+                renderer.addRule(rule);
+            }
         }
     }
 

@@ -19,9 +19,9 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.internal.collections.BroadcastingCollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.DefaultCollectionEventRegister;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -30,9 +30,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.ImmutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.AbstractCollection;
@@ -48,8 +46,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final CollectionEventRegister<T> eventRegister;
     private final ElementSource<T> store;
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store) {
-        this(type, store, new BroadcastingCollectionEventRegister<T>(type));
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator callbackActionDecorator) {
+        this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
     }
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister) {
@@ -109,21 +107,25 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> CollectionEventRegister<S> filteredEvents(CollectionFilter<S> filter) {
-        return new FlushingEventRegister<S>(filter, getEventRegister());
+        return eventRegister.filtered(filter);
     }
 
+    @Override
     public DomainObjectCollection<T> matching(final Spec<? super T> spec) {
         return filtered(createFilter(spec));
     }
 
+    @Override
     public DomainObjectCollection<T> matching(Closure spec) {
         return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
+    @Override
     public <S extends T> DomainObjectCollection<S> withType(final Class<S> type) {
         return filtered(createFilter(type));
     }
 
+    @Override
     public Iterator<T> iterator() {
         return new IteratorImpl(store.iterator());
     }
@@ -136,9 +138,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return new IteratorImpl(store.iteratorNoFlush());
     }
 
+    @Override
     public void all(Action<? super T> action) {
         assertMutable("all(Action)");
-        action = addEagerAction(action);
+        Action<? super T> decoratedAction = addEagerAction(action);
 
         if (store.constantTimeIsEmpty()) {
             return;
@@ -157,7 +160,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
         if (copied != null) {
             for (T t : copied) {
-                action.execute(t);
+                decoratedAction.execute(t);
             }
         }
     }
@@ -165,8 +168,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void configureEach(Action<? super T> action) {
         assertMutable("configureEach(Action)");
-        Action<? super T> wrappedAction = withMutationDisabled(action);
-        eventRegister.registerLazyAddAction(wrappedAction);
+        Action<? super T> wrappedAction = withMutationDisabled(decorate(action));
+        Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
 
         // copy in case any actions mutate the store
         Collection<T> copied = null;
@@ -181,7 +184,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
         if (copied != null) {
             for (T next : copied) {
-                wrappedAction.execute(next);
+                registerLazyAddActionDecorated.execute(next);
             }
         }
     }
@@ -190,10 +193,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return getMutationGuard().withMutationDisabled(action);
     }
 
+    @Override
     public void all(Closure action) {
         all(toAction(action));
     }
 
+    @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
         assertMutable("withType(Class, Action)");
         DomainObjectCollection<S> result = withType(type);
@@ -201,38 +206,47 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return result;
     }
 
+    @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
         return withType(type, toAction(configureClosure));
     }
 
+    @Override
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
         assertMutable("whenObjectAdded(Action)");
         return addEagerAction(action);
     }
 
+    @Override
     public void whenObjectAdded(Closure action) {
         whenObjectAdded(toAction(action));
     }
 
     private Action<? super T> addEagerAction(Action<? super T> action) {
         store.realizePending(type);
-        eventRegister.registerEagerAddAction(type, action);
-        return action;
+        return eventRegister.registerEagerAddAction(type, decorate(action));
     }
 
+    @Override
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
-        eventRegister.registerRemoveAction(type, action);
+        eventRegister.registerRemoveAction(type, decorate(action));
         return action;
     }
 
+    @Override
     public void whenObjectRemoved(Closure action) {
         whenObjectRemoved(toAction(action));
+    }
+
+    private Action<? super T> decorate(Action<? super T> action) {
+        return eventRegister.getDecorator().decorate(action);
     }
 
     private Action<? super T> toAction(Closure action) {
         return ConfigureUtil.configureUsing(action);
     }
 
+    @Override
     public boolean add(T toAdd) {
         assertMutable("add(T)");
         assertMutableCollectionContents();
@@ -244,7 +258,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return doAdd(toAdd, notification);
     }
 
-    private <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
+    protected <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
         if (getStore().add(toAdd)) {
             didAdd(toAdd);
             notification.execute(toAdd);
@@ -291,6 +305,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     protected void didAdd(T toAdd) {
     }
 
+    @Override
     public boolean addAll(Collection<? extends T> c) {
         assertMutable("addAll(Collection<T>)");
         assertMutableCollectionContents();
@@ -303,6 +318,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return changed;
     }
 
+    @Override
     public void clear() {
         assertMutable("clear()");
         assertMutableCollectionContents();
@@ -316,18 +332,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
+    @Override
     public boolean contains(Object o) {
         return getStore().contains(o);
     }
 
+    @Override
     public boolean containsAll(Collection<?> c) {
         return getStore().containsAll(c);
     }
 
+    @Override
     public boolean isEmpty() {
         return getStore().isEmpty();
     }
 
+    @Override
     public boolean remove(Object o) {
         assertMutable("remove(Object)");
         assertMutableCollectionContents();
@@ -364,6 +384,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     protected void didRemove(ProviderInternal<? extends T> t) {
     }
 
+    @Override
     public boolean removeAll(Collection<?> c) {
         assertMutable("removeAll(Collection)");
         assertMutableCollectionContents();
@@ -379,6 +400,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return changed;
     }
 
+    @Override
     public boolean retainAll(Collection<?> target) {
         assertMutable("retainAll(Collection)");
         assertMutableCollectionContents();
@@ -393,6 +415,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return changed;
     }
 
+    @Override
     public int size() {
         return store.size();
     }
@@ -407,6 +430,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return store.getMutationGuard();
     }
 
+    @Override
     public Collection<T> findAll(Closure cl) {
         return findAll(cl, new ArrayList<T>());
     }
@@ -430,6 +454,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     /**
      * Subclasses may override this method to prevent add/remove methods.
+     *
      * @see DefaultDomainObjectSet
      */
     protected void assertMutableCollectionContents() {
@@ -444,15 +469,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             this.iterator = iterator;
         }
 
+        @Override
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
+        @Override
         public T next() {
             currentElement = iterator.next();
             return currentElement;
         }
 
+        @Override
         public void remove() {
             assertMutable("iterator().remove()");
             assertMutableCollectionContents();
@@ -468,48 +496,5 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    private class FlushingEventRegister<S extends T> implements CollectionEventRegister<S> {
-        private final CollectionFilter<S> filter;
-        private final CollectionEventRegister<S> delegate;
 
-        FlushingEventRegister(CollectionFilter<S> filter, CollectionEventRegister<T> delegate) {
-            this.filter = filter;
-            this.delegate = Cast.uncheckedCast(delegate);
-        }
-
-        @Override
-        public ImmutableActionSet<S> getAddActions() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void fireObjectAdded(S element) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void fireObjectRemoved(S element) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean isSubscribed(Class<?> type) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
-            delegate.registerEagerAddAction(filter.getType(), Actions.filter(addAction, filter));
-        }
-
-        @Override
-        public void registerLazyAddAction(Action<? super S> addAction) {
-            delegate.registerLazyAddAction(Actions.filter(addAction, filter));
-        }
-
-        @Override
-        public void registerRemoveAction(Class<? extends S> type, Action<? super S> removeAction) {
-            delegate.registerRemoveAction(filter.getType(), Actions.filter(removeAction, filter));
-        }
-    }
 }

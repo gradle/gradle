@@ -16,8 +16,8 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
-import org.gradle.util.TreeVisitor;
 
 public class ToolSearchBuildAbility implements BinaryBuildAbility {
     final ToolSearchResult result;
@@ -32,7 +32,7 @@ public class ToolSearchBuildAbility implements BinaryBuildAbility {
     }
 
     @Override
-    public void explain(TreeVisitor<? super String> visitor) {
+    public void explain(DiagnosticsVisitor visitor) {
         result.explain(visitor);
     }
 }

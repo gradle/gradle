@@ -31,7 +31,7 @@ class SamplesTroubleshootingDependencyResolutionIntegrationTest extends Abstract
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/troubleshooting/cache/changing")
-    def "can declare custom TTL for dependency with dynamic version"() {
+    def "can declare custom TTL for dependency with changing version"() {
 
         given:
         def sampleDir = sample.dir.file(dsl)
@@ -48,8 +48,8 @@ class SamplesTroubleshootingDependencyResolutionIntegrationTest extends Abstract
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/troubleshooting/cache/changing")
-    def "can declare custom TTL for dependency with changing version"() {
+    @UsesSample("userguide/dependencyManagement/troubleshooting/cache/dynamic")
+    def "can declare custom TTL for dependency with dynamic version"() {
 
         given:
         def sampleDir = sample.dir.file(dsl)

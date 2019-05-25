@@ -15,13 +15,18 @@
  */
 package org.gradle.api.internal.model;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
@@ -45,6 +50,26 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     }
 
     @Override
+    public ConfigurableFileCollection fileCollection() {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing file collections");
+    }
+
+    @Override
+    public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType) {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object container");
+    }
+
+    @Override
+    public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object container with factory");
+    }
+
+    @Override
+    public <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType) {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing domain object set");
+    }
+
+    @Override
     public <T> Property<T> property(Class<T> valueType) {
         return new DefaultPropertyState<T>(valueType);
     }
@@ -56,6 +81,11 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
+        return broken();
+    }
+
+    @Override
+    public <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
         return broken();
     }
 

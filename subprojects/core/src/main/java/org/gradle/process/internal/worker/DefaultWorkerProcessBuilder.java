@@ -82,34 +82,41 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.connectTimeoutSeconds = connectTimeoutSeconds;
     }
 
+    @Override
     public WorkerProcessBuilder setBaseName(String baseName) {
         this.baseName = baseName;
         return this;
     }
 
+    @Override
     public String getBaseName() {
         return baseName;
     }
 
+    @Override
     public WorkerProcessBuilder applicationClasspath(Iterable<File> files) {
         GUtil.addToCollection(applicationClasspath, files);
         return this;
     }
 
+    @Override
     public Set<File> getApplicationClasspath() {
         return applicationClasspath;
     }
 
+    @Override
     public WorkerProcessBuilder sharedPackages(String... packages) {
         sharedPackages(Arrays.asList(packages));
         return this;
     }
 
+    @Override
     public WorkerProcessBuilder sharedPackages(Iterable<String> packages) {
         GUtil.addToCollection(this.packages, packages);
         return this;
     }
 
+    @Override
     public Set<String> getSharedPackages() {
         return packages;
     }
@@ -119,18 +126,22 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         return this;
     }
 
+    @Override
     public Action<? super WorkerProcessContext> getWorker() {
         return action;
     }
 
+    @Override
     public JavaExecHandleBuilder getJavaCommand() {
         return javaCommand;
     }
 
+    @Override
     public LogLevel getLogLevel() {
         return logLevel;
     }
 
+    @Override
     public WorkerProcessBuilder setLogLevel(LogLevel logLevel) {
         this.logLevel = logLevel;
         return this;
@@ -144,6 +155,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
+    @Override
     public void setImplementationClasspath(List<URL> implementationClassPath) {
         this.implementationClassPath = implementationClassPath;
     }
@@ -162,6 +174,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
         ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
+            @Override
             public void execute(final ObjectConnection connection) {
                 workerProcess.onConnect(connection, new Runnable() {
                     @Override

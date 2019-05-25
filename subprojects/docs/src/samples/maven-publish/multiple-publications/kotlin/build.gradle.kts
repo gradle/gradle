@@ -45,7 +45,7 @@ project(":project2") {
     group = "org.gradle.sample"
     version = "2.3"
 
-    task<Jar>("apiJar") {
+    tasks.register<Jar>("apiJar") {
         baseName = "project2-api"
         from(sourceSets.main.get().output)
         exclude("**/impl/**")

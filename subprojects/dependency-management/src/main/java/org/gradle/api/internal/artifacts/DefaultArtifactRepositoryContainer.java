@@ -23,7 +23,9 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
+import org.gradle.api.internal.InternalAction;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
@@ -34,14 +36,16 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         implements ArtifactRepositoryContainer {
 
     private final Action<ArtifactRepository> addLastAction = new Action<ArtifactRepository>() {
+        @Override
         public void execute(ArtifactRepository repository) {
             DefaultArtifactRepositoryContainer.super.add(repository);
         }
     };
 
-    public DefaultArtifactRepositoryContainer(Instantiator instantiator) {
-        super(ArtifactRepository.class, instantiator, new RepositoryNamer());
-        whenObjectAdded(new Action<ArtifactRepository>() {
+    public DefaultArtifactRepositoryContainer(Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(ArtifactRepository.class, instantiator, new RepositoryNamer(), callbackActionDecorator);
+        whenObjectAdded(new InternalAction<ArtifactRepository>() {
+            @Override
             public void execute(ArtifactRepository artifactRepository) {
                 if (artifactRepository instanceof ArtifactRepositoryInternal) {
                     ArtifactRepositoryInternal repository = (ArtifactRepositoryInternal) artifactRepository;
@@ -52,6 +56,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     private static class RepositoryNamer implements Namer<ArtifactRepository> {
+        @Override
         public String determineName(ArtifactRepository r) {
             return r.getName();
         }
@@ -62,14 +67,17 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         return "repository";
     }
 
+    @Override
     public DefaultArtifactRepositoryContainer configure(Closure closure) {
         return ConfigureUtil.configureSelf(closure, this);
     }
 
+    @Override
     public void addFirst(ArtifactRepository repository) {
         add(0, repository);
     }
 
+    @Override
     public void addLast(ArtifactRepository repository) {
         add(repository);
     }

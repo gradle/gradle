@@ -32,22 +32,27 @@ public class DefaultDistribution implements Distribution {
         this.contents = contents;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getBaseName() {
         return baseName;
     }
 
+    @Override
     public void setBaseName(String baseName) {
         this.baseName = baseName;
     }
 
+    @Override
     public CopySpec getContents() {
         return contents;
     }
 
+    @Override
     public CopySpec contents(Action<? super CopySpec> action) {
         action.execute(contents);
         return contents;

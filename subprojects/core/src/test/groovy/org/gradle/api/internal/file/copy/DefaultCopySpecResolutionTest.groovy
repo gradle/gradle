@@ -23,9 +23,9 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -34,7 +34,7 @@ class DefaultCopySpecResolutionTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
     private FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
-    private final Instantiator instantiator = DirectInstantiator.INSTANCE
+    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final DefaultCopySpec parentSpec = new DefaultCopySpec(fileResolver, instantiator)
 
     def testSpecHasRootPathAsDestinationByDefault() {

@@ -17,12 +17,17 @@ package org.gradle.language.base.internal.tasks;
 
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.internal.execution.impl.OutputsCleaner;
+import org.gradle.internal.file.FileType;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class SimpleStaleClassCleaner extends StaleClassCleaner {
     private final Set<File> filesToDelete;
@@ -47,33 +52,33 @@ public class SimpleStaleClassCleaner extends StaleClassCleaner {
 
     @Override
     public void execute() {
-        for (File f : filesToDelete) {
-            for (String prefix : prefixes) {
-                if (f.getAbsolutePath().startsWith(prefix) && f.isFile()) {
-                    didWork |= f.delete();
-                    markParentDir(f);
+        try {
+            OutputsCleaner outputsCleaner = new OutputsCleaner(new Predicate<File>() {
+                @Override
+                public boolean test(File file) {
+                    for (String prefix : prefixes) {
+                        if (file.getAbsolutePath().startsWith(prefix)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }, new Predicate<File>() {
+                @Override
+                public boolean test(File dir) {
+                    return !toClean.contains(dir);
+                }
+            });
+            for (File f : filesToDelete) {
+                if (f.isFile()) {
+                    outputsCleaner.cleanupOutput(f, FileType.RegularFile);
                 }
             }
+            outputsCleaner.cleanupDirectories();
+            didWork |= outputsCleaner.getDidWork();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to clean up stale outputs", e);
         }
-        while (!directoriesToDelete.isEmpty()) {
-            File directory = directoriesToDelete.poll();
-            if (isEmpty(directory)) {
-                didWork |= directory.delete();
-                markParentDir(directory);
-            }
-        }
-    }
-
-    private void markParentDir(File f) {
-        File parentDir = f.getParentFile();
-        if (parentDir != null && !toClean.contains(parentDir)) {
-            directoriesToDelete.add(parentDir);
-        }
-    }
-
-    private boolean isEmpty(File parentDir) {
-        String[] children = parentDir.list();
-        return children != null && children.length == 0;
     }
 
     public boolean getDidWork() {

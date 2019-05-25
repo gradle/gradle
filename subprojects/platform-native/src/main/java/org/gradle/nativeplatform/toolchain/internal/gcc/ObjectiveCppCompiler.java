@@ -35,10 +35,5 @@ class ObjectiveCppCompiler extends GccCompatibleNativeCompiler<ObjectiveCppCompi
         protected String getLanguage() {
             return "objective-c++";
         }
-
-        @Override
-        protected boolean isNoStandardIncludes() {
-            return false;
-        }
     }
 }

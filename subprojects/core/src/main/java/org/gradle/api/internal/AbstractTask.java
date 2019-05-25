@@ -29,22 +29,19 @@ import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.tasks.ContextAwareTaskAction;
-import org.gradle.api.internal.tasks.DefaultPropertySpecFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -63,7 +60,10 @@ import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
+import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scripts.ScriptOrigin;
@@ -96,7 +96,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final ProjectInternal project;
 
-    private List<ContextAwareTaskAction> actions;
+    private List<InputChangesAwareTaskAction> actions;
 
     private boolean enabled = true;
 
@@ -122,7 +122,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStateInternal state;
 
-    private Logger logger = BUILD_LOGGER;
+    private Logger logger = new DefaultContextAwareTaskLogger(BUILD_LOGGER);
 
     private final TaskMutator taskMutator;
     private ObservableList observableActionList;
@@ -136,7 +136,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private LoggingManagerInternal loggingManager;
 
     private String toStringValue;
-    private final PropertySpecFactory specFactory;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -162,16 +161,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.shouldRunAfter = new DefaultTaskDependency(tasks);
         this.services = project.getServices();
 
-        FileResolver fileResolver = project.getFileResolver();
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
+        FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
         taskMutator = new TaskMutator(this);
-        specFactory = new DefaultPropertySpecFactory(this, fileResolver);
-        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, specFactory);
-        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, specFactory);
+        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, fileCollectionFactory);
+        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, fileCollectionFactory);
         taskDestroyables = new DefaultTaskDestroyables(taskMutator);
         taskLocalState = new DefaultTaskLocalState(taskMutator);
 
-        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.<Object>of(taskInputs.getFiles()));
+        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs));
 
         this.timeout = project.getObjects().property(Duration.class);
     }
@@ -221,6 +219,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (observableActionList == null) {
             observableActionList = new ObservableActionWrapperList(getTaskActions());
             observableActionList.addPropertyChangeListener(new PropertyChangeListener() {
+                @Override
                 public void propertyChange(PropertyChangeEvent evt) {
                     taskMutator.assertMutable("Task.getActions()", evt);
                 }
@@ -230,9 +229,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public List<ContextAwareTaskAction> getTaskActions() {
+    public List<InputChangesAwareTaskAction> getTaskActions() {
         if (actions == null) {
-            actions = new ArrayList<ContextAwareTaskAction>(3);
+            actions = new ArrayList<InputChangesAwareTaskAction>(3);
         }
         return actions;
     }
@@ -245,6 +244,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setActions(final List<Action<? super Task>> replacements) {
         taskMutator.mutate("Task.setActions(List<Action>)", new Runnable() {
+            @Override
             public void run() {
                 getTaskActions().clear();
                 for (Action<? super Task> action : replacements) {
@@ -267,6 +267,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setDependsOn(final Iterable<?> dependsOn) {
         taskMutator.mutate("Task.setDependsOn(Iterable)", new Runnable() {
+            @Override
             public void run() {
                 dependencies.setValues(dependsOn);
             }
@@ -276,6 +277,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void onlyIf(final Closure onlyIfClosure) {
         taskMutator.mutate("Task.onlyIf(Closure)", new Runnable() {
+            @Override
             public void run() {
                 onlyIfSpec = onlyIfSpec.and(onlyIfClosure);
             }
@@ -285,6 +287,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void onlyIf(final Spec<? super Task> spec) {
         taskMutator.mutate("Task.onlyIf(Spec)", new Runnable() {
+            @Override
             public void run() {
                 onlyIfSpec = onlyIfSpec.and(spec);
             }
@@ -294,6 +297,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setOnlyIf(final Spec<? super Task> spec) {
         taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
+            @Override
             public void run() {
                 onlyIfSpec = createNewOnlyIfSpec().and(spec);
             }
@@ -303,6 +307,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setOnlyIf(final Closure onlyIfClosure) {
         taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
+            @Override
             public void run() {
                 onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure);
             }
@@ -311,6 +316,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private AndSpec<Task> createNewOnlyIfSpec() {
         return new AndSpec<Task>(new Spec<Task>() {
+            @Override
             public boolean isSatisfiedBy(Task element) {
                 return element == AbstractTask.this && enabled;
             }
@@ -345,6 +351,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setEnabled(final boolean enabled) {
         taskMutator.mutate("Task.setEnabled(boolean)", new Runnable() {
+            @Override
             public void run() {
                 AbstractTask.this.enabled = enabled;
             }
@@ -374,6 +381,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Task dependsOn(final Object... paths) {
         taskMutator.mutate("Task.dependsOn(Object...)", new Runnable() {
+            @Override
             public void run() {
                 dependencies.add(paths);
             }
@@ -393,6 +401,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doFirst(Action)", new Runnable() {
+            @Override
             public void run() {
                 getTaskActions().add(0, wrap(action, actionName));
             }
@@ -412,6 +421,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doLast(Action)", new Runnable() {
+            @Override
             public void run() {
                 getTaskActions().add(wrap(action, actionName));
             }
@@ -549,6 +559,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doFirst(Closure)", new Runnable() {
+            @Override
             public void run() {
                 getTaskActions().add(0, convertClosureToAction(action, "doFirst {} action"));
             }
@@ -563,6 +574,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doLast(Closure)", new Runnable() {
+            @Override
             public void run() {
                 getTaskActions().add(convertClosureToAction(action, "doLast {} action"));
             }
@@ -586,23 +598,24 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Factory<File> getTemporaryDirFactory() {
         return new Factory<File>() {
+            @Override
             public File create() {
                 return getTemporaryDir();
             }
         };
     }
 
-    private ContextAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
+    private InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
         return new ClosureTaskAction(actionClosure, actionName);
     }
 
-    private ContextAwareTaskAction wrap(final Action<? super Task> action) {
+    private InputChangesAwareTaskAction wrap(final Action<? super Task> action) {
         return wrap(action, "unnamed action");
     }
 
-    private ContextAwareTaskAction wrap(final Action<? super Task> action, String actionName) {
-        if (action instanceof ContextAwareTaskAction) {
-            return (ContextAwareTaskAction) action;
+    private InputChangesAwareTaskAction wrap(final Action<? super Task> action, String actionName) {
+        if (action instanceof InputChangesAwareTaskAction) {
+            return (InputChangesAwareTaskAction) action;
         }
         return new TaskActionWrapper(action, actionName);
     }
@@ -617,7 +630,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static class ClosureTaskAction implements ContextAwareTaskAction {
+    private static class ClosureTaskAction implements InputChangesAwareTaskAction {
         private final Closure closure;
         private final String actionName;
 
@@ -627,11 +640,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public void contextualise(TaskExecutionContext context) {
+        public void setInputChanges(InputChangesInternal inputChanges) {
         }
 
         @Override
-        public void releaseContext() {
+        public void clearInputChanges() {
         }
 
         @Override
@@ -668,7 +681,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static class TaskActionWrapper implements ContextAwareTaskAction {
+    private static class TaskActionWrapper implements InputChangesAwareTaskAction {
         private final Action<? super Task> action;
         private final String maybeActionName;
 
@@ -683,16 +696,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public void contextualise(TaskExecutionContext context) {
-            if (action instanceof ContextAwareTaskAction) {
-                ((ContextAwareTaskAction) action).contextualise(context);
+        public void setInputChanges(InputChangesInternal inputChanges) {
+            if (action instanceof InputChangesAwareTaskAction) {
+                ((InputChangesAwareTaskAction) action).setInputChanges(inputChanges);
             }
         }
 
         @Override
-        public void releaseContext() {
-            if (action instanceof ContextAwareTaskAction) {
-                ((ContextAwareTaskAction) action).releaseContext();
+        public void clearInputChanges() {
+            if (action instanceof InputChangesAwareTaskAction) {
+                ((InputChangesAwareTaskAction) action).clearInputChanges();
             }
         }
 
@@ -759,6 +772,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setMustRunAfter(final Iterable<?> mustRunAfterTasks) {
         taskMutator.mutate("Task.setMustRunAfter(Iterable)", new Runnable() {
+            @Override
             public void run() {
                 mustRunAfter.setValues(mustRunAfterTasks);
             }
@@ -768,6 +782,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Task mustRunAfter(final Object... paths) {
         taskMutator.mutate("Task.mustRunAfter(Object...)", new Runnable() {
+            @Override
             public void run() {
                 mustRunAfter.add(paths);
             }
@@ -783,6 +798,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setFinalizedBy(final Iterable<?> finalizedByTasks) {
         taskMutator.mutate("Task.setFinalizedBy(Iterable)", new Runnable() {
+            @Override
             public void run() {
                 finalizedBy.setValues(finalizedByTasks);
             }
@@ -792,6 +808,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Task finalizedBy(final Object... paths) {
         taskMutator.mutate("Task.finalizedBy(Object...)", new Runnable() {
+            @Override
             public void run() {
                 finalizedBy.add(paths);
             }
@@ -807,6 +824,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public TaskDependency shouldRunAfter(final Object... paths) {
         taskMutator.mutate("Task.shouldRunAfter(Object...)", new Runnable() {
+            @Override
             public void run() {
                 shouldRunAfter.add(paths);
             }
@@ -817,6 +835,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setShouldRunAfter(final Iterable<?> shouldRunAfterTasks) {
         taskMutator.mutate("Task.setShouldRunAfter(Iterable)", new Runnable() {
+            @Override
             public void run() {
                 shouldRunAfter.setValues(shouldRunAfterTasks);
             }
@@ -875,9 +894,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             return super.remove(wrap((Action<? super Task>) action));
         }
 
-        private Collection<ContextAwareTaskAction> transformToContextAwareTaskActions(Collection<Object> c) {
-            return Collections2.transform(c, new Function<Object, ContextAwareTaskAction>() {
-                public ContextAwareTaskAction apply(@Nullable Object input) {
+        private Collection<InputChangesAwareTaskAction> transformToContextAwareTaskActions(Collection<Object> c) {
+            return Collections2.transform(c, new Function<Object, InputChangesAwareTaskAction>() {
+                @Override
+                public InputChangesAwareTaskAction apply(@Nullable Object input) {
                     return wrap((Action<? super Task>) input);
                 }
             });

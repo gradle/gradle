@@ -86,7 +86,12 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
 
     @Override
     void kill() {
-        new ProcessFixture(context.pid).kill(true);
+        new ProcessFixture(context.pid).kill(true)
+    }
+
+    @Override
+    void killDaemonOnly() {
+        new ProcessFixture(context.pid).kill(false)
     }
 
     @Override

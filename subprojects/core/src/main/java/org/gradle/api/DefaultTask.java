@@ -19,7 +19,7 @@ package org.gradle.api;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.NoConventionMapping;
+import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.util.DeprecationLogger;
 

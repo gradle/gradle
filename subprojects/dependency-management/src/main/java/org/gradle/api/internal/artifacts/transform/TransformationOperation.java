@@ -16,45 +16,38 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.io.File;
-import java.util.List;
 import javax.annotation.Nullable;
 
-class TransformationOperation implements RunnableBuildOperation {
-    private final Transformation transformation;
-    private final TransformationSubject subject;
-    private TransformationSubject result;
+class TransformationOperation implements TransformationResult, RunnableBuildOperation {
+    private final CacheableInvocation<TransformationSubject> invocation;
+    private final String displayName;
+    private Try<TransformationSubject> transformedSubject;
 
-    TransformationOperation(Transformation transformation, TransformationSubject subject) {
-        this.transformation = transformation;
-        this.subject = subject;
+    TransformationOperation(CacheableInvocation<TransformationSubject> invocation, String displayName) {
+        this.displayName = displayName;
+        this.invocation = invocation;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        result = transformation.transform(subject);
+        transformedSubject = invocation.invoke();
     }
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        String displayName = "Transform " + subject.getDisplayName() + " with " + transformation.getDisplayName();
         return BuildOperationDescriptor.displayName(displayName)
             .progressDisplayName(displayName)
             .operationType(BuildOperationCategory.UNCATEGORIZED);
     }
 
-    @Nullable
-    public Throwable getFailure() {
-        return result.getFailure();
-    }
-
-    @Nullable
-    public List<File> getResult() {
-        return result.getFiles();
+    @Override
+    public Try<TransformationSubject> getTransformedSubject() {
+        return transformedSubject;
     }
 }

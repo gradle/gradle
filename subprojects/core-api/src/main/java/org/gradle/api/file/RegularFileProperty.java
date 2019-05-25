@@ -18,10 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-
-import java.io.File;
 
 /**
  * Represents some configurable regular file location, whose value is mutable.
@@ -35,20 +32,22 @@ import java.io.File;
  * @since 4.3
  */
 @Incubating
-public interface RegularFileProperty extends Property<RegularFile> {
-    /**
-     * Views the location of this file as a {@link File}.
-     */
-    Provider<File> getAsFile();
-
-    /**
-     * Sets the location of this file.
-     */
-    void set(File file);
-
+public interface RegularFileProperty extends FileSystemLocationProperty<RegularFile> {
     /**
      * {@inheritDoc}
      */
     @Override
     RegularFileProperty value(RegularFile value);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    RegularFileProperty convention(RegularFile value);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    RegularFileProperty convention(Provider<? extends RegularFile> valueProvider);
 }

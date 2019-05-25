@@ -48,7 +48,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.launcher.cli.CommandLineActionFactory;
+import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -76,7 +76,10 @@ import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
-import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.DAEMON;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
@@ -481,6 +484,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (isUseDaemon() && !gradleInvocation.buildJvmArgs.isEmpty()) {
             // Pass build JVM args through to daemon via system property on the launcher JVM
             String quotedArgs = join(" ", collect(gradleInvocation.buildJvmArgs, new Transformer<String, String>() {
+                @Override
                 public String transform(String input) {
                     return String.format("'%s'", input);
                 }
@@ -519,8 +523,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (isSharedDaemons()) {
+            buildJvmOpts.add("-Xms256m");
             buildJvmOpts.add("-Xmx1024m");
         } else {
+            buildJvmOpts.add("-Xms256m");
             buildJvmOpts.add("-Xmx512m");
         }
         if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
@@ -766,6 +772,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    @Override
     public GradleExecuter withStacktraceDisabled() {
         showStacktrace = false;
         return this;
@@ -1010,7 +1017,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(ConsoleStateUtil.INTERACTIVE_TOGGLE, "true");
         }
 
-        properties.put(CommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
+        properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
         return properties;
     }
@@ -1048,6 +1055,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             if (errorsShouldAppearOnStdout()) {
                 result = new ErrorsOnStdoutScrapingExecutionResult(result);
             }
+            afterExecute.execute(this);
             return result;
         } finally {
             finished();
@@ -1055,11 +1063,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected void finished() {
-        try {
-            afterExecute.execute(this);
-        } finally {
-            reset();
-        }
+        reset();
     }
 
     @Override
@@ -1072,6 +1076,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             if (errorsShouldAppearOnStdout()) {
                 executionFailure = new ErrorsOnStdoutScrapingExecutionFailure(executionFailure);
             }
+            afterExecute.execute(this);
             return executionFailure;
         } finally {
             finished();
@@ -1192,6 +1197,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     }
                     if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
+                        i++;
+                    } else if (line.matches(".*w: .* is deprecated\\..*")) {
+                        // A kotlinc warning, ignore
                         i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {
                         i++;
@@ -1373,7 +1381,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private static LoggingServiceRegistry newCommandLineProcessLogging() {
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
-//        rootLoggingManager.captureSystemSources();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
     }
@@ -1398,7 +1405,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private boolean errorsShouldAppearOnStdout() {
-        // If stderr is attached to the console or if we'll use the fallback console
-        return (consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached()) || (consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose));
+        // If stdout and stderr are attached to the console
+        return consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached();
     }
 }

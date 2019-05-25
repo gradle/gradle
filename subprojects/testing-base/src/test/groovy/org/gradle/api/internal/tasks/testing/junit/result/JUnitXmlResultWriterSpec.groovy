@@ -29,7 +29,7 @@ import static java.util.Collections.emptyList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.*
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 
 class JUnitXmlResultWriterSpec extends Specification {
 

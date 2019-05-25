@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.api.internal.artifacts.transform.DefaultTransformationWorkspace
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
@@ -43,31 +44,54 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             include 'util'
             include 'app'
         """
+        buildFile << resolveTask
     }
 
     def "transform is applied to each file once per build"() {
         given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withLibJarDependency("lib3.jar")
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, lib2.jar.txt]") == 2
-        output.count("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]") == 2
-        output.count("components: [project :lib, project :lib]") == 2
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt]") == 2
+        output.count("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), lib3.jar.txt (lib3.jar)]") == 2
+        output.count("components: [project :lib, project :lib, lib3.jar]") == 2
 
-        output.count("Transformed") == 2
+        output.count("Transformed") == 3
         isTransformed("lib1.jar", "lib1.jar.txt")
         isTransformed("lib2.jar", "lib2.jar.txt")
+        isTransformed("lib3.jar", "lib3.jar.txt")
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, lib2.jar.txt]") == 2
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt]") == 2
 
         output.count("Transformed") == 0
+    }
+
+    def "task cannot write into transform directory"() {
+        def forbiddenPath = ".transforms/not-allowed.txt"
+
+        buildFile << """
+            subprojects {
+                task badTask {
+                    outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") }
+                    doLast { }
+                }
+            }
+        """
+
+        when:
+        fails "badTask", "--continue"
+        then:
+        ['lib', 'app', 'util'].each {
+            failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask'.")
+            failure.assertHasCause("The output ${file("${it}/build/${forbiddenPath}")} must not be in a reserved location.")
+        }
     }
 
     def "scheduled transformation is invoked before consuming task is executed"() {
@@ -131,19 +155,15 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         attributes.attribute color, 'blue'
                     }
                 }
-                task resolveRed {
-                    def red = configurations.compile.incoming.artifactView {
+                task resolveRed(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(color, 'red') }
                     }.artifacts
-
-                    inputs.files red.artifactFiles
                 }
-                task resolveYellow {
-                    def yellow = configurations.compile.incoming.artifactView {
+                task resolveYellow(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(color, 'yellow') }
                     }.artifacts
-
-                    inputs.files yellow.artifactFiles
                 }
             }
 
@@ -216,9 +236,78 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("> Transform artifact lib2.jar (project :lib) with MakeGreenToRedThings") == 1
     }
 
+    def "executes transform immediately when required during task graph building"() {
+        buildFile << declareAttributes() << withJarTasks() << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                
+                @Override                
+                void transform(TransformOutputs outputs) {
+                    outputs.file(inputArtifact.get().asFile.name + ".green").text = "very green"
+                }
+            }
+
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                    
+                    registerTransform(MakeGreen) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'green')
+                    }                    
+                }
+                configurations {
+                    green {
+                        extendsFrom(compile)
+                        canBeResolved = true
+                        canBeConsumed = false
+                        attributes {
+                            attribute(artifactType, 'green')
+                        }
+                    }
+                }
+            
+                tasks.register("resolveAtConfigurationTime").configure {
+                    inputs.files(configurations.green)
+                    configurations.green.each { println it }
+                    doLast { }                    
+                }
+                tasks.register("declareTransformAsInput").configure {
+                    inputs.files(configurations.green)
+                    doLast {
+                        configurations.green.each { println it }
+                    }
+                }
+                
+                tasks.register("withDependency").configure {
+                    dependsOn("resolveAtConfigurationTime")
+                }
+                tasks.register("toBeFinalized").configure {
+                    // We require the task via a finalizer, so the transform node is in UNKNOWN state.
+                    finalizedBy("declareTransformAsInput")
+                }
+            }
+        """
+
+        when:
+        run(":app:toBeFinalized", "withDependency", "--info")
+        then:
+        output.count("Transforming artifact lib1.jar (project :lib) with MakeGreen") == 2
+        output.count("Transforming artifact lib2.jar (project :lib) with MakeGreen") == 2
+    }
+
     def "each file is transformed once per set of configuration parameters"() {
         given:
-        buildFile << declareAttributes() << withJarTasks() << """
+        buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << """
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private String target
                 
@@ -235,8 +324,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         println "Transformed \$input.name to \$outSize.name into \$outputDirectory"
                         outSize.text = String.valueOf(input.length())
                         return [outSize]
-                    }
-                    if (target.equals("hash")) {
+                    } else if (target.equals("hash")) {
                         def outHash = new File(outputDirectory, input.name + ".hash")
                         println "Transformed \$input.name to \$outHash.name into \$outputDirectory"
                         outHash.text = 'hash'
@@ -262,25 +350,20 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         }
                     }
                 }
-                task resolve {
-                    def size = configurations.compile.incoming.artifactView {
+                task resolveSize(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'size') }
                     }.artifacts
-                    def hash = configurations.compile.incoming.artifactView {
+                    identifier = "1"
+                }
+                task resolveHash(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'hash') }
                     }.artifacts
-
-                    inputs.files(size.artifactFiles)
-                    inputs.files(hash.artifactFiles)
-
-                    doLast {
-                        println "files 1: " + size.collect { it.file.name }
-                        println "ids 1: " + size.collect { it.id }
-                        println "components 1: " + size.collect { it.id.componentIdentifier }
-                        println "files 2: " + hash.collect { it.file.name }
-                        println "ids 2: " + hash.collect { it.id }
-                        println "components 2: " + hash.collect { it.id.componentIdentifier }
-                    }
+                    identifier = "2"
+                }
+                task resolve {
+                    dependsOn(resolveHash, resolveSize)
                 }
             }
             
@@ -301,24 +384,26 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files 1: [lib1.jar.size, lib2.jar.size]") == 2
-        output.count("ids 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib)]") == 2
-        output.count("components 1: [project :lib, project :lib]") == 2
-        output.count("files 2: [lib1.jar.hash, lib2.jar.hash]") == 2
-        output.count("ids 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib)]") == 2
-        output.count("components 2: [project :lib, project :lib]") == 2
+        output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size]") == 2
+        output.count("ids 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib), lib3.jar.size (lib3.jar)]") == 2
+        output.count("components 1: [project :lib, project :lib, lib3.jar]") == 2
+        output.count("files 2: [lib1.jar.hash, lib2.jar.hash, lib3.jar.hash]") == 2
+        output.count("ids 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib), lib3.jar.hash (lib3.jar)]") == 2
+        output.count("components 2: [project :lib, project :lib, lib3.jar]") == 2
 
-        output.count("Transformed") == 4
+        output.count("Transformed") == 6
         isTransformed("lib1.jar", "lib1.jar.size")
         isTransformed("lib2.jar", "lib2.jar.size")
+        isTransformed("lib3.jar", "lib3.jar.size")
         isTransformed("lib1.jar", "lib1.jar.hash")
         isTransformed("lib2.jar", "lib2.jar.hash")
+        isTransformed("lib3.jar", "lib3.jar.hash")
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files 1: [lib1.jar.size, lib2.jar.size]") == 2
+        output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size]") == 2
 
         output.count("Transformed") == 0
     }
@@ -373,21 +458,21 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         }
                     }
                 }
-                task resolve {
-                    def size = configurations.compile.incoming.artifactView {
+                task resolveSize(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'size') }
                     }.artifacts
-                    def hash = configurations.compile.incoming.artifactView {
+                    identifier = "1"
+                }
+                    
+                task resolveHash(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'hash') }
                     }.artifacts
-
-                    inputs.files(size.artifactFiles)
-                    inputs.files(hash.artifactFiles)
-
-                    doLast {
-                        println "files 1: " + size.collect { it.file.name }
-                        println "files 2: " + hash.collect { it.file.name }
-                    }
+                    identifier = "2"
+                }
+                task resolve {
+                    dependsOn(resolveSize, resolveHash)
                 }
             }
             
@@ -458,17 +543,19 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         }
                     }
                 }
-                task resolve {
-                    def values = configurations.compile.incoming.artifactView {
+                task resolve1(type: Resolve) {
+                    identifier = "1"
+                }
+                task resolve2(type: Resolve) {
+                    identifier = "2"
+                }
+                configure([resolve1, resolve2]) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'value') }
                     }.artifacts
-
-                    inputs.files(values.artifactFiles)
-
-                    doLast {
-                        println "files 1: " + values.collect { it.file.name }
-                        println "files 2: " + values.collect { it.file.name }
-                    }
+                }
+                task resolve {
+                    dependsOn(resolve1, resolve2)
                 }
             }
             
@@ -514,7 +601,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "each file is transformed once per transform class"() {
         given:
-        buildFile << declareAttributes() << withJarTasks() << """
+        buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << """
             class Sizer extends ArtifactTransform {
                 @javax.inject.Inject
                 Sizer(String target) {
@@ -561,25 +648,20 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         artifactTransform(Hasher) { params('hash') }
                     }
                 }
-                task resolve {
-                    def size = configurations.compile.incoming.artifactView {
+                task resolveSize(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'size') }
                     }.artifacts
-                    def hash = configurations.compile.incoming.artifactView {
+                    identifier = "1"
+                }
+                task resolveHash(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'hash') }
                     }.artifacts
-
-                    inputs.files(size.artifactFiles)
-                    inputs.files(hash.artifactFiles)
-
-                    doLast {
-                        println "files 1: " + size.collect { it.file.name }
-                        println "ids 1: " + size.collect { it.id }
-                        println "components 1: " + size.collect { it.id.componentIdentifier }
-                        println "files 2: " + hash.collect { it.file.name }
-                        println "ids 2: " + hash.collect { it.id }
-                        println "components 2: " + hash.collect { it.id.componentIdentifier }
-                    }
+                    identifier = "2"
+                }
+                task resolve {
+                    dependsOn(resolveSize, resolveHash)
                 }
             }
             
@@ -600,31 +682,33 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files 1: [lib1.jar.size, lib2.jar.size]") == 2
-        output.count("ids 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib)]") == 2
-        output.count("components 1: [project :lib, project :lib]") == 2
-        output.count("files 2: [lib1.jar.hash, lib2.jar.hash]") == 2
-        output.count("ids 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib)]") == 2
-        output.count("components 2: [project :lib, project :lib]") == 2
+        output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size]") == 2
+        output.count("ids 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib), lib3.jar.size (lib3.jar)]") == 2
+        output.count("components 1: [project :lib, project :lib, lib3.jar]") == 2
+        output.count("files 2: [lib1.jar.hash, lib2.jar.hash, lib3.jar.hash]") == 2
+        output.count("ids 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib), lib3.jar.hash (lib3.jar)]") == 2
+        output.count("components 2: [project :lib, project :lib, lib3.jar]") == 2
 
-        output.count("Transformed") == 4
+        output.count("Transformed") == 6
         isTransformed("lib1.jar", "lib1.jar.size")
         isTransformed("lib2.jar", "lib2.jar.size")
+        isTransformed("lib3.jar", "lib3.jar.size")
         isTransformed("lib1.jar", "lib1.jar.hash")
         isTransformed("lib2.jar", "lib2.jar.hash")
+        isTransformed("lib3.jar", "lib3.jar.hash")
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files 1: [lib1.jar.size, lib2.jar.size]") == 2
+        output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size]") == 2
 
         output.count("Transformed") == 0
     }
 
     def "transform is run again and old output is removed after it failed in previous build"() {
         given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withLibJarDependency("lib3.jar")
 
         when:
         executer.withArgument("-Dbroken=true")
@@ -632,37 +716,39 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Failed to transform file 'lib1.jar' to match attributes {artifactType=size, usage=api} using transform FileSizer")
-        failure.assertHasCause("Failed to transform file 'lib2.jar' to match attributes {artifactType=size, usage=api} using transform FileSizer")
-        def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt")
-        def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt")
+        failure.assertHasCause("Failed to transform artifact 'lib1.jar (project :lib)' to match attributes {artifactType=size, usage=api}")
+        failure.assertHasCause("Failed to transform artifact 'lib2.jar (project :lib)' to match attributes {artifactType=size, usage=api}")
+        def outputDir1 = projectOutputDir("lib1.jar", "lib1.jar.txt")
+        def outputDir2 = projectOutputDir("lib2.jar", "lib2.jar.txt")
+        def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
 
         when:
         succeeds ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, lib2.jar.txt]") == 1
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt]") == 1
 
-        output.count("Transformed") == 2
+        output.count("Transformed") == 3
         isTransformed("lib1.jar", "lib1.jar.txt")
         isTransformed("lib2.jar", "lib2.jar.txt")
-        outputDir("lib1.jar", "lib1.jar.txt") == outputDir1
-        outputDir("lib2.jar", "lib2.jar.txt") == outputDir2
+        isTransformed("lib3.jar", "lib3.jar.txt")
+        projectOutputDir("lib1.jar", "lib1.jar.txt") == outputDir1
+        projectOutputDir("lib2.jar", "lib2.jar.txt") == outputDir2
+        gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt") == outputDir3
 
         when:
         succeeds ":app:resolve"
 
         then:
-        output.count("files: [lib1.jar.txt, lib2.jar.txt]") == 1
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt]") == 1
 
         output.count("Transformed") == 0
     }
 
-    def "transform is supplied with a different output directory when input file content changes between builds"() {
+    def "transform is re-executed when input file content changes between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
 
-        file("lib/lib1.jar").text = "123"
         file("lib/dir1.classes").file("child").createFile()
 
         when:
@@ -674,8 +760,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 2
         isTransformed("dir1.classes", "dir1.classes.dir")
         isTransformed("lib1.jar", "lib1.jar.txt")
-        def outputDir1 = outputDir("dir1.classes", "dir1.classes.dir")
-        def outputDir2 = outputDir("lib1.jar", "lib1.jar.txt")
+        def outputDir1 = projectOutputDir("dir1.classes", "dir1.classes.dir")
+        def outputDir2 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
 
         when:
         succeeds ":util:resolve", ":app:resolve"
@@ -697,8 +783,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 2
         isTransformed("dir1.classes", "dir1.classes.dir")
         isTransformed("lib1.jar", "lib1.jar.txt")
-        outputDir("dir1.classes", "dir1.classes.dir") != outputDir1
-        outputDir("lib1.jar", "lib1.jar.txt") != outputDir2
+        outputDir("dir1.classes", "dir1.classes.dir") == outputDir1
+        gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") != outputDir2
 
         when:
         succeeds ":util:resolve", ":app:resolve"
@@ -709,11 +795,291 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    def "transform is rerun when output is removed between builds"() {
+    def "transform is executed in different workspace for different file produced in chain"() {
+        given:
+        buildFile << declareAttributes() << withJarTasks() << duplicatorTransform << """
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+
+            import java.nio.file.Files
+
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                        artifactTransform(Duplicator) { params(2, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "green")
+                        to.attribute(artifactType, "blue")
+                        artifactTransform(Duplicator) { params(2, false) }
+                    }
+                }
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'blue') }
+                    }.artifacts
+                }                
+            }
+        """
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar, lib1.jar, lib1.jar, lib1.jar, lib2.jar, lib2.jar, lib2.jar, lib2.jar]") == 2
+
+        output.count("Transforming") == 6
+        projectOutputDirs("lib1.jar", "0/lib1.jar").size() == 3
+        projectOutputDirs("lib1.jar", "1/lib1.jar").size() == 3
+        projectOutputDirs("lib2.jar", "0/lib2.jar").size() == 3
+        projectOutputDirs("lib2.jar", "1/lib2.jar").size() == 3
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar, lib1.jar, lib1.jar, lib1.jar, lib2.jar, lib2.jar, lib2.jar, lib2.jar]") == 2
+        output.count("Transformed") == 0
+    }
+
+    def "long transformation chain works"() {
+        given:
+        buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << duplicatorTransform << """
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                        artifactTransform(Duplicator) { params(2, true) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "green")
+                        to.attribute(artifactType, "blue")
+                        artifactTransform(Duplicator)  { params(1, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "blue")
+                        to.attribute(artifactType, "yellow")
+                        artifactTransform(Duplicator)  { params(3, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "yellow")
+                        to.attribute(artifactType, "orange")
+                        artifactTransform(Duplicator)  { params(1, true) }
+                    }
+                }
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'orange') }
+                    }.artifacts
+                }                
+            }
+        """
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [${(1..3).collectMany { (["lib${it}.jar00"] * 3) + (["lib${it}.jar10"] * 3) }.join(", ")}]") == 2
+    }
+
+    @Unroll
+    def "failure in transformation chain propagates (position in chain: #failingTransform)"() {
+        given:
+
+        Closure<String> possiblyFailingTransform = { index ->
+            index == failingTransform ? "FailingDuplicator" : "Duplicator"
+        }
+        buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << duplicatorTransform << """
+            class FailingDuplicator extends Duplicator {
+                
+                @javax.inject.Inject
+                FailingDuplicator(int numberOfOutputFiles, boolean differentOutputFileNames) {
+                    super(numberOfOutputFiles, differentOutputFileNames) 
+                }                                                       
+
+                @Override
+                List<File> transform(File input) {
+                    throw new RuntimeException("broken")
+                }                
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                        artifactTransform(${possiblyFailingTransform(1)}) { params(2, true) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "green")
+                        to.attribute(artifactType, "blue")
+                        artifactTransform(${possiblyFailingTransform(2)})  { params(1, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "blue")
+                        to.attribute(artifactType, "yellow")
+                        artifactTransform(${possiblyFailingTransform(3)})  { params(3, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "yellow")
+                        to.attribute(artifactType, "orange")
+                        artifactTransform(${possiblyFailingTransform(4)})  { params(1, true) }
+                    }
+                }
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'orange') }
+                    }.artifacts
+                }                
+            }
+        """
+
+        when:
+        fails ":app:resolve"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertResolutionFailure(":app:compile")
+
+        where:
+        failingTransform << (1..4)
+    }
+
+    @Unroll
+    def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
+        given:
+        def module = mavenHttpRepo.module("test", "test", "1.3").publish()
+
+        buildFile << declareAttributes() << duplicatorTransform << """
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+            
+            project(':lib') {
+                dependencies {
+                    compile "test:test:1.3"      
+                }
+            }
+
+            allprojects {
+                repositories {
+                    maven { url "${mavenHttpRepo.uri}" }
+                }
+                
+                if ($scheduled) {
+                    configurations.all {
+                        // force scheduled transformation of binary artifact
+                        resolutionStrategy.dependencySubstitution.all { }
+                    }
+                }
+            
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                        artifactTransform(Duplicator) { params(2, true) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "green")
+                        to.attribute(artifactType, "blue")
+                        artifactTransform(Duplicator)  { params(1, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "blue")
+                        to.attribute(artifactType, "yellow")
+                        artifactTransform(Duplicator)  { params(3, false) }
+                    }
+                }
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'yellow') }
+                    }.artifacts
+                }                
+            }
+        """
+
+        when:
+        module.pom.expectGet()
+        module.artifact.expectGetBroken()
+        fails ":app:resolve"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertResolutionFailure(":app:compile")
+        failure.hasErrorOutput("Received status code 500 from server: broken")
+
+        where:
+        scheduled << [true, false]
+    }
+
+    String duplicatorTransform = """
+            import java.nio.file.Files
+
+            class Duplicator extends ArtifactTransform {
+            
+                final int numberOfOutputFiles
+                final boolean differentOutputFileNames                                            
+                           
+                @javax.inject.Inject
+                Duplicator(int numberOfOutputFiles, boolean differentOutputFileNames) {
+                    this.numberOfOutputFiles = numberOfOutputFiles
+                    this.differentOutputFileNames = differentOutputFileNames                      
+                } 
+        
+                @Override
+                List<File> transform(File input) {
+                    def result = []
+                    println("Transforming \${input.name}")
+                    for (int i = 0; i < numberOfOutputFiles; i++) {
+                        def suffix = differentOutputFileNames ? i : ""
+                        def output = new File(outputDirectory, "\$i/" + input.name + suffix)
+                        output.parentFile.mkdirs()
+                        Files.copy(input.toPath(), output.toPath())
+                        println "Transformed \${input.name} to \$i/\${output.name} into \$outputDirectory"
+                        result.add(output)
+                    }
+                    return result
+                }
+            }
+    """
+
+    @Unroll
+    def "transform is rerun when output is #action between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
 
-        file("lib/lib1.jar").text = "123"
         file("lib/dir1.classes").file("child").createFile()
 
         when:
@@ -737,8 +1103,22 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
 
         when:
-        outputDir1.deleteDir()
-        outputDir2.deleteDir()
+        switch (action) {
+            case 'removed':
+                outputDir1.deleteDir()
+                outputDir2.deleteDir()
+                break
+            case 'changed':
+                outputDir1.file("dir1.classes.dir/child.txt") << "different"
+                outputDir2.file("lib1.jar.txt") << "different"
+                break
+            case 'added':
+                outputDir1.file("some-unrelated-file.txt") << "added"
+                outputDir2.file("some-unrelated-file.txt") << "added"
+                break
+            default:
+                throw new IllegalStateException("Unknown action: ${action}")
+        }
 
         succeeds ":util:resolve", ":app:resolve"
 
@@ -758,11 +1138,14 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 0
+
+        where:
+        action << ['changed', 'removed', 'added']
     }
 
     def "transform is supplied with a different output directory when transform implementation changes"() {
         given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform(parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -787,7 +1170,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         // change the implementation
         buildFile.text = ""
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform(fileValue:  "'new value'") << withClassesSizeTransform()
+        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue:  "'new value'", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
         succeeds ":util:resolve", ":app:resolve"
 
         then:
@@ -804,9 +1187,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
+
+        where:
+        useParameterObject << [true, false]
     }
 
-    def "transform is supplied with a different output directory when configuration parameters change"() {
+    def "transform is supplied with a different output directory when parameters change"() {
         given:
         // Use another script to define the value, so that transform implementation does not change when the value is changed
         def otherScript = file("other.gradle")
@@ -814,7 +1200,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         buildFile << """
             apply from: 'other.gradle'
-        """ << declareAttributes() << multiProjectWithJarSizeTransform(paramValue: "ext.value") << withClassesSizeTransform()
+        """ << declareAttributes() << multiProjectWithJarSizeTransform(paramValue: "ext.value", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -854,6 +1240,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
+
+        where:
+        useParameterObject << [true, false]
     }
 
     def "transform is supplied with a different output directory when external dependency changes"() {
@@ -983,7 +1372,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "cleans up cache"() {
         given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1.jar", "lib2.jar"].each { name ->
+            buildFile << withLibJarDependency(name)
+        }
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
@@ -998,7 +1390,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastFileAccessTimeToJournal(outputDir1, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(outputDir1, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -1006,7 +1398,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         executer.withTasks("tasks").start().waitForFinish()
 
         then:
-        outputDir1.parentFile.assertDoesNotExist()
+        outputDir1.assertDoesNotExist()
         outputDir2.assertExists()
         gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
@@ -1017,7 +1409,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         blockingHttpServer.start()
 
         and:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() << withLibJarDependency() << """
             class BlockingTransform extends ArtifactTransform {
                 List<File> transform(File input) {
                     def output = new File(outputDirectory, "\${input.name}.txt");
@@ -1028,16 +1420,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
             }
             
-            project(':lib') {
-                task jar1(type: Jar) {
-                    archiveName = 'util1.jar'
-                    destinationDir = buildDir
-                }
-                artifacts {
-                    compile jar1
-                }
-            }
-    
             project(':app') {
                 dependencies {
                     registerTransform {
@@ -1082,9 +1464,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then: 'transforming build starts artifact transform'
         transformBarrier.waitForAllPendingCalls()
-        def cachedTransform
+        def cachedTransform = null
         poll { // there's a delay in receiving the output
-            cachedTransform = outputDir("util1.jar", "util1.jar.txt") {
+            cachedTransform = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") {
                 transformingBuild.standardOutput
             }
         }
@@ -1105,65 +1487,41 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         transformingBuild.waitForFinish()
     }
 
+    String getResolveTask() {
+        """
+            class Resolve extends DefaultTask {   
+                @Internal
+                final Property<ArtifactCollection> artifacts = project.objects.property(ArtifactCollection)
+                @Console
+                final Property<String> identifier = project.objects.property(String)
+                                                                                
+                @Optional
+                @InputFiles                              
+                FileCollection getArtifactFiles() {
+                    return artifacts.get().artifactFiles
+                }               
+
+                @TaskAction
+                void run() {
+                    ArtifactCollection artifacts = this.artifacts.get()
+                    String postfix = identifier.map { it -> " " + it }.getOrElse("")
+                    println "files\${postfix}: " + artifacts.artifactFiles.collect { it.name }
+                    println "ids\${postfix}: " + artifacts.collect { it.id.displayName }
+                    println "components\${postfix}: " + artifacts.collect { it.id.componentIdentifier }                    
+                }
+            }
+        """
+    }
+
     def multiProjectWithJarSizeTransform(Map options = [:]) {
         def paramValue = options.paramValue ?: "1"
         def fileValue = options.fileValue ?: "String.valueOf(input.length())"
+        def useParameterObject = options.parameterObject ?: false
 
         """
             ext.paramValue = $paramValue
 
-            class FileSizer extends ArtifactTransform {
-                @javax.inject.Inject
-                FileSizer(Number value) {
-                }
-
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-
-                    assert input.exists()
-                    
-                    File output
-                    if (input.file) {
-                        output = new File(outputDirectory, input.name + ".txt")
-                        output.text = $fileValue
-                    } else {
-                        output = new File(outputDirectory, input.name + ".dir")
-                        output.mkdirs()
-                        new File(output, "child.txt").text = "transformed"
-                    }
-                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
-
-                    if (System.getProperty("broken")) {
-                        new File(outputDirectory, "some-garbage").text = "delete-me"
-                        throw new RuntimeException("broken")
-                    }
-
-                    return [output]
-                }
-            }
-    
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer) { params(paramValue) }
-                    }
-                }
-                task resolve {
-                    def size = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-
-                    inputs.files size.artifactFiles
-
-                    doLast {
-                        println "files: " + size.artifactFiles.collect { it.name }
-                        println "ids: " + size.collect { it.id.displayName }
-                        println "components: " + size.collect { it.id.componentIdentifier }
-                    }
-                }
-            }
+${useParameterObject ? registerFileSizerWithParameterObject(fileValue) : registerFileSizerWithConstructorParams(fileValue)}
     
             project(':util') {
                 dependencies {
@@ -1176,6 +1534,106 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     compile project(':util')
                 }
             }
+        """
+    }
+
+    String registerFileSizerWithConstructorParams(String fileValue) {
+        """
+            class FileSizer extends ArtifactTransform {
+                @javax.inject.Inject
+                FileSizer(Number value) {
+                }
+
+                List<File> transform(File input) {
+${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDirectory, ')}
+                    return [output]
+                }
+            }
+    
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer) { params(paramValue) }
+                    }
+                }
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                }
+            }
+            """
+    }
+
+    String registerFileSizerWithParameterObject(String fileValue) {
+        """                 
+            abstract class FileSizer implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    Number getValue()
+                    void setValue(Number value)
+                }
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                
+                private File getInput() {
+                    inputArtifact.get().asFile
+                }
+                
+                void transform(TransformOutputs outputs) {
+${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
+                }
+            }
+    
+            allprojects {
+                dependencies {
+                    registerTransform(FileSizer) {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        parameters {
+                            value = paramValue
+                        }
+                    }
+                }
+                tasks.register("resolve", Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                }
+            }
+            """
+    }
+
+    String getFileSizerBody(String fileValue, String obtainOutputDir, String obtainOutputFile) {
+        String validateWorkspace = """
+            def outputDirectory = output.parentFile
+            assert outputDirectory.directory && outputDirectory.list().length == 0
+        """
+        """
+                    assert input.exists()
+                    
+                    File output
+                    if (input.file) {
+                        output = ${obtainOutputFile}input.name + ".txt")
+                        ${validateWorkspace}
+                        output.text = $fileValue
+                    } else {
+                        output = ${obtainOutputDir}input.name + ".dir")
+                        output.delete()
+                        ${validateWorkspace}
+                        output.mkdirs()
+                        new File(output, "child.txt").text = "transformed"
+                    }
+                    def outputDirectory = output.parentFile
+                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
+
+                    if (System.getProperty("broken")) {
+                        new File(outputDirectory, "some-garbage").text = "delete-me"
+                        throw new RuntimeException("broken")
+                    }
         """
     }
 
@@ -1199,14 +1657,14 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    def withClassesSizeTransform() {
+    def withClassesSizeTransform(boolean useParameterObject = false) {
         """
             allprojects {
                 dependencies {
-                    registerTransform {
+                    registerTransform${useParameterObject ? "(FileSizer)" : ""} {
                         from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer) { params(paramValue) }
+                        ${useParameterObject ? "parameters { value = paramValue }" : "artifactTransform(FileSizer) { params(paramValue) }"}
                     }
                 }
             }
@@ -1218,11 +1676,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    def withLibJarDependency() {
+    def withLibJarDependency(name = "lib1.jar") {
+        file("lib/${name}").text = name
         """
             project(':lib') {
                 dependencies {
-                    compile files("lib1.jar")
+                    compile files("${name}")
                 }
             }
         """
@@ -1249,7 +1708,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     void isTransformed(String from, String to) {
-        def dirs = outputDirs(from, to)
+        def dirs = allOutputDirs(from, to)
         if (dirs.size() == 0) {
             throw new AssertionError("Could not find $from -> $to in output: $output")
         }
@@ -1259,18 +1718,41 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         assert output.count("into " + dirs.first()) == 1
     }
 
-    TestFile outputDir(String from, String to, Closure<String> stream = { output }) {
-        def dirs = outputDirs(from, to, stream)
+    TestFile outputDir(String from, String to, Closure<Set<TestFile>> determineOutputDirs = this.&allOutputDirs, Closure<String> stream = { output }) {
+        def dirs = determineOutputDirs(from, to, stream)
         if (dirs.size() == 1) {
             return dirs.first()
         }
         throw new AssertionError("Could not find exactly one output directory for $from -> $to: $dirs")
     }
 
-    Set<TestFile> outputDirs(String from, String to, Closure<String> stream = { output }) {
+    TestFile projectOutputDir(String from, String to, Closure<String> stream = { output }) {
+        outputDir(from, to, this.&projectOutputDirs, stream)
+    }
+
+    TestFile gradleUserHomeOutputDir(String from, String to, Closure<String> stream = { output }) {
+        outputDir(from, to, this.&gradleUserHomeOutputDirs, stream)
+    }
+
+    Set<TestFile> allOutputDirs(String from, String to, Closure<String> stream = { output }) {
+        return projectOutputDirs(from, to, stream) + gradleUserHomeOutputDirs(from, to, stream)
+    }
+
+    Set<TestFile> projectOutputDirs(String from, String to, Closure<String> stream = { output }) {
+        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "\\w+"]
+        return outputDirs(from, to, parts.join(quotedFileSeparator), stream)
+    }
+
+    Set<TestFile> gradleUserHomeOutputDirs(String from, String to, Closure<String> stream = { output }) {
+        def parts = [Pattern.quote(cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey()).absolutePath), "\\w+"]
+        outputDirs(from, to, parts.join(quotedFileSeparator), stream)
+    }
+
+    private final quotedFileSeparator = Pattern.quote(File.separator)
+
+    Set<TestFile> outputDirs(String from, String to, String outputDirPattern, Closure<String> stream = { output }) {
         Set<TestFile> dirs = []
-        def baseDir = cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey(), from).absolutePath + File.separator
-        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
+        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (${outputDirPattern})")
         for (def line : stream.call().readLines()) {
             def matcher = pattern.matcher(line)
             if (matcher.matches()) {
@@ -1292,5 +1774,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
     }
 
-
+    void writeLastTransformationAccessTimeToJournal(TestFile outputDir, long millis) {
+        def workspace = new DefaultTransformationWorkspace(outputDir)
+        writeLastFileAccessTimeToJournal(workspace.getOutputDirectory(), millis)
+        writeLastFileAccessTimeToJournal(workspace.getResultsFile(), millis)
+    }
 }

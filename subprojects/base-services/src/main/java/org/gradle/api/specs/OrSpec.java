@@ -38,6 +38,7 @@ public class OrSpec<T> extends CompositeSpec<T> {
         super(specs);
     }
 
+    @Override
     public boolean isSatisfiedBy(T object) {
         Spec<? super T>[] specs = getSpecsArray();
         if (specs.length == 0) {

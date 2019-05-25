@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -26,14 +26,15 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * An edge in the dependency graph, between 2 nodes.
+ * A {@link ResolvedGraphDependency} that is used during the resolution of the dependency graph.
+ * Additional fields in this interface are not required to reconstitute the serialized graph, but are using during construction of the graph.
  */
-public interface DependencyGraphEdge extends DependencyResult {
+public interface DependencyGraphEdge extends ResolvedGraphDependency {
     DependencyGraphNode getFrom();
 
     DependencyGraphSelector getSelector();
 
-    ModuleExclusion getExclusions();
+    ExcludeSpec getExclusions();
 
     boolean contributesArtifacts();
 
@@ -46,5 +47,7 @@ public interface DependencyGraphEdge extends DependencyResult {
      */
     @Nullable
     Dependency getOriginalDependency();
+
+    boolean isTargetVirtualPlatform();
 
 }

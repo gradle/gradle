@@ -267,8 +267,8 @@ class DefaultStructBindingsStoreTest extends Specification {
         bindings.methodBindings*.getClass() == [DelegateMethodBinding, DelegateMethodBinding]
         bindings.methodBindings*.viewMethod*.name == ["getValue", "getValue"]
         bindings.methodBindings*.viewMethod*.method*.returnType == [Number, Integer]
-        bindings.methodBindings*.implementorMethod*.name == ["getValue", "getValue"]
-        bindings.methodBindings*.implementorMethod*.method*.returnType == [Integer, Integer]
+        bindings.methodBindings*.implementerMethod*.name == ["getValue", "getValue"]
+        bindings.methodBindings*.implementerMethod*.method*.returnType == [Integer, Integer]
     }
 
     static enum MyEnum {

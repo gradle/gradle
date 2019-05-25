@@ -43,7 +43,6 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final classLoader = Mock(ClassLoader)
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()
-    final ScriptSourceHasher hasher = Mock()
     final ClassLoaderCache classLoaderCache = Mock()
     final classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(classLoader) >> HashCode.fromInt(9999)
@@ -51,7 +50,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final File localDir = new File("local-dir")
     final File globalDir = new File("global-dir")
     final File classesDir = new File(globalDir, "classes")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, scriptCompilationHandler, Stub(ProgressLoggerFactory), hasher, classLoaderCache, classLoaderHierarchyHasher)
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, scriptCompilationHandler, Stub(ProgressLoggerFactory), classLoaderCache, classLoaderHierarchyHasher)
     final Action verifier = Stub()
     final CompiledScript compiledScript = Stub() {
         loadClass() >> Script
@@ -62,6 +61,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         _ * source.resource >> resource
         _ * resource.contentCached >> true
         _ * resource.text >> 'this is the script'
+        _ * resource.contentHash >> HashCode.fromInt(0)
         _ * source.className >> 'ScriptClassName'
         _ * source.fileName >> 'ScriptFileName'
         _ * source.displayName >> 'Build Script'
@@ -79,7 +79,6 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
         then:
         result == Script
-        1 * hasher.hash(source) >> HashCode.fromInt(0x0123)
         1 * cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
@@ -112,7 +111,6 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
         then:
         result == Script
-        1 * hasher.hash(source) >> HashCode.fromInt(0x0123)
         1 * cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]

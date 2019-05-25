@@ -92,7 +92,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false));
+            artifactsForThisConfiguration = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false,  configuration.getDependenciesResolver()));
         }
         return artifactsForThisConfiguration;
     }
@@ -108,7 +108,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants) {
         final SelectedArtifactResults artifactResults;
-        VariantSelector selector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariants);
+        VariantSelector selector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariants, configuration.getDependenciesResolver());
         artifactResults = this.artifactResults.select(componentSpec, selector);
 
         return new SelectedArtifactSet() {
@@ -147,6 +147,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return unresolvedDependencies.size() > 0;
     }
 
+    @Override
     public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
         return unresolvedDependencies;
     }
@@ -161,6 +162,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return transientConfigurationResultsFactory.create(artifactResults);
     }
 
+    @Override
     public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
         Set<ResolvedDependency> matches = new LinkedHashSet<ResolvedDependency>();
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
@@ -180,6 +182,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return matches;
     }
 
+    @Override
     public Set<ResolvedDependency> getAllModuleDependencies() {
         Set<ResolvedDependency> resolvedElements = new LinkedHashSet<ResolvedDependency>();
         Deque<ResolvedDependency> workQueue = new LinkedList<ResolvedDependency>();
@@ -204,6 +207,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     /**
      * Recursive but excludes unsuccessfully resolved artifacts.
      */
+    @Override
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), fileDependencyResults, visitor);
@@ -218,6 +222,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     /**
      * Recursive but excludes unsuccessfully resolved artifacts.
      */
+    @Override
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), fileDependencyResults, visitor);
@@ -279,6 +284,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return configuration;
     }
 
+    @Override
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
         return getFirstLevelModuleDependencies(Specs.SATISFIES_ALL);
     }

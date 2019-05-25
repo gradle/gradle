@@ -30,6 +30,7 @@ public class DefaultResolvedModuleVersion implements ResolvedModuleVersion {
         return identifier.toString();
     }
 
+    @Override
     public ModuleVersionIdentifier getId() {
         return identifier;
     }

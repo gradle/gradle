@@ -21,7 +21,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.util.Locale;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 public class LocaleSafeDecimalFormatTest {
 
@@ -42,6 +42,6 @@ public class LocaleSafeDecimalFormatTest {
         BigDecimal result = new LocaleSafeDecimalFormat().parse("1.05");
 
         //then
-        assertEquals(1.05, result.doubleValue());
+        assertEquals(1.05, result.doubleValue(), 0f);
     }
 }

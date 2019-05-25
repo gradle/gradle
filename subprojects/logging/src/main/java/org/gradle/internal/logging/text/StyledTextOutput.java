@@ -82,6 +82,7 @@ public interface StyledTextOutput extends Appendable {
      * @param c The character
      * @return this
      */
+    @Override
     StyledTextOutput append(char c);
 
     /**
@@ -90,6 +91,7 @@ public interface StyledTextOutput extends Appendable {
      * @param csq The character sequence
      * @return this.
      */
+    @Override
     StyledTextOutput append(CharSequence csq);
 
     /**
@@ -98,6 +100,7 @@ public interface StyledTextOutput extends Appendable {
      * @param csq The character sequence
      * @return this.
      */
+    @Override
     StyledTextOutput append(CharSequence csq, int start, int end);
 
     /**

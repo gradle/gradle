@@ -71,5 +71,6 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @since 3.0
      */
+    @Override
     DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes() throws UnsupportedMethodException;
 }

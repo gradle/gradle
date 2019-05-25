@@ -44,25 +44,26 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
 
     @Override
     public void visitClasses(final Action<? super TestClassResult> visitor) {
-        final Map<String, OverlayedIdProxyingTestClassResult> aggregatedTestResults = new LinkedHashMap<String, OverlayedIdProxyingTestClassResult>();
+        final Map<String, OverlaidIdProxyingTestClassResult> aggregatedTestResults = new LinkedHashMap<String, OverlaidIdProxyingTestClassResult>();
         classOutputProviders = ArrayListMultimap.create();
         final AtomicLong newIdCounter = new AtomicLong(0L);
         for (final TestResultsProvider provider : providers) {
             provider.visitClasses(new Action<TestClassResult>() {
+                @Override
                 public void execute(final TestClassResult classResult) {
-                    OverlayedIdProxyingTestClassResult newTestResult = aggregatedTestResults.get(classResult.getClassName());
+                    OverlaidIdProxyingTestClassResult newTestResult = aggregatedTestResults.get(classResult.getClassName());
                     if (newTestResult != null) {
                         newTestResult.addTestClassResult(classResult);
                     } else {
                         long newId = newIdCounter.incrementAndGet();
-                        newTestResult = new OverlayedIdProxyingTestClassResult(newId, classResult);
+                        newTestResult = new OverlaidIdProxyingTestClassResult(newId, classResult);
                         aggregatedTestResults.put(classResult.getClassName(), newTestResult);
                     }
                     classOutputProviders.put(newTestResult.getId(), new DelegateProvider(classResult.getId(), provider));
                 }
             });
         }
-        for (OverlayedIdProxyingTestClassResult classResult : aggregatedTestResults.values()) {
+        for (OverlaidIdProxyingTestClassResult classResult : aggregatedTestResults.values()) {
             visitor.execute(classResult);
         }
     }
@@ -77,10 +78,10 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         }
     }
 
-    private static class OverlayedIdProxyingTestClassResult extends TestClassResult {
+    private static class OverlaidIdProxyingTestClassResult extends TestClassResult {
         private final Map<Long, TestClassResult> delegates = new LinkedHashMap<Long, TestClassResult>();
 
-        public OverlayedIdProxyingTestClassResult(long id, TestClassResult delegate) {
+        public OverlaidIdProxyingTestClassResult(long id, TestClassResult delegate) {
             super(id, delegate.getClassName(), delegate.getStartTime());
             addTestClassResult(delegate);
         }
@@ -102,6 +103,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         return Iterables.any(
                 classOutputProviders.get(id),
                 new Predicate<DelegateProvider>() {
+                    @Override
                     public boolean apply(DelegateProvider delegateProvider) {
                         return delegateProvider.provider.hasOutput(delegateProvider.id, destination);
                     }
@@ -118,6 +120,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     @Override
     public boolean isHasResults() {
         return any(providers, new Spec<TestResultsProvider>() {
+            @Override
             public boolean isSatisfiedBy(TestResultsProvider element) {
                 return element.isHasResults();
             }

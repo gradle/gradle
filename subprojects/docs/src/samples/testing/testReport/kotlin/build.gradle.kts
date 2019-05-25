@@ -13,12 +13,12 @@ subprojects {
 
 // tag::test-report[]
     // Disable the test report for the individual test task
-    tasks.getByName<Test>("test") {
+    tasks.named<Test>("test") {
         reports.html.isEnabled = false
     }
 }
 
-task<TestReport>("testReport") {
+tasks.register<TestReport>("testReport") {
     destinationDir = file("$buildDir/reports/allTests")
     // Include the results from the `test` task in all subprojects
     reportOn(subprojects.map { it.tasks["test"] })

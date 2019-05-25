@@ -26,6 +26,7 @@ public class UserHomeInitScriptFinder extends DirectoryInitScriptFinder implemen
         this.userHomeDir = userHomeDir;
     }
 
+    @Override
     public void findScripts(Collection<File> scripts) {
         File userInitScript = resolveScriptFile(userHomeDir, "init");
         if (userInitScript != null) {

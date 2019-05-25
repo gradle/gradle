@@ -28,7 +28,6 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -59,7 +58,7 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppExecutable(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+    public DefaultCppExecutable(Names names, ObjectFactory objectFactory, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.executableFile = objectFactory.fileProperty();
         this.executableFileProducer = objectFactory.property(Task.class);
@@ -68,7 +67,7 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
         this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
         this.runtimeElementsProperty = objectFactory.property(Configuration.class);
-        this.outputs = fileOperations.configurableFiles();
+        this.outputs = objectFactory.fileCollection();
     }
 
     @Override

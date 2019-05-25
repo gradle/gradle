@@ -17,7 +17,7 @@
 
 Gradle uses a convention-over-configuration approach to building JVM-based projects that borrows several conventions from Apache Maven. In particular, it uses the same default directory structure for source files and resources, and it works with Maven-compatible repositories.
 
-We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>. If you don't have much experience with building JVM-based projects with Gradle, take a look at the <<tutorial_java_projects.adoc#tutorial_java_projects,Java Quickstart>> first as it will give you a good overview of the basics.
+We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>. If you don't have much experience with building JVM-based projects with Gradle, take a look at the link:{guidesUrl}/?q=JVM[Java tutorials] for step-by-step instructions on how to build various types of basic Java projects.
 
 == Introduction
 
@@ -325,7 +325,8 @@ include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defin
 include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
 ====
 
-See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more details on the configuration options available to you. And note that you need to use `classifier` rather than `appendix` here for correct publication of the JAR.
+See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more details on the configuration options available to you.
+And note that you need to use `archiveClassifier` rather than `archiveAppendix` here for correct publication of the JAR.
 
 
 If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
@@ -459,3 +460,12 @@ There is no core support for running your web application directly from the buil
 == Building Java EE applications
 
 Java enterprise systems have changed a lot over the years, but if you're still deploying to JEE application servers, you can make use of the <<ear_plugin.adoc#ear_plugin,Ear Plugin>>. This adds conventions and a task for building EAR files. The plugin's chapter has more details.
+
+[[sec:building_java_platform]]
+== Building Java Platforms
+
+A Java platform represents a set of dependency declarations and constraints that form a cohesive unit to be applied on consuming projects.
+The platform has no source and no artifact of its own.
+It maps in the Maven world to a https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management[BOM].
+
+The support comes via the <<java_platform_plugin.adoc#,Java Platform plugin>>, which sets up the different configurations and publication components.

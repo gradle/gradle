@@ -37,10 +37,12 @@ public class DefaultIvyContextManager implements IvyContextManager {
     private final LinkedList<Ivy> cached = new LinkedList<Ivy>();
     private final ThreadLocal<Integer> depth = new ThreadLocal<Integer>();
 
+    @Override
     public void withIvy(final Action<? super Ivy> action) {
         withIvy(Transformers.toTransformer(action));
     }
 
+    @Override
     public <T> T withIvy(Transformer<? extends T, ? super Ivy> action) {
         Integer currentDepth = depth.get();
 
@@ -89,7 +91,7 @@ public class DefaultIvyContextManager implements IvyContextManager {
     }
 
     /*
-     * Syncronizes on the system properties, because IvySettings iterates
+     * Synchronizes on the system properties, because IvySettings iterates
      * over them without taking a defensive copy. This can fail if another
      * process sets a system property at that moment.
      */

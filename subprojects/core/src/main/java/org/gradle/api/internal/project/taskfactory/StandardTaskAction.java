@@ -20,7 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.lang.reflect.Method;
@@ -34,6 +34,7 @@ class StandardTaskAction implements ImplementationAwareTaskAction, Describable {
         this.method = method;
     }
 
+    @Override
     public void execute(Task task) {
         ClassLoader original = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
@@ -45,7 +46,7 @@ class StandardTaskAction implements ImplementationAwareTaskAction, Describable {
     }
 
     protected void doExecute(Task task, String methodName) {
-        JavaReflectionUtil.method(task, Object.class, methodName).invoke(task);
+        JavaMethod.of(task, Object.class, methodName).invoke(task);
     }
 
     @Override

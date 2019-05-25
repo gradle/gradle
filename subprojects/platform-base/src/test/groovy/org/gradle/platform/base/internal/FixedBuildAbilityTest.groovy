@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.internal
 
-import org.gradle.util.TreeVisitor
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import spock.lang.Specification
 
 class FixedBuildAbilityTest extends Specification {
@@ -37,13 +37,13 @@ class FixedBuildAbilityTest extends Specification {
     }
 
     def "explains not buildable reason" () {
-        TreeVisitor visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         when:
         def ability = new FixedBuildAbility(false)
         ability.explain(visitor)
 
         then:
-        visitor.node("Disabled by user")
+        1 * visitor.node("Disabled by user")
     }
 }

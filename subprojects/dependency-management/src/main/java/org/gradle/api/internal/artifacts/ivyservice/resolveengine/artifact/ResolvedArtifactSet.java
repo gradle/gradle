@@ -34,6 +34,11 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
      */
     Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener);
 
+    /**
+     * Visits the local artifacts of this set, if known without further resolution. Ignores artifacts that are not build locally and local artifacts that cannot be determined without further resolution.
+     */
+    void visitLocalArtifacts(LocalArtifactVisitor listener);
+
     Completion EMPTY_RESULT = new Completion() {
         @Override
         public void visit(ArtifactVisitor visitor) {
@@ -44,6 +49,10 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
         @Override
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
             return EMPTY_RESULT;
+        }
+
+        @Override
+        public void visitLocalArtifacts(LocalArtifactVisitor listener) {
         }
 
         @Override
@@ -64,14 +73,14 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
      */
     interface AsyncArtifactListener {
         /**
-         * Visits an artifact once it is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
+         * Visits an artifact once its file is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
          */
         void artifactAvailable(ResolvableArtifact artifact);
 
         /**
          * Should the file for each artifacts be made available when visiting the result?
          *
-         * Returns true here allows the collection to pre-emptively resolve the files in parallel.
+         * Returns true here allows the collection to preemptively resolve the files in parallel.
          */
         boolean requireArtifactFiles();
 
@@ -85,6 +94,9 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
          * Called from any thread and in any order.
          */
         void fileAvailable(File file);
+    }
 
+    interface LocalArtifactVisitor {
+        void visitArtifact(ResolvableArtifact artifact);
     }
 }

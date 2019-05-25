@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.util.GradleVersion
 
 class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegrationTest {
@@ -25,7 +26,8 @@ class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegration
 
     def "Generating Gradle API jar is logged with rich console"() {
         given:
-        executer.withArgument("--console=rich")
+        executer.withTestConsoleAttached()
+        executer.withConsole(ConsoleOutput.Rich)
         buildFile << """
             configurations {
                 gradleImplDeps

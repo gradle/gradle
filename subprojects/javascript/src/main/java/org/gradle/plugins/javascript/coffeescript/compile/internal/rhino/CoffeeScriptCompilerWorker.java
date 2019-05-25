@@ -29,8 +29,10 @@ import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUti
 
 public class CoffeeScriptCompilerWorker implements CoffeeScriptCompilerProtocol {
 
+    @Override
     public void process(SerializableCoffeeScriptCompileSpec spec) {
         Scriptable coffeeScriptScope = parse(spec.getCoffeeScriptJs(), "UTF-8", new Action<Context>() {
+            @Override
             public void execute(Context context) {
                 context.setOptimizationLevel(-1);
             }
@@ -49,6 +51,7 @@ public class CoffeeScriptCompilerWorker implements CoffeeScriptCompilerProtocol 
 
     private String compile(Scriptable rootScope, final String source, final String sourceName) {
         return childScope(rootScope, new DefaultScopeOperation<String>() {
+            @Override
             public String action(Scriptable compileScope, Context context) {
                 compileScope.put("coffeeScriptSource", compileScope, source);
                 try {

@@ -17,7 +17,17 @@
 package org.gradle.internal.file;
 
 public enum FileType {
-    RegularFile,
-    Directory,
-    Missing
+    RegularFile(org.gradle.api.file.FileType.FILE),
+    Directory(org.gradle.api.file.FileType.DIRECTORY),
+    Missing(org.gradle.api.file.FileType.MISSING);
+
+    private final org.gradle.api.file.FileType publicType;
+
+    FileType(org.gradle.api.file.FileType publicType) {
+        this.publicType = publicType;
+    }
+
+    public org.gradle.api.file.FileType toPublicType() {
+        return publicType;
+    }
 }

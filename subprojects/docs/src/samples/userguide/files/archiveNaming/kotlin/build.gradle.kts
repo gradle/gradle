@@ -5,24 +5,24 @@ plugins {
 
 version = "1.0"
 
-task<Zip>("myZip") {
+tasks.register<Zip>("myZip") {
     from("somedir")
 
     doLast {
-        println(archiveName)
-        println(relativePath(destinationDir))
-        println(relativePath(archivePath))
+        println(archiveFileName.get())
+        println(relativePath(destinationDirectory))
+        println(relativePath(archiveFile))
     }
 }
 // end::zip-task[]
 
 // tag::zip-task-with-custom-base-name[]
-task<Zip>("myCustomZip") {
-    baseName = "customName"
+tasks.register<Zip>("myCustomZip") {
+    archiveBaseName.set("customName")
     from("somedir")
 
     doLast {
-        println(archiveName)
+        println(archiveFileName.get())
     }
 }
 // end::zip-task-with-custom-base-name[]

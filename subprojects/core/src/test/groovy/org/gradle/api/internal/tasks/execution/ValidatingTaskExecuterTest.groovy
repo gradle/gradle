@@ -16,17 +16,17 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.TaskValidationContext
+import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.tasks.TaskValidationException
+import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import spock.lang.Specification
 
 class ValidatingTaskExecuterTest extends Specification {
@@ -35,10 +35,10 @@ class ValidatingTaskExecuterTest extends Specification {
     def taskProperties = Mock(TaskProperties)
     def project = Stub(ProjectInternal)
     def state = Mock(TaskStateInternal)
-    def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)
+    def reservedFileSystemLocationRegistry = Mock(ReservedFileSystemLocationRegistry)
     def executionContext = Mock(TaskExecutionContext)
-    final ValidatingTaskExecuter executer = new ValidatingTaskExecuter(target)
+    final ValidatingTaskExecuter executer = new ValidatingTaskExecuter(target, reservedFileSystemLocationRegistry)
 
     def "executes task when there are no violations"() {
         when:
@@ -48,12 +48,9 @@ class ValidatingTaskExecuterTest extends Specification {
         1 * task.getProject() >> project
         1 * executionContext.getTaskProperties() >> taskProperties
         1 * taskProperties.validate(_)
-        1 * target.execute(task, state, executionContext)
+        1 * target.execute(task, state, executionContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
         0 * _
     }
-
-    def outputFile = Mock(DeclaredTaskOutputFileProperty)
-    def inputFile = Mock(DeclaredTaskInputFileProperty)
 
     def "fails task when there is a violation"() {
         when:
@@ -62,7 +59,7 @@ class ValidatingTaskExecuterTest extends Specification {
         then:
         1 * task.getProject() >> project
         1 * executionContext.getTaskProperties() >> taskProperties
-        1 * taskProperties.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage('failure') }
+        1 * taskProperties.validate(_) >> { TaskValidationContext context -> context.visitError('failure') }
         1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
@@ -81,8 +78,8 @@ class ValidatingTaskExecuterTest extends Specification {
         1 * task.getProject() >> project
         1 * executionContext.getTaskProperties() >> taskProperties
         1 * taskProperties.validate(_) >> { TaskValidationContext context ->
-            context.recordValidationMessage('failure1')
-            context.recordValidationMessage('failure2')
+            context.visitError('failure1')
+            context.visitError('failure2')
         }
         1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]

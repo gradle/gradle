@@ -1,5 +1,5 @@
 // tag::set-input-files[]
-task<JavaCompile>("compile") {
+tasks.register<JavaCompile>("compile") {
     // Use a File object to specify the source directory
     source = fileTree(file("src/main/java"))
 
@@ -13,7 +13,7 @@ task<JavaCompile>("compile") {
     source = fileTree("src/main/java").matching { include("org/gradle/api/**") }
 
     // Using a closure to specify the source files.
-    setSource(provider {
+    setSource({
         // Use the contents of each zip file in the src dir
         file("src").listFiles().filter { it.name.endsWith(".zip") }.map { zipTree(it) }
     })
@@ -21,7 +21,7 @@ task<JavaCompile>("compile") {
 // end::set-input-files[]
 
 // tag::add-input-files[]
-tasks.getByName<JavaCompile>("compile") {
+tasks.named<JavaCompile>("compile") {
     // Add some source directories use String paths
     source("src/main/java", "src/main/groovy")
 
@@ -29,6 +29,6 @@ tasks.getByName<JavaCompile>("compile") {
     source(file("../shared/java"))
 
     // Add some source directories using a closure
-    setSource(provider { file("src/test/").listFiles() })
+    setSource({ file("src/test/").listFiles() })
 }
 // end::add-input-files[]

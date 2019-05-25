@@ -19,7 +19,7 @@ package org.gradle.internal.invocation;
 import javax.annotation.Nullable;
 
 /**
- * Responsible for executing a {@link BuildAction} and generating the result.
+ * Responsible for executing a {@link BuildAction} and generating the result. A {@link BuildActionRunner} runs within the root build of the build tree.
  */
 public interface BuildActionRunner {
     /**
@@ -29,12 +29,18 @@ public interface BuildActionRunner {
      */
     Result run(BuildAction action, BuildController buildController);
 
+    /**
+     * Packages up the result of a {@link BuildAction}, either success plus an optional result object, or failure.
+     *
+     * <p>Failures are represented using 2 exceptions: the build failure, which is the failure that the build completed with and that should be reported to the user (via logging), plus the client failure, which is the exception that should be forwarded to the client. Often these are the same, but may be different for specific combinations of action + failure.
+     */
     class Result {
         private final boolean hasResult;
         private final Object result;
         private final Throwable buildFailure;
         private final Throwable clientFailure;
         private static final Result NOTHING = new Result(false, null, null, null);
+        private static final Result NULL = new Result(true, null, null, null);
 
         private Result(boolean hasResult, Object result, Throwable buildFailure, Throwable clientFailure) {
             this.hasResult = hasResult;
@@ -48,11 +54,10 @@ public interface BuildActionRunner {
         }
 
         public static Result of(@Nullable Object result) {
+            if (result == null) {
+                return NULL;
+            }
             return new Result(true, result, null, null);
-        }
-
-        public static Result of(@Nullable Object result, Throwable buildFailure) {
-            return new Result(true, result, buildFailure, null);
         }
 
         public static Result failed(Throwable buildFailure) {
@@ -61,13 +66,6 @@ public interface BuildActionRunner {
 
         public static Result failed(Throwable buildFailure, RuntimeException clientFailure) {
             return new Result(true, null, buildFailure, clientFailure);
-        }
-
-        /**
-         * Replaces the client exception.
-         */
-        public Result withClientFailure(Throwable clientFailure) {
-            return new Result(hasResult, result, buildFailure, clientFailure);
         }
 
         /**

@@ -18,6 +18,9 @@ package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Represents the Symlink facilities available on JDK 7 or better on Windows.
@@ -35,5 +38,17 @@ public class WindowsJdk7Symlink extends Jdk7Symlink {
     @Override
     public void symlink(File link, File target) throws IOException {
         throw new IOException("Creation of symlinks is not supported on this platform.");
+    }
+
+    @Override
+    public boolean isSymlink(File suspect) {
+        try {
+            BasicFileAttributes attrs = Files.readAttributes(suspect.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+            boolean isJunction = attrs.isDirectory() && attrs.isOther();
+            // Handles both junctions and real symlinks (https://www.2brightsparks.com/resources/articles/NTFS-Hard-Links-Junctions-and-Symbolic-Links.pdf)
+            return isJunction || super.isSymlink(suspect);
+        } catch (IOException e) {
+            return super.isSymlink(suspect);
+        }
     }
 }

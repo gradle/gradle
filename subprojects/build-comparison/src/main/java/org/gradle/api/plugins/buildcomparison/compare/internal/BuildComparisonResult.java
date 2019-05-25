@@ -57,6 +57,7 @@ public class BuildComparisonResult {
             return false;
         } else {
             return CollectionUtils.every(comparisons, new Spec<BuildOutcomeComparisonResult<?>>() {
+                @Override
                 public boolean isSatisfiedBy(BuildOutcomeComparisonResult<?> comparisonResult) {
                     return comparisonResult.isOutcomesAreIdentical();
                 }

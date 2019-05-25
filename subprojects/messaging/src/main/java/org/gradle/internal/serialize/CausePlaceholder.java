@@ -20,4 +20,13 @@ import java.io.Serializable;
 
 class CausePlaceholder implements Serializable {
     private static final long serialVersionUID = 1L;
+    private final int causeIndex;
+
+    CausePlaceholder(int causeIndex) {
+        this.causeIndex = causeIndex;
+    }
+
+    public int getCauseIndex() {
+        return causeIndex;
+    }
 }

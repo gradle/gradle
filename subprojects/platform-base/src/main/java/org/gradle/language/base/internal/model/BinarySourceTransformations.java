@@ -18,7 +18,7 @@ package org.gradle.language.base.internal.model;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections.comparators.BooleanComparator;
+import com.google.common.primitives.Booleans;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
@@ -30,7 +30,12 @@ import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -100,7 +105,7 @@ public class BinarySourceTransformations {
             public int compare(LanguageTransform<?, ?> o1, LanguageTransform<?, ?> o2) {
                 boolean joint1 = o1.getTransformTask() instanceof JointCompileTaskConfig;
                 boolean joint2 = o2.getTransformTask() instanceof JointCompileTaskConfig;
-                return new BooleanComparator(true).compare(joint1, joint2);
+                return Booleans.trueFirst().compare(joint1, joint2);
             }
         });
         return prioritized;

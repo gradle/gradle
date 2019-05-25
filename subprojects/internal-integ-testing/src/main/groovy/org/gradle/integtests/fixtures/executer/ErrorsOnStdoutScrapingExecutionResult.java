@@ -39,6 +39,16 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public String getFormattedOutput() {
+        return delegate.getFormattedOutput();
+    }
+
+    @Override
+    public String getPlainTextOutput() {
+        return delegate.getPlainTextOutput();
+    }
+
+    @Override
     public GroupedOutputFixture getGroupedOutput() {
         return delegate.getGroupedOutput();
     }
@@ -57,18 +67,6 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     @Override
     public boolean hasErrorOutput(String expectedOutput) {
         return getOutput().contains(expectedOutput);
-    }
-
-    @Override
-    public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
-        delegate.assertRawOutputContains(expectedOutput);
-        return this;
-    }
-
-    @Override
-    public ExecutionResult assertRawOutputContains(String expectedOutput) {
-        delegate.assertRawOutputContains(expectedOutput);
-        return this;
     }
 
     @Override
@@ -115,6 +113,12 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
         delegate.assertTasksExecuted(taskPaths);
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths) {
+        delegate.assertTasksExecutedAndNotSkipped(taskPaths);
         return this;
     }
 

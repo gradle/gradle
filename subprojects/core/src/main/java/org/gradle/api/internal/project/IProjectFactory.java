@@ -19,9 +19,11 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 
+import javax.annotation.Nullable;
+
 /**
  * Creates a {@link ProjectInternal} implementation.
  */
 public interface IProjectFactory {
-    ProjectInternal createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope);
+    ProjectInternal createProject(ProjectDescriptor projectDescriptor, @Nullable ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope);
 }

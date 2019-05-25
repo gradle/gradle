@@ -23,6 +23,7 @@ import org.gradle.internal.resolve.ArtifactResolveException;
 import java.io.File;
 
 public class DefaultBuildableArtifactResolveResult extends DefaultBuildableTypedResolveResult<File, ArtifactResolveException> implements BuildableArtifactResolveResult {
+    @Override
     public void notFound(ComponentArtifactIdentifier artifact) {
         failed(new ArtifactNotFoundException(artifact, getAttempted()));
     }

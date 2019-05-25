@@ -36,6 +36,7 @@ public abstract class WindowsKitInstall implements Named {
         return baseDir;
     }
 
+    @Override
     public String getName() {
         return name;
     }

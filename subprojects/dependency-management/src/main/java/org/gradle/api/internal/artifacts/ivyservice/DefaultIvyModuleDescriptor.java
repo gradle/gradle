@@ -31,14 +31,17 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptor {
         this.ivyStatus = ivyStatus;
     }
 
+    @Override
     public String getBranch() {
         return branch;
     }
 
+    @Override
     public String getIvyStatus() {
         return ivyStatus;
     }
 
+    @Override
     public IvyExtraInfo getExtraInfo() {
         return extraInfo;
     }

@@ -23,7 +23,13 @@ import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.gradle.util.GUtil;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Static meta-data about a class extracted from the source for the class.
@@ -266,6 +272,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         return null;
     }
 
+    @Override
     public void attach(ClassMetaDataRepository<ClassMetaData> metaDataRepository) {
         this.metaDataRepository = metaDataRepository;
     }
@@ -278,6 +285,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         return method;
     }
 
+    @Override
     public void resolveTypes(Transformer<String, String> transformer) {
         super.resolveTypes(transformer);
         if (superClassName != null) {
@@ -294,6 +302,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         }
     }
 
+    @Override
     public void visitTypes(Action<TypeMetaData> action) {
         for (PropertyMetaData propertyMetaData : declaredProperties.values()) {
             propertyMetaData.visitTypes(action);

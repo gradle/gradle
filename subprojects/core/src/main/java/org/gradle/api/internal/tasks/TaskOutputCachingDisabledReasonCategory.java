@@ -64,7 +64,7 @@ public enum TaskOutputCachingDisabledReasonCategory {
     OVERLAPPING_OUTPUTS,
 
     /**
-     * The task implementation is not cacheable. Reasons for non-cacheable task implemenations:
+     * The task implementation is not cacheable. Reasons for non-cacheable task implementations:
      * <ul>
      *     <li>the task type is loaded via a custom classloader Gradle wasn't able to track,</li>
      *     <li>a Java lambda was used to implement the task (see https://github.com/gradle/gradle/issues/5510).</li>

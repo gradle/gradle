@@ -19,13 +19,13 @@ package org.gradle.internal.filewatch.jdk7;
 import com.google.common.base.Throwables;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherListener;
 import org.gradle.internal.os.OperatingSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +48,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 class WatchServiceRegistrar implements FileWatcherListener {
-    private final static Logger LOG = Logging.getLogger(WatchServiceRegistrar.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WatchServiceRegistrar.class);
     private static final boolean FILE_TREE_WATCHING_SUPPORTED = OperatingSystem.current().isWindows() && !JavaVersion.current().isJava9Compatible();
     private static final WatchEvent.Modifier[] WATCH_MODIFIERS = instantiateWatchModifiers();
     private static final WatchEvent.Kind[] WATCH_KINDS = new WatchEvent.Kind[]{StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY};

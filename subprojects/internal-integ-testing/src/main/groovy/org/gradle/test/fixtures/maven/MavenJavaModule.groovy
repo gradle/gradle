@@ -16,6 +16,9 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.api.JavaVersion
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.util.GUtil
 
@@ -26,6 +29,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     MavenJavaModule(MavenFileModule mavenModule) {
         super(mavenModule)
         this.mavenModule = mavenModule
+        this.mavenModule.attributes[TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name] = JavaVersion.current().majorVersion
     }
 
     @Override
@@ -48,9 +52,18 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         mavenModule.assertArtifactsPublished(expectedArtifacts)
 
         // Verify Gradle metadata particulars
-        assert mavenModule.parsedModuleMetadata.variants*.name as Set == ['api', 'runtime'] as Set
-        assert mavenModule.parsedModuleMetadata.variant('api').files*.name == [artifact('jar')]
-        assert mavenModule.parsedModuleMetadata.variant('runtime').files*.name == [artifact('jar')]
+        assert mavenModule.parsedModuleMetadata.variants*.name as Set == ['apiElements', 'runtimeElements'] as Set
+        def apiElements = mavenModule.parsedModuleMetadata.variant('apiElements')
+        def runtimeElements = mavenModule.parsedModuleMetadata.variant('runtimeElements')
+
+        assert apiElements.files*.name == [artifact('jar')]
+        assert runtimeElements.files*.name == [artifact('jar')]
+
+        // Verify it contains some expected attributes
+        assert apiElements.attributes.containsKey(Bundling.BUNDLING_ATTRIBUTE.name)
+        assert apiElements.attributes.containsKey(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name)
+        assert runtimeElements.attributes.containsKey(Bundling.BUNDLING_ATTRIBUTE.name)
+        assert runtimeElements.attributes.containsKey(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name)
 
         // Verify POM particulars
         assert mavenModule.parsedPom.packaging == null
@@ -65,11 +78,11 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     @Override
     void assertApiDependencies(String... expected) {
         if (expected.length == 0) {
-            assert parsedModuleMetadata.variant('api').dependencies.empty
+            assert parsedModuleMetadata.variant('apiElements').dependencies.empty
             assert parsedPom.scopes.compile == null
         } else {
-            assert parsedModuleMetadata.variant('api').dependencies*.coords as Set == expected as Set
-            assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            assert parsedModuleMetadata.variant('apiElements').dependencies*.coords as Set == expected as Set
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
             parsedPom.scopes.compile.assertDependsOn(mavenizeDependencies(expected))
         }
     }
@@ -77,10 +90,10 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     @Override
     void assertRuntimeDependencies(String... expected) {
         if (expected.length == 0) {
-            assert parsedModuleMetadata.variant('runtime').dependencies.empty
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies.empty
             assert parsedPom.scopes.runtime == null
         } else {
-            assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
             parsedPom.scopes.runtime.assertDependsOn(mavenizeDependencies(expected))
         }
     }

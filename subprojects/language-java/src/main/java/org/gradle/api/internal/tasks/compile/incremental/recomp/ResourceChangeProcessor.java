@@ -32,6 +32,11 @@ class ResourceChangeProcessor {
         if (processorPath.isEmpty()) {
             return;
         }
-        spec.setFullRebuildCause("A resource changed", input.getFile());
+        if (input.isRemoved()) {
+            spec.setFullRebuildCause(input.getFile().getName() + " has been removed", null);
+        }
+        if (!input.getFile().isDirectory()) {
+            spec.setFullRebuildCause(input.getFile().getName() + " has been changed", null);
+        }
     }
 }

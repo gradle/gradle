@@ -37,8 +37,8 @@ class Maven2Gradle {
     private final BuildScriptBuilderFactory scriptBuilderFactory
 
     def dependentWars = []
-    def workingDir
-    def effectivePom
+    File workingDir
+    GPathResult effectivePom
 
     Logger logger = Logging.getLogger(getClass())
     private Set<MavenProject> mavenProjects
@@ -74,13 +74,13 @@ class Maven2Gradle {
             }
 
             def allprojectsBuilder = scriptBuilder.allprojects()
-            allprojectsBuilder.plugin(null, "maven")
             coordinatesForProject(rootProject, allprojectsBuilder)
 
             def subprojectsBuilder = scriptBuilder.subprojects()
             subprojectsBuilder.plugin(null, "java")
+            subprojectsBuilder.plugin(null, "maven-publish")
             compilerSettings(rootProject, subprojectsBuilder)
-            packageSources(rootProject, subprojectsBuilder)
+            def sourcesJarTaskGenerated = packageSources(rootProject, subprojectsBuilder)
 
             repositoriesForProjects(allProjects, subprojectsBuilder)
             globalExclusions(rootProject, subprojectsBuilder)
@@ -88,11 +88,12 @@ class Maven2Gradle {
             def commonDeps = dependencies.get(rootProject.artifactId.text())
             declareDependencies(commonDeps, subprojectsBuilder)
             testNg(commonDeps, subprojectsBuilder)
+            configurePublishing(subprojectsBuilder, sourcesJarTaskGenerated)
 
             modules(allProjects, false).each { module ->
                 def id = module.artifactId.text()
                 def moduleDependencies = dependencies.get(id)
-                boolean warPack = module.packaging.text().equals("war")
+                def warPack = module.packaging.text().equals("war")
                 def moduleScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, projectDir(module).path + "/build")
 
                 if (module.groupId.text() != rootProject.groupId.text()) {
@@ -113,23 +114,32 @@ class Maven2Gradle {
                 declareDependencies(moduleDependencies, moduleScriptBuilder)
                 testNg(moduleDependencies, moduleScriptBuilder)
 
-                packageTests(module, moduleScriptBuilder);
+                if (packageTests(module, moduleScriptBuilder)) {
+                    moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testsJar"))
+                }
+                if (packageJavadocs(module, moduleScriptBuilder)) {
+                    moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("javadocJar"))
+                }
 
                 moduleScriptBuilder.create().generate()
             }
             //TODO deployment
         } else {//simple
-            generateSettings(this.effectivePom.artifactId, null);
+            generateSettings(this.effectivePom.artifactId, null)
 
             scriptBuilder.plugin(null, 'java')
-            scriptBuilder.plugin(null, 'maven')
+            scriptBuilder.plugin(null, 'maven-publish')
             coordinatesForProject(this.effectivePom, scriptBuilder)
             descriptionForProject(this.effectivePom, scriptBuilder)
             compilerSettings(this.effectivePom, scriptBuilder)
             globalExclusions(this.effectivePom, scriptBuilder)
+            def sourcesJarTaskGenerated = packageSources(this.effectivePom, scriptBuilder)
+            def testsJarTaskGenerated = packageTests(this.effectivePom, scriptBuilder)
+            def javadocJarGenerated = packageJavadocs(this.effectivePom, scriptBuilder)
+            configurePublishing(scriptBuilder, sourcesJarTaskGenerated, testsJarTaskGenerated, javadocJarGenerated)
 
             scriptBuilder.repositories().mavenLocal(null)
-            Set<String> repoSet = new LinkedHashSet<String>();
+            Set<String> repoSet = new LinkedHashSet<String>()
             getRepositoriesForModule(this.effectivePom, repoSet)
             repoSet.each {
                 scriptBuilder.repositories().maven(null, it)
@@ -139,10 +149,25 @@ class Maven2Gradle {
             declareDependencies(dependencies, scriptBuilder)
             testNg(dependencies, scriptBuilder)
 
-            packageTests(this.effectivePom, scriptBuilder)
         }
 
         scriptBuilder.create().generate()
+    }
+
+    def configurePublishing(def builder, boolean sourcesJarTaskGenerated = false, boolean testsJarTaskGenerated = false, boolean javadocJarTaskGenerated = false) {
+        def publishing = builder.block(null, "publishing")
+        def publications = publishing.block(null, "publications")
+        def mavenPublication = publications.block(null, "maven(MavenPublication)")
+        mavenPublication.methodInvocation(null, "from", mavenPublication.propertyExpression("components.java"))
+        if (sourcesJarTaskGenerated) {
+            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("sourcesJar"))
+        }
+        if (testsJarTaskGenerated) {
+            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("testsJar"))
+        }
+        if (javadocJarTaskGenerated) {
+            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("javadocJar"))
+        }
     }
 
     void declareDependencies(List<Dependency> dependencies, builder) {
@@ -188,7 +213,7 @@ class Maven2Gradle {
         }
     }
 
-    def fqn = { project, allProjects ->
+    private String fqn(project, allProjects) {
         def buffer = new StringBuilder()
         generateFqn(project, allProjects, buffer)
         return buffer.toString()
@@ -211,7 +236,7 @@ class Maven2Gradle {
     private ModuleIdentifier getModuleIdentifier(GPathResult project) {
         def artifactId = project.artifactId.text()
         def groupId = project.groupId ? project.groupId.text() : project.parent.groupId.text()
-        return new DefaultModuleIdentifier(groupId, artifactId)
+        return DefaultModuleIdentifier.newId(groupId, artifactId)
     }
 
     private void coordinatesForProject(project, builder) {
@@ -227,7 +252,7 @@ class Maven2Gradle {
 
     private void repositoriesForProjects(projects, builder) {
         builder.repositories().mavenLocal(null)
-        def repoSet = new LinkedHashSet<String>();
+        def repoSet = new LinkedHashSet<String>()
         projects.each {
             getRepositoriesForModule(it, repoSet)
         }
@@ -351,17 +376,7 @@ class Maven2Gradle {
         }
     }
 
-    void packageTests(project, builder) {
-        def jarPlugin = plugin('maven-jar-plugin', project)
-        if (pluginGoal('test-jar', jarPlugin)) {
-            def taskConfigBuilder = builder.taskRegistration(null, "packageTests", "Jar")
-            taskConfigBuilder.propertyAssignment(null, "classifier", "tests")
-            taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"))
-            builder.methodInvocation(null, "artifacts.archives", builder.propertyExpression("tasks.packageTests"))
-        }
-    }
-
-    void packageSources(project, builder) {
+    boolean packageSources(project, builder) {
         def sourcePlugin = plugin('maven-source-plugin', project)
         def sourceSets = []
         if (sourcePlugin) {
@@ -372,19 +387,45 @@ class Maven2Gradle {
             }
         }
         if (!sourceSets.empty) {
-            def taskConfigBuilder = builder.taskRegistration(null, "packageSources", "Jar")
-            taskConfigBuilder.propertyAssignment(null, "classifier", "sources")
-            sourceSets.each { sourceSet ->
-                taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.${sourceSet}.allSource"))
+            builder.taskRegistration(null, "sourcesJar", "Jar") { task ->
+                task.propertyAssignment(null, "classifier", "sources")
+                sourceSets.each { sourceSet ->
+                    task.methodInvocation(null, "from", builder.propertyExpression("sourceSets.${sourceSet}.allJava"))
+                }
             }
-            builder.methodInvocation(null, "artifacts.archives", builder.propertyExpression("tasks.packageSources"))
+            return true
         }
+        return false
+    }
+
+    boolean packageTests(project, builder) {
+        def jarPlugin = plugin('maven-jar-plugin', project)
+        if (pluginGoal('test-jar', jarPlugin)) {
+            builder.taskRegistration(null, "testsJar", "Jar") { task ->
+                task.propertyAssignment(null, "classifier", "tests")
+                task.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"))
+            }
+            return true
+        }
+        return false
+    }
+
+    boolean packageJavadocs(project, builder) {
+        def jarPlugin = plugin('maven-javadoc-plugin', project)
+        if (pluginGoal('jar', jarPlugin)) {
+            builder.taskRegistration(null, "javadocJar", "Jar") { task ->
+                task.propertyAssignment(null, "classifier", "javadoc")
+                task.methodInvocation(null, "from", builder.propertyExpression("javadoc.destinationDir"))
+            }
+            return true
+        }
+        return false
     }
 
     private boolean duplicateDependency(dependency, project, allProjects) {
         def parentTag = project.parent
         if (allProjects == null || parentTag.isEmpty()) {//simple project or no parent
-            return false;
+            return false
         } else {
             def parent = allProjects.find {
                 it.groupId.equals(parentTag.groupId) && it.artifactId.equals(parentTag.artifactId)
@@ -393,7 +434,7 @@ class Maven2Gradle {
                 it.groupId.equals(dependency.groupId) && it.artifactId.equals(dependency.artifactId)
             }
             if (duplicate) {
-                return true;
+                return true
             } else {
                 duplicateDependency(dependency, parent, allProjects)
             }
@@ -415,8 +456,8 @@ class Maven2Gradle {
 
         def modulePoms = modules(projects, true)
 
-        List<String> moduleNames = new ArrayList<String>();
-        def artifactIdToDir = [:]
+        List<String> moduleNames = new ArrayList<String>()
+        Map<String, String> artifactIdToDir = [:]
         if (projects) {
             modulePoms.each { project ->
                 def fqn = fqn(project, projects)

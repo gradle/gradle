@@ -177,7 +177,8 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
 
         and:
         failure.assertHasCause("""Could not find org.test:projectA:1.1.
-Searched in the following locations: ${metadataUri}
+Searched in the following locations:
+  - ${metadataUri}
 Required by:""")
     }
 }

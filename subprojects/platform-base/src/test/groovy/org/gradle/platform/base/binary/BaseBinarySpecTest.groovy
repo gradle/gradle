@@ -70,7 +70,7 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
         e.cause instanceof ModelInstantiationException
         e.cause.message == "Could not create binary of type SampleBinary"
         e.cause.cause instanceof IllegalArgumentException
-        e.cause.cause.message.startsWith "Could not find any public constructor for class"
+        e.cause.cause.message == "Unable to determine constructor argument #1: missing parameter of class java.lang.String, or no service of type class java.lang.String"
     }
 
     def "can own source sets"() {

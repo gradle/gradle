@@ -16,36 +16,14 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.isolation.IsolationException;
+import com.google.common.collect.ImmutableList;
+import org.gradle.internal.Pair;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-import javax.annotation.Nullable;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
-    private final ImmutableMap<ValueSnapshot, ValueSnapshot> entries;
-
-    public MapValueSnapshot(ImmutableMap<ValueSnapshot, ValueSnapshot> entries) {
-        this.entries = entries;
-    }
-
-    public ImmutableMap<ValueSnapshot, ValueSnapshot> getEntries() {
-        return entries;
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putString("Map");
-        hasher.putInt(entries.size());
-        for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : entries.entrySet()) {
-            entry.getKey().appendToHasher(hasher);
-            entry.getValue().appendToHasher(hasher);
-        }
+public class MapValueSnapshot extends AbstractMapSnapshot<ValueSnapshot> implements ValueSnapshot {
+    public MapValueSnapshot(ImmutableList<Pair<ValueSnapshot, ValueSnapshot>> entries) {
+        super(entries);
     }
 
     @Override
@@ -55,45 +33,5 @@ public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
             return this;
         }
         return newSnapshot;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        MapValueSnapshot other = (MapValueSnapshot) obj;
-        return entries.equals(other.entries);
-    }
-
-    @Override
-    public int hashCode() {
-        return entries.hashCode();
-    }
-
-    @Override
-    public Map isolate() {
-        Map map = new LinkedHashMap();
-        for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : entries.entrySet()) {
-            if (entry.getKey() instanceof Isolatable) {
-                if (entry.getValue() instanceof Isolatable) {
-                    map.put(((Isolatable) entry.getKey()).isolate(), ((Isolatable) entry.getValue()).isolate());
-                } else {
-                    throw new IsolationException(entry.getValue());
-                }
-            } else {
-                throw new IsolationException(entry.getKey());
-            }
-        }
-        return map;
-    }
-
-    @Nullable
-    @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
-        return null;
     }
 }

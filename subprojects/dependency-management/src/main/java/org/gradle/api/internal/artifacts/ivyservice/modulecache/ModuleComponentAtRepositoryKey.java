@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public class ModuleComponentAtRepositoryKey {
@@ -27,7 +26,7 @@ public class ModuleComponentAtRepositoryKey {
     ModuleComponentAtRepositoryKey(String repositoryId, ModuleComponentIdentifier componentId) {
         this.repositoryId = repositoryId;
         this.componentId = componentId;
-        this.hashCode = Objects.hashCode(repositoryId, componentId);
+        this.hashCode = 31 * repositoryId.hashCode() + componentId.hashCode();
     }
 
     @Override

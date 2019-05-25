@@ -21,7 +21,6 @@ import com.google.common.collect.ListMultimap;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -170,7 +169,7 @@ public class OptionReader {
         if (Collection.class.isAssignableFrom(method.getReturnType())
             && method.getParameterTypes().length == 0
             && !Modifier.isStatic(method.getModifiers())) {
-            return JavaReflectionUtil.method(Collection.class, method);
+            return JavaMethod.of(Collection.class, method);
         } else {
             throw new OptionValidationException(
                 String.format("@OptionValues annotation not supported on method '%s' in class '%s'. Supported method must be non-static, return a Collection<String> and take no parameters.",

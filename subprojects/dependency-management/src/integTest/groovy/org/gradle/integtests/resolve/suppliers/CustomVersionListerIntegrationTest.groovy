@@ -98,7 +98,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         failure.assertHasCause("Could not find any matches for org:testA:+ as no versions of org:testA are available.")
     }
 
-    void "can version listing can use module identifer to return the version list"() {
+    void "can version listing can use module identifier to return the version list"() {
         withLister([testA: [1, 2, 3], testB: [1, 2]])
         given:
         repository {

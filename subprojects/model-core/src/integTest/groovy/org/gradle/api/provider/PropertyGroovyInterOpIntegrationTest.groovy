@@ -38,6 +38,9 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
         pluginDir.file("src/main/groovy/SomeTask.groovy") << """
             import ${DefaultTask.name}
             import ${Property.name}
+            import ${ListProperty.name}
+            import ${SetProperty.name}
+            import ${MapProperty.name}
             import ${ObjectFactory.name}
             import ${TaskAction.name}
             import ${Inject.name}
@@ -45,17 +48,26 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
             public class SomeTask extends DefaultTask {
                 final Property<Boolean> flag
                 final Property<String> message
+                final ListProperty<Integer> list
+                final SetProperty<Integer> set
+                final MapProperty<Integer, Boolean> map
                 
                 @Inject
                 SomeTask(ObjectFactory objectFactory) {
                     flag = objectFactory.property(Boolean)
                     message = objectFactory.property(String)
+                    list = objectFactory.listProperty(Integer) 
+                    set = objectFactory.setProperty(Integer) 
+                    map = objectFactory.mapProperty(Integer, Boolean) 
                 }
                 
                 @TaskAction
                 void run() {
                     System.out.println("flag = " + flag.get())
                     System.out.println("message = " + message.get())
+                    System.out.println("list = " + list.get())
+                    System.out.println("set = " + set.get())
+                    System.out.println("map = " + map.get().toString())
                 }
             }
         """
@@ -72,6 +84,9 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
                     project.tasks.register("someTask", SomeTask) { t ->
                         t.flag = true
                         t.message = "some value"
+                        t.list = [1, 2]
+                        t.set = [1, 2]
+                        t.map = [1: true, 2: false]
                     }
                 }
             }
@@ -89,6 +104,9 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
                     project.tasks.register("someTask", SomeTask) { t ->
                         t.flag = project.provider { true }
                         t.message = project.provider { "some value" }
+                        t.list = project.provider { [1, 2] }
+                        t.set = project.provider { [1, 2] }
+                        t.map = project.provider { [1: true, 2: false] }
                     }
                 }
             }
@@ -107,6 +125,9 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
                         def provider = project.provider { "some value" }
                         t.flag = provider.map { s -> !s.empty }
                         t.message = provider.map { s -> s }
+                        t.list = provider.map { s -> [1, 2] }
+                        t.set = provider.map { s -> [1, 2] }
+                        t.map = provider.map { s -> [1: true, 2: false] }
                     }
                 }
             }

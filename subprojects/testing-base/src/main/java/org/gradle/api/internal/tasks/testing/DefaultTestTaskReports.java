@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
@@ -27,8 +28,8 @@ import org.gradle.api.tasks.testing.TestTaskReports;
 
 public class DefaultTestTaskReports extends TaskReportContainer<Report> implements TestTaskReports {
 
-    public DefaultTestTaskReports(Task task) {
-        super(ConfigurableReport.class, task);
+    public DefaultTestTaskReports(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(ConfigurableReport.class, task, callbackActionDecorator);
 
         add(DefaultJUnitXmlReport.class, "junitXml", task);
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");

@@ -91,6 +91,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
         return localFile.getPath();
     }
 
+    @Override
     @Nullable
     public ExternalResourceMetaData getMetaData() {
         FileMetadataSnapshot stat = fileSystem.stat(localFile);
@@ -142,6 +143,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
         }
     }
 
+    @Override
     public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) {
         if (!localFile.exists()) {
             throw ResourceExceptions.getMissing(getURI());

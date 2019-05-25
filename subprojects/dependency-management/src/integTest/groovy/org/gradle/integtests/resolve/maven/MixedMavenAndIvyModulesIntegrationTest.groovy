@@ -206,12 +206,14 @@ dependencies {
         }
     }
 
-    def "selects correct configuration of ivy module when dependency from consuming maven module is substituted"() {
-        def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
+    def "selects default configuration of ivy module when dependency from consuming maven module is substituted"() {
         def m1 = ivyRepo.module("org.test", "m1", "1.0")
             .configuration("compile")
             .publish()
         def m2 = ivyRepo.module("org.test", "m2", "1.0").publish()
+            .configuration("master")
+            .publish()
+        def m3 = ivyRepo.module("org.test", "m3", "1.0").publish()
             .configuration("master")
             .publish()
         ivyRepo.module("org.test", "ivy", "1.2")
@@ -222,10 +224,10 @@ dependencies {
             .configuration("default")
             .dependsOn(m1, conf: "compile")
             .dependsOn(m2, conf: "master")
-            .dependsOn(notRequired, conf: "*,!compile,!master->unknown")
+            .dependsOn(m3, conf: "*,!compile,!master")
             .artifact(name: "compile", conf: "compile")
             .artifact(name: "master", conf: "master")
-            .artifact(name: 'ignore-me', conf: "other,default,runtime")
+            .artifact(name: 'default', conf: "other,default,runtime")
             .publish()
         def ivyModule = ivyRepo.module("org.test", "ivy", "1.0")
         mavenRepo.module("org.test", "maven", "1.0")
@@ -246,10 +248,8 @@ configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
                     configuration = 'compile'
                     edge('org.test:ivy:1.0', 'org.test:ivy:1.2') {
                         forced()
-                        artifact(name: 'compile')
-                        artifact(name: 'master')
-                        module('org.test:m1:1.0')
-                        module('org.test:m2:1.0')
+                        artifact(name: 'default')
+                        module('org.test:m3:1.0')
                     }
                 }
             }

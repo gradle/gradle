@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import net.jcip.annotations.NotThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;

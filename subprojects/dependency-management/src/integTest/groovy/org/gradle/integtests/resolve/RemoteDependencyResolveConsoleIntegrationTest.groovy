@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -52,15 +54,17 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 """
 
         given:
-        def getM1Pom = server.sendSomeAndBlock(m1.pom.path, longXml(m1.pom.file))
-        def getM2Pom = server.sendSomeAndBlock(m2.pom.path, longXml(m2.pom.file))
+        def getM1Pom = server.get(m1.pom.path).sendSomeAndBlock(longXml(m1.pom.file))
+        def getM2Pom = server.get(m2.pom.path).sendSomeAndBlock(longXml(m2.pom.file))
         def metaData = server.expectConcurrentAndBlock(getM1Pom, getM2Pom)
-        def getM1Jar = server.sendSomeAndBlock(m1.artifact.path, longJar(m1.artifact.file))
-        def getM2Jar = server.sendSomeAndBlock(m2.artifact.path, longJar(m2.artifact.file))
+        def getM1Jar = server.get(m1.artifact.path).sendSomeAndBlock(longJar(m1.artifact.file))
+        def getM2Jar = server.get(m2.artifact.path).sendSomeAndBlock(longJar(m2.artifact.file))
         def jars = server.expectConcurrentAndBlock(getM1Jar, getM2Jar)
 
         when:
-        def build = executer.withTasks("resolve").withArguments("--max-workers=2", "--console=rich").start()
+        executer.withTestConsoleAttached()
+        executer.withConsole(ConsoleOutput.Rich)
+        def build = executer.withTasks("resolve").withArguments("--max-workers=2").start()
         metaData.waitForAllPendingCalls()
 
         then:
@@ -116,12 +120,13 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
     }
 
     void outputContainsProgress(GradleHandle build, String taskProgressLine, String... progressOutputLines) {
-        assert build.standardOutput.contains(workInProgressLine(taskProgressLine)) ||
-            progressOutputLines.any { build.standardOutput.contains(workInProgressLine(taskProgressLine + " " + it)) }
+        def output = LogContent.of(build.standardOutput).ansiCharsToColorText().withNormalizedEol()
+        assert output.contains(workInProgressLine(taskProgressLine)) ||
+            progressOutputLines.any { output.contains(workInProgressLine(taskProgressLine + " " + it)) }
 
         assert progressOutputLines.every {
-            build.standardOutput.contains(workInProgressLine(it)) ||
-                build.standardOutput.contains(workInProgressLine(taskProgressLine + " " + it))
+            output.contains(workInProgressLine(it)) ||
+                output.contains(workInProgressLine(taskProgressLine + " " + it))
         }
     }
 

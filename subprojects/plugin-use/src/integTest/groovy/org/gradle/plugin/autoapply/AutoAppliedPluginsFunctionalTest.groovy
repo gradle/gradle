@@ -84,11 +84,9 @@ class AutoAppliedPluginsFunctionalTest extends AbstractPluginIntegrationTest {
         def result = gradleHandle.waitForFinish()
         result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
         result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_DECLINATION)
-        result.assertHasPostBuildOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
         result.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
         result.assertNotOutput(BUILD_SCAN_LICENSE_NOTE)
-        result.assertHasPostBuildOutput("The buildScan extension 'termsOfServiceAgree' value must be exactly the string 'yes' (without quotes).")
-        result.assertHasPostBuildOutput("The value given was 'no'.")
+        result.assertHasPostBuildOutput("You must answer 'yes' to publish a build scan when prompted on the command line or accept the Gradle Terms of Service in a buildScan configuration block.")
     }
 
     def "can auto-apply build scan plugin and cancel license acceptance with ctrl-d in interactive console"() {

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.PosixFiles;
+import net.rubygrapefruit.platform.file.PosixFiles;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 
 import java.io.File;

@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 
 class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -146,14 +148,15 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level:1.0") {
                     if (available) {
-                        def module = module("org:foo:1.1")
                         if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
-                            module.byConstraint('published dependency constraint')
+                            constraint("org:foo:1.1", "org:foo:1.1").byConstraint('published dependency constraint')
+                        } else {
+                            constraint("org:foo:1.1", "org:foo:1.1")
                         }
                     }
                 }
                 if (available) {
-                    edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                    edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                 } else {
                     module("org:foo:1.0")
                 }
@@ -184,8 +187,8 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:foo:1.0' {
-                expectGetMetadata()
                 if (!available) {
+                    expectGetMetadata()
                     expectGetArtifact()
                 }
             }
@@ -213,12 +216,12 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level1:1.0") {
                     if (available) {
-                        module("org:foo:1.1")
+                        constraint("org:foo:1.1", "org:foo:1.1")
                     }
                 }
                 module("org:first-level2:1.0") {
                     if (available) {
-                        edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                        edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                     } else {
                         module("org:foo:1.0")
                     }
@@ -290,7 +293,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                 }
                 module("org:first-level:1.0") {
                     if (available) {
-                        edge("org:foo:[1.0,1.1]", "org:foo:1.1")
+                        constraint("org:foo:[1.0,1.1]", "org:foo:1.1")
                     }
                 }
             }
@@ -391,11 +394,71 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level:1.0") {
                     if (available) {
-                        edge("org:bar:1.1", "org:foo:1.1").selectedByRule()
-                        edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                        constraint("org:bar:1.1", "org:foo:1.1").selectedByRule()
+                        edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                     } else {
                         module("org:foo:1.0")
                     }
+                }
+            }
+        }
+    }
+
+    @RequiredFeatures(
+        [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")]
+    )
+    void "deferred selector still resolved when constraint disappears"() {
+        repository {
+            'org:bar:1.0'()
+            'org:bar:1.1'()
+
+            'org:other:1.0' {
+                dependsOn 'org:bar:1.0'
+                dependsOn 'org:weird:1.1'
+            }
+
+            // Version 1.0 has a constraint, 1.1 does not
+            'org:weird:1.0' {
+                constraint 'org:bar:1.1'
+            }
+            'org:weird:1.1'()
+        }
+
+        buildFile << """
+dependencies {
+    conf 'org:weird:1.0'
+    conf 'org:other:1.0'
+}
+"""
+
+        repositoryInteractions {
+            'org:weird:1.0' {
+                expectGetMetadata()
+            }
+            'org:weird:1.1' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:other:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:weird:1.0', 'org:weird:1.1')
+                module('org:other:1.0') {
+                    module('org:bar:1.0')
+                    module('org:weird:1.1')
                 }
             }
         }

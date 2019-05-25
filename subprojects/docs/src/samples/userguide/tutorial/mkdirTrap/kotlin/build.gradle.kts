@@ -1,9 +1,9 @@
 val classesDir = file("build/classes")
 classesDir.mkdirs()
-task<Delete>("clean") {
+tasks.register<Delete>("clean") {
     delete("build")
 }
-task("compile") {
+tasks.register("compile") {
     dependsOn("clean")
     doLast {
         if (!classesDir.isDirectory) {

@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.isEmpty;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
@@ -36,14 +36,11 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+?)'.+?') line: (\\d+)$");
     private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
-    private static final Pattern EXCEPTION_PATTERN = Pattern.compile("(?ms)^\\* Exception is:$(.+?):(.+?)$");
-    private static final Pattern EXCEPTION_CAUSE_PATTERN = Pattern.compile("(?ms)^Caused by: (.+?):(.+?)$");
     private final String summary;
     private final List<String> descriptions = new ArrayList<String>();
     private final List<String> lineNumbers = new ArrayList<String>();
     private final List<String> fileNames = new ArrayList<String>();
     private final String resolution;
-    private final Exception exception;
     // with normalized line endings
     private final List<String> causes = new ArrayList<String>();
     private final LogContent mainContent;
@@ -66,13 +63,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     protected OutputScrapingExecutionFailure(String output, String error) {
         super(LogContent.of(output), LogContent.of(error));
 
-        LogContent withoutDebug = LogContent.of(output).removeAnsiChars().removeDebugPrefix();
+        LogContent withoutDebug = LogContent.of(output).ansiCharsToPlainText().removeDebugPrefix();
 
         // Find failure section
         Pair<LogContent, LogContent> match = withoutDebug.splitOnFirstMatchingLine(FAILURE_PATTERN);
         if (match == null) {
             // Not present in output, check error output.
-            match = LogContent.of(error).removeAnsiChars().removeDebugPrefix().splitOnFirstMatchingLine(FAILURE_PATTERN);
+            match = LogContent.of(error).ansiCharsToPlainText().removeDebugPrefix().splitOnFirstMatchingLine(FAILURE_PATTERN);
             if (match != null) {
                 match = Pair.of(withoutDebug, match.getRight());
             } else {
@@ -117,16 +114,6 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         } else {
             resolution = matcher.group(1).trim();
         }
-
-        matcher = EXCEPTION_PATTERN.matcher(failureText);
-        if (!matcher.find()) {
-            exception = null;
-        } else {
-            String exceptionClass = matcher.group(1).trim();
-            String exceptionMessage = matcher.group(2).trim();
-            matcher = EXCEPTION_CAUSE_PATTERN.matcher(failureText);
-            exception = recreateException(exceptionClass, exceptionMessage, matcher);
-        }
     }
 
     @Override
@@ -159,24 +146,6 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return new Problem(description, causes);
     }
 
-    private Exception recreateException(String className, String message, java.util.regex.Matcher exceptionCauseMatcher) {
-        Exception causedBy = null;
-        if (exceptionCauseMatcher.find()) {
-            String causedByClass = exceptionCauseMatcher.group(1).trim();
-            String causedByMessage = exceptionCauseMatcher.group(2).trim();
-            causedBy = recreateException(causedByClass, causedByMessage, exceptionCauseMatcher);
-        }
-        try {
-            if (causedBy == null) {
-                return (Exception) Class.forName(className).getConstructor(String.class).newInstance(message);
-            } else {
-                return (Exception) Class.forName(className).getConstructor(String.class, Throwable.class).newInstance(message, causedBy);
-            }
-        } catch (Exception e) {
-            return new Exception(message);
-        }
-    }
-
     private String toPrefixPattern(int prefix) {
         StringBuilder builder = new StringBuilder("(?m)^");
         for (int i = 0; i < prefix; i++) {
@@ -185,11 +154,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return builder.toString();
     }
 
+    @Override
     public ExecutionFailure assertHasLineNumber(int lineNumber) {
         assertThat(this.lineNumbers, hasItem(equalTo(String.valueOf(lineNumber))));
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasFileName(String filename) {
         assertThat(this.fileNames, hasItem(equalTo(filename)));
         return this;
@@ -206,11 +177,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasCause(String description) {
         assertThatCause(startsWith(description));
         return this;
     }
 
+    @Override
     public ExecutionFailure assertThatCause(Matcher<String> matcher) {
         for (String cause : causes) {
             if (matcher.matches(cause)) {
@@ -221,6 +194,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasResolution(String resolution) {
         assertThat(this.resolution, containsString(resolution));
         return this;
@@ -237,16 +211,19 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasNoCause() {
         assertThat(causes, isEmpty());
         return this;
     }
 
+    @Override
     public ExecutionFailure assertHasDescription(String context) {
         assertThatDescription(startsWith(context));
         return this;
     }
 
+    @Override
     public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
         for (String description : descriptions) {
             if (matcher.matches(description)) {
@@ -257,17 +234,15 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
     public ExecutionFailure assertTestsFailed() {
         new DetailedExecutionFailure(this).assertTestsFailed();
         return this;
     }
 
+    @Override
     public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
         return new DependencyResolutionFailure(this, configurationPath);
-    }
-
-    public Exception getException() {
-        return exception;
     }
 
     private static class Problem {

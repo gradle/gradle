@@ -149,18 +149,22 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         upperBoundVersion = upperBound == null ? null : versionParser.transform(upperBound);
     }
 
+    @Override
     public boolean isDynamic() {
         return true;
     }
 
+    @Override
     public boolean requiresMetadata() {
         return false;
     }
 
+    @Override
     public boolean matchesUniqueVersion() {
         return false;
     }
 
+    @Override
     public boolean accept(Version candidate) {
         if (lowerBound != null && !isHigher(candidate, lowerBoundVersion, lowerInclusive)) {
             return false;

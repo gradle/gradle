@@ -16,16 +16,12 @@
 
 package org.gradle.performance.results
 
-
-import org.gradle.performance.measure.Amount
-import org.gradle.performance.measure.Duration
-import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.ResultSpecification
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Subject
 
-class IndexPageGeneratorTest extends Specification {
+class IndexPageGeneratorTest extends ResultSpecification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -37,7 +33,7 @@ class IndexPageGeneratorTest extends Specification {
 
     def setup() {
         resultsJson << '[]'
-        generator = new IndexPageGenerator(mockStore, resultsJson)
+        generator = new IndexPageGenerator(Mock(PerformanceFlakinessAnalyzer), mockStore, resultsJson)
     }
 
     def 'can sort scenarios correctly'() {
@@ -49,9 +45,10 @@ class IndexPageGeneratorTest extends Specification {
             createHighConfidenceRegressedData(),
             createFailedData()
         ]
+        buildResults.sort(IndexPageGenerator.SCENARIO_COMPARATOR)
 
         then:
-        generator.sortBuildResultData(buildResults.stream()).toList().collect { it.scenarioName } == ['failed', 'highConfidenceRegressed', 'lowConfidenceRegressed', 'lowConfidenceImproved', 'highConfidenceImproved']
+        buildResults.collect { it.scenarioName } == ['failed', 'highConfidenceRegressed', 'lowConfidenceRegressed', 'lowConfidenceImproved', 'highConfidenceImproved']
     }
 
     private ScenarioBuildResultData createFailedData() {
@@ -79,15 +76,10 @@ class IndexPageGeneratorTest extends Specification {
     }
 
     private ScenarioBuildResultData createResult(String name, List<Integer> baseVersionResult, List<Integer> currentVersionResult) {
-        MeasuredOperationList baseVersion = experiment(baseVersionResult)
-        MeasuredOperationList currentVersion = experiment(currentVersionResult)
+        MeasuredOperationList baseVersion = measuredOperationList(baseVersionResult)
+        MeasuredOperationList currentVersion = measuredOperationList(currentVersionResult)
         ScenarioBuildResultData.ExecutionData execution = new ScenarioBuildResultData.ExecutionData(new Date().getTime(), '', baseVersion, currentVersion)
         return new ScenarioBuildResultData(scenarioName: name, status: 'SUCCESS', currentBuildExecutions: [execution])
     }
 
-    private MeasuredOperationList experiment(List<Integer> values) {
-        MeasuredOperationList measuredOperationList = new MeasuredOperationList()
-        measuredOperationList.addAll(values.collect { new MeasuredOperation(totalTime: Amount.valueOf(it, Duration.SECONDS)) })
-        return measuredOperationList
-    }
 }

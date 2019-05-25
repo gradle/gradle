@@ -1,4 +1,4 @@
-task("performRelease") {
+tasks.register("performRelease") {
     doLast {
         if (project.hasProperty("isCI")) {
             println("Performing release actions")

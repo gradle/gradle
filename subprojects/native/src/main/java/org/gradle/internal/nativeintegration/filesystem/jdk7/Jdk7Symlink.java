@@ -28,19 +28,19 @@ import java.nio.file.Path;
 public class Jdk7Symlink implements Symlink {
     private static final Logger LOGGER = LoggerFactory.getLogger(Jdk7Symlink.class);
 
-    private final boolean symlinksSupported;
+    private final boolean symlinkCreationSupported;
 
     public Jdk7Symlink() {
         this(doesSystemSupportSymlinks());
     }
 
-    protected Jdk7Symlink(boolean symlinksSupported) {
-        this.symlinksSupported = symlinksSupported;
+    protected Jdk7Symlink(boolean symlinkCreationSupported) {
+        this.symlinkCreationSupported = symlinkCreationSupported;
     }
 
     @Override
-    public boolean isSymlinkSupported() {
-        return symlinksSupported;
+    public boolean isSymlinkCreationSupported() {
+        return symlinkCreationSupported;
     }
 
     @Override
@@ -51,10 +51,7 @@ public class Jdk7Symlink implements Symlink {
 
     @Override
     public boolean isSymlink(File suspect) {
-        if (isSymlinkSupported()) {
-            return Files.isSymbolicLink(suspect.toPath());
-        }
-        return false;
+        return Files.isSymbolicLink(suspect.toPath());
     }
 
     private static boolean doesSystemSupportSymlinks() {
@@ -81,11 +78,11 @@ public class Jdk7Symlink implements Symlink {
             return false;
         } finally {
             try {
-                if (sourceFile != null && sourceFile.toFile().exists()) {
-                    Files.delete(sourceFile);
+                if (sourceFile != null) {
+                    Files.deleteIfExists(sourceFile);
                 }
-                if (linkFile != null && linkFile.toFile().exists()) {
-                    Files.delete(linkFile);
+                if (linkFile != null) {
+                    Files.deleteIfExists(linkFile);
                 }
             } catch (IOException e) {
                 // We don't really need to handle this.

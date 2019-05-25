@@ -45,10 +45,12 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         super(delegate);
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getLocalAccess() {
         return localAccess;
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
     }

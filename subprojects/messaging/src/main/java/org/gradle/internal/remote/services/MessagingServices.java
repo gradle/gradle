@@ -48,6 +48,7 @@ import java.util.UUID;
 public class MessagingServices extends DefaultServiceRegistry implements Stoppable {
     private final IdGenerator<UUID> idGenerator = new UUIDGenerator();
 
+    @Override
     public void stop() {
         close();
     }

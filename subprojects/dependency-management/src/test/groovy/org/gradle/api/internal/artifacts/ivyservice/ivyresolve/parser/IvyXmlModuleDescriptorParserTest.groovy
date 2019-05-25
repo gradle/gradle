@@ -691,7 +691,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     private void parse(DescriptorParseContext parseContext, TestFile file) {
-        metadata = parser.parseMetaData(parseContext, file)
+        metadata = parser.parseMetaData(parseContext, file).result
     }
 
     private Artifact artifact() {

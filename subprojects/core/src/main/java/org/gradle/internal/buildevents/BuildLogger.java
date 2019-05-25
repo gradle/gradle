@@ -46,6 +46,7 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener, I
         resultLogger = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, new TersePrettyDurationFormatter());
     }
 
+    @Override
     public void buildStarted(Gradle gradle) {
         StartParameter startParameter = gradle.getStartParameter();
         logger.info("Starting Build");
@@ -57,6 +58,7 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener, I
         }
     }
 
+    @Override
     public void settingsEvaluated(Settings settings) {
         SettingsInternal settingsInternal = (SettingsInternal) settings;
         if (logger.isInfoEnabled()) {
@@ -65,6 +67,7 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener, I
         }
     }
 
+    @Override
     public void projectsLoaded(Gradle gradle) {
         if (logger.isInfoEnabled()) {
             ProjectInternal projectInternal = (ProjectInternal) gradle.getRootProject();
@@ -74,16 +77,19 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener, I
         }
     }
 
+    @Override
     public void projectsEvaluated(Gradle gradle) {
         logger.info("All projects evaluated.");
     }
 
+    @Override
     public void graphPopulated(TaskExecutionGraph graph) {
         if (logger.isInfoEnabled()) {
             logger.info("Tasks to be executed: {}", graph.getAllTasks());
         }
     }
 
+    @Override
     public void buildFinished(BuildResult result) {
         this.action = result.getAction();
     }

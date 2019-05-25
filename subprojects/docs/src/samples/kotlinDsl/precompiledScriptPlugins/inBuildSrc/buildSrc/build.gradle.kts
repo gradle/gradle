@@ -2,8 +2,8 @@
 plugins {
     `kotlin-dsl`
 }
-// end::apply[]
 
 repositories {
     jcenter()
 }
+// end::apply[]

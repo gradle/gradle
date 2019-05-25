@@ -21,7 +21,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 

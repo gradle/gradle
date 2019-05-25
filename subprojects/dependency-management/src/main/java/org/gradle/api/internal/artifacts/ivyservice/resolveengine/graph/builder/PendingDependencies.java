@@ -16,16 +16,23 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Set;
 
 public class PendingDependencies {
+    private final ModuleIdentifier moduleIdentifier;
     private final Set<NodeState> affectedComponents;
     private int hardEdges;
 
-    PendingDependencies() {
+    PendingDependencies(ModuleIdentifier moduleIdentifier) {
+        this.moduleIdentifier = moduleIdentifier;
         this.affectedComponents = Sets.newLinkedHashSet();
         this.hardEdges = 0;
+    }
+
+    ModuleIdentifier getModuleIdentifier() {
+        return moduleIdentifier;
     }
 
     void addNode(NodeState state) {
@@ -37,7 +44,7 @@ public class PendingDependencies {
 
     void turnIntoHardDependencies() {
         for (NodeState affectedComponent : affectedComponents) {
-            affectedComponent.resetSelectionState();
+            affectedComponent.prepareForConstraintNoLongerPending(moduleIdentifier);
         }
         affectedComponents.clear();
     }

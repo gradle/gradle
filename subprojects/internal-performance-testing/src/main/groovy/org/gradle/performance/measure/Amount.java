@@ -136,6 +136,7 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         return normalised.hashCode();
     }
 
+    @Override
     public int compareTo(Amount<Q> o) {
         if (o.units.getType() != units.getType()) {
             throw new IllegalArgumentException(String.format("Cannot compare amount with units %s.", o.units));

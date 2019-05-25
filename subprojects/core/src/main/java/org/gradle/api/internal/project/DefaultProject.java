@@ -44,22 +44,20 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.DynamicPropertyNamer;
-import org.gradle.api.internal.ExtensibleDynamicObject;
-import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.MutationGuards;
-import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -83,6 +81,9 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
+import org.gradle.internal.extensibility.NoConventionMapping;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -238,9 +239,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         }
 
         services = serviceRegistryFactory.createFor(this);
-        taskContainer = services.newInstance(TaskContainerInternal.class);
+        taskContainer = services.get(TaskContainerInternal.class);
 
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(Instantiator.class));
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).injectAndDecorateLenient(services));
         if (parent != null) {
             extensibleDynamicObject.setParent(parent.getInheritedScope());
         }
@@ -266,6 +267,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         @Hidden @Model
         NamedEntityInstantiator<Task> taskFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(TaskInstantiator.class);
+        }
+
+        @Hidden @Model
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(CollectionCallbackActionDecorator.class);
         }
 
         @Hidden @Model
@@ -368,7 +374,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Inject
     @Override
-    public ScriptHandler getBuildscript() {
+    public ScriptHandlerInternal getBuildscript() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
@@ -791,6 +797,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
         final Map<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
         Action<Project> action = new Action<Project>() {
+            @Override
             public void execute(Project project) {
                 foundTargets.put(project, new TreeSet<Task>(project.getTasks()));
             }
@@ -810,6 +817,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         }
         final Set<Task> foundTasks = new HashSet<Task>();
         Action<Project> action = new Action<Project>() {
+            @Override
             public void execute(Project project) {
                 // Don't force evaluation of rules here, let the task container do what it needs to
                 ((ProjectInternal) project).evaluate();
@@ -873,7 +881,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ConfigurableFileCollection files(Object... paths) {
-        return getLayout().configurableFiles(paths);
+        return getObjects().fileCollection().from(paths);
     }
 
     @Override
@@ -1045,6 +1053,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public Map<String, ?> getProperties() {
         return DeprecationLogger.whileDisabled(new Factory<Map<String, ?>>() {
+            @Override
             public Map<String, ?> create() {
                 return extensibleDynamicObject.getProperties();
             }
@@ -1081,8 +1090,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return getFileOperations().copySpec();
     }
 
+    @Override
     @Inject
-    protected ProcessOperations getProcessOperations() {
+    public ProcessOperations getProcessOperations() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
@@ -1306,20 +1316,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
-        Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), MutationGuards.of(getProjectConfigurator()));
+        return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type);
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
-        Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factory, MutationGuards.of(getProjectConfigurator()));
+        return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factory);
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
-        Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure, MutationGuards.of(getProjectConfigurator()));
+        return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factoryClosure);
     }
 
     @Override
@@ -1424,12 +1431,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
-
-    @Override
-    @Deprecated
-    public ConfigurableFileCollection configurableFiles() {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     @Deprecated

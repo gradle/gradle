@@ -17,7 +17,6 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Method;
 
@@ -26,7 +25,7 @@ class ReflectionBasedServiceMethod extends AbstractServiceMethod {
 
     ReflectionBasedServiceMethod(Method target) {
         super(target);
-        javaMethod = JavaReflectionUtil.method(Object.class, target);
+        javaMethod = JavaMethod.of(Object.class, target);
     }
 
     @Override

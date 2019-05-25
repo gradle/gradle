@@ -6,7 +6,7 @@ dependencies {
     implementation(project(":versioning"))
     implementation(project(":build"))
     implementation(project(":packaging"))
-    testCompile("junit:junit:4.12")
+    testImplementation("junit:junit:4.12")
 }
 
 gradlePlugin {

@@ -24,7 +24,11 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
     final def projectConfigurations = ['debug', 'release'] as Set
 
     protected static String filePath(String... paths) {
-        return (paths as List).join(';')
+        return filePath(paths as List)
+    }
+
+    protected static String filePath(Iterable<String> paths) {
+        return paths.join(';')
     }
 
     void useMsbuildTool() {

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -46,6 +47,7 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
@@ -81,10 +83,11 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def fileHasher = Mock(FileHasher)
     def execFactory = Mock(ExecFactory)
     def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
+    def clock = Mock(Clock)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, TestFiles.fileSystem(), fileLookup,
         directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), providerFactory, textResourceLoader,
-        streamHasher, fileHasher, execFactory, autoAppliedPluginHandler)
+        streamHasher, fileHasher, execFactory, Stub(FileCollectionFactory), autoAppliedPluginHandler, clock)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)

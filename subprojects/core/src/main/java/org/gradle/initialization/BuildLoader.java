@@ -20,8 +20,8 @@ import org.gradle.api.internal.SettingsInternal;
 
 public interface BuildLoader {
     /**
-     * Creates the {@link org.gradle.api.internal.project.ProjectInternal} instances for the given settings,
-     * ready for the projects to be evaluated.
+     * Creates prepares the {@link org.gradle.api.internal.project.ProjectInternal} instances for the given settings,
+     * ready for the projects to be configured.
      */
     void load(SettingsInternal settings, GradleInternal gradle);
 }

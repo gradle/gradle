@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 
@@ -25,12 +24,12 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-class CompositeConflictResolver implements ModuleConflictResolver {
+class CompositeConflictResolver<T> implements ModuleConflictResolver<T> {
 
     private final List<ModuleConflictResolver> resolvers = new LinkedList<ModuleConflictResolver>();
 
     @Override
-    public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
+    public void select(ConflictResolverDetails<T> details) {
         CompositeDetails<T> composite = new CompositeDetails<T>(details);
         for (ModuleConflictResolver r : resolvers) {
             r.select(composite);
@@ -46,7 +45,7 @@ class CompositeConflictResolver implements ModuleConflictResolver {
         resolvers.add(0, conflictResolver);
     }
 
-    private static class CompositeDetails<T extends ComponentResolutionState> implements ConflictResolverDetails<T> {
+    private static class CompositeDetails<T> implements ConflictResolverDetails<T> {
         private final ConflictResolverDetails<T> delegate;
         private boolean hasResult;
 
@@ -74,11 +73,6 @@ class CompositeConflictResolver implements ModuleConflictResolver {
         @Override
         public T getSelected() {
             return delegate.getSelected();
-        }
-
-        @Override
-        public boolean isRestart() {
-            return delegate.isRestart();
         }
 
         @Nullable

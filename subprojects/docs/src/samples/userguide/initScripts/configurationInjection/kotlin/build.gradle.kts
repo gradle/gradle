@@ -2,7 +2,7 @@ repositories {
     mavenCentral()
 }
 
-task("showRepos") {
+tasks.register("showRepos") {
     doLast {
         println("All repos:")
         //TODO:kotlin-dsl remove filter once we're no longer on a kotlin eap

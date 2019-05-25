@@ -16,13 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-
-// cpp-unit-test + cpp-application don't work together on Windows yet
-@Requires(TestPrecondition.NOT_WINDOWS)
-class CppUnitTestWithApplicationIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
+class CppUnitTestWithApplicationIntegrationTest extends AbstractCppUnitTestIntegrationTest {
     @Override
     protected void makeSingleProject() {
         buildFile << """
@@ -69,17 +63,29 @@ class CppUnitTestWithApplicationIntegrationTest extends AbstractNativeUnitTestIn
     }
 
     @Override
-    String[] getTasksToBuildAndRunUnitTest() {
-        return [":compileTestCpp", ":linkTest", ":installTest", ":runTest"]
+    protected String getComponentUnderTestDsl() {
+        return "application"
     }
 
     @Override
-    protected String[] getTasksToCompileComponentUnderTest() {
-        return [":compileDebugCpp", ":relocateMainForTest"]
+    protected String[] getTasksToBuildAndRunUnitTest(String architecture) {
+        return super.getTasksToBuildAndRunUnitTest(architecture) + tasks.withArchitecture(architecture).test.relocate
     }
 
     @Override
-    protected String[] getTasksToAssembleComponentUnderTest() {
-        return [":linkDebug", ":installDebug"]
+    protected String[] getTasksToCompileComponentUnderTest(String architecture) {
+        def debugTasks = tasks.withArchitecture(architecture).debug
+        return [debugTasks.compile]
+    }
+
+    @Override
+    protected String[] getTasksToAssembleComponentUnderTest(String architecture) {
+        def debugTasks = tasks.withArchitecture(architecture).debug
+        return [debugTasks.link, debugTasks.install]
+    }
+
+    @Override
+    protected String[] getTasksToRelocate(String architecture) {
+        return tasks.withArchitecture(architecture).test.relocate
     }
 }

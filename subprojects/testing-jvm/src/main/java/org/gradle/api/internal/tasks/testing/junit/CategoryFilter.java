@@ -43,8 +43,8 @@ class CategoryFilter extends Filter {
     public boolean shouldRun(final Description description) {
         Class<?> testClass = description.getTestClass();
         verifyCategories(testClass);
-        Description desc = description.isSuite() || testClass == null ? null : Description.createSuiteDescription(testClass);
-        return shouldRun(description, desc);
+        Description parent = description.isSuite() || testClass == null ? null : Description.createSuiteDescription(testClass);
+        return shouldRun(description, parent);
     }
 
     private void verifyCategories(Class<?> testClass) {
@@ -60,6 +60,18 @@ class CategoryFilter extends Filter {
     }
 
     private boolean shouldRun(final Description description, final Description parent) {
+        if (hasCorrectCategoryAnnotation(description, parent)) {
+            return true;
+        }
+        for (Description each : description.getChildren()) {
+            if (shouldRun(each, description)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasCorrectCategoryAnnotation(Description description, Description parent) {
         final Set<Class<?>> categories = new HashSet<Class<?>>();
         Category annotation = description.getAnnotation(Category.class);
         if (annotation != null) {

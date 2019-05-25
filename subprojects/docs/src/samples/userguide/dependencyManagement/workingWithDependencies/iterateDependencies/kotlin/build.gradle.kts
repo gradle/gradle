@@ -10,7 +10,7 @@ dependencies {
 }
 
 // tag::iteration-task[]
-task("iterateDeclaredDependencies") {
+tasks.register("iterateDeclaredDependencies") {
     doLast {
         val dependencySet = configurations["scm"].dependencies
 

@@ -19,7 +19,7 @@ import org.gradle.authentication.http.BasicAuthentication
 import org.gradle.authentication.http.DigestAuthentication
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.AuthScheme
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -31,6 +31,11 @@ import static org.gradle.test.fixtures.server.http.AuthScheme.NTLM
 
 class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
+
+    def setup() {
+        // by setting this to >1, we assert that an authentication error is NOT going to cause retries
+        maxHttpRetries = 3
+    }
 
     @Unroll
     def "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP ivy repository"() {
@@ -240,7 +245,7 @@ task listJars {
         failure
             .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
-            .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+            .assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme | credsName | creds
@@ -288,7 +293,7 @@ task listJars {
         failure
             .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
-            .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+            .assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme | credsName | creds
@@ -342,7 +347,7 @@ task listJars {
         failure
             .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
-            .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+            .assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme | configuredAuthScheme
@@ -393,7 +398,7 @@ task listJars {
         failure
             .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
-            .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+            .assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme | configuredAuthScheme
@@ -439,7 +444,7 @@ task listJars {
         failure
             .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
-            .assertThatCause(Matchers.containsString('Could not find group:projectA:1.2'))
+            .assertThatCause(CoreMatchers.containsString('Could not find group:projectA:1.2'))
     }
 
     def "fails resolving from preemptive authenticated HTTP maven repository"() {
@@ -481,7 +486,7 @@ task listJars {
         failure
             .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
-            .assertThatCause(Matchers.containsString('Could not find group:projectA:1.2'))
+            .assertThatCause(CoreMatchers.containsString('Could not find group:projectA:1.2'))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6014")

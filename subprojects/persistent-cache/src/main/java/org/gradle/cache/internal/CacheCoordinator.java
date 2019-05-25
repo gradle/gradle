@@ -28,6 +28,7 @@ public interface CacheCoordinator extends CacheAccess, Closeable {
     /**
      * Closes the cache, blocking until all operations have completed.
      */
+    @Override
     void close();
 
     <K, V> PersistentIndexedCache<K, V> newCache(PersistentIndexedCacheParameters<K, V> parameters);

@@ -80,15 +80,8 @@ class CrossVersionPerformanceResults extends PerformanceTestResult {
         return failures
     }
 
-    void assertEveryBuildSucceeds() {
-        if (whatToCheck().exceptions()) {
-            assert failures.empty: "Some builds have failed: ${failures*.exception}"
-        }
-    }
-
     void assertCurrentVersionHasNotRegressed() {
-        assertEveryBuildSucceeds()
-        if (whatToCheck().speed()) {
+        if (hasRegressionChecks()) {
             def slower = checkBaselineVersion({ it.significantlyFasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
             if (slower) {
                 throw new AssertionError(Object.cast(slower))

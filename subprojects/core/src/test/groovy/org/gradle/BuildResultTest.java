@@ -17,7 +17,7 @@
 package org.gradle;
 
 import org.gradle.api.GradleException;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 

@@ -16,13 +16,13 @@
 
 package org.gradle.gradlebuild.packaging
 
-import accessors.java
+import accessors.sourceSets
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.WriteProperties
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.register
+
+import org.gradle.kotlin.dsl.*
 
 
 /**
@@ -37,38 +37,27 @@ open class ApiMetadataPlugin : Plugin<Project> {
 
         val extension = extensions.create("apiMetadata", ApiMetadataExtension::class, project)
 
-        val apiDeclarationTask =
-                tasks.register("apiDeclarationResource", WriteProperties::class) {
-                    property("includes", extension.includes.get().joinToString(":"))
-                    property("excludes", extension.excludes.get().joinToString(":"))
-                    outputFile = generatedPropertiesFileFor(apiDeclarationFilename).get().asFile
-                }
+        val apiDeclaration by tasks.registering(WriteProperties::class) {
+            property("includes", extension.includes.get().joinToString(":"))
+            property("excludes", extension.excludes.get().joinToString(":"))
+            outputFile = generatedPropertiesFileFor(apiDeclarationFilename).get().asFile
+        }
 
-        val apiParameterNamesTask =
-                tasks.register("apiParameterNamesResource", ParameterNamesResourceTask::class) {
-                    sources.from(extension.sources.asFileTree.matching {
-                        include(extension.includes.get())
-                        exclude(extension.excludes.get())
-                    })
-                    classpath.from(extension.classpath)
-                    destinationFile.set(generatedPropertiesFileFor(apiParametersFilename))
-                }
-
-        java.sourceSets["main"].output.dir(mapOf("builtBy" to apiDeclarationTask), generatedDirFor(apiDeclarationFilename))
-        java.sourceSets["main"].output.dir(mapOf("builtBy" to apiParameterNamesTask), generatedDirFor(apiParametersFilename))
+        sourceSets {
+            "main" {
+                output.dir(generatedDirFor(apiDeclarationFilename), "builtBy" to apiDeclaration)
+            }
+        }
     }
 
     private
     fun Project.generatedDirFor(name: String) =
-            layout.buildDirectory.dir("generated-resources/$name")
+        layout.buildDirectory.dir("generated-api-metadata/$name")
 
     private
     fun Project.generatedPropertiesFileFor(name: String) =
-            layout.buildDirectory.file("generated-resources/$name/$name.properties")
+        layout.buildDirectory.file("generated-api-metadata/$name/$name.properties")
 
     private
     val apiDeclarationFilename = "gradle-api-declaration"
-
-    private
-    val apiParametersFilename = "gradle-api-parameter-names"
 }

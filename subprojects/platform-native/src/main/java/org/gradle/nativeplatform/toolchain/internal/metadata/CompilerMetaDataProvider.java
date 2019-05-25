@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.metadata;
 
+import org.gradle.api.Action;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 
 import java.io.File;
@@ -23,8 +24,13 @@ import java.util.List;
 
 public interface CompilerMetaDataProvider<T extends CompilerMetadata> {
 
-    SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs, List<File> searchPath);
+    SearchResult<T> getCompilerMetaData(List<File> searchPath, Action<? super CompilerExecSpec> configureAction);
 
     CompilerType getCompilerType();
 
+    interface CompilerExecSpec {
+        CompilerExecSpec environment(String key, String value);
+        CompilerExecSpec executable(File executable);
+        CompilerExecSpec args(Iterable<String> args);
+    }
 }

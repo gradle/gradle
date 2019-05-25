@@ -1,27 +1,66 @@
-## New and noteworthy
+The Gradle team is excited to announce Gradle @version@.
 
-Here are the new features introduced in this Gradle release.
+This release features [1](), [2](), ... [n](), and more.
 
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
+We would like to thank the following community contributors to this release of Gradle:
+<!-- 
+Include only their name, impactful features should be called out separately below.
+ [Some person](https://github.com/some-person)
+-->
+[Andrew K.](https://github.com/miokowpak)
 
-<!--
-### Example new and noteworthy
+<!-- 
+## 1
+
+details of 1
+
+## 2
+
+details of 2
+
+## n
 -->
 
-### Stricter validation with `validateTaskProperties`
+## Upgrade Instructions
 
-Cacheable tasks are validated stricter than non-cacheable tasks by the `validateTaskProperties` task, which is added automatically by the [`java-gradle-plugin`](userguide/java_gradle_plugin.html).
-For example, all file inputs are required to have a normalization declared, like e.g. `@PathSensitive(RELATIVE)`.
-This stricter validation can now be enabled for all tasks via [`validateTaskProperties.enableStricterValidation = true`](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-).
+Switch your build to use Gradle @version@ by updating your wrapper:
+
+`./gradlew wrapper --gradle-version=@version@`
+
+See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+
+## Improvements for plugin authors
+
+### Task dependencies are honored for `@Input` properties of type `Property`
+
+TBD - honors dependencies on `@Input` properties.
+
+### Property methods
+
+TBD - added `getLocationOnly()`. 
+
+## Building native software with Gradle
+
+All new C++ documentations including new user manual chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects, [DSL reference for C++ components](dsl/index.html#N10808), [C++ plugins reference chapters](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins reference chapters](userguide/plugin_reference.html#ide_integration).
+The [C++ guides](https://gradle.org/guides/?q=Native) were also improved to reflect all the new features available to C++ developers.
+See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
 
 ## Promoted features
-
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+## Improved handling of ZIP archives on classpaths
+
+Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
+It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of cache hits for tasks
+that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
+
+The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
+This improves performance for projects with a large amount of resource files.
 
 <!--
 ### Example promoted
@@ -29,62 +68,17 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
-### Inherited configuration-wide dependency excludes are now published
-
-Previously, only exclude rules directly declared on published configurations (e.g. `apiElements` and `runtimeElements` for the `java` component defined by the [Java Library Plugin](userguide/java_library_plugin.html#sec:java_library_configurations_graph)) were published in the Ivy descriptor and POM when using the [Ivy Publish Plugin](userguide/publishing_ivy.html) or [Maven Publish Plugins](userguide/publishing_maven.html), respectively.
-Now, inherited exclude rules defined on extended configurations (e.g. `api` for Java libraries) are also taken into account.
-
-## Deprecations
-
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
-
-<!--
-### Example deprecation
--->
-
-### Setters for `classes` and `classpath` on `ValidateTaskProperties`
-
-There should not be setters for lazy properties like `ConfigurableFileCollection`s.
-Use `setFrom` instead.
-
-    validateTaskProperties.getClasses().setFrom(fileCollection)
-    validateTaskProperties.getClasspath().setFrom(fileCollection)
-    
-## Potential breaking changes
-
-<!--
-### Example breaking change
--->
-### Worker API: working directory of a worker can no longer be set 
-
-Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
-All workers now use the same working directory to enable reuse.
-Please pass files and directories as arguments instead.
-
-### Passing arguments to Windows Resource Compiler
-
-To follow idiomatic [Provider API](userguide/lazy_configuration.html) practices, the `WindowsResourceCompile` task has been converted to use the Provider API.
-
-Passing additional compiler arguments now follow the same pattern as the `CppCompile` and other tasks.
-
-## External contributions
-
-We would like to thank the following community members for making contributions to this release of Gradle.
-
- - [Mike Kobit](https://github.com/mkobit) - Add missing `@Deprecated` annotations to `ProjectLayout` methods (gradle/gradle#7344)
- - [Kent Fletcher](https://github.com/fletcher-sumglobal) - Convert `WindowsResourceCompile` to use Provider API (gradle/gradle#7432)
- - [Niklas Grebe](https://github.com/ThYpHo0n) - Add more examples of dynamic versions to documentation (gradle/gradle#7417)
- - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Add Provider API types to `AbstractArchiveTask` task types (gradle/gradle#7435)
-
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
--->
-
-We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
-
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
+
+## External contributions
+
+We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
+
+## Reporting Problems
+
+If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
+
+We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

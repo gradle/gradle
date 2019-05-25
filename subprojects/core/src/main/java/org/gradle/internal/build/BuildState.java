@@ -48,6 +48,8 @@ public interface BuildState {
      * The configured settings object for this build, if available.
      *
      * This should not be exposed directly, but should be behind some method that coordinates access from multiple threads.
+     *
+     * @throws IllegalStateException When the settings are not available for this build.
      */
     SettingsInternal getLoadedSettings() throws IllegalStateException;
 

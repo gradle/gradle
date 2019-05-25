@@ -15,15 +15,16 @@
  */
 package org.gradle.internal.resolve.caching;
 
-import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -85,18 +86,27 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
             this.registrar = registrar;
         }
 
+        @Override
         public <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
             return serviceRegistry.get(serviceType);
         }
 
+        @Override
         public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
             return serviceRegistry.getAll(serviceType);
         }
 
+        @Override
         public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
             return serviceRegistry.get(serviceType);
         }
 
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            return serviceRegistry.get(serviceType, annotatedWith);
+        }
+
+        @Override
         public Object find(Type serviceType) throws ServiceLookupException {
             Object service = serviceRegistry.find(serviceType);
             if (ImplicitInputsProvidingService.class.isInstance(service)) {
@@ -105,10 +115,12 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
             return service;
         }
 
+        @Override
         public <T> Factory<T> getFactory(Class<T> type) throws UnknownServiceException, ServiceLookupException {
             return serviceRegistry.getFactory(type);
         }
 
+        @Override
         public <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException {
             return serviceRegistry.newInstance(type);
         }

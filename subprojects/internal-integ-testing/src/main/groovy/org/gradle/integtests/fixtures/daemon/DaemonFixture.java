@@ -42,9 +42,14 @@ public interface DaemonFixture {
     int getPort();
 
     /**
-     * Forcefully kills this daemon.
+     * Forcefully kills this daemon and all child processes.
      */
     void kill();
+
+    /**
+     * Forcefully kills this daemon, but not child processes.
+     */
+    void killDaemonOnly();
 
     /**
      * Changes the authentication token for this daemon in the registry, so that client will see a different token to that expected by this daemon

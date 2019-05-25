@@ -37,7 +37,7 @@ class ProductPlugin implements Plugin<Project> {
             configurations {
                 runtime
             }
-            tasks.create(name: 'dist', type: Zip)
+            def dist = tasks.register('dist', Zip)
             artifacts {
                 archives dist
             }
@@ -47,7 +47,7 @@ class ProductPlugin implements Plugin<Project> {
                     dependencies { runtime project.project(p.path) }
                 }
                 archivesBaseName = "some-company-${product.displayName.replaceAll('\\s+', '-').toLowerCase()}"
-                dist {
+                dist.configure {
                     into('lib') {
                         from configurations.runtime
                     }

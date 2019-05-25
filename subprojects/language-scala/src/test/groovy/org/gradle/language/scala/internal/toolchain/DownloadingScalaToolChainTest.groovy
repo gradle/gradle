@@ -22,11 +22,12 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.workers.internal.WorkerDaemonFactory
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec
-import org.gradle.internal.text.TreeFormatter
+import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
+import org.gradle.process.internal.JavaForkOptionsFactory
+import org.gradle.util.TextUtil
+import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 
 class DownloadingScalaToolChainTest extends Specification {
@@ -34,10 +35,10 @@ class DownloadingScalaToolChainTest extends Specification {
     ConfigurationContainer configurationContainer = Mock()
     WorkerDaemonFactory workerDaemonFactory = Mock()
     DependencyHandler dependencyHandler = Mock()
-    FileResolver fileResolver = Mock()
+    JavaForkOptionsFactory forkOptionsFactory = Mock()
     File gradleUserHome = Mock()
     File rootProjectDir = Mock()
-    DownloadingScalaToolChain scalaToolChain = new DownloadingScalaToolChain(gradleUserHome, rootProjectDir, workerDaemonFactory, configurationContainer, dependencyHandler, fileResolver)
+    DownloadingScalaToolChain scalaToolChain = new DownloadingScalaToolChain(gradleUserHome, rootProjectDir, workerDaemonFactory, configurationContainer, dependencyHandler, forkOptionsFactory)
     ScalaPlatform scalaPlatform = Mock()
 
     def setup() {
@@ -62,9 +63,11 @@ class DownloadingScalaToolChainTest extends Specification {
         !toolProvider.isAvailable()
         TreeFormatter scalacErrorFormatter = new TreeFormatter()
         toolProvider.explain(scalacErrorFormatter)
-        scalacErrorFormatter.toString() == "Cannot provide Scala Compiler: Cannot resolve 'scala-compiler'."
+        scalacErrorFormatter.toString() == TextUtil.toPlatformLineSeparators("""Cannot provide Scala Compiler:
+  - Cannot resolve 'scala-compiler'.""")
         def e = thrown(GradleException)
-        e.message == "Cannot provide Scala Compiler: Cannot resolve 'scala-compiler'."
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot provide Scala Compiler:
+  - Cannot resolve 'scala-compiler'.""")
 
         when:
         dependencyAvailable("scala-compiler")

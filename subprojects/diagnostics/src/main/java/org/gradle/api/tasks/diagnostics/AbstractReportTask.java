@@ -49,6 +49,7 @@ public abstract class AbstractReportTask extends ConventionTask {
 
     protected AbstractReportTask() {
         getOutputs().upToDateWhen(new Spec<Task>() {
+            @Override
             public boolean isSatisfiedBy(Task element) {
                 return false;
             }

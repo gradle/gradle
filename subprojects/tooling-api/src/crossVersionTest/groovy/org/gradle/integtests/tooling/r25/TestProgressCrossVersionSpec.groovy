@@ -361,9 +361,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
-        if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
-            toolingApi.requireDaemons()
-        }
         projectDir.createFile('settings.gradle') << """
             include ':sub1'
             include ':sub2'
@@ -473,7 +470,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
-            sourceCompatibility = 1.6
+            sourceCompatibility = 1.7
             ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'

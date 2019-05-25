@@ -58,11 +58,11 @@ public class ManifestUtilTest extends Specification {
 
     def "returns empty classpath list for missing file or directory"() {
         when:
-        def nonexistant = new File("does no exist");
+        def nonexistent = new File("does no exist");
         def directory = tmpDir.createDir("new_directory");
         
         then:
-        ManifestUtil.parseManifestClasspath(nonexistant) == []
+        ManifestUtil.parseManifestClasspath(nonexistent) == []
         ManifestUtil.parseManifestClasspath(directory) == []
     }
     

@@ -18,11 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.capabilities.CapabilitiesMetadata
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState
 import org.gradle.internal.component.external.model.CapabilityInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.ConfigurationMetadata
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,6 +35,8 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
 
     @Subject
     DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler()
+
+    private long id
 
     @Issue("gradle/gradle#5920")
     def "order of components should be preserved"() {
@@ -78,7 +84,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
 
     CapabilitiesConflictHandler.Candidate candidate(CapabilityInternal cap, ComponentState co) {
         Mock(CapabilitiesConflictHandler.Candidate) {
-            getComponent() >> co
+            getNode() >> node(co)
             getCapability() >> cap
             getImplicitCapabilityProviders() >> []
         }
@@ -98,6 +104,19 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
         Mock(CapabilityInternal) {
             getGroup() >> group
             getName() >> name
+        }
+    }
+
+    NodeState node(ComponentState cs) {
+        return new NodeState(id++, Mock(ResolvedConfigurationIdentifier), cs, null, Mock(ConfigurationMetadata) {
+            getCapabilities() >> Mock(CapabilitiesMetadata) {
+                getCapabilities() >> []
+            }
+        }) {
+            @Override
+            boolean isSelected() {
+                return true;
+            }
         }
     }
 }

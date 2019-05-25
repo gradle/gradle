@@ -21,25 +21,19 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
-public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
+public abstract class DefaultSourceSet implements SourceSet {
     private final String name;
     private final String baseName;
     private FileCollection compileClasspath;
@@ -51,15 +45,13 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
     private final String displayName;
     private final SourceDirectorySet allSource;
     private final ClassDirectoryBinaryNamingScheme namingScheme;
-    private final ExtensibleDynamicObject extensibleDynamicObject;
     private DefaultSourceSetOutput output;
 
-    public DefaultSourceSet(String name, ObjectFactory objectFactory, Instantiator instantiator) {
+    public DefaultSourceSet(String name, ObjectFactory objectFactory) {
         this.name = name;
         this.baseName = name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
         displayName = GUtil.toWords(this.name);
         namingScheme = new ClassDirectoryBinaryNamingScheme(name);
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, SourceSet.class, instantiator);
 
         String javaSrcDisplayName = displayName + " Java source";
 
@@ -73,6 +65,7 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         String resourcesDisplayName = displayName + " resources";
         resources = objectFactory.sourceDirectorySet("resources", resourcesDisplayName);
         resources.getFilter().exclude(new Spec<FileTreeElement>() {
+            @Override
             public boolean isSatisfiedBy(FileTreeElement element) {
                 return javaSource.contains(element.getFile());
             }
@@ -85,6 +78,7 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
 
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -98,26 +92,32 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return displayName;
     }
 
+    @Override
     public String getClassesTaskName() {
         return getTaskName(null, "classes");
     }
 
+    @Override
     public String getCompileTaskName(String language) {
         return getTaskName("compile", language);
     }
 
+    @Override
     public String getCompileJavaTaskName() {
         return getCompileTaskName("java");
     }
 
+    @Override
     public String getProcessResourcesTaskName() {
         return getTaskName("process", "resources");
     }
 
+    @Override
     public String getJarTaskName() {
         return getTaskName(null, "jar");
     }
 
+    @Override
     public String getTaskName(@Nullable String verb, @Nullable String target) {
         return namingScheme.getTaskName(verb, target);
     }
@@ -126,6 +126,7 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return baseName;
     }
 
+    @Override
     public String getCompileConfigurationName() {
         return configurationNameOf(JavaPlugin.COMPILE_CONFIGURATION_NAME);
     }
@@ -134,10 +135,12 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(baseName));
     }
 
+    @Override
     public String getRuntimeConfigurationName() {
         return configurationNameOf(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
     }
 
+    @Override
     public String getCompileOnlyConfigurationName() {
         return configurationNameOf(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
     }
@@ -182,6 +185,7 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return configurationNameOf(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
     }
 
+    @Override
     public SourceSetOutput getOutput() {
         return output;
     }
@@ -190,11 +194,13 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         this.output = classes;
     }
 
+    @Override
     public SourceSet compiledBy(Object... taskPaths) {
         output.builtBy(taskPaths);
         return this;
     }
 
+    @Override
     public FileCollection getCompileClasspath() {
         return compileClasspath;
     }
@@ -204,10 +210,12 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return annotationProcessorPath;
     }
 
+    @Override
     public FileCollection getRuntimeClasspath() {
         return runtimeClasspath;
     }
 
+    @Override
     public void setCompileClasspath(FileCollection classpath) {
         compileClasspath = classpath;
     }
@@ -217,14 +225,17 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         this.annotationProcessorPath = annotationProcessorPath;
     }
 
+    @Override
     public void setRuntimeClasspath(FileCollection classpath) {
         runtimeClasspath = classpath;
     }
 
+    @Override
     public SourceDirectorySet getJava() {
         return javaSource;
     }
 
+    @Override
     public SourceSet java(@Nullable Closure configureClosure) {
         configure(configureClosure, getJava());
         return this;
@@ -236,14 +247,17 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return this;
     }
 
+    @Override
     public SourceDirectorySet getAllJava() {
         return allJavaSource;
     }
 
+    @Override
     public SourceDirectorySet getResources() {
         return resources;
     }
 
+    @Override
     public SourceSet resources(@Nullable Closure configureClosure) {
         configure(configureClosure, getResources());
         return this;
@@ -255,21 +269,8 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return this;
     }
 
+    @Override
     public SourceDirectorySet getAllSource() {
         return allSource;
-    }
-
-    @Override
-    public ExtensionContainer getExtensions() {
-        return getConvention();
-    }
-
-    @Override
-    public DynamicObject getAsDynamicObject() {
-        return extensibleDynamicObject;
-    }
-
-    public Convention getConvention() {
-        return extensibleDynamicObject.getConvention();
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Static meta-data about a type reference extracted from source.
@@ -92,10 +93,12 @@ public class TypeMetaData implements Serializable, TypeContainer {
         final StringBuilder builder = new StringBuilder();
 
         visitSignature(new SignatureVisitor() {
+            @Override
             public void visitText(String text) {
                 builder.append(text);
             }
 
+            @Override
             public void visitType(String name) {
                 builder.append(name);
             }
@@ -122,6 +125,7 @@ public class TypeMetaData implements Serializable, TypeContainer {
         return this;
     }
 
+    @Override
     public void visitTypes(Action<TypeMetaData> action) {
         if (wildcard) {
             return;
@@ -191,5 +195,28 @@ public class TypeMetaData implements Serializable, TypeContainer {
         void visitText(String text);
 
         void visitType(String name);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TypeMetaData that = (TypeMetaData) o;
+        return arrayDimensions == that.arrayDimensions &&
+            varargs == that.varargs &&
+            wildcard == that.wildcard &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(typeArgs, that.typeArgs) &&
+            Objects.equals(upperBounds, that.upperBounds) &&
+            Objects.equals(lowerBounds, that.lowerBounds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, arrayDimensions, varargs, typeArgs, wildcard, upperBounds, lowerBounds);
     }
 }

@@ -16,11 +16,11 @@
 = Building native software
 
 
-[NOTE]
+[CAUTION]
 ====
-
-Support for building native software is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
-
+The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed.
+We recommend new projects looking to build C++ applications and libraries use the newer <<building_cpp_projects.adoc#cpp_plugin,replacement plugins>>.
+// TODO: check this link
 ====
 
 The native software plugins add support for building native software components, such as executables or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist for this space of software development, Gradle offers developers its trademark power and flexibility together with dependency management practices more traditionally found in the JVM development space.
@@ -84,12 +84,12 @@ The following tool chains are supported:
 | Windows XP and later, Visual C++ 2010/2012/2013/2015/2017.
 
 | Windows
-| http://gcc.gnu.org/[GCC] with http://cygwin.com[Cygwin 32]
+| http://gcc.gnu.org/[GCC] with http://cygwin.com[Cygwin 32 and Cygwin 64]
 | Windows XP and later.
 
 | Windows
-| http://gcc.gnu.org/[GCC] with http://www.mingw.org/[MinGW]
-| Windows XP and later. http://mingw-w64.sourceforge.net[Mingw-w64] is currently not supported.
+| http://gcc.gnu.org/[GCC] with http://www.mingw.org/[MinGW] and https://mingw-w64.org/doku.php[MinGW64]
+| Windows XP and later.
 |===
 
 The following tool chains are unofficially supported. They generally work fine, but are not tested continuously:
@@ -105,10 +105,6 @@ The following tool chains are unofficially supported. They generally work fine, 
 | macOS
 | http://clang.llvm.org[Clang] from Macports
 |
-
-| Windows
-| http://gcc.gnu.org/[GCC] with http://cygwin.com[Cygwin 64]
-| Windows XP and later.
 
 | UNIX-like
 | http://gcc.gnu.org/[GCC]

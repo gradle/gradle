@@ -21,7 +21,6 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.NestedBuildFactory
@@ -30,6 +29,7 @@ import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.BuildTreeScopeServices
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -40,7 +40,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def includedBuildFactory = Stub(IncludedBuildFactory)
-    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(ProjectStateRegistry), Stub(IncludedBuildDependencySubstitutionsBuilder), Stub(GradleLauncherFactory), Stub(ListenerManager), Stub(ServiceRegistry))
+    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(ProjectStateRegistry), Stub(IncludedBuildDependencySubstitutionsBuilder), Stub(GradleLauncherFactory), Stub(ListenerManager), Stub(BuildTreeScopeServices))
 
     def "is empty by default"() {
         expect:
@@ -50,7 +50,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
     def "can add a root build"() {
         expect:
-        def rootBuild = registry.addRootBuild(Stub(BuildDefinition), Stub(BuildRequestContext))
+        def rootBuild = registry.createRootBuild(Stub(BuildDefinition))
         !rootBuild.implicitBuild
         rootBuild.buildIdentifier == DefaultBuildIdentifier.ROOT
         rootBuild.identityPath == Path.ROOT
@@ -67,7 +67,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         includedBuild.buildIdentifier >> buildIdentifier
 
         given:
-        registry.register(rootBuild())
+        registry.attachRootBuild(rootBuild())
         includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, false, _) >> includedBuild
 
         expect:
@@ -90,7 +90,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild2 = Stub(IncludedBuildState)
 
         given:
-        registry.register(rootBuild())
+        registry.attachRootBuild(rootBuild())
         includedBuildFactory.createBuild(new DefaultBuildIdentifier("b1"), Path.path(":b1"), buildDefinition1, false, _) >> includedBuild1
         includedBuildFactory.createBuild(new DefaultBuildIdentifier("b2"), Path.path(":b2"), buildDefinition2, false, _) >> includedBuild2
 
@@ -126,7 +126,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def idPath3 = Path.path(":b1:2")
 
         given:
-        registry.register(rootBuild())
+        registry.attachRootBuild(rootBuild())
         includedBuildFactory.createBuild(id1, idPath1, buildDefinition1, false, _) >> includedBuild1
         includedBuildFactory.createBuild(id2, idPath2, buildDefinition2, false, _) >> includedBuild2
         includedBuildFactory.createBuild(id3, idPath3, buildDefinition3, false, _) >> includedBuild3
@@ -148,7 +148,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def buildDefinition2 = build(dir)
 
         given:
-        registry.register(rootBuild())
+        registry.attachRootBuild(rootBuild())
         def includedBuild = registry.addIncludedBuild(buildDefinition1)
 
         expect:
@@ -161,7 +161,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild = Stub(IncludedBuildState)
 
         given:
-        registry.register(rootBuild())
+        registry.attachRootBuild(rootBuild())
         includedBuildFactory.createBuild(new DefaultBuildIdentifier("b1"), Path.path(":b1"), buildDefinition, true, _) >> includedBuild
 
         expect:
@@ -208,7 +208,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     def "can add multiple nested builds with same name and different levels of nesting"() {
         given:
         def rootBuild = rootBuild()
-        registry.register(rootBuild)
+        registry.attachRootBuild(rootBuild)
 
         def parent1Definition = Stub(BuildDefinition)
         parent1Definition.name >> "parent"

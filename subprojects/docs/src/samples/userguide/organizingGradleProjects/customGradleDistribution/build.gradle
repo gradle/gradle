@@ -11,7 +11,7 @@ task downloadGradle(type: DownloadGradle) {
 task createCustomGradleDistribution(type: Zip) {
     description = 'Builds custom Gradle distribution and bundles initialization scripts.'
     dependsOn downloadGradle
-    archiveName "mycompany-gradle-$downloadGradle.gradleVersion-bin.zip"
+    archiveFileName = "mycompany-gradle-$downloadGradle.gradleVersion-bin.zip"
     from zipTree(downloadGradle.destinationFile)
     from('src/init.d') {
         into "$downloadGradle.distributionNameBase/init.d"

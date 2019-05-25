@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.tasks.Sync;
@@ -59,6 +60,7 @@ import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.GUtil;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -72,14 +74,16 @@ import static org.gradle.internal.FileUtils.hasExtension;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
+@Deprecated
 public class PlayDistributionPlugin extends RuleSource {
     public static final String DISTRIBUTION_GROUP = "distribution";
     public static final String DIST_LIFECYCLE_TASK_NAME = "dist";
     public static final String STAGE_LIFECYCLE_TASK_NAME = "stage";
 
     @Model
-    PlayDistributionContainer distributions(Instantiator instantiator) {
-        return new DefaultPlayDistributionContainer(instantiator);
+    PlayDistributionContainer distributions(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Distribution", "org.gradle.playframework-distribution");
+        return new DefaultPlayDistributionContainer(instantiator, collectionCallbackActionDecorator);
     }
 
     @Mutate

@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
@@ -41,7 +42,6 @@ import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -53,7 +53,7 @@ import spock.lang.Unroll
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 abstract class AbstractDependencyMetadataRulesTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def notationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl, SimpleMapInterner.notThreadSafe())
     def constraintNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl, SimpleMapInterner.notThreadSafe())
 
@@ -72,10 +72,10 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
 
     private DefaultAttributesSchema createSchema() {
         def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
         PlatformSupport.configureSchema(schema)
         schema
     }
-
 
     abstract boolean addAllDependenciesAsConstraints()
 
@@ -111,7 +111,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
             if (addAllDependenciesAsConstraints()) {
                 defaultVariant.addDependencyConstraint("org.test", name, new DefaultMutableVersionConstraint("1.0"), null, ImmutableAttributes.EMPTY)
             } else {
-                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY)
+                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY, [])
             }
         }
         metadata
@@ -291,6 +291,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
 
-        consumer.selectConfigurations(attributes, immutable, schema)[0]
+        consumer.selectConfigurations(attributes, immutable, schema, [] as Set)[0]
     }
 }

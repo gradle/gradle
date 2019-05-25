@@ -379,6 +379,61 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
+    @Requires(TestPrecondition.MSBUILD)
+    def "skip unbuildable static library project when building solution from visual studio"() {
+        useMsbuildTool()
+        def app = new CppAppWithLibrary()
+
+        given:
+        app.greeter.writeToProject(file("lib"))
+        app.main.writeToProject(file("exe"))
+
+        settingsFile << """
+            include ':exe', ':lib'
+        """
+        file("exe", "build.gradle") << """
+            apply plugin: 'cpp-application'
+
+            dependencies {
+                implementation project(':lib')
+            }
+        """
+        file("lib", "build.gradle") << """
+            apply plugin: 'cpp-library'
+
+            library {
+                linkage = [Linkage.STATIC]
+                targetMachines = [machines.os('os-family')]
+            }
+        """
+        succeeds ":visualStudio"
+
+        when:
+        def resultUnbuildableSolution = msbuild
+                .withSolution(solutionFile('app.sln'))
+                .withConfiguration('unbuildable')
+                .succeeds()
+
+        then:
+        resultUnbuildableSolution.size() == 1
+        resultUnbuildableSolution[0].executedTasks == []
+        resultUnbuildableSolution[0].assertOutputContains('The project "exe" is not selected for building in solution configuration "unbuildable|Win32".')
+        resultUnbuildableSolution[0].assertOutputContains('The project "libLib" is not selected for building in solution configuration "unbuildable|Win32".')
+        installation('exe/build/install/main/debug').assertNotInstalled()
+
+        when:
+        def resultDebug = msbuild
+                .withSolution(solutionFile('app.sln'))
+                .withConfiguration('debug')
+                .fails()
+
+        then:
+        resultDebug.executedTasks == []
+        resultDebug.assertHasCause("Could not resolve all task dependencies for configuration ':exe:nativeRuntimeDebug'.")
+        resultDebug.assertHasCause("Could not resolve project :lib.")
+        installation('exe/build/install/main/debug').assertNotInstalled()
+    }
+
     @NotYetImplemented
     def "create visual studio solution where multiple projects have same name"() {
         given:

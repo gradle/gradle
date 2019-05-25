@@ -27,7 +27,7 @@ abstract class AbstractModule implements Module {
     /**
      Last modified date for writeZipped to be able to create zipFiles with identical hashes
      */
-    private static Date lmd = new Date();
+    private static Date lmd = new Date()
 
     private boolean hasModuleMetadata
 

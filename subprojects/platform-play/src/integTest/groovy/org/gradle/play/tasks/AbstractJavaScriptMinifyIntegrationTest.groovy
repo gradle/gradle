@@ -24,6 +24,7 @@ import org.gradle.util.TextUtil
 abstract class AbstractJavaScriptMinifyIntegrationTest extends AbstractPluginIntegrationTest {
 
     def setup() {
+        executer.noDeprecationChecks()
         settingsFile << """ rootProject.name = 'js-play-app' """
     }
 

@@ -17,7 +17,7 @@ dependencies {
 }
 // end::artifact-only-dependency-declaration[]
 
-task<Copy>("copyLibs") {
+tasks.register<Copy>("copyLibs") {
     from(configurations["js"])
     into("$buildDir/libs")
 }

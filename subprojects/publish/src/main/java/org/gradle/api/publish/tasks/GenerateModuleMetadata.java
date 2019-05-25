@@ -35,7 +35,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
-import org.gradle.api.publish.internal.ModuleMetadataFileGenerator;
+import org.gradle.api.publish.internal.GradleModuleMetadataWriter;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -74,7 +74,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
         publication = objectFactory.property(Publication.class);
-        publications = objectFactory.listProperty(Publication.class).empty();
+        publications = objectFactory.listProperty(Publication.class);
         outputFile = objectFactory.fileProperty();
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
@@ -167,7 +167,7 @@ public class GenerateModuleMetadata extends DefaultTask {
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
             try {
-                new ModuleMetadataFileGenerator(getBuildInvocationScopeId(), getProjectDependencyPublicationResolver()).generateTo(publication, publications, writer);
+                new GradleModuleMetadataWriter(getBuildInvocationScopeId(), getProjectDependencyPublicationResolver()).generateTo(publication, publications, writer);
             } finally {
                 writer.close();
             }

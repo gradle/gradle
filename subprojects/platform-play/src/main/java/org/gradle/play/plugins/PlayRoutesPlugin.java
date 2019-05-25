@@ -38,6 +38,7 @@ import org.gradle.platform.base.TypeBuilder;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.ScalaSourceCode;
 import org.gradle.play.tasks.RoutesCompile;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -49,10 +50,12 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
+@Deprecated
 public class PlayRoutesPlugin extends RuleSource {
 
     @ComponentType
     void registerRoutesLanguageType(TypeBuilder<RoutesSourceSet> builder) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Routes", "org.gradle.playframework-routes");
     }
 
     @Mutate
@@ -96,14 +99,17 @@ public class PlayRoutesPlugin extends RuleSource {
         @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
+                @Override
                 public String getTaskPrefix() {
                     return "compile";
                 }
 
+                @Override
                 public Class<? extends DefaultTask> getTaskType() {
                     return RoutesCompile.class;
                 }
 
+                @Override
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
                     RoutesSourceSet routesSourceSet = (RoutesSourceSet) sourceSet;

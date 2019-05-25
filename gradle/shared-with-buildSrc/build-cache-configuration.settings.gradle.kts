@@ -26,13 +26,8 @@ val remotePush = System.getProperty("gradle.cache.remote.push") != "false"
 val remoteCacheUsername = System.getProperty("gradle.cache.remote.username", "")
 val remoteCachePassword = System.getProperty("gradle.cache.remote.password", "")
 
-buildCache {
-    local {
-        isEnabled = !isCiServer
-    }
-}
-
 val isRemoteBuildCacheEnabled = remoteCacheUrl != null && gradle.startParameter.isBuildCacheEnabled && !gradle.startParameter.isOffline
+val disableLocalCache = System.getProperty("disableLocalCache")?.toBoolean() ?: false
 if (isRemoteBuildCacheEnabled) {
     buildCache {
         remote(HttpBuildCache::class.java) {
@@ -44,6 +39,14 @@ if (isRemoteBuildCacheEnabled) {
                     password = remoteCachePassword
                 }
             }
+        }
+    }
+}
+
+if (disableLocalCache) {
+    buildCache {
+        local {
+            isEnabled = false
         }
     }
 }

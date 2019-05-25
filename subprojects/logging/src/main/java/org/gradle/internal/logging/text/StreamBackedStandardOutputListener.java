@@ -31,6 +31,7 @@ public class StreamBackedStandardOutputListener implements StandardOutputListene
             flushable = (Flushable) appendable;
         } else {
             flushable = new Flushable() {
+                @Override
                 public void flush() throws IOException {
                 }
             };
@@ -41,6 +42,7 @@ public class StreamBackedStandardOutputListener implements StandardOutputListene
         this(new OutputStreamWriter(outputStream));
     }
 
+    @Override
     public void onOutput(CharSequence output) {
         try {
             appendable.append(output);

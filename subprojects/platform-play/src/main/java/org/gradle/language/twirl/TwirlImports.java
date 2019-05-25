@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
  * Represents the available sets of default imports that can be used when compiling Twirl templates.
  */
 @Incubating
+@Deprecated
 public enum TwirlImports {
     SCALA, JAVA
 }

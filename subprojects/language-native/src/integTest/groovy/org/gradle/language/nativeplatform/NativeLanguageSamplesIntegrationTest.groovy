@@ -27,6 +27,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -47,6 +48,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
     }
 
+    @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
     @IgnoreIf({GradleContextualExecuter.parallel})
     def "assembler"() {
         given:

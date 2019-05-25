@@ -23,6 +23,8 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
+
 @IntegrationTestTimeout(120)
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
@@ -813,7 +815,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 public void run() {
                     System.out.println("Running \${itemName}...")
                     new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${itemName}", null, null).toURL().text
-                    File outputDir = new File("${outputFileDirPath}")
+                    File outputDir = new File("${fixture.outputFileDirPath}")
                     File outputFile = new File(outputDir, itemName)
                     FileHelper.write(id, outputFile)
                 }

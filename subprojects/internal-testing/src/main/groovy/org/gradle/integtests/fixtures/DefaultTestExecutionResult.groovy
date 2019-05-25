@@ -23,7 +23,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
     List<TestExecutionResult> results = []
 
-    public DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '', String testTaskName = 'test') {
+    DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '', String testTaskName = 'test') {
         String binaryPath = binary?"/$binary":''
         binaryPath = testedBinary?"$binaryPath/$testedBinary":"$binaryPath";
         if(binary){

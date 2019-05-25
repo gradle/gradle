@@ -1,6 +1,6 @@
 import java.text.FieldPosition
 
-task("configure") {
+tasks.register("configure") {
     doLast {
         val pos = FieldPosition(10).apply {
             beginIndex = 1

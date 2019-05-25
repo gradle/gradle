@@ -46,6 +46,7 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
+    @Override
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
         return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory, componentMetadataSupplierRuleExecutor);
     }

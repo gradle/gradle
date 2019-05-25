@@ -23,11 +23,10 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 public interface ExecutionHistoryStore {
-    @Nullable
-    AfterPreviousExecutionState load(String key);
+    Optional<AfterPreviousExecutionState> load(String key);
 
     void store(String key,
                OriginMetadata originMetadata,
@@ -37,4 +36,6 @@ public interface ExecutionHistoryStore {
                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties,
                boolean successful);
+
+    void remove(String key);
 }

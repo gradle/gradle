@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 //These tests depend on https://plugins.gradle.org
 @Requires(TestPrecondition.ONLINE)

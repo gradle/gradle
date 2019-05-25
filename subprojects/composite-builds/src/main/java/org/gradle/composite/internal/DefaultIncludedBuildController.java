@@ -143,6 +143,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
     }
 
+    @Override
     public void stop() {
         ArrayList<Throwable> failures = new ArrayList<Throwable>();
         awaitTaskCompletion(failures);
@@ -203,6 +204,10 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         lock.lock();
         try {
             TaskState taskState = tasks.get(task);
+            if (taskState == null) {
+                taskState = new TaskState();
+                tasks.put(task, taskState);
+            }
             taskState.status = failure == null ? TaskStatus.SUCCESS : TaskStatus.FAILED;
         } finally {
             lock.unlock();
@@ -309,9 +314,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         public void afterExecute(Task task, org.gradle.api.tasks.TaskState state) {
             String taskPath = task.getPath();
             Throwable failure = state.getFailure();
-            if (tasksToExecute.contains(taskPath)) {
-                taskCompleted(taskPath, failure);
-            }
+            taskCompleted(taskPath, failure);
         }
     }
 }

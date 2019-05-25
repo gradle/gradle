@@ -17,19 +17,20 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
-public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-
+public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
     private final DocumentationRegistry documentationRegistry;
 
-    public ScalaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                             TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super("scala", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public ScalaLibraryProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        this.libraryVersionProvider = libraryVersionProvider;
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -39,7 +40,19 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public ComponentType getComponentType() {
+        return ComponentType.LIBRARY;
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.SCALA;
+    }
+
+    @Override
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
+
         String scalaVersion = libraryVersionProvider.getVersion("scala");
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
         String scalaTestVersion = libraryVersionProvider.getVersion("scalatest");
@@ -49,7 +62,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder
             .fileComment("This generated file contains a sample Scala library project to get you started.")
             .fileComment("For more details take a look at the Scala plugin chapter in the Gradle")
-            .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
+            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
             .plugin("Apply the scala plugin to add support for Scala", "scala")
             .implementationDependency("Use Scala " + scalaVersion + " in our library project",
                 "org.scala-lang:scala-library:" + scalaLibraryVersion)
@@ -59,9 +72,14 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
             .testRuntimeOnlyDependency("Need scala-xml at test runtime",
                 "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
 
-        TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", settings, "main");
-        TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", settings, "test");
-        whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation).generate();
+        TemplateOperation scalaLibTemplateOperation = templateFactory.fromSourceTemplate("scalalibrary/Library.scala.template", "main");
+        TemplateOperation scalaTestTemplateOperation = templateFactory.fromSourceTemplate("scalalibrary/LibrarySuite.scala.template", "test");
+        templateFactory.whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation).generate();
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getDocumentationFor("scala_plugin"));
     }
 
     @Override

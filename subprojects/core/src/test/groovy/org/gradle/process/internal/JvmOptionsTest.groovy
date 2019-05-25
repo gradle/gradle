@@ -24,7 +24,13 @@ import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
-import static org.gradle.process.internal.JvmOptions.*
+import static org.gradle.process.internal.JvmOptions.FILE_ENCODING_KEY
+import static org.gradle.process.internal.JvmOptions.JAVA_IO_TMPDIR_KEY
+import static org.gradle.process.internal.JvmOptions.JMX_REMOTE_KEY
+import static org.gradle.process.internal.JvmOptions.USER_COUNTRY_KEY
+import static org.gradle.process.internal.JvmOptions.USER_LANGUAGE_KEY
+import static org.gradle.process.internal.JvmOptions.USER_VARIANT_KEY
+import static org.gradle.process.internal.JvmOptions.fromString
 
 class JvmOptionsTest extends Specification {
     final String defaultCharset = Charset.defaultCharset().name()
@@ -236,7 +242,7 @@ class JvmOptionsTest extends Specification {
     }
 
     private JvmOptions createOpts() {
-        return new JvmOptions(TestFiles.pathToFileResolver())
+        return new JvmOptions(TestFiles.fileCollectionFactory())
     }
 
     private JvmOptions parse(String optsString) {

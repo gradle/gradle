@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
@@ -107,7 +108,9 @@ class TestExecutionResultEvaluatorTest extends Specification {
         def testTask = Mock(TaskInternal)
         1 * testTask.getPath() >> ":someproject:someTestTask"
         def taskBuildOperation = BuildOperationDescriptor.displayName("task")
-            .details(new ExecuteTaskBuildOperationDetails(testTask))
+            .details(new ExecuteTaskBuildOperationDetails(Stub(LocalTaskNode) {
+                getTask() >> testTask
+            }))
             .build(new OperationIdentifier(1), null)
 
         def details = Mock(ExecuteTestBuildOperationType.Details) {

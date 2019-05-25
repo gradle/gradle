@@ -13,30 +13,29 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.internal.hash.HashUtil
+import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.gradle.testing.BuildScanPerformanceTest
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
-import org.gradle.testing.ReportGenerationPerformanceTest
-import org.gradle.testing.BuildScanPerformanceTest
 import org.gradle.testing.RebaselinePerformanceTests
+import org.gradle.testing.ReportGenerationPerformanceTest
+import org.gradle.testing.RerunableDistributedPerformanceTest
 import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 import org.gradle.testing.performance.generator.tasks.TemplateProjectGeneratorTask
-import org.gradle.kotlin.dsl.*
-
 import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.reflect.KClass
 
 
-private
 object PropertyNames {
     const val dbUrl = "org.gradle.performance.db.url"
     const val dbUsername = "org.gradle.performance.db.username"
@@ -46,26 +45,29 @@ object PropertyNames {
     const val performanceTestVerbose = "performanceTest.verbose"
     const val baselines = "org.gradle.performance.baselines"
     const val buildTypeId = "org.gradle.performance.buildTypeId"
-    const val branchName = "org.gradle.performance.branchName"
 
     const val teamCityUsername = "teamCityUsername"
     const val teamCityPassword = "teamCityPassword"
 }
 
 
-private
 object Config {
 
-    val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last")
+    val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last").toString()
 
     const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
 
     const val performanceTestReportsDir = "performance-tests/report"
 
+    const val performanceTestResultsJson = "perf-results.json"
+
     const val teamCityUrl = "https://builds.gradle.org/"
 
     const val adhocTestDbUrl = "jdbc:h2:./build/database"
 }
+
+
+fun Project.determineCurrentBranch() = System.getenv("BUILD_BRANCH") ?: execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD")
 
 
 private
@@ -76,10 +78,6 @@ const val performanceExperimentCategory = "org.gradle.performance.categories.Per
 class PerformanceTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        apply(plugin = "java")
-
-        registerForkPointDistributionTask()
-
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addConfigurationAndDependencies()
         createCheckNoIdenticalBuildFilesTask()
@@ -94,34 +92,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         createRebaselineTask(performanceTestSourceSet)
 
         configureIdePlugins(performanceTestSourceSet)
-    }
-
-    private
-    fun Project.registerForkPointDistributionTask() {
-        val determineForkPoint = tasks.register("determineForkPoint", DetermineForkPoint::class)
-        val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
-            forkPointDistributionVersion.set(determineForkPoint.flatMap { it.forkPointDistributionVersion })
-            dependsOn(determineForkPoint)
-        }
-
-        tasks.register("configurePerformanceTestBaseline") {
-            dependsOn(buildForkPointDistribution)
-            doLast {
-                val commitBaseline = determineForkPoint.get().forkPointDistributionVersion.get()
-                project.tasks.withType(DistributedPerformanceTest::class) {
-                    if (baselines.isNullOrEmpty() || baselines == "defaults") {
-                        baselines = commitBaseline
-                    }
-                }
-            }
-        }
-    }
-
-    private
-    fun Project.whenNotOnMasterOrReleaseBranch(action: (branchName: String) -> Unit) {
-        stringPropertyOrNull(PropertyNames.branchName)
-            ?.takeIf { it.isNotEmpty() && it != "master" && it != "release" }
-            ?.let(action)
     }
 
     private
@@ -146,21 +116,17 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.addConfigurationAndDependencies() {
 
         configurations {
-
-            val testCompile by getting
-
-            "performanceTestCompile" {
-                extendsFrom(testCompile)
+            val testImplementation by getting
+            "performanceTestImplementation" {
+                extendsFrom(testImplementation)
             }
 
-            val testRuntime by getting
-
-            "performanceTestRuntime" {
-                extendsFrom(testRuntime)
+            val testRuntimeOnly by getting
+            "performanceTestRuntimeOnly" {
+                extendsFrom(testRuntimeOnly)
             }
 
             val performanceTestRuntimeClasspath by getting
-
             "partialDistribution" {
                 extendsFrom(performanceTestRuntimeClasspath)
             }
@@ -169,7 +135,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         dependencies {
-            "performanceTestCompile"(project(":internalPerformanceTesting"))
+            "performanceTestImplementation"(project(":internalPerformanceTesting"))
             "junit"("junit:junit:4.12")
         }
     }
@@ -281,22 +247,29 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: TaskProvider<Task>
     ) {
 
-        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
-            createDistributedPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask).configure(configure)
+        fun create(name: String, clazz: KClass<out DistributedPerformanceTest>, configure: DistributedPerformanceTest.() -> Unit = {}) {
+            createDistributedPerformanceTestTask(name, clazz, performanceSourceSet, prepareSamplesTask).configure(configure)
         }
 
-        create("distributedPerformanceTest") {
+        create("distributedPerformanceTest", RerunableDistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
             channel = "commits"
         }
-        create("distributedPerformanceExperiment") {
+        create("distributedPerformanceExperiment", RerunableDistributedPerformanceTest::class) {
             (options as JUnitOptions).includeCategories(performanceExperimentCategory)
             channel = "experiments"
         }
-        create("distributedFullPerformanceTest") {
-            baselines = Config.baseLineList.toString()
+        create("distributedFullPerformanceTest", DistributedPerformanceTest::class) {
+            setBaselines(Config.baseLineList)
             checks = "none"
             channel = "historical"
+        }
+        create("distributedFlakinessDetection", DistributedPerformanceTest::class) {
+            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+            reportGeneratorClass = "org.gradle.performance.results.FlakinessReportGenerator"
+            repeat = 3
+            checks = "none"
+            channel = "flakiness-detection"
         }
     }
 
@@ -329,33 +302,60 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
     }
 
+
     private
     fun Project.createDistributedPerformanceTestTask(
         name: String,
+        clazz: KClass<out DistributedPerformanceTest>,
         performanceSourceSet: SourceSet,
         prepareSamplesTask: TaskProvider<Task>
-    ): TaskProvider<DistributedPerformanceTest> {
-
-        val result = tasks.register(name, DistributedPerformanceTest::class) {
+    ): TaskProvider<out DistributedPerformanceTest> {
+        val performanceTest = tasks.register(name, clazz) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
-            branchName = stringPropertyOrNull(PropertyNames.branchName)
+            branchName = determineCurrentBranch()
             teamCityUrl = Config.teamCityUrl
             teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
             teamCityPassword = stringPropertyOrNull(PropertyNames.teamCityPassword)
         }
 
+        createAndWireCommitDistributionTasks(performanceTest, true)
+
         afterEvaluate {
-            result.configure {
+            performanceTest.configure {
                 branchName?.takeIf { it.isNotEmpty() }?.let { branchName ->
                     channel = channel + "-" + branchName
                 }
             }
         }
 
-        return result
+        return performanceTest
+    }
+
+    private
+    fun Project.createAndWireCommitDistributionTasks(performanceTest: TaskProvider<out PerformanceTest>, isDistributed: Boolean) {
+        // The data flow here is:
+        // performanceTest.configuredBaselines -> determineBaselines.configuredBaselines
+        // determineBaselines.determinedBaselines -> performanceTest.determinedBaselines
+        // determineBaselines.determinedBaselines -> buildCommitDistribution.commitBaseline
+        val determineBaselines = tasks.register("${performanceTest.name}DetermineBaselines", DetermineBaselines::class, isDistributed)
+        val buildCommitDistribution = tasks.register("${performanceTest.name}BuildCommitDistribution", BuildCommitDistribution::class)
+
+        determineBaselines.configure {
+            configuredBaselines.set(performanceTest.flatMap { it.configuredBaselines })
+        }
+
+        buildCommitDistribution.configure {
+            dependsOn(determineBaselines)
+            commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
+        }
+
+        performanceTest.configure {
+            dependsOn(buildCommitDistribution)
+            determinedBaselines.set(determineBaselines.flatMap { it.determinedBaselines })
+        }
     }
 
     private
@@ -371,6 +371,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                 testLogging.showStandardStreams = true
             }
         }
+        createAndWireCommitDistributionTasks(performanceTest, false)
 
         val testResultsZipTask = testResultsZipTaskFor(performanceTest, name)
 
@@ -421,7 +422,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         performanceSourceSet: SourceSet,
         prepareSamplesTask: TaskProvider<Task>
     ) {
-
         task.apply {
             group = "verification"
             addDatabaseParameters(propertiesForPerformanceDb())
@@ -433,7 +433,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             maxParallelForks = 1
 
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
-                task.baselines = baselines as String
+                task.setBaselines(baselines as String)
             }
 
             jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
@@ -445,16 +445,13 @@ class PerformanceTestPlugin : Plugin<Project> {
             configureSampleGenerators {
                 this@apply.mustRunAfter(this)
             }
-
-            whenNotOnMasterOrReleaseBranch {
-                this@apply.dependsOn("configurePerformanceTestBaseline")
-            }
         }
 
         if (task is ReportGenerationPerformanceTest) {
             task.apply {
                 buildId = System.getenv("BUILD_ID")
                 reportDir = project.buildDir / Config.performanceTestReportsDir
+                resultsJson = project.buildDir / Config.performanceTestResultsJson
             }
         }
     }

@@ -43,10 +43,6 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
     }
 
     @Override
-    public String getId() {
-        return name.replaceAll("\\s+", "-");
-    }
-
     public String getDisplayName() {
         return name;
     }
@@ -54,6 +50,7 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
     @Override
     public List<PerformanceTestExecution> getExecutions() {
         return Lists.transform(newestFirst, new Function<CrossBuildPerformanceResults, PerformanceTestExecution>() {
+            @Override
             public PerformanceTestExecution apply(@Nullable final CrossBuildPerformanceResults results) {
                 return new KnownBuildSpecificationsPerformanceTestExecution(results);
             }
@@ -68,6 +65,7 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
     @Override
     public List<String> getScenarioLabels() {
         return Lists.transform(builds, new Function<BuildDisplayInfo, String>() {
+            @Override
             public String apply(@Nullable BuildDisplayInfo specification) {
                 return specification.getDisplayName();
             }

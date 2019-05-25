@@ -40,22 +40,27 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
         this(newId(id.getComponentIdentifier()), id.getName().getName(), id.getName().getType(), id.getName().getExtension(), id.getName().getClassifier());
     }
 
+    @Override
     public ModuleVersionIdentifier getModuleVersionIdentifier() {
         return moduleVersionIdentifier;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getType() {
         return type;
     }
 
+    @Override
     public String getExtension() {
         return extension;
     }
 
+    @Override
     public String getClassifier() {
         return classifier;
     }

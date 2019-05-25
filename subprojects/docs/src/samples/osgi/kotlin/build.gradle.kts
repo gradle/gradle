@@ -22,7 +22,7 @@ dependencies {
     compile("org.eclipse:osgi:3.5.0.v20090520")
 }
 
-tasks.withType<Jar> {
+tasks.withType<Jar>().configureEach {
     (manifest as? OsgiManifest)?.apply {
         version = "1.0.0"
         name = "Example Gradle Activator"

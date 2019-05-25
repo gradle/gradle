@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.fixtures.binaryinfo;
 
+import com.google.common.base.MoreObjects;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 
 import java.util.List;
@@ -49,6 +50,10 @@ public interface BinaryInfo {
 
         public boolean isExported() {
             return exported;
+        }
+
+        public String toString() {
+            return MoreObjects.toStringHelper(this).add("name", name).add("type", type).add("exported", exported).toString();
         }
     }
 }

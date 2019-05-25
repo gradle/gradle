@@ -22,7 +22,7 @@ This plugin is deprecated and will be removed in the next major Gradle release. 
 The OSGi plugin makes heavy use of the http://bnd.bndtools.org/[BND tool]. A separate https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle/README.md[plugin implementation] is maintained by the BND authors that has more advanced features.
 ====
 
-The OSGi plugin provides a factory method to create an link:{javadocPath}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest] object. `OsgiManifest` extends link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest]. To learn more about generic manifest handling, see <<java_plugin.adoc#sub:manifest,more about Java manifests>>. If the Java plugins is applied, the OSGi plugin replaces the manifest object of the default jar with an `OsgiManifest` object. The replaced manifest is merged into the new one.
+The OSGi plugin provides a factory method to create an link:{javadocPath}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest] object. `OsgiManifest` extends link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest]. To learn more about generic manifest handling, see <<building_java_projects.adoc#sec:jar_manifest,more about Java manifests>>. If the Java plugins is applied, the OSGi plugin replaces the manifest object of the default jar with an `OsgiManifest` object. The replaced manifest is merged into the new one.
 
 [[sec:osgi_usage]]
 == Usage

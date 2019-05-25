@@ -73,6 +73,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         } else {
             sb.append("<T>; where T is one of [");
             Joiner.on(", ").appendTo(sb, CollectionUtils.sort(Iterables.transform(creatableTypes, new Function<Class<?>, String>() {
+                @Override
                 public String apply(Class<?> input) {
                     return input.getName();
                 }

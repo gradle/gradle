@@ -47,5 +47,10 @@ public interface FileCollectionFingerprint {
         public ImmutableMultimap<String, HashCode> getRootHashes() {
             return ImmutableMultimap.of();
         }
+
+        @Override
+        public String toString() {
+            return "EMPTY";
+        }
     };
 }

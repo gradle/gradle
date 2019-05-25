@@ -16,7 +16,7 @@
 
 package org.gradle.caching.internal.controller;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class RootBuildCacheControllerRef {
 
@@ -59,8 +59,7 @@ public class RootBuildCacheControllerRef {
         }
 
         @Override
-        @Nullable
-        public <T> T load(BuildCacheLoadCommand<T> command) {
+        public <T> Optional<T> load(BuildCacheLoadCommand<T> command) {
             return delegate.load(command);
         }
 

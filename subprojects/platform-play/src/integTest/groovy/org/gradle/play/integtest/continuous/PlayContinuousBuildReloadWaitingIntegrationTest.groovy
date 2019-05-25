@@ -16,7 +16,6 @@
 
 package org.gradle.play.integtest.continuous
 
-import spock.lang.Unroll
 /**
  * Test that app requests block while a build is in progress when using `--continuous`.
  */
@@ -104,13 +103,13 @@ class PlayContinuousBuildReloadWaitingIntegrationTest extends AbstractPlayReload
         checkRoute 'hello'
     }
 
-    @Unroll
     def "wait for changes to be built when a request comes in during initial app startup and there are pending changes"() {
         given:
         // prebuild so the build doesn't timeout waiting for rebuild signal
         executer.withTasks("playBinary").run()
 
         when:
+        executer.noDeprecationChecks()
         def rebuild = blockBuildWaitingForChanges()
 
         // Start up the Play app, block waiting for changes before completion

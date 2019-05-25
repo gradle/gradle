@@ -27,16 +27,21 @@ class DefaultModuleRegistryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     TestFile runtimeDep
+    TestFile externalRuntimeDep
     TestFile resourcesDir
     TestFile jarFile
     TestFile distDir
+    TestFile externalDependency
 
     def setup() {
         distDir = tmpDir.createDir("dist")
+        def dependencyCache = tmpDir.file("gradle-home/caches/modules-2/files-2.1").createDir()
 
         distDir.createDir("lib")
         distDir.createDir("lib/plugins")
         distDir.createDir("lib/plugins/sonar")
+        externalRuntimeDep = dependencyCache.file("com.something/3.4.5/b4b02fa623c5a618e68478d9a4a67e1e87c023c6/dep-1.2.jar")
+        distDir.zipTo(externalRuntimeDep)
         runtimeDep = distDir.createZip("lib/dep-1.2.jar")
 
         resourcesDir = tmpDir.createDir("some-module/build/resources/main")
@@ -46,6 +51,9 @@ class DefaultModuleRegistryTest extends Specification {
 
         jarFile = distDir.file("lib/gradle-some-module-5.1.jar")
         resourcesDir.zipTo(jarFile)
+
+        externalDependency = dependencyCache.file("com.something/3.0.0/b4b02fa623c5a618e68478d9a4a67e1e87c023c6/gradle-some-module-3.0.0.jar")
+        tmpDir.createDir("externalDependencyContents").zipTo(externalDependency)
     }
 
     def "locates module using jar in distribution image"() {
@@ -69,10 +77,25 @@ class DefaultModuleRegistryTest extends Specification {
         module.runtimeClasspath.asFiles == [runtimeDep]
     }
 
-    def "locates module using manifest from runtime ClassLoader when run from IDEA"() {
-        given:
-        def classesDir = tmpDir.createDir("out/production/someModule")
+    def "ignores external module jar from runtime ClassLoader"() {
+        def classesDir = tmpDir.createDir("some-module/build/classes/java/main")
         def staticResourcesDir = tmpDir.createDir("some-module/src/main/resources")
+        def cl = classLoaderFor([externalDependency, classesDir, resourcesDir, staticResourcesDir, externalRuntimeDep])
+        def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)
+
+        expect:
+        def module = registry.getModule("gradle-some-module")
+        module.implementationClasspath.asFiles == [classesDir, resourcesDir, staticResourcesDir]
+        module.runtimeClasspath.asFiles == [externalRuntimeDep]
+
+        def dep = registry.getExternalModule("dep")
+        dep.implementationClasspath.asFiles == [externalRuntimeDep]
+    }
+
+    def "locates module using manifest from runtime ClassLoader when run from IDEA with a project imported by IDEA"() {
+        given:
+        def classesDir = tmpDir.createDir("some-module/out/production/classes")
+        def staticResourcesDir = tmpDir.createDir("some-module/out/production/resources")
         def ignoredDir = tmpDir.createDir("ignore-me-out/production/someModule")
         def cl = classLoaderFor([ignoredDir, classesDir, resourcesDir, staticResourcesDir, runtimeDep])
         def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)
@@ -81,6 +104,25 @@ class DefaultModuleRegistryTest extends Specification {
         def module = registry.getModule("gradle-some-module")
         module.implementationClasspath.asFiles == [classesDir, resourcesDir, staticResourcesDir]
         module.runtimeClasspath.asFiles == [runtimeDep]
+    }
+
+    def "does not add wrong resources dirs to classpath of 'gradle-resources' module"() {
+        given:
+        def registry = new DefaultModuleRegistry(classLoaderFor(), ClassPath.EMPTY, null)
+        def module = registry.getModule("gradle-resources") // module name == resources (resource folder name)
+        def cpFiles = module.implementationClasspath.asFiles.sort(false)
+
+        expect:
+        if (cpFiles.size() == 1) {
+            // jar - command line test execution
+            assert cpFiles[0].path.contains("subprojects/resources/build/libs/gradle-resources".replace('/', File.separator)) // jar
+        } else {
+            assert cpFiles.size() == 3
+            // folders - IDE test execution
+            assert cpFiles[0].path.endsWith("subprojects/resources/build/generated-resources/main".replace('/', File.separator))
+            assert cpFiles[1].path.endsWith("/classes")
+            assert cpFiles[2].path.endsWith("/resources")
+        }
     }
 
     def "locates module using manifest from runtime ClassLoader when run from Eclipse"() {
@@ -121,9 +163,9 @@ class DefaultModuleRegistryTest extends Specification {
 
     def "locates module using manifest from additional classpath when run from IDEA"() {
         given:
-        def classesDir = tmpDir.createDir("out/production/someModule")
-        def staticResourcesDir = tmpDir.createDir("some-module/src/main/resources")
-        def ignoredDir = tmpDir.createDir("ignore-me-out/production/someModule")
+        def classesDir = tmpDir.createDir("some-module/out/production/classes")
+        def staticResourcesDir = tmpDir.createDir("some-module/out/production/resources")
+        def ignoredDir = tmpDir.createDir("some-module/ignore-me-out/production/classes")
         def registry = new DefaultModuleRegistry(DefaultClassPath.of([ignoredDir, classesDir, resourcesDir, staticResourcesDir, runtimeDep]), null)
 
         expect:

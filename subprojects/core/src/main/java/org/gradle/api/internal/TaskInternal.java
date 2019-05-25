@@ -19,7 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
@@ -40,7 +40,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * once they start executing.
      */
     @Internal
-    List<ContextAwareTaskAction> getTaskActions();
+    List<InputChangesAwareTaskAction> getTaskActions();
 
     @Internal
     boolean hasTaskActions();

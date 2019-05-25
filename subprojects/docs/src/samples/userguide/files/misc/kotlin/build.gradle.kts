@@ -1,5 +1,5 @@
 // tag::mkdir-example[]
-task("ensureDirectory") {
+tasks.register("ensureDirectory") {
     doLast {
         mkdir("images")
     }
@@ -7,7 +7,7 @@ task("ensureDirectory") {
 // end::mkdir-example[]
 
 // tag::move-example[]
-task("moveReports") {
+tasks.register("moveReports") {
     doLast {
         ant.withGroovyBuilder {
             "move"("file" to "${buildDir}/reports", "todir" to "${buildDir}/toArchive")
@@ -17,13 +17,13 @@ task("moveReports") {
 // end::move-example[]
 
 // tag::delete-example[]
-task<Delete>("myClean") {
+tasks.register<Delete>("myClean") {
     delete(buildDir)
 }
 // end::delete-example[]
 
 // tag::delete-with-filter-example[]
-task<Delete>("cleanTempFiles") {
+tasks.register<Delete>("cleanTempFiles") {
     delete(fileTree("src").matching {
         include("**/*.tmp")
     })

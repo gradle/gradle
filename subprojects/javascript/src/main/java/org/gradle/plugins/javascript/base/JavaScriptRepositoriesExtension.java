@@ -29,7 +29,7 @@ public class JavaScriptRepositoriesExtension {
     public static final String NAME = "javaScript";
 
     public static final String GRADLE_PUBLIC_JAVASCRIPT_REPO_URL = "https://repo.gradle.org/gradle/javascript-public";
-    public static final String GOOGLE_APIS_REPO_URL = "http://ajax.googleapis.com/ajax/libs";
+    public static final String GOOGLE_APIS_REPO_URL = "https://ajax.googleapis.com/ajax/libs";
 
     private final RepositoryHandler repositories;
 
@@ -43,6 +43,7 @@ public class JavaScriptRepositoriesExtension {
 
     public MavenArtifactRepository gradle(final Action<? super MavenArtifactRepository> action) {
         return repositories.maven(new Action<MavenArtifactRepository>() {
+            @Override
             public void execute(MavenArtifactRepository repository) {
                 repository.setName("gradleJs");
                 repository.setUrl(GRADLE_PUBLIC_JAVASCRIPT_REPO_URL);
@@ -63,10 +64,12 @@ public class JavaScriptRepositoriesExtension {
 
     public IvyArtifactRepository googleApis(final Action<? super IvyArtifactRepository> action) {
         return repositories.ivy(new Action<IvyArtifactRepository>() {
+            @Override
             public void execute(IvyArtifactRepository repo) {
                 repo.setName("googleApisJs");
                 repo.setUrl(GOOGLE_APIS_REPO_URL);
                 repo.patternLayout(new Action<IvyPatternRepositoryLayout>() {
+                    @Override
                     public void execute(IvyPatternRepositoryLayout layout) {
                         layout.artifact("[organization]/[revision]/[module].[ext]");
                         layout.ivy("[organization]/[revision]/[module].xml");

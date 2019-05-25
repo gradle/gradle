@@ -28,6 +28,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +46,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
     private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<String, DefaultFileContentCache<?>>();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Object scope) {
+    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, @Nullable Object scope) {
         this.listenerManager = listenerManager;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
@@ -105,6 +106,11 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         public void beforeOutputChange() {
             // A very dumb strategy for invalidating cache
             cache.clear();
+        }
+
+        @Override
+        public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+            beforeOutputChange();
         }
 
         @Override

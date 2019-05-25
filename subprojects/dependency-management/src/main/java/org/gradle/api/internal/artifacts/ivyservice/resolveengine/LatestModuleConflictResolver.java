@@ -27,7 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-class LatestModuleConflictResolver implements ModuleConflictResolver {
+class LatestModuleConflictResolver<T extends ComponentResolutionState> implements ModuleConflictResolver<T> {
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
 
@@ -37,7 +37,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
     }
 
     @Override
-    public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
+    public void select(ConflictResolverDetails<T> details) {
         // Find the candidates with the highest base version
         Version baseVersion = null;
         Map<Version, T> matches = new LinkedHashMap<Version, T>();

@@ -34,7 +34,7 @@ public class TransformationNodeExecutor implements NodeExecutor {
     public boolean execute(Node node, ProjectExecutionServiceRegistry services) {
         if (node instanceof TransformationNode) {
             TransformationNode transformationNode = (TransformationNode) node;
-            transformationNode.execute(buildOperationExecutor, transformListener);
+            transformationNode.execute(buildOperationExecutor, transformListener, services);
             return true;
         } else {
             return false;

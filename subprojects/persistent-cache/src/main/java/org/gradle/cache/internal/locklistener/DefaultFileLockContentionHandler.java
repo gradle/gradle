@@ -98,6 +98,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private Runnable listener() {
         return new Runnable() {
+            @Override
             public void run() {
                 try {
                     LOGGER.debug("Starting file lock listener thread.");
@@ -122,17 +123,20 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                     }
 
                     lock.lock();
-                    ContendedAction contendedAction = contendedActions.get(payload.getLockId());
-                    if (contendedAction == null) {
-                        acceptConfirmationAsLockRequester(payload, packet.getPort());
-                    } else {
-                        contendedAction.addRequester(packet.getSocketAddress());
-                        if (!contendedAction.running) {
-                            startLockReleaseAsLockHolder(contendedAction);
+                    try {
+                        ContendedAction contendedAction = contendedActions.get(payload.getLockId());
+                        if (contendedAction == null) {
+                            acceptConfirmationAsLockRequester(payload, packet.getPort());
+                        } else {
+                            contendedAction.addRequester(packet.getSocketAddress());
+                            if (!contendedAction.running) {
+                                startLockReleaseAsLockHolder(contendedAction);
+                            }
+                            communicator.confirmUnlockRequest(packet.getSocketAddress(), payload.getLockId());
                         }
-                        communicator.confirmUnlockRequest(packet.getSocketAddress(), payload.getLockId());
+                    } finally {
+                        lock.unlock();
                     }
-                    lock.unlock();
                 }
             }
         };
@@ -158,12 +162,13 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public void start(long lockId, Action<FileLockReleasedSignal> whenContended) {
         lock.lock();
-        lockReleasedSignals.remove(lockId);
-        unlocksRequestedFrom.remove(lockId);
-        unlocksConfirmedFrom.remove(lockId);
         try {
+            lockReleasedSignals.remove(lockId);
+            unlocksRequestedFrom.remove(lockId);
+            unlocksConfirmedFrom.remove(lockId);
             assertNotStopped();
             if (communicator == null) {
                 throw new IllegalStateException("Must initialize the handler by reserving the port first.");
@@ -184,6 +189,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
         if (Integer.valueOf(port).equals(unlocksConfirmedFrom.get(lockId))) {
             //the unlock was confirmed we are waiting
@@ -197,9 +203,12 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         boolean pingSentSuccessfully = getCommunicator().pingOwner(port, lockId, displayName);
         if (pingSentSuccessfully) {
             lock.lock();
-            unlocksRequestedFrom.put(lockId, port);
-            lockReleasedSignals.put(lockId, signal);
-            lock.unlock();
+            try {
+                unlocksRequestedFrom.put(lockId, port);
+                lockReleasedSignals.put(lockId, signal);
+            } finally {
+                lock.unlock();
+            }
         }
         return pingSentSuccessfully;
     }
@@ -211,6 +220,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public void stop(long lockId) {
         lock.lock();
         try {
@@ -220,6 +230,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public void stop() {
         lock.lock();
         try {
@@ -239,6 +250,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public int reservePort() {
         return getCommunicator().getPort();
     }

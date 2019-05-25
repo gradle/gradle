@@ -37,6 +37,7 @@ public class BuildTreeScopeServices extends DefaultServiceRegistry {
     public BuildTreeScopeServices(final ServiceRegistry parent) {
         super(parent);
         register(new Action<ServiceRegistration>() {
+            @Override
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                     pluginServiceRegistry.registerBuildTreeServices(registration);

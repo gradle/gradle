@@ -17,7 +17,7 @@
             <tr>
                 <td>outputFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iml</literal>
-                    (sometimes the <replaceable>project.name</replaceable> is prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqeness).
+                    (sometimes the <replaceable>project.name</replaceable> is prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqueness).
                     Bear in mind that usually it is easier to use moduleName property instead of outputFile property.
                 </td>
                 <td/>

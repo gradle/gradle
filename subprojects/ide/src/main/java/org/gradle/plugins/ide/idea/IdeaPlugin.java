@@ -34,13 +34,14 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.xml.XmlTransformer;
@@ -128,8 +129,7 @@ public class IdeaPlugin extends IdePlugin {
         getLifecycleTask().configure(withDescription("Generates IDEA project files (IML, IPR, IWS)"));
         getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
 
-        ideaModel = project.getObjects().newInstance(IdeaModel.class);
-        project.getExtensions().add(IdeaModel.class, "idea", ideaModel);
+        ideaModel = project.getExtensions().create("idea", IdeaModel.class);
 
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
@@ -510,10 +510,10 @@ public class IdeaPlugin extends IdePlugin {
             getLifecycleTask().configure(new Action<Task>() {
                 @Override
                 public void execute(Task task) {
-                    task.dependsOn(new Callable<List<TaskDependency>>() {
+                    task.dependsOn(new TaskDependencyContainer() {
                         @Override
-                        public List<TaskDependency> call() {
-                            return allImlArtifactsInComposite(project, ideaModel.getProject());
+                        public void visitDependencies(TaskDependencyResolveContext context) {
+                            visitAllImlArtifactsInComposite(project, ideaModel.getProject(), context);
                         }
                     });
                 }
@@ -521,8 +521,7 @@ public class IdeaPlugin extends IdePlugin {
         }
     }
 
-    private List<TaskDependency> allImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject) {
-        List<TaskDependency> dependencies = Lists.newArrayList();
+    private void visitAllImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject, TaskDependencyResolveContext context) {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
         for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
@@ -539,8 +538,7 @@ public class IdeaPlugin extends IdePlugin {
                     continue;
                 }
             }
-            dependencies.add(reference.getBuildDependencies());
+            reference.visitDependencies(context);
         }
-        return dependencies;
     }
 }

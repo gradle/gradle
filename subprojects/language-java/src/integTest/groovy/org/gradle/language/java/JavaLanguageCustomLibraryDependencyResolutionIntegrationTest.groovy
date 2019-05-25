@@ -142,15 +142,15 @@ model {
 model {
     components {
         zdep(CustomLibrary) {
-            javaVersions 6,7
+            javaVersions 7,8
             sources {
                java(JavaSourceSet) {
                }
             }
         }
         main(JvmLibrarySpec) {
-            targetPlatform 'java6'
             targetPlatform 'java7'
+            targetPlatform 'java8'
             sources {
                 java {
                     dependencies {
@@ -162,16 +162,16 @@ model {
     }
 
     tasks {
-        mainJava6Jar {
-            doLast {
-                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(zdep6ApiJar)
-                assert compileMainJava6JarMainJava.classpath.files == [file("${buildDir}/jars/zdep/6Jar/api/zdep.jar")] as Set
-            }
-        }
         mainJava7Jar {
             doLast {
                 assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(zdep7ApiJar)
                 assert compileMainJava7JarMainJava.classpath.files == [file("${buildDir}/jars/zdep/7Jar/api/zdep.jar")] as Set
+            }
+        }
+        mainJava8Jar {
+            doLast {
+                assert compileMainJava8JarMainJava.taskDependencies.getDependencies(compileMainJava8JarMainJava).contains(zdep8ApiJar)
+                assert compileMainJava8JarMainJava.classpath.files == [file("${buildDir}/jars/zdep/8Jar/api/zdep.jar")] as Set
             }
         }
     }
@@ -181,16 +181,16 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
-        succeeds ':mainJava6Jar'
-
-        then:
-        executedAndNotSkipped ':zdep6ApiJar', ':mainJava6Jar'
-
-        when:
         succeeds ':mainJava7Jar'
 
         then:
         executedAndNotSkipped ':zdep7ApiJar', ':mainJava7Jar'
+
+        when:
+        succeeds ':mainJava8Jar'
+
+        then:
+        executedAndNotSkipped ':zdep8ApiJar', ':mainJava8Jar'
     }
 
     def "should fail resolving dependencies only for the missing dependency variant"() {
@@ -610,14 +610,14 @@ model {
         succeeds ':thirdJar'
     }
 
-    def "All components should depend on the corresponding variants"() {
+    def "all components should depend on the corresponding variants"() {
         given:
         theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
-            targetPlatform 'java6'
             targetPlatform 'java7'
+            targetPlatform 'java8'
             sources {
                 java {
                     dependencies {
@@ -627,7 +627,7 @@ model {
             }
         }
         second(CustomLibrary) {
-            javaVersions 6,7
+            javaVersions 7,8
             sources {
                 java(JavaSourceSet) {
                     dependencies {
@@ -637,34 +637,34 @@ model {
             }
         }
         third(JvmLibrarySpec) {
-            targetPlatform 'java6'
             targetPlatform 'java7'
+            targetPlatform 'java8'
         }
     }
 
     tasks {
-        mainJava6Jar {
-            doLast {
-                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(second6ApiJar)
-                assert compileMainJava6JarMainJava.classpath.files == [file("${buildDir}/jars/second/6Jar/api/second.jar")] as Set
-            }
-        }
         mainJava7Jar {
             doLast {
                 assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7ApiJar)
                 assert compileMainJava7JarMainJava.classpath.files == [file("${buildDir}/jars/second/7Jar/api/second.jar")] as Set
             }
         }
-        second6Jar {
+        mainJava8Jar {
             doLast {
-                assert compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava).contains(thirdJava6ApiJar)
-                assert compileSecond6JarSecondJava.classpath.files == [file("${buildDir}/jars/third/java6Jar/api/third.jar")] as Set
+                assert compileMainJava8JarMainJava.taskDependencies.getDependencies(compileMainJava8JarMainJava).contains(second8ApiJar)
+                assert compileMainJava8JarMainJava.classpath.files == [file("${buildDir}/jars/second/8Jar/api/second.jar")] as Set
             }
         }
         second7Jar {
             doLast {
                 assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdJava7ApiJar)
                 assert compileSecond7JarSecondJava.classpath.files == [file("${buildDir}/jars/third/java7Jar/api/third.jar")] as Set
+            }
+        }
+        second8Jar {
+            doLast {
+                assert compileSecond8JarSecondJava.taskDependencies.getDependencies(compileSecond8JarSecondJava).contains(thirdJava8ApiJar)
+                assert compileSecond8JarSecondJava.classpath.files == [file("${buildDir}/jars/third/java8Jar/api/third.jar")] as Set
             }
         }
     }
@@ -680,15 +680,15 @@ model {
         then:
         executedAndNotSkipped ':tasks'
 
+        and: "Can build the Java 8 variant of all components"
+        succeeds ':mainJava8Jar'
+        succeeds ':second8Jar'
+        succeeds ':thirdJava8Jar'
+
         and: "Can build the Java 7 variant of all components"
         succeeds ':mainJava7Jar'
         succeeds ':second7Jar'
         succeeds ':thirdJava7Jar'
-
-        and: "Can build the Java 6 variant of all components"
-        succeeds ':mainJava6Jar'
-        succeeds ':second6Jar'
-        succeeds ':thirdJava6Jar'
     }
 
     def "can define a cyclic dependency"() {

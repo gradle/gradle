@@ -66,7 +66,7 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     }
 
     protected MutableMavenModuleResolveMetadata parseMetaData() {
-        parser.parseMetaData(parseContext, pomFile, true)
+        parser.parseMetaData(parseContext, pomFile, true).result
     }
 
     protected void hasDefaultDependencyArtifact(MavenDependencyDescriptor descriptor) {

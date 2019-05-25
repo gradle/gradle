@@ -15,16 +15,16 @@ dependencies {
 // tag::link-task-properties[]
 val archivesDirPath by extra { "$buildDir/archives" }
 
-task<Zip>("packageClasses") {
-    appendix = "classes"
-    destinationDir = file(archivesDirPath)
+tasks.register<Zip>("packageClasses") {
+    archiveAppendix.set("classes")
+    destinationDirectory.set(file(archivesDirPath))
 
     from(tasks.compileJava)
 }
 // end::link-task-properties[]
 
 // tag::nested-specs[]
-task<Copy>("nestedSpecs") {
+tasks.register<Copy>("nestedSpecs") {
     into("$buildDir/explodedWar")
     exclude("**/*staging*")
     from("src/dist") {

@@ -39,15 +39,18 @@ public class LogEvent extends RenderableOutputEvent implements LogEventBuildOper
         this.throwable = throwable;
     }
 
+    @Override
     public String getMessage() {
         return message;
     }
 
+    @Override
     @Nullable
     public Throwable getThrowable() {
         return throwable;
     }
 
+    @Override
     public void render(StyledTextOutput output) {
         output.text(message);
         output.println();

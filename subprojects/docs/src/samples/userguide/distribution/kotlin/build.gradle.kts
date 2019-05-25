@@ -24,7 +24,7 @@ distributions {
 
 // tag::publish-distribution[]
 
-tasks.getByName<Upload>("uploadArchives") {
+tasks.named<Upload>("uploadArchives") {
     repositories.withGroovyBuilder {
         "mavenDeployer" {
             "repository"("url" to "file://some/repo")

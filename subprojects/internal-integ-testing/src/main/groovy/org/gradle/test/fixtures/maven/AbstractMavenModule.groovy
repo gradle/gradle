@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -33,7 +34,6 @@ import org.gradle.test.fixtures.gradle.VariantMetadataSpec
 import java.text.SimpleDateFormat
 
 abstract class AbstractMavenModule extends AbstractModule implements MavenModule {
-    protected static final String MAVEN_METADATA_FILE = "maven-metadata.xml"
     private final TestFile rootDir
     final TestFile moduleDir
     final String groupId
@@ -44,7 +44,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     String packaging
     int publishCount = 1
     private boolean hasPom = true
-    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
+    private boolean gradleMetadataRedirect = false
+    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API_JARS]), new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME_JARS])]
     private final List dependencies = []
     private final List artifacts = []
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
@@ -168,11 +169,26 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return this
     }
 
+    @Override
+    MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value= VariantMetadataSpec, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
+        def v = createVariant(variant, attributes)
+        variantConfiguration.delegate = v
+        variantConfiguration.resolveStrategy = Closure.DELEGATE_FIRST
+        variantConfiguration()
+        return this
+    }
+
+    @Override
+    MavenModule adhocVariants() {
+        variants.clear()
+        this
+    }
+
     private VariantMetadataSpec createVariant(String variant, Map<String, String> attributes) {
         def variantMetadata = new VariantMetadataSpec(variant, attributes)
         variants.removeAll { it.name == variant }
         variants.add(variantMetadata)
-        return variantMetadata;
+        return variantMetadata
     }
 
     /**
@@ -319,12 +335,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     DefaultRootMavenMetaData getRootMetaData() {
-        new DefaultRootMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
+        new DefaultRootMavenMetaData("$moduleRootPath/${metadataFileName}", rootMetaDataFile)
     }
 
     @Override
     DefaultSnapshotMavenMetaData getSnapshotMetaData() {
-        new DefaultSnapshotMavenMetaData("$path/${MAVEN_METADATA_FILE}", snapshotMetaDataFile)
+        new DefaultSnapshotMavenMetaData("$path/${metadataFileName}", snapshotMetaDataFile)
     }
 
     @Override
@@ -353,15 +369,19 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     TestFile getMetaDataFile() {
-        moduleDir.file(MAVEN_METADATA_FILE)
+        moduleDir.file(metadataFileName)
     }
 
     TestFile getRootMetaDataFile() {
-        moduleDir.parentFile.file(MAVEN_METADATA_FILE)
+        moduleDir.parentFile.file(metadataFileName)
     }
 
     TestFile getSnapshotMetaDataFile() {
-        moduleDir.file(MAVEN_METADATA_FILE)
+        moduleDir.file(metadataFileName)
+    }
+
+    protected String getMetadataFileName() {
+        "maven-metadata.xml"
     }
 
     TestFile artifactFile(Map<String, ?> options) {
@@ -433,6 +453,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(groupId, artifactId, version,
             variants.collect { v ->
+                def artifacts = v.artifacts
+                if (!artifacts && v.useDefaultArtifacts) {
+                    artifacts = defaultArtifacts
+                }
                 new VariantMetadataSpec(
                     v.name,
                     v.attributes,
@@ -442,8 +466,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.dependencyConstraints + dependencies.findAll { it.optional }.collect { d ->
                         new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.rejects, d.reason, d.attributes)
                     },
-                    v.artifacts?:defaultArtifacts,
-                    v.capabilities
+                    artifacts,
+                    v.capabilities,
+                    v.availableAt
                 )
             },
             attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
@@ -464,11 +489,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 writer << getMetaDataFileContent()
             }
         }
-
+        boolean writeRedirect = gradleMetadataRedirect
         publish(pomFileForPublish) { Writer writer ->
-            def pomPackaging = packaging ?: type;
+            def pomPackaging = packaging ?: type
             new MarkupBuilder(writer).project {
                 mkp.comment(artifactContent)
+                if (writeRedirect) {
+                    mkp.comment(MetaDataParser.GRADLE_METADATA_MARKER)
+                }
                 modelVersion("4.0.0")
                 groupId(groupId)
                 artifactId(artifactId)
@@ -582,7 +610,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     private void updateRootMavenMetaData(TestFile rootMavenMetaData) {
         def allVersions = rootMavenMetaData.exists() ? new XmlParser().parseText(rootMavenMetaData.text).versioning.versions.version*.value().flatten() : []
-        allVersions << version;
+        allVersions << version
         publish(rootMavenMetaData) { Writer writer ->
             def builder = new MarkupBuilder(writer)
             builder.metadata {
@@ -625,7 +653,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         }
 
         variants.each {
-            it.artifacts.each {
+            it.artifacts.findAll { it.name }.each {
                 def variantArtifact = moduleDir.file(it.name)
                 publish (variantArtifact) { Writer writer ->
                     writer << "${it.name} : Variant artifact $it.name"
@@ -655,6 +683,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     @Override
     MavenModule withModuleMetadata() {
         super.withModuleMetadata()
+    }
+
+    @Override
+    MavenModule withGradleMetadataRedirection() {
+        gradleMetadataRedirect = true
+        return this
     }
 
     @Override

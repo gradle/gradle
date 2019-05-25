@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.alignment
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import spock.lang.Issue
 
 class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
@@ -106,7 +107,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module('org:core:1.1')
                 }
                 module("outside:module:1.0") {
-                    edge('org:core:1.0', 'org:core:1.1').byConflictResolution("between versions 1.0 and 1.1")
+                    edge('org:core:1.0', 'org:core:1.1').byConflictResolution("between versions 1.1 and 1.0")
                 }
             }
         }
@@ -123,7 +124,9 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         given:
         buildFile << """
             dependencies {
-                conf 'org:xml:1.0'
+                conf('org:xml:1.0') {
+                    transitive = false
+                }
                 conf 'org:json:1.0'
                 conf 'org:core:1.1'
             }
@@ -144,7 +147,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
-                    module('org:core:1.1')
                 }
                 edge("org:json:1.0", "org:json:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
@@ -185,7 +187,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 module("org:xml:1.0") {
                     edge('org:core:1.0', 'org:core:1.1')
-                        .byConflictResolution("between versions 1.0 and 1.1")
+                        .byConflictResolution("between versions 1.1 and 1.0")
                         .byConstraint("belongs to platform org:platform:1.1")
                 }
                 module("org:json:1.1") {
@@ -290,7 +292,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     /**
      * This test is a variant of the previous one where there's an additional catch: one
-     * of the modules (annotations) is supposely inexistent in 2.7.9 (say, it appeared in 2.9.x)
+     * of the modules (annotations) is supposedly nonexistent in 2.7.9 (say, it appeared in 2.9.x)
      */
     def "can align heterogeneous versions with new modules appearing in later releases"() {
         repository {
@@ -527,7 +529,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 }
                 module('org2:foo:1.0') {
                     edge('org4:a:1.0', 'org4:a:1.1') {
-                        byConflictResolution("between versions 1.0 and 1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
                     }
                 }
                 module('org3:bar:1.0') {
@@ -594,7 +596,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     byConstraint("belongs to platform org:platform:1.1")
                     // byReason("version 1.1 is buggy") // TODO CC: uncomment when we collect rejection from component selection rule
                     edge('org:core:1.0', 'org:core:1.1') {
-                        byConflictResolution("between versions 1.0 and 1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
                     }
                 }
                 module("org:json:1.1") {
@@ -711,7 +713,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
             }
 
-            // Spring core intentionnaly doesn't belong to the Spring platform.
+            // Spring core intentionally doesn't belong to the Spring platform.
             module('core') group('org.springframework') tries('1.0') alignsTo('1.1')
         }
         run ':checkDeps'
@@ -729,7 +731,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module("org.apache.groovy:core:2.5")
                 }
                 edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
-                    byConflictResolution("between versions 1.0 and 1.1")
+                    byConflictResolution("between versions 1.1 and 1.0")
                 }
             }
         }
@@ -793,7 +795,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
             }
 
-            // Spring core intentionnaly doesn't belong to the Spring platform.
+            // Spring core intentionally doesn't belong to the Spring platform.
             module('core') group('org.springframework') tries('1.0') alignsTo('1.1')
         }
         run ':checkDeps'
@@ -811,7 +813,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module("org.apache.groovy:core:2.5")
                 }
                 edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
-                    byConflictResolution("between versions 1.0 and 1.1")
+                    byConflictResolution("between versions 1.1 and 1.0")
                 }
             }
         }
@@ -822,7 +824,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
-    def "virtual platform missing modules are cached accross builds"() {
+    def "virtual platform missing modules are cached across builds"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
         executer.withArgument('--no-daemon')
@@ -1050,4 +1052,41 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     }
 
+    @Issue("gradle/gradle#7916")
+    def "shouldn't fail when a referenced component is a virtual platform"() {
+        repository {
+            'org:foo:1.0'()
+            'org:foo:1.1'()
+        }
+
+        given:
+        buildFile << '''
+            dependencies {
+              constraints {
+                  conf platform("org:platform:1.1")
+              }
+            
+              conf 'org:foo:1.0'
+            }
+        '''
+
+        and:
+        "align the 'org' group only"()
+
+        when:
+        expectAlignment {
+            module('foo') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+        }
+        run ':checkDeps', 'dependencyInsight', '--configuration', 'conf', '--dependency', 'foo'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                }
+            }
+            virtualConfiguration("org:platform:1.1")
+        }
+    }
 }

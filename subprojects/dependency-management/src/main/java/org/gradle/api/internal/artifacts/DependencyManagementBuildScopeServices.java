@@ -18,11 +18,12 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
@@ -36,12 +37,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.PersistentModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.InMemoryModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleComponentResolveMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.PersistentModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactsCache;
@@ -98,6 +99,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -116,6 +118,7 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
@@ -145,16 +148,16 @@ class DependencyManagementBuildScopeServices {
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner) {
+        NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
-            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
-
+            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
             DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
-            DependencyConstraintNotationParser.parser(instantiator, stringInterner),
-            new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-            projectDependencyFactory,
+                DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner),
+                new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
+                capabilityNotationParser, projectDependencyFactory,
             attributesFactory);
     }
 
@@ -166,8 +169,8 @@ class DependencyManagementBuildScopeServices {
         return new BuildCommencedTimeProvider();
     }
 
-    ModuleExclusions createModuleExclusions(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return new ModuleExclusions(moduleIdentifierFactory);
+    ModuleExclusions createModuleExclusions() {
+        return new ModuleExclusions();
     }
 
     MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,

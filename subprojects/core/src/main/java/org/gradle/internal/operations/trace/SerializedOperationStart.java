@@ -54,6 +54,7 @@ class SerializedOperationStart implements SerializedOperation {
         this.detailsClassName = (String) map.get("detailsClassName");
     }
 
+    @Override
     public Map<String, ?> toMap() {
         ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 

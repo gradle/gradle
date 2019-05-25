@@ -36,10 +36,13 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
         super(excludeRuleConverter);
     }
 
+    @Override
     public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
-        ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject(), ((AttributeContainerInternal)projectDependency.getAttributes()).asImmutable());
+        ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject(),
+                ((AttributeContainerInternal)projectDependency.getAttributes()).asImmutable(),
+                projectDependency.getRequestedCapabilities());
 
         List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
@@ -55,6 +58,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 
+    @Override
     public boolean canConvert(ModuleDependency dependency) {
         return dependency instanceof ProjectDependency;
     }

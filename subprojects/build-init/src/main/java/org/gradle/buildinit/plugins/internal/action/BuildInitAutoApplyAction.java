@@ -21,6 +21,7 @@ import org.gradle.configuration.project.ProjectConfigureAction;
 
 public class BuildInitAutoApplyAction implements ProjectConfigureAction {
 
+    @Override
     public void execute(final ProjectInternal project) {
         project.getPluginManager().apply("org.gradle.build-init");
     }

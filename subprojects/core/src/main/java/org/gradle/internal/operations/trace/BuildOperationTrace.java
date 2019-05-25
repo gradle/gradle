@@ -252,7 +252,8 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     public static BuildOperationTree read(String basePath) {
-        List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath));
+        File logFile = logFile(basePath);
+        List<BuildOperationRecord> roots = readLogToTreeRoots(logFile);
         return new BuildOperationTree(roots);
     }
 
@@ -480,7 +481,7 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
-    static Object toSerializableModel(Object object) {
+    public static Object toSerializableModel(Object object) {
         if (object instanceof CustomOperationTraceSerialization) {
             return ((CustomOperationTraceSerialization) object).getCustomOperationTraceSerializableModel();
         } else {

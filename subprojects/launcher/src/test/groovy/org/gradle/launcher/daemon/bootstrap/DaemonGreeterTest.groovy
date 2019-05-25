@@ -27,6 +27,7 @@ import spock.lang.Specification
 class DaemonGreeterTest extends Specification {
 
     def registry = Mock(DocumentationRegistry)
+    def args = ["foo", "bar"]
 
     def "parses the process output"() {
         given:
@@ -42,7 +43,7 @@ another line of output...
         def output = new String(outputStream.toByteArray())
 
         when:
-        def daemonStartupInfo = new DaemonGreeter(registry).parseDaemonOutput(output)
+        def daemonStartupInfo = new DaemonGreeter(registry).parseDaemonOutput(output, args)
 
         then:
         daemonStartupInfo.address == address
@@ -60,17 +61,18 @@ another line of output..."""
         ExecResult result = Mock()
 
         when:
-        new DaemonGreeter(registry).parseDaemonOutput(output);
+        new DaemonGreeter(registry).parseDaemonOutput(output, args);
 
         then:
         def ex = thrown(GradleException)
         ex.message.contains(DaemonMessages.UNABLE_TO_START_DAEMON)
+        ex.message.concat("Process command line: [foo, bar]")
         ex.message.contains("hey joe!")
     }
 
     def "shouts if daemon broke completely..."() {
         when:
-        new DaemonGreeter(registry).parseDaemonOutput("")
+        new DaemonGreeter(registry).parseDaemonOutput("", args)
 
         then:
         def ex = thrown(GradleException)
