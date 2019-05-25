@@ -106,13 +106,15 @@ public class EclipseDependenciesCreator {
             if (componentIdentifier.equals(currentProjectId)) {
                 return;
             }
+            // we're filtering here instead of in org.gradle.plugins.ide.internal.resolver.IdeDependencySet.IdeDependencyResult.getResolvedArtifacts
+            // since specifying attributes makes lots of IDEA tests fail.
             Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
             if (!RUNTIME_JARS_USAGE.equals(usage)) {
                 return;
             }
             ComponentArtifactMetadata artifactId = (ComponentArtifactMetadata) artifact.getId();
-            File binary = artifact.getFile();
-            projects.add(projectDependencyBuilder.build(componentIdentifier, binary, artifactId.getBuildDependencies(), pathToSourceSets.get(binary.getAbsolutePath())));
+            // TODO: Add handling for Test-only dependencies once https://github.com/gradle/gradle/pull/9484 is merged
+            projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), artifactId.getBuildDependencies()));
         }
 
         @Override
@@ -202,7 +204,6 @@ public class EclipseDependenciesCreator {
 
             Collection<String> sourceSets = pathToSourceSets.get(binary.getAbsolutePath());
             if (sourceSets != null) {
-                // TODO: see if can do the variant filtering another way without breaking all the IDEA tests.
                 out.getEntryAttributes().put(EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME, Joiner.on(',').join(sourceSets));
             }
             return out;

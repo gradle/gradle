@@ -74,6 +74,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -117,8 +118,10 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     @Override
     public Object buildAll(String modelName, EclipseRuntime eclipseRuntime, Project project) {
         this.eclipseRuntime = eclipseRuntime;
-        projectOpenStatus = eclipseRuntime.getWorkspace().getProjects().stream()
-            .collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseWorkspaceProject::isOpen));
+        List<EclipseWorkspaceProject> projects = eclipseRuntime.getWorkspace().getProjects();
+        HashSet<EclipseWorkspaceProject> projectsInBuild = new HashSet<>(projects);
+        projectsInBuild.removeAll(gatherExternalProjects(project.getRootProject(), projects));
+        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseWorkspaceProject::isOpen, (a, b) -> a | b));
 
         return buildAll(modelName, project);
     }
@@ -254,7 +257,9 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
                 boolean isProjectOpen = projectOpenStatus.getOrDefault(path, true);
                 if (!isProjectOpen) {
-                    classpathElements.getExternalDependencies().add(new DefaultEclipseExternalDependency(projectDependency.getPublication(), null, null, null, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency)));
+                    final File source = projectDependency.getPublicationSourcePath() == null ? null : projectDependency.getPublicationSourcePath().getFile();
+                    final File javadoc = projectDependency.getPublicationJavadocPath() == null ? null : projectDependency.getPublicationJavadocPath().getFile();
+                    classpathElements.getExternalDependencies().add(new DefaultEclipseExternalDependency(projectDependency.getPublication().getFile(), javadoc, source, null, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency)));
                     classpathElements.getBuildDependencies().add(projectDependency.getBuildDependencies());
                 } else {
                     projectDependencyMap.put(path, new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency)));
@@ -391,21 +396,30 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             return Collections.emptyList();
         }
 
+        List<String> reservedProjectNames = new ArrayList<>();
+        List<EclipseWorkspaceProject> externalProjects = gatherExternalProjects(rootProject, projects);
+        for (EclipseWorkspaceProject externalProject : externalProjects) {
+            reservedProjectNames.add(externalProject.getName());
+        }
+
+        return reservedProjectNames;
+    }
+
+    private List<EclipseWorkspaceProject> gatherExternalProjects(Project rootProject, List<EclipseWorkspaceProject> projects) {
         // The eclipse workspace contains projects from root and included builds. Check projects from all builds
         // so that models built for included builds do not consider projects from parent builds as external.
         Set<File> gradleProjectLocations = collectAllProjects(new ArrayList<>(), getRootBuild(rootProject.getGradle())).stream()
             .map(p -> p.getProjectDir().getAbsoluteFile()).collect(Collectors.toSet());
-        List<String> reservedProjectNames = new ArrayList<>();
+        List<EclipseWorkspaceProject> externalProjects = new ArrayList<>();
         for (EclipseWorkspaceProject project : projects) {
             if (project == null || project.getLocation() == null || project.getName() == null || project.getLocation() == null) {
                 continue;
             }
             if (!gradleProjectLocations.contains(project.getLocation().getAbsoluteFile())) {
-                reservedProjectNames.add(project.getName());
+                externalProjects.add(project);
             }
         }
-
-        return reservedProjectNames;
+        return externalProjects;
     }
 
 
