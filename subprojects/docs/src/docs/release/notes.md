@@ -66,6 +66,11 @@ This improves performance for projects with a large amount of resource files.
 ### Example promoted
 -->
 
+## Incubating supports for Groovy compilation avoidance
+
+Gradle now supports compilation avoidance for Groovy. This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
+See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compile_avoidance) for more details.
+
 ## Fixed issues
 
 ## Known issues

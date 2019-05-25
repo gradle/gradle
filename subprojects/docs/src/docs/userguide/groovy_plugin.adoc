@@ -219,6 +219,39 @@ The Groovy plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.Groov
 | `groovy` configuration if non-empty; Groovy library found on `classpath` otherwise
 |===
 
+[[sec:groovy_compilation_avoidance]]
+=== Compilation avoidance
+
+_Caveat: the Groovy compilation avoidance is an incubating feature since Gradle 5.6. There're known inaccuracies so please enable it at your own risk._
+
+To enable the incubating support for Groovy compilation avoidance, add an system property `org.gradle.groovy.compilation.avoidance` to your Gradle invocation, for example:
+
+```
+./gradlew assemble -Dorg.gradle.groovy.compilation.avoidance=true
+```
+
+If a dependent project has changed in an https://en.wikipedia.org/wiki/Application_binary_interface[ABI]-compatible way (only its private API has changed),
+then Groovy compilation tasks are supposed to be up-to-date. This means that if project `A` depends on project `B` and a class in `B` is changed in an ABI-compatible way (typically, changing only the body of a method), then Gradle won't recompile `A`.
+
+Some of the types of changes that do not affect the public API and are ignored:
+
+* Changing a method body
+* Changing a comment
+* Adding, removing or changing private methods, fields, or inner classes
+* Adding, removing or changing a resource
+* Changing the name of jars or directories in the classpath
+* Renaming a parameter
+
+However, similar to Java's annotation processing, there're various ways to https://melix.github.io/blog/2011/05/12/customizing_groovy_compilation_process.html[customize Groovy compilation process], in which implementation details matter.
+A well-known example is http://groovy-lang.org/metaprogramming.html#_code_generation_transformations[Groovy AST transformations]. In these cases, these dependencies must be declared separately in
+a classpath called `compilerPluginClasspath`:
+
+.Declaring AST transformations
+====
+include::sample[dir="java/compilationAvoidance/groovy", files="build.gradle[tags=groovy-compilation-avoidance]"]
+include::sample[dir="java/compilationAvoidance/kotlin", files="build.gradle.kts[tags=groovy-compilation-avoidance]"]
+====
+
 
 [[sec:groovy_cross_compilation]]
 == Compiling and testing for Java 6 or Java 7
