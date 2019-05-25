@@ -29,20 +29,19 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.util.DeferredUtil;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class DefaultFileCollectionResolveContext implements ResolvableFileCollectionResolveContext {
     protected final PathToFileResolver fileResolver;
-    private final List<Object> queue = new LinkedList<Object>();
-    private List<Object> addTo = queue;
+    private Queue<Object> queue = new ArrayDeque<Object>();
     private final Converter<? extends FileCollectionInternal> fileCollectionConverter;
     private final Converter<? extends FileTreeInternal> fileTreeConverter;
 
@@ -58,7 +57,9 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
 
     @Override
     public FileCollectionResolveContext add(Object element) {
-        addTo.add(element);
+        if (element != null) {
+            queue.add(element);
+        }
         return this;
     }
 
@@ -102,50 +103,57 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     }
 
     private <T> List<T> doResolve(Converter<? extends T> converter) {
-        List<T> result = new ArrayList<T>();
+        List<T> result = new ArrayList<T>(queue.size());
         while (!queue.isEmpty()) {
-            Object element = queue.remove(0);
-            // TODO - need to sync with BuildDependenciesOnlyFileCollectionResolveContext
-            if (element instanceof DefaultFileCollectionResolveContext) {
-                DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
-                converter.convertInto(nestedContext, result, fileResolver);
-            } else if (element instanceof FileCollectionContainer) {
-                FileCollectionContainer fileCollection = (FileCollectionContainer) element;
-                resolveNested(fileCollection, result, converter);
-            } else if (element instanceof FileCollection || element instanceof MinimalFileCollection) {
-                converter.convertInto(element, result, fileResolver);
-            } else if (element instanceof Task) {
-                Task task = (Task) element;
-                queue.add(0, task.getOutputs().getFiles());
-            } else if (element instanceof TaskOutputs) {
-                TaskOutputs outputs = (TaskOutputs) element;
-                queue.add(0, outputs.getFiles());
-            } else if (DeferredUtil.isDeferred(element)) {
-                Object deferredResult = DeferredUtil.unpack(element);
-                if (deferredResult != null) {
-                    queue.add(0, deferredResult);
-                }
-            } else if (element instanceof Path) {
-                queue.add(0, ((Path) element).toFile());
-            } else if (element instanceof Iterable) {
-                Iterable<?> iterable = (Iterable) element;
-                GUtil.addToCollection(queue.subList(0, 0), iterable);
-            } else if (element instanceof Object[]) {
-                Object[] array = (Object[]) element;
-                GUtil.addToCollection(queue.subList(0, 0), Arrays.asList(array));
-            } else {
-                converter.convertInto(element, result, fileResolver);
-            }
+            Object element = queue.remove();
+            resolveElement(converter, result, element);
         }
         return result;
     }
 
-    protected <T> void resolveNested(FileCollectionContainer fileCollection, List<T> result, Converter<? extends T> converter) {
-        addTo = queue.subList(0, 0);
+    // TODO - need to sync with BuildDependenciesOnlyFileCollectionResolveContext
+    private <T> void resolveElement(Converter<? extends T> converter, List<T> result, Object element) {
+        if (element instanceof DefaultFileCollectionResolveContext) {
+            converter.convertInto(element, result, fileResolver);
+        } else if (element instanceof FileCollectionContainer) {
+            resolveNested(converter, result, (FileCollectionContainer) element);
+        } else if (element instanceof FileCollection || element instanceof MinimalFileCollection) {
+            converter.convertInto(element, result, fileResolver);
+        } else if (element instanceof Task) {
+            resolveElement(converter, result, ((Task) element).getOutputs().getFiles());
+        } else if (element instanceof TaskOutputs) {
+            resolveElement(converter, result, ((TaskOutputs) element).getFiles());
+        } else if (DeferredUtil.isDeferred(element)) {
+            resolveElement(converter, result, DeferredUtil.unpack(element));
+        } else if (element instanceof Path) {
+            resolveElement(converter, result, ((Path) element).toFile());
+        } else {
+            if (element instanceof Object[]) {
+                element = Arrays.asList((Object[]) element);
+            }
+
+            if (element instanceof Iterable) {
+                resolveElements(converter, result, (Iterable<?>) element);
+            } else if (element != null) {
+                converter.convertInto(element, result, fileResolver);
+            }
+        }
+    }
+
+    private <T> void resolveElements(Converter<? extends T> converter, List<T> result, Iterable<?> element) {
+        for (Object elem : element) {
+            resolveElement(converter, result, elem);
+        }
+    }
+
+    private <T> void resolveNested(Converter<? extends T> converter, List<T> result, FileCollectionContainer element) {
+        Queue<Object> copy = queue;
         try {
-            fileCollection.visitContents(this);
+            queue = new ArrayDeque<>();
+            element.visitContents(this);
+            resolveElements(converter, result, queue);
         } finally {
-            addTo = queue;
+            queue = copy;
         }
     }
 
