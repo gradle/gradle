@@ -18,4 +18,5 @@ package org.gradle.workers.internal;
 
 public interface SerializedActionExecutionSpec extends ActionExecutionSpec {
     ActionExecutionSpec deserialize(ClassLoader classLoader);
+    ClassLoaderStructure getClassLoaderStructure();
 }

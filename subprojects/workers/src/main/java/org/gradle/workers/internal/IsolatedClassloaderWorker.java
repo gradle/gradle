@@ -33,7 +33,7 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
     private boolean reuseClassloader;
 
     public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry serviceRegistry) {
-        super(new DefaultWorkerServer(serviceRegistry));
+        super(serviceRegistry);
         this.classLoaderStructure = classLoaderStructure;
         this.workerInfrastructureClassloader = workerInfrastructureClassloader;
     }

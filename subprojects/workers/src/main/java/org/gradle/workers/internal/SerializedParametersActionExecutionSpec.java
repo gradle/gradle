@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal;
 
-public class SerializedParametersActionExecutionSpec extends AbstractSerializedActionExecutionSpec implements IsolatedClassloaderActionExecutionSpec {
+public class SerializedParametersActionExecutionSpec extends AbstractSerializedActionExecutionSpec {
     private final String displayName;
     private final Class<?> implementationClass;
     private final byte[] serializedParameters;

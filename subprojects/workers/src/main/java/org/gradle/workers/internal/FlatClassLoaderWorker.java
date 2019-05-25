@@ -23,7 +23,7 @@ public class FlatClassLoaderWorker extends AbstractClassLoaderWorker {
     private final ClassLoader workerClassLoader;
 
     public FlatClassLoaderWorker(ClassLoader workerClassLoader, ServiceRegistry serviceRegistry) {
-        super(new DefaultWorkerServer(serviceRegistry));
+        super(serviceRegistry);
         this.workerClassLoader = workerClassLoader;
     }
 

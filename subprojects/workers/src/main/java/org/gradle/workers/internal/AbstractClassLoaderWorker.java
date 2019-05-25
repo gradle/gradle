@@ -16,11 +16,13 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.service.ServiceRegistry;
+
 public abstract class AbstractClassLoaderWorker implements Worker {
     private final WorkerProtocol worker;
 
-    public AbstractClassLoaderWorker(WorkerProtocol worker) {
-        this.worker = worker;
+    public AbstractClassLoaderWorker(ServiceRegistry serviceRegistry) {
+        this.worker = new DefaultWorkerServer(serviceRegistry);
     }
 
     public DefaultWorkResult executeInClassLoader(ActionExecutionSpec spec, ClassLoader workerClassLoader) {

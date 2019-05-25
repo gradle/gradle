@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal;
 
-public class TransportableActionExecutionSpec extends AbstractSerializedActionExecutionSpec implements IsolatedClassloaderActionExecutionSpec {
+public class TransportableActionExecutionSpec extends AbstractSerializedActionExecutionSpec {
     private final String displayName;
     private final String implementationClassName;
     private final byte[] serializedParameters;
@@ -40,9 +40,6 @@ public class TransportableActionExecutionSpec extends AbstractSerializedActionEx
         if (spec instanceof SerializedParametersActionExecutionSpec) {
             SerializedParametersActionExecutionSpec serializedSpec = (SerializedParametersActionExecutionSpec) spec;
             return new TransportableActionExecutionSpec(serializedSpec.getDisplayName(), serializedSpec.getImplementationClass().getName(), serializedSpec.getSerializedParameters(), serializedSpec.getClassLoaderStructure());
-        } else if (spec instanceof CompilerActionExecutionSpec) {
-            CompilerActionExecutionSpec compilerSpec = (CompilerActionExecutionSpec) spec;
-            return new TransportableActionExecutionSpec(compilerSpec.getDisplayName(), compilerSpec.getImplementationClass(), compilerSpec.getParams(), compilerSpec.getClassLoaderStructure());
         } else if (spec instanceof TransportableActionExecutionSpec) {
             return (TransportableActionExecutionSpec) spec;
         } else {
