@@ -14,13 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization
 
-import org.gradle.api.Task
-import org.slf4j.Logger
+import java.util.IdentityHashMap
 
 
-class DeserializationContext(owner: Task, logger: Logger) : StateContext(owner, logger) {
+class WriteIdentities {
+
+    private
+    val instanceIds = IdentityHashMap<Any, Int>()
+
+    fun getId(instance: Any) = instanceIds[instance]
+
+    fun putInstance(instance: Any): Int {
+        val id = instanceIds.size
+        instanceIds[instance] = id
+        return id
+    }
+}
+
+
+class ReadIdentities {
 
     private
     val instanceIds = HashMap<Int, Any>()

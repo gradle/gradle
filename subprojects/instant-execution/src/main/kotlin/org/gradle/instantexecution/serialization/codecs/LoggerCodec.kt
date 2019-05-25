@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.Encoder
+import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.WriteContext
 
-
-interface StateSerializer {
-    fun serializerFor(value: Any?): ValueSerializer?
-}
-
-
-typealias ValueSerializer = (Encoder, SerializationContext) -> Unit
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 
-interface StateDeserializer {
-    fun read(decoder: Decoder, context: DeserializationContext): Any?
+internal
+object LoggerCodec : Codec<Logger> {
+
+    override fun WriteContext.encode(value: Logger) {
+        writeString(value.name)
+    }
+
+    override fun ReadContext.decode(): Logger? =
+        LoggerFactory.getLogger(readString())
 }

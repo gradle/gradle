@@ -66,19 +66,6 @@ class InstantExecutionHost internal constructor(
     private
     val startParameter = gradle.startParameter
 
-    private
-    val serialization by lazy {
-        StateSerialization(
-            directoryFileTreeFactory = service(),
-            fileCollectionFactory = service(),
-            fileResolver = service(),
-            instantiator = service(),
-            objectFactory = service(),
-            patternSpecFactory = service(),
-            filePropertyFactory = service()
-        )
-    }
-
     override val isSkipLoadingState: Boolean
         get() = gradle.startParameter.isRefreshDependencies
 
@@ -87,12 +74,6 @@ class InstantExecutionHost internal constructor(
 
     override fun createBuild(rootProjectName: String): InstantExecutionBuild =
         DefaultInstantExecutionBuild(service(), rootProjectName)
-
-    override fun newStateSerializer(): StateSerializer =
-        serialization.newSerializer()
-
-    override fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer =
-        serialization.deserializerFor(beanClassLoader)
 
     override fun <T> getService(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -113,6 +94,7 @@ class InstantExecutionHost internal constructor(
         )
 
     inner class DefaultClassicModeBuild : ClassicModeBuild {
+
         override val scheduledTasks: List<Task>
             get() = gradle.taskGraph.allTasks
 
@@ -274,6 +256,10 @@ class InstantExecutionHost internal constructor(
         get() = classLoaderScopeRegistry.coreScope
 
     private
+    val coreAndPluginsScope: ClassLoaderScope
+        get() = classLoaderScopeRegistry.coreAndPluginsScope
+
+    private
     fun getProject(parentPath: Path?) =
         parentPath?.let { gradle.rootProject.project(it.path) }
 
@@ -284,8 +270,4 @@ class InstantExecutionHost internal constructor(
     private
     val projectDescriptorRegistry
         get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
-
-    private
-    val coreAndPluginsScope: ClassLoaderScope
-        get() = classLoaderScopeRegistry.coreAndPluginsScope
 }

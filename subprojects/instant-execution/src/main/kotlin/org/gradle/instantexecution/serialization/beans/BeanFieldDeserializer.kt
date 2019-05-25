@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.serialization.beans
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
@@ -24,32 +24,32 @@ import org.gradle.api.internal.provider.DefaultPropertyState
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.logFieldSerialization
+import org.gradle.instantexecution.serialization.logFieldWarning
 import org.gradle.internal.reflect.JavaReflectionUtil
-import org.gradle.internal.serialize.Decoder
 import java.io.File
 import java.util.function.Supplier
 
 
 class BeanFieldDeserializer(
-    private val bean: Any,
     private val beanType: Class<*>,
-    private val deserializer: StateDeserializer,
     private val filePropertyFactory: FilePropertyFactory
 ) {
-    fun deserialize(decoder: Decoder, context: DeserializationContext) {
+    fun ReadContext.deserialize(bean: Any) {
         val fieldsByName = relevantStateOf(beanType).associateBy { it.name }
         while (true) {
-            val fieldName = decoder.readString()
+            val fieldName = readString()
             if (fieldName.isEmpty()) {
                 break
             }
             try {
-                val value = deserializer.read(decoder, context)
+                val value = read()
                 val field = fieldsByName.getValue(fieldName)
                 field.isAccessible = true
-                context.logFieldSerialization("deserialize", beanType, fieldName, value)
+                logFieldSerialization("deserialize", beanType, fieldName, value)
                 @Suppress("unchecked_cast")
-                when (field.type) {
+                when (val type = field.type) {
                     DirectoryProperty::class.java -> {
                         val dirProperty = filePropertyFactory.newDirectoryProperty()
                         dirProperty.set(value as File?)
@@ -77,10 +77,10 @@ class BeanFieldDeserializer(
                     Function0::class.java -> field.set(bean, { value })
                     Lazy::class.java -> field.set(bean, lazyOf(value))
                     else -> {
-                        if (field.type.isInstance(value) || field.type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(field.type).isInstance(value)) {
+                        if (isAssignableTo(type, value)) {
                             field.set(bean, value)
                         } else if (value != null) {
-                            context.logFieldWarning("deserialize", beanType, fieldName, "value $value is not assignable to ${field.type}")
+                            logFieldWarning("deserialize", beanType, fieldName, "value $value is not assignable to $type")
                         } // else null value -> ignore
                     }
                 }
@@ -89,4 +89,9 @@ class BeanFieldDeserializer(
             }
         }
     }
+
+    private
+    fun isAssignableTo(type: Class<*>, value: Any?) =
+        type.isInstance(value) ||
+            type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(type).isInstance(value)
 }
