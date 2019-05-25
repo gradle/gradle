@@ -26,13 +26,14 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
+import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DecodingProvider
 import org.gradle.instantexecution.serialization.Encoding
 import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.bindings
 import org.gradle.instantexecution.serialization.logUnsupported
 import org.gradle.instantexecution.serialization.ownerProjectService
 import org.gradle.instantexecution.serialization.singleton
@@ -46,6 +47,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
+import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
 import kotlin.reflect.KClass
 
@@ -143,4 +145,52 @@ class Codecs(
     companion object {
         const val NULL_VALUE: Byte = -1
     }
+}
+
+
+private
+inline fun bindings(block: BindingsBuilder.() -> Unit): List<Binding> =
+    BindingsBuilder().apply(block).build()
+
+
+private
+data class Binding(
+    val tag: Byte,
+    val type: Class<*>,
+    val codec: Codec<Any>
+)
+
+
+private
+class BindingsBuilder {
+
+    private
+    val bindings = mutableListOf<Binding>()
+
+    fun build(): List<Binding> = bindings.toList()
+
+    fun bind(type: Class<*>, codec: Codec<*>) {
+        require(bindings.none { it.type === type })
+        val tag = bindings.size
+        require(tag < Byte.MAX_VALUE)
+        @Suppress("unchecked_cast")
+        bindings.add(
+            Binding(tag.toByte(), type, codec as Codec<Any>)
+        )
+    }
+
+    inline fun <reified T> bind(codec: Codec<T>) =
+        bind(T::class.java, codec)
+
+    inline fun <reified T> bind(serializer: Serializer<T>) =
+        bind(T::class.java, serializer)
+
+    fun bind(type: KClass<*>, codec: Codec<*>) =
+        bind(type.java, codec)
+
+    fun bind(type: KClass<*>, serializer: Serializer<*>) =
+        bind(type.java, serializer)
+
+    fun bind(type: Class<*>, serializer: Serializer<*>) =
+        bind(type, SerializerCodec(serializer))
 }

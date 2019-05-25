@@ -80,7 +80,7 @@ fun WriteContext.writeClass(value: Class<*>) {
 
 internal
 fun ReadContext.readClass(): Class<*> =
-    taskClassLoader.loadClass(readString())
+    classLoader.loadClass(readString())
 
 
 internal
