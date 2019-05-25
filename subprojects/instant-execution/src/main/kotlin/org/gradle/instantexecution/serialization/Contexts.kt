@@ -41,6 +41,9 @@ class DefaultWriteContext(
     private
     val beanPropertyWriters = hashMapOf<Class<*>, BeanPropertyWriter>()
 
+    private
+    val writeStrings = WriteStrings()
+
     override fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter =
         beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
 
@@ -51,9 +54,8 @@ class DefaultWriteContext(
         encodingFor(value)
     }
 
-    // TODO: consider interning strings
     override fun writeString(string: CharSequence) =
-        encoder.writeString(string)
+        writeStrings.writeString(string, encoder)
 
     override fun newIsolate(owner: Task): WriteIsolate =
         DefaultWriteIsolate(owner)
@@ -86,6 +88,9 @@ class DefaultReadContext(
     val beanPropertyReaders = hashMapOf<Class<*>, BeanPropertyReader>()
 
     private
+    val readStrings = ReadStrings()
+
+    private
     lateinit var projectProvider: ProjectProvider
 
     override lateinit var classLoader: ClassLoader
@@ -99,6 +104,9 @@ class DefaultReadContext(
     override fun read(): Any? = decoding.run {
         decode()
     }
+
+    override fun readString(): String =
+        readStrings.readString(decoder)
 
     override val isolate: ReadIsolate
         get() = getIsolate()
