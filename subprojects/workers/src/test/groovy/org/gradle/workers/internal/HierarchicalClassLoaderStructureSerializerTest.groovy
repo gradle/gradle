@@ -22,13 +22,13 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
-class ClassLoaderStructureSerializerTest extends Specification {
-    def serializer = new ClassLoaderStructureSerializer()
+class HierarchicalClassLoaderStructureSerializerTest extends Specification {
+    def serializer = new HierarchicalClassLoaderStructureSerializer()
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
 
     def "can serialize and deserialize a classloader structure"() {
-        def classLoaderStructure = new ClassLoaderStructure(filteringClassloaderSpec())
+        def classLoaderStructure = new HierarchicalClassLoaderStructure(filteringClassloaderSpec())
                 .withChild(visitableUrlClassloaderSpec())
 
         when:
@@ -41,23 +41,6 @@ class ClassLoaderStructureSerializerTest extends Specification {
 
         then:
         decodedClassloaderStructure == classLoaderStructure
-    }
-
-    def "can serialize and deserialize a flat classloader structure"() {
-        def classLoaderStructure = new ClassLoaderStructure(visitableUrlClassloaderSpec(), true)
-
-        when:
-        serializer.write(encoder, classLoaderStructure)
-        encoder.flush()
-
-        and:
-        def decoder = new KryoBackedDecoder(new ByteArrayInputStream(outputStream.toByteArray()))
-        def decodedClassloaderStructure = serializer.read(decoder)
-
-        then:
-        decodedClassloaderStructure.flat
-        decodedClassloaderStructure.parent == null
-        decodedClassloaderStructure.spec == null
     }
 
     def filteringClassloaderSpec() {

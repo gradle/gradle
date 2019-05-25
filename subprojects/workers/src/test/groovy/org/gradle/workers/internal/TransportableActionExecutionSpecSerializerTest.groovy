@@ -27,7 +27,7 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
 
-    def "can serialize and deserialize a spec"() {
+    def "can serialize and deserialize a spec with a hierarchical classloader structure"() {
         def spec = new TransportableActionExecutionSpec("test spec", Runnable.class, [ "foo", "bar" ] as Object[], classLoaderStructure())
 
         when:
@@ -43,6 +43,25 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.implementationClassName == spec.implementationClassName
         decodedSpec.serializedParameters == spec.serializedParameters
         decodedSpec.classLoaderStructure == spec.classLoaderStructure
+    }
+
+    def "can serialize and deserialize a spec with a flat classloader structure"() {
+        def spec = new TransportableActionExecutionSpec("test spec", Runnable.class, [ "foo", "bar" ] as Object[], flatClassLoaderStructure())
+
+        when:
+        serializer.write(encoder, spec)
+        encoder.flush()
+
+        and:
+        def decoder = new KryoBackedDecoder(new ByteArrayInputStream(outputStream.toByteArray()))
+        def decodedSpec = serializer.read(decoder)
+
+        then:
+        decodedSpec.displayName == spec.displayName
+        decodedSpec.implementationClassName == spec.implementationClassName
+        decodedSpec.serializedParameters == spec.serializedParameters
+        decodedSpec.classLoaderStructure instanceof FlatClassLoaderStructure
+        decodedSpec.classLoaderStructure.spec == null
     }
 
     def filteringClassloaderSpec() {
@@ -62,7 +81,11 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     }
 
     def classLoaderStructure() {
-        return new ClassLoaderStructure(filteringClassloaderSpec())
+        return new HierarchicalClassLoaderStructure(filteringClassloaderSpec())
                 .withChild(visitableUrlClassloaderSpec())
+    }
+
+    def flatClassLoaderStructure() {
+        return new FlatClassLoaderStructure(visitableUrlClassloaderSpec())
     }
 }

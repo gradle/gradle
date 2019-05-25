@@ -23,9 +23,10 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.internal.ClassLoaderStructure;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
+import org.gradle.workers.internal.FlatClassLoaderStructure;
+import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
@@ -50,7 +51,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         javaForkOptions.setWorkingDir(daemonWorkingDir);
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
-        ClassLoaderStructure classLoaderStructure = new ClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()), true);
+        FlatClassLoaderStructure classLoaderStructure = new FlatClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)

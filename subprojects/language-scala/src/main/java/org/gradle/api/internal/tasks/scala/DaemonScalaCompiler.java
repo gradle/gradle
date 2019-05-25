@@ -45,9 +45,9 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.internal.ClassLoaderStructure;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
+import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
@@ -78,7 +78,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("SCALA-COMPILER").plus(DefaultClassPath.of(zincClasspath));
 
-        ClassLoaderStructure classLoaderStructure = new ClassLoaderStructure(getScalaFilterSpec())
+        HierarchicalClassLoaderStructure classLoaderStructure = new HierarchicalClassLoaderStructure(getScalaFilterSpec())
                 .withChild(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)

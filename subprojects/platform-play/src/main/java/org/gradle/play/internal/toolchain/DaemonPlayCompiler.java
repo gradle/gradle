@@ -29,9 +29,9 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.internal.ClassLoaderStructure;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
+import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
@@ -61,7 +61,7 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
 
         ClassPath playCompilerClasspath = classPathRegistry.getClassPath("PLAY-COMPILER").plus(DefaultClassPath.of(compilerClasspath));
 
-        ClassLoaderStructure classLoaderStructure = new ClassLoaderStructure(getPlayFilterSpec())
+        HierarchicalClassLoaderStructure classLoaderStructure = new HierarchicalClassLoaderStructure(getPlayFilterSpec())
                 .withChild(new VisitableURLClassLoader.Spec("compiler", playCompilerClasspath.getAsURLs()));
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)

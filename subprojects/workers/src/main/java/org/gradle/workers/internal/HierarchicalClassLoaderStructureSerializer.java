@@ -23,21 +23,18 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-public class ClassLoaderStructureSerializer implements Serializer<ClassLoaderStructure> {
+public class HierarchicalClassLoaderStructureSerializer implements Serializer<HierarchicalClassLoaderStructure> {
     private static final byte ROOT = (byte) 0;
     private static final byte HAS_PARENT = (byte) 1;
 
     private static final byte FILTERING_SPEC = (byte) 0;
     private static final byte VISITABLE_URL_CLASSLOADER_SPEC = (byte) 1;
-    private static final byte EMPTY_SPEC = (byte) 2;
 
     private final FilteringClassLoaderSpecSerializer filteringClassLoaderSpecSerializer = new FilteringClassLoaderSpecSerializer();
     private final VisitableURLClassLoaderSpecSerializer visitableURLClassLoaderSpecSerializer = new VisitableURLClassLoaderSpecSerializer();
 
     @Override
-    public void write(Encoder encoder, ClassLoaderStructure classLoaderStructure) throws Exception {
-        encoder.writeBoolean(classLoaderStructure.isFlat());
-
+    public void write(Encoder encoder, HierarchicalClassLoaderStructure classLoaderStructure) throws Exception {
         if (classLoaderStructure.getParent() == null) {
             encoder.writeByte(ROOT);
         } else {
@@ -45,25 +42,19 @@ public class ClassLoaderStructureSerializer implements Serializer<ClassLoaderStr
             write(encoder, classLoaderStructure.getParent());
         }
 
-        if (classLoaderStructure.isFlat()) {
-            // If the classloader structure is flat, there's no need to pass the classpath across the wire
-            encoder.writeByte(EMPTY_SPEC);
-        } else {
-            if (classLoaderStructure.getSpec() instanceof FilteringClassLoader.Spec) {
-                encoder.writeByte(FILTERING_SPEC);
-                filteringClassLoaderSpecSerializer.write(encoder, (FilteringClassLoader.Spec) classLoaderStructure.getSpec());
-            } else if (classLoaderStructure.getSpec() instanceof VisitableURLClassLoader.Spec) {
-                encoder.writeByte(VISITABLE_URL_CLASSLOADER_SPEC);
-                visitableURLClassLoaderSpecSerializer.write(encoder, (VisitableURLClassLoader.Spec) classLoaderStructure.getSpec());
-            }
+        if (classLoaderStructure.getSpec() instanceof FilteringClassLoader.Spec) {
+            encoder.writeByte(FILTERING_SPEC);
+            filteringClassLoaderSpecSerializer.write(encoder, (FilteringClassLoader.Spec) classLoaderStructure.getSpec());
+        } else if (classLoaderStructure.getSpec() instanceof VisitableURLClassLoader.Spec) {
+            encoder.writeByte(VISITABLE_URL_CLASSLOADER_SPEC);
+            visitableURLClassLoaderSpecSerializer.write(encoder, (VisitableURLClassLoader.Spec) classLoaderStructure.getSpec());
         }
     }
 
     @Override
-    public ClassLoaderStructure read(Decoder decoder) throws Exception {
-        boolean flat = decoder.readBoolean();
+    public HierarchicalClassLoaderStructure read(Decoder decoder) throws Exception {
         byte parentTag = decoder.readByte();
-        ClassLoaderStructure parent;
+        HierarchicalClassLoaderStructure parent;
         switch (parentTag) {
             case ROOT:
                 parent = null;
@@ -84,13 +75,10 @@ public class ClassLoaderStructureSerializer implements Serializer<ClassLoaderStr
             case VISITABLE_URL_CLASSLOADER_SPEC:
                 spec = visitableURLClassLoaderSpecSerializer.read(decoder);
                 break;
-            case EMPTY_SPEC:
-                spec = null;
-                break;
             default:
                 throw new IllegalArgumentException("Unexpected payload type.");
         }
 
-        return new ClassLoaderStructure(spec, parent, flat);
+        return new HierarchicalClassLoaderStructure(spec, parent);
     }
 }

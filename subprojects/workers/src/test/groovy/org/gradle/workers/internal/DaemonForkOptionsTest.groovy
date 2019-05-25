@@ -29,7 +29,7 @@ class DaemonForkOptionsTest extends Specification {
         def spec1 = Mock(ClassLoaderSpec)
         def spec2 = Mock(ClassLoaderSpec)
         def settings = daemonForkOptionsBuilder()
-            .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2))
+            .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2))
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()
 
@@ -41,11 +41,11 @@ class DaemonForkOptionsTest extends Specification {
         def spec1 = Mock(ClassLoaderSpec)
         def spec2 = Mock(ClassLoaderSpec)
         def settings1 = daemonForkOptionsBuilder()
-            .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2))
+            .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2))
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()
         def settings2 = daemonForkOptionsBuilder()
-            .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2))
+            .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2))
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()
 
@@ -83,10 +83,10 @@ class DaemonForkOptionsTest extends Specification {
         def spec3 = Mock(ClassLoaderSpec)
         def spec4 = Mock(ClassLoaderSpec)
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
                 .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec4))
+                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec4))
                 .build()
 
         expect:
@@ -98,10 +98,10 @@ class DaemonForkOptionsTest extends Specification {
         def spec2 = Mock(ClassLoaderSpec)
         def spec3 = Mock(ClassLoaderSpec)
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
                 .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new ClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
                 .build()
 
         expect:
@@ -126,7 +126,7 @@ class DaemonForkOptionsTest extends Specification {
                 .withClassLoaderStructure(null)
                 .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new ClassLoaderStructure(Mock(ClassLoaderSpec)))
+                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(Mock(ClassLoaderSpec)))
                 .build()
 
         then:
@@ -134,7 +134,7 @@ class DaemonForkOptionsTest extends Specification {
 
         when:
         settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new ClassLoaderStructure(Mock(ClassLoaderSpec)))
+                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(Mock(ClassLoaderSpec)))
                 .build()
         settings2 = daemonForkOptionsBuilder()
                 .withClassLoaderStructure(null)

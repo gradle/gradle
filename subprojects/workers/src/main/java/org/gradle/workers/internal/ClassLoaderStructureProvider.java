@@ -38,7 +38,7 @@ public class ClassLoaderStructureProvider {
                 FilteringClassLoader.Spec gradleApiFilter = classLoaderRegistry.getGradleApiFilterSpec();
                 VisitableURLClassLoader.Spec userSpec = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(userClasspathFiles).getAsURLs());
                 // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
-                return new ClassLoaderStructure(gradleApiFilter).withChild(userSpec);
+                return new HierarchicalClassLoaderStructure(gradleApiFilter).withChild(userSpec);
             }
         });
     }

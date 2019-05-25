@@ -55,10 +55,11 @@ public class WorkerDaemonStarter {
         builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.sharedPackages("org.gradle", "javax.inject");
-        if (forkOptions.getClassLoaderStructure().isFlat()) {
+        if (forkOptions.getClassLoaderStructure() instanceof FlatClassLoaderStructure) {
+            FlatClassLoaderStructure flatClassLoaderStructure = (FlatClassLoaderStructure) forkOptions.getClassLoaderStructure();
             builder.applicationClasspath(classPathRegistry.getClassPath("MINIMUM_WORKER_RUNTIME").getAsFiles());
             builder.useApplicationClassloaderOnly();
-            builder.applicationClasspath(toFiles((VisitableURLClassLoader.Spec)forkOptions.getClassLoaderStructure().getSpec()));
+            builder.applicationClasspath(toFiles(flatClassLoaderStructure.getSpec()));
         } else {
             builder.applicationClasspath(classPathRegistry.getClassPath("CORE_WORKER_RUNTIME").getAsFiles());
         }

@@ -21,7 +21,10 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 public class TransportableActionExecutionSpecSerializer implements Serializer<TransportableActionExecutionSpec> {
-    private final Serializer<ClassLoaderStructure> classLoaderStructureSerializer = new ClassLoaderStructureSerializer();
+    private static final byte FLAT = (byte) 0;
+    private static final byte HIERARCHICAL = (byte) 1;
+
+    private final Serializer<HierarchicalClassLoaderStructure> hierarchicalClassLoaderStructureSerializer = new HierarchicalClassLoaderStructureSerializer();
 
     @Override
     public void write(Encoder encoder, TransportableActionExecutionSpec spec) throws Exception {
@@ -29,7 +32,15 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
         encoder.writeString(spec.getImplementationClassName());
         encoder.writeInt(spec.getSerializedParameters().length);
         encoder.writeBytes(spec.getSerializedParameters());
-        classLoaderStructureSerializer.write(encoder, spec.getClassLoaderStructure());
+        if (spec.getClassLoaderStructure() instanceof HierarchicalClassLoaderStructure) {
+            encoder.writeByte(HIERARCHICAL);
+            hierarchicalClassLoaderStructureSerializer.write(encoder, (HierarchicalClassLoaderStructure) spec.getClassLoaderStructure());
+        } else if (spec.getClassLoaderStructure() instanceof FlatClassLoaderStructure) {
+            encoder.writeByte(FLAT);
+            // If the classloader structure is flat, there's no need to send the classpath
+        } else {
+            throw new IllegalArgumentException("Unknown classloader structure type: " + spec.getClassLoaderStructure().getClass().getSimpleName());
+        }
     }
 
     @Override
@@ -39,7 +50,18 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
         int parametersSize = decoder.readInt();
         byte[] serializedParameters = new byte[parametersSize];
         decoder.readBytes(serializedParameters);
-        ClassLoaderStructure classLoaderStructure = classLoaderStructureSerializer.read(decoder);
+        byte classLoaderStructureTag = decoder.readByte();
+        ClassLoaderStructure classLoaderStructure;
+        switch(classLoaderStructureTag) {
+            case FLAT:
+                classLoaderStructure = new FlatClassLoaderStructure(null);
+                break;
+            case HIERARCHICAL:
+                classLoaderStructure = hierarchicalClassLoaderStructureSerializer.read(decoder);
+                break;
+            default:
+                throw new IllegalArgumentException("Unexpected payload type.");
+        }
         return new TransportableActionExecutionSpec(displayName, implementationClassName, serializedParameters, classLoaderStructure);
     }
 }

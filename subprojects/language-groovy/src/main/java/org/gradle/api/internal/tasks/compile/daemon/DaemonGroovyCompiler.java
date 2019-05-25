@@ -30,9 +30,9 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.internal.ClassLoaderStructure;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
+import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerFactory;
 
@@ -75,8 +75,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             gradleAndUserFilter.allowPackage(sharedPackage);
         }
 
-        ClassLoaderStructure classLoaderStructure =
-                new ClassLoaderStructure(getMinimalGradleFilter())
+        HierarchicalClassLoaderStructure classLoaderStructure =
+                new HierarchicalClassLoaderStructure(getMinimalGradleFilter())
                         .withChild(targetGroovyClasspath)
                         .withChild(gradleAndUserFilter)
                         .withChild(compilerClasspath);

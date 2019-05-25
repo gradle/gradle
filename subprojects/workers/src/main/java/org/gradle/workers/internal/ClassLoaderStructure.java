@@ -16,70 +16,10 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.base.Objects;
 import org.gradle.internal.classloader.ClassLoaderSpec;
-import org.gradle.internal.classloader.VisitableURLClassLoader;
 
-public class ClassLoaderStructure {
-    private final ClassLoaderSpec self;
-    private final ClassLoaderStructure parent;
-    private final boolean flat;
+public interface ClassLoaderStructure {
+    ClassLoaderSpec getSpec();
 
-    public ClassLoaderStructure(ClassLoaderSpec self) {
-        this(self, null);
-    }
-
-    public ClassLoaderStructure(VisitableURLClassLoader.Spec self, boolean flat) {
-        this(self, null, flat);
-    }
-
-    public ClassLoaderStructure(ClassLoaderSpec self, ClassLoaderStructure parent) {
-        this(self, parent, false);
-    }
-
-    public ClassLoaderStructure(ClassLoaderSpec self, ClassLoaderStructure parent, boolean flat) {
-        this.self = self;
-        this.parent = parent;
-        this.flat = flat;
-
-        if (flat && parent != null) {
-            throw new IllegalArgumentException("Structure cannot be flat and have a parent");
-        }
-    }
-
-    public ClassLoaderStructure withChild(ClassLoaderSpec spec) {
-        ClassLoaderStructure childNode = new ClassLoaderStructure(spec, this);
-        return childNode;
-    }
-
-    public ClassLoaderSpec getSpec() {
-        return self;
-    }
-
-    public ClassLoaderStructure getParent() {
-        return parent;
-    }
-
-    public boolean isFlat() {
-        return flat;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ClassLoaderStructure that = (ClassLoaderStructure) o;
-        return flat == that.flat &&
-                Objects.equal(self, that.self) &&
-                Objects.equal(parent, that.parent);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(self, parent);
-    }
+    ClassLoaderStructure getParent();
 }
