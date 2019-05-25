@@ -31,7 +31,6 @@ class WriteStrings {
             } else {
                 val newId = strings.size
                 writeBoolean(false)
-                writeSmallInt(newId)
                 writeString(string)
                 strings[string] = newId
             }
@@ -46,12 +45,10 @@ class WriteStrings {
 class ReadStrings {
 
     fun readString(decoder: Decoder): String = decoder.run {
-        val present = readBoolean()
-        val id = readSmallInt()
-        return when {
-            present -> strings[id]!!
+        when (readBoolean()) {
+            true -> strings[readSmallInt()]!!
             else -> readString().also {
-                strings[id] = it
+                strings[strings.size] = it
             }
         }
     }
