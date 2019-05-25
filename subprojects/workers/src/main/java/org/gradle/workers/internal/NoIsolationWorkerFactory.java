@@ -26,8 +26,8 @@ import org.gradle.workers.WorkerExecutor;
 public class NoIsolationWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ServiceRegistry parent;
-    private DefaultServiceRegistry serviceRegistry;
     private WorkerExecutor workerExecutor;
+    private WorkerProtocol workerServer;
 
     public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry parent) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -37,8 +37,9 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     // Attaches the owning WorkerExecutor to this factory
     public void setWorkerExecutor(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;
-        this.serviceRegistry = new DefaultServiceRegistry(parent);
+        DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(parent);
         serviceRegistry.add(WorkerExecutor.class, workerExecutor);
+        this.workerServer = new DefaultWorkerServer(serviceRegistry);
     }
 
     @Override
@@ -54,7 +55,6 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                         try {
                             // TODO This should use the isolation framework to isolate the parameters instead of wrapping/unwrapping the parameters
                             ActionExecutionSpec effectiveSpec = ((SerializedParametersActionExecutionSpec)spec).deserialize(spec.getImplementationClass().getClassLoader());
-                            WorkerProtocol workerServer = new DefaultWorkerServer(serviceRegistry);
                             result = workerServer.execute(effectiveSpec);
                         } finally {
                             //TODO the async work tracker should wait for children of an operation to finish first.
