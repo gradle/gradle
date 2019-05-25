@@ -274,4 +274,36 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         then:
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
+
+    def "publishes to all defined repositories"() {
+        given:
+        def mavenRepo2 = maven("maven-repo-2")
+
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                    maven { url "${mavenRepo2.uri}" }
+                }
+                publications {
+                    maven(MavenPublication)
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('org.gradle.test', 'root', '1.0')
+        module.assertPublished()
+        def module2 = mavenRepo2.module('org.gradle.test', 'root', '1.0')
+        module2.assertPublished()
+    }
+
 }
