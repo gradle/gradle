@@ -25,6 +25,8 @@ import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.publication.maven.internal.MavenVersionRangeMapper;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publication.maven.internal.pom.DefaultMavenFactory;
+import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
+import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -55,6 +57,10 @@ public class MavenPublishServices extends AbstractPluginServiceRegistry {
 
         public MavenPublishers createMavenPublishers(RepositoryTransportFactory repositoryTransportFactory, BuildCommencedTimeProvider timeProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
             return new MavenPublishers(repositoryTransportFactory, timeProvider, mavenRepositoryLocator);
+        }
+
+        public MavenDuplicatePublicationTracker createDuplicatePublicationTracker(DuplicatePublicationTracker duplicatePublicationTracker, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+            return new MavenDuplicatePublicationTracker(duplicatePublicationTracker, mavenRepositoryLocator);
         }
     }
 }

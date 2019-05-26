@@ -1,1 +1,1 @@
-org.gradle.api.publish.internal.PublishServices
+org.gradle.api.publish.internal.service.PublishServices

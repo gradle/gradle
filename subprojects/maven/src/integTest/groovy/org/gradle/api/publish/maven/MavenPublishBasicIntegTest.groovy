@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.Ignore
 
 /**
  * Tests “simple” maven publishing scenarios
@@ -276,13 +275,13 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
-    @Ignore("Not yet implemented - currently the second publication will overwrite")
-    def "cannot publish multiple maven publications with the same identity"() {
+    def "publishes to all defined repositories"() {
         given:
-        settingsFile << "rootProject.name = 'bad-project'"
+        def mavenRepo2 = maven("maven-repo-2")
+
+        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
-            apply plugin: 'war'
 
             group = 'org.gradle.test'
             version = '1.0'
@@ -290,22 +289,21 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
+                    maven { url "${mavenRepo2.uri}" }
                 }
                 publications {
-                    mavenJava(MavenPublication) {
-                        from components.java
-                    }
-                    mavenWeb(MavenPublication) {
-                        from components.web
-                    }
+                    maven(MavenPublication)
                 }
             }
         """
         when:
-        fails 'publish'
+        succeeds 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
-        failure.assertHasCause("Publication with name 'mavenJava' already exists")
+        def module = mavenRepo.module('org.gradle.test', 'root', '1.0')
+        module.assertPublished()
+        def module2 = mavenRepo2.module('org.gradle.test', 'root', '1.0')
+        module2.assertPublished()
     }
+
 }

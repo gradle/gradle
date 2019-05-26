@@ -148,4 +148,120 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    def "fails when multiple publications share the same coordinates"() {
+        given:
+        settingsFile << "rootProject.name = 'duplicate-publications'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java'
+
+            group = 'org.example'
+            version = '1.0'
+
+            task otherJar(type: Jar) {
+                classifier "other"
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    main(IvyPublication) {
+                        from components.java
+                    }
+                    other(IvyPublication) {
+                        artifact(otherJar)
+                    }
+                }
+            }
+        """
+
+        def module = ivyRepo.module('org.example', 'duplicate-publications', '1.0')
+
+        when:
+        succeeds 'publishMainPublicationToIvyRepository'
+
+        then:
+        module.assertPublished()
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate-publications:1.0' to repository 'ivy'")
+    }
+
+    def "fails when publications in different projects share the same coordinates"() {
+        given:
+        settingsFile << """
+include 'projectA'
+include 'projectB'
+"""
+        buildFile << """
+        subprojects {
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java'
+
+            group = 'org.example'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    main(IvyPublication) {
+                        from components.java
+                        module "duplicate"
+                    }
+                }
+            }
+        }
+        """
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate:1.0' to repository 'ivy'")
+    }
+
+    def "does not fail for publication with duplicate repositories"() {
+        given:
+        settingsFile << "rootProject.name = 'duplicate-repos'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java'
+
+            group = 'org.example'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    ivy { 
+                        name "ivy1"
+                        url "${ivyRepo.uri}" 
+                    }
+                    ivy { 
+                        name "ivy2"
+                        url "${ivyRepo.uri}" 
+                    }
+                }
+                publications {
+                    main(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        def module = ivyRepo.module('org.example', 'duplicate-repos', '1.0')
+
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublished()
+    }
 }

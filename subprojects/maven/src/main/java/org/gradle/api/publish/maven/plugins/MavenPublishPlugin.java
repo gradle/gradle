@@ -165,7 +165,6 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 publishTask.setRepository(repository);
                 publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
-
             });
             publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));
             tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));

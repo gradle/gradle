@@ -16,7 +16,10 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 import java.io.File;
 import java.util.Set;
@@ -25,10 +28,7 @@ import java.util.stream.Collectors;
 public class MavenNormalizedPublication {
 
     private final String name;
-    private final MavenProjectIdentity projectIdentity;
-    private final String groupId;
-    private final String artifactId;
-    private final String version;
+    private final ModuleComponentIdentifier coordinates;
     private final String packaging;
     private final MavenArtifact pomArtifact;
     private final MavenArtifact mainArtifact;
@@ -36,10 +36,7 @@ public class MavenNormalizedPublication {
 
     public MavenNormalizedPublication(String name, MavenProjectIdentity projectIdentity, String packaging, MavenArtifact pomArtifact, MavenArtifact mainArtifact, Set<MavenArtifact> allArtifacts) {
         this.name = name;
-        this.projectIdentity = projectIdentity;
-        this.groupId = projectIdentity.getGroupId().get();
-        this.artifactId = projectIdentity.getArtifactId().get();
-        this.version = projectIdentity.getVersion().get();
+        this.coordinates = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(projectIdentity.getGroupId().get(), projectIdentity.getArtifactId().get()), projectIdentity.getVersion().get());
         this.packaging = packaging;
         this.pomArtifact = pomArtifact;
         this.mainArtifact = mainArtifact;
@@ -50,20 +47,20 @@ public class MavenNormalizedPublication {
         return name;
     }
 
-    public MavenProjectIdentity getProjectIdentity() {
-        return projectIdentity;
+    public ModuleComponentIdentifier getProjectIdentity() {
+        return coordinates;
     }
 
     public String getGroupId() {
-        return groupId;
+        return coordinates.getGroup();
     }
 
     public String getArtifactId() {
-        return artifactId;
+        return coordinates.getModule();
     }
 
     public String getVersion() {
-        return version;
+        return coordinates.getVersion();
     }
 
     public String getPackaging() {

@@ -31,7 +31,6 @@ import org.gradle.api.tasks.TaskAction;
  * @since 1.4
  */
 public class PublishToMavenRepository extends AbstractPublishToMaven {
-
     private MavenArtifactRepository repository;
 
     /**
@@ -65,16 +64,17 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
 
+        getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
         doPublish(publicationInternal, repository);
     }
 
     private void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepository repository) {
         new PublishOperation(publication, repository.getName()) {
             @Override
-            protected void publish() throws Exception {
+            protected void publish() {
                 MavenPublisher remotePublisher = getMavenPublishers().getRemotePublisher(getTemporaryDirFactory());
-                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(remotePublisher);
-                validatingPublisher.publish(publication.asNormalisedPublication(), repository);
+                remotePublisher = new ValidatingMavenPublisher(remotePublisher);
+                remotePublisher.publish(publication.asNormalisedPublication(), repository);
             }
         }.run();
     }
