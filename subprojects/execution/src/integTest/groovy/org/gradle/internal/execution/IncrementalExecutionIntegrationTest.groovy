@@ -688,7 +688,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         OutputPropertySpec(Iterable<File> roots, TreeType treeType) {
             this.treeType = treeType
-            this.roots = ImmutableFileCollection.of(roots)
+            this.roots = ImmutableFileCollection.of(roots.toSet())
         }
     }
 
@@ -898,7 +898,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotInputFiles() {
                     def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
                     inputs.each { propertyName, value ->
-                        builder.put(propertyName, fingerprinter.fingerprint(ImmutableFileCollection.of(value)))
+                        builder.put(propertyName, fingerprinter.fingerprint(ImmutableFileCollection.of(value.toSet())))
                     }
                     return builder.build()
 

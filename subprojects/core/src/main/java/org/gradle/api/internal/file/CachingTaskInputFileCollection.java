@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -24,6 +24,10 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 
 import java.io.File;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * A {@link org.gradle.api.file.ConfigurableFileCollection} that can be used as a task input property. Caches the matching set of files during task execution, and discards the result after task execution.
@@ -34,7 +38,7 @@ import java.io.File;
 public class CachingTaskInputFileCollection extends DefaultConfigurableFileCollection implements LifecycleAwareValue {
     private final FileResolver fileResolver;
     private boolean canCache;
-    private ImmutableSet<File> cachedValue;
+    private Set<File> cachedValue;
 
     // TODO - display name
     public CachingTaskInputFileCollection(FileResolver fileResolver, TaskResolver taskResolver) {
@@ -48,11 +52,15 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
             if (cachedValue == null) {
                 DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext(fileResolver);
                 super.visitContents(nested);
-                ImmutableSet.Builder<File> files = ImmutableSet.builder();
-                for (FileCollectionInternal fileCollection : nested.resolveAsFileCollections()) {
-                    files.addAll(fileCollection);
+
+                List<FileCollectionInternal> fileCollections = nested.resolveAsFileCollections();
+                Set<File> files = Sets.newLinkedHashSetWithExpectedSize(fileCollections.size());
+                for (FileCollectionInternal fileCollection : fileCollections) {
+                    for (File file : fileCollection) {
+                        files.add(file);
+                    }
                 }
-                this.cachedValue = files.build();
+                this.cachedValue = unmodifiableSet(files);
             }
             context.add(cachedValue);
         } else {

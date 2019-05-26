@@ -15,25 +15,23 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Set;
+
+import static com.google.common.collect.Sets.newLinkedHashSet;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * Adapts a java util collection into a file set.
  */
 public class ListBackedFileSet implements MinimalFileSet {
-    private final ImmutableSet<File> files;
+    private final Set<File> files;
 
     public ListBackedFileSet(File... files) {
-        this.files = ImmutableSet.copyOf(files);
-    }
-
-    public ListBackedFileSet(Collection<File> files) {
-        this.files = ImmutableSet.copyOf(files);
+        this.files = unmodifiableSet(newLinkedHashSet(asList(files)));
     }
 
     @Override

@@ -25,6 +25,10 @@ import org.gradle.api.tasks.TaskDependency;
 import java.io.File;
 import java.util.Set;
 
+import static com.google.common.collect.Sets.newLinkedHashSet;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
+
 public abstract class ImmutableFileCollection extends AbstractFileCollection {
     private static final ImmutableFileCollection EMPTY = new ImmutableFileCollection() {
         @Override
@@ -38,17 +42,14 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     }
 
     public static ImmutableFileCollection of(File... files) {
-        if (files.length == 0) {
-            return EMPTY;
-        }
-        return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
+        return of(newLinkedHashSet(asList(files)));
     }
 
-    public static ImmutableFileCollection of(Iterable<? extends File> files) {
+    public static ImmutableFileCollection of(Set<? extends File> files) {
         if (Iterables.isEmpty(files)) {
             return EMPTY;
         }
-        return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
+        return new FileOnlyImmutableFileCollection(files);
     }
 
     private ImmutableFileCollection() {
@@ -65,10 +66,10 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     }
 
     private static class FileOnlyImmutableFileCollection extends ImmutableFileCollection {
-        private final ImmutableSet<File> files;
+        private final Set<File> files;
 
-        FileOnlyImmutableFileCollection(ImmutableSet<File> files) {
-            this.files = files;
+        FileOnlyImmutableFileCollection(Set<? extends File> files) { // TODO rename to FileOnlyUnmodifiableFileCollection
+            this.files = unmodifiableSet(files);
         }
 
         @Override

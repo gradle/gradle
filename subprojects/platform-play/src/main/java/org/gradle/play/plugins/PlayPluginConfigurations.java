@@ -16,7 +16,7 @@
 
 package org.gradle.play.plugins;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Conventional locations and names for play plugins.
@@ -131,13 +132,14 @@ public class PlayPluginConfigurations {
 
         @Override
         public FileCollectionInternal createDelegate() {
-            ImmutableSet.Builder<File> files = ImmutableSet.builder();
-            for (ResolvedArtifact artifact : configuration.getResolvedConfiguration().getResolvedArtifacts()) {
+            Set<ResolvedArtifact> resolvedArtifacts = configuration.getResolvedConfiguration().getResolvedArtifacts();
+            Set<File> files = Sets.newLinkedHashSetWithExpectedSize(resolvedArtifacts.size());
+            for (ResolvedArtifact artifact : resolvedArtifacts) {
                 if ((artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) == matchProjectComponents) {
                     files.add(artifact.getFile());
                 }
             }
-            return ImmutableFileCollection.of(files.build());
+            return ImmutableFileCollection.of(files);
         }
 
         @Override

@@ -35,6 +35,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.collect.Sets.newLinkedHashSet;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
+
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
     public static final String DEFAULT_DISPLAY_NAME = "file collection";
     private final PathToFileResolver fileResolver;
@@ -119,7 +123,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (files.length == 0) {
             return new EmptyFileCollection(displayName);
         }
-        return new FixedFileCollection(displayName, ImmutableSet.copyOf(files));
+        return new FixedFileCollection(displayName, newLinkedHashSet(asList(files)));
     }
 
     @Override
@@ -132,7 +136,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (files.isEmpty()) {
             return new EmptyFileCollection(displayName);
         }
-        return new FixedFileCollection(displayName, ImmutableSet.copyOf(files));
+        return new FixedFileCollection(displayName, newLinkedHashSet(files));
     }
 
     private static final class EmptyFileCollection extends AbstractFileCollection {
@@ -164,11 +168,11 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     private static final class FixedFileCollection extends AbstractFileCollection {
         private final String displayName;
-        private final ImmutableSet<File> files;
+        private final Set<File> files;
 
-        public FixedFileCollection(String displayName, ImmutableSet<File> files) {
+        public FixedFileCollection(String displayName, Set<File> files) {
             this.displayName = displayName;
-            this.files = files;
+            this.files = unmodifiableSet(files);
         }
 
         @Override

@@ -16,7 +16,7 @@
 
 package org.gradle.swiftpm.internal;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -24,6 +24,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static java.util.Collections.unmodifiableSet;
 
 public class DefaultTarget implements Serializable {
     private final String name;
@@ -36,7 +38,7 @@ public class DefaultTarget implements Serializable {
     public DefaultTarget(String name, File path, Iterable<File> sourceFiles) {
         this.name = name;
         this.path = path;
-        this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
+        this.sourceFiles = unmodifiableSet(Sets.newLinkedHashSet(sourceFiles));
     }
 
     public String getName() {

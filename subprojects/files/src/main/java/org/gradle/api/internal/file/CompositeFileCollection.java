@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
@@ -38,6 +38,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} that contains the union of zero or more file collections. Maintains file ordering.
@@ -75,11 +77,13 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
             case 1:
                 return sourceCollections.get(0).getFiles();
             default:
-                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
+                Set<File> files = Sets.newLinkedHashSetWithExpectedSize(sourceCollections.size());
                 for (FileCollection collection : sourceCollections) {
-                    builder.addAll(collection);
+                    for (File file : collection) {
+                        files.add(file);
+                    }
                 }
-                return builder.build();
+                return unmodifiableSet(files);
         }
     }
 

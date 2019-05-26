@@ -16,6 +16,7 @@
 package org.gradle.plugins.signing;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
@@ -27,6 +28,7 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A sign operation creates digital signatures for one or more files or {@link PublishArtifact publish artifacts}.
@@ -222,11 +224,12 @@ public class SignOperation implements SignatureSpec {
     }
 
     private FileCollection newSignatureFileCollection(Function<Signature, File> getFile) {
-        return ImmutableFileCollection.of(collectSignatureFiles(getFile));
+        Set<File> files = collectSignatureFiles(getFile);
+        return ImmutableFileCollection.of(files);
     }
 
-    private ArrayList<File> collectSignatureFiles(Function<Signature, File> getFile) {
-        ArrayList<File> files = new ArrayList<File>(signatures.size());
+    private Set<File> collectSignatureFiles(Function<Signature, File> getFile) {
+        Set<File> files = Sets.newLinkedHashSetWithExpectedSize(signatures.size());
         for (Signature signature : signatures) {
             File file = getFile.apply(signature);
             if (file != null) {

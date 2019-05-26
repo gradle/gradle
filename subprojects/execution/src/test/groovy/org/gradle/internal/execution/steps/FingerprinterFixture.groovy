@@ -57,13 +57,9 @@ abstract trait FingerprinterFixture {
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintsOf(Map<String, Object> properties) {
         def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
         properties.each { propertyName, value ->
-            def files = (value instanceof Iterable
-                ? (Collection<?>) value
-                : [value]).collect {
-                it instanceof File
-                    ? it
-                    : temporaryFolder.file(it)
-            }
+            def files = (value instanceof Iterable ? (Collection<?>) value : [value])
+                .collect { it instanceof File ? it : temporaryFolder.file(it) }
+                .toSet()
             builder.put(propertyName, inputFingerprinter.fingerprint(ImmutableFileCollection.of(files)))
         }
         return builder.build()

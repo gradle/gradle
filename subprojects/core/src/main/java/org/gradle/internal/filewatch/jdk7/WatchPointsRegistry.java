@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.ImmutableDirectoryTree;
 import org.gradle.internal.FileUtils;
@@ -28,6 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 class WatchPointsRegistry {
     private final static Logger LOG = LoggerFactory.getLogger(WatchPointsRegistry.class);
@@ -92,14 +96,14 @@ class WatchPointsRegistry {
             return this;
         }
 
-        private ImmutableSet<File> filterCurrentWatchPoints(Iterable<? extends File> startingWatchPointCandidates) {
-            final ImmutableSet.Builder<File> newStartingPoints = ImmutableSet.builder();
+        private Set<File> filterCurrentWatchPoints(Iterable<? extends File> startingWatchPointCandidates) {
+            Set<File> newStartingPoints = Sets.newLinkedHashSet();
             for (File file : startingWatchPointCandidates) {
                 if (!allRequestedRoots.contains(file) || !currentWatchPoints.contains(file)) {
                     newStartingPoints.add(file);
                 }
             }
-            return newStartingPoints.build();
+            return unmodifiableSet(newStartingPoints);
         }
 
         private Iterable<? extends File> calculateStartingWatchPoints(final Iterable<? extends File> roots, final FileSystemSubset unfiltered) {

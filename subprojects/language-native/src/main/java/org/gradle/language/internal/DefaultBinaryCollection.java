@@ -16,7 +16,6 @@
 
 package org.gradle.language.internal;
 
-import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
@@ -34,6 +33,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 // TODO - error messages
 // TODO - display names for this container and the Provider implementations
@@ -167,7 +168,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         if (state != State.Finalized) {
             throw new IllegalStateException("Cannot query the elements of this container as the elements have not been created yet.");
         }
-        return ImmutableSet.copyOf(elements);
+        return unmodifiableSet(elements);
     }
 
     private class SingleElementProvider<S> extends AbstractReadOnlyProvider<S> implements BinaryProvider<S> {

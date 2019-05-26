@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -26,7 +25,9 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class CompilationStateSerializer implements Serializer<CompilationState> {
     private final Serializer<File> fileSerializer;
@@ -47,7 +48,8 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
             HashCode sourceHashCode = hashSerializer.read(decoder);
             boolean isUnresolved = decoder.readBoolean();
             int includeFileCount = decoder.readSmallInt();
-            ImmutableSet.Builder<IncludeFileEdge> includeFileStateBuilder = ImmutableSet.builder();
+
+            Set<IncludeFileEdge> includeFileStates = new LinkedHashSet<IncludeFileEdge>(includeFileCount);
             for (int j = 0; j < includeFileCount; j++) {
                 int id = decoder.readSmallInt();
                 IncludeFileEdge includeFileState = ids.get(id);
@@ -61,9 +63,9 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
                     includeFileState = new IncludeFileEdge(includePath, includedBy, resolvedTo);
                     ids.put(id, includeFileState);
                 }
-                includeFileStateBuilder.add(includeFileState);
+                includeFileStates.add(includeFileState);
             }
-            builder.put(sourceFile, new SourceFileState(sourceHashCode, isUnresolved, includeFileStateBuilder.build()));
+            builder.put(sourceFile, new SourceFileState(sourceHashCode, isUnresolved, includeFileStates));
         }
         return new CompilationState(builder.build());
     }

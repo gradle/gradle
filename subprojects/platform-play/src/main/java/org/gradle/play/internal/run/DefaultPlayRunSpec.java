@@ -22,10 +22,11 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Set;
 
 public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
-    private final Iterable<File> classpath;
-    private final Iterable<File> changingClasspath;
+    private final Set<File> classpath;
+    private final Set<File> changingClasspath;
     private final File applicationJar;
     private final File assetsJar;
     private final Iterable<File> assetsDirs;
@@ -35,7 +36,7 @@ public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
 
     public DefaultPlayRunSpec(Iterable<File> classpath, Iterable<File> changingClasspath, File applicationJar, File assetsJar, Iterable<File> assetsDirs, File projectPath, BaseForkOptions forkOptions, int httpPort) {
         this.classpath = Sets.newLinkedHashSet(classpath);
-        this.changingClasspath = changingClasspath != null ? Sets.newLinkedHashSet(changingClasspath) : Collections.<File>emptySet();
+        this.changingClasspath = changingClasspath != null ? Sets.newLinkedHashSet(changingClasspath) : Collections.emptySet();
         this.applicationJar = applicationJar;
         this.assetsJar = assetsJar;
         this.assetsDirs = assetsDirs;
@@ -50,12 +51,12 @@ public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
     }
 
     @Override
-    public Iterable<File> getClasspath() {
+    public Set<File> getClasspath() {
         return classpath;
     }
 
     @Override
-    public Iterable<File> getChangingClasspath() {
+    public Set<File> getChangingClasspath() {
         return changingClasspath;
     }
 

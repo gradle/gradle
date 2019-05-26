@@ -15,8 +15,11 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
+
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * Immutable snapshot of the state of a source file.
@@ -24,12 +27,12 @@ import org.gradle.internal.hash.HashCode;
 public class SourceFileState {
     private final HashCode hash;
     private final boolean hasUnresolved;
-    private final ImmutableSet<IncludeFileEdge> resolvedIncludes;
+    private final Set<IncludeFileEdge> resolvedIncludes;
 
-    public SourceFileState(HashCode hash, boolean hasUnresolved, ImmutableSet<IncludeFileEdge> resolvedIncludes) {
+    public SourceFileState(HashCode hash, boolean hasUnresolved, Set<IncludeFileEdge> resolvedIncludes) {
         this.hash = hash;
         this.hasUnresolved = hasUnresolved;
-        this.resolvedIncludes = resolvedIncludes;
+        this.resolvedIncludes = unmodifiableSet(resolvedIncludes);
     }
 
     public HashCode getHash() {
@@ -46,7 +49,7 @@ public class SourceFileState {
     /**
      * The set of successfully resolved edges in the include file graph.
      */
-    public ImmutableSet<IncludeFileEdge> getEdges() {
+    public Set<IncludeFileEdge> getEdges() {
         return resolvedIncludes;
     }
 }

@@ -19,14 +19,15 @@ package org.gradle.play.internal.run;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 
 import java.io.File;
+import java.util.Set;
 
 public interface PlayRunSpec {
 
     BaseForkOptions getForkOptions();
 
-    Iterable<File> getClasspath();
+    Set<File> getClasspath();
 
-    Iterable<File> getChangingClasspath();
+    Set<File> getChangingClasspath();
 
     File getApplicationJar();
 
