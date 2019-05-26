@@ -34,10 +34,12 @@ public interface HashFunction {
     /**
      * Hash the given bytes using the hash function.
      */
-    HashCode hashBytes(byte[] bytes);
+    HashCode hashBytes(byte... bytes);
 
     /**
      * Hash the given string using the hash function.
      */
     HashCode hashString(CharSequence string);
+
+    int byteCount();
 }

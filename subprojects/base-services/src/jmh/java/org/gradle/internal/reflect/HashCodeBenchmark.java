@@ -37,7 +37,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Benchmark                               Mode  Cnt   Score   Error  Units
- * HashCodeBenchmark.hashCode_and_equals  thrpt   20  63.966 ± 5.416  ops/s
+ * HashCodeBenchmark.hashCode_and_equals  thrpt   20  83.162 ± 6.121  ops/s
  **/
 @Fork(2)
 @State(Scope.Benchmark)
@@ -52,6 +52,12 @@ public class HashCodeBenchmark {
         for (int i = 0; i < 100000; i++) {
             HashCode hashCode = hashFunction.hashBytes(Ints.toByteArray(i));
             values.add(hashCode);
+        }
+
+        int byteCount = hashFunction.byteCount();
+        System.out.println("Byte count: " + byteCount);
+        for (HashCode value : values) {
+            Preconditions.checkArgument(value.toByteArray().length == byteCount);
         }
     }
 

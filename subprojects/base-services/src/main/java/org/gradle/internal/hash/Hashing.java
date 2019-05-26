@@ -148,7 +148,7 @@ public class Hashing {
         }
 
         @Override
-        public HashCode hashBytes(byte[] bytes) {
+        public HashCode hashBytes(byte... bytes) {
             PrimitiveHasher hasher = newPrimitiveHasher();
             hasher.putBytes(bytes);
             return hasher.hash();
@@ -162,6 +162,8 @@ public class Hashing {
         }
 
         protected abstract MessageDigest createDigest();
+
+        public abstract int byteCount();
     }
 
     private static class CloningMessageDigestHashFunction extends MessageDigestHashFunction {
@@ -179,6 +181,11 @@ public class Hashing {
                 throw new AssertionError(e);
             }
         }
+
+        @Override
+        public int byteCount() {
+            return prototype.getDigestLength();
+        }
     }
 
     private static class RegularMessageDigestHashFunction extends MessageDigestHashFunction {
@@ -195,6 +202,11 @@ public class Hashing {
             } catch (NoSuchAlgorithmException e) {
                 throw new AssertionError(e);
             }
+        }
+
+        @Override
+        public int byteCount() {
+            return createDigest().getDigestLength();
         }
     }
 
@@ -263,14 +275,14 @@ public class Hashing {
 
         @Override
         public void putHash(HashCode hashCode) {
-            putBytes(hashCode.getBytes());
+            putBytes(hashCode.toByteArray());
         }
 
         @Override
         public HashCode hash() {
             byte[] bytes = getDigest().digest();
             digest = null;
-            return HashCode.fromBytesNoCopy(bytes);
+            return HashCode.fromBytes(bytes);
         }
     }
 
