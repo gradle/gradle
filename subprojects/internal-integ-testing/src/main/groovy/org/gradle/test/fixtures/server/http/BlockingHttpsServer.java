@@ -43,16 +43,16 @@ public class BlockingHttpsServer extends BlockingHttpServer {
     }
 
     public void configure(TestKeyStore testKeyStore) {
-        HttpsServer httpsServer = (HttpsServer)this.server;
+        HttpsServer httpsServer = (HttpsServer) this.server;
         SSLContext context = createSSLContext(testKeyStore);
         httpsServer.setHttpsConfigurator(new HttpsConfigurator(context) {
             @Override
             public void configure(HttpsParameters params) {
                 SSLContext c = getSSLContext();
-                SSLEngine engine = c.createSSLEngine ();
-                params.setNeedClientAuth ( false );
-                params.setCipherSuites ( engine.getEnabledCipherSuites () );
-                params.setProtocols ( engine.getEnabledProtocols () );
+                SSLEngine engine = c.createSSLEngine();
+                params.setNeedClientAuth(false);
+                params.setCipherSuites(engine.getEnabledCipherSuites());
+                params.setProtocols(engine.getEnabledProtocols());
                 params.setSSLParameters(c.getDefaultSSLParameters());
             }
         });
