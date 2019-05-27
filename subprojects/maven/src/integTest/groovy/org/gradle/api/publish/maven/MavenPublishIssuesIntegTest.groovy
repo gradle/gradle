@@ -116,7 +116,7 @@ publishing {
 
         buildFile << """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
     group = 'my.org'
     version = '1.0'
@@ -137,13 +137,13 @@ subprojects {
 """
         file("main", "build.gradle") << """
     dependencies {
-        compile project(':util')
+        api project(':util')
     }
 """
 
         file("util", "build.gradle") << """
     dependencies {
-        compile 'org.gradle:dep:1.1'
+        api 'org.gradle:dep:1.1'
     }
 """
 
@@ -167,7 +167,7 @@ subprojects {
         and:
         settingsFile << 'rootProject.name = "root"'
         buildFile << """
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "maven-publish"
 
     group = "org.gradle"
@@ -177,7 +177,7 @@ subprojects {
         maven { url "${mavenRepo.uri}" }
     }
     dependencies {
-        compile ("org.gradle:pom-excludes:0.1"){
+        api("org.gradle:pom-excludes:0.1"){
            exclude group: "org.opensource1", module: "dep1"
            exclude group: "org.opensource2"
            exclude module: "dep2"

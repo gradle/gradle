@@ -27,7 +27,7 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
             apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -44,11 +44,11 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
             }
 
             dependencies {
-                compile "group:projectA:latest.release"
-                compile "group:projectB:latest.integration"
-                compile "group:projectC:1.+"
-                compile "group:projectD:[1.0,2.0)"
-                compile "group:projectE:[1.0]"
+                api "group:projectA:latest.release"
+                api "group:projectB:latest.integration"
+                api "group:projectC:1.+"
+                api "group:projectD:[1.0,2.0)"
+                api "group:projectE:[1.0]"
             }"""
 
         when:
@@ -78,7 +78,7 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
         buildFile << """
 
             apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -95,8 +95,8 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
             }
 
             dependencies {
-                compile "group:projectA"
-                compile group:"group", name:"projectB", version:null
+                api "group:projectA"
+                api group:"group", name:"projectB", version:null
             }"""
 
         when:
