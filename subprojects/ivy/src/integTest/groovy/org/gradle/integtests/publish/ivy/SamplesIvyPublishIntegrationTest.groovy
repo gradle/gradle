@@ -28,6 +28,8 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
         executer.withRepositoryMirrors()
     }
 
