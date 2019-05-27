@@ -1,25 +1,28 @@
 [[custom_gradle_types]]
 = Developing Custom Gradle Types
 
-There are several different kinds of "add-ons" to Gradle that you can develop, such as <<custom_plugins.adoc#custom_plugins,plugins>>, <<custom_tasks.adoc#custom_tasks,task types>>,
-<<custom_plugins.adoc#sec:getting_input_from_the_build,project extensions>> or <<dependency_management_attribute_based_matching.adoc#implementing_artifact_transforms,artifact transforms>>.
-These are all implemented as classes and other types that can run on the JVM. This chapter discusses some of the features and concepts that are common
-to all of these types. You can use these features to help implement custom Gradle types and provide a consistent DSL for your users.
+There are several different kinds of "add-ons" to Gradle that you can develop, such as <<custom_plugins.adoc#custom_plugins,plugins>>, <<custom_tasks.adoc#custom_tasks,tasks>>,
+<<custom_plugins.adoc#sec:getting_input_from_the_build,project extensions>> or <<dependency_management_attribute_based_matching.adoc#implementing_artifact_transforms,artifact transforms>>,
+that are all implemented as classes and other types that can run on the JVM.
+This chapter discusses some of the features and concepts that are common to these types.
+You can use these features to help implement custom Gradle types and provide a consistent DSL for your users.
 
-== Configuration
+== Configuration using bean properties
 
-The custom Gradle types that you implement often holds some configuration that you want to make available to build scripts and other plugins.
-This configuration is represented as Java bean properties. For example, a download task may have properties that specify the URL to download
-from, and the location to write the result to.
+The custom Gradle types that you implement often hold some configuration that you want to make available to build scripts and other plugins.
+For example, a download task may have configuration that specifies the URL to download from and the file system location to write the result to.
+This configuration is represented as Java bean properties.
 
+Kotlin and Groovy also provide conveniences for declaring Java bean properties, which make them good language choices to use to implement Gradle types.
+These conveniences are demonstrated in the samples below.
+
+Gradle also provides some conveniences for implementing types with bean properties.
 A property may be _mutable_, meaning that it has both a getter method and setter method, or _read-only_, meaning that it has only a getter method.
-
-Kotlin and Groovy both provide conveniences for implementing Java bean properties. These are demonstrated in the samples below.
+Gradle can provide an implementation of a property. This is called a _managed property_, as Gradle takes care of managing the state of the property.
 
 === Managed mutable properties
 
-Gradle can optionally provide an implementation of a property declared on a type. This is called a _managed property_, as Gradle takes care of managing the state of the property.
-To declare a managed mutable property, add an abstract getter method and an abstract setter method for the property.
+To declare a managed mutable property, add an abstract getter method and an abstract setter method for the property to the type.
 
 Here is an example of a task type with a `uri` property:
 
@@ -39,12 +42,13 @@ include::{samplesPath}/userguide/plugins/mutableManagedProperty/kotlin/buildSrc/
 include::{samplesPath}/userguide/plugins/mutableManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
 
-Note that for a property to be considered a managed mutable property, _all_ of the property's getter methods and setter methods must be `public` or `private` and `abstract`.
+Note that for a property to be considered a managed mutable property, _all_ of the property's getter methods and setter methods must be `public` or `protected` and `abstract`.
 
 === Managed read-only properties
 
-Gradle can also provide an implementation of a managed read only property declared on a type. To declare a managed read-only property, add an abstract getter method for the property.
-The property should not have any setter methods. This is a useful pattern to use when the property uses one of Gradle's configurable lazy property types.
+To declare a managed read-only property, add an abstract getter method for the property to the type.
+The property should not have any setter methods (otherwise it is not read only).
+This is a useful pattern to use with one of Gradle's configurable <<lazy_configuration.adoc#lazy_configuration,lazy property>> types.
 
 Here is an example of a task type with a `uri` property:
 
@@ -64,7 +68,7 @@ include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/kotlin/buildSrc
 include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
 
-Note that for a property to be considered a managed read only property, _all_ of the property's getter methods must be `public` or `private` and `abstract` and the property must not have any setter methods.
+Note that for a property to be considered a managed read only property, _all_ of the property's getter methods must be `public` or `protected` and `abstract` and the property must not have any setter methods.
 In addition, the property must have one of the following types:
 
 - `Property`
@@ -78,12 +82,14 @@ In addition, the property must have one of the following types:
 === Managed types
 
 A _managed type_ is an abstract class or interface with no fields and whose properties are all managed.
+That is, it is a type whose state is entirely managed by Gradle.
 
 [[service_injection]]
 == Service injection
 
-Gradle provides a number of useful services that can be used by a custom type. For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task
-to run work in parallel, as seen in the <<custom_tasks.adoc#worker_api,worker API>> section.
+Gradle provides a number of useful services that can be used by custom types.
+For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task to run work in parallel, as seen in the <<custom_tasks.adoc#worker_api,worker API>> section.
+The services are made available through _service injection_.
 
 [[services_for_injection]]
 === Available services
@@ -98,7 +104,8 @@ The following services are available for injection:
 === Constructor injection
 
 There are 2 ways that an object can receive the services that it needs. The first option is to add the service as a parameter of the class constructor.
-The constructor must be annotated with the `javax.inject.Inject` annotation. Gradle uses the declared type of each constructor parameter to determine the services that the object requires.
+The constructor must be annotated with the `javax.inject.Inject` annotation.
+Gradle uses the declared type of each constructor parameter to determine the services that the object requires.
 The order of the constructor parameters and their names are not significant and can be whatever you like.
 
 Here is an example that shows a task type that receives an `ObjectFactory` via its constructor:
@@ -123,10 +130,10 @@ include::{samplesPath}/userguide/plugins/constructorServiceInjection/groovy/buil
 
 Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.
 This can be useful, for example, when you cannot change the constructor of the class due to backwards compatibility constraints.
-This pattern also allows Gradle to defer creation of the service until it is required, when the getter method is called, rather than when the instance is created. This can help with performance.
-Gradle uses the declared return type of the getter methods to determine the services that the object requires. The name of the property is not significant and can be whatever you like.
+This pattern also allows Gradle to defer creation of the service until the getter method is called, rather than when the instance is created. This can help with performance.
+Gradle uses the declared return type of the getter method to determine the service to make available. The name of the property is not significant and can be whatever you like.
 
-The property getter must be `public` or `protected`. The can be `abstract` or, in cases where this isn't possible, can have a dummy method body.
+The property getter method must be `public` or `protected`. The method can be `abstract` or, in cases where this isn't possible, can have a dummy method body.
 The method body is discarded.
 
 Here is an example that shows a task type that receives a two services via property getter methods:
