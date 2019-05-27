@@ -1,0 +1,4 @@
+
+task url(type: UrlProcess) {
+    uri = uri("https://gradle.org")
+}
