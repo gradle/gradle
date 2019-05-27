@@ -546,17 +546,10 @@ A daemon is considered compatible only if the default character encoding is set 
 
 Worker daemons will remain running until either the build daemon that started them is stopped, or system memory becomes scarce. When available system memory is low, Gradle will begin stopping worker daemons in an attempt to minimize memory consumption.
 
-[[service_injection]]
-== Service injection
+== More details
 
-Gradle provides a number of services that you can use in a task implementation.
-See <<custom_gradle_types.adoc#service_injection,service injection>> for more details.
+It's often a good option to package custom task types in a Gradle plugin.
+The plugin can provide useful defaults and conventions for the task type, and provides a convenient way to use the task type from a build script or another plugin.
+Please see <<custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>> for more details.
 
-[[sec:reusing_task_logic]]
-== Re-using logic between task classes
-
-There are different ways to re-use logic between task classes.
-The easiest case is when you can extract the logic you want to share in a separate method or class and then use the extracted piece of code in your tasks.
-For example, the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task re-uses the logic of the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(org.gradle.api.Action)] method.
-Another option is to add a task dependency on the task which outputs you want to re-use.
-Other options include using <<more_about_tasks.adoc#sec:task_rules,task rules>> or the <<#worker_api,worker API>>.
+Gradle provides a number of features that are helpful when developing Gradle types, including tasks. Please see <<custom_gradle_types.adoc,Developing Custom Gradle Types>> for more details.
