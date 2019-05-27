@@ -181,7 +181,8 @@ class HashCode16 extends HashCode {
             return false;
         }
         HashCode16 that = (HashCode16) obj;
-        return long0 == that.long0
+        return hashCode == that.hashCode
+            && long0 == that.long0
             && long1 == that.long1;
     }
 
@@ -216,7 +217,8 @@ class HashCodeN extends HashCode {
             return false;
         }
         HashCodeN that = (HashCodeN) obj;
-        return Arrays.equals(bytes, that.bytes);
+        return hashCode == that.hashCode
+            && Arrays.equals(bytes, that.bytes);
     }
 
     @Override
