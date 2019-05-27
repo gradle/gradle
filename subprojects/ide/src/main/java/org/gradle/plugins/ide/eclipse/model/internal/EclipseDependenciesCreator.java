@@ -106,8 +106,6 @@ public class EclipseDependenciesCreator {
             if (componentIdentifier.equals(currentProjectId)) {
                 return;
             }
-            // we're filtering here instead of in org.gradle.plugins.ide.internal.resolver.IdeDependencySet.IdeDependencyResult.getResolvedArtifacts
-            // since specifying attributes makes lots of IDEA tests fail.
             Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
             if (!RUNTIME_JARS_USAGE.equals(usage)) {
                 return;

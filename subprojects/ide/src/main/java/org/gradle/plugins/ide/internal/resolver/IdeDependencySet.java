@@ -128,8 +128,6 @@ public class IdeDependencySet {
                 public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
                     viewConfiguration.lenient(true);
                     viewConfiguration.componentFilter(getComponentFilter(visitor));
-                    // TODO: Doing the restriction this way breaks a lot of test. The resulting start containing RUNTIME + TEST instead of COMPILE scopes for Idea for example.
-                    //viewConfiguration.attributes(attrs -> attrs.attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME_JARS)));
                 }
             }).getArtifacts();
         }
