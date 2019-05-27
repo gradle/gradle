@@ -145,8 +145,8 @@ class PluginUnderTest {
         projectDir.file("build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
-                compile gradleApi()
-                compile localGroovy()
+                implementation gradleApi()
+                implementation localGroovy()
             }
         """
 

@@ -38,7 +38,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
             }
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
                 testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
                     exclude module: 'groovy-all'
                 }
