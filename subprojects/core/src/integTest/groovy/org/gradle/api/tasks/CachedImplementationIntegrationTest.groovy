@@ -33,7 +33,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "commons-codec:commons-codec:1.10"
+                implementation "commons-codec:commons-codec:1.10"
             }
         """
 
