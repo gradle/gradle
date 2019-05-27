@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.collect.Sets;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.language.nativeplatform.internal.Include;
@@ -27,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -185,8 +185,8 @@ public class IncrementalCompileFilesFactory {
             visibleMacros.append(file, fileDetails.directives);
 
             List<Include> allIncludes = fileDetails.directives.getAll();
-            List<FileVisitResult> included = allIncludes.isEmpty() ? Collections.<FileVisitResult>emptyList() : new ArrayList<FileVisitResult>(allIncludes.size());
-            List<IncludeFileEdge> edges = allIncludes.isEmpty() ? Collections.<IncludeFileEdge>emptyList() : new ArrayList<IncludeFileEdge>(allIncludes.size());
+            List<FileVisitResult> included = allIncludes.isEmpty() ? Collections.emptyList() : new ArrayList<FileVisitResult>(allIncludes.size());
+            Set<IncludeFileEdge> edges = allIncludes.isEmpty() ? Collections.emptySet() : Sets.newLinkedHashSetWithExpectedSize(allIncludes.size());
             IncludeFileResolutionResult result = IncludeFileResolutionResult.NoMacroIncludes;
             for (Include include : allIncludes) {
                 if (include.getType() == IncludeType.MACRO && result == IncludeFileResolutionResult.NoMacroIncludes) {
@@ -258,10 +258,10 @@ public class IncrementalCompileFilesFactory {
         private final IncludeFileResolutionResult result;
         private final IncludeDirectives includeDirectives;
         private final List<FileVisitResult> included;
-        private final List<IncludeFileEdge> edges;
+        private final Set<IncludeFileEdge> edges;
         private final CollectingMacroLookup includeFileDirectives;
 
-        FileVisitResult(File file, IncludeFileResolutionResult result, IncludeDirectives includeDirectives, List<FileVisitResult> included, List<IncludeFileEdge> edges, CollectingMacroLookup dependentIncludeDirectives) {
+        FileVisitResult(File file, IncludeFileResolutionResult result, IncludeDirectives includeDirectives, List<FileVisitResult> included, Set<IncludeFileEdge> edges, CollectingMacroLookup dependentIncludeDirectives) {
             this.file = file;
             this.result = result;
             this.includeDirectives = includeDirectives;
@@ -275,7 +275,7 @@ public class IncrementalCompileFilesFactory {
             result = IncludeFileResolutionResult.NoMacroIncludes;
             includeDirectives = null;
             included = Collections.emptyList();
-            edges = Collections.emptyList();
+            edges = Collections.emptySet();
             includeFileDirectives = null;
         }
 
@@ -285,7 +285,7 @@ public class IncrementalCompileFilesFactory {
             }
         }
 
-        void collectFilesInto(Collection<IncludeFileEdge> files, Set<File> seen) {
+        void collectFilesInto(Set<IncludeFileEdge> files, Set<File> seen) {
             if (includeDirectives != null && seen.add(file)) {
                 files.addAll(edges);
                 for (FileVisitResult include : included) {
