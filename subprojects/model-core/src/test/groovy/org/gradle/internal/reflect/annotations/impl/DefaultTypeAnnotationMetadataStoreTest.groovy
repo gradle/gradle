@@ -487,7 +487,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             }
         }
 
-    def "report setters for property with mutable type"() {
+    def "report setters for property of mutable type"() {
         expect:
         assertProperties TypeWithPropertiesWithMutableProperties, [
             mutableSubType: [(TYPE): Small],
@@ -495,8 +495,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             mutableSubTypeWithSetter: [(TYPE): Small],
             mutableTypeWithSetter: [(TYPE): Small]
         ], [
-            "Type '${TypeWithPropertiesWithMutableProperties.name}': property 'mutableSubTypeWithSetter' with mutable type '${MutableSubType.name}' is redundant. Use methods on the property value itself to mutate it",
-            "Type '${TypeWithPropertiesWithMutableProperties.name}': property 'mutableTypeWithSetter' with mutable type '${MutableType.name}' is redundant. Use methods on the property value itself to mutate it"
+            "Type '${TypeWithPropertiesWithMutableProperties.name}': property 'mutableSubTypeWithSetter' of mutable type '${MutableSubType.name}' is writable. Properties of this type should be read-only and mutated via the value itself",
+            "Type '${TypeWithPropertiesWithMutableProperties.name}': property 'mutableTypeWithSetter' of mutable type '${MutableType.name}' is writable. Properties of this type should be read-only and mutated via the value itself"
         ]
     }
 
