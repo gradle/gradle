@@ -76,8 +76,6 @@ include::writing_build_scripts.adoc[leveloffset=+2]
 
 include::working_with_files.adoc[leveloffset=+2]
 
-include::custom_tasks.adoc[leveloffset=+2]
-
 include::plugins.adoc[leveloffset=+2]
 
 include::build_lifecycle.adoc[leveloffset=+2]
@@ -170,7 +168,11 @@ include::software_model_extend.adoc[leveloffset=+2]
 [[part:extending_gradle]]
 == Extending Gradle
 
+include::custom_tasks.adoc[leveloffset=+2]
+
 include::custom_plugins.adoc[leveloffset=+2]
+
+include::custom_gradle_types.adoc[leveloffset=+2]
 
 include::java_gradle_plugin.adoc[leveloffset=+2]
 

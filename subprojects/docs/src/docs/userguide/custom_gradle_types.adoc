@@ -1,0 +1,10 @@
+[[custom_gradle_types]]
+= Developing Custom Gradle Types
+
+There are several different kinds of "add-ons" to Gradle that you can develop, such as plugins, tasks, project extensions or artifact transforms.
+These are all implemented as classes and other types that can run on the JVM. This chapter discusses some of the common features that are available
+to help you implement these types.
+
+== Service injection
+
+TODO - move from tasks chapter
