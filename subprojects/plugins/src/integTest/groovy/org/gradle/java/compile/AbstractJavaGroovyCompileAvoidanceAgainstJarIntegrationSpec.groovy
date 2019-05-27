@@ -16,11 +16,11 @@
 
 package org.gradle.java.compile
 
+import groovy.transform.SelfType
 import spock.lang.Issue
 
-abstract class AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
-    boolean useJar = true
-
+@SelfType(AbstractJavaGroovyCompileAvoidanceIntegrationSpec)
+trait AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
     def "doesn't recompile when implementation manifest is changed"() {
         given:
         buildFile << """

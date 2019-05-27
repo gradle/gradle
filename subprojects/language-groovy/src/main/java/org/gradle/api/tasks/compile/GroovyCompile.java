@@ -69,9 +69,10 @@ public class GroovyCompile extends AbstractCompile {
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
 
     public GroovyCompile() {
-        CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
+        ObjectFactory objectFactory = getServices().get(ObjectFactory.class);
+        CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
         this.compileOptions = compileOptions;
-        this.compilerPluginClasspath = getServices().get(ObjectFactory.class).fileCollection();
+        this.compilerPluginClasspath = objectFactory.fileCollection();
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
