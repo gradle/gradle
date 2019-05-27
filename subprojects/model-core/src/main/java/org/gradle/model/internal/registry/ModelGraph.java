@@ -24,12 +24,10 @@ import org.gradle.model.internal.core.ModelPath;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,7 +43,7 @@ class ModelGraph {
     private final SetMultimap<ModelPath, ModelListener> ancestorListeners = LinkedHashMultimap.create();
     private final Set<ModelListener> listeners = new LinkedHashSet<ModelListener>();
     private boolean notifying;
-    private final List<ModelListener> pendingListeners = new ArrayList<ModelListener>();
+    private final Deque<ModelListener> pendingListeners = new ArrayDeque<>();
     private final Map<ModelNodeInternal, PendingState> pendingNodes = Maps.newLinkedHashMap();
 
     public ModelGraph(ModelNodeInternal rootNode) {
@@ -193,7 +191,7 @@ class ModelGraph {
 
     private void flush() {
         while (!pendingListeners.isEmpty()) {
-            doAddListener(pendingListeners.remove(0));
+            doAddListener(pendingListeners.removeFirst());
         }
         while (!pendingNodes.isEmpty()) {
             Iterator<Map.Entry<ModelNodeInternal, PendingState>> iPendingNodes = pendingNodes.entrySet().iterator();
