@@ -56,6 +56,7 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
@@ -73,6 +74,14 @@ public class GroovyCompile extends AbstractCompile {
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
         this.compileOptions = compileOptions;
         this.compilerPluginClasspath = objectFactory.fileCollection();
+        if (!experimentalCompilationAvoidanceEnabled()) {
+            this.compilerPluginClasspath.from(new Callable<FileCollection>() {
+                @Override
+                public FileCollection call() {
+                    return getClasspath();
+                }
+            });
+        }
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
@@ -85,7 +94,7 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     /**
-     * The classpath for compiler plugin to run, for example, AST transformation.
+     * The classpath containing compiler plugins (for example, AST transformations) and their dependencies.
      *
      * @since 5.6
      */
@@ -103,17 +112,15 @@ public class GroovyCompile extends AbstractCompile {
     @TaskAction
     protected void compile() {
         checkGroovyClasspathIsNonEmpty();
-        separateCompileClasspathIfCompileAvoidanceEnabled();
+        warnIfCompileAvoidanceEnabled();
         DefaultGroovyJavaJointCompileSpec spec = createSpec();
         WorkResult result = getCompiler(spec).execute(spec);
         setDidWork(result.getDidWork());
     }
 
-    private void separateCompileClasspathIfCompileAvoidanceEnabled() {
+    private void warnIfCompileAvoidanceEnabled() {
         if (experimentalCompilationAvoidanceEnabled()) {
             DeprecationLogger.incubatingFeatureUsed("Groovy compilation avoidance is an incubating feature.");
-        } else {
-            compilerPluginClasspath.from(getClasspath());
         }
     }
 

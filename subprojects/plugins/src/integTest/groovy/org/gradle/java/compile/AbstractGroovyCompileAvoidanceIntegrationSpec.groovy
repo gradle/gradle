@@ -67,12 +67,8 @@ public class MyASTTransformation extends AbstractASTTransformation {
     """
     }
 
-    def "recompile with change of local ast transformation"() {
-        given:
-        executer.beforeExecute {
-            executer.withArgument('--info')
-        }
-        buildFile << """
+    private String astTransformationDeclaration() {
+        """
             project(':b') {
                 configurations { astTransformation }
                 dependencies {
@@ -84,13 +80,66 @@ public class MyASTTransformation extends AbstractASTTransformation {
                 }
             }
         """
-        file("a/src/main/groovy/MyAnnotation.groovy") << """
+    }
+
+    private String astTransformationAnnotation() {
+        """
 import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.TYPE])
 @org.codehaus.groovy.transform.GroovyASTTransformationClass("MyASTTransformation")
 public @interface MyAnnotation { }
         """
+    }
+
+    def 'always recompile if compilation avoidance is not enabled'() {
+        given:
+        enableGroovyCompilationAvoidance = false
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/groovy/ToolImpl.groovy")
+        sourceFile << """
+            public class ToolImpl { 
+                public String thing() { return null; }
+            }
+        """
+        file("b/src/main/groovy/Main.groovy") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ":b:compileGroovy"
+
+        then:
+        outputDoesNotContain('Groovy compilation avoidance is an incubating feature')
+        executedAndNotSkipped ":a:compileGroovy"
+        executedAndNotSkipped ":b:compileGroovy"
+
+        when:
+        sourceFile.text = """
+            public class ToolImpl { 
+                public String thing() { return ""; }
+            }
+        """
+
+        then:
+        succeeds ":b:compileGroovy"
+        executedAndNotSkipped ":a:compileGroovy"
+        executedAndNotSkipped ":b:compileGroovy"
+    }
+
+    def "recompile with change of local ast transformation"() {
+        given:
+        executer.beforeExecute {
+            executer.withArgument('--info')
+        }
+        buildFile << astTransformationDeclaration()
+        file("a/src/main/groovy/MyAnnotation.groovy") << astTransformationAnnotation()
         def astTransformationSourceFile = file("a/src/main/groovy/MyASTTransformation.groovy")
         file("b/src/main/groovy/Main.groovy") << """
             @MyAnnotation 
@@ -130,18 +179,7 @@ public @interface MyAnnotation { }
         executer.beforeExecute {
             executer.withArgument('--info')
         }
-        buildFile << """
-            project(':b') {
-                configurations { astTransformation }
-                dependencies {
-                    astTransformation project(':a')
-                }
-                
-                tasks.withType(GroovyCompile) {
-                    compilerPluginClasspath.from(configurations.astTransformation)
-                }
-            }
-        """
+        buildFile << astTransformationDeclaration()
         file("a/src/main/resources/META-INF/services/org.codehaus.groovy.transform.ASTTransformation") << "MyASTTransformation"
         def astTransformationSourceFile = file("a/src/main/groovy/MyASTTransformation.groovy")
         file("b/src/main/groovy/Main.groovy") << """
