@@ -6,11 +6,94 @@ There are several different kinds of "add-ons" to Gradle that you can develop, s
 These are all implemented as classes and other types that can run on the JVM. This chapter discusses some of the features and concepts that are common
 to all of these types. You can use these features to help implement custom Gradle types and provide a consistent DSL for your users.
 
+== Configuration
+
+The custom Gradle types that you implement often holds some configuration that you want to make available to build scripts and other plugins.
+This configuration is represented as Java bean properties. For example, a download task may have properties that specify the URL to download
+from, and the location to write the result to.
+
+A property may be _mutable_, meaning that it has both a getter method and setter method, or _read-only_, meaning that it has only a getter method.
+
+Kotlin and Groovy both provide conveniences for implementing Java bean properties. These are demonstrated in the samples below.
+
+=== Managed mutable properties
+
+Gradle can optionally provide an implementation of a property declared on a type. This is called a _managed property_, as Gradle takes care of managing the state of the property.
+To declare a managed mutable property, add an abstract getter method and an abstract setter method for the property.
+
+Here is an example of a task type with a `uri` property:
+
+[source.multi-language-sample,java]
+.UrlProcess.java
+----
+include::{samplesPath}/userguide/plugins/mutableManagedProperty/java/buildSrc/src/main/java/UrlProcess.java[]
+----
+[source.multi-language-sample,kotlin]
+.UrlProcess.kt
+----
+include::{samplesPath}/userguide/plugins/mutableManagedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
+----
+[source.multi-language-sample,groovy]
+.UrlProcess.groovy
+----
+include::{samplesPath}/userguide/plugins/mutableManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
+----
+
+Note that for a property to be considered a managed mutable property, _all_ of the property's getter methods and setter methods must be `public` or `private` and `abstract`.
+
+=== Managed read-only properties
+
+Gradle can also provide an implementation of a managed read only property declared on a type. To declare a managed read-only property, add an abstract getter method for the property.
+The property should not have any setter methods. This is a useful pattern to use when the property uses one of Gradle's configurable lazy property types.
+
+Here is an example of a task type with a `uri` property:
+
+[source.multi-language-sample,java]
+.UrlProcess.java
+----
+include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/java/buildSrc/src/main/java/UrlProcess.java[]
+----
+[source.multi-language-sample,kotlin]
+.UrlProcess.kt
+----
+include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
+----
+[source.multi-language-sample,groovy]
+.UrlProcess.groovy
+----
+include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
+----
+
+Note that for a property to be considered a managed read only property, _all_ of the property's getter methods must be `public` or `private` and `abstract` and the property must not have any setter methods.
+In addition, the property must have one of the following types:
+
+- `Property`
+- `RegularFileProperty`
+- `DirectoryProperty`
+- `ListProperty`
+- `SetProperty`
+- `MapProperty`
+- `ConfigurableFileCollection`
+
+=== Managed types
+
+A _managed type_ is an abstract class or interface with no fields and whose properties are all managed.
+
 [[service_injection]]
 == Service injection
 
 Gradle provides a number of useful services that can be used by a custom type. For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task
 to run work in parallel, as seen in the <<custom_tasks.adoc#worker_api,worker API>> section.
+
+[[services_for_injection]]
+=== Available services
+
+The following services are available for injection:
+
+- link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created. See <<custom_plugins.adoc#sec:nested_dsl_elements,custom plugins>> for more details.
+- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout] - Provides access to key project locations. See <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy configuration>> for more details.
+- link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> for more details.
+- link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel. See <<custom_tasks.adoc#worker_api,the worker API>> for more details.
 
 === Constructor injection
 
@@ -63,13 +146,3 @@ include::{samplesPath}/userguide/plugins/propertyServiceInjection/kotlin/buildSr
 ----
 include::{samplesPath}/userguide/plugins/propertyServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
-
-[[services_for_injection]]
-=== Available services
-
-The following services are available for injection:
-
-- link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created. See <<custom_plugins.adoc#sec:nested_dsl_elements,custom plugins>> for more details.
-- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout] - Provides access to key project locations. See <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy configuration>> for more details.
-- link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> for more details.
-- link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel. See <<custom_tasks.adoc#worker_api,the worker API>> for more details.
