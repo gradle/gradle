@@ -69,6 +69,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -491,7 +492,7 @@ public class DependencyGraphBuilder {
         }
 
         // Collect the components to sort in consumer-first order
-        List<ComponentState> queue = Lists.newArrayListWithExpectedSize(resolveState.getNodeCount());
+        LinkedList<ComponentState> queue = Lists.newLinkedList();
         for (ModuleResolveState module : resolveState.getModules()) {
             if (module.getSelected() != null && !module.isVirtualPlatform()) {
                 queue.add(module.getSelected());
@@ -500,7 +501,7 @@ public class DependencyGraphBuilder {
 
         // Visit the edges after sorting the components in consumer-first order
         while (!queue.isEmpty()) {
-            ComponentState component = queue.get(0);
+            ComponentState component = queue.peekFirst();
             if (component.getVisitState() == VisitState.NotSeen) {
                 component.setVisitState(VisitState.Visiting);
                 int pos = 0;
@@ -519,7 +520,7 @@ public class DependencyGraphBuilder {
                 if (pos == 0) {
                     // have visited all consumers, so visit this node
                     component.setVisitState(VisitState.Visited);
-                    queue.remove(0);
+                    queue.removeFirst();
                     for (NodeState node : component.getNodes()) {
                         if (node.isSelected()) {
                             visitor.visitEdges(node);
@@ -529,7 +530,7 @@ public class DependencyGraphBuilder {
             } else if (component.getVisitState() == VisitState.Visiting) {
                 // have visited all consumers, so visit this node
                 component.setVisitState(VisitState.Visited);
-                queue.remove(0);
+                queue.removeFirst();
                 for (NodeState node : component.getNodes()) {
                     if (node.isSelected()) {
                         visitor.visitEdges(node);
@@ -537,7 +538,7 @@ public class DependencyGraphBuilder {
                 }
             } else {
                 // else, already visited previously, skip
-                queue.remove(0);
+                queue.removeFirst();
             }
         }
 
