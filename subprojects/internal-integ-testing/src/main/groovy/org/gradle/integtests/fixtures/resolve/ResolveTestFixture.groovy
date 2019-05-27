@@ -44,7 +44,7 @@ class ResolveTestFixture {
     private String defaultConfig = "default"
     private boolean buildArtifacts = true
 
-    ResolveTestFixture(TestFile buildFile, String config = "compile") {
+    ResolveTestFixture(TestFile buildFile, String config = "runtimeClasspath") {
         this.config = config
         this.buildFile = buildFile
     }
