@@ -31,12 +31,12 @@ class HashCodeTest extends Specification {
         hash.hashCode() == (int) hashCode
 
         where:
-        input          | length | toString       | hashCode   | bytes
-        "12345678"     | 4      | "12345678"     | 0x78563412 | toBytes(0x12, 0x34, 0x56, 0x78)
-        "CAFEBABE"     | 4      | "cafebabe"     | 0xBEBAFECA | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
-        "abbaabba"     | 4      | "abbaabba"     | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 2)
-        "abbaabbaabba" | 6      | "abbaabbaabba" | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 3)
-        "aB" * 255     | 255    | "ab" * 255     | 0xABABABAB | toBytes([0xAB] * 255)
+        input          | length | toString       | hashCode    | bytes
+        "12345678"     | 4      | "12345678"     | 1512517     | toBytes(0x12, 0x34, 0x56, 0x78)
+        "CAFEBABE"     | 4      | "cafebabe"     | -689351     | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
+        "abbaabba"     | 4      | "abbaabba"     | -1678689    | toBytes([0xAB, 0xBA] * 2)
+        "abbaabbaabba" | 6      | "abbaabbaabba" | -1613222834 | toBytes([0xAB, 0xBA] * 3)
+        "aB" * 100     | 100    | "ab" * 100     | 1556127809  | toBytes([0xAB] * 100)
     }
 
     def "can parse int: #input"() {
@@ -49,10 +49,10 @@ class HashCodeTest extends Specification {
         hash.hashCode() == (int) hashCode
 
         where:
-        input          | length | toString       | hashCode   | bytes
-        0x12345678     | 4      | "12345678"     | 0x78563412 | toBytes(0x12, 0x34, 0x56, 0x78)
-        0xCAFEBABE     | 4      | "cafebabe"     | 0xBEBAFECA | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
-        0xabbaabba     | 4      | "abbaabba"     | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 2)
+        input      | length | toString   | hashCode | bytes
+        0x12345678 | 4      | "12345678" | 1512517  | toBytes(0x12, 0x34, 0x56, 0x78)
+        0xCAFEBABE | 4      | "cafebabe" | -689351  | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
+        0xabbaabba | 4      | "abbaabba" | -1678689 | toBytes([0xAB, 0xBA] * 2)
     }
 
     def "can parse bytes: #input"() {
@@ -65,11 +65,11 @@ class HashCodeTest extends Specification {
         hash.hashCode() == (int) hashCode
 
         where:
-        input                           | length | toString       | hashCode   | bytes
-        toBytes(0x12, 0x34, 0x56, 0x78) | 4      | "12345678"     | 0x78563412 | toBytes(0x12, 0x34, 0x56, 0x78)
-        toBytes(0xCA, 0xFE, 0xBA, 0xBE) | 4      | "cafebabe"     | 0xBEBAFECA | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
-        toBytes([0xAB, 0xBA] * 3)       | 6      | "abbaabbaabba" | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 3)
-        toBytes([0xAB] * 255)           | 255    | "ab" * 255     | 0xABABABAB | toBytes([0xAB] * 255)
+        input                           | length | toString       | hashCode    | bytes
+        toBytes(0x12, 0x34, 0x56, 0x78) | 4      | "12345678"     | 1512517     | toBytes(0x12, 0x34, 0x56, 0x78)
+        toBytes(0xCA, 0xFE, 0xBA, 0xBE) | 4      | "cafebabe"     | -689351     | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
+        toBytes([0xAB, 0xBA] * 3)       | 6      | "abbaabbaabba" | -1613222834 | toBytes([0xAB, 0xBA] * 3)
+        toBytes([0xAB] * 100)           | 100    | "ab" * 100     | 1556127809  | toBytes([0xAB] * 100)
     }
 
     def "#a == #b: #equals"() {
@@ -87,23 +87,20 @@ class HashCodeTest extends Specification {
         "abcdef1234" | "abcdef12"   | false
     }
 
-    def "#a <=> #b: #expected"() {
-        def hashA = HashCode.fromString(a)
-        def hashB = HashCode.fromString(b)
-        def compareAB = hashA <=> hashB
-        def compareBA = hashB <=> hashA
+    def "a <=> b should be stable"() {
+        when:
+        def hashA = HashCode.fromInt(0)
+        def hashB = HashCode.fromInt(0)
 
-        expect:
-        Math.signum(compareAB) == expected
-        Math.signum(compareBA) == -expected
+        then:
+        Math.signum(hashA <=> hashB) == Math.signum(hashB <=> hashA)
 
-        where:
-        a            | b            | expected
-        "abcdef12"   | "abcdef12"   | 0
-        "abcdef12"   | "abcdef1234" | -1
-        "abcdef1234" | "abcdef12"   | 1
-        "abcdef1234" | "bcdef123"   | -1
-        "bcdef123"   | "abcdef12"   | 1
+        when:
+        def hashC = HashCode.fromInt(1)
+
+        then:
+        hashA != hashC
+        Math.signum(hashA <=> hashC) == -Math.signum(hashC <=> hashA)
     }
 
     def "not equals with null"() {
