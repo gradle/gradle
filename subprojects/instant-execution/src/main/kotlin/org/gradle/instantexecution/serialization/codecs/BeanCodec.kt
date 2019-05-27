@@ -25,6 +25,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanFieldDeserializer
 import org.gradle.instantexecution.serialization.beans.BeanFieldSerializer
 import org.gradle.instantexecution.serialization.readClass
+import org.gradle.instantexecution.serialization.writeClass
 import sun.reflect.ReflectionFactory
 import java.lang.reflect.Constructor
 
@@ -41,7 +42,7 @@ class BeanCodec(
         } else {
             writeSmallInt(isolate.identities.putInstance(value))
             val beanType = GeneratedSubclasses.unpackType(value)
-            writeString(beanType.name)
+            writeClass(beanType)
             BeanFieldSerializer(beanType).run {
                 serialize(value)
             }
