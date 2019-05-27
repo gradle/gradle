@@ -17,6 +17,7 @@
 package org.gradle.workers.internal;
 
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -24,14 +25,19 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
+import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.inject.Inject;
 import java.util.Collections;
 
-public class WorkerDaemonServer extends DefaultWorkerServer {
+public class WorkerDaemonServer implements WorkerProtocol {
+    private final ServiceRegistry serviceRegistry;
+    private Worker isolatedClassloaderWorker;
+
     @Inject
-    public WorkerDaemonServer(ServiceRegistry serviceRegistry) {
-        super(createWorkerDaemonServices(serviceRegistry));
+    public WorkerDaemonServer(ServiceRegistry parent, RequestArgumentSerializers argumentSerializers) {
+        this.serviceRegistry = createWorkerDaemonServices(parent);
+        argumentSerializers.add(WorkerDaemonMessageSerializer.create());
     }
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
@@ -45,10 +51,24 @@ public class WorkerDaemonServer extends DefaultWorkerServer {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            return super.execute(spec);
+            SerializedActionExecutionSpec classloaderActionExecutionSpec = (SerializedActionExecutionSpec) spec;
+            Worker worker = getIsolatedClassloaderWorker(classloaderActionExecutionSpec.getClassLoaderStructure());
+            return worker.execute(classloaderActionExecutionSpec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
+    }
+
+    private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure) {
+        if (isolatedClassloaderWorker == null) {
+            if (classLoaderStructure instanceof FlatClassLoaderStructure) {
+                isolatedClassloaderWorker = new FlatClassLoaderWorker(this.getClass().getClassLoader(), serviceRegistry);
+            } else {
+                ClassLoaderRegistry classLoaderRegistry = serviceRegistry.get(ClassLoaderRegistry.class);
+                isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, classLoaderRegistry.getWorkerPluginsClassLoader(), serviceRegistry, true);
+            }
+        }
+        return isolatedClassloaderWorker;
     }
 
     @Override

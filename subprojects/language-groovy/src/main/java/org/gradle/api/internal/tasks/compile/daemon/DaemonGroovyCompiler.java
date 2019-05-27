@@ -20,8 +20,6 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -32,9 +30,9 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.internal.ClassLoaderStructure;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
+import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerFactory;
 
@@ -68,17 +66,17 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         Iterable<File> classpath = Iterables.concat(spec.getGroovyClasspath(), antFiles);
         VisitableURLClassLoader.Spec targetGroovyClasspath = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(classpath).getAsURLs());
 
-        // TODO We should infer a minimal classpath from delegate instead
-        Collection<File> languageGroovyFiles = classPathRegistry.getClassPath("LANGUAGE-GROOVY").getAsFiles();
+        Collection<File> languageGroovyFiles = classPathRegistry.getClassPath("GROOVY-COMPILER").getAsFiles();
         VisitableURLClassLoader.Spec compilerClasspath = new VisitableURLClassLoader.Spec("compiler-loader", DefaultClassPath.of(languageGroovyFiles).getAsURLs());
 
         FilteringClassLoader.Spec gradleAndUserFilter = getMinimalGradleFilter();
+
         for (String sharedPackage : SHARED_PACKAGES) {
             gradleAndUserFilter.allowPackage(sharedPackage);
         }
 
-        ClassLoaderStructure classLoaderStructure =
-                new ClassLoaderStructure(getMinimalGradleFilter())
+        HierarchicalClassLoaderStructure classLoaderStructure =
+                new HierarchicalClassLoaderStructure(getMinimalGradleFilter())
                         .withChild(targetGroovyClasspath)
                         .withChild(gradleAndUserFilter)
                         .withChild(compilerClasspath);
@@ -91,31 +89,32 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
-            .classpath(classpath)
-            .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
-            .withClassLoaderStrucuture(classLoaderStructure)
+            .withClassLoaderStructure(classLoaderStructure)
             .build();
     }
 
     private static FilteringClassLoader.Spec getMinimalGradleFilter() {
-        // Allow just the basics instead of the entire Gradle API
+        // Allow only certain things from the underlying classloader
         FilteringClassLoader.Spec gradleFilterSpec = new FilteringClassLoader.Spec();
+
         // Logging
         gradleFilterSpec.allowPackage("org.slf4j");
-        gradleFilterSpec.allowClass(Logger.class);
-        gradleFilterSpec.allowClass(LogLevel.class);
-        // Native
-        gradleFilterSpec.allowPackage("org.gradle.internal.nativeintegration");
-        gradleFilterSpec.allowPackage("org.gradle.internal.nativeplatform");
+
+        // Native Services
         gradleFilterSpec.allowPackage("net.rubygrapefruit.platform");
-        // Service Registry
-        gradleFilterSpec.allowPackage("org.gradle.internal.service");
-        // Instantiation
-        gradleFilterSpec.allowPackage("org.gradle.internal.instantiation");
-        gradleFilterSpec.allowPackage("org.gradle.internal.reflect");
+
         // Inject
         gradleFilterSpec.allowPackage("javax.inject");
+
+        // Gradle stuff
+        gradleFilterSpec.allowPackage("org.gradle");
+
+        // Guava
+        gradleFilterSpec.allowPackage("com.google");
+
+        // This should come from the compiler classpath only
+        gradleFilterSpec.disallowPackage("org.gradle.api.internal.tasks.compile");
 
         return gradleFilterSpec;
     }

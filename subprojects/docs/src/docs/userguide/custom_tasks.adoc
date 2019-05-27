@@ -552,7 +552,7 @@ When a unit of work for a Worker Daemon is submitted, Gradle will first look to 
 executable::
 A daemon is considered compatible only if it uses the same java executable.
 classpath::
-A daemon is considered compatible if its classpath contains all of the classpath entries requested. Note that a daemon is considered compatible if it has more classpath entries in addition to those requested.
+A daemon is considered compatible if its classpath contains all of the classpath entries requested. Note that a daemon is considered compatible only if the classpath exactly matches the requested classpath.
 heap settings::
 A daemon is considered compatible if it has at least the same heap size settings as requested. In other words, a daemon that has higher heap settings than requested would be considered compatible.
 jvm arguments::

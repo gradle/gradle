@@ -33,8 +33,6 @@ import java.util.List;
 
 class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
 
-    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.twirl.compiler", "scala.io", "scala.util.parsing.input", "scala.collection");
-
     // Also available via play.japi.twirl.compiler.TwirlCompiler.DEFAULT_IMPORTS but we would have to grab it via reflection
     private static final List<String> DEFAULT_TEMPLATE_IMPORTS = Collections.unmodifiableList(
         Arrays.asList(
@@ -90,11 +88,6 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
     private Object toScalaSeq(Collection<?> list, ClassLoader classLoader) {
         ScalaMethod method = ScalaReflectionUtil.scalaMethod(classLoader, "scala.collection.JavaConversions", "asScalaBuffer", List.class);
         return method.invoke(list);
-    }
-
-    @Override  
-    public Iterable<String> getClassLoaderPackages() { 
-        return SHARED_PACKAGES;    
     }
 
     @Override

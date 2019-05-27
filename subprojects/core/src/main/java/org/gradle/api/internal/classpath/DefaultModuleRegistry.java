@@ -310,7 +310,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     }
 
     private File findJar(String name, Spec<File> allowedJarFiles) {
-        Pattern pattern = Pattern.compile(Pattern.quote(name) + "-\\d.+\\.jar");
+        Pattern pattern = Pattern.compile(Pattern.quote(name) + "-\\d.*\\.jar");
         if (gradleInstallation != null) {
             for (File libDir : gradleInstallation.getLibDirs()) {
                 for (File file : libDir.listFiles()) {

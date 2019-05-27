@@ -26,7 +26,7 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
-import org.gradle.workers.internal.SimpleActionExecutionSpec;
+import org.gradle.workers.internal.SerializedParametersActionExecutionSpec;
 import org.gradle.workers.internal.Worker;
 import org.gradle.workers.internal.WorkerFactory;
 
@@ -56,7 +56,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonForkOptions(spec);
         Worker worker = workerFactory.getWorker(daemonForkOptions);
-        DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerCallable.class, "compiler daemon", new Object[] {delegateClass, delegateParameters, spec}));
+        DefaultWorkResult result = worker.execute(new SerializedParametersActionExecutionSpec(CompilerCallable.class, "compiler daemon", new Object[] {delegateClass, delegateParameters, spec}, daemonForkOptions.getClassLoaderStructure()));
         if (result.isSuccess()) {
             return result;
         } else {
@@ -76,7 +76,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         return merged;
     }
 
-    private static class CompilerCallable<T extends CompileSpec> implements Callable<WorkResult> {
+    public static class CompilerCallable<T extends CompileSpec> implements Callable<WorkResult> {
         private final Class<? extends Compiler<T>> compilerClass;
         private final Object[] compilerParameters;
         private final T compileSpec;

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClasspathUtil;
-import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -57,8 +56,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final WorkerDirectoryProvider workerDirectoryProvider;
+    private final ClassLoaderStructureProvider classLoaderStructureProvider;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -68,6 +68,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.workerDirectoryProvider = workerDirectoryProvider;
+        this.classLoaderStructureProvider = classLoaderStructureProvider;
     }
 
     @Override
@@ -84,13 +85,14 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
+        DaemonForkOptions forkOptions = getDaemonForkOptions(actionClass, configuration);
         try {
-            spec = new SerializingActionExecutionSpec(actionClass, description, configuration.getParams());
+            spec = new SerializedParametersActionExecutionSpec(actionClass, description, configuration.getParams(), forkOptions.getClassLoaderStructure());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
 
-        submit(spec, configuration.getIsolationMode(), getDaemonForkOptions(actionClass, configuration));
+        submit(spec, configuration.getIsolationMode(), forkOptions);
     }
 
     private void submit(final ActionExecutionSpec spec, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
@@ -101,7 +103,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkerFactory workerFactory = getWorkerFactory(isolationMode);
-                    Worker worker = workerFactory.getWorker(daemonForkOptions);
+                    BuildOperationAwareWorker worker = workerFactory.getWorker(daemonForkOptions);
                     return worker.execute(spec, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);
@@ -169,7 +171,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 return o.getClass();
             }
         });
-        return toDaemonOptions(actionClass, paramTypes, configuration.getForkOptions(), configuration.getClasspath());
+        return toDaemonOptions(actionClass, paramTypes, configuration.getForkOptions(), configuration.getClasspath(), configuration.getIsolationMode());
     }
 
     private void validateWorkerConfiguration(WorkerConfiguration configuration) {
@@ -206,52 +208,39 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
-    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> classpath) {
-        ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
-        ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
-
-        sharedPackagesBuilder.add("javax.inject");
-
-        if (classpath != null) {
-            classpathBuilder.addAll(classpath);
-        }
-
-        addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder, true);
-
-        for (Class<?> paramClass : paramClasses) {
-            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder, false);
-        }
-
-        Iterable<File> daemonClasspath = classpathBuilder.build();
-        Iterable<String> daemonSharedPackages = sharedPackagesBuilder.build();
-
+    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> classpath, IsolationMode isolationMode) {
         JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         userForkOptions.copyTo(forkOptions);
         forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
 
-        return new DaemonForkOptionsBuilder(forkOptionsFactory)
+        DaemonForkOptionsBuilder builder = new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(forkOptions)
-            .classpath(daemonClasspath)
-            .sharedPackages(daemonSharedPackages)
-            .keepAliveMode(KeepAliveMode.DAEMON)
-            .build();
-    }
+            .keepAliveMode(KeepAliveMode.DAEMON);
 
-    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder, boolean addToSharedPackages) {
+        if (isolationMode != IsolationMode.NONE) {
+            ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
+
+            if (classpath != null) {
+                classpathBuilder.addAll(classpath);
+            }
+
+            addVisibilityFor(actionClass, classpathBuilder);
+
+            for (Class<?> paramClass : paramClasses) {
+                addVisibilityFor(paramClass, classpathBuilder);
+            }
+
+            Iterable<File> daemonClasspath = classpathBuilder.build();
+
+            builder.withClassLoaderStructure(classLoaderStructureProvider.getDefaultClassLoaderStructure(daemonClasspath));
+        }
+
+        return builder.build();
+}
+
+    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder) {
         if (visibleClass.getClassLoader() != null) {
             classpathBuilder.addAll(ClasspathUtil.getClasspath(visibleClass.getClassLoader()).getAsFiles());
-        }
-
-        if (addToSharedPackages) {
-            addVisiblePackage(visibleClass, sharedPackagesBuilder);
-        }
-    }
-
-    private static void addVisiblePackage(Class<?> visibleClass, ImmutableSet.Builder<String> sharedPackagesBuilder) {
-        if (visibleClass.getPackage() == null || "".equals(visibleClass.getPackage().getName())) {
-            sharedPackagesBuilder.add(FilteringClassLoader.DEFAULT_PACKAGE);
-        } else {
-            sharedPackagesBuilder.add(visibleClass.getPackage().getName());
         }
     }
 

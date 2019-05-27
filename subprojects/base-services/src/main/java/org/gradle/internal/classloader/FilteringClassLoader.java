@@ -162,13 +162,19 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
     }
 
     private boolean classAllowed(String className) {
-        if (disallowedClassNames.contains(className)
-            || disallowedPackagePrefixes.find(className)) {
+        if (disallowedClassNames.contains(className)) {
             return false;
         }
 
-        return classNames.contains(className)
-            || packagePrefixes.find(className)
+        if (classNames.contains(className)) {
+            return true;
+        }
+
+        if (disallowedPackagePrefixes.find(className)) {
+            return false;
+        }
+
+        return packagePrefixes.find(className)
             || (packagePrefixes.contains(DEFAULT_PACKAGE + ".") && isInDefaultPackage(className));
     }
 
@@ -215,6 +221,21 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             for (String element : elements) {
                 collection.add(element);
             }
+        }
+
+        /**
+         * Whether or not any constraints have been added to this filter.
+         *
+         * @return true if no constraints have been added
+         */
+        public boolean isEmpty() {
+            return classNames.isEmpty()
+                    && packageNames.isEmpty()
+                    && packagePrefixes.isEmpty()
+                    && resourcePrefixes.isEmpty()
+                    && resourceNames.isEmpty()
+                    && disallowedClassNames.isEmpty()
+                    && disallowedPackagePrefixes.isEmpty();
         }
 
         /**
@@ -302,31 +323,31 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
                 ^ disallowedPackagePrefixes.hashCode();
         }
 
-        Set<String> getPackageNames() {
+        public Set<String> getPackageNames() {
             return packageNames;
         }
 
-        Set<String> getPackagePrefixes() {
+        public Set<String> getPackagePrefixes() {
             return packagePrefixes;
         }
 
-        Set<String> getResourcePrefixes() {
+        public Set<String> getResourcePrefixes() {
             return resourcePrefixes;
         }
 
-        Set<String> getResourceNames() {
+        public Set<String> getResourceNames() {
             return resourceNames;
         }
 
-        Set<String> getClassNames() {
+        public Set<String> getClassNames() {
             return classNames;
         }
 
-        Set<String> getDisallowedClassNames() {
+        public Set<String> getDisallowedClassNames() {
             return disallowedClassNames;
         }
 
-        Set<String> getDisallowedPackagePrefixes() {
+        public Set<String> getDisallowedPackagePrefixes() {
             return disallowedPackagePrefixes;
         }
     }

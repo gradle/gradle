@@ -32,8 +32,6 @@ import java.util.List;
 
 class TwirlCompilerAdapterV10X extends VersionedTwirlCompilerAdapter {
 
-    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
-
     protected final String scalaVersion;
     protected final String twirlVersion;
     protected final VersionedPlayTwirlAdapter playTwirlAdapter;
@@ -82,11 +80,6 @@ class TwirlCompilerAdapterV10X extends VersionedTwirlCompilerAdapter {
 
     private boolean isUseOldParser() {
         return false;
-    }
-
-    @Override
-    public Iterable<String> getClassLoaderPackages() {
-        return SHARED_PACKAGES;
     }
 
     @Override
