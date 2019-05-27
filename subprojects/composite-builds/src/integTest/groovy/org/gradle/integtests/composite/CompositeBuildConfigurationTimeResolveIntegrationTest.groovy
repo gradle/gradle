@@ -37,7 +37,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         buildA.buildFile << """
             println "Configured buildA"
             task resolve(type: Copy) {
-                from configurations.compile
+                from configurations.compileClasspath
                 into 'libs'
             }
 """

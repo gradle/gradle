@@ -48,7 +48,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     def dependency(BuildTestFile sourceBuild = buildA, String notation) {
         sourceBuild.buildFile << """
             dependencies {
-                compile '${notation}'
+                implementation '${notation}'
             }
 """
     }

@@ -45,8 +45,8 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
             }
             
             dependencies {
-                compile 'org.test:buildB:1.2'
-                compile 'org.test:buildC:1.2'
+                implementation 'org.test:buildB:1.2'
+                implementation 'org.test:buildC:1.2'
                 
                 registerTransform {
                     from.attribute(Attribute.of("artifactType", String), "jar")
