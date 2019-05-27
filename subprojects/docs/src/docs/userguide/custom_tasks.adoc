@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[custom_tasks]]
-= Writing Custom Task Classes
+= Developing Gradle Task Types
 
 Gradle supports two types of task. One such type is the simple task, where you define the task with an action closure. We have seen these in <<tutorial_using_tasks.adoc#tutorial_using_tasks,Build Script Basics>>. For this type of task, the action closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your build script.
 

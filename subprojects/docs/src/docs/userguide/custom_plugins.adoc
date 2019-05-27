@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[custom_plugins]]
-= Writing Custom Plugins
+= Developing Gradle Plugins
 
 A Gradle plugin packages up reusable pieces of build logic, which can be used across many different projects and builds. Gradle allows you to implement your own plugins, so you can reuse your build logic, and share it with others.
 
