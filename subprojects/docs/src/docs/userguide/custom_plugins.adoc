@@ -62,7 +62,10 @@ One thing to note is that a new instance of a plugin is created for each project
 [[sec:getting_input_from_the_build]]
 == Making the plugin configurable
 
-Most plugins need to obtain some configuration from the build script. One method for doing this is to use _extension objects_. The Gradle link:{groovyDslPath}/org.gradle.api.Project.html[Project] has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer] object that contains all the settings and properties for the plugins that have been applied to the project. You can provide configuration for your plugin by adding an extension object to this container. An extension object is simply a Java Bean compliant class. Groovy is a good language choice to implement an extension object because plain old Groovy objects contain all the getter and setter methods that a Java Bean requires. Java and Kotlin are other good choices.
+Most plugins offer some configuration options for build script and other plugins to use to customize how the plugin works. Plugins do this using _extension objects_.
+The Gradle link:{groovyDslPath}/org.gradle.api.Project.html[Project] has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer] object that contains all the settings and properties for the plugins that have been applied to the project.
+You can provide configuration for your plugin by adding an extension object to this container.
+An extension object is simply an object with Java Bean properties that represent the configuration.
 
 Let's add a simple extension object to the project. Here we add a `greeting` extension object to the project, which allows you to configure the greeting.
 
@@ -78,7 +81,7 @@ include::sample[dir="userguide/customPlugins/customPluginWithConvention/kotlin",
 include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/customPluginWithConvention.out[]
 ----
 
-In this example, `GreetingPluginExtension` is a plain old Groovy/Kotlin object with a property called `message`. The extension object is added to the plugin list with the name `greeting`. This object then becomes available as a project property with the same name as the extension object.
+In this example, `GreetingPluginExtension` is a object with a property called `message`. The extension object is added to the project with the name `greeting`. This object then becomes available as a project property with the same name as the extension object.
 
 Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration block for each extension object, so you can group settings together. The following example shows you how this works.
 
@@ -100,6 +103,9 @@ In this example, several settings can be grouped together within the `greeting` 
 [.multi-language-text.lang-kotlin]
 In this example, several settings can be grouped together within the `configure<GreetingPluginExtension>` block. The type used on the `configure` function in the build script (`GreetingPluginExtension`) needs to match the extension type. Then, when the block is executed, the receiver of the block is the extension.
 
+=== Developing project extensions
+
+Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details about implementing project extensions.
 
 [[sec:working_with_files_in_custom_tasks_and_plugins]]
 == Working with files in custom tasks and plugins
@@ -232,32 +238,6 @@ As we saw above, you can use an extension object to provide configuration for yo
 
 Gradle provides several conveniences to help create a well-behaved DSL for your plugin.
 
-
-[[sec:nested_dsl_elements]]
-=== Nested DSL elements
-
-When Gradle creates a task or extension object, Gradle _decorates_ the implementation class to mix in DSL support and extensibility. To create a nested DSL element you can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] type to create objects that are similarly decorated. These decorated objects can then be made visible to the DSL through properties and methods of the plugin's extension:
-
-.Nested DSL elements
-====
-include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/kotlin",files="build.gradle.kts[]"]
-====
-
-.Output of **`gradle -q hello`**
-----
-> gradle -q hello
-include::{samplesPath}/userguide/customPlugins/customPluginWithNestedDsl/nestedDslElement.out[]
-----
-
-In this example, the extension object receives an `ObjectFactory` instance through its constructor. The constructor uses this to create a nested object and makes this object available to the DSL through the `greeter` property.
-
-==== Service injection
-
-There are several services, such as `ObjectFactory`, that are available for injection into project extensions.
-These are also available to the objects created using `ObjectFactory`, so these can also provide their own nested elements.
-See <<custom_gradle_types.adoc#service_injection,service injection>> for more details.
-
 [[sec:maintaining_multiple_domain_objects]]
 === Configuring a collection of objects
 
@@ -268,11 +248,6 @@ For example, the `tasks` object used to manage the tasks of a project is a `Name
 
 You can create a container instance using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method.
 You can also use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#container-java.lang.Class-[ObjectFactory.container()].
-
-==== Service injection
-
-Gradle provides a number of useful services that can be injected into the elements of the container.
-See <<custom_gradle_types.adoc#service_injection,service injection>> for more details.
 
 .Managing a collection of objects
 ====
@@ -299,8 +274,13 @@ include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectConta
 
 The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:container(java.lang.Class)[Project.container(java.lang.Class)] methods create instances of link:{groovyDslPath}/org.gradle.api.NamedDomainObjectContainer.html[NamedDomainObjectContainer], that have many useful methods for managing and configuring the objects. In order to use a type with any of the `project.container` methods, it MUST expose a property named "`name`" as the unique, and constant, name for the object. The `project.container(Class)` variant of the container method creates new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. See the above link for `project.container` method variants that allow custom instantiation strategies.
 
-[[plugins:service_injection]]
-== Service injection
+==== Service injection
 
-Certain services are available for injection into plugins and the extensions that the plugin creates.
+Gradle provides a number of useful services that can be injected into the elements of the container.
 See <<custom_gradle_types.adoc#service_injection,service injection>> for more details.
+
+== More details
+
+Plugins often also provide custom task types. Please see <<custom_tasks.adoc#custom_tasks,Developing Custom Gradle Task Types>> for more details.
+
+Gradle provides a number of features that are helpful when developing Gradle types, including plugins. Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details.

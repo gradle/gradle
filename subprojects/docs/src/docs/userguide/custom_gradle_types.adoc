@@ -7,6 +7,15 @@ that are all implemented as classes and other types that can run on the JVM.
 This chapter discusses some of the features and concepts that are common to these types.
 You can use these features to help implement custom Gradle types and provide a consistent DSL for your users.
 
+This chapter applies to the following types:
+
+- Plugin types.
+- Task types.
+- Artifact transform parameters types.
+- Extension objects created using `ExtensionContainer.create()`, for example a project extension registered by a plugin.
+- Objects created using an `ObjectFactory.newInstance()`.
+- Elements of a `NamedDomainObjectContainer`.
+
 == Configuration using bean properties
 
 The custom Gradle types that you implement often hold some configuration that you want to make available to build scripts and other plugins.
@@ -20,55 +29,60 @@ Gradle also provides some conveniences for implementing types with bean properti
 A property may be _mutable_, meaning that it has both a getter method and setter method, or _read-only_, meaning that it has only a getter method.
 Gradle can provide an implementation of a property. This is called a _managed property_, as Gradle takes care of managing the state of the property.
 
-=== Managed mutable properties
+[NOTE]
+====
+Managed properties are currently an experimental <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
+====
 
-To declare a managed mutable property, add an abstract getter method and an abstract setter method for the property to the type.
+=== Mutable managed properties
+
+To declare a mutable managed property, add an abstract getter method and an abstract setter method for the property to the type.
 
 Here is an example of a task type with a `uri` property:
 
 [source.multi-language-sample,java]
-.UrlProcess.java
+.Mutable managed property
 ----
 include::{samplesPath}/userguide/plugins/mutableManagedProperty/java/buildSrc/src/main/java/UrlProcess.java[]
 ----
 [source.multi-language-sample,kotlin]
-.UrlProcess.kt
+.Mutable managed property
 ----
 include::{samplesPath}/userguide/plugins/mutableManagedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
 ----
 [source.multi-language-sample,groovy]
-.UrlProcess.groovy
+.Mutable managed property
 ----
 include::{samplesPath}/userguide/plugins/mutableManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
 
-Note that for a property to be considered a managed mutable property, _all_ of the property's getter methods and setter methods must be `public` or `protected` and `abstract`.
+Note that for a property to be considered a mutable managed property, _all_ of the property's getter methods and setter methods must be `public` or `protected` and `abstract`.
 
-=== Managed read-only properties
+=== Read-only managed properties
 
-To declare a managed read-only property, add an abstract getter method for the property to the type.
+To declare a read-only managed property, add an abstract getter method for the property to the type.
 The property should not have any setter methods (otherwise it is not read only).
 This is a useful pattern to use with one of Gradle's configurable <<lazy_configuration.adoc#lazy_configuration,lazy property>> types.
 
 Here is an example of a task type with a `uri` property:
 
 [source.multi-language-sample,java]
-.UrlProcess.java
+.Read-only managed property
 ----
 include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/java/buildSrc/src/main/java/UrlProcess.java[]
 ----
 [source.multi-language-sample,kotlin]
-.UrlProcess.kt
+.Read-only managed property
 ----
 include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
 ----
 [source.multi-language-sample,groovy]
-.UrlProcess.groovy
+.Read-only managed property
 ----
 include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
 
-Note that for a property to be considered a managed read only property, _all_ of the property's getter methods must be `public` or `protected` and `abstract` and the property must not have any setter methods.
+Note that for a property to be considered a read only managed property, _all_ of the property's getter methods must be `public` or `protected` and `abstract` and the property must not have any setter methods.
 In addition, the property must have one of the following types:
 
 - `Property`
@@ -84,10 +98,19 @@ In addition, the property must have one of the following types:
 A _managed type_ is an abstract class or interface with no fields and whose properties are all managed.
 That is, it is a type whose state is entirely managed by Gradle.
 
+== DSL support and extensibility
+
+When Gradle creates an instance of a custom type, it _decorates_ the instance to mix-in DSL and extensibility support.
+
+Each decorated instance implements link:{javadocPath}/org/gradle/api/plugins/ExtensionAware.html[ExtensionAware], and so can have extension
+objects attached to it.
+
+Note that plugins and container elements are currently not decorated, due to backwards compatibility issues.
+
 [[service_injection]]
 == Service injection
 
-Gradle provides a number of useful services that can be used by custom types.
+Gradle provides a number of useful services that can be used by custom Gradle types.
 For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task to run work in parallel, as seen in the <<custom_tasks.adoc#worker_api,worker API>> section.
 The services are made available through _service injection_.
 
@@ -152,4 +175,24 @@ include::{samplesPath}/userguide/plugins/propertyServiceInjection/kotlin/buildSr
 .UrlProcess.groovy
 ----
 include::{samplesPath}/userguide/plugins/propertyServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
+----
+
+== Nested objects
+
+A custom Gradle type can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service to create instances of Gradle types to use for its property values.
+These instances can make use of the features discussed in this chapter,  allowing you to create 'nested' instances and a nested DSL.
+
+In the following example, a project extension receives an `ObjectFactory` instance through its constructor.
+The constructor uses this to create a nested object and makes this object available through the `greeter` property.
+
+.Nested objects
+====
+include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/kotlin",files="build.gradle.kts[]"]
+====
+
+.Output of **`gradle -q hello`**
+----
+> gradle -q hello
+include::{samplesPath}/userguide/customPlugins/customPluginWithNestedDsl/nestedDslElement.out[]
 ----
