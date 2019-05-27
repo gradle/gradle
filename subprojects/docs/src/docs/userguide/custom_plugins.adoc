@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[custom_plugins]]
-= Developing Gradle Plugins
+= Developing Custom Gradle Plugins
 
 A Gradle plugin packages up reusable pieces of build logic, which can be used across many different projects and builds. Gradle allows you to implement your own plugins, so you can reuse your build logic, and share it with others.
 
@@ -252,7 +252,11 @@ include::{samplesPath}/userguide/customPlugins/customPluginWithNestedDsl/nestedD
 
 In this example, the extension object receives an `ObjectFactory` instance through its constructor. The constructor uses this to create a nested object and makes this object available to the DSL through the `greeter` property.
 
-There are several services, such as `ObjectFactory`, that are available for injection into project extensions. These are also available to the objects created using `ObjectFactory`, so these can also provide their own nested elements. The service injection works the same way as <<custom_tasks.adoc#service_injection,service injection for tasks>>.
+==== Service injection
+
+There are several services, such as `ObjectFactory`, that are available for injection into project extensions.
+These are also available to the objects created using `ObjectFactory`, so these can also provide their own nested elements.
+See <<custom_gradle_types.adoc#service_injection,service injection>> for more details.
 
 [[sec:maintaining_multiple_domain_objects]]
 === Configuring a collection of objects
@@ -264,8 +268,11 @@ For example, the `tasks` object used to manage the tasks of a project is a `Name
 
 You can create a container instance using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method.
 You can also use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#container-java.lang.Class-[ObjectFactory.container()].
-Services are available for injection into the elements of the container.
-See <<custom_tasks.adoc#service_injection,service injection for tasks>>. for details.
+
+==== Service injection
+
+Gradle provides a number of useful services that can be injected into the elements of the container.
+See <<custom_gradle_types.adoc#service_injection,service injection>> for more details.
 
 .Managing a collection of objects
 ====
@@ -295,4 +302,5 @@ The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:cont
 [[plugins:service_injection]]
 == Service injection
 
-Certain services are available for injection into plugins and the extensions that the plugin creates. This works the same way as <<custom_tasks.adoc#service_injection,service injection for tasks>>.
+Certain services are available for injection into plugins and the extensions that the plugin creates.
+See <<custom_gradle_types.adoc#service_injection,service injection>> for more details.

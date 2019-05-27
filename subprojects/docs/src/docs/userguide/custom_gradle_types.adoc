@@ -1,10 +1,42 @@
 [[custom_gradle_types]]
 = Developing Custom Gradle Types
 
-There are several different kinds of "add-ons" to Gradle that you can develop, such as plugins, tasks, project extensions or artifact transforms.
-These are all implemented as classes and other types that can run on the JVM. This chapter discusses some of the common features that are available
-to help you implement these types.
+There are several different kinds of "add-ons" to Gradle that you can develop, such as <<custom_plugins.adoc#custom_plugins,plugins>>, <<custom_tasks.adoc#custom_tasks,task types>>,
+<<custom_plugins.adoc#sec:getting_input_from_the_build,project extensions>> or <<dependency_management_attribute_based_matching.adoc#implementing_artifact_transforms,artifact transforms>>.
+These are all implemented as classes and other types that can run on the JVM. This chapter discusses some of the features and concepts that are common
+to all of these types. You can use these features to help implement custom Gradle types and provide a consistent DSL for your users.
 
+[[service_injection]]
 == Service injection
 
-TODO - move from tasks chapter
+Gradle provides a number of useful services that can be used by a custom type. For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task
+to run work in parallel, as seen in the <<custom_tasks.adoc#worker_api,worker API>> section.
+
+There are 2 ways that an object can receive the services that it needs. The first option is to add the service as a parameter of the class constructor.
+The constructor must be annotated with the `javax.inject.Inject` annotation. Gradle uses the declared type of each constructor parameter to determine the services that the object requires.
+The order of the constructor parameters and their names are not significant and can be whatever you like.
+
+Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.
+This can be useful, for example, when you cannot change the constructor of the class due to backwards compatibility constraints.
+This pattern also allows Gradle to defer creation of the service until it is required, when the getter method is called, rather than when the instance is created. This can help with performance.
+Gradle uses the declared return type of the getter methods to determine the services that the object requires. The name of the property is not significant and can be whatever you like.
+
+Here is an example that shows these two approaches:
+
+[source.multi-language-sample,java]
+.UrlProcess.java
+----
+include::{samplesPath}/userguide/tasks/serviceInjection/groovy/buildSrc/src/main/java/UrlProcess.java[]
+----
+
+When using a property getter to receive a service, the getter must be `public` or `protected`.
+
+[[services_for_injection]]
+=== Available services
+
+The following services are available for injection:
+
+- link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created. See <<custom_plugins.adoc#sec:nested_dsl_elements,custom plugins>> for more details.
+- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout] - Provides access to key project locations. See <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy configuration>> for more details.
+- link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> for more details.
+- link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel. See <<custom_tasks.adoc#worker_api,the worker API>> for more details.
