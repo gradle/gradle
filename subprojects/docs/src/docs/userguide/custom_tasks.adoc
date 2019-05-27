@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[custom_tasks]]
-= Developing Gradle Task Types
+= Developing Custom Gradle Task Types
 
 Gradle supports two types of task. One such type is the simple task, where you define the task with an action closure. We have seen these in <<tutorial_using_tasks.adoc#tutorial_using_tasks,Build Script Basics>>. For this type of task, the action closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your build script.
 
@@ -441,33 +441,6 @@ Support for declaring command line options currently comes with a few limitation
 - Options cannot be declared globally e.g. on a project-level or as part of a plugin.
 - When assigning an option on the command line then the task exposing the option needs to be spelled out explicitly e.g. `gradle check --tests abc` does not work even though the `check` task depends on the `test` task.
 
-[[service_injection]]
-== Service injection
-
-Gradle provides a number of services that can be used in a task implementation. For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task to run work in parallel, as we'll see in the following section.
-
-There are 2 ways that a task can receive the services that it needs. The first option is to add the service as a parameter of the task class constructor. The constructor must be annotated with the `javax.inject.Inject` annotation. Gradle uses the declared type of each parameter to determine the services that the task requires. The order of the constructor parameters and their names are ignored.
-
-Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the task class. This can be useful, for example, when you cannot change the constructor of the task class due to backwards compatibility constraints. This pattern also allows Gradle to defer creation of the service until it is required, rather than when the task instance is created, which helps with performance. Gradle uses the declared return type of the getter methods to determine the services that the task requires. The name of the property is ignored.
-
-Here is an example that shows these two approaches:
-
-[source.multi-language-sample,java]
-.UrlProcess.java
-----
-include::{samplesPath}/userguide/tasks/serviceInjection/groovy/buildSrc/src/main/java/UrlProcess.java[]
-----
-
-[[services_for_injection]]
-=== Available services
-
-The following services are available for injection:
-
-- link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created. See <<custom_plugins.adoc#sec:nested_dsl_elements,custom plugins>>.
-- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout] - Provides access to key project locations. See <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy configuration>>.
-- link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
-- link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel. See <<worker_api>>, below.
-
 [[worker_api]]
 == The Worker API
 
@@ -572,6 +545,12 @@ A daemon is considered compatible only if the default character encoding is set 
 
 
 Worker daemons will remain running until either the build daemon that started them is stopped, or system memory becomes scarce. When available system memory is low, Gradle will begin stopping worker daemons in an attempt to minimize memory consumption.
+
+[[service_injection]]
+== Service injection
+
+Gradle provides a number of services that you can use in a task implementation.
+See <<custom_gradle_types.adoc#service_injection,service injection>> for more details.
 
 [[sec:reusing_task_logic]]
 == Re-using logic between task classes
