@@ -62,7 +62,18 @@ object ProjectGroups {
             rootProject.project(":messaging"),
             rootProject.project(":processServices"),
             rootProject.project(":resources"),
-            rootProject.project(":kotlinDslToolingModels"))
+            rootProject.project(":kotlinDslToolingModels"),
+            rootProject.project(":buildOption"),
+            rootProject.project(":cli"),
+            rootProject.project(":coreApi"),
+            rootProject.project(":files"),
+            rootProject.project(":native"),
+            rootProject.project(":persistentCache"),
+            rootProject.project(":resourcesHttp"),
+            rootProject.project(":buildCache"),
+            rootProject.project(":buildCacheHttp"),
+            rootProject.project(":snapshots")
+        )
 
     val Project.publicProjects
         get() = pluginProjects +
