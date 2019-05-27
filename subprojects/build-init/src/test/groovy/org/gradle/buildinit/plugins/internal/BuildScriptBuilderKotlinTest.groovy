@@ -88,7 +88,7 @@ plugins {
     `java-library`
 
     // Add support for the Kotlin language
-    id("org.jetbrains.kotlin.jvm").version("1.3.31")
+    id("org.jetbrains.kotlin.jvm") version "1.3.31"
 }
 """)
     }

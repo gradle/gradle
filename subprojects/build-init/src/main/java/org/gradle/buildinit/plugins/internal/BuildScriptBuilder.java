@@ -1369,7 +1369,7 @@ public class BuildScriptBuilder {
         @Override
         public String pluginDependencySpec(String pluginId, @Nullable String version) {
             if (version != null) {
-                return "id(\"" + pluginId + "\").version(\"" + version + "\")";
+                return "id(\"" + pluginId + "\") version \"" + version + "\"";
             }
             return pluginId.matches("[a-z]+") ? pluginId : "`" + pluginId + "`";
         }
