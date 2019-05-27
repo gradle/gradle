@@ -370,7 +370,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Class<?> setterType = setterAccessorType.propertyTypeFor(setterMethod);
         if (isSetterProhibitedForType(setterType)) {
             String typeName = setterType.getName();
-            errorsBuilder.recordError(String.format("property '%s' with mutable type '%s' is redundant. Use methods on the property value itself to mutate it", propertyName, typeName));
+            errorsBuilder.recordError(String.format("property '%s' of mutable type '%s' is writable. Properties of this type should be read-only and mutated via the value itself", propertyName, typeName));
         }
     }
 
