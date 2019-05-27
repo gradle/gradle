@@ -19,6 +19,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
+    }
+
     public void "publishes WAR only for mixed java and WAR project"() {
         given:
         using m2

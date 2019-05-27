@@ -37,6 +37,8 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     public final Sample sample = new Sample(testDirectoryProvider, 'maven/pomGeneration')
 
     def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
         executer.requireGradleDistribution()
         using m2 //uploadArchives leaks into local ~/.m2
     }
