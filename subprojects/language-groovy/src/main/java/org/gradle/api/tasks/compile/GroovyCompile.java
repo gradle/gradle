@@ -120,7 +120,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private void warnIfCompileAvoidanceEnabled() {
         if (experimentalCompilationAvoidanceEnabled()) {
-            DeprecationLogger.incubatingFeatureUsed("Groovy compilation avoidance is an incubating feature.");
+            DeprecationLogger.incubatingFeatureUsed("Groovy compilation avoidance");
         }
     }
 
