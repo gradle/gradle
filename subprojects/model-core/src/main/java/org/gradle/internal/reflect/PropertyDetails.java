@@ -17,7 +17,7 @@
 package org.gradle.internal.reflect;
 
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Collection;
 
 public interface PropertyDetails {
 
@@ -37,12 +37,12 @@ public interface PropertyDetails {
      * The order of the methods follows the same precedence.
      * That is, the “nearer” declarations are earlier in the list.
      */
-    List<Method> getGetters();
+    Collection<Method> getGetters();
 
     /**
      * Similar to {@link #getGetters()}, but varies based on the param type instead of return type.
      *
      * Has identical ordering semantics.
      */
-    List<Method> getSetters();
+    Collection<Method> getSetters();
 }
