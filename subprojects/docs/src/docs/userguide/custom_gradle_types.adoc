@@ -12,24 +12,57 @@ to all of these types. You can use these features to help implement custom Gradl
 Gradle provides a number of useful services that can be used by a custom type. For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task
 to run work in parallel, as seen in the <<custom_tasks.adoc#worker_api,worker API>> section.
 
+=== Constructor injection
+
 There are 2 ways that an object can receive the services that it needs. The first option is to add the service as a parameter of the class constructor.
 The constructor must be annotated with the `javax.inject.Inject` annotation. Gradle uses the declared type of each constructor parameter to determine the services that the object requires.
 The order of the constructor parameters and their names are not significant and can be whatever you like.
+
+Here is an example that shows a task type that receives an `ObjectFactory` via its constructor:
+
+[source.multi-language-sample,java]
+.UrlProcess.java
+----
+include::{samplesPath}/userguide/plugins/constructorServiceInjection/java/buildSrc/src/main/java/UrlProcess.java[]
+----
+[source.multi-language-sample,kotlin]
+.UrlProcess.kt
+----
+include::{samplesPath}/userguide/plugins/constructorServiceInjection/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
+----
+[source.multi-language-sample,groovy]
+.UrlProcess.groovy
+----
+include::{samplesPath}/userguide/plugins/constructorServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
+----
+
+=== Property injection
 
 Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.
 This can be useful, for example, when you cannot change the constructor of the class due to backwards compatibility constraints.
 This pattern also allows Gradle to defer creation of the service until it is required, when the getter method is called, rather than when the instance is created. This can help with performance.
 Gradle uses the declared return type of the getter methods to determine the services that the object requires. The name of the property is not significant and can be whatever you like.
 
-Here is an example that shows these two approaches:
+The property getter must be `public` or `protected`. The can be `abstract` or, in cases where this isn't possible, can have a dummy method body.
+The method body is discarded.
+
+Here is an example that shows a task type that receives a two services via property getter methods:
 
 [source.multi-language-sample,java]
 .UrlProcess.java
 ----
-include::{samplesPath}/userguide/tasks/serviceInjection/groovy/buildSrc/src/main/java/UrlProcess.java[]
+include::{samplesPath}/userguide/plugins/propertyServiceInjection/java/buildSrc/src/main/java/UrlProcess.java[]
 ----
-
-When using a property getter to receive a service, the getter must be `public` or `protected`.
+[source.multi-language-sample,kotlin]
+.UrlProcess.kt
+----
+include::{samplesPath}/userguide/plugins/propertyServiceInjection/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
+----
+[source.multi-language-sample,groovy]
+.UrlProcess.groovy
+----
+include::{samplesPath}/userguide/plugins/propertyServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
+----
 
 [[services_for_injection]]
 === Available services
