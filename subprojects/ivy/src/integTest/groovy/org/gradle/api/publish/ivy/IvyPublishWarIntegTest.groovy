@@ -33,11 +33,11 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "commons-collections:commons-collections:3.2.2"
-                runtime "commons-io:commons-io:1.4"
+                implementation "commons-collections:commons-collections:3.2.2"
+                runtimeOnly "commons-io:commons-io:1.4"
                 providedCompile "commons-lang:commons-lang:2.6"
                 providedRuntime "commons-cli:commons-cli:1.2"
-                testCompile "junit:junit:4.12"
+                testImplementation "junit:junit:4.12"
             }
 
             publishing {
