@@ -41,9 +41,9 @@ import java.util.Queue;
 
 public class DefaultFileCollectionResolveContext implements ResolvableFileCollectionResolveContext {
     protected final PathToFileResolver fileResolver;
-    private Queue<Object> queue = new ArrayDeque<Object>();
     private final Converter<? extends FileCollectionInternal> fileCollectionConverter;
     private final Converter<? extends FileTreeInternal> fileTreeConverter;
+    private final Queue<Object> queue = new ArrayDeque<Object>();
 
     public DefaultFileCollectionResolveContext(FileResolver fileResolver) {
         this(fileResolver, new FileCollectionConverter(fileResolver.getPatternSetFactory()), new FileTreeConverter(fileResolver.getPatternSetFactory()));
@@ -70,12 +70,12 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         return nestedContext;
     }
 
-    protected ResolvableFileCollectionResolveContext newContext(PathToFileResolver fileResolver) {
+    protected DefaultFileCollectionResolveContext newContext(PathToFileResolver fileResolver) {
         return new DefaultFileCollectionResolveContext(fileResolver, fileCollectionConverter, fileTreeConverter);
     }
 
     @Override
-    public final ResolvableFileCollectionResolveContext newContext() {
+    public final DefaultFileCollectionResolveContext newContext() {
         return newContext(fileResolver);
     }
 
@@ -147,14 +147,9 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     }
 
     private <T> void resolveNested(Converter<? extends T> converter, List<T> result, FileCollectionContainer element) {
-        Queue<Object> copy = queue;
-        try {
-            queue = new ArrayDeque<>();
-            element.visitContents(this);
-            resolveElements(converter, result, queue);
-        } finally {
-            queue = copy;
-        }
+        DefaultFileCollectionResolveContext context = newContext();
+        element.visitContents(context);
+        resolveElements(converter, result, context.queue);
     }
 
     protected interface Converter<T> {
