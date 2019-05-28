@@ -36,7 +36,7 @@ class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends Abst
         buildFile << """
             apply plugin: 'java'
             dependencies {
-                compile files("broken.jar")
+                implementation files("broken.jar")
             }
         """
         file("broken.jar").text = "this is not a jar"
@@ -53,7 +53,7 @@ class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends Abst
                 apply plugin: 'java'
 
                 dependencies {
-                    compile 'org.apache.commons:commons-math3:3.4'
+                    implementation 'org.apache.commons:commons-math3:3.4'
                 }
             """)
             src {
