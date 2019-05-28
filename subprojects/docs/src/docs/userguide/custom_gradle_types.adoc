@@ -40,21 +40,24 @@ To declare a mutable managed property, add an abstract getter method and an abst
 
 Here is an example of a task type with a `uri` property:
 
-[source.multi-language-sample,java]
 .Mutable managed property
+====
+[source.multi-language-sample,java]
+.UrlProcess.java
 ----
 include::{samplesPath}/userguide/plugins/mutableManagedProperty/java/buildSrc/src/main/java/UrlProcess.java[]
 ----
 [source.multi-language-sample,kotlin]
-.Mutable managed property
+.UrlProcess.kt
 ----
 include::{samplesPath}/userguide/plugins/mutableManagedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
 ----
 [source.multi-language-sample,groovy]
-.Mutable managed property
+.UrlProcess.groovy
 ----
 include::{samplesPath}/userguide/plugins/mutableManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
+====
 
 Note that for a property to be considered a mutable managed property, _all_ of the property's getter methods and setter methods must be `public` or `protected` and `abstract`.
 
@@ -66,21 +69,24 @@ This is a useful pattern to use with one of Gradle's configurable <<lazy_configu
 
 Here is an example of a task type with a `uri` property:
 
-[source.multi-language-sample,java]
 .Read-only managed property
+====
+[source.multi-language-sample,java]
+.UrlProcess.java
 ----
 include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/java/buildSrc/src/main/java/UrlProcess.java[]
 ----
 [source.multi-language-sample,kotlin]
-.Read-only managed property
+.UrlProcess.kt
 ----
 include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
 ----
 [source.multi-language-sample,groovy]
-.Read-only managed property
+.UrlProcess.groovy
 ----
 include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
+====
 
 Note that for a property to be considered a read only managed property, _all_ of the property's getter methods must be `public` or `protected` and `abstract` and the property must not have any setter methods.
 In addition, the property must have one of the following types:
@@ -133,21 +139,24 @@ The order of the constructor parameters and their names are not significant and 
 
 Here is an example that shows a task type that receives an `ObjectFactory` via its constructor:
 
-[source.multi-language-sample,java]
 .Constructor service injection
+====
+[source.multi-language-sample,java]
+.UrlProcess.java
 ----
 include::{samplesPath}/userguide/plugins/constructorServiceInjection/java/buildSrc/src/main/java/UrlProcess.java[]
 ----
 [source.multi-language-sample,kotlin]
-.Constructor service injection
+.UrlProcess.kt
 ----
 include::{samplesPath}/userguide/plugins/constructorServiceInjection/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
 ----
 [source.multi-language-sample,groovy]
-.Constructor service injection
+.UrlProcess.groovy
 ----
 include::{samplesPath}/userguide/plugins/constructorServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
+====
 
 === Property injection
 
@@ -161,21 +170,24 @@ The method body is discarded.
 
 Here is an example that shows a task type that receives a two services via property getter methods:
 
-[source.multi-language-sample,java]
 .Property service injection
+====
+[source.multi-language-sample,java]
+.UrlProcess.java
 ----
 include::{samplesPath}/userguide/plugins/propertyServiceInjection/java/buildSrc/src/main/java/UrlProcess.java[]
 ----
 [source.multi-language-sample,kotlin]
-.Property service injection
+.UrlProcess.kt
 ----
 include::{samplesPath}/userguide/plugins/propertyServiceInjection/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
 ----
 [source.multi-language-sample,groovy]
-.Property service injection
+.UrlProcess.groovy
 ----
 include::{samplesPath}/userguide/plugins/propertyServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
+====
 
 [[nested_objects]]
 == Creating nested objects
@@ -186,21 +198,24 @@ These instances can make use of the features discussed in this chapter, allowing
 In the following example, a project extension receives an `ObjectFactory` instance through its constructor.
 The constructor uses this to create a nested `Server` object (also a custom Gradle type) and makes this object available through the `server` property.
 
-[source.multi-language-sample,java]
 .Nested object creation
+====
+[source.multi-language-sample,java]
+.DownloadExtension.java
 ----
 include::{samplesPath}/userguide/plugins/nestedObjects/java/buildSrc/src/main/java/DownloadExtension.java[]
 ----
 [source.multi-language-sample,kotlin]
-.Nested object creation
+.DownloadExtension.kt
 ----
 include::{samplesPath}/userguide/plugins/nestedObjects/kotlin/buildSrc/src/main/kotlin/DownloadExtension.kt[]
 ----
 [source.multi-language-sample,groovy]
-.Nested object creation
+.DownloadExtension.groovy
 ----
 include::{samplesPath}/userguide/plugins/nestedObjects/groovy/buildSrc/src/main/groovy/DownloadExtension.groovy[]
 ----
+====
 
 === Collection types
 
@@ -215,33 +230,34 @@ It is intended to hold objects which are themselves configurable, for example a 
 Gradle uses `NamedDomainObjectContainer` type extensively throughout the API.
 For example, the `project.tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer<Task>`.
 
-You can create a container instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service, which provides the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#container-java.lang.Class-[ObjectFactory.container()] method.
+You can create a container instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service, which provides the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectContainer-java.lang.Class-[ObjectFactory.domainObjectContainer()] method.
 This is also available using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method, however in a custom Gradle type it's
 generally better to use the injected `ObjectFactory` service instead of passing around a `Project` instance.
 
-In order to use a type with any of the `container()` methods, it must expose a property named "`name`" as the unique, and constant, name for the object.
-The `container(Class)` variant of the method creates new instances by calling the constructor of the class that takes a string argument, which is the desired name of the object.
+In order to use a type with any of the `domainObjectContainer()` methods, it must expose a property named "`name`" as the unique, and constant, name for the object.
+The `domainObjectContainer(Class)` variant of the method creates new instances by calling the constructor of the class that takes a string argument, which is the desired name of the object.
 Objects created this way are treated as custom Gradle types, and so can make use of the features discussed in this chapter, for example service injection or managed properties.
 
-See the above link for `container()` method variants that allow custom instantiation strategies.
+See the above link for `domainObjectContainer()` method variants that allow custom instantiation strategies.
 
 .Managing a collection of objects
 ====
-include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
-====
-
-==== Output of **`gradle -q books`**
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,java]
+.DownloadExtension.java
 ----
-> gradle -q books
-include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.groovy.out[]
+include::{samplesPath}/userguide/plugins/namedDomainObjectContainer/java/buildSrc/src/main/java/DownloadExtension.java[]
 ----
 [source.multi-language-sample,kotlin]
+.DownloadExtension.kt
 ----
-> gradle -q books
-include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.kotlin.out[]
+include::{samplesPath}/userguide/plugins/namedDomainObjectContainer/kotlin/buildSrc/src/main/kotlin/DownloadExtension.kt[]
 ----
+[source.multi-language-sample,groovy]
+.DownloadExtension.groovy
+----
+include::{samplesPath}/userguide/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/groovy/DownloadExtension.groovy[]
+----
+====
 
 ==== DomainObjectSet
 
