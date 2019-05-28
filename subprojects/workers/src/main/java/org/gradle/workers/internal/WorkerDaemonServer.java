@@ -17,7 +17,6 @@
 package org.gradle.workers.internal;
 
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -64,8 +63,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
             if (classLoaderStructure instanceof FlatClassLoaderStructure) {
                 isolatedClassloaderWorker = new FlatClassLoaderWorker(this.getClass().getClassLoader(), serviceRegistry);
             } else {
-                ClassLoaderRegistry classLoaderRegistry = serviceRegistry.get(ClassLoaderRegistry.class);
-                isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, classLoaderRegistry.getWorkerPluginsClassLoader(), serviceRegistry, true);
+                isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, this.getClass().getClassLoader(), serviceRegistry, true);
             }
         }
         return isolatedClassloaderWorker;

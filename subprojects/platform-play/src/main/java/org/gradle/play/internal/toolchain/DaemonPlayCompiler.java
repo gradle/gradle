@@ -61,7 +61,8 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
 
         ClassPath playCompilerClasspath = classPathRegistry.getClassPath("PLAY-COMPILER").plus(DefaultClassPath.of(compilerClasspath));
 
-        HierarchicalClassLoaderStructure classLoaderStructure = new HierarchicalClassLoaderStructure(getPlayFilterSpec())
+        HierarchicalClassLoaderStructure classLoaderStructure = new HierarchicalClassLoaderStructure(classLoaderRegistry.getGradleWorkerExtensionSpec())
+                .withChild(getPlayFilterSpec())
                 .withChild(new VisitableURLClassLoader.Spec("compiler", playCompilerClasspath.getAsURLs()));
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)

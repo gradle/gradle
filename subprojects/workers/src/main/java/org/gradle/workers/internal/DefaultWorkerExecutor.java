@@ -232,7 +232,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
             Iterable<File> daemonClasspath = classpathBuilder.build();
 
-            builder.withClassLoaderStructure(classLoaderStructureProvider.getDefaultClassLoaderStructure(daemonClasspath));
+            if (isolationMode == IsolationMode.PROCESS) {
+                builder.withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(daemonClasspath));
+            } else {
+                builder.withClassLoaderStructure(classLoaderStructureProvider.getInProcessClassLoaderStructure(daemonClasspath));
+            }
         }
 
         return builder.build();

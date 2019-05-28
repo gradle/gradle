@@ -55,4 +55,9 @@ public class FlatClassLoaderRegistry implements ClassLoaderRegistry {
     public FilteringClassLoader.Spec getGradleApiFilterSpec() {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public MixInLegacyTypesClassLoader.Spec getGradleWorkerExtensionSpec() {
+        throw new UnsupportedOperationException();
+    }
 }

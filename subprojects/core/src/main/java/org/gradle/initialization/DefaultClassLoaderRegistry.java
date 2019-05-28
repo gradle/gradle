@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
@@ -26,6 +27,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader pluginsClassLoader;
     private final ClassLoader workerPluginsClassLoader;
     private final FilteringClassLoader.Spec gradleApiSpec;
+    private final MixInLegacyTypesClassLoader.Spec workerExtensionSpec;
     private final Instantiator instantiator;
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport, Instantiator instantiator) {
@@ -33,8 +35,10 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
         this.apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
         this.pluginsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, classPathRegistry.getClassPath("GRADLE_EXTENSIONS"), legacyTypesSupport);
-        this.workerPluginsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, classPathRegistry.getClassPath("GRADLE_WORKER_EXTENSIONS"), legacyTypesSupport);
+        ClassPath workerExtensionClassPath = classPathRegistry.getClassPath("GRADLE_WORKER_EXTENSIONS");
+        this.workerPluginsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, workerExtensionClassPath, legacyTypesSupport);
         this.gradleApiSpec = apiSpecFor(pluginsClassLoader);
+        this.workerExtensionSpec = new MixInLegacyTypesClassLoader.Spec("legacy-mixin-loader", workerExtensionClassPath.getAsURLs());
         this.apiAndPluginsClassLoader = restrictTo(gradleApiSpec, pluginsClassLoader);
     }
 
@@ -92,5 +96,10 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     @Override
     public FilteringClassLoader.Spec getGradleApiFilterSpec() {
         return new FilteringClassLoader.Spec(gradleApiSpec);
+    }
+
+    @Override
+    public MixInLegacyTypesClassLoader.Spec getGradleWorkerExtensionSpec() {
+        return workerExtensionSpec;
     }
 }

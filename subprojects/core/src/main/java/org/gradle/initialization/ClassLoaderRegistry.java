@@ -44,7 +44,14 @@ public interface ClassLoaderRegistry {
     ClassLoader getWorkerPluginsClassLoader();
 
     /**
-     * Returns a copy of the filter spec for the Gradle API Classloader
+     * Returns a copy of the filter spec for the Gradle API Classloader.  This is expensive to calculate, so we create it once in
+     * the build process and provide it to the worker.
      */
     FilteringClassLoader.Spec getGradleApiFilterSpec();
+
+    /**
+     * Returns the extension classloader spec for use in worker processes.  This is expensive to calculate, so we create it once in
+     * the build process and provide it to the worker.
+     */
+    MixInLegacyTypesClassLoader.Spec getGradleWorkerExtensionSpec();
 }
