@@ -692,9 +692,51 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds "custom", "--rerun-tasks"
     }
 
+    def "only must run after"() {
+        settingsFile << "include ':application'"
+        file("application/build.gradle") << """
+            task firstFirst {
+                doLast {
+                    println("First")
+                }
+            }
+            task first {
+                doLast {
+                    println("First")
+                }
+            }
+            task second {
+                doLast {
+                    println("Second")
+                }
+            }
+            task third {
+                doLast {
+                    println("Third")
+                }
+            }
+            task unrelated {
+                doLast {
+                    println("Third")
+                }
+            }
+            first.mustRunAfter(firstFirst)
+            second.dependsOn(first, firstFirst)
+            third.dependsOn(second)
+            second.mustRunAfter(first)
+            second.mustRunAfter(unrelated)
+        """
+
+        when:
+        run ":application:third", "--parallel", "--max-workers=100", "-d"
+        then:
+        true
+    }
+
     def "build finishes for task which use the worker API"() {
-        file("input.txt").text = "input"
-        buildFile << """
+        file("application/input.txt").text = "input"
+        settingsFile << "include ':application'"
+        file("application/build.gradle") << """
             
 
 import org.gradle.api.file.RegularFileProperty
@@ -728,6 +770,12 @@ import javax.inject.Inject
             task intermediate(type: AsyncTask) {
                 inputFile = file("input.txt")
                 outputFile = file("build/finalOutput.txt")               
+            }
+            task printer {
+                dependsOn finalTask
+                doLast {
+                    println "Success"
+                }
             }
             (0..2).each { globalIdx ->            
                 (0..100).each { idx ->
@@ -764,12 +812,12 @@ import javax.inject.Inject
         """
 
         when:
-        run("finalTask", "--max-workers=70", "--parallel", "-x", "intermediate")
+        run(":application:printer", "--max-workers=70", "--parallel", "-x", "intermediate", "-d")
         then:
-        executedAndNotSkipped(":finalTask")
+        executedAndNotSkipped(":application:finalTask")
         when:
-        run("finalTask", "--max-workers=70", "--parallel")
+        run(":application:printer", "--max-workers=70", "--parallel", "-d")
         then:
-        skipped(":finalTask")
+        skipped(":application:finalTask")
     }
 }
