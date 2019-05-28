@@ -54,7 +54,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
     def "wires creation of plugin under test metadata into build lifecycle"() {
         given:
         def module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
-        buildFile << compileDependency('compile', module)
+        buildFile << compileDependency('implementation', module)
 
         when:
         succeeds 'build'
@@ -102,7 +102,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
             }
         """
         def module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
-        buildFile << compileDependency('customCompile', module)
+        buildFile << compileDependency('customImplementation', module)
 
         when:
         succeeds 'build'
