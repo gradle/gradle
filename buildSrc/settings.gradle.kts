@@ -65,9 +65,9 @@ for (project in rootProject.children) {
 
 fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true
 
-fun isOpenJDK() = true == System.getProperty("java.vm.name")?.contains("OpenJDK")
+fun isAdoptOpenJDK() = true == System.getProperty("java.vendor")?.contains("AdoptOpenJDK")
 
-fun isOpenJDK11() = isOpenJDK() && JavaVersion.current().isJava11
+fun isAdoptOpenJDK11() = isAdoptOpenJDK() && JavaVersion.current().isJava11
 
 fun getBuildJavaHome() = System.getProperty("java.home")
 
@@ -76,7 +76,7 @@ gradle.settingsEvaluated {
         return@settingsEvaluated
     }
 
-    if (remoteBuildCacheEnabled(this) && !isOpenJDK11()) {
+    if (remoteBuildCacheEnabled(this) && !isAdoptOpenJDK11()) {
         throw GradleException("Remote cache is enabled, which requires OpenJDK 11 to perform this build. It's currently ${getBuildJavaHome()}.")
     }
 
