@@ -27,7 +27,7 @@ import spock.lang.Issue
 @RunWith(FluidDependenciesResolveRunner)
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
     }
 
     def "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
@@ -167,7 +167,7 @@ project(":b") {
     }
 }
 """
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile, "compile")
 
         when:
         resolve.prepare()
@@ -408,17 +408,17 @@ allprojects {
 }
 project(':a') {
     dependencies {
-        compile 'group:externalA:1.5'
-        compile files('libs/externalB.jar')
+        implementation 'group:externalA:1.5'
+        implementation files('libs/externalB.jar')
     }
 }
 project(':b') {
     dependencies {
-        compile project(':a'), { transitive = false }
+        implementation project(':a'), { transitive = false }
     }
-    task listJars(dependsOn: configurations.compile) {
+    task listJars(dependsOn: configurations.runtimeClasspath) {
         doLast {
-            assert configurations.compile.collect { it.name } == ['a.jar']
+            assert configurations.runtimeClasspath.collect { it.name } == ['a.jar']
         }
     }
 }

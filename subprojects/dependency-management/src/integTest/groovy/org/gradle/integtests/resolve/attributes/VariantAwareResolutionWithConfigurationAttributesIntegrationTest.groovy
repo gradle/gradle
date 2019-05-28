@@ -48,27 +48,25 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']
                         def processResources = p.tasks.processResources
-                        p.configurations.compile.canBeResolved = false
-                        p.configurations.compile.canBeConsumed = false
                         buildTypes.each { bt ->
                             flavors.each { f ->
                                 String baseName = "compile${f.capitalize()}${bt.capitalize()}"
                                 def compileConfig = p.configurations.create(baseName) {
-                                    extendsFrom p.configurations.compile
+                                    extendsFrom p.configurations.implementation
                                     canBeResolved = false
                                     attributes.attribute(buildType, bt)
                                     attributes.attribute(flavor, f)
                                     attributes.attribute(usage, 'compile')
                                 }
                                 def _compileConfig = p.configurations.create("_$baseName") {
-                                    extendsFrom p.configurations.compile
+                                    extendsFrom p.configurations.implementation
                                     canBeConsumed = false
                                     attributes.attribute(buildType, bt)
                                     attributes.attribute(flavor, f)
                                     attributes.attribute(usage, 'compile')
                                 }
                                 def mergedResourcesConf = p.configurations.create("resources${f.capitalize()}${bt.capitalize()}") {
-                                    extendsFrom p.configurations.compile
+                                    extendsFrom p.configurations.implementation
                                     
                                     attributes.attribute(buildType, bt)
                                     attributes.attribute(flavor, f)
@@ -207,7 +205,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         subproject('client') {
             def buildDotGradle = file('build.gradle')
             withVariants(buildDotGradle)
-            withDependencies(buildDotGradle, 'compile project(":core")')
+            withDependencies(buildDotGradle, 'implementation project(":core")')
             src {
                 main {
                     resources {

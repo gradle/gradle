@@ -131,9 +131,13 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'api', 'impl'"
         buildFile << """
             allprojects {
-                apply plugin: "java"
                 repositories {
                     maven { url "${mavenRepo.uri}" }
+                }
+                configurations {
+                    compile
+                    testCompile { extendsFrom compile }
+                    'default' { extendsFrom compile }
                 }
                 configurations.all {
                     resolutionStrategy.assumeFluidDependencies()
@@ -212,9 +216,13 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'api', 'impl'"
         buildFile << """
             allprojects {
-                apply plugin: "java"
                 repositories {
                     maven { url "${mavenRepo.uri}" }
+                }
+                configurations {
+                    compile
+                    testCompile { extendsFrom compile }
+                    'default' { extendsFrom compile }
                 }
                 configurations.all {
                     resolutionStrategy.assumeFluidDependencies()
@@ -396,7 +404,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'api', 'impl'"
         buildFile << """
             allprojects {
-                apply plugin: "java"
+                configurations {
+                    compile
+                    'default' { extendsFrom compile }
+                }
             }
             dependencies {
                 compile project(":impl")

@@ -23,7 +23,7 @@ import spock.lang.Issue
 class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
     }
 
     @Issue("GRADLE-3334")
@@ -47,7 +47,7 @@ dependencies {
         mavenRepo.module('org.test', 'projectB', '2.0').publish()
         mavenRepo.module('org.test', 'projectA', '1.1').dependsOn('org.test', 'projectB', '[2.0]').publish()
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
         resolve.expectDefaultConfiguration("runtime")
 
@@ -89,7 +89,7 @@ dependencies {
         mavenRepo.module('org.test', 'parent', '3.0').dependsOn('org.test', 'dep', '3.0').publishPom()
         mavenRepo.module('org.test', 'dep', '2.1').publish()
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
 
         when:
@@ -131,7 +131,7 @@ dependencies {
         mavenRepo.module('org.test', 'imported', '3.0').dependsOn('org.test', 'dep', '3.0').publishPom()
         mavenRepo.module('org.test', 'dep', '2.1').publish()
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
         resolve.expectDefaultConfiguration("runtime")
 
@@ -173,7 +173,7 @@ dependencies {
         mavenRepo.module('org.test', 'parent', '1.0').dependsOn('org.test', 'dep', '2.0').publishPom()
         mavenRepo.module('org.test', 'parent', '3.0').dependsOn('org.test', 'dep', '3.0').publishPom()
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
 
         when:

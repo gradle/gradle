@@ -47,7 +47,7 @@ class IvyDynamicRevisionMultiRepoResolveIntegrationTest extends AbstractDependen
   }
   """
         and:
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
 
         when:

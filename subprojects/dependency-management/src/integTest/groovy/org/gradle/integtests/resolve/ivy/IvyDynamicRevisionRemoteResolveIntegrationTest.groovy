@@ -29,7 +29,7 @@ class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDepende
     def setup() {
         settingsFile << "rootProject.name = 'test' "
 
-        resolve = new ResolveTestFixture(buildFile)
+        resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
         resolve.addDefaultVariantDerivationStrategy()
     }
