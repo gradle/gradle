@@ -51,8 +51,8 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
             }
 
             dependencies {
-               compile project(':sub')
-               compile 'org.example:example-lib:1.0'
+               implementation project(':sub')
+               implementation 'org.example:example-lib:1.0'
             }
 
             eclipse {

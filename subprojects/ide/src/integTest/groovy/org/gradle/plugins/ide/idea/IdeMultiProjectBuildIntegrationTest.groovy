@@ -38,8 +38,8 @@ class IdeMultiProjectBuildIntegrationTest extends AbstractIntegrationSpec {
 
             project(':api') {
                 dependencies {
-                    compile project(':shared:api')
-                    testCompile project(':shared:model')
+                    implementation project(':shared:api')
+                    testImplementation project(':shared:model')
                 }
             }
         """

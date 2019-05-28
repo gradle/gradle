@@ -61,7 +61,7 @@ allprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:api'), project(':shared:model')
+        implementation project(':shared:api'), project(':shared:model')
     }
 }
 
@@ -73,7 +73,7 @@ project(':shared:model') {
 
 project(':services:utilities') {
     dependencies {
-        compile project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
+        implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
     }
     eclipse {
         project.name = 'util'
@@ -131,7 +131,7 @@ subprojects {
 project(':api') {
     dependencies {
         //let's add a nonEclipse project to stress the test
-        compile project(':shared:model'), project(':nonEclipse')
+        implementation project(':shared:model'), project(':nonEclipse')
     }
 }
 """
@@ -164,7 +164,7 @@ subprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:model')
+        implementation project(':shared:model')
     }
 }
 """

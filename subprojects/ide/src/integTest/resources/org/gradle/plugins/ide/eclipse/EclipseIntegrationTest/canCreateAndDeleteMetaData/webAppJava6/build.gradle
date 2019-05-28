@@ -3,5 +3,5 @@ apply plugin: 'war'
 sourceCompatibility = 6
 
 dependencies {
-    compile project(":common")
+    implementation project(":common")
 }

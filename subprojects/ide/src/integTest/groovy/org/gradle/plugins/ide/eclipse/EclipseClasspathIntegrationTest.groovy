@@ -53,9 +53,9 @@ repositories {
 }
 
 dependencies {
-    compile 'coolGroup:niceArtifact:1.0'
-    compile 'commons-lang:commons-lang:2.6'
-    compile files('lib/dep.jar')
+    implementation 'coolGroup:niceArtifact:1.0'
+    implementation 'commons-lang:commons-lang:2.6'
+    implementation files('lib/dep.jar')
 }
 """
 
@@ -98,8 +98,8 @@ dependencies {
     myPlusConfig group: 'myGroup', name: 'missing-extra-artifact', version: '1.0'
     myPlusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
     myMinusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
-    runtime  group: 'myGroup', name: 'missing-artifact', version: '1.0'
-    compile  group: 'myGroup', name: 'existing-artifact', version: '1.0'
+    runtimeOnly  group: 'myGroup', name: 'missing-artifact', version: '1.0'
+    implementation  group: 'myGroup', name: 'existing-artifact', version: '1.0'
 
     eclipse {
         classpath {
@@ -138,10 +138,10 @@ repositories {
 }
 
 dependencies {
-    compile 'coolGroup:niceArtifact:1.0'
-    compile 'coolGroup:niceArtifact:1.0:extra'
-    testCompile 'coolGroup:another:1.0'
-    testCompile 'coolGroup:niceArtifact:1.0:tests'
+    implementation 'coolGroup:niceArtifact:1.0'
+    implementation 'coolGroup:niceArtifact:1.0:extra'
+    testImplementation 'coolGroup:another:1.0'
+    testImplementation 'coolGroup:niceArtifact:1.0:tests'
 }
 """
 
@@ -173,21 +173,21 @@ subprojects {
 
 configure(project(":a")){
     dependencies {
-        compile 'someGroup:someOtherArtifact:1.0'
+        implementation 'someGroup:someOtherArtifact:1.0'
 
-        compile project(':b')
+        implementation project(':b')
     }
 }
 
 configure(project(":b")){
     dependencies {
-        compile project(':c')
+        implementation project(':c')
     }
 }
 
 configure(project(":c")){
     dependencies {
-        compile 'someGroup:someArtifact:1.0'
+        implementation 'someGroup:someArtifact:1.0'
     }
 }
 """
@@ -218,9 +218,9 @@ subprojects {
 
 configure(project(":a")){
     dependencies {
-        compile 'someGroup:someOtherArtifact:1.0'
+        implementation 'someGroup:someOtherArtifact:1.0'
 
-        compile project(':b')
+        implementation project(':b')
     }
 }
 
@@ -261,13 +261,13 @@ subprojects {
 
 configure(project(":a")){
     dependencies {
-        compile project(':b')
+        implementation project(':b')
     }
 }
 
 configure(project(":b")){
     dependencies {
-        compile project(':c')
+        implementation project(':c')
     }
 }
 
@@ -292,22 +292,22 @@ subprojects {
 
 configure(project(":a")){
     dependencies {
-        compile files("bar.jar")
-        compile project(':b')
+        implementation files("bar.jar")
+        implementation project(':b')
     }
 }
 
 configure(project(":b")){
     dependencies {
-        compile project(':c')
-        compile files("baz.jar")
+        implementation project(':c')
+        implementation files("baz.jar")
 
     }
 }
 
 configure(project(":c")){
     dependencies {
-        compile files("foo.jar")
+        implementation files("foo.jar")
     }
 }
 """
@@ -329,7 +329,7 @@ configure(project(":c")){
         def buildFile = file("build.gradle")
         buildFile << """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 
     repositories {
@@ -339,16 +339,16 @@ subprojects {
 
 configure(project(":a")){
     dependencies {
-        compile ('someGroup:someLib:1.0'){
+        implementation ('someGroup:someLib:1.0'){
             force = project.hasProperty("forceDeps")
         }
-        compile project(':b')
+        implementation project(':b')
     }
 }
 
 configure(project(":b")){
     dependencies {
-        compile 'someGroup:someLib:2.0'
+        api 'someGroup:someLib:2.0'
     }
 }
 """
@@ -386,8 +386,8 @@ repositories {
 }
 
 dependencies {
-    compile 'coolGroup:niceArtifact:1.0'
-    compile files('lib/dep.jar')
+    implementation 'coolGroup:niceArtifact:1.0'
+    implementation files('lib/dep.jar')
 }
 
 eclipse {
@@ -627,7 +627,7 @@ repositories {
 }
 
 dependencies {
-    compile 'coolGroup:niceArtifact:1.0'
+    implementation 'coolGroup:niceArtifact:1.0'
 }
 
 eclipse.classpath {
@@ -663,7 +663,7 @@ repositories {
 }
 
 dependencies {
-    compile 'coolGroup:niceArtifact:1.0'
+    implementation 'coolGroup:niceArtifact:1.0'
 }
 
 eclipse.classpath {
@@ -699,7 +699,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 dependencies {
-  compile files('newDependency.jar')
+  implementation files('newDependency.jar')
 }
 """
         //then
@@ -870,7 +870,7 @@ apply plugin: 'eclipse'
 def hooks = []
 
 dependencies {
-  compile files('newDependency.jar')
+  implementation files('newDependency.jar')
 }
 
 eclipse {
@@ -998,10 +998,10 @@ repositories {
 }
 
 dependencies {
-    compile 'coolGroup:niceArtifact:1.0'
-    compile project(':someApiProject')
-    compile 'i.dont:Exist:1.0'
-    compile files('someDependency.jar')
+    implementation 'coolGroup:niceArtifact:1.0'
+    implementation project(':someApiProject')
+    implementation 'i.dont:Exist:1.0'
+    implementation files('someDependency.jar')
 }
 """
 
@@ -1029,10 +1029,10 @@ repositories {
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:2.9.2"
-    runtime "org.scala-lang:scala-swing:2.9.1"
-    testCompile "org.scala-lang:scala-dbc:2.9.0"
-    testRuntime "other:lib:3.0"
+    implementation "org.scala-lang:scala-library:2.9.2"
+    runtimeOnly "org.scala-lang:scala-swing:2.9.1"
+    testImplementation "org.scala-lang:scala-dbc:2.9.0"
+    testRuntimeOnly "other:lib:3.0"
 }
 """
 
@@ -1116,8 +1116,8 @@ project(':a') {
 
 project(':b') {
     dependencies {
-        compile project(':a')
-        compile 'org.gradle.test:compile:1.0'
+        implementation project(':a')
+        implementation 'org.gradle.test:compile:1.0'
     }
 }
 """
@@ -1157,8 +1157,8 @@ project(':b') {
 
             project(':b') {
                 dependencies {
-                    compile project(':a')
-                    compile 'org.gradle.test:compile:1.0'
+                    implementation project(':a')
+                    implementation 'org.gradle.test:compile:1.0'
                 }
             }
         """.stripIndent()
@@ -1197,14 +1197,14 @@ project(':b') {
 
             project(':a') {
                 dependencies {
-                    compile 'org.gradle.test:conflictingDependency:1.0'
+                    implementation 'org.gradle.test:conflictingDependency:1.0'
                     compileOnly 'org.gradle.test:conflictingDependency:2.0'
                 }
             }
 
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """.stripIndent()
@@ -1243,14 +1243,14 @@ project(':b') {
 
             project(':a') {
                 dependencies {
-                    runtime 'org.gradle.test:conflictingDependency:1.0'
+                    runtimeOnly 'org.gradle.test:conflictingDependency:1.0'
                     compileOnly 'org.gradle.test:conflictingDependency:2.0'
                 }
             }
 
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """.stripIndent()
@@ -1289,14 +1289,14 @@ project(':b') {
 
             project(':a') {
                 dependencies {
-                    testCompile 'org.gradle.test:conflictingDependency:1.0'
+                    testImplementation 'org.gradle.test:conflictingDependency:1.0'
                     testCompileOnly 'org.gradle.test:conflictingDependency:2.0'
                 }
             }
 
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """.stripIndent()

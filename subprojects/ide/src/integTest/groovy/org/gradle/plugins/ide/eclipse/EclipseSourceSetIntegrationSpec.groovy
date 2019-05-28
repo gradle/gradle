@@ -33,9 +33,9 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies {
-                compile 'com.google.guava:guava:18.0'
+                implementation 'com.google.guava:guava:18.0'
                 compileOnly 'commons-logging:commons-logging:1.2'
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
         """
 
@@ -76,8 +76,8 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies {
-                compile 'com.google.guava:guava:18.0'
-                testCompile 'junit:junit:4.12'
+                implementation 'com.google.guava:guava:18.0'
+                testImplementation 'junit:junit:4.12'
             }
 
             eclipse.classpath.file.whenMerged {

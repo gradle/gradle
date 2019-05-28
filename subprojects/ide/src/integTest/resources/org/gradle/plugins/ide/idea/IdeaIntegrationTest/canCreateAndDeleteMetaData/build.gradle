@@ -8,7 +8,7 @@ idea.project.jdkName = '1.6'
 idea.project.languageLevel = '1.6'
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     idea {
         module {
@@ -21,7 +21,7 @@ subprojects {
     }
 
     dependencies {
-        testCompile 'junit:junit:4.7'
+        testImplementation 'junit:junit:4.7'
     }
 
     group = 'org.gradle'
