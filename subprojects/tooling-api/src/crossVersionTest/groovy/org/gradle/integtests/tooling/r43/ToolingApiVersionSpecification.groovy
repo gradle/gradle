@@ -78,7 +78,7 @@ repositories {
 }
 ${mavenCentralRepository()}
 dependencies {
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
 """
         file('src/test/java/TestClientTest.java') << '''
