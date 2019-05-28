@@ -79,15 +79,6 @@ tasks.register("generateLotsOfDeprecationWarnings", Copy) {
     from "src/templates/$name"
 }
 
-tasks.register("largeJavaBuildBuilder", BuildBuilderGenerator) {
-    projectType = "java"
-    projects = 100
-    sourceFiles = 4
-    description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
-}
-
-
-
 
 // === Gradle Kotlin DSL ===
 tasks.register("ktsManyProjects", KtsProjectGeneratorTask) {
