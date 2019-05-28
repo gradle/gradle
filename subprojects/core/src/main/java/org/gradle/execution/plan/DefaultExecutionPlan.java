@@ -579,6 +579,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         boolean foundReadyNode = false;
         while (iterator.hasNext()) {
             Node node = iterator.next();
+            LOGGER.debug("Trying to execute {} - dependencies complete: {}", node, node.allDependenciesComplete());
             if (node.allDependenciesComplete() && !node.isReady()) {
                 LOGGER.debug("The dependencies of node {} completed, but it is not ready to execute, but {} instead.", node, node.getState());
             }
