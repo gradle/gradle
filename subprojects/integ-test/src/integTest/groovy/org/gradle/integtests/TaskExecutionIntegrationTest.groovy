@@ -728,7 +728,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         """
 
         when:
-        run ":application:third", "--parallel", "--max-workers=100", "-d"
+        run ":application:third", "--parallel", "--max-workers=100"
         then:
         true
     }
@@ -812,11 +812,11 @@ import javax.inject.Inject
         """
 
         when:
-        run(":application:printer", "--max-workers=70", "--parallel", "-x", "intermediate", "-d")
+        run(":application:printer", "--max-workers=70", "--parallel", "-x", "intermediate")
         then:
         executedAndNotSkipped(":application:finalTask")
         when:
-        run(":application:printer", "--max-workers=70", "--parallel", "-d")
+        run(":application:printer", "--max-workers=70", "--parallel")
         then:
         skipped(":application:finalTask")
     }
