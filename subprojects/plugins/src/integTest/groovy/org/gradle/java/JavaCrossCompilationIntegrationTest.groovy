@@ -74,7 +74,7 @@ public class Thing { }
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'junit:junit:4.12' }
+dependencies { testImplementation 'junit:junit:4.12' }
 """
 
         file("src/test/java/ThingTest.java") << """
@@ -98,7 +98,7 @@ public class ThingTest {
     def "can compile source and run TestNG tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'org.testng:testng:6.8.8' }
+dependencies { testImplementation 'org.testng:testng:6.8.8' }
 """
 
         file("src/test/java/ThingTest.java") << """

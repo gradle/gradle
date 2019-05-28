@@ -47,6 +47,7 @@ include 'a', 'b'
 """
         buildFile << """
             allprojects {
+                if (name in []) apply plugin: 'java-library'
                 apply plugin: '${language.name}'
                 task emptyDirs(type: Sync) {
                     into 'build/empty-dirs'
@@ -60,7 +61,7 @@ include 'a', 'b'
             buildFile << """
             allprojects {
                 dependencies {
-                    compile localGroovy()
+                    implementation localGroovy()
                 }
             }
 """
@@ -120,7 +121,7 @@ include 'a', 'b'
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -245,7 +246,7 @@ include 'a', 'b'
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -286,7 +287,7 @@ public class ToolImpl {
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -360,7 +361,7 @@ public class ToolImpl {
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -423,7 +424,7 @@ public class ToolImpl {
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -459,7 +460,7 @@ public class ToolImpl {
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -528,7 +529,7 @@ public class ToolImpl {
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -579,7 +580,7 @@ public class ToolImpl {
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -620,16 +621,18 @@ public class ToolImpl {
     def "change to transitive super-class in different project should trigger recompilation"() {
         given:
         settingsFile << "include 'c'"
-
+        buildFile.text = buildFile.text.replace(
+            "(name in [])",
+            "(name in ['b'])")
         buildFile << """
             project(':a') {
                 dependencies {
-                    compile project(':b')
+                    implementation project(':b')
                 }
             }
             project(':b') {
                 dependencies {
-                    compile project(':c')
+                    api project(':c')
                 }
             }
         """
@@ -671,21 +674,23 @@ public class A extends B {
     def "change to transitive super-class in different project should trigger recompilation 2"() {
         given:
         settingsFile << "include 'c', 'd'"
-
+        buildFile.text = buildFile.text.replace(
+            "(name in [])",
+            "(name in ['b', 'c'])")
         buildFile << """
             project(':a') {
                 dependencies {
-                    compile project(':b')
+                    implementation project(':b')
                 }
             }
             project(':b') {
                 dependencies {
-                    compile project(':c')
+                    api project(':c')
                 }
             }
             project(':c') {
                 dependencies {
-                    compile project(':d')
+                    api project(':d')
                 }
             }
         """

@@ -253,7 +253,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.gradle.test:compile:1.0'
+    implementation 'org.gradle.test:compile:1.0'
     compileOnly 'org.gradle.test:compileOnly:1.0'
 }
 """
@@ -371,7 +371,7 @@ executableDir = 'foo/bar'
 
             dependencies {
                api project(':core')
-               runtime project(':foo')
+               runtimeOnly project(':foo')
             }
         '''
         file('core/build.gradle') << '''
@@ -432,7 +432,7 @@ apply plugin: 'java-library'
 
 dependencies {
     implementation 'org.gradle.test:implementation:1.0'
-    runtime project(':bar')
+    runtimeOnly project(':bar')
 }
         '''
 

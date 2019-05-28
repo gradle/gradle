@@ -98,7 +98,7 @@ public @interface MyAnnotation { }
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
