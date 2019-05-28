@@ -160,9 +160,9 @@ class CustomPluginTest {
 apply plugin: 'groovy'
 ${mavenCentralRepository()}
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    testCompile 'junit:junit:4.12'
+    implementation gradleApi()
+    implementation localGroovy()
+    testImplementation 'junit:junit:4.12'
 }
 """
 
@@ -201,9 +201,9 @@ class CustomPluginTest {
 apply plugin: 'groovy'
 ${mavenCentralRepository()}
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    testCompile 'junit:junit:4.12'
+    implementation gradleApi()
+    implementation localGroovy()
+    testImplementation 'junit:junit:4.12'
 }
 """
 
