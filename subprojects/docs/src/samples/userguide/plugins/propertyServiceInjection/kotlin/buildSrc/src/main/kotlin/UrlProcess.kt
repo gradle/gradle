@@ -11,7 +11,7 @@ abstract class UrlProcess : DefaultTask() {
     abstract val objectFactory: ObjectFactory
 
     // Alternatively, use a property getter with a dummy implementation
-    // Note that the property must be open and the @Ibject annotation must be attached to the getter
+    // Note that the property must be open and the @Inject annotation must be attached to the getter
     @get:Inject
     open val workerExecutor: WorkerExecutor
         get() {

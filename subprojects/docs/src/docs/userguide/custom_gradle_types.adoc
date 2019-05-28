@@ -134,17 +134,17 @@ The order of the constructor parameters and their names are not significant and 
 Here is an example that shows a task type that receives an `ObjectFactory` via its constructor:
 
 [source.multi-language-sample,java]
-.UrlProcess.java
+.Constructor service injection
 ----
 include::{samplesPath}/userguide/plugins/constructorServiceInjection/java/buildSrc/src/main/java/UrlProcess.java[]
 ----
 [source.multi-language-sample,kotlin]
-.UrlProcess.kt
+.Constructor service injection
 ----
 include::{samplesPath}/userguide/plugins/constructorServiceInjection/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
 ----
 [source.multi-language-sample,groovy]
-.UrlProcess.groovy
+.Constructor service injection
 ----
 include::{samplesPath}/userguide/plugins/constructorServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
@@ -162,22 +162,22 @@ The method body is discarded.
 Here is an example that shows a task type that receives a two services via property getter methods:
 
 [source.multi-language-sample,java]
-.UrlProcess.java
+.Property service injection
 ----
 include::{samplesPath}/userguide/plugins/propertyServiceInjection/java/buildSrc/src/main/java/UrlProcess.java[]
 ----
 [source.multi-language-sample,kotlin]
-.UrlProcess.kt
+.Property service injection
 ----
 include::{samplesPath}/userguide/plugins/propertyServiceInjection/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
 ----
 [source.multi-language-sample,groovy]
-.UrlProcess.groovy
+.Property service injection
 ----
 include::{samplesPath}/userguide/plugins/propertyServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
 
-== Nested objects
+== Creating nested objects
 
 A custom Gradle type can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service to create instances of Gradle types to use for its property values.
 These instances can make use of the features discussed in this chapter,  allowing you to create 'nested' instances and a nested DSL.
@@ -185,14 +185,18 @@ These instances can make use of the features discussed in this chapter,  allowin
 In the following example, a project extension receives an `ObjectFactory` instance through its constructor.
 The constructor uses this to create a nested object and makes this object available through the `greeter` property.
 
-.Nested objects
-====
-include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/kotlin",files="build.gradle.kts[]"]
-====
-
-.Output of **`gradle -q hello`**
+[source.multi-language-sample,java]
+.Nested object creation
 ----
-> gradle -q hello
-include::{samplesPath}/userguide/customPlugins/customPluginWithNestedDsl/nestedDslElement.out[]
+include::{samplesPath}/userguide/plugins/nestedObjects/java/buildSrc/src/main/java/DownloadExtension.java[]
+----
+[source.multi-language-sample,kotlin]
+.Nested object creation
+----
+include::{samplesPath}/userguide/plugins/nestedObjects/kotlin/buildSrc/src/main/kotlin/DownloadExtension.kt[]
+----
+[source.multi-language-sample,groovy]
+.Nested object creation
+----
+include::{samplesPath}/userguide/plugins/nestedObjects/groovy/buildSrc/src/main/groovy/DownloadExtension.groovy[]
 ----
