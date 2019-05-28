@@ -158,7 +158,7 @@ public class ThingTest {
                 otherMain
                 otherTest
             }
-            sourceSets.otherTest.compileClasspath = configurations.testCompile + sourceSets.otherMain.output
+            sourceSets.otherTest.compileClasspath = configurations.testCompileClasspath + sourceSets.otherMain.output
             sourceSets.otherTest.runtimeClasspath = sourceSets.otherTest.compileClasspath + sourceSets.otherTest.output
 
             task otherTests(type: Test) {
