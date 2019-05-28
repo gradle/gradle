@@ -162,7 +162,7 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
             ${jcenterRepository()}
             
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
         """
     }
