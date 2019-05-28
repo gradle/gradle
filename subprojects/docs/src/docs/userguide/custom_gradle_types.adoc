@@ -119,7 +119,7 @@ The services are made available through _service injection_.
 
 The following services are available for injection:
 
-- link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created. See <<custom_plugins.adoc#sec:nested_dsl_elements,custom plugins>> for more details.
+- link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created. See <<nested_objects>> for more details.
 - link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout] - Provides access to key project locations. See <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy configuration>> for more details.
 - link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> for more details.
 - link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel. See <<custom_tasks.adoc#worker_api,the worker API>> for more details.
@@ -177,13 +177,14 @@ include::{samplesPath}/userguide/plugins/propertyServiceInjection/kotlin/buildSr
 include::{samplesPath}/userguide/plugins/propertyServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
 ----
 
+[[nested_objects]]
 == Creating nested objects
 
 A custom Gradle type can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service to create instances of Gradle types to use for its property values.
-These instances can make use of the features discussed in this chapter,  allowing you to create 'nested' instances and a nested DSL.
+These instances can make use of the features discussed in this chapter, allowing you to create 'nested' instances and a nested DSL.
 
 In the following example, a project extension receives an `ObjectFactory` instance through its constructor.
-The constructor uses this to create a nested object and makes this object available through the `greeter` property.
+The constructor uses this to create a nested `Server` object (also a custom Gradle type) and makes this object available through the `server` property.
 
 [source.multi-language-sample,java]
 .Nested object creation
@@ -200,3 +201,52 @@ include::{samplesPath}/userguide/plugins/nestedObjects/kotlin/buildSrc/src/main/
 ----
 include::{samplesPath}/userguide/plugins/nestedObjects/groovy/buildSrc/src/main/groovy/DownloadExtension.groovy[]
 ----
+
+=== Collection types
+
+Gradle provides types for maintaining collections of objects, intended to work well with the Gradle DSL and provide useful features such as lazy configuration.
+
+==== NamedDomainObjectContainer
+
+A link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] manages a set of objects, where each elements has a name associated with it.
+The container takes care of creating and configuring the elements, and provides a DSL that build scripts can use to define and configure elements.
+It is intended to hold objects which are themselves configurable, for example a set of custom Gradle objects.
+
+Gradle uses `NamedDomainObjectContainer` type extensively throughout the API.
+For example, the `project.tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer<Task>`.
+
+You can create a container instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service, which provides the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#container-java.lang.Class-[ObjectFactory.container()] method.
+This is also available using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method, however in a custom Gradle type it's
+generally better to use the injected `ObjectFactory` service instead of passing around a `Project` instance.
+
+In order to use a type with any of the `container()` methods, it must expose a property named "`name`" as the unique, and constant, name for the object.
+The `container(Class)` variant of the method creates new instances by calling the constructor of the class that takes a string argument, which is the desired name of the object.
+Objects created this way are treated as custom Gradle types, and so can make use of the features discussed in this chapter, for example service injection or managed properties.
+
+See the above link for `container()` method variants that allow custom instantiation strategies.
+
+.Managing a collection of objects
+====
+include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
+====
+
+==== Output of **`gradle -q books`**
+[source.multi-language-sample,groovy]
+----
+> gradle -q books
+include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.groovy.out[]
+----
+[source.multi-language-sample,kotlin]
+----
+> gradle -q books
+include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.kotlin.out[]
+----
+
+==== DomainObjectSet
+
+A link:{javadocPath}/org/gradle/api/DomainObjectSet.html[DomainObjectSet] simply holds a set of objects.
+Compared to the `NamedDomainObjectContainer`, the `DomainObjectSet` doesn't manage the objects in the collection.
+They need to be created and added manually.
+
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectSet-java.lang.Class-[ObjectFactory.domainObjectSet()] method.

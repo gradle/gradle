@@ -62,7 +62,7 @@ One thing to note is that a new instance of a plugin is created for each project
 [[sec:getting_input_from_the_build]]
 == Making the plugin configurable
 
-Most plugins offer some configuration options for build script and other plugins to use to customize how the plugin works. Plugins do this using _extension objects_.
+Most plugins offer some configuration options for build scripts and other plugins to use to customize how the plugin works. Plugins do this using _extension objects_.
 The Gradle link:{groovyDslPath}/org.gradle.api.Project.html[Project] has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer] object that contains all the settings and properties for the plugins that have been applied to the project.
 You can provide configuration for your plugin by adding an extension object to this container.
 An extension object is simply an object with Java Bean properties that represent the configuration.
@@ -102,6 +102,9 @@ In this example, several settings can be grouped together within the `greeting` 
 
 [.multi-language-text.lang-kotlin]
 In this example, several settings can be grouped together within the `configure<GreetingPluginExtension>` block. The type used on the `configure` function in the build script (`GreetingPluginExtension`) needs to match the extension type. Then, when the block is executed, the receiver of the block is the extension.
+
+In this way, using an extension object _extends_ the Gradle DSL to add a project property and DSL block for the plugin.
+And because an extension object is simply a regular object, you can provide your own DSL nested inside the plugin block by adding properties and methods to the extension object.
 
 === Developing project extensions
 
@@ -231,53 +234,6 @@ include::sample[dir="customPlugin/kotlin/javaGradlePlugin",files="build.gradle.k
 
 When publishing plugins to custom plugin repositories using the <<publishing_ivy.adoc#publishing_ivy,Ivy>> or <<publishing_maven.adoc#publishing_maven,Maven>> publish plugins, the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> will also generate plugin marker artifacts named based on the plugin id which depend on the plugin's implementation artifact.
 
-[[sec:implementing_a_dsl]]
-== Providing a configuration DSL for the plugin
-
-As we saw above, you can use an extension object to provide configuration for your plugin. Using an extension object also extends the Gradle DSL to add a project property and DSL block for the plugin. An extension object is simply a regular object, and so you can provide DSL elements nested inside this block by adding properties and methods to the extension object.
-
-Gradle provides several conveniences to help create a well-behaved DSL for your plugin.
-
-[[sec:maintaining_multiple_domain_objects]]
-=== Configuring a collection of objects
-
-Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL.
-One such type is link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] which manages a set of objects.
-Gradle uses this type extensively throughout the API.
-For example, the `tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer`.
-
-You can create a container instance using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method.
-You can also use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#container-java.lang.Class-[ObjectFactory.container()].
-
-.Managing a collection of objects
-====
-include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
-====
-
-Another type is link:{javadocPath}/org/gradle/api/DomainObjectSet.html[DomainObjectSet] which maintains a simple set of objects.
-Compared to the `NamedDomainObjectContainer`, the `DomainObjectSet` doesn't manage the objects in the collection.
-They need to be created and added manually.
-You can create an instance using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectSet-java.lang.Class-[ObjectFactory.domainObjectSet()].
-
-==== Output of **`gradle -q books`**
-[source.multi-language-sample,groovy]
-----
-> gradle -q books
-include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.groovy.out[]
-----
-[source.multi-language-sample,kotlin]
-----
-> gradle -q books
-include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.kotlin.out[]
-----
-
-The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:container(java.lang.Class)[Project.container(java.lang.Class)] methods create instances of link:{groovyDslPath}/org.gradle.api.NamedDomainObjectContainer.html[NamedDomainObjectContainer], that have many useful methods for managing and configuring the objects. In order to use a type with any of the `project.container` methods, it MUST expose a property named "`name`" as the unique, and constant, name for the object. The `project.container(Class)` variant of the container method creates new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. See the above link for `project.container` method variants that allow custom instantiation strategies.
-
-==== Service injection
-
-Gradle provides a number of useful services that can be injected into the elements of the container.
-See <<custom_gradle_types.adoc#service_injection,service injection>> for more details.
 
 == More details
 
