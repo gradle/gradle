@@ -52,7 +52,7 @@ targetCompatibility = ${MultiVersionIntegrationSpec.version}
 ${mavenCentralRepository()}
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.12'
+    implementation 'org.scala-lang:scala-library:2.11.12'
 }
 
 tasks.withType(AbstractCompile) {
@@ -86,7 +86,7 @@ class ScalaThing { }
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'junit:junit:4.12' }
+dependencies { testImplementation 'junit:junit:4.12' }
 """
 
         file("src/test/scala/ThingTest.scala") << """
