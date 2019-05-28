@@ -21,8 +21,8 @@ repositories {
 }
 
 dependencies {
-    compile "org.codehaus.groovy:groovy:2.4.15"
-    testCompile "junit:junit:4.12"
+    implementation "org.codehaus.groovy:groovy:2.4.15"
+    testImplementation "junit:junit:4.12"
 }
 
 test {

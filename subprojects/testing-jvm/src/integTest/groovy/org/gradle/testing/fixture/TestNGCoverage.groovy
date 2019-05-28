@@ -37,7 +37,7 @@ class TestNGCoverage {
         buildFile << """
             apply plugin: 'java'
             ${jcenterRepository()}
-            dependencies { testCompile "org.testng:testng:${version}" }
+            dependencies { testImplementation "org.testng:testng:${version}" }
             test.useTestNG()
         """
     }

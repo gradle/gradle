@@ -112,7 +112,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${jcenterRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.12' }
             test {
                 maxParallelForks = $maxParallelForks
             }
@@ -140,8 +140,8 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 ${jcenterRepository()}
             }
             dependencies { 
-                testCompile 'junit:junit:4.12'
-                testCompile project(":dependency") 
+                testImplementation 'junit:junit:4.12'
+                testImplementation project(":dependency") 
             }
         """
         settingsFile << """
@@ -181,7 +181,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies { 
-                testCompile 'junit:junit:4.12' 
+                testImplementation 'junit:junit:4.12' 
             }
         """
         file("src/test/java/MyTest.java") << """
@@ -260,7 +260,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
 
             sourceCompatibility = 1.9

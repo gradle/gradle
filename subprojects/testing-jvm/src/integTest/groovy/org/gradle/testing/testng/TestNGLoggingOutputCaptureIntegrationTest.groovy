@@ -34,7 +34,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         buildFile << """
             apply plugin: "java"
             ${jcenterRepository()}
-            dependencies { testCompile "org.testng:testng:$version" }
+            dependencies { testImplementation "org.testng:testng:$version" }
             test {
                 useTestNG()
                 reports.junitXml.outputPerTestCase = true
