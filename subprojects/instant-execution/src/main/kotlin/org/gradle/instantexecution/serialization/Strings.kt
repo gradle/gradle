@@ -26,11 +26,10 @@ class WriteStrings {
         string.toString().let { string ->
             val id = strings[string]
             if (id != null) {
-                writeBoolean(true)
                 writeSmallInt(id)
             } else {
                 val newId = strings.size
-                writeBoolean(false)
+                writeSmallInt(-1)
                 writeString(string)
                 strings[string] = newId
             }
@@ -45,11 +44,9 @@ class WriteStrings {
 class ReadStrings {
 
     fun readString(decoder: Decoder): String = decoder.run {
-        when (readBoolean()) {
-            true -> strings[readSmallInt()]
-            else -> readString().also {
-                strings.add(it)
-            }
+        when (val index = readSmallInt()) {
+            -1 -> readString().also { strings.add(it) }
+            else -> strings[index]
         }
     }
 
