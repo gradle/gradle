@@ -139,6 +139,30 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         new ZipTestFixture(jarFile).assertContainsFile("b/B.class")
     }
 
+    def "processResources on single project Java build"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'resources'
+        """
+        buildFile << """
+            apply plugin: 'java'
+        """
+        file("src/main/resources/answer.txt") << "42"
+
+        when:
+        instantRun ":processResources"
+
+        and:
+        file("build").deleteDir()
+
+        and:
+        instantRun ":processResources"
+
+        then:
+        instantExecution.assertStateLoaded()
+        file("build/resources/main/answer.txt").text == "42"
+    }
+
     def "assemble on Java application build with no dependencies"() {
         given:
         settingsFile << """
