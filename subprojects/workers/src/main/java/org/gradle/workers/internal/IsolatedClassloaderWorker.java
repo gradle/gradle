@@ -18,6 +18,8 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
+import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.initialization.MixInLegacyTypesClassLoader;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -29,6 +31,7 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
     private final ClassLoaderStructure classLoaderStructure;
     private final ClassLoader workerInfrastructureClassloader;
+    private final ServiceRegistry serviceRegistry;
     private ClassLoader workerClassLoader;
     private boolean reuseClassloader;
 
@@ -36,6 +39,7 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
         super(serviceRegistry);
         this.classLoaderStructure = classLoaderStructure;
         this.workerInfrastructureClassloader = workerInfrastructureClassloader;
+        this.serviceRegistry = serviceRegistry;
     }
 
     public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry serviceRegistry, boolean reuseClassloader) {
@@ -88,7 +92,13 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
     }
 
     private ClassLoader createClassLoaderFromSpec(ClassLoader parent, ClassLoaderSpec spec) {
-        if (spec instanceof VisitableURLClassLoader.Spec) {
+        if (spec instanceof MixInLegacyTypesClassLoader.Spec) {
+            MixInLegacyTypesClassLoader.Spec mixinSpec = (MixInLegacyTypesClassLoader.Spec) spec;
+            if (mixinSpec.getClasspath().isEmpty()) {
+                return parent;
+            }
+            return new MixInLegacyTypesClassLoader(parent, mixinSpec.getClasspath(), serviceRegistry.get(LegacyTypesSupport.class));
+        } else if (spec instanceof VisitableURLClassLoader.Spec) {
             VisitableURLClassLoader.Spec visitableSpec = (VisitableURLClassLoader.Spec)spec;
             if (visitableSpec.getClasspath().isEmpty()) {
                 return parent;

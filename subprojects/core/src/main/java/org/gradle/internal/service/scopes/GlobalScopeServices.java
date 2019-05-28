@@ -19,10 +19,18 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.Iterables;
 import org.gradle.api.execution.internal.DefaultTaskInputsListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultClassPathProvider;
+import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.DynamicModulesClassPathProvider;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
@@ -46,10 +54,13 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
 import org.gradle.initialization.DefaultParallelismConfigurationManager;
+import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.JdkToolsInitializer;
+import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
@@ -64,6 +75,8 @@ import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -72,6 +85,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.services.MessagingServices;
@@ -110,6 +124,7 @@ import java.util.List;
  */
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
+    protected final ClassPath additionalModuleClassPath;
     private GradleBuildEnvironment environment;
 
     public GlobalScopeServices(final boolean longLiving) {
@@ -117,7 +132,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
-        super(additionalModuleClassPath);
+        super();
+        this.additionalModuleClassPath = additionalModuleClassPath;
         this.environment = new GradleBuildEnvironment() {
             public boolean isLongLivingProcess() {
                 return longLiving;
@@ -289,5 +305,33 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     ExecutionStateChangeDetector createExecutionStateChangeDetector() {
         return new DefaultExecutionStateChangeDetector();
+    }
+
+    ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
+        return new DefaultClassPathRegistry(
+            new DefaultClassPathProvider(moduleRegistry),
+            new DynamicModulesClassPathProvider(moduleRegistry,
+                pluginModuleRegistry));
+    }
+
+    DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
+        return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
+    }
+
+    CurrentGradleInstallation createCurrentGradleInstallation() {
+        return CurrentGradleInstallation.locate();
+    }
+
+    PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
+        return new DefaultPluginModuleRegistry(moduleRegistry);
+    }
+
+    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {
+        if (GradleRuntimeShadedJarDetector.isLoadedFrom(getClass())) {
+            return new FlatClassLoaderRegistry(getClass().getClassLoader());
+        }
+
+        // Use DirectInstantiator here to avoid setting up the instantiation infrastructure early
+        return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport, DirectInstantiator.INSTANCE);
     }
 }

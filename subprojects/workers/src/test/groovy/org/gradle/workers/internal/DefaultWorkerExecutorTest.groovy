@@ -128,7 +128,7 @@ class DefaultWorkerExecutorTest extends Specification {
         DaemonForkOptions daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration)
 
         then:
-        1 * classLoaderStructureProvider.getDefaultClassLoaderStructure(_) >> { args -> new HierarchicalClassLoaderStructure(new VisitableURLClassLoader.Spec("test", args[0].collect { it.toURI().toURL() }))}
+        1 * classLoaderStructureProvider.getInProcessClassLoaderStructure(_) >> { args -> new HierarchicalClassLoaderStructure(new VisitableURLClassLoader.Spec("test", args[0].collect { it.toURI().toURL() }))}
 
         and:
         daemonForkOptions.classLoaderStructure.spec.classpath.contains(foo.toURI().toURL())
