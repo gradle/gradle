@@ -39,11 +39,6 @@ public interface ClassLoaderRegistry {
     ClassLoader getGradleCoreApiClassLoader();
 
     /**
-     * Returns the implementation class loader for the built-in plugins, constructed for use in a worker process.
-     */
-    ClassLoader getWorkerPluginsClassLoader();
-
-    /**
      * Returns a copy of the filter spec for the Gradle API Classloader.  This is expensive to calculate, so we create it once in
      * the build process and provide it to the worker.
      */
