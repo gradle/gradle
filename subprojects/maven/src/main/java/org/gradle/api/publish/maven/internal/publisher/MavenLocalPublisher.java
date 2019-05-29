@@ -53,7 +53,7 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
 
         URI rootUri = mavenRepositoryLocator.getLocalMavenRepository().toURI();
         String protocol = rootUri.getScheme().toLowerCase();
-        RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, "mavenLocal", Collections.emptyList());
+        RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, "mavenLocal", Collections.emptyList(), artifactRepository.isAllowInsecureProtocol());
         ExternalResourceRepository repository = transport.getRepository();
 
         publish(publication, repository, rootUri, true);
