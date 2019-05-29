@@ -26,11 +26,9 @@ subprojects {
 
 project(":astTransformationConsumer") {
 // tag::groovy-compilation-avoidance[]
-    configurations {
-        create("astTransformation")
-    }
+    val astTransformation by configurations.creating
     dependencies {
-         "astTransformation"(project(":astTransformation"))
+        astTransformation(project(":astTransformation"))
     }
                 
     tasks.withType<GroovyCompile> {

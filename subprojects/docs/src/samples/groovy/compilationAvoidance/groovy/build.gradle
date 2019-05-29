@@ -26,7 +26,9 @@ subprojects {
 
 project(':astTransformationConsumer') {
 // tag::groovy-compilation-avoidance[]
-    configurations { astTransformation }
+    configurations { 
+        astTransformation 
+    }
     dependencies {
          astTransformation project(':astTransformation')
     }
