@@ -22,19 +22,22 @@ The custom Gradle types that you implement often hold some configuration that yo
 For example, a download task may have configuration that specifies the URL to download from and the file system location to write the result to.
 This configuration is represented as Java bean properties.
 
-Kotlin and Groovy also provide conveniences for declaring Java bean properties, which make them good language choices to use to implement Gradle types.
+Kotlin and Groovy provide conveniences for declaring Java bean properties, which make them good language choices to use to implement Gradle types.
 These conveniences are demonstrated in the samples below.
 
-Gradle also provides some conveniences for implementing types with bean properties.
-A property may be _mutable_, meaning that it has both a getter method and setter method, or _read-only_, meaning that it has only a getter method.
+[[managed_properties]]
+=== Managed properties
+
+Gradle provides some conveniences for implementing types with bean properties.
 Gradle can provide an implementation of a property. This is called a _managed property_, as Gradle takes care of managing the state of the property.
+A property may be _mutable_, meaning that it has both a getter method and setter method, or _read-only_, meaning that it has only a getter method.
 
 [NOTE]
 ====
 Managed properties are currently an experimental <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
 ====
 
-=== Mutable managed properties
+==== Mutable managed properties
 
 To declare a mutable managed property, add an abstract getter method and an abstract setter method for the property to the type.
 
@@ -61,10 +64,10 @@ include::{samplesPath}/userguide/plugins/mutableManagedProperty/groovy/buildSrc/
 
 Note that for a property to be considered a mutable managed property, _all_ of the property's getter methods and setter methods must be `public` or `protected` and `abstract`.
 
-=== Read-only managed properties
+==== Read-only managed properties
 
 To declare a read-only managed property, add an abstract getter method for the property to the type.
-The property should not have any setter methods (otherwise it is not read only).
+The property should not have any setter methods.
 This is a useful pattern to use with one of Gradle's configurable <<lazy_configuration.adoc#lazy_configuration,lazy property>> types.
 
 Here is an example of a task type with a `uri` property:
@@ -99,6 +102,7 @@ In addition, the property must have one of the following types:
 - `MapProperty`
 - `ConfigurableFileCollection`
 
+[[managed_types]]
 === Managed types
 
 A _managed type_ is an abstract class or interface with no fields and whose properties are all managed.
@@ -217,11 +221,11 @@ include::{samplesPath}/userguide/plugins/nestedObjects/groovy/buildSrc/src/main/
 ----
 ====
 
-=== Collection types
+== Collection types
 
 Gradle provides types for maintaining collections of objects, intended to work well with the Gradle DSL and provide useful features such as lazy configuration.
 
-==== NamedDomainObjectContainer
+=== NamedDomainObjectContainer
 
 A link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] manages a set of objects, where each elements has a name associated with it.
 The container takes care of creating and configuring the elements, and provides a DSL that build scripts can use to define and configure elements.
@@ -259,7 +263,7 @@ include::{samplesPath}/userguide/plugins/namedDomainObjectContainer/groovy/build
 ----
 ====
 
-==== DomainObjectSet
+=== DomainObjectSet
 
 A link:{javadocPath}/org/gradle/api/DomainObjectSet.html[DomainObjectSet] simply holds a set of objects.
 Compared to the `NamedDomainObjectContainer`, the `DomainObjectSet` doesn't manage the objects in the collection.

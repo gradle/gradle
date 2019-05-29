@@ -108,7 +108,7 @@ And because an extension object is simply a regular object, you can provide your
 
 === Developing project extensions
 
-Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details about implementing project extensions.
+You can find out more about implementing project extensions in <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>>.
 
 [[sec:working_with_files_in_custom_tasks_and_plugins]]
 == Working with files in custom tasks and plugins
