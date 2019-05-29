@@ -54,8 +54,8 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionPerformanc
         and:
         runner.useDaemon = daemon == hot
         runner.addBuildExperimentListener(listenerFor(action))
-        runner.warmUpRuns = daemon == hot ? 15 : 1
-        runner.runs = daemon == hot ? 50 : 25
+        runner.warmUpRuns = daemon == hot ? 20 : 1
+        runner.runs = daemon == hot ? 60 : 25
 
         when:
         def result = runner.run()
