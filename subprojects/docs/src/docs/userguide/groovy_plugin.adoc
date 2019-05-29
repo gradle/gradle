@@ -224,7 +224,7 @@ The Groovy plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.Groov
 
 _Caveat: Groovy compilation avoidance is an incubating feature since Gradle 5.6. There are known inaccuracies so please enable it at your own risk._
 
-To enable the incubating support for Groovy compilation avoidance, add an system property `org.gradle.groovy.compilation.avoidance` to your Gradle invocation, for example:
+To enable the incubating support for Groovy compilation avoidance, add a system property `org.gradle.groovy.compilation.avoidance` to your Gradle invocation, for example:
 
 ```
 ./gradlew assemble -Dorg.gradle.groovy.compilation.avoidance=true
