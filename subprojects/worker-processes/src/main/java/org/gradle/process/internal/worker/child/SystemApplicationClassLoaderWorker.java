@@ -85,8 +85,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         // Read logging config and setup logging
         int logLevel = decoder.readSmallInt();
         LoggingServiceRegistry loggingServiceRegistry = LoggingServiceRegistry.newEmbeddableLogging();
-        LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry);
-        loggingManager.setLevelInternal(LogLevel.values()[logLevel]).start();
+        LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry).setLevelInternal(LogLevel.values()[logLevel]);
 
         // Read whether process info should be published
         boolean shouldPublishJvmMemoryInfo = decoder.readBoolean();
@@ -125,6 +124,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
             workerLogEventListener = configureLogging(loggingManager, connection);
+            // start logging now that the logging manager is connected
+            loggingManager.start();
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
             }
