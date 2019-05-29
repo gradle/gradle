@@ -16,16 +16,18 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
-    public KotlinLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
-        super("kotlin", scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
+
+    public KotlinLibraryProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider) {
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -34,8 +36,8 @@ public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor
     }
 
     @Override
-    public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.KOTLIN;
+    public ComponentType getComponentType() {
+        return ComponentType.LIBRARY;
     }
 
     @Override
@@ -49,8 +51,13 @@ public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public Language getLanguage() {
+        return Language.KOTLIN;
+    }
+
+    @Override
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
 
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
         buildScriptBuilder
@@ -60,8 +67,8 @@ public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor
             .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
             .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
 
-        TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinlibrary/Library.kt.template", settings, "main");
-        TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinlibrary/LibraryTest.kt.template", settings, "test");
-        whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
+        TemplateOperation kotlinSourceTemplate = templateFactory.fromSourceTemplate("kotlinlibrary/Library.kt.template", "main");
+        TemplateOperation kotlinTestTemplate = templateFactory.fromSourceTemplate("kotlinlibrary/LibraryTest.kt.template", "test");
+        templateFactory.whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
     }
 }

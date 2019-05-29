@@ -29,6 +29,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can build play app binary for default platform"() {
         given:
+        executer.noDeprecationChecks()
         new BasicPlayApp().writeSources(testDirectory)
 
         when:
@@ -44,6 +45,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can build play app binary for specified platform on JDK8 [#platform]"() {
         given:
+        executer.noDeprecationChecks()
         new BasicPlayApp(VersionNumber.parse(playVersion)).writeSources(testDirectory)
 
         when:
@@ -74,6 +76,7 @@ model {
     @Unroll
     def "fails when trying to build a Play #playVersion application with Scala #scalaVersion"() {
         given:
+        executer.noDeprecationChecks()
         new BasicPlayApp().writeSources(testDirectory)
 
         when:
@@ -99,6 +102,7 @@ model {
 
     def "fails when trying to build for multiple play platforms"() {
         given:
+        executer.expectDeprecationWarnings(6)
         new BasicPlayApp().writeSources(testDirectory)
 
         when:

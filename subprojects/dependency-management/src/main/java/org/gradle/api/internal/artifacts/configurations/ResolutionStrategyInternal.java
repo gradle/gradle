@@ -57,11 +57,13 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
 
     SortOrder getSortOrder();
 
+    @Override
     DependencySubstitutionsInternal getDependencySubstitution();
 
     /**
      * @return the version selection rules object
      */
+    @Override
     ComponentSelectionRulesInternal getComponentSelection();
 
     /**

@@ -287,6 +287,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * {@inheritDoc}
      */
     @Internal
+    @Override
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
@@ -294,6 +295,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
@@ -579,6 +581,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @return The reports that this task potentially produces
      */
+    @Override
     @Nested
     public TestTaskReports getReports() {
         return reports;
@@ -590,6 +593,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param closure The configuration
      * @return The reports that this task potentially produces
      */
+    @Override
     public TestTaskReports reports(Closure closure) {
         return reports(new ClosureBackedAction<TestTaskReports>(closure));
     }
@@ -600,6 +604,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param configureAction The configuration
      * @return The reports that this task potentially produces
      */
+    @Override
     public TestTaskReports reports(Action<? super TestTaskReports> configureAction) {
         configureAction.execute(reports);
         return reports;

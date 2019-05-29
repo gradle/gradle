@@ -91,16 +91,19 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     /**
      * {@inheritDoc}
      */
+    @Override
     Configuration getByName(String name) throws UnknownConfigurationException;
 
     /**
      * {@inheritDoc}
      */
+    @Override
     Configuration getAt(String name) throws UnknownConfigurationException;
 
     /**
      * {@inheritDoc}
      */
+    @Override
     Configuration getByName(String name, Closure configureClosure) throws UnknownConfigurationException;
 
     /**

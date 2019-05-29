@@ -56,6 +56,7 @@ public interface ResolvableDependencies extends ArtifactView {
      *
      * @return The collection. Never null.
      */
+    @Override
     FileCollection getFiles();
 
     /**
@@ -119,6 +120,7 @@ public interface ResolvableDependencies extends ArtifactView {
      * @throws ResolveException On failure to resolve or download any artifact.
      * @since 3.4
      */
+    @Override
     ArtifactCollection getArtifacts() throws ResolveException;
 
     /**

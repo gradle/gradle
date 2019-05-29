@@ -142,7 +142,6 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         return new File(baseDir, getPathString());
     }
 
-    @Nullable
     public String getLastName() {
         if (segments.length > 0) {
             return segments[segments.length - 1];
@@ -185,7 +184,6 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      *
      * @return The parent of this path, or null if this is the root path.
      */
-    @Nullable
     public RelativePath getParent() {
         switch (segments.length) {
             case 0:

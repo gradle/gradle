@@ -170,4 +170,26 @@ task printSystemProp {
         and:
         outputContains("myProp=fromEnv2")
     }
+
+    def "properties can be distributed as part of a custom Gradle installation"() {
+        given:
+        requireIsolatedGradleDistribution()
+
+        when:
+        distribution.gradleHomeDir.file('gradle.properties') << 'systemProp.mySystemProp=properties file'
+        buildFile << """
+            task printSystemProp {
+                doLast {
+                    println "mySystemProp=\${System.getProperty('mySystemProp')}"
+                }
+            }
+        """
+        succeeds ':printSystemProp'
+
+        then:
+        outputContains('mySystemProp=properties file')
+
+        cleanup:
+        executer.withArguments("--stop", "--info").run()
+    }
 }

@@ -29,6 +29,7 @@ public class ReflectiveNamedDomainObjectFactory<T> implements NamedDomainObjectF
         this.extraArgs = extraArgs;
     }
 
+    @Override
     public T create(String name) {
         return instantiator.newInstance(type, combineInstantiationArgs(name));
     }

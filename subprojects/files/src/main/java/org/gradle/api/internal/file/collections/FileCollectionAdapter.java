@@ -43,6 +43,7 @@ public class FileCollectionAdapter extends AbstractFileCollection implements Fil
         context.add(fileCollection);
     }
 
+    @Override
     public Set<File> getFiles() {
         return fileCollection.getFiles();
     }

@@ -82,6 +82,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     /**
      * Adds a set of object files to be linked. <p> The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
+    @Override
     public void source(Object source) {
         this.source.from(source);
     }

@@ -26,6 +26,7 @@ import java.util.Set;
  * A set of public assets added to a binary.
  */
 @Incubating
+@Deprecated
 public interface PublicAssets extends BuildableComponentSpec {
     /**
      * A set of asset directories for this binary.

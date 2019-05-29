@@ -26,11 +26,11 @@ public interface PropertyMetadata {
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
     @Nullable
-    <A extends Annotation> A getAnnotation(Class<A> annotationType);
+    Annotation getAnnotationForCategory(AnnotationCategory category);
+
+    boolean hasAnnotationForCategory(AnnotationCategory category);
 
     Class<? extends Annotation> getPropertyType();
-
-    Class<?> getDeclaredType();
 
     Method getGetterMethod();
 }

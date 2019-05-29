@@ -18,21 +18,19 @@ package org.gradle.kotlin.dsl.integration
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
-
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
@@ -404,7 +402,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         withSettings("""
             buildscript {
-                repositories { jcenter() }
+                ${jcenterRepository(GradleDsl.KOTLIN)}
                 dependencies {
                     classpath("org.apache.commons:commons-lang3:3.6")
                 }

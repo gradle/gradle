@@ -94,25 +94,30 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
+    @Override
     public ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds) {
         CollectionUtils.addAll(this.componentIds, componentIds);
         return this;
     }
 
+    @Override
     public ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds) {
         CollectionUtils.addAll(this.componentIds, componentIds);
         return this;
     }
 
+    @Override
     public ArtifactResolutionQuery forModule(@Nonnull String group, @Nonnull String name, @Nonnull String version) {
         componentIds.add(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version));
         return this;
     }
 
+    @Override
     public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes) {
         return withArtifacts(componentType, Arrays.asList(artifactTypes));
     }
 
+    @Override
     public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Collection<Class<? extends Artifact>> artifactTypes) {
         if (this.componentType != null) {
             throw new IllegalStateException("Cannot specify component type multiple times.");
@@ -122,6 +127,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         return this;
     }
 
+    @Override
     public ArtifactResolutionResult execute() {
         if (componentType == null) {
             throw new IllegalStateException("Must specify component type and artifacts to query.");

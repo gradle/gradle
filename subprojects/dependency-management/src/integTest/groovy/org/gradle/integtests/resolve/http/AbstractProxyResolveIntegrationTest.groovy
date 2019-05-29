@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.SetSystemProperties
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -105,7 +105,7 @@ repositories {
         and:
         failure.assertHasCause("Could not resolve org.gradle.test:some-lib:1.2.17.")
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")
-        failure.assertThatCause(Matchers.containsString("Connection refused"))
+        failure.assertThatCause(CoreMatchers.containsString("Connection refused"))
     }
 
     def "uses authenticated proxy to access remote repository"() {
@@ -157,7 +157,7 @@ repositories {
         and:
         failure.assertHasCause("Could not resolve org.gradle.test:some-lib:1.2.17.")
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")
-        failure.assertThatCause(Matchers.containsString("Proxy Authentication Required"))
+        failure.assertThatCause(CoreMatchers.containsString("Proxy Authentication Required"))
     }
 
     def "uses configured proxy to access remote repository when both https.proxy and http.proxy are specified"() {

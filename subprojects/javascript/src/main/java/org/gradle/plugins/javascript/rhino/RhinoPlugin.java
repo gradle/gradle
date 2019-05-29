@@ -34,6 +34,7 @@ import org.gradle.plugins.javascript.base.JavaScriptExtension;
 import java.util.concurrent.Callable;
 
 public class RhinoPlugin implements Plugin<Project> {
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaScriptBasePlugin.class);
 
@@ -45,24 +46,29 @@ public class RhinoPlugin implements Plugin<Project> {
 
         ConventionMapping conventionMapping = ((IConventionAware) rhinoExtension).getConventionMapping();
         conventionMapping.map("classpath", new Callable<Configuration>() {
+            @Override
             public Configuration call() {
                 return configuration;
             }
         });
         conventionMapping.map("version", new Callable<String>() {
+            @Override
             public String call() {
                 return RhinoExtension.DEFAULT_RHINO_DEPENDENCY_VERSION;
             }
         });
 
         project.getTasks().withType(RhinoShellExec.class, new Action<RhinoShellExec>() {
+            @Override
             public void execute(RhinoShellExec task) {
                 task.getConventionMapping().map("classpath", new Callable<FileCollection>() {
+                    @Override
                     public FileCollection call() {
                         return rhinoExtension.getClasspath();
                     }
                 });
                 task.getConventionMapping().map("main", new Callable<String>() {
+                    @Override
                     public String call() {
                         return RhinoExtension.RHINO_SHELL_MAIN;
                     }
@@ -81,6 +87,7 @@ public class RhinoPlugin implements Plugin<Project> {
 
     public void configureDefaultRhinoDependency(Configuration configuration, final DependencyHandler dependencyHandler, final RhinoExtension extension) {
         configuration.defaultDependencies(new Action<DependencySet>() {
+            @Override
             public void execute(DependencySet dependencies) {
                 Dependency dependency = dependencyHandler.create(RhinoExtension.DEFAULT_RHINO_DEPENDENCY_GROUP + ":" + RhinoExtension.DEFAULT_RHINO_DEPENDENCY_MODULE + ":" + extension.getVersion());
                 dependencies.add(dependency);

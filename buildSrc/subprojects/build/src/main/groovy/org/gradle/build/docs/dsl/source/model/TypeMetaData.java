@@ -93,10 +93,12 @@ public class TypeMetaData implements Serializable, TypeContainer {
         final StringBuilder builder = new StringBuilder();
 
         visitSignature(new SignatureVisitor() {
+            @Override
             public void visitText(String text) {
                 builder.append(text);
             }
 
+            @Override
             public void visitType(String name) {
                 builder.append(name);
             }
@@ -123,6 +125,7 @@ public class TypeMetaData implements Serializable, TypeContainer {
         return this;
     }
 
+    @Override
     public void visitTypes(Action<TypeMetaData> action) {
         if (wildcard) {
             return;

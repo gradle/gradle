@@ -47,6 +47,7 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
         this.clock = clock;
     }
 
+    @Override
     protected void doStyleChange(Style style) {
         if (buffer.length() > 0) {
             spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));

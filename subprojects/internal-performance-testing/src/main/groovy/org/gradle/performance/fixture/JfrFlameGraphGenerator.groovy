@@ -34,21 +34,23 @@ class JfrFlameGraphGenerator {
     private JfrToStacksConverter stacksConverter = new JfrToStacksConverter()
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
 
-    void generateGraphs(File jfrFile) {
-        IItemCollection recording = JfrLoaderToolkit.loadEvents(jfrFile)
-        File flamegraphDir = jfrFile.getParentFile()
+    void generateGraphs(File jfrOutputDir) {
+        List<IItemCollection> recordings = jfrOutputDir.listFiles()
+            .findAll { it.name.endsWith(".jfr") }
+            .collect { JfrLoaderToolkit.loadEvents(it) }
+        File flamegraphDir = jfrOutputDir.getParentFile()
         EventType.values().each { EventType type ->
             DetailLevel.values().each { DetailLevel level ->
-                def stacks = generateStacks(flamegraphDir, recording, type, level)
+                def stacks = generateStacks(flamegraphDir, recordings, type, level)
                 generateFlameGraph(stacks, type, level)
                 generateIcicleGraph(stacks, type, level)
             }
         }
     }
 
-    private File generateStacks(File baseDir, IItemCollection recording, EventType type, DetailLevel level) {
+    private File generateStacks(File baseDir, Collection<IItemCollection> recordings, EventType type, DetailLevel level) {
         File stacks = File.createTempFile("stacks", ".txt")
-        stacksConverter.convertToStacks(recording, stacks, new Options(type, level.isShowArguments(), level.isShowLineNumbers()))
+        stacksConverter.convertToStacks(recordings, stacks, new Options(type, level.isShowArguments(), level.isShowLineNumbers()))
         File sanitizedStacks = stacksFileName(baseDir, type, level)
         level.getSanitizer().sanitize(stacks, sanitizedStacks)
         stacks.delete()
@@ -130,14 +132,14 @@ class JfrFlameGraphGenerator {
             true,
             Arrays.asList("--minwidth", "0.5"),
             Arrays.asList("--minwidth", "1"),
-            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS)
+            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS, FlameGraphSanitizer.NORMALIZE_LAMBDA_NAMES)
         ),
         SIMPLIFIED(
             false,
             false,
             Arrays.asList("--minwidth", "1"),
             Arrays.asList("--minwidth", "2"),
-            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS, FlameGraphSanitizer.COLLAPSE_GRADLE_INFRASTRUCTURE, FlameGraphSanitizer.SIMPLE_NAMES)
+            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS, FlameGraphSanitizer.NORMALIZE_LAMBDA_NAMES, FlameGraphSanitizer.COLLAPSE_GRADLE_INFRASTRUCTURE, FlameGraphSanitizer.SIMPLE_NAMES)
         )
 
         private final boolean showArguments

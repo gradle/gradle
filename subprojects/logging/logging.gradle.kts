@@ -9,11 +9,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":messaging"))
-    api(project(":cli"))
-    api(project(":buildOption"))
-    api(library("slf4j_api"))
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":cli"))
+    implementation(project(":buildOption"))
+    implementation(library("slf4j_api"))
 
     implementation(project(":native"))
     implementation(library("jul_to_slf4j"))
@@ -25,13 +25,13 @@ dependencies {
     runtimeOnly(library("log4j_to_slf4j"))
     runtimeOnly(library("jcl_to_slf4j"))
 
-    testImplementation(project(":internalTesting"))
+    integTestImplementation(library("ansi_control_sequence_util"))
 
     integTestRuntimeOnly(project(":apiMetadata"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

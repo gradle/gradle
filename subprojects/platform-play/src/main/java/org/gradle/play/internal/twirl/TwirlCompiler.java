@@ -29,6 +29,7 @@ import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaOptionInvocationWrapper;
 import org.gradle.util.CollectionUtils;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -40,6 +41,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
     private final VersionedTwirlCompilerAdapter adapter;
 
+    @Inject
     public TwirlCompiler(VersionedTwirlCompilerAdapter adapter) {
         this.adapter = adapter;
     }
@@ -100,13 +102,5 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
         Preconditions.checkNotNull(format, "Twirl compiler could not find a matching template for '%s'.", sourceFile.getName());
 
         return format;
-    }
-
-    public Object getDependencyNotation() {
-        return adapter.getDependencyNotation();
-    }
-
-    public Iterable<String> getClassLoaderPackages() {
-        return adapter.getClassLoaderPackages();
     }
 }

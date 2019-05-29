@@ -43,6 +43,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
         this.implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();
     }
 
+    @Override
     public AfterPreviousExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = new OriginMetadata(
             UniqueId.from(decoder.readString()),
@@ -77,6 +78,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
         );
     }
 
+    @Override
     public void write(Encoder encoder, AfterPreviousExecutionState execution) throws Exception {
         OriginMetadata originMetadata = execution.getOriginMetadata();
         encoder.writeString(originMetadata.getBuildInvocationId().asString());

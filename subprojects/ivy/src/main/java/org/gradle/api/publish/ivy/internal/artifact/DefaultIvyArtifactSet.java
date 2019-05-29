@@ -23,7 +23,6 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -36,7 +35,6 @@ import java.util.Set;
 
 public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> implements IvyArtifactSet, PublicationArtifactSet<IvyArtifact> {
     private final String publicationName;
-    private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
     private final FileCollection files;
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
 
@@ -44,21 +42,24 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
         super(IvyArtifact.class, collectionCallbackActionDecorator);
         this.publicationName = publicationName;
         this.ivyArtifactParser = ivyArtifactParser;
-        this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());
+        this.files = fileCollectionFactory.create(new ArtifactsTaskDependency(), new ArtifactsFileCollection());
     }
 
+    @Override
     public IvyArtifact artifact(Object source) {
         IvyArtifact artifact = ivyArtifactParser.parseNotation(source);
         add(artifact);
         return artifact;
     }
 
+    @Override
     public IvyArtifact artifact(Object source, Action<? super IvyArtifact> config) {
         IvyArtifact artifact = artifact(source);
         config.execute(artifact);
         return artifact;
     }
 
+    @Override
     public FileCollection getFiles() {
         return files;
     }

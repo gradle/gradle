@@ -32,6 +32,7 @@ public abstract class BuildOutcomeComparisonResultSupport<T extends BuildOutcome
         this.compared = compared;
     }
 
+    @Override
     public BuildOutcomeAssociation<T> getCompared() {
         return compared;
     }

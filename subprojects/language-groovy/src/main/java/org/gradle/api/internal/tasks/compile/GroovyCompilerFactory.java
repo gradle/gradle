@@ -62,11 +62,11 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         } else {
             workerFactory = inProcessWorkerFactory;
         }
-        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(workerDirectoryProvider.getWorkingDirectory(), new DaemonSideCompiler(), classPathRegistry, workerFactory, forkOptionsFactory, jvmVersionDetector);
+        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(workerDirectoryProvider.getWorkingDirectory(), DaemonSideCompiler.class, classPathRegistry, workerFactory, forkOptionsFactory, jvmVersionDetector);
         return new AnnotationProcessorDiscoveringCompiler<GroovyJavaJointCompileSpec>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
     }
 
-    private static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
+    static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
         @Override
         public WorkResult execute(GroovyJavaJointCompileSpec spec) {
             DefaultExecActionFactory execHandleFactory = DefaultExecActionFactory.root();

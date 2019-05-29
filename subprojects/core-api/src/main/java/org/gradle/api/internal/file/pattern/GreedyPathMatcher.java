@@ -28,14 +28,17 @@ public class GreedyPathMatcher implements PathMatcher {
         return "{greedy next: " + next + "}";
     }
 
+    @Override
     public int getMaxSegments() {
         return Integer.MAX_VALUE;
     }
 
+    @Override
     public int getMinSegments() {
         return next.getMinSegments();
     }
 
+    @Override
     public boolean matches(String[] segments, int startIndex) {
         int pos = segments.length - next.getMinSegments();
         int minPos = Math.max(startIndex, segments.length - next.getMaxSegments());
@@ -47,6 +50,7 @@ public class GreedyPathMatcher implements PathMatcher {
         return false;
     }
 
+    @Override
     public boolean isPrefix(String[] segments, int startIndex) {
         return true;
     }

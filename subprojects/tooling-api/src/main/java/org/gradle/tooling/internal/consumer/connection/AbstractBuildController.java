@@ -24,34 +24,42 @@ import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
 abstract class AbstractBuildController extends HasCompatibilityMapping implements BuildController {
+    @Override
     public <T> T getModel(Class<T> modelType) throws UnknownModelException {
         return getModel(null, modelType);
     }
 
+    @Override
     public <T> T findModel(Class<T> modelType) {
         return findModel(null, modelType);
     }
 
+    @Override
     public GradleBuild getBuildModel() {
         return getModel(null, GradleBuild.class);
     }
 
+    @Override
     public <T> T getModel(Model target, Class<T> modelType) throws UnknownModelException {
         return getModel(target, modelType, null, null);
     }
 
+    @Override
     public <T> T findModel(Model target, Class<T> modelType) {
         return findModel(target, modelType, null, null);
     }
 
+    @Override
     public <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
         return getModel(null, modelType, parameterType, parameterInitializer);
     }
 
+    @Override
     public <T, P> T findModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
         return findModel(null, modelType, parameterType, parameterInitializer);
     }
 
+    @Override
     public <T, P> T findModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
         try {
             return getModel(target, modelType, parameterType, parameterInitializer);

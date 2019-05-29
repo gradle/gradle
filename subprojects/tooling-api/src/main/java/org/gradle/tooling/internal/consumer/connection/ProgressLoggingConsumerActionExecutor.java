@@ -37,14 +37,17 @@ public class ProgressLoggingConsumerActionExecutor implements ConsumerActionExec
         this.loggingProvider = loggingProvider;
     }
 
+    @Override
     public void stop() {
         actionExecutor.stop();
     }
 
+    @Override
     public String getDisplayName() {
         return actionExecutor.getDisplayName();
     }
 
+    @Override
     public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         ConsumerOperationParameters parameters = action.getParameters();
         ProgressListenerAdapter listener = new ProgressListenerAdapter(parameters.getProgressListener());
@@ -71,13 +74,16 @@ public class ProgressLoggingConsumerActionExecutor implements ConsumerActionExec
             this.progressListener = progressListener;
         }
 
+        @Override
         public void started(ProgressStartEvent event) {
             progressListener.onOperationStart(event.getDescription());
         }
 
+        @Override
         public void progress(ProgressEvent event) {
         }
 
+        @Override
         public void completed(ProgressCompleteEvent event) {
             progressListener.onOperationEnd();
         }

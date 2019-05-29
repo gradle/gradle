@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "a dependency on an ivy module includes all artifacts and transitive dependencies of referenced configuration"() {
@@ -286,5 +287,70 @@ task check {
 
         expect:
         succeeds "check"
+    }
+
+    def "a constraint should not prevent the selection of an explicit Ivy configuration (both direct and transitive)"() {
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+        def main = ivyRepo.module("org", "foo")
+            .configuration("bob")
+            .configuration("alice")
+            .dependsOn(organisation:"org", module:"bar", revision:"1.0", conf: 'alice->extra')
+        main.configurations.remove('default')
+        main.publish()
+
+        def dep = ivyRepo.module("org", "bar", "1.0")
+            .configuration("extra")
+        dep.configurations.remove("default")
+        dep.publish()
+
+        given:
+        buildFile << """
+            group = 'com.acme'
+            version = '1.9'
+
+            repositories { ivy { url "${ivyRepo.uri}" } }
+
+            apply plugin: 'java-library'
+            
+            dependencies {
+                constraints {
+                    api("org:foo") {
+                        version {
+                            strictly '1.0'
+                        }
+                    }
+                    api("org:bar") {
+                        version {
+                            strictly '1.0'
+                        }
+                    }
+                }
+                dependencies {
+                    implementation(group:"org", name:"foo", configuration:"alice")
+                }
+            }
+        """
+        def resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+        resolve.prepare()
+
+        when:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", "com.acme:test:1.9") {
+                edge('org:foo', 'org:foo:1.0') {
+                    configuration('alice')
+                    byConstraint()
+                    module('org:bar:1.0') {
+                        configuration('extra')
+                    }
+                }
+                constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
+                constraint("org:bar:{strictly 1.0}","org:bar:1.0")
+            }
+        }
     }
 }

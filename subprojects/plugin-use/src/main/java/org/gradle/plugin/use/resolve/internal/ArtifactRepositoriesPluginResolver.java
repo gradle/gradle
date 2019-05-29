@@ -90,6 +90,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
                 return pluginRequest.getId();
             }
 
+            @Override
             public void execute(@Nonnull PluginResolveContext context) {
                 context.addLegacy(pluginRequest.getId(), markerDependency);
             }

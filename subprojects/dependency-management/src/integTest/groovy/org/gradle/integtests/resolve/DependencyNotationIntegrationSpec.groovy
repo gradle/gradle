@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
@@ -172,7 +172,7 @@ task checkDeps
 """
         then:
         fails 'checkDeps'
-        failure.assertThatCause(Matchers.startsWith("Cannot convert the provided notation to an object of type Dependency: 100."))
+        failure.assertThatCause(CoreMatchers.startsWith("Cannot convert the provided notation to an object of type Dependency: 100."))
     }
 
     def "fails gracefully for single null notation"() {
@@ -190,7 +190,7 @@ task checkDeps
 """
         then:
         fails 'checkDeps'
-        failure.assertThatCause(Matchers.startsWith("Cannot convert a null value to an object of type Dependency"))
+        failure.assertThatCause(CoreMatchers.startsWith("Cannot convert a null value to an object of type Dependency"))
     }
 
     def "fails gracefully for null notation in list"() {
@@ -208,7 +208,7 @@ task checkDeps
 """
         then:
         fails 'checkDeps'
-        failure.assertThatCause(Matchers.startsWith("Cannot convert a null value to an object of type Dependency"))
+        failure.assertThatCause(CoreMatchers.startsWith("Cannot convert a null value to an object of type Dependency"))
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3271")

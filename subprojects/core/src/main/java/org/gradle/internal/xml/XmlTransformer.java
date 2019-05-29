@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.xml;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.util.IndentPrinter;
 import groovy.util.Node;
@@ -56,10 +57,15 @@ import java.util.List;
 
 public class XmlTransformer implements Transformer<String, String> {
     private final List<Action<? super XmlProvider>> actions = new ArrayList<Action<? super XmlProvider>>();
+    private final List<Action<? super XmlProvider>> finalizers = Lists.newArrayListWithExpectedSize(2);
     private String indentation = "  ";
 
     public void addAction(Action<? super XmlProvider> provider) {
         actions.add(provider);
+    }
+
+    public void addFinalizer(Action<? super XmlProvider> provider) {
+        finalizers.add(provider);
     }
 
     public void setIndentation(String indentation) {
@@ -72,6 +78,7 @@ public class XmlTransformer implements Transformer<String, String> {
 
     public void transform(File destination, final String encoding, final Action<? super Writer> generator) {
         IoActions.writeTextFile(destination, encoding, new Action<Writer>() {
+            @Override
             public void execute(Writer writer) {
                 transform(writer, encoding, generator);
             }
@@ -80,6 +87,7 @@ public class XmlTransformer implements Transformer<String, String> {
 
     public void transform(File destination, final Action<? super Writer> generator) {
         IoActions.writeTextFile(destination, new Action<Writer>() {
+            @Override
             public void execute(Writer writer) {
                 transform(writer, generator);
             }
@@ -98,6 +106,7 @@ public class XmlTransformer implements Transformer<String, String> {
         doTransform(stringWriter.toString()).writeTo(destination, encoding);
     }
 
+    @Override
     public String transform(String original) {
         return doTransform(original).toString();
     }
@@ -144,6 +153,7 @@ public class XmlTransformer implements Transformer<String, String> {
 
     private XmlProviderImpl doTransform(XmlProviderImpl provider) {
         provider.apply(actions);
+        provider.apply(finalizers);
         return provider;
     }
 
@@ -213,6 +223,7 @@ public class XmlTransformer implements Transformer<String, String> {
             }
         }
 
+        @Override
         public StringBuilder asString() {
             if (builder == null) {
                 builder = new StringBuilder(toString());
@@ -222,6 +233,7 @@ public class XmlTransformer implements Transformer<String, String> {
             return builder;
         }
 
+        @Override
         public Node asNode() {
             if (node == null) {
                 try {
@@ -235,6 +247,7 @@ public class XmlTransformer implements Transformer<String, String> {
             return node;
         }
 
+        @Override
         public Element asElement() {
             if (element == null) {
                 Document document;

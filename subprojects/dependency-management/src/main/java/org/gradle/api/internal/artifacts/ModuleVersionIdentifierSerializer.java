@@ -30,12 +30,14 @@ public class ModuleVersionIdentifierSerializer implements Serializer<ModuleVersi
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    @Override
     public void write(Encoder encoder, ModuleVersionIdentifier value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());
         encoder.writeString(value.getVersion());
     }
 
+    @Override
     public ModuleVersionIdentifier read(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String module = decoder.readString();

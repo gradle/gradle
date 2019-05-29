@@ -33,6 +33,7 @@ public interface TaskProvider<T extends Task> extends NamedDomainObjectProvider<
      * @param action A {@link Action} that can configure the task when required.
      * @since 4.8
      */
+    @Override
     void configure(Action<? super T> action);
 
     /**
@@ -43,5 +44,6 @@ public interface TaskProvider<T extends Task> extends NamedDomainObjectProvider<
      * @return The task name. Never null.
      * @since 4.9
      */
+    @Override
     String getName();
 }

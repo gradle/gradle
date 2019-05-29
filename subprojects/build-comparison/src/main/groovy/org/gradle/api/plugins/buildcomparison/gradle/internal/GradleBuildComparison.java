@@ -198,6 +198,7 @@ public class GradleBuildComparison {
 
         final Charset encoding = Charset.defaultCharset();
         IoActions.writeTextFile(new File(reportDir, HTML_REPORT_FILE_NAME), encoding.name(), new Action<BufferedWriter>() {
+            @Override
             public void execute(BufferedWriter writer) {
                 createResultRenderer(encoding, reportDir, hostAttributes).render(result, writer);
             }
@@ -213,6 +214,7 @@ public class GradleBuildComparison {
                 targetBuildExecuter,
                 hostAttributes,
                 new Transformer<String, File>() {
+                    @Override
                     public String transform(File original) {
                         return RelativePathUtil.relativePath(reportDir, original);
                     }

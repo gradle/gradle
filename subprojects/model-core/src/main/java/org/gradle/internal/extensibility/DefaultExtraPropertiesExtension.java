@@ -30,10 +30,12 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     private final Map<String, Object> storage = new HashMap<String, Object>();
 
+    @Override
     public boolean has(String name) {
         return storage.containsKey(name);
     }
 
+    @Override
     @Nullable
     public Object get(String name) {
         Object value = find(name);
@@ -48,10 +50,12 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         return storage.get(name);
     }
 
+    @Override
     public void set(String name, @Nullable Object value) {
         storage.put(name, value);
     }
 
+    @Override
     @Nullable
     public Object getProperty(String name) {
         if (name.equals("properties")) {
@@ -65,6 +69,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         }
     }
 
+    @Override
     public void setProperty(String name, @Nullable Object newValue) {
         if (name.equals("properties")) {
             throw new ReadOnlyPropertyException("name", ExtraPropertiesExtension.class);
@@ -72,6 +77,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         set(name, newValue);
     }
 
+    @Override
     public Map<String, Object> getProperties() {
         return new HashMap<String, Object>(storage);
     }

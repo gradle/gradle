@@ -35,6 +35,6 @@ class DefaultClassDirectoryBinarySpecTest extends Specification {
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
         new DefaultClassDirectoryBinarySpec(new DefaultComponentSpecIdentifier(":", name), Stub(SourceSet), Stub(JavaToolChain), Stub(JavaPlatform),
-                TestUtil.instantiatorFactory().decorateLenient(), Mock(NamedEntityInstantiator), CollectionCallbackActionDecorator.NOOP)
+                TestUtil.instantiatorFactory().decorateLenient(), Mock(NamedEntityInstantiator), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory())
     }
 }

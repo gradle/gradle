@@ -182,6 +182,7 @@ public class DefaultServiceLocator implements ServiceLocator {
             return implementationClass;
         }
 
+        @Override
         @Nonnull
         public T create() {
             return newInstance();

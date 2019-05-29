@@ -114,6 +114,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         return super.matching(patterns);
     }
 
+    @Override
     public FileTree visit(FileVisitor visitor) {
         tree.visit(visitor);
         return this;
@@ -140,6 +141,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         }
     }
 
+    @Override
     public void visitTreeOrBackingFile(FileVisitor visitor) {
         tree.visitTreeOrBackingFile(visitor);
     }

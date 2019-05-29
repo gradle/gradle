@@ -41,6 +41,7 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
         this(buildClientMetaData, Time.currentTimeMillis(), false);
     }
 
+    @Override
     public BuildClientMetaData getClient() {
         return clientMetaData;
     }

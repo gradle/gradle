@@ -27,6 +27,15 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
     private final ImmutableList<? extends Capability> capabilities;
 
     public static ImmutableCapabilities of(List<? extends Capability> capabilities) {
+        if (capabilities.isEmpty()) {
+            return EMPTY;
+        }
+        if (capabilities.size() == 1) {
+            Capability single = capabilities.get(0);
+            if (single instanceof ShadowedCapability) {
+                return new ShadowedSingleImmutableCapabilities(single);
+            }
+        }
         return new ImmutableCapabilities(ImmutableList.copyOf(capabilities));
     }
 
@@ -37,5 +46,12 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
     @Override
     public List<? extends Capability> getCapabilities() {
         return capabilities;
+    }
+
+    private static class ShadowedSingleImmutableCapabilities extends ImmutableCapabilities implements ShadowedCapabilityOnly {
+
+        public ShadowedSingleImmutableCapabilities(Capability single) {
+            super(ImmutableList.of(single));
+        }
     }
 }

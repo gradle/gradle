@@ -23,7 +23,7 @@ import org.junit.experimental.categories.Category
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -48,11 +48,12 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         ["-Djava9Home=${System.getProperty('java9Home')}",
          "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}",
          "-Dorg.gradle.ignoreBuildJavaVersionCheck=true",
+         "-PbuildSrcCheck=false",
          "-I", createMirrorInitScript().absolutePath]
     }
 
     def setup() {
-        def targetVersion = "5.4-20190322154513+0000"
+        def targetVersion = "5.5-20190427095532+0000"
         runner.targetVersions = [targetVersion]
         runner.minimumVersion = targetVersion
     }
@@ -82,7 +83,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.runs = runs
-        runner.args = extraGradleBuildArguments() + ["-PbuildSrcCheck=false"]
+        runner.args = extraGradleBuildArguments()
 
         and:
         def changingClassFilePath = "buildSrc/${buildSrcProjectDir}src/main/groovy/ChangingClass.groovy"

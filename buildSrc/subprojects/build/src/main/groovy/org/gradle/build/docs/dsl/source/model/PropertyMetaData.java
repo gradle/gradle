@@ -107,6 +107,7 @@ public class PropertyMetaData extends AbstractLanguageElement implements Seriali
         return null;
     }
 
+    @Override
     public void visitTypes(Action<TypeMetaData> action) {
         action.execute(type);
     }

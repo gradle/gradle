@@ -133,26 +133,32 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return new SpecRuleAction<ComponentMetadataDetails>(ruleAction, spec);
     }
 
+    @Override
     public ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule) {
         return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromAction(rule)));
     }
 
+    @Override
     public ComponentMetadataHandler all(Closure<?> rule) {
         return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
     }
 
+    @Override
     public ComponentMetadataHandler all(Object ruleSource) {
         return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
+    @Override
     public ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule) {
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromAction(rule)));
     }
 
+    @Override
     public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
     }
 
+    @Override
     public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
@@ -211,6 +217,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
             this.target = target;
         }
 
+        @Override
         public boolean isSatisfiedBy(ComponentMetadataDetails componentMetadataDetails) {
             ModuleVersionIdentifier identifier = componentMetadataDetails.getId();
             return identifier.getGroup().equals(target.getGroup()) && identifier.getName().equals(target.getName());
@@ -224,6 +231,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
             this.target = target;
         }
 
+        @Override
         public boolean isSatisfiedBy(ModuleVersionIdentifier identifier) {
             return identifier.getGroup().equals(target.getGroup()) && identifier.getName().equals(target.getName());
         }

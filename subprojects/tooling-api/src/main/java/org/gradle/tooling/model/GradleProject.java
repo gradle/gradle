@@ -32,21 +32,25 @@ public interface GradleProject extends HierarchicalElement, BuildableElement, Pr
      *
      * @since 2.13
      */
+    @Override
     ProjectIdentifier getProjectIdentifier();
 
     /**
      * {@inheritDoc}
      */
+    @Override
     DomainObjectSet<? extends GradleTask> getTasks();
 
     /**
      * {@inheritDoc}
      */
+    @Override
     GradleProject getParent();
 
     /**
      * {@inheritDoc}
      */
+    @Override
     DomainObjectSet<? extends GradleProject> getChildren();
 
     /**

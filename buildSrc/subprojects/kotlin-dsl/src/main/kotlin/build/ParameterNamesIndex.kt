@@ -23,7 +23,7 @@ import com.thoughtworks.qdox.model.JavaMethod
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -48,8 +48,7 @@ open class ParameterNamesIndex : DefaultTask() {
     @PathSensitive(PathSensitivity.RELATIVE)
     val sources = project.files()
 
-    @InputFiles
-    @Classpath
+    @CompileClasspath
     val classpath = project.files()
 
     @OutputFile

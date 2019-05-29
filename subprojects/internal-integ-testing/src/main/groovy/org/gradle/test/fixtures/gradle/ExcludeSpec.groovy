@@ -24,7 +24,7 @@ class ExcludeSpec {
     String module
 
     ExcludeSpec(String g, String m) {
-        group = g ?: '*'
-        module = m ?: '*'
+        group = g
+        module = m
     }
 }

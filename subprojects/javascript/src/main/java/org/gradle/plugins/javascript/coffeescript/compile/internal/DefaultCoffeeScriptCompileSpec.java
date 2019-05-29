@@ -29,34 +29,42 @@ public class DefaultCoffeeScriptCompileSpec implements CoffeeScriptCompileSpec {
     private FileCollection source;
     private CoffeeScriptCompileOptions options;
 
+    @Override
     public File getCoffeeScriptJs() {
         return coffeeScriptJs;
     }
 
+    @Override
     public void setCoffeeScriptJs(File coffeeScriptJs) {
         this.coffeeScriptJs = coffeeScriptJs;
     }
 
+    @Override
     public File getDestinationDir() {
         return destinationDir;
     }
 
+    @Override
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
     }
 
+    @Override
     public FileCollection getSource() {
         return source;
     }
 
+    @Override
     public void setSource(FileCollection source) {
         this.source = source;
     }
 
+    @Override
     public CoffeeScriptCompileOptions getOptions() {
         return options;
     }
 
+    @Override
     public void setOptions(CoffeeScriptCompileOptions options) {
         this.options = options;
     }

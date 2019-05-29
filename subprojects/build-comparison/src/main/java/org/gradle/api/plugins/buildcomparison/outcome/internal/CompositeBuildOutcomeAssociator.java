@@ -28,6 +28,7 @@ public class CompositeBuildOutcomeAssociator implements BuildOutcomeAssociator {
         this.associators = Lists.newLinkedList(associators);
     }
 
+    @Override
     public Class<? extends BuildOutcome> findAssociationType(BuildOutcome source, BuildOutcome target) {
         for (BuildOutcomeAssociator associator : associators) {
             Class<? extends BuildOutcome> outcomeType = associator.findAssociationType(source, target);

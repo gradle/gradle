@@ -81,6 +81,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     /**
      * Resolves the contents of this context as a list of atomic {@link FileTree} instances.
      */
+    @Override
     public List<FileTreeInternal> resolveAsFileTrees() {
         return doResolve(fileTreeConverter);
     }
@@ -88,6 +89,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     /**
      * Resolves the contents of this context as a list of atomic {@link FileCollection} instances.
      */
+    @Override
     public List<FileCollectionInternal> resolveAsFileCollections() {
         return doResolve(fileCollectionConverter);
     }
@@ -158,6 +160,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             this.patternSetFactory = patternSetFactory;
         }
 
+        @Override
         public void convertInto(Object element, Collection<? super FileCollectionInternal> result, PathToFileResolver fileResolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
@@ -189,6 +192,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             this.patternSetFactory = patternSetFactory;
         }
 
+        @Override
         public void convertInto(Object element, Collection<? super FileTreeInternal> result, PathToFileResolver fileResolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
@@ -229,6 +233,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     }
 
     public static class MinimalFileCollectionConverter implements Converter<MinimalFileCollection> {
+        @Override
         public void convertInto(Object element, Collection<? super MinimalFileCollection> result, PathToFileResolver resolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;

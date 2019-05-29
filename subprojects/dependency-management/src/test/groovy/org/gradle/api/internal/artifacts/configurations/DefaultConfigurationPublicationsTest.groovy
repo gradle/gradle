@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
@@ -31,8 +29,8 @@ import spock.lang.Specification
 
 class DefaultConfigurationPublicationsTest extends Specification {
     def parentAttributes = ImmutableAttributes.EMPTY
-    def artifacts = new DefaultPublishArtifactSet("artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact, CollectionCallbackActionDecorator.NOOP), TestFiles.fileCollectionFactory())
-    def allArtifacts = new DefaultPublishArtifactSet("artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact, CollectionCallbackActionDecorator.NOOP), TestFiles.fileCollectionFactory())
+    def artifacts = new DefaultPublishArtifactSet("artifacts", TestUtil.domainObjectCollectionFactory().newDomainObjectSet(PublishArtifact), TestFiles.fileCollectionFactory())
+    def allArtifacts = new DefaultPublishArtifactSet("artifacts", TestUtil.domainObjectCollectionFactory().newDomainObjectSet(PublishArtifact), TestFiles.fileCollectionFactory())
     def artifactNotationParser = Stub(NotationParser)
     def capabilityNotationParser = Stub(NotationParser)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
@@ -40,7 +38,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def displayName = Describables.of("<config>")
     def publications = new DefaultConfigurationPublications(displayName, artifacts, {
         allArtifacts
-    }, parentAttributes, TestUtil.instantiatorFactory().decorateLenient(), artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, CollectionCallbackActionDecorator.NOOP)
+    }, parentAttributes, TestUtil.instantiatorFactory().decorateLenient(), artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, TestUtil.domainObjectCollectionFactory())
 
     def setup() {
         artifacts.whenObjectAdded { allArtifacts.add(it) }

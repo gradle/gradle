@@ -51,6 +51,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 
 /**
  * Resolution state for a given component
@@ -64,6 +65,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
     private final ImmutableCapability implicitCapability;
+    private final int hashCode;
 
     private volatile ComponentResolveMetadata metadata;
 
@@ -83,6 +85,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
         this.implicitCapability = new ImmutableCapability(id.getGroup(), id.getName(), id.getVersion());
+        this.hashCode = 31 * id.hashCode() ^ resultId.hashCode();
     }
 
     @Override
@@ -229,10 +232,15 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         nodes.add(node);
     }
 
+    private ComponentSelectionReason cachedReason;
+
     @Override
     public ComponentSelectionReason getSelectionReason() {
         if (root) {
             return ComponentSelectionReasons.root();
+        }
+        if (cachedReason != null) {
+            return cachedReason;
         }
         ComponentSelectionReasonInternal reason = ComponentSelectionReasons.empty();
         for (final SelectorState selectorState : module.getSelectors()) {
@@ -243,7 +251,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         for (ComponentSelectionDescriptorInternal selectionCause : VersionConflictResolutionDetails.mergeCauses(selectionCauses)) {
             reason.addCause(selectionCause);
         }
+        cachedReason = reason;
         return reason;
+    }
+
+    boolean isForced() {
+        return StreamSupport.stream(module.getSelectors().spliterator(), false)
+            .filter(s -> s.getFailure() == null)
+            .anyMatch(SelectorState::isForce);
     }
 
     @Override
@@ -264,7 +279,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                 ConfigurationMetadata metadata = node.getMetadata();
                 DisplayName name = Describables.of(metadata.getName());
                 List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
-                AttributeContainer attributes = AttributeDesugaring.desugar(metadata.getAttributes(), node.getAttributesFactory());
+                AttributeContainer attributes = node.desugar(metadata.getAttributes());
                 List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(implicitCapability) : ImmutableList.copyOf(capabilities);
                 ResolvedVariantDetails details = new DefaultVariantDetails(name, attributes, resolvedVariantCapabilities);
                 if (result != null) {
@@ -461,4 +476,23 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return false;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ComponentState that = (ComponentState) o;
+
+        return that.resultId == resultId;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
 }

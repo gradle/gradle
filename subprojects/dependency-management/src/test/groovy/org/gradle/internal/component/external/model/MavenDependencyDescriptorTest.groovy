@@ -31,13 +31,14 @@
  */
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
@@ -47,11 +48,12 @@ import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ConfigurationNotFoundException
 import org.gradle.internal.component.model.Exclude
-import org.gradle.internal.component.model.ExcludeMetadata
+import org.gradle.internal.component.model.ExcludeMetadata 
 
 class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
-    final ModuleExclusions moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-
+    final ModuleExclusions moduleExclusions = new ModuleExclusions()
+    final ExcludeSpec nothing = moduleExclusions.nothing()
+    
     @Override
     ExternalDependencyDescriptor create(ModuleComponentSelector selector) {
         return mavenDependencyMetadata(MavenScope.Compile, selector, [])
@@ -66,7 +68,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def exclusions = moduleExclusions.excludeAny(dep.allExcludes)
-        exclusions == ModuleExclusions.excludeNone()
+        exclusions == nothing
         exclusions.is(moduleExclusions.excludeAny(dep.allExcludes))
     }
 
@@ -77,7 +79,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def exclusions = moduleExclusions.excludeAny(dep.allExcludes)
-        exclusions == moduleExclusions.excludeAny(exclude1, exclude2)
+        exclusions == moduleExclusions.excludeAny(ImmutableList.of(exclude1, exclude2))
         exclusions.is(moduleExclusions.excludeAny(dep.allExcludes))
     }
 

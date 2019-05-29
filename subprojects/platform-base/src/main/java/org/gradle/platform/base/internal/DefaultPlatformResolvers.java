@@ -57,6 +57,7 @@ public class DefaultPlatformResolvers implements PlatformResolvers {
 
         NamedDomainObjectSet<T> allWithType = platforms.withType(type);
         T matching = CollectionUtils.findFirst(allWithType, new Spec<T>() {
+            @Override
             public boolean isSatisfiedBy(T element) {
                 return element.getName().equals(target);
             }

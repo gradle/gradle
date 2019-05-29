@@ -48,7 +48,7 @@ abstract class ClientModuleDelegate : ClientModule {
 
     override fun getGroup(): String =
         /** Because this also implements [ModuleVersionSelector.getGroup] it must not return `null` */
-        delegate.group ?: ""
+        (delegate as Dependency).group ?: ""
 
     override fun addDependency(dependency: ModuleDependency) =
         delegate.addDependency(dependency)

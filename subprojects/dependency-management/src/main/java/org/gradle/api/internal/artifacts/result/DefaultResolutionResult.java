@@ -39,13 +39,16 @@ public class DefaultResolutionResult implements ResolutionResult {
         this.rootSource = rootSource;
     }
 
+    @Override
     public ResolvedComponentResult getRoot() {
         return rootSource.create();
     }
 
+    @Override
     public Set<? extends DependencyResult> getAllDependencies() {
         final Set<DependencyResult> out = new LinkedHashSet<DependencyResult>();
         allDependencies(new Action<DependencyResult>() {
+            @Override
             public void execute(DependencyResult dep) {
                 out.add(dep);
             }
@@ -53,10 +56,12 @@ public class DefaultResolutionResult implements ResolutionResult {
         return out;
     }
 
+    @Override
     public void allDependencies(Action<? super DependencyResult> action) {
         eachElement(getRoot(), Actions.doNothing(), action, new HashSet<ResolvedComponentResult>());
     }
 
+    @Override
     public void allDependencies(final Closure closure) {
         allDependencies(ConfigureUtil.configureUsing(closure));
     }
@@ -76,16 +81,19 @@ public class DefaultResolutionResult implements ResolutionResult {
         }
     }
 
+    @Override
     public Set<ResolvedComponentResult> getAllComponents() {
         final Set<ResolvedComponentResult> out = new LinkedHashSet<ResolvedComponentResult>();
         eachElement(getRoot(), Actions.doNothing(), Actions.doNothing(), out);
         return out;
     }
 
+    @Override
     public void allComponents(final Action<? super ResolvedComponentResult> action) {
         eachElement(getRoot(), action, Actions.doNothing(), new HashSet<ResolvedComponentResult>());
     }
 
+    @Override
     public void allComponents(final Closure closure) {
         allComponents(ConfigureUtil.configureUsing(closure));
     }

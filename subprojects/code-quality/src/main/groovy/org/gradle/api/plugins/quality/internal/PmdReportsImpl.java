@@ -34,10 +34,12 @@ public class PmdReportsImpl extends TaskReportContainer<SingleFileReport> implem
         add(TaskGeneratedSingleFileReport.class, "xml", task);
     }
 
+    @Override
     public SingleFileReport getHtml() {
         return getByName("html");
     }
 
+    @Override
     public SingleFileReport getXml() {
         return getByName("xml");
     }

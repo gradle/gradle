@@ -30,12 +30,14 @@ class DefaultConflictResolutionResult<T> implements ConflictResolutionResult {
         this.selected = selected;
     }
 
+    @Override
     public void withParticipatingModules(Action<? super ModuleIdentifier> action) {
         for (ModuleIdentifier module : participatingModules) {
             action.execute(module);
         }
     }
 
+    @Override
     public T getSelected() {
         return selected;
     }

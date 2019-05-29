@@ -33,6 +33,7 @@ public class CompositeDataReporter implements DataReporter<CrossVersionPerforman
         this.reporters = reporters;
     }
 
+    @Override
     public void report(CrossVersionPerformanceResults results) {
         if (!testIds.add(results.getTestId())) {
             throw new IllegalArgumentException(String.format("Multiple performance test executions with id '%s' found.", results.getTestId()));

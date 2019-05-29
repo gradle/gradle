@@ -66,6 +66,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * @return associated gradle project
      * @since 1.0-milestone-5
      */
+    @Override
     GradleProject getGradleProject();
 
     /**
@@ -75,6 +76,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * @return idea project
      * @since 1.0-milestone-5
      */
+    @Override
     IdeaProject getParent();
 
     /**

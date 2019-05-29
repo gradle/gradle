@@ -20,7 +20,10 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.reflect.Instantiator;
+
+import javax.annotation.Nullable;
 
 /**
  * A {@link ITaskFactory} which determines task actions, inputs and outputs based on annotation attached to the task properties. Also provides some validation based on these annotations.
@@ -37,13 +40,13 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     }
 
     @Override
-    public ITaskFactory createChild(ProjectInternal project, Instantiator childInstantiator) {
-        return new AnnotationProcessingTaskFactory(instantiator, taskClassInfoStore, taskFactory.createChild(project, childInstantiator));
+    public ITaskFactory createChild(ProjectInternal project, InstantiationScheme instantiationScheme) {
+        return new AnnotationProcessingTaskFactory(instantiator, taskClassInfoStore, taskFactory.createChild(project, instantiationScheme));
     }
 
     @Override
-    public <S extends Task> S create(TaskIdentity<S> taskIdentity, Object... args) {
-        return process(taskFactory.create(taskIdentity, args));
+    public <S extends Task> S create(TaskIdentity<S> taskIdentity, @Nullable Object[] constructorArgs) {
+        return process(taskFactory.create(taskIdentity, constructorArgs));
     }
 
     private <S extends Task> S process(S task) {
@@ -52,6 +55,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         if (taskClassInfo.isIncremental()) {
             // Add a dummy upToDateWhen spec: this will force TaskOutputs.hasOutputs() to be true.
             task.getOutputs().upToDateWhen(new Spec<Task>() {
+                @Override
                 public boolean isSatisfiedBy(Task element) {
                     return true;
                 }

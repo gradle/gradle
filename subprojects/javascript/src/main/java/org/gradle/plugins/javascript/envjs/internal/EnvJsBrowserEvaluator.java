@@ -44,6 +44,7 @@ public class EnvJsBrowserEvaluator implements BrowserEvaluator {
         this.workingDir = workingDir;
     }
 
+    @Override
     public void evaluate(String url, Writer writer) {
         EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, workingDir);
 

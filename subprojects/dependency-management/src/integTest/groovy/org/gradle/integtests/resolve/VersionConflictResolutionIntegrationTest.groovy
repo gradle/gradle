@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -160,11 +160,11 @@ project(':tool') {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
                     configuration = "runtimeElements"
-                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
+                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution("between versions 1.4.4 and 1.3.3")
                 }
                 project(":impl", "test:impl:") {
                     configuration = "runtimeElements"
-                    module("org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
+                    module("org:foo:1.4.4").byConflictResolution("between versions 1.4.4 and 1.3.3")
                 }
             }
         }
@@ -210,10 +210,10 @@ task resolve {
         resolve.expectGraph {
             root(":", "org:test:1.0") {
                 module("org:bar:1.0") {
-                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
+                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution("between versions 1.4.4 and 1.3.3")
                 }
                 module("org:baz:1.0") {
-                    module("org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
+                    module("org:foo:1.4.4").byConflictResolution("between versions 1.4.4 and 1.3.3")
                 }
             }
         }
@@ -262,7 +262,7 @@ dependencies {
                 }
                 module("org:two:1.0") {
                     module("org:dep-2.0-bringer:1.0") {
-                        edge("org:dep:2.0", "org:dep:2.5").byConflictResolution("between versions 2.0 and 2.5")
+                        edge("org:dep:2.0", "org:dep:2.5").byConflictResolution("between versions 2.5 and 2.0")
                     }
                     module("org:control-1.2-bringer:1.0") {
                         module("org:control:1.2")
@@ -1779,6 +1779,68 @@ dependencies {
         true            | false
         false           | true
         false           | false
+    }
+
+    @Issue("gradle/gradle#8944")
+    def 'verify that cleaning up constraints no longer causes a ConcurrentModificationException'() {
+        given:
+        // Direct dependency with transitive to be substituted by project
+        def project = mavenRepo.module('org', 'project', '1.0')
+        mavenRepo.module('org', 'direct', '1.0').dependsOn(project).publish()
+
+        // Updated version no longer depends on project
+        def updated = mavenRepo.module('org', 'direct', '1.1').publish()
+
+        // Chain of deps to make sure upgrade happens after substituting and finding deps
+        def b = mavenRepo.module('org', 'b', '1.0').dependsOn(updated).publish()
+        mavenRepo.module('org', 'a', '1.0').dependsOn(b).publish()
+
+        mavenRepo.module('org', 'lib', '1.0').publish()
+        mavenRepo.module('org', 'other', '1.0').publish()
+
+        settingsFile << """
+include 'sub'
+"""
+
+        buildFile << """
+apply plugin: 'java'
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module('org:project') with project(':sub')
+    }
+}
+
+dependencies {
+    implementation 'org:direct:1.0'
+    implementation 'org:a:1.0'
+}
+
+project(':sub') {
+    apply plugin: 'java'
+    
+    group = 'org'
+    version = '1.0'
+    
+    dependencies {
+        constraints {
+            implementation 'org:lib:1.0'
+        }
+
+        implementation 'org:lib'
+        implementation 'org:other:1.0'
+    }
+}
+"""
+        expect:
+        succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
 }

@@ -29,14 +29,17 @@ public class ProgressLoggingBridge implements ProgressListener {
         this.listener = listener;
     }
 
+    @Override
     public void completed(ProgressCompleteEvent event) {
         listener.onOutput(event);
     }
 
+    @Override
     public void started(ProgressStartEvent event) {
         listener.onOutput(event);
     }
 
+    @Override
     public void progress(ProgressEvent event) {
         listener.onOutput(event);
     }

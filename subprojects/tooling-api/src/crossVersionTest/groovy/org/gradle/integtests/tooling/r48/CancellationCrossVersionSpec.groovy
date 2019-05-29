@@ -41,7 +41,7 @@ class CancellationCrossVersionSpec extends CancellationSpec {
             build.withCancellationToken(cancel.token())
             collectOutputs(build)
             build.run(resultHandler)
-            sync.waitForAllPendingCalls()
+            sync.waitForAllPendingCalls(resultHandler)
             cancel.cancel()
             sync.releaseAll()
             resultHandler.finished()

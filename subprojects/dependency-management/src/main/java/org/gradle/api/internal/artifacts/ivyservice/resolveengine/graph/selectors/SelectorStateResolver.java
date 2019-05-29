@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleSelectors;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveOptimizations;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
@@ -55,7 +56,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         this.resolveOptimizations = resolveOptimizations;
     }
 
-    public T selectBest(ModuleIdentifier moduleId, List<? extends ResolvableSelectorState> selectors) {
+    public T selectBest(ModuleIdentifier moduleId, ModuleSelectors<? extends ResolvableSelectorState> selectors) {
         VersionSelector allRejects = createAllRejects(selectors);
         List<T> candidates = resolveSelectors(selectors, allRejects);
         assert !candidates.isEmpty();
@@ -88,9 +89,9 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         return resolveConflicts(candidates);
     }
 
-    private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
+    private List<T> resolveSelectors(ModuleSelectors selectors, VersionSelector allRejects) {
         if (selectors.size() == 1) {
-            ResolvableSelectorState selectorState = selectors.get(0);
+            ResolvableSelectorState selectorState = selectors.first();
             // Short-circuit selector merging for single selector without 'prefer'
             if (selectorState.getVersionConstraint() == null || selectorState.getVersionConstraint().getPreferredSelector() == null) {
                 return resolveSingleSelector(selectorState, allRejects);
@@ -100,7 +101,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         List<T> results = buildResolveResults(selectors, allRejects);
         if (results.isEmpty()) {
             // Every selector was empty: simply 'resolve' one of them
-            return resolveSingleSelector(selectors.get(0), allRejects);
+            return resolveSingleSelector(selectors.first(), allRejects);
         }
         return results;
     }
@@ -117,7 +118,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * If a single version can satisfy all of the selectors, the result will reflect this.
      * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
-    private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
+    private List<T> buildResolveResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         SelectorStateResolverResults results = new SelectorStateResolverResults(selectors.size());
         TreeSet<ComponentIdResolveResult> preferResults = null; // Created only on demand
 
@@ -174,7 +175,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * Given the result of resolving any 'prefer' constraints, see if these can be used to further refine the results
      *  of resolving the 'require' constraints.
      */
-    private void integratePreferResults(List<? extends ResolvableSelectorState> selectors, SelectorStateResolverResults results, TreeSet<ComponentIdResolveResult> preferResults) {
+    private void integratePreferResults(ModuleSelectors selectors, SelectorStateResolverResults results, TreeSet<ComponentIdResolveResult> preferResults) {
 
         if (preferResults == null) {
             return;
@@ -183,7 +184,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         // If no result from 'require', just use the highest preferred version (no range merging)
         if (results.isEmpty()) {
             ComponentIdResolveResult highestPreferredVersion = preferResults.first();
-            results.register(selectors.get(0), highestPreferredVersion);
+            results.register(selectors.first(), highestPreferredVersion);
             return;
         }
 
@@ -195,7 +196,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         }
     }
 
-    private VersionSelector createAllRejects(List<? extends ResolvableSelectorState> selectors) {
+    private VersionSelector createAllRejects(ModuleSelectors<? extends ResolvableSelectorState> selectors) {
         List<VersionSelector> rejectSelectors = null;
         for (ResolvableSelectorState selector : selectors) {
             ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();

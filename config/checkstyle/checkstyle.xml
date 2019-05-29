@@ -81,6 +81,9 @@
         <!-- Imports -->
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
+        <module name="IllegalImport">
+            <property name="illegalPkgs" value="com.beust,org.testng.collections"/>
+        </module>
 
         <!-- Naming -->
         <module name="ConstantName"/>
@@ -107,9 +110,10 @@
         <module name="MethodTypeParameterName">
             <property name="format" value="^[A-Z]+$"/>
         </module>
-        <module name="IllegalImport">
-            <property name="illegalPkgs" value="com.beust,org.testng.collections"/>
-        </module>
+
+        <!-- Annotations -->
+        <module name="MissingOverride"/>
+
         <!-- allows suppressing using the //CHECKSTYLE:ON //CHECKSTYLE:OFF -->
         <module name="SuppressionCommentFilter"/>
         <!-- to enable SuppressWarningsFilter -->

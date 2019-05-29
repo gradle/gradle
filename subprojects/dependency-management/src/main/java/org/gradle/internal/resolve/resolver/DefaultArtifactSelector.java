@@ -22,8 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
+    private static final ExcludeSpec EXCLUDE_NONE = new DefaultExcludeFactory().nothing();
+
     private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final List<OriginArtifactSelector> selectors;
     private final ArtifactTypeRegistry artifactTypeRegistry;
@@ -54,7 +56,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ModuleExclusion exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         ArtifactSet artifacts = null;
         for (OriginArtifactSelector selector : selectors) {
             artifacts = selector.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusions, overriddenAttributes);
@@ -70,6 +72,6 @@ public class DefaultArtifactSelector implements ArtifactSelector {
 
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return DefaultArtifactSet.singleVariant(component.getId(), component.getModuleVersionId(), Describables.of(component.getId()), artifacts, component.getSource(), ModuleExclusions.excludeNone(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes);
+        return DefaultArtifactSet.singleVariant(component.getId(), component.getModuleVersionId(), Describables.of(component.getId()), artifacts, component.getSource(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes);
     }
 }

@@ -27,7 +27,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
     remoteUri = rootDir.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
-    ref = 'c9913554c6032894bb4433789db2ee87a801123e'
+    ref = '25ed84ebe71581b7be37664a33f8670d11c8c711'
 }
 
 // === Java ===
@@ -351,7 +351,7 @@ tasks.register("k9AndroidBuild", RemoteProject) {
 
 tasks.register("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    branch = 'android-34'
+    branch = 'android-35'
 }
 
 tasks.register("santaTrackerAndroidBuild", RemoteProject) {
@@ -461,6 +461,11 @@ tasks.register("largeNativeBuildPrebuilt", GradleBuild) {
 }
 
 tasks.register("archivePerformanceProject", Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
+tasks.register("workerApiProject", Copy) {
     into "build/$name"
     from "src/templates/$name"
 }

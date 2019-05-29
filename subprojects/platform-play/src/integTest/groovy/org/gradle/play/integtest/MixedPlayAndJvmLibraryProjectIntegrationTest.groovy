@@ -33,6 +33,7 @@ class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSp
     PlayApp playApp = new BasicPlayApp()
 
     def setup() {
+        executer.noDeprecationChecks()
         playApp.writeSources(testDirectory)
         jvmApp.writeSources(file("src/jvmLib"))
         jvmApp.writeResources(file("src/jvmLib/resources"))

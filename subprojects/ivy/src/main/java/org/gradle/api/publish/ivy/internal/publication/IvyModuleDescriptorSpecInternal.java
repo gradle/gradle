@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -50,6 +51,8 @@ public interface IvyModuleDescriptorSpecInternal extends IvyModuleDescriptorSpec
     List<IvyModuleDescriptorLicense> getLicenses();
 
     IvyModuleDescriptorDescription getDescription();
+
+    VersionMappingStrategyInternal getVersionMappingStrategy();
 
     boolean writeGradleMetadataMarker();
 }

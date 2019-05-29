@@ -30,7 +30,7 @@ class CrossVersionTestsPlugin : Plugin<Project> {
         val sourceSet = addSourceSet(TestType.CROSSVERSION)
         addDependenciesAndConfigurations(TestType.CROSSVERSION)
         dependencies {
-            "crossVersionTestRuntime"(project(":toolingApiBuilders"))
+            "crossVersionTestRuntimeOnly"(project(":toolingApiBuilders"))
         }
         createTasks(sourceSet, TestType.CROSSVERSION)
         createAggregateTasks(sourceSet)

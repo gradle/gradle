@@ -107,7 +107,7 @@ public class MavenPomFileGenerator {
         model.setArtifactId(identity.getArtifactId().get());
         model.setVersion(identity.getVersion().get());
         if (gradleMetadataMarker) {
-            withXml(ADD_GRADLE_METADATA_MARKER);
+            xmlTransformer.addFinalizer(ADD_GRADLE_METADATA_MARKER);
         }
     }
 
@@ -369,6 +369,7 @@ public class MavenPomFileGenerator {
 
     public MavenPomFileGenerator writeTo(File file) {
         xmlTransformer.transform(file, POM_FILE_ENCODING, new Action<Writer>() {
+            @Override
             public void execute(Writer writer) {
                 try {
                     new MavenXpp3Writer().write(writer, model);

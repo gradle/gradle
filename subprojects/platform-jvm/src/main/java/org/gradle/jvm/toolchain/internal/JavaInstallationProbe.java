@@ -199,6 +199,8 @@ public class JavaInstallationProbe {
         }
         if (vendor.contains("apple")) {
             return "Apple " + basename;
+        } else if (vendor.contains("adoptopenjdk")) {
+            return result == InstallType.IS_JDK ? "AdoptOpenJDK" : "AdoptOpenJDK JRE";
         } else if (vendor.contains("oracle") || vendor.contains("sun")) {
             String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
             if (vm != null && vm.contains("OpenJDK")) {

@@ -57,6 +57,14 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "recompiles binary when toolchain changes from #toolChainBefore to #toolChainAfter"() {
         buildFile.text = buildScriptForToolChains(toolChainBefore, toolChainAfter)
+        def useAlternateToolChain = false
+        executer.beforeExecute({
+            if (useAlternateToolChain) {
+                toolChainAfter.configureExecuter(it)
+            } else {
+                toolChainBefore.configureExecuter(it)
+            }
+        })
 
         when:
         run ':app:compileDebugCpp'
@@ -65,6 +73,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':app:compileDebugCpp'
 
         when:
+        useAlternateToolChain = true
         run ':app:compileDebugCpp', '-PuseAlternativeToolChain=true', "--info"
 
         then:
@@ -78,11 +87,11 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static GString buildScriptForToolChains(InstalledToolChain before, InstalledToolChain after) {
-        """ 
+        """
             allprojects {
                 apply plugin: ${before.pluginClass}
                 apply plugin: ${after.pluginClass}
-                
+
                 model {
                     toolChains {
                         if (findProperty('useAlternativeToolChain')) {
@@ -91,7 +100,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
                             ${before.buildScriptConfig}
                         }
                     }
-                }                                    
+                }
             }
             project(':library') {
                 apply plugin: 'cpp-library'

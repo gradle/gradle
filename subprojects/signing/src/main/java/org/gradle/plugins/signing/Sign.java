@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
@@ -64,11 +63,10 @@ public class Sign extends DefaultTask implements SignatureSpec {
     private SignatureType signatureType;
     private Signatory signatory;
     private boolean required = true;
-    private final DefaultDomainObjectSet<Signature> signatures;
+    private final DomainObjectSet<Signature> signatures = getProject().getObjects().domainObjectSet(Signature.class);
 
     @Inject
     public Sign() {
-        this.signatures = new DefaultDomainObjectSet<Signature>(Signature.class, getCallbackActionDecorator());
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf(task -> isRequired() || getSignatory() != null);
     }
@@ -287,12 +285,14 @@ public class Sign extends DefaultTask implements SignatureSpec {
             Lists.newLinkedList(Iterables.filter(Iterables.transform(signatures, Signature::getFile), Predicates.notNull())));
     }
 
+    @Override
     @Nested
     @Optional
     public SignatureType getSignatureType() {
         return signatureType;
     }
 
+    @Override
     public void setSignatureType(SignatureType signatureType) {
         this.signatureType = signatureType;
     }
@@ -301,12 +301,14 @@ public class Sign extends DefaultTask implements SignatureSpec {
      * Returns the signatory for this signing task.
      * @return the signatory
      */
+    @Override
     @Nested
     @Optional
     public Signatory getSignatory() {
         return signatory;
     }
 
+    @Override
     public void setSignatory(Signatory signatory) {
         this.signatory = signatory;
     }
@@ -316,11 +318,13 @@ public class Sign extends DefaultTask implements SignatureSpec {
      *
      * <p>Defaults to {@code true}.</p>
      */
+    @Override
     @Input
     public boolean isRequired() {
         return required;
     }
 
+    @Override
     public void setRequired(boolean required) {
         this.required = required;
     }

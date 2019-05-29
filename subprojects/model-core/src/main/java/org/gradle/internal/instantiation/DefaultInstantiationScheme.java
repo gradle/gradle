@@ -16,11 +16,14 @@
 
 package org.gradle.internal.instantiation;
 
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
-import org.gradle.internal.service.ServiceRegistry;
+import sun.reflect.ReflectionFactory;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 class DefaultInstantiationScheme implements InstantiationScheme {
@@ -28,7 +31,7 @@ class DefaultInstantiationScheme implements InstantiationScheme {
     private final ConstructorSelector constructorSelector;
     private final Set<Class<? extends Annotation>> injectionAnnotations;
 
-    public DefaultInstantiationScheme(ConstructorSelector constructorSelector, ServiceRegistry defaultServices, Set<Class<? extends Annotation>> injectionAnnotations) {
+    public DefaultInstantiationScheme(ConstructorSelector constructorSelector, ServiceLookup defaultServices, Set<Class<? extends Annotation>> injectionAnnotations) {
         this.constructorSelector = constructorSelector;
         this.injectionAnnotations = injectionAnnotations;
         this.instantiator = new DependencyInjectingInstantiator(constructorSelector, defaultServices);
@@ -45,12 +48,30 @@ class DefaultInstantiationScheme implements InstantiationScheme {
     }
 
     @Override
-    public Instantiator withServices(ServiceLookup services) {
-        return new DependencyInjectingInstantiator(constructorSelector, services);
+    public InstantiationScheme withServices(ServiceLookup services) {
+        return new DefaultInstantiationScheme(constructorSelector, services, injectionAnnotations);
     }
 
     @Override
     public Instantiator instantiator() {
         return instantiator;
+    }
+
+    @Override
+    public DeserializationInstantiator deserializationInstantiator() {
+        return new DeserializationInstantiator() {
+            @Override
+            public <T> T newInstance(Class<T> implType, Class<? super T> baseClass) {
+                //TODO:instant-execution - use the class generator directly. Also will probably need some caching here
+                try {
+                    Constructor<?> constructor = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(constructorSelector.forType(implType).getGeneratedClass(), baseClass.getDeclaredConstructor());
+                    return implType.cast(constructor.newInstance());
+                } catch (InvocationTargetException e) {
+                    throw new ObjectInstantiationException(implType, e.getCause());
+                } catch (Exception e) {
+                    throw new ObjectInstantiationException(implType, e);
+                }
+            }
+        };
     }
 }

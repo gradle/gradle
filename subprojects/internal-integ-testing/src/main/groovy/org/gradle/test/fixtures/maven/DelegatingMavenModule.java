@@ -170,6 +170,7 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
         return backingModule.getRootMetaData();
     }
 
+    @Override
     public ModuleArtifact getSnapshotMetaData() {
         return backingModule.getSnapshotMetaData();
     }

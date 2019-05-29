@@ -51,7 +51,7 @@ task log {
             build.standardOutput = output
             build.forTasks("log")
             build.run(resultHandler)
-            sync.waitForAllPendingCalls()
+            sync.waitForAllPendingCalls(resultHandler)
             ConcurrentTestUtil.poll {
                 // Need to poll, as logging output is delivered asynchronously to client
                 assert output.toString().contains(waitingMessage)

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
@@ -87,11 +88,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 assert failure instanceof AmbiguousVariantSelectionException
             }
@@ -102,6 +98,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
         })
         1 * attributeMatcher.matches(_, _) >> [variant, otherResolvedVariant]
+        2 * attributeMatcher.isMatching(_, _, _) >> true
         0 * consumerProvidedVariantFinder._
     }
 
@@ -121,11 +118,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 throw failure
             }
@@ -136,8 +128,8 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
         })
         1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, Mock(Transformation), 1)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, Mock(Transformation), 1)
         }
     }
 
@@ -168,11 +160,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 throw failure
             }
@@ -184,11 +171,11 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         })
         1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
         1 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >> true
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform1, 2)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform1, 2)
         }
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform2, 3)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform2, 3)
         }
         1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
     }
@@ -220,11 +207,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 throw failure
             }
@@ -236,11 +218,11 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         })
         1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
         1 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >> true
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform1, 2)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform1, 2)
         }
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform2, 3)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform2, 3)
         }
         1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
     }
@@ -272,11 +254,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 throw failure
             }
@@ -287,11 +264,11 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
         })
         1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(otherVariantAttributes, transform1, 2)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
+            match(otherVariantAttributes, transform1, 2)
         }
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(variantAttributes, transform2, 3)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes) >> { args ->
+            match(variantAttributes, transform2, 3)
         }
         1 * attributeMatcher.matches(_, _) >> { args -> [args[0].get(0)] }
     }
@@ -329,11 +306,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 throw failure
             }
@@ -345,14 +317,14 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         })
         1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
         2 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >> true
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform1, 3)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform1, 3)
         }
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform2, 3)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform2, 3)
         }
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(yetAnotherVariantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform3, 2)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(yetAnotherVariantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform3, 2)
         }
         1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
     }
@@ -390,11 +362,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 throw failure
             }
@@ -405,14 +372,14 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
         })
         1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform1, 3)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform1, 3)
         }
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform2, 2)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform2, 2)
         }
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(yetAnotherVariantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform3, 3)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(yetAnotherVariantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform3, 3)
         }
         2 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >> true
         1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
@@ -450,11 +417,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
 
             @Override
-            void maybeAdd(Object dependency) {
-
-            }
-
-            @Override
             void visitFailure(Throwable failure) {
                 assert failure instanceof AmbiguousTransformException
             }
@@ -465,16 +427,22 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
         })
         1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform1, 3)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform1, 3)
         }
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform2, 2)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform2, 2)
         }
-        1 * consumerProvidedVariantFinder.collectConsumerVariants(yetAnotherVariantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform3, 3)
+        1 * consumerProvidedVariantFinder.collectConsumerVariants(yetAnotherVariantAttributes, requestedAttributes) >> { args ->
+            match(requestedAttributes, transform3, 3)
         }
         1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
         3 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >>> [false, false, true]
+    }
+
+    static ConsumerVariantMatchResult match(ImmutableAttributes output, Transformation trn, int depth) {
+        def result = new ConsumerVariantMatchResult(2)
+        result.matched(output, trn, depth)
+        result
     }
 }

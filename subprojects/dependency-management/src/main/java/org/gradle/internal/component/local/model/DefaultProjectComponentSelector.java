@@ -55,6 +55,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         this.requestedCapabilities = requestedCapabilities;
     }
 
+    @Override
     public String getDisplayName() {
         if (displayName == null) {
             displayName = "project " + identityPath;
@@ -75,6 +76,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return identityPath;
     }
 
+    @Override
     public String getProjectPath() {
         return projectPath.getPath();
     }
@@ -87,6 +89,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return projectName;
     }
 
+    @Override
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 

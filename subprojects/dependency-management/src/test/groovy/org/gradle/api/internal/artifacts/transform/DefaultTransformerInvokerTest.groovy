@@ -40,6 +40,8 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
@@ -89,6 +91,12 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
     }
 
+    def buildOperationExecutor = Stub(BuildOperationExecutor) {
+        call(_) >> { CallableBuildOperation op ->
+            op.call(null)
+        }
+    }
+
     def invoker = new DefaultTransformerInvoker(
         workExecutorTestFixture.workExecutor,
         fileSystemSnapshotter,
@@ -96,7 +104,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         transformationWorkspaceProvider,
         fileCollectionFactory,
         classloaderHasher,
-        projectFinder
+        projectFinder,
+        buildOperationExecutor
     )
 
     private static class TestTransformer implements Transformer {

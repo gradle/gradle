@@ -21,6 +21,7 @@ import com.google.common.io.Files
 import com.google.common.io.Resources
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
+import org.apache.commons.io.FileUtils
 import org.gradle.api.JavaVersion
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.performance.util.JCmd
@@ -59,11 +60,14 @@ class JfrProfiler extends Profiler implements Stoppable {
 
     @Override
     List<String> getAdditionalJvmOpts(BuildExperimentSpec spec) {
+        def jfrOutputDir = getJfrOutputDirectory(spec)
+        getJvmOpts(!useDaemon(spec), jfrOutputDir)
+    }
+
+    private List<String> getJvmOpts(boolean startRecordingImmediately, File jfrOutputLocation) {
         String flightRecordOptions = "stackdepth=1024"
-        def jfrFile = getJfrFile(spec)
-        jfrFile.parentFile.mkdirs()
-        if (!useDaemon(spec)) {
-            flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=${jfrFile},settings=$config"
+        if (startRecordingImmediately) {
+            flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=${jfrOutputLocation},settings=$config"
         }
         def opts = []
         if (!JavaVersion.current().isJava11Compatible()) {
@@ -74,28 +78,42 @@ class JfrProfiler extends Profiler implements Stoppable {
     }
 
     @Override
+    String getJvmOptsForUseInBuild(String recordingsDirectoryRelativePath) {
+        // Don't use the flames directory, since we shouldn't generate flame graphs for the additional JFR files.
+        def recordingsLocation = new File(new File(logDirectory.parentFile, "jfr-recordings"), recordingsDirectoryRelativePath)
+        recordingsLocation.mkdirs()
+        return getJvmOpts(true, recordingsLocation).join(";")
+    }
+
+    @Override
     List<String> getAdditionalGradleArgs(BuildExperimentSpec spec) {
         pid.gradleArgs
     }
 
-    private File getJfrFile(BuildExperimentSpec spec) {
+    private File getJfrOutputDirectory(BuildExperimentSpec spec) {
         def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
         def baseDir = new File(logDirectory, fileSafeName)
-        new File(baseDir, "profile.jfr")
+        def outputDir = new File(baseDir, "jfr-recordings")
+        outputDir.mkdirs()
+        return outputDir
     }
 
     void start(BuildExperimentSpec spec) {
+        // Remove any profiles created during warmup
+        // TODO Should not run warmup runs with the profiler enabled for no daemon cases – https://github.com/gradle/gradle/issues/9458
+        FileUtils.cleanDirectory(getJfrOutputDirectory(spec))
         if (useDaemon(spec)) {
             jCmd.execute(pid.pid, "JFR.start", "name=profile", "settings=$config")
         }
     }
 
     void stop(BuildExperimentSpec spec) {
-        def jfrFile = getJfrFile(spec)
+        def jfrOutputDir = getJfrOutputDirectory(spec)
         if (useDaemon(spec)) {
+            def jfrFile = new File(jfrOutputDir, "profile.jfr")
             jCmd.execute(pid.pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
         }
-        flameGraphGenerator.generateGraphs(jfrFile)
+        flameGraphGenerator.generateGraphs(jfrOutputDir)
     }
 
     @Override
@@ -103,7 +121,7 @@ class JfrProfiler extends Profiler implements Stoppable {
         flameGraphGenerator.generateDifferentialGraphs(logDirectory)
     }
 
-    private boolean useDaemon(BuildExperimentSpec spec) {
+    private static boolean useDaemon(BuildExperimentSpec spec) {
         spec.displayInfo.daemon
     }
 }

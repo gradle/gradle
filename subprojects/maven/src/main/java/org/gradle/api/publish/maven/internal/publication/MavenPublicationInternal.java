@@ -26,16 +26,18 @@ import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
+import org.gradle.api.tasks.TaskProvider;
 
 import java.util.Set;
 
 public interface MavenPublicationInternal extends MavenPublication, PublicationInternal<MavenArtifact> {
 
+    @Override
     MavenPomInternal getPom();
 
-    void setPomGenerator(Task pomGenerator);
+    void setPomGenerator(TaskProvider<? extends Task> pomGenerator);
 
-    void setModuleDescriptorGenerator(Task moduleMetadataGenerator);
+    void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator);
 
     /**
      * @deprecated Kept to not break third-party plugins
@@ -69,6 +71,7 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
      */
     void publishWithOriginalFileName();
 
+    @Override
     VersionMappingStrategyInternal getVersionMappingStrategy();
 
     boolean writeGradleMetadataMarker();

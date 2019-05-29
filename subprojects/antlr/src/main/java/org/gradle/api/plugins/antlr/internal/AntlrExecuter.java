@@ -191,6 +191,7 @@ public class AntlrExecuter implements AntlrWorker {
     }
 
     private static class Antlr2Tool extends AntlrTool {
+        @Override
         public AntlrResult doProcess(AntlrSpec spec) throws ClassNotFoundException {
             XRef xref = new MetadataExtracter().extractMetadata(spec.getGrammarFiles());
             List<GenerationPlan> generationPlans = new GenerationPlanBuilder(spec.getOutputDirectory()).buildGenerationPlans(xref);

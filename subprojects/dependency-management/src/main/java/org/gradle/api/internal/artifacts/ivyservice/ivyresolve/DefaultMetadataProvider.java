@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -40,12 +39,12 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 
@@ -58,7 +57,8 @@ class DefaultMetadataProvider implements MetadataProvider {
     };
     private final ModuleComponentResolveState resolveState;
     private BuildableModuleComponentMetaDataResolveResult cachedResult;
-    private Optional<ComponentMetadata> cachedComponentMetadata;
+    private ComponentMetadata cachedComponentMetadata;
+    private boolean computedMetadata;
 
     DefaultMetadataProvider(ModuleComponentResolveState resolveState) {
         this.resolveState = resolveState;
@@ -66,17 +66,13 @@ class DefaultMetadataProvider implements MetadataProvider {
 
     @Override
     public ComponentMetadata getComponentMetadata() {
-        if (cachedComponentMetadata != null) {
-            return cachedComponentMetadata.orNull();
+        if (computedMetadata) {
+            return cachedComponentMetadata;
         }
 
-        ComponentMetadata metadata = computeMetadata();
-        if (metadata != null) {
-            cachedComponentMetadata = Optional.of(metadata);
-        } else {
-            cachedComponentMetadata = Optional.absent();
-        }
-        return metadata;
+        cachedComponentMetadata = computeMetadata();
+        computedMetadata = true;
+        return cachedComponentMetadata;
     }
 
     private ComponentMetadata computeMetadata() {

@@ -42,22 +42,27 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return version.toString();
     }
 
+    @Override
     public TestFile getGradleHomeDir() {
         return gradleHomeDir;
     }
 
+    @Override
     public TestFile getBinDistribution() {
         return binDistribution;
     }
 
+    @Override
     public GradleVersion getVersion() {
         return version;
     }
 
+    @Override
     public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
         return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext).withWarningMode(null);
     }
 
+    @Override
     public boolean worksWith(Jvm jvm) {
         // Milestone 4 was broken on the IBM jvm
         if (jvm.isIbmJvm() && isVersion("1.0-milestone-4")) {
@@ -104,6 +109,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0;
     }
 
+    @Override
     public boolean worksWith(OperatingSystem os) {
         // 1.0-milestone-5 was broken where jna was not available
         //noinspection SimplifiableIfStatement
@@ -114,10 +120,12 @@ public class DefaultGradleDistribution implements GradleDistribution {
         }
     }
 
+    @Override
     public boolean isDaemonIdleTimeoutConfigurable() {
         return isSameOrNewer("1.0-milestone-7");
     }
 
+    @Override
     public boolean isToolingApiSupported() {
         return isSameOrNewer("1.0-milestone-3");
     }
@@ -137,6 +145,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("2.9-rc-1");
     }
 
+    @Override
     public CacheVersion getArtifactCacheLayoutVersion() {
         if (isSameOrNewer("1.9-rc-2")) {
             return CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(this.version).get();
@@ -155,6 +164,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
         }
     }
 
+    @Override
     public boolean wrapperCanExecute(GradleVersion version) {
         if (version.equals(GradleVersion.version("0.8")) || isVersion("0.8")) {
             // There was a breaking change after 0.8
@@ -173,14 +183,17 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return true;
     }
 
+    @Override
     public boolean isWrapperSupportsGradleUserHomeCommandLineOption() {
         return isSameOrNewer("1.7");
     }
 
+    @Override
     public boolean isSupportsSpacesInGradleAndJavaOpts() {
         return isSameOrNewer("1.0-milestone-5");
     }
 
+    @Override
     public boolean isFullySupportsIvyRepository() {
         return isSameOrNewer("1.0-milestone-7");
     }

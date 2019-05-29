@@ -33,6 +33,7 @@ public class AmbiguousBindingReporter {
 
     private final static String INDENT = "  ";
     private static final Comparator<Provider> PROVIDER_COMPARATOR = new Comparator<Provider>() {
+        @Override
         public int compare(Provider o1, Provider o2) {
             return o1.getPath().compareTo(o2.getPath());
         }

@@ -84,34 +84,42 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return new DefaultRuleActionAdapter(ruleActionValidator, "ComponentSelectionRules");
     }
 
+    @Override
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
         return rules != null ? rules : Collections.<SpecRuleAction<? super ComponentSelection>>emptySet();
     }
 
+    @Override
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
         return addRule(createAllSpecRulesAction(allRuleActionAdapter.createFromAction(selectionAction)));
     }
 
+    @Override
     public ComponentSelectionRules all(Closure<?> closure) {
         return addRule(createAllSpecRulesAction(allRuleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
+    @Override
     public ComponentSelectionRules all(Object ruleSource) {
         return addRule(createAllSpecRulesAction(allRuleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
+    @Override
     public ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction) {
         return addRule(createSpecRuleActionFromId(id, withModuleRuleActionAdapter.createFromAction(selectionAction)));
     }
 
+    @Override
     public ComponentSelectionRules withModule(Object id, Closure<?> closure) {
         return addRule(createSpecRuleActionFromId(id, withModuleRuleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
+    @Override
     public ComponentSelectionRules withModule(Object id, Object ruleSource) {
         return addRule(createSpecRuleActionFromId(id, withModuleRuleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
+    @Override
     public ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
         mutationValidator.validateMutation(STRATEGY);
         if (rules == null) {
@@ -150,6 +158,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
             this.target = target;
         }
 
+        @Override
         public boolean isSatisfiedBy(ComponentSelection selection) {
             return selection.getCandidate().getGroup().equals(target.getGroup()) && selection.getCandidate().getModule().equals(target.getName());
         }

@@ -272,6 +272,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         return null;
     }
 
+    @Override
     public void attach(ClassMetaDataRepository<ClassMetaData> metaDataRepository) {
         this.metaDataRepository = metaDataRepository;
     }
@@ -284,6 +285,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         return method;
     }
 
+    @Override
     public void resolveTypes(Transformer<String, String> transformer) {
         super.resolveTypes(transformer);
         if (superClassName != null) {
@@ -300,6 +302,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         }
     }
 
+    @Override
     public void visitTypes(Action<TypeMetaData> action) {
         for (PropertyMetaData propertyMetaData : declaredProperties.values()) {
             propertyMetaData.visitTypes(action);

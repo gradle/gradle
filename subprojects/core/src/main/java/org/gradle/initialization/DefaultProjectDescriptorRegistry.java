@@ -20,6 +20,7 @@ import org.gradle.util.Path;
 
 public class DefaultProjectDescriptorRegistry extends DefaultProjectRegistry<DefaultProjectDescriptor> implements ProjectDescriptorRegistry {
 
+    @Override
     public void changeDescriptorPath(Path oldPath, Path newPath) {
         DefaultProjectDescriptor projectDescriptor = removeProject(oldPath.toString());
         projectDescriptor.setPath(newPath);

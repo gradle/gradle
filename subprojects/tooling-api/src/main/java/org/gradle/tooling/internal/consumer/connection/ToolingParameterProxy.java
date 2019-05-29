@@ -29,6 +29,7 @@ import java.util.Map;
 public class ToolingParameterProxy implements InvocationHandler {
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
+    @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (isSetter(method)) {
             properties.put(getPropertyName(method.getName()), args[0]);

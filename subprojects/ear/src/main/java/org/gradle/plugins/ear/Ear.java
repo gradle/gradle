@@ -61,6 +61,7 @@ public class Ear extends Jar {
         getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(new Callable<String>() {
+            @Override
             public String call() {
                 return GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME);
             }
@@ -107,6 +108,7 @@ public class Ear extends Jar {
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
         descriptorChild.from(new Callable<FileTreeAdapter>() {
+            @Override
             public FileTreeAdapter call() {
                 final DeploymentDescriptor descriptor = getDeploymentDescriptor();
 
@@ -121,6 +123,7 @@ public class Ear extends Jar {
                         descriptorChild.into(relativePath.getParent().getPathString());
                     }
                     GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), relativePath.getLastName(), new Action<OutputStream>() {
+                        @Override
                         public void execute(OutputStream outputStream) {
                             descriptor.writeTo(new OutputStreamWriter(outputStream));
                         }

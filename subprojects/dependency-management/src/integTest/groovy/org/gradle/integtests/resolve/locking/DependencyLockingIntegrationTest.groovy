@@ -65,9 +65,7 @@ dependencies {
         resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
-                edge("org:foo:1.+", "org:foo:1.0") {
-                    byReason("rejected version 1.1")
-                }
+                edge("org:foo:1.+", "org:foo:1.0")
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.0") {
                     byConstraint("dependency was locked to version '1.0'")
                 }

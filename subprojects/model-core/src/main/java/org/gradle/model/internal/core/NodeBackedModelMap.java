@@ -402,6 +402,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public Collection<T> values() {
         Iterable<T> values = Iterables.transform(keySet(), new Function<String, T>() {
+            @Override
             public T apply(@Nullable String name) {
                 return get(name);
             }

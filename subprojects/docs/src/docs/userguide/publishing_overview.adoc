@@ -43,7 +43,7 @@ Exactly what a publication contains depends on the type of repository it's being
 For example, a publication destined for a Maven repository includes one or more artifacts — typically built by the project — plus a POM file describing the primary artifact and its dependencies.
 The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
 +
-In addition, Maven publication supports <<publishing_maven.adoc#publishing_maven,publishing _resolved_ versions>> of dependencies instead of _declared_ ones.
+In addition, <<publishing_maven.adoc#publishing_maven:resolved_dependencies,Maven>> and <<publishing_ivy.adoc#publishing_ivy:resolved_dependencies,Ivy>> publications support publishing _resolved_ versions of dependencies instead of _declared_ ones.
 
 [[publishing_overview:where]]
 Where to publish::

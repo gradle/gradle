@@ -26,6 +26,7 @@ class DeselectVersionAction implements Action<ModuleIdentifier> {
         this.resolveState = resolveState;
     }
 
+    @Override
     public void execute(ModuleIdentifier module) {
         resolveState.getModule(module).clearSelection();
     }

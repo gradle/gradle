@@ -17,26 +17,32 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 
 public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescriptor {
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
     private final DocumentationRegistry documentationRegistry;
 
-    public GroovyProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                       TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super("groovy", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public GroovyProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        this.libraryVersionProvider = libraryVersionProvider;
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public Language getLanguage() {
+        return Language.GROOVY;
+    }
+
+    @Override
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample Groovy project to get you started.")
@@ -49,9 +55,14 @@ public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescript
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
         configureBuildScript(settings, buildScriptBuilder);
 
-        TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
-        TemplateOperation testSourceTemplate = testTemplateOperation(settings);
-        whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
+        TemplateOperation sourceTemplate = sourceTemplateOperation(templateFactory);
+        TemplateOperation testSourceTemplate = testTemplateOperation(templateFactory);
+        templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getDocumentationFor("tutorial_groovy_projects"));
     }
 
     @Override
@@ -64,9 +75,9 @@ public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescript
         return Collections.singleton(SPOCK);
     }
 
-    protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);
+    protected abstract TemplateOperation sourceTemplateOperation(TemplateFactory templateFactory);
 
-    protected abstract TemplateOperation testTemplateOperation(InitSettings settings);
+    protected abstract TemplateOperation testTemplateOperation(TemplateFactory templateFactory);
 
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
     }

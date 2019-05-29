@@ -23,6 +23,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.concurrent.ExecutionException;
@@ -42,9 +43,10 @@ public abstract class AbstractCachingTransformationWorkspaceProvider implements 
         return delegate.getExecutionHistoryStore();
     }
 
+    @Nullable
     @Override
-    public boolean hasCachedResult(TransformationWorkspaceIdentity identity) {
-        return inMemoryResultCache.getIfPresent(identity) != null;
+    public Try<ImmutableList<File>> getCachedResult(TransformationWorkspaceIdentity identity) {
+        return inMemoryResultCache.getIfPresent(identity);
     }
 
     @Override

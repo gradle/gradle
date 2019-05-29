@@ -42,6 +42,7 @@ public class InjectedPluginResolver {
 
     private List<PluginRequestInternal> convert(List<DefaultInjectedPluginDependency> requests) {
         return collect(requests, new Transformer<PluginRequestInternal, DefaultInjectedPluginDependency>() {
+            @Override
             public PluginRequestInternal transform(DefaultInjectedPluginDependency original) {
                 return new SelfResolvingPluginRequest(original.getId(), classLoaderScope);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,84 +16,109 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.apache.maven.artifact.ant.RemoteRepository;
-import org.apache.maven.wagon.Wagon;
+import org.apache.maven.artifact.repository.metadata.Metadata;
+import org.apache.maven.artifact.repository.metadata.Snapshot;
+import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
+import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.publication.maven.internal.action.MavenDeployAction;
-import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
-import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportDeployWagon;
-import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportWagonAdapter;
+import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceReadResult;
+import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.util.BuildCommencedTimeProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class MavenRemotePublisher extends AbstractMavenPublisher {
-    private final Factory<File> temporaryDirFactory;
+    private static final Logger LOGGER = LoggerFactory.getLogger(MavenRemotePublisher.class);
     private final RepositoryTransportFactory repositoryTransportFactory;
+    private final BuildCommencedTimeProvider timeProvider;
 
-    public MavenRemotePublisher(LocalMavenRepositoryLocator mavenRepositoryLocator, Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory) {
-        super(mavenRepositoryLocator);
-        this.temporaryDirFactory = temporaryDirFactory;
+    public MavenRemotePublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory, BuildCommencedTimeProvider timeProvider) {
+        super(temporaryDirFactory);
         this.repositoryTransportFactory = repositoryTransportFactory;
+        this.timeProvider = timeProvider;
     }
 
-    protected MavenPublishAction createDeployTask(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(packaging, projectIdentity, artifactRepository, repositoryTransportFactory);
-        deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
-        deployTask.setRepositories(createMavenRemoteRepository(artifactRepository), null);
-        return deployTask;
+    @Override
+    public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
+        LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), artifactRepository.getUrl());
+
+        String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
+        RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(),
+                ((AuthenticationSupportedInternal) artifactRepository).getConfiguredAuthentication());
+        ExternalResourceRepository repository = transport.getRepository();
+
+        URI rootUri = artifactRepository.getUrl();
+
+        publish(publication, repository, rootUri, false);
     }
 
-    private RemoteRepository createMavenRemoteRepository(MavenArtifactRepository repository) {
-        RemoteRepository remoteRepository = new RemoteRepository();
-        remoteRepository.setUrl(repository.getUrl().toString());
-        return remoteRepository;
-    }
+    @Override
+    protected Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+        Metadata metadata = new Metadata();
+        metadata.setModelVersion("1.1.0");
+        metadata.setGroupId(groupId);
+        metadata.setArtifactId(artifactId);
+        metadata.setVersion(version);
 
-    /**
-     * A deploy action that uses a Gradle provided wagon implementation.
-     */
-    private static class GradleWagonMavenDeployAction extends MavenDeployAction {
-        private final MavenArtifactRepository artifactRepository;
-        private final RepositoryTransportFactory repositoryTransportFactory;
+        String timestamp = createSnapshotTimestamp();
 
-        public GradleWagonMavenDeployAction(String packaging, MavenProjectIdentity projectIdentity, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-            super(packaging, projectIdentity, null);
-            this.artifactRepository = artifactRepository;
-            this.repositoryTransportFactory = repositoryTransportFactory;
+        Snapshot snapshot = new Snapshot();
+        snapshot.setBuildNumber(getNextBuildNumber(repository, metadataResource));
+        snapshot.setTimestamp(timestamp);
 
-            registerWagonProtocols();
+        Versioning versioning = new Versioning();
+        versioning.setSnapshot(snapshot);
+        versioning.setLastUpdated(snapshot.getTimestamp().replace(".", ""));
+
+        String timestampVersion = version.replace("SNAPSHOT", snapshot.getTimestamp() + "-" + snapshot.getBuildNumber());
+        for (MavenArtifact artifact : publication.getAllArtifacts()) {
+            SnapshotVersion sv = new SnapshotVersion();
+            sv.setClassifier(artifact.getClassifier());
+            sv.setExtension(artifact.getExtension());
+            sv.setVersion(timestampVersion);
+            sv.setUpdated(versioning.getLastUpdated());
+
+            versioning.getSnapshotVersions().add(sv);
         }
 
-        private void registerWagonProtocols() {
-            Wagon wagon = new RepositoryTransportDeployWagon();
-            for (String protocol : repositoryTransportFactory.getRegisteredProtocols()) {
-                getContainer().addComponent(wagon, Wagon.class, protocol);
+        metadata.setVersioning(versioning);
+
+        return metadata;
+    }
+
+    private String createSnapshotTimestamp() {
+        DateFormat utcDateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
+        utcDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date currentTime = new Date(timeProvider.getCurrentTime());
+        return utcDateFormatter.format(currentTime);
+    }
+
+    private int getNextBuildNumber(ExternalResourceRepository repository, ExternalResourceName metadataResource) {
+        ExternalResourceReadResult<Metadata> existing = readExistingMetadata(repository, metadataResource);
+
+        if (existing != null) {
+            Metadata recessive = existing.getResult();
+            Versioning versioning = recessive.getVersioning();
+            if (versioning != null) {
+                Snapshot snapshot = versioning.getSnapshot();
+                if (snapshot != null && snapshot.getBuildNumber() > 0) {
+                    return snapshot.getBuildNumber() + 1;
+                }
             }
         }
-
-        @Override
-        public void publish() {
-            String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
-            RepositoryTransportWagonAdapter adapter = createAdapter(protocol, artifactRepository, repositoryTransportFactory);
-            RepositoryTransportDeployWagon.contextualize(adapter);
-            try {
-                super.publish();
-            } finally {
-                RepositoryTransportDeployWagon.decontextualize();
-            }
-        }
-
-        private RepositoryTransportWagonAdapter createAdapter(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-            RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(),
-                    ((AuthenticationSupportedInternal)artifactRepository).getConfiguredAuthentication());
-            URI rootUri = artifactRepository.getUrl();
-            return new RepositoryTransportWagonAdapter(transport, rootUri);
-        }
+        return 1;
     }
 }

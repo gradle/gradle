@@ -115,6 +115,7 @@ public class UnionVersionSelector implements CompositeVersionSelector {
         throw new UnsupportedOperationException("Union selectors should only be used internally and don't provide a public string representation");
     }
 
+    @Override
     public List<VersionSelector> getSelectors() {
         return selectors;
     }

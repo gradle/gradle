@@ -31,6 +31,7 @@ public class TaskStateInternal implements TaskState {
     private RuntimeException failure;
     private TaskExecutionOutcome outcome;
 
+    @Override
     public boolean getDidWork() {
         return didWork;
     }
@@ -39,6 +40,7 @@ public class TaskStateInternal implements TaskState {
         this.didWork = didWork;
     }
 
+    @Override
     public boolean getExecuted() {
         return outcome != null;
     }
@@ -91,24 +93,29 @@ public class TaskStateInternal implements TaskState {
         this.executing = executing;
     }
 
+    @Override
     public Throwable getFailure() {
         return failure;
     }
 
+    @Override
     public void rethrowFailure() {
         if (failure != null) {
             throw failure;
         }
     }
 
+    @Override
     public boolean getSkipped() {
         return outcome != null && outcome.isSkipped();
     }
 
+    @Override
     public String getSkipMessage() {
         return outcome != null ? outcome.getMessage() : null;
     }
 
+    @Override
     public boolean getUpToDate() {
         return outcome != null && outcome.isUpToDate();
     }

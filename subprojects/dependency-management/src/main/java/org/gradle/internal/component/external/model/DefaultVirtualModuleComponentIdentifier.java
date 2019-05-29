@@ -37,6 +37,7 @@ public class DefaultVirtualModuleComponentIdentifier implements VirtualComponent
         this.hashCode = Objects.hashCode(version, module);
     }
 
+    @Override
     public String getDisplayName() {
         String group = moduleIdentifier.getGroup();
         String module = moduleIdentifier.getName();
@@ -54,14 +55,17 @@ public class DefaultVirtualModuleComponentIdentifier implements VirtualComponent
         return getDisplayName();
     }
 
+    @Override
     public String getGroup() {
         return moduleIdentifier.getGroup();
     }
 
+    @Override
     public String getModule() {
         return moduleIdentifier.getName();
     }
 
+    @Override
     public String getVersion() {
         return version;
     }

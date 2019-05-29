@@ -33,10 +33,12 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
         this.inputTypes = parseInputTypes(closure);
     }
 
+    @Override
     public List<Class<?>> getInputTypes() {
         return inputTypes;
     }
 
+    @Override
     public void execute(T subject, List<?> inputs) {
         Closure copy = (Closure) closure.clone();
         copy.setResolveStrategy(Closure.DELEGATE_FIRST);

@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.Managed
 
@@ -822,6 +824,35 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         property.get() == someValue()
+    }
+
+    def "producer task for a property is not known by default"() {
+        def context = Mock(TaskDependencyResolveContext)
+        def property = propertyWithNoValue()
+        property.set(someValue())
+
+        when:
+        def known = property.maybeVisitBuildDependencies(context)
+
+        then:
+        !known
+        0 * context._
+    }
+
+    def "can define producer task for a property"() {
+        def task = Mock(Task)
+        def context = Mock(TaskDependencyResolveContext)
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.attachProducer(task)
+
+        when:
+        def known = property.maybeVisitBuildDependencies(context)
+
+        then:
+        known
+        1 * context.add(task)
+        0 * context._
     }
 
     def "can unpack state and recreate instance"() {

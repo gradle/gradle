@@ -53,18 +53,22 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         this.delegate = parent.withType(type);
     }
 
+    @Override
     public U create(String name) throws InvalidUserDataException {
         return parent.create(name, type);
     }
 
+    @Override
     public U create(String name, Action<? super U> configureAction) throws InvalidUserDataException {
         return parent.create(name, type, configureAction);
     }
 
+    @Override
     public U create(String name, Closure configureClosure) throws InvalidUserDataException {
         return parent.create(name, type, ConfigureUtil.configureUsing(configureClosure));
     }
 
+    @Override
     public U maybeCreate(String name) {
         return parent.maybeCreate(name, type);
     }
@@ -79,6 +83,7 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return parent.getAdditionalProperties();
     }
 
+    @Override
     public NamedDomainObjectContainer<U> configure(Closure configureClosure) {
         NamedDomainObjectContainerConfigureDelegate delegate = new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
         return ConfigureUtil.configureSelf(configureClosure, this, delegate);
@@ -94,10 +99,12 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return parent.register(name, type);
     }
 
+    @Override
     public Set<U> findAll(Closure spec) {
         return delegate.findAll(spec);
     }
 
+    @Override
     public NamedDomainObjectSet<U> matching(Closure spec) {
         return delegate.matching(spec);
     }
@@ -122,14 +129,17 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return delegate.named(name, type, configurationAction);
     }
 
+    @Override
     public NamedDomainObjectSet<U> matching(Spec<? super U> spec) {
         return delegate.matching(spec);
     }
 
+    @Override
     public <S extends U> NamedDomainObjectSet<S> withType(Class<S> type) {
         return delegate.withType(type);
     }
 
+    @Override
     public boolean add(U e) {
         return delegate.add(e);
     }
@@ -144,10 +154,12 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         delegate.addAllLater(provider);
     }
 
+    @Override
     public boolean addAll(Collection<? extends U> c) {
         return delegate.addAll(c);
     }
 
+    @Override
     public Rule addRule(String description, Closure ruleAction) {
         return delegate.addRule(description, ruleAction);
     }
@@ -157,14 +169,17 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return delegate.addRule(description, ruleAction);
     }
 
+    @Override
     public Rule addRule(Rule rule) {
         return delegate.addRule(rule);
     }
 
+    @Override
     public U findByName(String name) {
         return delegate.findByName(name);
     }
 
+    @Override
     public SortedMap<String, U> getAsMap() {
         return delegate.getAsMap();
     }
@@ -174,14 +189,17 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return delegate.getCollectionSchema();
     }
 
+    @Override
     public U getAt(String name) throws UnknownDomainObjectException {
         return delegate.getAt(name);
     }
 
+    @Override
     public U getByName(String name) throws UnknownDomainObjectException {
         return delegate.getByName(name);
     }
 
+    @Override
     public U getByName(String name, Closure configureClosure) throws UnknownDomainObjectException {
         return delegate.getByName(name, configureClosure);
     }
@@ -191,22 +209,27 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return delegate.getByName(name, configureAction);
     }
 
+    @Override
     public Namer<U> getNamer() {
         return delegate.getNamer();
     }
 
+    @Override
     public SortedSet<String> getNames() {
         return delegate.getNames();
     }
 
+    @Override
     public List<Rule> getRules() {
         return delegate.getRules();
     }
 
+    @Override
     public void all(Action<? super U> action) {
         delegate.all(action);
     }
 
+    @Override
     public void all(Closure action) {
         delegate.all(action);
     }
@@ -216,38 +239,47 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         delegate.configureEach(action);
     }
 
+    @Override
     public Action<? super U> whenObjectAdded(Action<? super U> action) {
         return delegate.whenObjectAdded(action);
     }
 
+    @Override
     public void whenObjectAdded(Closure action) {
         delegate.whenObjectAdded(action);
     }
 
+    @Override
     public Action<? super U> whenObjectRemoved(Action<? super U> action) {
         return delegate.whenObjectRemoved(action);
     }
 
+    @Override
     public void whenObjectRemoved(Closure action) {
         delegate.whenObjectRemoved(action);
     }
 
+    @Override
     public <S extends U> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
         return delegate.withType(type, configureAction);
     }
 
+    @Override
     public <S extends U> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
         return delegate.withType(type, configureClosure);
     }
 
+    @Override
     public void clear() {
         delegate.clear();
     }
 
+    @Override
     public boolean contains(Object o) {
         return delegate.contains(o);
     }
 
+    @Override
     public boolean containsAll(Collection<?> c) {
         return delegate.containsAll(c);
     }
@@ -262,34 +294,42 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return delegate.hashCode();
     }
 
+    @Override
     public boolean isEmpty() {
         return delegate.isEmpty();
     }
 
+    @Override
     public Iterator<U> iterator() {
         return delegate.iterator();
     }
 
+    @Override
     public boolean remove(Object o) {
         return delegate.remove(o);
     }
 
+    @Override
     public boolean removeAll(Collection<?> c) {
         return delegate.removeAll(c);
     }
 
+    @Override
     public boolean retainAll(Collection<?> c) {
         return delegate.retainAll(c);
     }
 
+    @Override
     public int size() {
         return delegate.size();
     }
 
+    @Override
     public Object[] toArray() {
         return delegate.toArray();
     }
 
+    @Override
     public <T> T[] toArray(T[] a) {
         return delegate.toArray(a);
     }

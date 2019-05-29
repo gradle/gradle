@@ -25,25 +25,22 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import javax.annotation.Nullable;
 
 class TransformationOperation implements TransformationResult, RunnableBuildOperation {
-    private final Transformation transformation;
-    private final TransformationSubject subject;
-    private final ExecutionGraphDependenciesResolver dependenciesResolver;
+    private final CacheableInvocation<TransformationSubject> invocation;
+    private final String displayName;
     private Try<TransformationSubject> transformedSubject;
 
-    TransformationOperation(Transformation transformation, TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver) {
-        this.transformation = transformation;
-        this.subject = subject;
-        this.dependenciesResolver = dependenciesResolver;
+    TransformationOperation(CacheableInvocation<TransformationSubject> invocation, String displayName) {
+        this.displayName = displayName;
+        this.invocation = invocation;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        transformedSubject = transformation.transform(subject, dependenciesResolver, null);
+        transformedSubject = invocation.invoke();
     }
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        String displayName = "Transform " + subject.getDisplayName() + " with " + transformation.getDisplayName();
         return BuildOperationDescriptor.displayName(displayName)
             .progressDisplayName(displayName)
             .operationType(BuildOperationCategory.UNCATEGORIZED);

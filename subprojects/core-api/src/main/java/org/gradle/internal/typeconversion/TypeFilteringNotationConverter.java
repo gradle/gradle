@@ -27,6 +27,7 @@ class TypeFilteringNotationConverter<N, S, T> implements NotationConverter<N, T>
         this.delegate = delegate;
     }
 
+    @Override
     public void convert(N notation, NotationConvertResult<? super T> result) throws TypeConversionException {
         if (type.isInstance(notation)) {
             delegate.convert(type.cast(notation), result);

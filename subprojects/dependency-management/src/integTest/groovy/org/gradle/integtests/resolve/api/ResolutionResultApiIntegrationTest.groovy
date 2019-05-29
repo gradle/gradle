@@ -78,7 +78,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
         then:
         output.contains """
 cool-project:5.0 root
-foo:1.0 between versions 0.5 and 1.0
+foo:1.0 between versions 1.0 and 0.5
 leaf:2.0 forced
 bar:1.0 requested
 baz:1.0 requested
@@ -129,8 +129,8 @@ baz:1.0 requested
                             descriptions.each {
                                 println "\$it.cause : \$it.description"
                             }
-                            def descriptor = descriptions.find { it.cause == ComponentSelectionCause.REQUESTED }
-                            assert descriptor?.description == 'second reason'
+                            def descriptors = descriptions.findAll { it.cause == ComponentSelectionCause.REQUESTED }
+                            assert descriptors.description == ['first reason', 'second reason']
                         }
                     }
                 }
@@ -200,8 +200,8 @@ baz:1.0 requested
                             descriptions.each {
                                 println "\$it.cause : \$it.description"
                             }
-                            def descriptor = descriptions.find { it.cause == ComponentSelectionCause.REQUESTED }
-                            assert descriptor?.description == 'second reason'
+                            def descriptors = descriptions.findAll { it.cause == ComponentSelectionCause.REQUESTED }
+                            assert descriptors.description == ['requested', 'second reason']
                         }
                     }
                 }
@@ -217,14 +217,14 @@ baz:1.0 requested
             root(":", ":test:") {
                 module('org.test:a:1.0:runtime') {
                     edge('org.test:leaf:0.9', 'org.test:leaf:1.1')
-                        .byConflictResolution("between versions 1.0 and 1.1") // conflict with the version requested by 'b'
+                        .byConflictResolution("between versions 1.1 and 1.0") // conflict with the version requested by 'b'
                         .byReason('second reason') // this comes from 'b'
                         .selectedByRule("substitute 0.9 with 1.0")
                 }
                 module('org.test:b:1.0:runtime') {
                     module('org.test:leaf:1.1')
                         .selectedByRule("substitute 0.9 with 1.0")
-                        .byConflictResolution("between versions 1.0 and 1.1")
+                        .byConflictResolution("between versions 1.1 and 1.0")
                         .byReason('second reason')
                 }
             }

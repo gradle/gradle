@@ -288,14 +288,17 @@ public class JavaPropertyReflectionUtil {
             return "property " + method.getDeclaringClass().getSimpleName() + "." + property;
         }
 
+        @Override
         public String getName() {
             return property;
         }
 
+        @Override
         public Class<F> getType() {
             return returnType;
         }
 
+        @Override
         public F getValue(T target) {
             try {
                 return returnType.cast(method.invoke(target));
@@ -321,14 +324,17 @@ public class JavaPropertyReflectionUtil {
             return "property " + method.getDeclaringClass().getSimpleName() + "." + property;
         }
 
+        @Override
         public String getName() {
             return property;
         }
 
+        @Override
         public Class<?> getType() {
             return method.getParameterTypes()[0];
         }
 
+        @Override
         public void setValue(Object target, Object value) {
             try {
                 method.invoke(target, value);

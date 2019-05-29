@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
@@ -56,13 +57,13 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
         for (ConfigurationMetadata ambiguousConf : ambiguousConfigurations.values()) {
-            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousConf, variantAware);
+            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousConf, variantAware, true);
         }
         formatter.endChildren();
         return formatter.toString();
     }
 
-    static void formatConfiguration(TreeFormatter formatter, ComponentResolveMetadata targetComponent, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, ConfigurationMetadata configuration, boolean variantAware) {
+    static void formatConfiguration(TreeFormatter formatter, ComponentResolveMetadata targetComponent, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, ConfigurationMetadata configuration, boolean variantAware, boolean ambiguous) {
         AttributeContainerInternal producerAttributes = configuration.getAttributes();
         if (variantAware) {
             formatter.node("Variant '");
@@ -74,10 +75,70 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         if (variantAware) {
             formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, configuration.getCapabilities().getCapabilities()));
         }
-        formatAttributeMatches(formatter, consumerAttributes, attributeMatcher, producerAttributes);
+        if (ambiguous) {
+            formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable());
+        } else {
+            formatAttributeMatchesForIncompatibility(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable());
+        }
     }
 
-    static void formatAttributeMatches(TreeFormatter formatter, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, AttributeContainerInternal producerAttributes) {
+    static void formatAttributeMatchesForIncompatibility(TreeFormatter formatter, ImmutableAttributes immutableConsumer, AttributeMatcher attributeMatcher, ImmutableAttributes immutableProducer) {
+        Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
+        formatter.startChildren();
+        List<String> incompatibleValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
+        List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
+        for (Attribute<?> attribute : allAttributes.values()) {
+            Attribute<Object> untyped = Cast.uncheckedCast(attribute);
+            String attributeName = attribute.getName();
+            AttributeValue<Object> consumerValue = immutableConsumer.findEntry(untyped);
+            AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
+            if (consumerValue.isPresent() && producerValue.isPresent()) {
+                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
+                    otherValues.add("Required " + attributeName + " '" + consumerValue.get() + "' and found compatible value '" + producerValue.get() + "'.");
+                } else {
+                    incompatibleValues.add("Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.");
+                }
+            } else if (consumerValue.isPresent()) {
+                otherValues.add("Required " + attributeName + " '" + consumerValue.get() + "' but no value provided.");
+            } else {
+                otherValues.add("Found " + attributeName + " '" + producerValue.get() + "' but wasn't required.");
+            }
+        }
+        formatAttributeSection(formatter, "Incompatible attribute", incompatibleValues);
+        formatAttributeSection(formatter, "Other attribute", otherValues);
+        formatter.endChildren();
+    }
+
+    static void formatAttributeMatchesForAmbiguity(TreeFormatter formatter, ImmutableAttributes immutableConsumer, AttributeMatcher attributeMatcher, ImmutableAttributes immutableProducer) {
+        Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
+        formatter.startChildren();
+        List<String> compatibleValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
+        List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
+        for (Attribute<?> attribute : allAttributes.values()) {
+            Attribute<Object> untyped = Cast.uncheckedCast(attribute);
+            String attributeName = attribute.getName();
+            AttributeValue<Object> consumerValue = immutableConsumer.findEntry(untyped);
+            AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
+            if (consumerValue.isPresent() && producerValue.isPresent()) {
+                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
+                    compatibleValues.add("Required " + attributeName + " '" + consumerValue.get() + "' and found compatible value '" + producerValue.get() + "'.");
+                } else {
+                    String result = "Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.";
+                    assert false : "Incompatible attributes on ambiguity: " + result;
+                    otherValues.add(result);
+                }
+            } else if (consumerValue.isPresent()) {
+                otherValues.add("Required " + attributeName + " '" + consumerValue.get() + "' but no value provided.");
+            } else {
+                otherValues.add("Found " + attributeName + " '" + producerValue.get() + "' but wasn't required.");
+            }
+        }
+        formatAttributeSection(formatter, "Unmatched attribute", otherValues);
+        formatAttributeSection(formatter, "Compatible attribute", compatibleValues);
+        formatter.endChildren();
+    }
+
+    private static Map<String, Attribute<?>> collectAttributes(ImmutableAttributes consumerAttributes, ImmutableAttributes producerAttributes) {
         Map<String, Attribute<?>> allAttributes = new TreeMap<String, Attribute<?>>();
         for (Attribute<?> attribute : producerAttributes.keySet()) {
             allAttributes.put(attribute.getName(), attribute);
@@ -85,26 +146,19 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         for (Attribute<?> attribute : consumerAttributes.keySet()) {
             allAttributes.put(attribute.getName(), attribute);
         }
-        ImmutableAttributes immutableConsumer = consumerAttributes.asImmutable();
-        ImmutableAttributes immutableProducer = producerAttributes.asImmutable();
-        formatter.startChildren();
-        for (Attribute<?> attribute : allAttributes.values()) {
-            Attribute<Object> untyped = Cast.uncheckedCast(attribute);
-            String attributeName = attribute.getName();
-            AttributeValue<Object> consumerValue = immutableConsumer.findEntry(untyped);
-            AttributeValue<?> producerValue = immutableProducer.findEntry(attribute.getName());
-            if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found compatible value '" + producerValue.get() + "'.");
-                } else {
-                    formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.");
-                }
-            } else if (consumerValue.isPresent()) {
-                formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' but no value provided.");
+        return allAttributes;
+    }
+
+    private static void formatAttributeSection(TreeFormatter formatter, String section, List<String> values) {
+        if (!values.isEmpty()) {
+            if (values.size() > 1) {
+                formatter.node(section + "s");
             } else {
-                formatter.node("Found " + attributeName + " '" + producerValue.get() + "' but wasn't required.");
+                formatter.node(section);
             }
+            formatter.startChildren();
+            values.forEach(formatter::node);
+            formatter.endChildren();
         }
-        formatter.endChildren();
     }
 }

@@ -122,7 +122,7 @@ class Analyzer @Inject constructor(
             if (srcDir.exists()) {
                 val collector = CompositeVersionsToIncubatingCollector(listOf(
                     JavaVersionsToIncubatingCollector(srcDir),
-                    KotlinVersionsToIncubatingCollector(srcDir)
+                    KotlinVersionsToIncubatingCollector()
                 ))
                 srcDir.walkTopDown().forEach { sourceFile ->
                     try {
@@ -304,7 +304,7 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
 
 
 private
-class KotlinVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingCollector {
+class KotlinVersionsToIncubatingCollector : VersionsToIncubatingCollector {
 
     override fun collectFrom(sourceFile: File): VersionsToIncubating {
 

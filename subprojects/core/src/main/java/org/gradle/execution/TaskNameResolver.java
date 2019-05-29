@@ -132,6 +132,7 @@ public class TaskNameResolver {
             this.tasks = tasks;
         }
 
+        @Override
         public void collectTasks(Collection<? super Task> tasks) {
             tasks.addAll(this.tasks);
         }
@@ -146,6 +147,7 @@ public class TaskNameResolver {
             this.taskName = taskName;
         }
 
+        @Override
         public void collectTasks(Collection<? super Task> tasks) {
             tasks.add(taskContainer.getByName(taskName));
         }
@@ -162,6 +164,7 @@ public class TaskNameResolver {
             this.discovered = discovered;
         }
 
+        @Override
         public void collectTasks(Collection<? super Task> tasks) {
             collect(project, tasks);
         }

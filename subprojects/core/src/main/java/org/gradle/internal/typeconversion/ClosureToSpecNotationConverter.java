@@ -28,6 +28,7 @@ public class ClosureToSpecNotationConverter<T> implements NotationConverter<Clos
         this.type = type;
     }
 
+    @Override
     public void convert(Closure notation, NotationConvertResult<? super Spec<T>> result) throws TypeConversionException {
         Spec<T> spec = Specs.convertClosureToSpec(notation);
         result.converted(spec);

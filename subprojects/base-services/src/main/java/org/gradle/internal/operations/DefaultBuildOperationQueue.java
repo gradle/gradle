@@ -96,6 +96,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
+    @Override
     public void waitForCompletion() throws MultipleBuildOperationFailures {
         lock.lock();
         try {

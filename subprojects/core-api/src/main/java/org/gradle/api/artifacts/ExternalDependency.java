@@ -39,6 +39,7 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
     /**
      * {@inheritDoc}
      */
+    @Override
     ExternalDependency copy();
 
     /**

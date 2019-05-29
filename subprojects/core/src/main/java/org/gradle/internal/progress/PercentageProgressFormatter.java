@@ -26,6 +26,7 @@ public class PercentageProgressFormatter implements ProgressFormatter {
         this.prefix = prefix;
     }
 
+    @Override
     public String incrementAndGetProgress() {
         increment();
         return getProgress();
@@ -38,6 +39,7 @@ public class PercentageProgressFormatter implements ProgressFormatter {
         current++;
     }
 
+    @Override
     public String getProgress() {
         return prefix + " " + (int) (current * 100.0 / total) + "%";
     }

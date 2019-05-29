@@ -61,6 +61,7 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
     /**
      * Returns the directory to generate Maven POMs into.
      */
+    @Override
     public File getMavenPomDir() {
         if (pomDir == null) {
             return new File(project.getBuildDir(), "poms");

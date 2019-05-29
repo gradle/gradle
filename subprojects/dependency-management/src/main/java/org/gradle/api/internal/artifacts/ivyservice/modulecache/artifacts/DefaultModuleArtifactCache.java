@@ -52,6 +52,7 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
         return new ArtifactAtRepositoryKeySerializer(serializerRegistry.build(ComponentArtifactIdentifier.class));
     }
 
+    @Override
     public void store(final ArtifactAtRepositoryKey key, final File artifactFile, BigInteger moduleDescriptorHash) {
         assertArtifactFileNotNull(artifactFile);
         assertKeyNotNull(key);
@@ -62,6 +63,7 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
         return new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash);
     }
 
+    @Override
     public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash) {
         storeInternal(key, createMissingEntry(attemptedLocations, descriptorHash));
     }
@@ -84,11 +86,13 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
             this.artifactIdSerializer = artifactIdSerializer;
         }
 
+        @Override
         public void write(Encoder encoder, ArtifactAtRepositoryKey value) throws Exception {
             encoder.writeString(value.getRepositoryId());
             artifactIdSerializer.write(encoder, value.getArtifactId());
         }
 
+        @Override
         public ArtifactAtRepositoryKey read(Decoder decoder) throws Exception {
             String repositoryId = decoder.readString();
             ComponentArtifactIdentifier artifactIdentifier = artifactIdSerializer.read(decoder);
@@ -97,6 +101,7 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     }
 
     private static class CachedArtifactSerializer implements Serializer<CachedArtifact> {
+        @Override
         public void write(Encoder encoder, CachedArtifact value) throws Exception {
             encoder.writeBoolean(value.isMissing());
             encoder.writeLong(value.getCachedAt());
@@ -112,6 +117,7 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
             }
         }
 
+        @Override
         public CachedArtifact read(Decoder decoder) throws Exception {
             boolean isMissing = decoder.readBoolean();
             long createTimestamp = decoder.readLong();

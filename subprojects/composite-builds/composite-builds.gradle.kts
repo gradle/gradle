@@ -17,16 +17,30 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-dependencies {
-    compile(project(":core"))
-    compile(project(":dependencyManagement"))
-    compile(project(":launcher"))
-    compile(project(":pluginUse"))
+plugins {
+    `java-library`
+}
 
-    integTestRuntime(project(":toolingApiBuilders"))
-    integTestRuntime(project(":ide"))
-    integTestRuntime(project(":pluginDevelopment"))
-    integTestRuntime(project(":testKit"))
+dependencies {
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":launcher"))
+    implementation(project(":pluginUse"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+
+    integTestImplementation(project(":buildOption"))
+
+    integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":ide"))
+    integTestRuntimeOnly(project(":pluginDevelopment"))
+    integTestRuntimeOnly(project(":testKit"))
 }
 
 gradlebuildJava {

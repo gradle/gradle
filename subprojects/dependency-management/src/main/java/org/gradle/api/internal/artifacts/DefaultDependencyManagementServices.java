@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler;
@@ -94,6 +93,7 @@ import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -181,6 +181,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         this.parent = parent;
     }
 
+    @Override
     public DependencyResolutionServices create(FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
         DefaultServiceRegistry services = new DefaultServiceRegistry(parent);
         services.add(FileResolver.class, fileResolver);
@@ -192,6 +193,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         return services.get(DependencyResolutionServices.class);
     }
 
+    @Override
     public void addDslServices(ServiceRegistration registration, DomainObjectContext domainObjectContext) {
         registration.addProvider(new DependencyResolutionScopeServices(domainObjectContext));
     }
@@ -222,7 +224,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public Optional<TransformationNode> getCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+                public Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
                     return Optional.empty();
                 }
             };
@@ -364,7 +366,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     ArtifactTransformListener artifactTransformListener,
                                                     FileCollectionFactory fileCollectionFactory,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                                    ProjectFinder projectFinder
+                                                    ProjectFinder projectFinder,
+                                                    BuildOperationExecutor buildOperationExecutor
         ) {
             return new DefaultTransformerInvoker(
                 workExecutor,
@@ -373,7 +376,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformationWorkspaceProvider,
                 fileCollectionFactory,
                 classLoaderHierarchyHasher,
-                projectFinder
+                projectFinder,
+                buildOperationExecutor
             );
         }
 
@@ -462,7 +466,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ProjectStateRegistry projectStateRegistry,
                                                                     DocumentationRegistry documentationRegistry,
                                                                     CollectionCallbackActionDecorator callbackDecorator,
-                                                                    UserCodeApplicationContext userCodeApplicationContext) {
+                                                                    UserCodeApplicationContext userCodeApplicationContext,
+                                                                    DomainObjectCollectionFactory domainObjectCollectionFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -485,7 +490,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 projectStateRegistry,
                 documentationRegistry,
                 callbackDecorator,
-                userCodeApplicationContext
+                userCodeApplicationContext,
+                domainObjectCollectionFactory
             );
         }
 
@@ -521,8 +527,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyLockingHandler.class, configurationContainer);
         }
 
-        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context) {
-            return instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context);
+        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, GlobalDependencyResolutionRules globalDependencyResolutionRules) {
+            return instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules());
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, ComponentMetadataHandler componentMetadataHandler) {
@@ -530,7 +536,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, SimpleMapInterner interner, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor componentMetadataRuleExecutor) {
-            return instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor);
+            DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor);
+            if (domainObjectContext.isScript()) {
+                componentMetadataHandler.setVariantDerivationStrategy(new JavaEcosystemVariantDerivationStrategy());
+            }
+            return componentMetadataHandler;
         }
 
         DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -619,20 +629,19 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.domainObjectContext = domainObjectContext;
         }
 
+        @Override
         public RepositoryHandler getResolveRepositoryHandler() {
             return services.get(RepositoryHandler.class);
         }
 
+        @Override
         public ConfigurationContainerInternal getConfigurationContainer() {
             return services.get(ConfigurationContainerInternal.class);
         }
 
+        @Override
         public DependencyHandler getDependencyHandler() {
-            DependencyHandler dependencyHandler = services.get(DependencyHandler.class);
-            if (domainObjectContext.isScript()) {
-                ((ComponentMetadataHandlerInternal) dependencyHandler.getComponents()).setVariantDerivationStrategy(new JavaEcosystemVariantDerivationStrategy());
-            }
-            return dependencyHandler;
+            return services.get(DependencyHandler.class);
         }
 
         @Override
@@ -664,6 +673,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.services = services;
         }
 
+        @Override
         public RepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = services.get(Instantiator.class);
             BaseRepositoryFactory baseRepositoryFactory = services.get(BaseRepositoryFactory.class);
@@ -671,6 +681,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
         }
 
+        @Override
         public ArtifactPublisher createArtifactPublisher() {
             DefaultArtifactPublisher publisher = new DefaultArtifactPublisher(
                 services.get(LocalConfigurationMetadataBuilder.class),

@@ -150,10 +150,12 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             this.implicitCapabilityProviders = implicitCapabilityProviders;
         }
 
+        @Override
         public NodeState getNode() {
             return node;
         }
 
+        @Override
         public Capability getCapability() {
             return capability;
         }

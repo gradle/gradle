@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -42,13 +44,14 @@ abstract class Minify : TransformAction<Minify.Parameters> {
 
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     @get:InputArtifact
-    abstract val artifact: File
+    abstract val artifact: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
         for (entry in parameters.keepClassesByArtifact) {
-            if (artifact.name.startsWith(entry.key)) {
-                val nameWithoutExtension = Files.getNameWithoutExtension(artifact.path)
-                minify(artifact, entry.value, outputs.file("$nameWithoutExtension-min.jar"))
+            val fileName = artifact.get().asFile.name
+            if (fileName.startsWith(entry.key)) {
+                val nameWithoutExtension = Files.getNameWithoutExtension(fileName)
+                minify(artifact.get().asFile, entry.value, outputs.file("$nameWithoutExtension-min.jar"))
                 return
             }
         }

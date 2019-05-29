@@ -55,6 +55,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     /**
      * Registers new newModule and returns an instance of a conflict if conflict exists.
      */
+    @Override
     @Nullable
     public PotentialConflict registerCandidate(CandidateModule candidate) {
         ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
@@ -65,6 +66,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     /**
      * Informs if there are any batched up conflicts.
      */
+    @Override
     public boolean hasConflicts() {
         return !conflicts.isEmpty();
     }
@@ -72,6 +74,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     /**
      * Resolves the conflict by delegating to the conflict resolver who selects single version from given candidates. Executes provided action against the conflict resolution result object.
      */
+    @Override
     @SuppressWarnings("unchecked")
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
@@ -104,6 +107,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
         }
     }
 
+    @Override
     public void registerResolver(ModuleConflictResolver conflictResolver) {
         compositeResolver.addFirst(conflictResolver);
     }

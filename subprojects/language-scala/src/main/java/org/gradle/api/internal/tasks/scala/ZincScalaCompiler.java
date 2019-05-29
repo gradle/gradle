@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ import xsbti.compile.Setup;
 import xsbti.compile.analysis.Stamp;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -88,6 +89,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
     private long defineClassCacheTimestamp = -1;
 
+    @Inject
     public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, AnalysisStoreProvider analysisStoreProvider) {
         this.scalaInstance = scalaInstance;
         this.scalaCompiler = scalaCompiler;

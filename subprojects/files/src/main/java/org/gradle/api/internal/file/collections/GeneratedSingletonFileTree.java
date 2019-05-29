@@ -60,6 +60,7 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
         return tmpDirSource.create();
     }
 
+    @Override
     public String getDisplayName() {
         return "file tree";
     }
@@ -100,14 +101,17 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
             this.generator = generator;
         }
 
+        @Override
         public String getDisplayName() {
             return fileName;
         }
 
+        @Override
         public void stopVisiting() {
             // only one file
         }
 
+        @Override
         public File getFile() {
             if (file == null) {
                 file = createFileInstance(fileName);
@@ -158,28 +162,34 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
             return Arrays.equals(generatedContent, existingContent);
         }
 
+        @Override
         public void copyTo(OutputStream output) {
             generator.execute(output);
         }
 
+        @Override
         public boolean isDirectory() {
             return false;
         }
 
+        @Override
         public long getLastModified() {
             getFile();
             return lastModified;
         }
 
+        @Override
         public long getSize() {
             getFile();
             return size;
         }
 
+        @Override
         public InputStream open() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public RelativePath getRelativePath() {
             return new RelativePath(true, fileName);
         }

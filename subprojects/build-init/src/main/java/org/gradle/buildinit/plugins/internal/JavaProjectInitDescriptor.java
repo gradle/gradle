@@ -17,16 +17,16 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT_JUPITER;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
@@ -37,20 +37,22 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
         "tutorial_java_projects",
         "java"
     );
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
     private final DocumentationRegistry documentationRegistry;
 
-    public JavaProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory,
-                                     TemplateOperationFactory templateOperationFactory,
-                                     FileResolver fileResolver,
-                                     TemplateLibraryVersionProvider libraryVersionProvider,
-                                     DocumentationRegistry documentationRegistry) {
-        super("java", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public JavaProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        this.libraryVersionProvider = libraryVersionProvider;
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public Language getLanguage() {
+        return Language.JAVA;
+    }
+
+    @Override
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
 
         Description desc = getDescription();
         buildScriptBuilder
@@ -61,21 +63,18 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
         configureBuildScript(settings, buildScriptBuilder);
         addTestFramework(settings.getTestFramework(), buildScriptBuilder);
 
-        TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
-        TemplateOperation testSourceTemplate = testTemplateOperation(settings);
-        whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
+        TemplateOperation sourceTemplate = sourceTemplateOperation(settings, templateFactory);
+        TemplateOperation testSourceTemplate = testTemplateOperation(settings, templateFactory);
+        templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
     }
 
     protected Description getDescription() {
         return DESCRIPTION;
     }
 
-    protected String getImplementationConfigurationName() {
-        return IMPLEMENTATION_CONFIGURATION_NAME;
-    }
-
-    protected String getTestImplementationConfigurationName() {
-        return TEST_IMPLEMENTATION_CONFIGURATION_NAME;
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getDocumentationFor(getDescription().userguideId));
     }
 
     private void addTestFramework(BuildInitTestFramework testFramework, BuildScriptBuilder buildScriptBuilder) {
@@ -83,39 +82,46 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
             case SPOCK:
                 buildScriptBuilder
                     .plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy")
-                    .dependency(getTestImplementationConfigurationName(), "Use the latest Groovy version for Spock testing",
+                    .testImplementationDependency("Use the latest Groovy version for Spock testing",
                         "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"))
-                    .dependency(getTestImplementationConfigurationName(), "Use the awesome Spock testing and specification framework even with Java",
+                    .testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
                         "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
                         "junit:junit:" + libraryVersionProvider.getVersion("junit"));
                 break;
             case TESTNG:
                 buildScriptBuilder
-                    .dependency(
-                        getTestImplementationConfigurationName(),
+                    .testImplementationDependency(
                         "Use TestNG framework, also requires calling test.useTestNG() below",
                         "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
                     .taskMethodInvocation(
                         "Use TestNG for unit tests",
                         "test", "Test", "useTestNG");
                 break;
-            default:
+            case JUNIT_JUPITER:
                 buildScriptBuilder
-                    .dependency(getTestImplementationConfigurationName(), "Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                    .testImplementationDependency(
+                        "Use JUnit Jupiter API for testing.",
+                        "org.junit.jupiter:junit-jupiter-api:" + libraryVersionProvider.getVersion("junit-jupiter")
+                    ).testRuntimeOnlyDependency(
+                    "Use JUnit Jupiter Engine for testing.",
+                    "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter")
+                ).taskMethodInvocation(
+                    "Use junit platform for unit tests",
+                    "test", "Test", "useJUnitPlatform"
+                );
+                break;
+            default:
+                buildScriptBuilder.testImplementationDependency("Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
                 break;
         }
     }
 
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        // todo: once we use "implementation" for Java projects too, we need to change the comment
-        buildScriptBuilder.dependency(getImplementationConfigurationName(),
-            "This dependency is found on compile classpath of this component and consumers.",
-            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 
-    protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);
+    protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings, TemplateFactory templateFactory);
 
-    protected abstract TemplateOperation testTemplateOperation(InitSettings settings);
+    protected abstract TemplateOperation testTemplateOperation(InitSettings settings, TemplateFactory templateFactory);
 
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {
@@ -124,7 +130,7 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, TESTNG, SPOCK));
+        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK));
     }
 
     protected static class Description {

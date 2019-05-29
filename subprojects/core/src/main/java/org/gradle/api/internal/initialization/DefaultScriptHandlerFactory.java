@@ -42,10 +42,12 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         this.scriptClassPathResolver = scriptClassPathResolver;
     }
 
+    @Override
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
         return create(scriptSource, classLoaderScope, RootScriptDomainObjectContext.INSTANCE);
     }
 
+    @Override
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, context);
         return new DefaultScriptHandler(scriptSource, services, classLoaderScope, scriptClassPathResolver);

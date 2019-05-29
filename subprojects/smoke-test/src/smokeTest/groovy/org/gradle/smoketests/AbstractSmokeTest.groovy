@@ -25,7 +25,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 
@@ -38,31 +38,31 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "7.3.0"
+        static nebulaDependencyRecommender = "7.5.5"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "9.2.0"
+        static nebulaPluginPlugin = "11.2.12"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "10.4.2"
+        static nebulaLint = "11.5.0"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.0")
+        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.0", "7.3.4")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.0.8"
+        static nebulaResolutionRules = "7.1.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4")
+        static shadow = Versions.of("4.0.4", "5.0.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
-        static asciidoctor = "1.5.9.2"
+        static asciidoctor = "2.2.0"
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "1.6.10"
+        static spotbugs = "2.0.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "4.5.0"
+        static docker = "4.8.1"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.5"
@@ -71,16 +71,16 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.0.7.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.1.3.RELEASE"
+        static springBoot = "2.1.5.RELEASE"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "28.0.3"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle3x = "3.3.0"
-        static androidGradle = Versions.of("3.2.1", androidGradle3x)
+        static androidGradle3x = "3.3.2"
+        static androidGradle = Versions.of("3.2.1", androidGradle3x, "3.4.1")
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-        static kotlin = Versions.of('1.2.21', '1.2.31', '1.2.41', '1.2.51', '1.2.61', '1.2.71', '1.3.0', '1.3.11', '1.3.21')
+        static kotlin = Versions.of('1.2.21', '1.2.31', '1.2.41', '1.2.51', '1.2.61', '1.2.71', '1.3.0', '1.3.11', '1.3.21', '1.3.31')
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = "2.3.1"
@@ -95,13 +95,13 @@ abstract class AbstractSmokeTest extends Specification {
         static gosu = "0.3.10"
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
-        static grgit = "3.0.0"
+        static grgit = "3.1.1"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
         static gradleVersions = "0.21.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.4"
+        static playframework = "0.6"
     }
 
     static class Versions implements Iterable<String> {

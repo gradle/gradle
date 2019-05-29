@@ -57,6 +57,7 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
         succeeds ":admin:assemble"
 
         when:
+        executer.noDeprecationChecks()
         sample playSample
         executer.usingInitScript(initScript).withStdinPipe().withForceInteractive(true)
         GradleHandle gradleHandle = executer.withTasks(":admin:runPlayBinary").start()

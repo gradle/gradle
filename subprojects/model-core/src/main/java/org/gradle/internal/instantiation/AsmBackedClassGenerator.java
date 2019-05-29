@@ -468,6 +468,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE public ExtensionContainer getExtensions() { return getConvention(); }
 
             addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, null, new MethodCodeBody() {
+                @Override
                 public void add(MethodVisitor visitor) {
 
                     // GENERATE getConvention()
@@ -494,6 +495,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 // GENERATE public Convention getConvention() { return getAsDynamicObject().getConvention(); }
 
                 addGetter("getConvention", CONVENTION_TYPE, RETURN_CONVENTION, null, new MethodCodeBody() {
+                    @Override
                     public void add(MethodVisitor visitor) {
 
                         // GENERATE ((MixInExtensibleDynamicObject)getAsDynamicObject()).getConvention()
@@ -519,6 +521,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // }
 
             addLazyGetter("getAsDynamicObject", DYNAMIC_OBJECT_TYPE, RETURN_DYNAMIC_OBJECT, null, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE, new MethodCodeBody() {
+                @Override
                 public void add(MethodVisitor visitor) {
                     generateCreateDynamicObject(visitor);
                 }
@@ -586,6 +589,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // }
 
             final MethodCodeBody initConventionAwareHelper = new MethodCodeBody() {
+                @Override
                 public void add(MethodVisitor visitor) {
                     // GENERATE new ConventionAwareHelper(this, getConvention())
 
@@ -629,6 +633,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // }
 
             final MethodCodeBody initMetaClass = new MethodCodeBody() {
+                @Override
                 public void add(MethodVisitor visitor) {
                     // GroovySystem.getMetaClassRegistry()
                     visitor.visitMethodInsn(Opcodes.INVOKESTATIC, GROOVY_SYSTEM_TYPE.getInternalName(), "getMetaClassRegistry", RETURN_META_CLASS_REGISTRY, false);
@@ -649,6 +654,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE public void setMetaClass(MetaClass class) { this.metaClass = class; }
 
             addSetter("setMetaClass", RETURN_VOID_FROM_META_CLASS, new MethodCodeBody() {
+                @Override
                 public void add(MethodVisitor visitor) {
                     visitor.visitVarInsn(ALOAD, 0);
                     visitor.visitVarInsn(ALOAD, 1);
@@ -737,6 +743,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE public Object getProperty(String name) { return getAsDynamicObject().getProperty(name); }
 
             addGetter("getProperty", OBJECT_TYPE, RETURN_OBJECT_FROM_STRING, null, new MethodCodeBody() {
+                @Override
                 public void add(MethodVisitor methodVisitor) {
                     // GENERATE getAsDynamicObject().getProperty(name);
 
@@ -773,6 +780,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             addSetter("setProperty", RETURN_VOID_FROM_STRING_OBJECT,
                     new MethodCodeBody() {
+                        @Override
                         public void add(MethodVisitor methodVisitor) {
                             // GENERATE getAsDynamicObject().setProperty(name, value)
 
@@ -792,6 +800,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             addGetter("invokeMethod", OBJECT_TYPE, RETURN_OBJECT_FROM_STRING_OBJECT, null,
                     new MethodCodeBody() {
+                        @Override
                         public void add(MethodVisitor methodVisitor) {
                             String invokeMethodDesc = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_ARRAY_TYPE);
 
@@ -1342,6 +1351,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type returnType = Type.getType(method.getReturnType());
 
             Type[] originalParameterTypes = CollectionUtils.collectArray(method.getParameterTypes(), Type.class, new Transformer<Type, Class>() {
+                @Override
                 public Type transform(Class clazz) {
                     return Type.getType(clazz);
                 }

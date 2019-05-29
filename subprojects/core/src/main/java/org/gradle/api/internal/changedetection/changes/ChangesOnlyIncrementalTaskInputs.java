@@ -30,6 +30,7 @@ public class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInp
         this.inputFilesState = inputFilesState;
     }
 
+    @Override
     public boolean isIncremental() {
         return true;
     }

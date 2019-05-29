@@ -67,17 +67,41 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
-    def 'asciidoctor plugin'() {
+    def 'asciidoctor legacy plugin'() {
         given:
         buildFile << """
             buildscript {
                 ${jcenterRepository()}
                 dependencies {
-                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:${TestedVersions.asciidoctor}"
+                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.11"
                 }
             }
 
             apply plugin: 'org.asciidoctor.gradle.asciidoctor'
+            """.stripIndent()
+
+        file('src/docs/asciidoc/test.adoc') << """
+            = Line Break Doc Title
+            :hardbreaks:
+
+            Rubies are red,
+            Topazes are blue.
+            """.stripIndent()
+
+        when:
+        runner('asciidoc').build()
+
+        then:
+        file('build/asciidoc').isDirectory()
+    }
+
+    @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
+    def 'asciidoctor plugin'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'org.asciidoctor.convert' version '${TestedVersions.asciidoctor}'
+            }
             """.stripIndent()
 
         file('src/docs/asciidoc/test.adoc') << """

@@ -45,6 +45,7 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
         this.scriptSource = scriptSource;
     }
 
+    @Override
     public void register(CompilationUnit compilationUnit) {
         new FilteringScriptTransformer(filter).register(compilationUnit);
         new TaskDefinitionScriptTransformer().register(compilationUnit);

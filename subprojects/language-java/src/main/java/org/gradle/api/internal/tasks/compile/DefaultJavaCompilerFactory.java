@@ -63,11 +63,10 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
             return new CommandLineJavaCompiler(execHandleFactory);
         }
 
-        Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type) && !jointCompilation) {
-            return new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), compiler, workerDaemonFactory, forkOptionsFactory);
+            return new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[] {javaHomeBasedJavaCompilerFactory}, workerDaemonFactory, forkOptionsFactory);
+        } else {
+            return new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
         }
-
-        return compiler;
     }
 }

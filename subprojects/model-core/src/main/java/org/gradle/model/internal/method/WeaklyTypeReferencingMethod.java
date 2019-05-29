@@ -52,6 +52,7 @@ public class WeaklyTypeReferencingMethod<T, R> {
         this.returnType = returnType;
         this.name = method.getName();
         paramTypes = ImmutableList.copyOf(Iterables.transform(Arrays.asList(method.getGenericParameterTypes()), new Function<Type, ModelType<?>>() {
+            @Override
             public ModelType<?> apply(Type type) {
                 return ModelType.of(type);
             }
@@ -108,6 +109,7 @@ public class WeaklyTypeReferencingMethod<T, R> {
 
     public Method getMethod() {
         Class<?>[] paramTypesArray = Iterables.toArray(Iterables.transform(paramTypes, new Function<ModelType<?>, Class<?>>() {
+            @Override
             public Class<?> apply(ModelType<?> modelType) {
                 return modelType.getRawClass();
             }

@@ -22,12 +22,14 @@ plugins {
 }
 
 dependencies {
-    api(library("groovy"))
-    api(project(":baseServices"))
+    implementation(project(":baseServices"))
+    
+    implementation(library("groovy"))
+    implementation(library("guava"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 

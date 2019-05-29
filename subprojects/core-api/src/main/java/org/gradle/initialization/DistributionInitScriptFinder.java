@@ -28,6 +28,7 @@ public class DistributionInitScriptFinder extends DirectoryInitScriptFinder {
         this.gradleHome = gradleHome;
     }
 
+    @Override
     public void findScripts(Collection<File> scripts) {
         if (gradleHome == null) {
             return;

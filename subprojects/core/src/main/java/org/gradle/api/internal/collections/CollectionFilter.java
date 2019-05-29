@@ -62,6 +62,7 @@ public class CollectionFilter<T> implements Spec<Object> {
         };
     }
 
+    @Override
     public boolean isSatisfiedBy(Object element) {
         return filter(element) != null;
     }

@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildCancelledException
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 import java.util.concurrent.CountDownLatch
@@ -72,10 +73,18 @@ latch.await()
     void buildWasCancelled(TestResultHandler resultHandler, String failureMessage = 'Could not execute build using Gradle') {
         resultHandler.assertFailedWith(BuildCancelledException)
         assert resultHandler.failure.message.startsWith(failureMessage)
-        assert resultHandler.failure.cause.message == "Build cancelled."
+
+        if (targetIsGradle51OrLater()) {
+            verifyBuildCancelledExceptionMessage(resultHandler)
+        }
+
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('Build cancelled.')
         assertHasBuildFailedLogging()
+    }
+
+    private static void targetIsGradle51OrLater() {
+        targetVersion >= GradleVersion.version('5.1')
     }
 
     void configureWasCancelled(TestResultHandler resultHandler, String failureMessage) {
@@ -85,7 +94,7 @@ latch.await()
         // Verify there is a cause that explains that the build was cancelled (and where).
         // Some versions do not included this
         if (targetDist.toolingApiHasCauseOnCancel) {
-            assert resultHandler.failure.cause.message == "Build cancelled."
+            verifyBuildCancelledExceptionMessage(resultHandler)
         }
 
         // Verify that there is some logging output that explains that the build was cancelled.
@@ -95,6 +104,11 @@ latch.await()
             failure.assertHasDescription('Build cancelled.')
             assertHasConfigureFailedLogging()
         }
+    }
+
+    private static void verifyBuildCancelledExceptionMessage(TestResultHandler resultHandler) {
+        // https://github.com/gradle/gradle-private/issues/1760
+        assert resultHandler.failure.cause.message in ["Build cancelled.", "Daemon was stopped to handle build cancel request."]
     }
 
     void taskWasCancelled(TestResultHandler resultHandler, String taskPath) {

@@ -64,6 +64,7 @@ public class EarPlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(BasePlugin.class);
 
@@ -85,8 +86,10 @@ public class EarPlugin implements Plugin<Project> {
 
     private void configureWithNoJavaPluginApplied(final Project project, final EarPluginConvention earPluginConvention) {
         project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
+            @Override
             public void execute(final Ear task) {
                 task.from(new Callable<FileCollection>() {
+                    @Override
                     public FileCollection call() throws Exception {
                         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
                             return null;
@@ -101,24 +104,29 @@ public class EarPlugin implements Plugin<Project> {
 
     private void configureWithJavaPluginApplied(final Project project, final EarPluginConvention earPluginConvention, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, new Action<JavaPlugin>() {
+            @Override
             public void execute(JavaPlugin javaPlugin) {
                 final JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
 
                 SourceSet sourceSet = javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                 sourceSet.getResources().srcDir(new Callable() {
+                    @Override
                     public Object call() throws Exception {
                         return earPluginConvention.getAppDirName();
                     }
                 });
                 project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
+                    @Override
                     public void execute(final Ear task) {
                         task.dependsOn(new Callable<FileCollection>() {
+                            @Override
                             public FileCollection call() throws Exception {
                                 return javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME)
                                     .getRuntimeClasspath();
                             }
                         });
                         task.from(new Callable<FileCollection>() {
+                            @Override
                             public FileCollection call() throws Exception {
                                 return javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
                             }
@@ -150,8 +158,10 @@ public class EarPlugin implements Plugin<Project> {
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new LazyPublishArtifact(ear));
 
         project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
+            @Override
             public void execute(Ear task) {
                 task.getLib().from(new Callable<FileCollection>() {
+                    @Override
                     public FileCollection call() throws Exception {
                         // Ensure that deploy jars are not also added into lib folder.
                         // Allows the user to get transitive dependencies for a bean artifact by adding it to both earlib and deploy but only having the file once in the ear.
@@ -160,6 +170,7 @@ public class EarPlugin implements Plugin<Project> {
                     }
                 });
                 task.from(new Callable<FileCollection>() {
+                    @Override
                     public FileCollection call() throws Exception {
                         // add the module configuration's files
                         return project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME);
@@ -171,13 +182,16 @@ public class EarPlugin implements Plugin<Project> {
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
         project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
+            @Override
             public void execute(Ear task) {
                 task.getConventionMapping().map("libDirName", new Callable<String>() {
+                    @Override
                     public String call() throws Exception {
                         return earConvention.getLibDirName();
                     }
                 });
                 task.getConventionMapping().map("deploymentDescriptor", new Callable<DeploymentDescriptor>() {
+                    @Override
                     public DeploymentDescriptor call() throws Exception {
                         return earConvention.getDeploymentDescriptor();
                     }

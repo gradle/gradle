@@ -18,7 +18,7 @@ package org.gradle.build
 
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.plugins.StartScriptGenerator
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.CacheableTask
@@ -29,16 +29,17 @@ import org.gradle.api.tasks.TaskAction
 
 @CacheableTask
 @CompileStatic
-class GradleStartScriptGenerator extends DefaultTask {
+abstract class GradleStartScriptGenerator extends DefaultTask {
+
     @Internal
     File startScriptsDir
 
     @Internal
-    FileCollection launcherJar
+    abstract ConfigurableFileCollection getLauncherBootstrapClasspathFiles()
 
     @Input
-    String getLauncherJarName() {
-        return launcherJar?.singleFile?.name
+    List<String> getLauncherBootstrapClasspath() {
+        return launcherBootstrapClasspathFiles.collect { "lib/${it.name}".toString() }
     }
 
     @OutputFile
@@ -60,7 +61,7 @@ class GradleStartScriptGenerator extends DefaultTask {
         generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
         generator.mainClassName = 'org.gradle.launcher.GradleMain'
         generator.scriptRelPath = 'bin/gradle'
-        generator.classpath = ["lib/${launcherJar.singleFile.name}" as String]
+        generator.classpath = launcherBootstrapClasspath
         generator.appNameSystemProperty = 'org.gradle.appname'
         generator.defaultJvmOpts = ["-Xmx64m", "-Xms64m"]
         generator.generateUnixScript(shellScript)

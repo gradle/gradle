@@ -110,14 +110,14 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
         expect:
         fails "check"
         failure.assertHasCause "Task property validation failed"
-        failure.assertHasCause "Warning: Task type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Task type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Task type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation."
 
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Task type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation.
-            Warning: Task type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation.
+            Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation.
         """.stripIndent().trim()
     }
 }

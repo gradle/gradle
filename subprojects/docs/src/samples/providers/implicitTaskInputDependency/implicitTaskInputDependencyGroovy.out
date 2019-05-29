@@ -1,0 +1,9 @@
+
+> Task :producer
+Wrote 'Hello, World!' to /home/user/gradle/samples/groovy/build/file.txt
+
+> Task :consumer
+Hello, World!
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 2 executed

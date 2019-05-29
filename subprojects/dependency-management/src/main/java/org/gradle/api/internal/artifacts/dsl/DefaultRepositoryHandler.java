@@ -52,14 +52,17 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         this.repositoryFactory = repositoryFactory;
     }
 
+    @Override
     public FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action) {
         return addRepository(repositoryFactory.createFlatDirRepository(), FLAT_DIR_DEFAULT_NAME, action);
     }
 
+    @Override
     public FlatDirectoryArtifactRepository flatDir(Closure configureClosure) {
         return flatDir(ConfigureUtil.configureUsing(configureClosure));
     }
 
+    @Override
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         if (modifiedArgs.containsKey("dirs")) {
@@ -78,6 +81,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME, action);
     }
 
+    @Override
     public MavenArtifactRepository mavenCentral() {
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME);
     }
@@ -87,19 +91,23 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, action);
     }
 
+    @Override
     public MavenArtifactRepository jcenter() {
         return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME);
     }
 
+    @Override
     public MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action) {
         return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME, action);
     }
 
+    @Override
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<MavenArtifactRepository>(modifiedArgs));
     }
 
+    @Override
     public MavenArtifactRepository mavenLocal() {
         return addRepository(repositoryFactory.createMavenLocalRepository(), DEFAULT_MAVEN_LOCAL_REPO_NAME);
     }
@@ -109,6 +117,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createMavenLocalRepository(), DEFAULT_MAVEN_LOCAL_REPO_NAME, action);
     }
 
+    @Override
     public MavenArtifactRepository google() {
         return addRepository(repositoryFactory.createGoogleRepository(), GOOGLE_REPO_NAME);
     }
@@ -118,18 +127,22 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createGoogleRepository(), GOOGLE_REPO_NAME, action);
     }
 
+    @Override
     public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {
         return addRepository(repositoryFactory.createMavenRepository(), MAVEN_REPO_DEFAULT_NAME, action);
     }
 
+    @Override
     public MavenArtifactRepository maven(Closure closure) {
         return maven(ConfigureUtil.configureUsing(closure));
     }
 
+    @Override
     public IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action) {
         return addRepository(repositoryFactory.createIvyRepository(), IVY_REPO_DEFAULT_NAME, action);
     }
 
+    @Override
     public IvyArtifactRepository ivy(Closure closure) {
         return ivy(ConfigureUtil.configureUsing(closure));
     }

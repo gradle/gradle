@@ -33,7 +33,7 @@ class IndexPageGeneratorTest extends ResultSpecification {
 
     def setup() {
         resultsJson << '[]'
-        generator = new IndexPageGenerator(mockStore, resultsJson)
+        generator = new IndexPageGenerator(Mock(PerformanceFlakinessAnalyzer), mockStore, resultsJson)
     }
 
     def 'can sort scenarios correctly'() {

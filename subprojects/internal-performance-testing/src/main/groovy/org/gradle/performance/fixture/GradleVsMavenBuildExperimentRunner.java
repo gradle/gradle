@@ -40,6 +40,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         this.execActionFactory = execActionFactory;
     }
 
+    @Override
     public void run(BuildExperimentSpec exp, MeasuredOperationList results) {
         super.run(exp, results);
         InvocationSpec invocation = exp.getInvocation();
@@ -55,6 +56,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
     private void runMavenExperiment(MeasuredOperationList results, final MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec) {
         File projectDir = buildSpec.getWorkingDirectory();
         performMeasurements(new InvocationExecutorProvider() {
+            @Override
             public Action<MeasuredOperation> runner(final BuildExperimentInvocationInfo invocationInfo, final InvocationCustomizer invocationCustomizer) {
                 return new Action<MeasuredOperation>() {
                     @Override
@@ -101,6 +103,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
     protected InvocationCustomizer createInvocationCustomizer(final BuildExperimentInvocationInfo info) {
         if (info.getBuildExperimentSpec() instanceof MavenBuildExperimentSpec) {
             return new InvocationCustomizer() {
+                @Override
                 public InvocationSpec customize(BuildExperimentInvocationInfo info, InvocationSpec invocationSpec) {
                     final List<String> iterationInfoArguments = createIterationInfoArguments(info.getPhase(), info.getIterationNumber(), info.getIterationMax());
                     return ((MavenInvocationSpec) invocationSpec).withBuilder().args(iterationInfoArguments).build();

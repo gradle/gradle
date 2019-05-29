@@ -107,10 +107,12 @@ public class Signature extends AbstractPublishArtifact {
      */
     public Signature(final PublishArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
         this(toSign, new Callable<File>() {
+            @Override
             public File call() {
                 return toSign.getFile();
             }
         }, new Callable<String>() {
+            @Override
             public String call() {
                 return toSign.getClassifier();
             }
@@ -217,6 +219,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The name. May be {@code null} if unknown at this time.
      */
+    @Override
     @Internal
     public String getName() {
         return name != null ? name : defaultName();
@@ -244,6 +247,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The extension. May be {@code null} if unknown at this time.
      */
+    @Override
     @Internal
     public String getExtension() {
         return extension != null ? extension : signatureTypeExtension();
@@ -267,6 +271,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The type. May be {@code null} if the file to sign or signature type are unknown at this time.
      */
+    @Override
     @Internal
     public String getType() {
         return type != null ? type : defaultType();
@@ -292,6 +297,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The classifier. May be {@code null} if unknown at this time.
      */
+    @Override
     @Internal
     public String getClassifier() {
         return classifier != null ? classifier : defaultClassifier();
@@ -312,6 +318,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The date of the signature. May be {@code null} if unknown at this time.
      */
+    @Override
     @Internal
     public Date getDate() {
         return date != null ? date : defaultDate();
@@ -340,6 +347,7 @@ public class Signature extends AbstractPublishArtifact {
      * @return The signature file. May be {@code null} if unknown at this time.
      * @see SignatureType#fileFor(File)
      */
+    @Override
     @OutputFile
     public File getFile() {
         File toSign = getToSign();

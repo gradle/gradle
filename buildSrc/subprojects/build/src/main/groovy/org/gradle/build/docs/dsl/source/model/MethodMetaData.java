@@ -150,6 +150,7 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
         return builder.toString();
     }
 
+    @Override
     public void visitTypes(Action<TypeMetaData> action) {
         action.execute(returnType);
         for (ParameterMetaData parameter : parameters) {

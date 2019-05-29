@@ -35,6 +35,7 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
         this.mappings.putAll(mappings);
     }
 
+    @Override
     public Conf2ScopeMapping getMapping(Collection<Configuration> configurations) {
         Set<Conf2ScopeMapping> result = getMappingsWithHighestPriority(configurations);
         if (result.size() > 1) {
@@ -72,19 +73,23 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
         return existingMappings;
     }
 
+    @Override
     public Conf2ScopeMappingContainer addMapping(int priority, Configuration configuration, String scope) {
         mappings.put(configuration, new Conf2ScopeMapping(priority, configuration, scope));
         return this;
     }
 
+    @Override
     public Map<Configuration, Conf2ScopeMapping> getMappings() {
         return mappings;
     }
 
+    @Override
     public boolean isSkipUnmappedConfs() {
         return skipUnmappedConfs;
     }
 
+    @Override
     public void setSkipUnmappedConfs(boolean skipUnmappedConfs) {
         this.skipUnmappedConfs = skipUnmappedConfs;
     }

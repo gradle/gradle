@@ -100,12 +100,14 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
         return this;
     }
 
+    @Override
     public void run() {
         BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
         run(handler);
         handler.getResult();
     }
 
+    @Override
     public void run(final ResultHandler<? super Void> handler) {
         if (operationDescriptors.isEmpty() && internalJvmTestRequests.isEmpty()) {
             throw new TestExecutionException("No test declared for execution.");
@@ -113,10 +115,12 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(testClassNames), ImmutableSet.copyOf(internalJvmTestRequests));
         connection.run(new ConsumerAction<Void>() {
+            @Override
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
 
+            @Override
             public Void run(ConsumerConnection connection) {
                 connection.runTests(testExecutionRequest, getParameters());
                 return null;

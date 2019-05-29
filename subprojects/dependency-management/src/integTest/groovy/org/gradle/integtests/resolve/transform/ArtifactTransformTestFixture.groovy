@@ -16,13 +16,14 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
-trait ArtifactTransformTestFixture {
+trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
     abstract TestFile getBuildFile()
 
     /**
@@ -81,46 +82,6 @@ allprojects {
     }
 }
 
-class FileProducer extends DefaultTask {
-    @OutputFile
-    final RegularFileProperty output = project.objects.fileProperty()
-    @Input
-    String content = "content" // set to empty string to delete file
-
-    @TaskAction
-    def go() {
-        def file = output.get().asFile
-        if (content.empty) {
-            file.delete()
-        } else {
-            file.text = content
-        }
-    }
-}
-
-class DirProducer extends DefaultTask {
-    @OutputDirectory
-    final DirectoryProperty output = project.objects.directoryProperty()
-    @Input
-    final ListProperty<String> names = project.objects.listProperty(String)
-    @Input
-    String content = "content" // set to empty string to delete directory
-
-    @TaskAction
-    def go() {
-        def dir = output.get().asFile
-        if (content.empty) {
-            project.delete(dir)
-        } else {
-            project.delete(dir)
-            dir.mkdirs()
-            names.get().forEach {
-                new File(dir, it).text = content
-            }
-        }
-    }
-}
-
 import ${JarOutputStream.name}
 import ${ZipEntry.name}
 
@@ -148,6 +109,8 @@ class JarProducer extends DefaultTask {
     }
 }
 """
+        taskTypeWithOutputFileProperty()
+        taskTypeWithOutputDirectoryProperty()
     }
 
     /**

@@ -41,6 +41,7 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
      */
     ModuleComponentResolveMetadata getMetaData() throws ModuleVersionResolveException;
 
+    @Override
     @Nullable
     ModuleVersionResolveException getFailure();
 
@@ -57,6 +58,7 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
     /**
      * Marks the resolve as failed with the given exception.
      */
+    @Override
     void failed(ModuleVersionResolveException failure);
 
     /**

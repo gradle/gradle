@@ -88,6 +88,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         return VisitableURLClassLoader.class.getSimpleName() + "(" + name + ")";
     }
 
+    @Override
     public void visit(ClassLoaderVisitor visitor) {
         URL[] urls = getURLs();
         visitor.visitSpec(new Spec(name, Arrays.asList(urls)));

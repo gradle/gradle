@@ -37,6 +37,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
+import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.BasicTextResourceLoader
 
@@ -59,6 +60,7 @@ import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
 
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -189,13 +191,33 @@ abstract class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCode
             return null
         }
 
+        val pluginRequests = collectPluginRequestsOf(plugin)
+        validatePluginRequestsOf(plugin, pluginRequests)
         return ScriptPluginPlugins(
             plugin,
-            collectPluginRequestsOf(plugin).map {
-                // TODO:kotlin-dsl validate plugin request version, apply false, etc
-                it.id.id
-            }
+            pluginRequests.map { it.id.id }
         )
+    }
+
+    private
+    fun validatePluginRequestsOf(plugin: PrecompiledScriptPlugin, requests: PluginRequests) {
+        val validationErrors = requests.mapNotNull { validationErrorFor(it) }
+        if (validationErrors.isNotEmpty()) {
+            throw LocationAwareException(
+                IllegalArgumentException(validationErrors.joinToString("\n")),
+                plugin.scriptFile.path,
+                requests.first().lineNumber
+            )
+        }
+    }
+
+    private
+    fun validationErrorFor(pluginRequest: PluginRequestInternal): String? {
+        if (pluginRequest.version != null) {
+            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $project."
+        }
+        // TODO:kotlin-dsl validate apply false
+        return null
     }
 
     private

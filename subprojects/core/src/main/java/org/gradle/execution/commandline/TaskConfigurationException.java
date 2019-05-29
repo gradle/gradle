@@ -35,6 +35,7 @@ public class TaskConfigurationException extends GradleException implements Failu
         this.taskPath = taskPath;
     }
 
+    @Override
     public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
         output.text("Run ");
         clientMetaData.describeCommand(output.withStyle(UserInput), ProjectInternal.HELP_TASK);

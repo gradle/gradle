@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -30,6 +31,7 @@ import org.gradle.internal.component.NoMatchingCapabilitiesException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ShadowedCapability;
+import org.gradle.internal.component.external.model.ShadowedCapabilityOnly;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -129,7 +131,8 @@ public abstract class AttributeConfigurationSelector {
         ImmutableList.Builder<ConfigurationMetadata> builder = ImmutableList.builderWithExpectedSize(consumableConfigurations.size());
         boolean explicitlyRequested = !explicitRequestedCapabilities.isEmpty();
         for (ConfigurationMetadata configuration : consumableConfigurations) {
-            List<? extends Capability> capabilities = configuration.getCapabilities().getCapabilities();
+            CapabilitiesMetadata capabilitiesMetadata = configuration.getCapabilities();
+            List<? extends Capability> capabilities = capabilitiesMetadata.getCapabilities();
             MatchResult result;
             if (explicitlyRequested) {
                 // some capabilities are explicitly required (in other words, we're not _necessarily_ looking for the default capability
@@ -137,7 +140,7 @@ public abstract class AttributeConfigurationSelector {
                 result = providesAllCapabilities(targetComponent, explicitRequestedCapabilities, capabilities);
             } else {
                 // we need to make sure the variants we consider provide the implicit capability
-                result = containsImplicitCapability(capabilities, group, name);
+                result = containsImplicitCapability(capabilitiesMetadata, capabilities, group, name);
             }
             if (result.matches) {
                 if (lenient || result == MatchResult.EXACT_MATCH) {
@@ -146,6 +149,10 @@ public abstract class AttributeConfigurationSelector {
             }
         }
         return builder.build();
+    }
+
+    private static boolean isShadowedCapabilityOnly(CapabilitiesMetadata capabilitiesMetadata) {
+        return capabilitiesMetadata instanceof ShadowedCapabilityOnly;
     }
 
     /**
@@ -181,8 +188,8 @@ public abstract class AttributeConfigurationSelector {
         return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
     }
 
-    private static MatchResult containsImplicitCapability(Collection<? extends Capability> capabilities, String group, String name) {
-        if (capabilities.isEmpty()) {
+    private static MatchResult containsImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, Collection<? extends Capability> capabilities, String group, String name) {
+        if (fastContainsImplicitCapability(capabilitiesMetadata, capabilities)) {
             // An empty capability list means that it's an implicit capability only
             return MatchResult.EXACT_MATCH;
         }
@@ -194,6 +201,10 @@ public abstract class AttributeConfigurationSelector {
             }
         }
         return MatchResult.NO_MATCH;
+    }
+
+    private static boolean fastContainsImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, Collection<? extends Capability> capabilities) {
+        return capabilities.isEmpty() || isShadowedCapabilityOnly(capabilitiesMetadata);
     }
 
     private static Capability unwrap(Capability capability) {

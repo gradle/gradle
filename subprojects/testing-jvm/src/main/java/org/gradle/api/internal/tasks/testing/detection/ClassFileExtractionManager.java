@@ -53,6 +53,7 @@ public class ClassFileExtractionManager {
      */
     public void addLibraryJar(final File libraryJar) {
         new JarFilePackageLister().listJarPackages(libraryJar, new JarFilePackageListener() {
+            @Override
             public void receivePackage(String packageName) {
                 Set<File> jarFiles = packageJarFilesMappings.get(packageName);
                 if (jarFiles == null) {

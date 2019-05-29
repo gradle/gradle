@@ -43,6 +43,7 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         }
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -52,6 +53,7 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         this.name = name;
     }
 
+    @Override
     public String getType() {
         return type;
     }
@@ -61,6 +63,7 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         this.type = type;
     }
 
+    @Override
     public String getExtension() {
         return extension;
     }
@@ -70,6 +73,7 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         this.extension = extension;
     }
 
+    @Override
     public String getClassifier() {
         return classifier;
     }
@@ -79,6 +83,7 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         this.classifier = classifier;
     }
 
+    @Override
     public String getUrl() {
         return url;
     }

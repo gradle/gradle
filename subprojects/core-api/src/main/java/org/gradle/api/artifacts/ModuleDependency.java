@@ -158,6 +158,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     /**
      * {@inheritDoc}
      */
+    @Override
     ModuleDependency copy();
 
     /**
@@ -168,6 +169,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 4.8
      */
+    @Override
     @Incubating
     AttributeContainer getAttributes();
 
@@ -179,6 +181,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 4.8
      */
+    @Override
     @Incubating
     ModuleDependency attributes(Action<? super AttributeContainer> configureAction);
 

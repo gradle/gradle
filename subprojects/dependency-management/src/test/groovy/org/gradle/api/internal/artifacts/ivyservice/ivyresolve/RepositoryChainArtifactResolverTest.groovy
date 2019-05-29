@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.ComponentArtifactMetadata
@@ -57,7 +57,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         def artifacts = Mock(ComponentArtifacts)
         def configuration = Stub(ConfigurationMetadata)
         def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
-        def exclusion = Stub(ModuleExclusion)
+        def exclusion = Stub(ExcludeSpec)
         def artifactSet = Stub(ArtifactSet)
 
         when:
@@ -82,7 +82,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         def artifacts = Mock(ComponentArtifacts)
         def configuration = Stub(ConfigurationMetadata)
         def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
-        def exclusion = Stub(ModuleExclusion)
+        def exclusion = Stub(ExcludeSpec)
         def artifactSet = Stub(ArtifactSet)
 
         when:

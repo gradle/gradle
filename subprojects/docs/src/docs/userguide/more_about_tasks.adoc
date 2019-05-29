@@ -206,7 +206,7 @@ include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/kotlin",files
 [NOTE]
 .Prefer creating a task with constructor arguments using the TaskContainer
 ====
-It's recommended to use the <<task_configuration_avoidance.adoc,Task Configuration Avoidance>> APIs to improve configuration time.
+It's recommended to use the <<task_configuration_avoidance.adoc#,Task Configuration Avoidance>> APIs to improve configuration time.
 ====
 
 In all circumstances, the values passed as constructor arguments must be non-null.
@@ -557,6 +557,7 @@ This example is particularly interesting because it works with collections of so
 
 Now that you have seen some of the input and output annotations in practice, let’s take a look at all the annotations available to you and when you should use them. The table below lists the available annotations and the corresponding property type you can use with each one.
 
+[[table:incremental_build_annotations]]
 .Incremental build property type annotations
 [cols="a,a,a", options="header"]
 |===
@@ -650,6 +651,12 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 | [#skip-when-empty]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
 | `File`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
+
+Implies `<<#incremental,@Incremental>>`.
+
+| [#incremental]`@link:{javadocPath}/org/gradle/work/Incremental.html[Incremental]`
+| `Provider<FileSystemLocation>` or `FileCollection`
+| Used with `@InputFiles` or `@InputDirectory` to instruct Gradle to track changes to the annotated file property, so the changes can be queried via `@link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges.getFileChanges()]`. Required for <<custom_tasks.adoc#incremental_tasks,incremental tasks>>.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional]`
 | Any type
@@ -930,9 +937,20 @@ One last benefit of defining task inputs and outputs is that Gradle can use this
 [[sec:how_does_it_work]]
 === How does it work?
 
-Before a task is executed for the first time, Gradle takes a fingerprint of the inputs. This fingerprint contains the paths of input files and a hash of the contents of each file. Gradle then executes the task. If the task completes successfully, Gradle takes a fingerprint of the outputs. This fingerprint contains the set of output files and a hash of the contents of each file. Gradle persists both fingerprints for the next time the task is executed.
+Before a task is executed for the first time, Gradle takes a fingerprint of the inputs.
+This fingerprint contains the paths of input files and a hash of the contents of each file.
+Gradle then executes the task.
+If the task completes successfully, Gradle takes a fingerprint of the outputs.
+This fingerprint contains the set of output files and a hash of the contents of each file.
+Gradle persists both fingerprints for the next time the task is executed.
 
-Each time after that, before the task is executed, Gradle takes a new fingerprint of the inputs and outputs. If the new fingerprints are the same as the previous fingerprints, Gradle assumes that the outputs are up to date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both fingerprints for the next time the task is executed.
+Each time after that, before the task is executed, Gradle takes a new fingerprint of the inputs and outputs.
+If the new fingerprints are the same as the previous fingerprints, Gradle assumes that the outputs are up to date and skips the task.
+If they are not the same, Gradle executes the task.
+Gradle persists both fingerprints for the next time the task is executed.
+
+If the stats of a file (i.e. `lastModified` and `size`) did not change, Gradle will reuse the file's fingerprint from the previous run.
+That means that Gradle does not detect changes when the stats of a file did not change.
 
 Gradle also considers the _code_ of the task as part of the inputs to the task. When a task, its actions, or its dependencies change between executions, Gradle considers the task as out-of-date.
 
@@ -1130,13 +1148,15 @@ Let's say you want to add a file `build-info.properties` to all your produced ja
 This file is only for auditing purposes, and has no effect on the outcome of running tests.
 Nonetheless, this file is part of the runtime classpath for the `test` task and changes on every build invocation.
 Therefore, the `test` would be never up-to-date or pulled from the build cache.
-In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:normalization(org.gradle.api.Action)[Project.normalization(org.gradle.api.Action)]:
+In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:normalization(org.gradle.api.Action)[Project.normalization(org.gradle.api.Action)] (in the _consuming_ project):
 
 .Runtime classpath normalization
 ====
 include::sample[dir="userguide/tasks/inputNormalization/groovy",files="build.gradle[tags=ignore-build-info-properties]"]
 include::sample[dir="userguide/tasks/inputNormalization/kotlin",files="build.gradle.kts[tags=ignore-build-info-properties]"]
 ====
+
+If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.
 
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task - i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.

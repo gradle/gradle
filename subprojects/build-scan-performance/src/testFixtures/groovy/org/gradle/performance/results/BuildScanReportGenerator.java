@@ -17,7 +17,7 @@
 package org.gradle.performance.results;
 
 public class BuildScanReportGenerator extends AbstractReportGenerator<BuildScanResultsStore> {
-    public static void main(String[] args) throws Exception {
-        getGenerator(BuildScanReportGenerator.class).generateReport(args);
+    public static void main(String[] args) {
+        new BuildScanReportGenerator().generateReport(args);
     }
 }

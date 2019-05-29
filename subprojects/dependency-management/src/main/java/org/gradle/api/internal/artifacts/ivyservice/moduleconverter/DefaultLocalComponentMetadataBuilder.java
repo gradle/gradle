@@ -38,6 +38,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         this.configurationMetadataBuilder = configurationMetadataBuilder;
     }
 
+    @Override
     public BuildableLocalConfigurationMetadata addConfiguration(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
         BuildableLocalConfigurationMetadata configurationMetadata = createConfiguration(metaData, configuration);
 

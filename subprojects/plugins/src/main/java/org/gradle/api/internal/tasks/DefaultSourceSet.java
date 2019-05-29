@@ -65,6 +65,7 @@ public abstract class DefaultSourceSet implements SourceSet {
         String resourcesDisplayName = displayName + " resources";
         resources = objectFactory.sourceDirectorySet("resources", resourcesDisplayName);
         resources.getFilter().exclude(new Spec<FileTreeElement>() {
+            @Override
             public boolean isSatisfiedBy(FileTreeElement element) {
                 return javaSource.contains(element.getFile());
             }
@@ -77,6 +78,7 @@ public abstract class DefaultSourceSet implements SourceSet {
 
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -90,26 +92,32 @@ public abstract class DefaultSourceSet implements SourceSet {
         return displayName;
     }
 
+    @Override
     public String getClassesTaskName() {
         return getTaskName(null, "classes");
     }
 
+    @Override
     public String getCompileTaskName(String language) {
         return getTaskName("compile", language);
     }
 
+    @Override
     public String getCompileJavaTaskName() {
         return getCompileTaskName("java");
     }
 
+    @Override
     public String getProcessResourcesTaskName() {
         return getTaskName("process", "resources");
     }
 
+    @Override
     public String getJarTaskName() {
         return getTaskName(null, "jar");
     }
 
+    @Override
     public String getTaskName(@Nullable String verb, @Nullable String target) {
         return namingScheme.getTaskName(verb, target);
     }
@@ -118,6 +126,7 @@ public abstract class DefaultSourceSet implements SourceSet {
         return baseName;
     }
 
+    @Override
     public String getCompileConfigurationName() {
         return configurationNameOf(JavaPlugin.COMPILE_CONFIGURATION_NAME);
     }
@@ -126,10 +135,12 @@ public abstract class DefaultSourceSet implements SourceSet {
         return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(baseName));
     }
 
+    @Override
     public String getRuntimeConfigurationName() {
         return configurationNameOf(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
     }
 
+    @Override
     public String getCompileOnlyConfigurationName() {
         return configurationNameOf(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
     }
@@ -174,6 +185,7 @@ public abstract class DefaultSourceSet implements SourceSet {
         return configurationNameOf(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
     }
 
+    @Override
     public SourceSetOutput getOutput() {
         return output;
     }
@@ -182,11 +194,13 @@ public abstract class DefaultSourceSet implements SourceSet {
         this.output = classes;
     }
 
+    @Override
     public SourceSet compiledBy(Object... taskPaths) {
         output.builtBy(taskPaths);
         return this;
     }
 
+    @Override
     public FileCollection getCompileClasspath() {
         return compileClasspath;
     }
@@ -196,10 +210,12 @@ public abstract class DefaultSourceSet implements SourceSet {
         return annotationProcessorPath;
     }
 
+    @Override
     public FileCollection getRuntimeClasspath() {
         return runtimeClasspath;
     }
 
+    @Override
     public void setCompileClasspath(FileCollection classpath) {
         compileClasspath = classpath;
     }
@@ -209,14 +225,17 @@ public abstract class DefaultSourceSet implements SourceSet {
         this.annotationProcessorPath = annotationProcessorPath;
     }
 
+    @Override
     public void setRuntimeClasspath(FileCollection classpath) {
         runtimeClasspath = classpath;
     }
 
+    @Override
     public SourceDirectorySet getJava() {
         return javaSource;
     }
 
+    @Override
     public SourceSet java(@Nullable Closure configureClosure) {
         configure(configureClosure, getJava());
         return this;
@@ -228,14 +247,17 @@ public abstract class DefaultSourceSet implements SourceSet {
         return this;
     }
 
+    @Override
     public SourceDirectorySet getAllJava() {
         return allJavaSource;
     }
 
+    @Override
     public SourceDirectorySet getResources() {
         return resources;
     }
 
+    @Override
     public SourceSet resources(@Nullable Closure configureClosure) {
         configure(configureClosure, getResources());
         return this;
@@ -247,6 +269,7 @@ public abstract class DefaultSourceSet implements SourceSet {
         return this;
     }
 
+    @Override
     public SourceDirectorySet getAllSource() {
         return allSource;
     }

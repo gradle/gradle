@@ -29,6 +29,7 @@ class DefaultRootMavenMetaData implements RootMavenMetaData {
     String artifactId
 
     String releaseVersion
+    String latestVersion
 
     List<String> versions = []
     String lastUpdated
@@ -52,6 +53,7 @@ class DefaultRootMavenMetaData implements RootMavenMetaData {
 
         lastUpdated = versioning.lastUpdated[0]?.text()
         releaseVersion = versioning.release[0]?.text()
+        latestVersion = versioning.latest[0]?.text()
 
         versioning.versions[0].version.each {
             versions << it.text()

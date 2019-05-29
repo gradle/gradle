@@ -22,32 +22,37 @@ import org.gradle.execution.ProjectExecutionServiceRegistry
 import org.gradle.internal.Try
 import spock.lang.Specification
 
+import javax.annotation.Nullable
+
 class ChainedTransformerTest extends Specification {
     private TransformationSubject initialSubject = TransformationSubject.initial(new File("foo"))
 
     def "applies second transform on the result of the first"() {
         given:
-        def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
+        def chain = new TransformationChain(new TestTransformation("first"), new TestTransformation("second"))
 
         expect:
-        chain.transform(initialSubject, Mock(ExecutionGraphDependenciesResolver), null).get().files == [new File("foo/cached/non-cached")]
+        chain.createInvocation(initialSubject, Mock(ExecutionGraphDependenciesResolver), null).invoke().get().files == [new File("foo/first/second")]
     }
 
-    class CachingTransformation implements Transformation {
+    class TestTransformation implements Transformation {
+
+        private final String name
+
+        TestTransformation(String name) {
+            this.name = name
+        }
 
         @Override
-        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, ProjectExecutionServiceRegistry services) {
-            return Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), "cached"))))
+        CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable ProjectExecutionServiceRegistry services) {
+            return CacheableInvocation.cached(Try.successful(
+                subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), name)))
+            ))
         }
 
         @Override
         boolean requiresDependencies() {
             return false
-        }
-
-        @Override
-        String getDisplayName() {
-            return "cached"
         }
 
         @Override
@@ -64,38 +69,10 @@ class ChainedTransformerTest extends Specification {
         int stepsCount() {
             return 1
         }
-    }
-
-    class NonCachingTransformation implements Transformation {
-
-        @Override
-        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, ProjectExecutionServiceRegistry services) {
-            return Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), "non-cached"))))
-        }
-
-        @Override
-        boolean requiresDependencies() {
-            return false
-        }
 
         @Override
         String getDisplayName() {
-            return "non-cached"
-        }
-
-        @Override
-        void visitTransformationSteps(Action<? super TransformationStep> action) {
-        }
-
-
-        @Override
-        boolean endsWith(Transformation otherTransform) {
-            return false
-        }
-
-        @Override
-        int stepsCount() {
-            return 1
+            return name
         }
     }
 }

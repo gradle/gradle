@@ -142,6 +142,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         return originalStdErr;
     }
 
+    @Override
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
         synchronized (lock) {
             ConsoleConfigureAction.execute(this, consoleOutput);
@@ -163,6 +164,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    @Override
     public void attachSystemOutAndErr() {
         addSystemOutAsLoggingDestination();
         addSystemErrAsLoggingDestination();
@@ -218,12 +220,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    @Override
     public void addOutputEventListener(OutputEventListener listener) {
         synchronized (lock) {
             addChain(listener);
         }
     }
 
+    @Override
     public void removeOutputEventListener(OutputEventListener listener) {
         synchronized (lock) {
             removeChain(listener);
@@ -363,6 +367,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         userListenerChain.onOutput(new FlushOutputEvent());
     }
 
+    @Override
     public void addStandardErrorListener(StandardOutputListener listener) {
         synchronized (lock) {
             assertUserListenersEnabled();
@@ -370,6 +375,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    @Override
     public void addStandardOutputListener(StandardOutputListener listener) {
         synchronized (lock) {
             assertUserListenersEnabled();
@@ -377,14 +383,17 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    @Override
     public void addStandardOutputListener(OutputStream outputStream) {
         addStandardOutputListener(new StreamBackedStandardOutputListener(outputStream));
     }
 
+    @Override
     public void addStandardErrorListener(OutputStream outputStream) {
         addStandardErrorListener(new StreamBackedStandardOutputListener(outputStream));
     }
 
+    @Override
     public void removeStandardOutputListener(StandardOutputListener listener) {
         synchronized (lock) {
             assertUserListenersEnabled();
@@ -392,6 +401,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    @Override
     public void removeStandardErrorListener(StandardOutputListener listener) {
         synchronized (lock) {
             assertUserListenersEnabled();
@@ -399,6 +409,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    @Override
     public void configure(LogLevel logLevel) {
         onOutput(new LogLevelChangeEvent(logLevel));
     }

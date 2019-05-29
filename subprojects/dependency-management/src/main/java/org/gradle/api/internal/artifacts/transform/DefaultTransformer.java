@@ -127,7 +127,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                 parameterValidationContext.visitError(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
             }
             if (normalizer == null) {
-                parameterValidationContext.visitError(null, propertyName, "is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity");
+                parameterValidationContext.visitError(null, propertyName, "has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath");
             }
         }
     }
@@ -147,6 +147,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         return isolatedParameters != null;
     }
 
+    @Override
     public boolean requiresDependencies() {
         return requiresDependencies;
     }
@@ -180,10 +181,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                    Object unpacked = value.call();
-                    if (unpacked != null) {
-                        context.maybeAdd(unpacked);
-                    }
+                    context.add(value.getTaskDependencies());
                 }
             });
         }
@@ -263,7 +261,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of the artifact transform parameter %s." : "Some problems were found with the configuration of the artifact transform parameter %s.", getParameterObjectDisplayName(parameterObject)),
-                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList())
+                validationMessages.stream().sorted().map(InvalidUserDataException::new).collect(Collectors.toList())
             );
         }
 

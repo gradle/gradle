@@ -16,12 +16,15 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.service.ServiceRegistry;
@@ -43,6 +46,7 @@ import org.gradle.plugins.ide.eclipse.model.Link;
 import org.gradle.plugins.ide.eclipse.model.Output;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
+import org.gradle.plugins.ide.internal.configurer.EclipseModelAwareUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultAccessRule;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultClasspathAttribute;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseBuildCommand;
@@ -58,19 +62,25 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirec
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.model.eclipse.EclipseRuntime;
+import org.gradle.tooling.model.eclipse.EclipseWorkspace;
+import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public class EclipseModelBuilder implements ToolingModelBuilder {
+public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private final GradleProjectBuilder gradleProjectBuilder;
+    private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
 
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;
@@ -78,15 +88,33 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private TasksFactory tasksFactory;
     private DefaultGradleProject rootGradleProject;
     private Project currentProject;
+    private EclipseRuntime eclipseRuntime;
+
+    @VisibleForTesting
+    public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services, EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider) {
+        this.gradleProjectBuilder = gradleProjectBuilder;
+        this.uniqueProjectNameProvider = uniqueProjectNameProvider;
+    }
 
     public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services) {
-        this.gradleProjectBuilder = gradleProjectBuilder;
+        this(gradleProjectBuilder, services, new EclipseModelAwareUniqueProjectNameProvider(services.get(ProjectStateRegistry.class)));
     }
 
     @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
             || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+    }
+
+    @Override
+    public Class<EclipseRuntime> getParameterType() {
+        return EclipseRuntime.class;
+    }
+
+    @Override
+    public Object buildAll(String modelName, EclipseRuntime eclipseRuntime, Project project) {
+        this.eclipseRuntime = eclipseRuntime;
+        return buildAll(modelName, project);
     }
 
     @Override
@@ -100,9 +128,20 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         rootGradleProject = gradleProjectBuilder.buildAll(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root);
+        deduplicateProjectNames(root);
         buildHierarchy(root);
         populate(root);
         return result;
+    }
+
+    private void deduplicateProjectNames(Project root) {
+        uniqueProjectNameProvider.setReservedProjectNames(calculateReservedProjectNames(root, eclipseRuntime));
+        for (Project project : root.getAllprojects()) {
+            EclipseModel eclipseModel = project.getExtensions().findByType(EclipseModel.class);
+            if (eclipseModel != null) {
+                eclipseModel.getProject().setName(uniqueProjectNameProvider.getUniqueName(project));
+            }
+        }
     }
 
     private void applyEclipsePlugin(Project root) {
@@ -299,13 +338,61 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             kindCode = 0;
         } else if (kind.equals("nonaccessible") || kind.equals("1")) {
             kindCode = 1;
-        }  else if (kind.equals("discouraged") || kind.equals("2")) {
+        } else if (kind.equals("discouraged") || kind.equals("2")) {
             kindCode = 2;
         } else {
             kindCode = 0;
         }
         return new DefaultAccessRule(kindCode, accessRule.getPattern());
     }
+
+    private List<Project> collectAllProjects(List<Project> all, Gradle gradle) {
+        all.addAll(gradle.getRootProject().getAllprojects());
+        for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
+            collectAllProjects(all, ((IncludedBuildState) includedBuild).getConfiguredBuild());
+        }
+        return all;
+    }
+
+    private Gradle getRootBuild(Gradle gradle) {
+        if (gradle.getParent() == null) {
+            return gradle;
+        }
+        return gradle.getParent();
+    }
+
+    private List<String> calculateReservedProjectNames(Project rootProject, EclipseRuntime parameter) {
+        if (parameter == null) {
+            return Collections.emptyList();
+        }
+
+        EclipseWorkspace workspace = parameter.getWorkspace();
+        if (workspace == null) {
+            return Collections.emptyList();
+        }
+
+        List<EclipseWorkspaceProject> projects = workspace.getProjects();
+        if (projects == null) {
+            return Collections.emptyList();
+        }
+
+        // The eclipse workspace contains projects from root and included builds. Check projects from all builds
+        // so that models built for included builds do not consider projects from parent builds as external.
+        Set<File> gradleProjectLocations = collectAllProjects(new ArrayList<>(), getRootBuild(rootProject.getGradle())).stream()
+            .map(p -> p.getProjectDir().getAbsoluteFile()).collect(Collectors.toSet());
+        List<String> reservedProjectNames = new ArrayList<>();
+        for (EclipseWorkspaceProject project : projects) {
+            if (project == null || project.getLocation() == null || project.getName() == null || project.getLocation() == null) {
+                continue;
+            }
+            if (!gradleProjectLocations.contains(project.getLocation().getAbsoluteFile())) {
+                reservedProjectNames.add(project.getName());
+            }
+        }
+
+        return reservedProjectNames;
+    }
+
 
     /*
      * Groovy manipulates the JVM to let GString extend String.

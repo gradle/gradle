@@ -27,7 +27,6 @@ class DefaultScalaToolProviderTest extends Specification {
     WorkerDaemonFactory workerDaemonFactory = Mock()
     Set<File> scalacClasspath = Mock()
     Set<File> zincClasspath = Mock()
-    File gradleUserHome = Mock()
     File rootProjectDir = Mock()
 
     def "newCompiler provides decent error for unsupported CompileSpec"() {

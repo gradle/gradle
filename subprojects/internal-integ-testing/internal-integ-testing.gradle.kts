@@ -17,43 +17,62 @@ import org.gradle.build.ReproduciblePropertiesWriter
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import java.util.Properties
 
+plugins {
+    `java-library`
+}
+
 dependencies {
-    compile(library("groovy"))
-    compile(project(":internalTesting"))
-    compile(project(":cli"))
-    compile(project(":launcher"))
-    compile(project(":native"))
-    compile(testLibrary("jetty"))
-    compile("org.gradle.org.littleshoot:littleproxy:1.1.3") {
-        because("latest officially released version is incompatible with Guava >= 20")
-    }
-    compile(library("gcs"))
-    compile(library("commons_httpclient"))
-    compile(library("joda"))
-    compile(library("jackson_core"))
-    compile(library("jackson_annotations"))
-    compile(library("jackson_databind"))
-    compile(library("ivy"))
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":native"))
+    implementation(project(":logging"))
+    implementation(project(":cli"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":baseServicesGroovy"))
+    implementation(project(":files"))
+    implementation(project(":resources"))
+    implementation(project(":buildCache"))
+    implementation(project(":persistentCache"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":jvmServices"))
+    implementation(project(":launcher"))
+    implementation(project(":launcherStartup"))
+    implementation(project(":internalTesting"))
+
+    implementation(library("groovy"))
+    implementation(library("junit"))
+    implementation(testLibrary("spock"))
+    implementation(library("nativePlatform"))
+    implementation(library("commons_lang"))
+    implementation(library("commons_io"))
+    implementation(testLibrary("jetty"))
+    implementation(testLibrary("littleproxy"))
+    implementation(library("gcs"))
+    implementation(library("commons_httpclient"))
+    implementation(library("joda"))
+    implementation(library("jackson_core"))
+    implementation(library("jackson_annotations"))
+    implementation(library("jackson_databind"))
+    implementation(library("ivy"))
+    implementation(library("ant"))
     testLibraries("sshd").forEach {
         // we depend on both the platform and the library
-        compile(it)
-        compile(platform(it))
+        implementation(it)
+        implementation(platform(it))
     }
-    compile(library("gson"))
-    compile(library("joda"))
-    compile(library("jsch"))
-    compile(library("jcifs"))
-    compile(library("jansi"))
-    compile(library("ansi_control_sequence_util"))
-    compile("org.apache.mina:mina-core")
-    compile(testLibrary("sampleCheck")) {
+    implementation(library("gson"))
+    implementation(library("joda"))
+    implementation(library("jsch"))
+    implementation(library("jcifs"))
+    implementation(library("jansi"))
+    implementation(library("ansi_control_sequence_util"))
+    implementation("org.apache.mina:mina-core")
+    implementation(testLibrary("sampleCheck")) {
         exclude(module = "groovy-all")
         exclude(module = "slf4j-simple")
     }
-
-    implementation(project(":dependencyManagement"))
-
-    runtime(project(":logging"))
 }
 
 gradlebuildJava {

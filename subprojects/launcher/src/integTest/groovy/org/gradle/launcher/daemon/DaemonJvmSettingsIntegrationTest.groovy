@@ -37,6 +37,26 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         succeeds()
     }
 
+    def "JVM args from gradle.properties packaged in distribution override defaults"() {
+        setup:
+        requireIsolatedGradleDistribution()
+        executer.useOnlyRequestedJvmOpts()
+
+        file('build.gradle') << """
+            assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx1024m')
+            assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.count { !it.startsWith('--add-opens=') && !it.startsWith('-D') } == 1
+        """
+
+        when:
+        distribution.gradleHomeDir.file('gradle.properties') << 'org.gradle.jvmargs=-Xmx1024m'
+
+        then:
+        succeeds()
+
+        cleanup:
+        stopDaemonsNow()
+    }
+
     @Unroll
     def "uses defaults for max/min heap size when JAVA_TOOL_OPTIONS is set (#javaToolOptions)"() {
         setup:

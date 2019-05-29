@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -51,9 +50,18 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         this.requestedCapabilities = requestedCapabilities;
         // Do NOT change the order of members used in hash code here, it's been empirically
         // tested to reduce the number of collisions on a large dependency graph (performance test)
-        this.hashCode = Objects.hashCode(version, module, attributes, requestedCapabilities);
+        this.hashCode = computeHashcode(module, version, attributes, requestedCapabilities);
     }
 
+    private int computeHashcode(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableList<Capability> requestedCapabilities) {
+        int hashCode = version.hashCode();
+        hashCode = 31 * hashCode + module.hashCode();
+        hashCode = 31 * hashCode + attributes.hashCode();
+        hashCode = 31 * hashCode + requestedCapabilities.hashCode();
+        return hashCode;
+    }
+
+    @Override
     public String getDisplayName() {
         String group = moduleIdentifier.getGroup();
         String module = moduleIdentifier.getName();
@@ -69,14 +77,17 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return builder.toString();
     }
 
+    @Override
     public String getGroup() {
         return moduleIdentifier.getGroup();
     }
 
+    @Override
     public String getModule() {
         return moduleIdentifier.getName();
     }
 
+    @Override
     public String getVersion() {
         return versionConstraint.getRequiredVersion();
     }
@@ -101,6 +112,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return attributes;
     }
 
+    @Override
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
@@ -124,6 +136,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         }
 
         DefaultModuleComponentSelector that = (DefaultModuleComponentSelector) o;
+
+        if (hashCode != that.hashCode) {
+            return false;
+        }
 
         if (!moduleIdentifier.equals(that.moduleIdentifier)) {
             return false;

@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 public class TaskDependencyMatchers {
     @Factory
@@ -44,6 +44,7 @@ public class TaskDependencyMatchers {
 
     private static Matcher<Task> dependsOn(final Matcher<? extends Iterable<String>> matcher, final boolean matchOnPaths) {
         return new BaseMatcher<Task>() {
+            @Override
             public boolean matches(Object o) {
                 Task task = (Task) o;
                 Set<String> names = new HashSet<String>();
@@ -60,6 +61,7 @@ public class TaskDependencyMatchers {
                 return matches;
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("a Task that depends on ").appendDescriptionOf(matcher);
             }
@@ -74,6 +76,7 @@ public class TaskDependencyMatchers {
     @Factory
     public static <T extends Buildable> Matcher<T> builtBy(final Matcher<? extends Iterable<String>> matcher) {
         return new BaseMatcher<T>() {
+            @Override
             public boolean matches(Object o) {
                 Buildable task = (Buildable) o;
                 Set<String> names = new HashSet<String>();
@@ -90,6 +93,7 @@ public class TaskDependencyMatchers {
                 return matches;
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("a Buildable that is built by ").appendDescriptionOf(matcher);
             }

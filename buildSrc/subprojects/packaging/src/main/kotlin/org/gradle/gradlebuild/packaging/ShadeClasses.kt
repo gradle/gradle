@@ -22,9 +22,10 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
-import java.io.File
 
 
 private
@@ -59,7 +60,7 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
 
     @get:Classpath
     @get:InputArtifact
-    abstract val input: File
+    abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
         val outputDirectory = outputs.dir("shadedClasses")
@@ -67,7 +68,7 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
         classesDir.mkdir()
         val manifestFile = outputDirectory.resolve(manifestFileName)
 
-        val classGraph = JarAnalyzer(parameters.shadowPackage, parameters.keepPackages, parameters.unshadedPackages, parameters.ignoredPackages).analyze(input, classesDir, manifestFile)
+        val classGraph = JarAnalyzer(parameters.shadowPackage, parameters.keepPackages, parameters.unshadedPackages, parameters.ignoredPackages).analyze(input.get().asFile, classesDir, manifestFile)
 
         outputDirectory.resolve(classTreeFileName).bufferedWriter().use {
             Gson().toJson(classGraph.getDependencies(), it)
@@ -81,40 +82,40 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
 
 abstract class FindClassTrees : TransformAction<TransformParameters.None> {
     @get:InputArtifact
-    abstract val input: File
+    abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        outputs.file(input.resolve(classTreeFileName))
+        outputs.file(input.get().asFile.resolve(classTreeFileName))
     }
 }
 
 
 abstract class FindEntryPoints : TransformAction<TransformParameters.None> {
     @get:InputArtifact
-    abstract val input: File
+    abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        outputs.file(input.resolve(entryPointsFileName))
+        outputs.file(input.get().asFile.resolve(entryPointsFileName))
     }
 }
 
 
 abstract class FindRelocatedClasses : TransformAction<TransformParameters.None> {
     @get:InputArtifact
-    abstract val input: File
+    abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        outputs.dir(input.resolve(relocatedClassesDirName))
+        outputs.dir(input.get().asFile.resolve(relocatedClassesDirName))
     }
 }
 
 
 abstract class FindManifests : TransformAction<TransformParameters.None> {
     @get:InputArtifact
-    abstract val input: File
+    abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        val manifest = input.resolve(manifestFileName)
+        val manifest = input.get().asFile.resolve(manifestFileName)
         if (manifest.exists()) {
             outputs.file(manifest)
         }

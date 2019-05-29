@@ -83,6 +83,7 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
 
     private void pushUnsatisfiedDependencies(Iterable<? extends DefaultModelSchemaExtractionContext<?>> allDependencies, Queue<DefaultModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
         Iterables.addAll(dependencyQueue, Iterables.filter(allDependencies, new Predicate<ModelSchemaExtractionContext<?>>() {
+            @Override
             public boolean apply(ModelSchemaExtractionContext<?> dependency) {
                 return cache.get(dependency.getType()) == null;
             }

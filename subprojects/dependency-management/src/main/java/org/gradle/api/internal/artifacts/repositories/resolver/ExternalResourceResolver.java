@@ -136,6 +136,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.injector = injector;
     }
 
+    @Override
     public String getId() {
         if (id != null) {
             return id;
@@ -148,12 +149,14 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return metadataSources;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
     protected abstract Class<T> getSupportedMetadataType();
 
+    @Override
     public boolean isDynamicResolveMode() {
         return false;
     }
@@ -166,6 +169,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return repository;
     }
 
+    @Override
     public boolean isLocal() {
         return local;
     }
@@ -284,13 +288,14 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return createArtifactResolver();
     }
 
+    @Override
     public void publish(IvyModulePublishMetadata moduleVersion) {
         for (IvyModuleArtifactPublishMetadata artifact : moduleVersion.getArtifacts()) {
             publish(new DefaultModuleComponentArtifactMetadata(artifact.getId()), artifact.getFile());
         }
     }
 
-    private void publish(ModuleComponentArtifactMetadata artifact, File src) {
+    public void publish(ModuleComponentArtifactMetadata artifact, File src) {
         ResourcePattern destinationPattern;
         if ("ivy".equals(artifact.getName().getType()) && !ivyPatterns.isEmpty()) {
             destinationPattern = ivyPatterns.get(0);
@@ -343,6 +348,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     public List<String> getIvyPatterns() {
         return CollectionUtils.collect(ivyPatterns, new Transformer<String, ResourcePattern>() {
+            @Override
             public String transform(ResourcePattern original) {
                 return original.getPattern();
             }
@@ -351,6 +357,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     public List<String> getArtifactPatterns() {
         return CollectionUtils.collect(artifactPatterns, new Transformer<String, ResourcePattern>() {
+            @Override
             public String transform(ResourcePattern original) {
                 return original.getPattern();
             }

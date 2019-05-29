@@ -62,10 +62,12 @@ public class BlockingResultHandler<T> implements ResultHandler<T> {
         return failure;
     }
 
+    @Override
     public void onComplete(T result) {
         queue.add(result == null ? NULL : result);
     }
 
+    @Override
     public void onFailure(GradleConnectionException failure) {
         queue.add(failure);
     }

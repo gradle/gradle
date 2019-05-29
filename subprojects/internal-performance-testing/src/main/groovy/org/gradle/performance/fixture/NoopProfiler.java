@@ -26,6 +26,11 @@ class NoopProfiler extends Profiler {
     }
 
     @Override
+    public String getJvmOptsForUseInBuild(String recordingsDirectoryRelativePath) {
+        return "";
+    }
+
+    @Override
     public List<String> getAdditionalGradleArgs(BuildExperimentSpec spec) {
         return Collections.emptyList();
     }

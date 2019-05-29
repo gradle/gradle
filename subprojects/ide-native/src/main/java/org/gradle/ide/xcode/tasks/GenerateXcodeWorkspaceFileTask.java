@@ -27,8 +27,9 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import java.io.File;
 
 /**
- * Task for generating a workspace file.
+ * Task for generating a Xcode workspace file (e.g. {@code Foo.xcworkspace/contents.xcworkspacedata}). A workspace can contain any number of Xcode projects.
  *
+ * @see org.gradle.ide.xcode.XcodeWorkspace
  * @since 4.2
  */
 @Incubating

@@ -34,14 +34,17 @@ public class FixedStepPathMatcher implements PathMatcher {
         return "{fixed-step: " + step + ", next: " + next + "}";
     }
 
+    @Override
     public int getMinSegments() {
         return minSegments;
     }
 
+    @Override
     public int getMaxSegments() {
         return maxSegments;
     }
 
+    @Override
     public boolean matches(String[] segments, int startIndex) {
         int remaining = segments.length - startIndex;
         if (remaining < minSegments || remaining > maxSegments) {
@@ -53,6 +56,7 @@ public class FixedStepPathMatcher implements PathMatcher {
         return next.matches(segments, startIndex + 1);
     }
 
+    @Override
     public boolean isPrefix(String[] segments, int startIndex) {
         if (startIndex == segments.length) {
             // Empty path, might match when more elements added

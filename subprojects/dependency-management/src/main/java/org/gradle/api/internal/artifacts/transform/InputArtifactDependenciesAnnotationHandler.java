@@ -16,17 +16,26 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.reflect.AnnotationCategory;
 
 import java.lang.annotation.Annotation;
+
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 
 public class InputArtifactDependenciesAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return InputArtifactDependencies.class;
+    }
+
+    @Override
+    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
+        return ImmutableSet.of(NORMALIZATION);
     }
 
     @Override

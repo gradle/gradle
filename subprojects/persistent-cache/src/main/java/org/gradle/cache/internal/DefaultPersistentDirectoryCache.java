@@ -57,6 +57,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     }
 
     private class Initializer implements CacheInitializationAction {
+        @Override
         public boolean requiresInitialization(FileLock lock) {
             if (!lock.getUnlockedCleanly()) {
                 if (lock.getState().canDetectChanges() && !lock.getState().isInInitialState()) {
@@ -83,6 +84,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
             return false;
         }
 
+        @Override
         public void initialize(FileLock fileLock) {
             File[] files = getBaseDir().listFiles();
             if (files == null) {

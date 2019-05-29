@@ -34,6 +34,7 @@ public abstract class AbstractBaseDirFileResolver extends AbstractFileResolver {
 
     protected abstract File getBaseDir();
 
+    @Override
     public String resolveAsRelativePath(Object path) {
         List<String> basePath = Arrays.asList(StringUtils.split(getBaseDir().getAbsolutePath(), "/" + File.separator));
         File targetFile = resolve(path);

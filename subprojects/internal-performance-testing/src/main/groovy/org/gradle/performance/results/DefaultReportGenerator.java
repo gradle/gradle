@@ -17,7 +17,7 @@
 package org.gradle.performance.results;
 
 public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
-    public static void main(String[] args) throws Exception {
-        getGenerator(DefaultReportGenerator.class).generateReport(args);
+    public static void main(String[] args) {
+        new DefaultReportGenerator().generateReport(args);
     }
 }

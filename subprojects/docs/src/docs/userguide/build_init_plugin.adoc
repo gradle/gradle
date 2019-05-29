@@ -1,4 +1,5 @@
 // Copyright 2017 the original author or authors.
+
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,12 +17,31 @@
 = Build Init Plugin
 
 
-The Gradle Build Init plugin can be used to create a new Gradle build. It supports creating brand new projects of different types as well as converting existing builds (e.g. An Apache Maven build) to be Gradle builds.
+The Build Init plugin can be used to create a new Gradle build. It supports creating brand new Gradle builds of various types as well as converting existing Apache Maven builds to Gradle.
 
-Gradle plugins typically need to be _applied_ to a project before they can be used (see <<plugins.adoc#sec:using_plugins,Using plugins>>). The Build Init plugin is an automatically applied plugin, which means you do not need to apply it explicitly. To use the plugin, simply execute the task named `init` in the directory where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
+== Supported Gradle build types
 
-It also leverages the `wrapper` task to <<gradle_wrapper.adoc#sec:adding_wrapper,generate the Gradle Wrapper files>> for the project.
+The Build Init plugin supports generating various build _types_. These are listed below and more detail is available about each type in the following <<sec:build_init_types,section>>.
 
+.Build init types
+[options="header"]
+|=================
+|Type|Description
+|<<sec:pom_maven_conversion,pom>>|Converts an existing Apache Maven build to Gradle
+|<<sec:basic,basic>>|A basic, empty, Gradle build
+|<<sec:java_application,java-application>>|A command-line application implemented in Java
+|<<sec:java_gradle_plugin,java-gradle-plugin>>|A Gradle plugin implemented in Java
+|<<sec:java_library,java-library>>|A Java library
+|<<sec:kotlin_application,kotlin-application>>|A command-line application implemented in Kotlin/JVM
+|<<sec:kotlin_gradle_plugin,kotlin-gradle-plugin>>|A Gradle plugin implemented in Kotlin/JVM
+|<<sec:kotlin_library,kotlin-library>>|A Kotlin/JVM library
+|<<sec:groovy_application,groovy-application>>|A command-line application implemented in Groovy
+|<<sec:groovy_gradle_plugin,groovy-gradle-plugin>>|A Gradle plugin implemented in Groovy
+|<<sec:groovy_library,groovy-library>>|A Groovy library
+|<<sec:scala_library,scala-library>>|A Scala library
+|<<sec:cpp_application,cpp-application>>|A command-line application implemented in C++
+|<<sec:cpp_library,cpp-library>>|A C++ library
+|=================
 
 [[sec:build_init_tasks]]
 == Tasks
@@ -31,38 +51,40 @@ The plugin adds the following tasks to the project:
 `init` — link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]::
 _Depends on_: `wrapper`
 +
-Generates a Gradle project.
+Generates a Gradle build.
 
 `wrapper` — link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper]::
 Generates Gradle wrapper files.
 
+Gradle plugins usually need to be _applied_ to a project before they can be used (see <<plugins.adoc#sec:using_plugins,Using plugins>>). However, the Build Init plugin is automatically applied to the root project of every build, which means you do not need to apply it explicitly in order to use it. You can simply execute the task named `init` in the directory where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
+
+The Build Init plugin also uses the `wrapper` task to <<gradle_wrapper.adoc#sec:adding_wrapper,generate the Gradle Wrapper files>> for the build.
+
 [[sec:what_to_set_up]]
-== What to set up
+== What to create
 
-The `init` task supports different build init _types_, which determines exactly what files will be generated. The available types are listed <<sec:build_init_types,below>>.
-
-The simplest, and recommended, way to use the `init` task is to run `gradle init` from an interactive console. Gradle will list the available init types and ask you to select one. It will then ask some additional questions to allow you to fine-tune the result.
+The simplest, and recommended, way to use the `init` task is to run `gradle init` from an interactive console. Gradle will list the available build types and ask you to select one. It will then ask some additional questions to allow you to fine-tune the result.
 
 There are several command-line options available for the `init` task that control what it will generate. You can use these when Gradle is not running from an interactive console.
 
-The build init type can be specified by using the `--type` command-line option. For example, to create a Java library project simply run: `gradle init --type java-library`.
+The build type can be specified by using the `--type` command-line option. For example, to create a Java library project run: `gradle init --type java-library`.
 
 If a `--type` option is not provided, Gradle will attempt to infer the type from the environment. For example, it will infer a type of “`pom`” if it finds a `pom.xml` file to convert to a Gradle build. If the type could not be inferred, the type “`basic`” will be used.
 
-The `init` task also supports generating build scripts using either the Gradle Groovy DSL or the Gradle Kotlin DSL. The build script DSL defaults to the Groovy DSL for most build init types and to the Kotlin DSL for Kotlin build types. The DSL can be selected by using the `--dsl` command-line option. For example, to create a Java library project with Kotlin DSL build scripts simply execute: `gradle init --type java-library --dsl kotlin`.
+The `init` task also supports generating build scripts using either the Gradle Groovy DSL or the Gradle Kotlin DSL. The build script DSL defaults to the Groovy DSL for most build types and to the Kotlin DSL for Kotlin build types. The DSL can be selected by using the `--dsl` command-line option. For example, to create a Java library project with Kotlin DSL build scripts  run: `gradle init --type java-library --dsl kotlin`.
 
 You can change the name of the generated project using the `--project-name` option. It defaults to the name of the directory where the `init` task is run.
 
 You can change the package used for generated source files using the `--package` option. It defaults to the project name.
 
-All build setup types include the setup of the Gradle Wrapper.
+All build types also setup the Gradle wrapper.
 
 [[sec:build_init_types]]
 == Build init types
 
 
-[[sec:pom_maven_conversion_]]
-=== `pom` build init type (Maven conversion)
+[[sec:pom_maven_conversion]]
+=== `pom` build type (Maven conversion)
 
 The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<command_line_interface.adoc#command_line_interface,command line option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
 
@@ -86,52 +108,68 @@ The conversion process has the following features:
 * Generates global exclusions from Maven enforcer plugin settings
 
 
-[[sec:javaapplication_]]
-=== `java-application` build init type
+[[sec:java_application]]
+=== `java-application` build type
 
-The “`java-application`” build init type is not inferable. It must be explicitly specified.
+The “`java-application`” build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`application`” plugin to produce a command-line application implemented using Java
+* Uses the “`application`” plugin to produce a command-line application implemented in Java
 * Uses the “`jcenter`” dependency repository
-* Uses http://junit.org[JUnit] for testing
+* Uses https://junit.org/junit4/[JUnit 4] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
 
 Alternative test framework can be specified by supplying a `--test-framework` argument value. To use a different test framework, execute one of the following commands:
 
-* `gradle init --type java-application --test-framework spock`: Uses http://code.google.com/p/spock/[Spock] for testing instead of JUnit
-* `gradle init --type java-application --test-framework testng`: Uses http://testng.org/doc/index.html[TestNG] for testing instead of JUnit
+* `gradle init --type java-application --test-framework junit-jupiter`: Uses http://juni.org[JUnit Jupiter] for testing instead of JUnit 4
+* `gradle init --type java-application --test-framework spock`: Uses http://code.google.com/p/spock/[Spock] for testing instead of JUnit 4
+* `gradle init --type java-application --test-framework testng`: Uses http://testng.org/doc/index.html[TestNG] for testing instead of JUnit 4
 
 
-[[sec:javalibrary_]]
-=== `java-library` build init type
+[[sec:java_library]]
+=== `java-library` build type
 
-The “`java-library`” build init type is not inferable. It must be explicitly specified.
+The “`java-library`” build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`java`” plugin to produce a library Jar
+* Uses the “`java`” plugin to produce a library implemented in Java
 * Uses the “`jcenter`” dependency repository
-* Uses http://junit.org[JUnit] for testing
+* Uses https://junit.org/junit4/[JUnit 4] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
 
 Alternative test framework can be specified by supplying a `--test-framework` argument value. To use a different test framework, execute one of the following commands:
 
-* `gradle init --type java-library --test-framework spock`: Uses http://code.google.com/p/spock/[Spock] for testing instead of JUnit
-* `gradle init --type java-library --test-framework testng`: Uses http://testng.org/doc/index.html[TestNG] for testing instead of JUnit
+* `gradle init --type java-application --test-framework junit-jupiter`: Uses http://juni.org[JUnit Jupiter] for testing instead of JUnit 4
+* `gradle init --type java-library --test-framework spock`: Uses http://code.google.com/p/spock/[Spock] for testing instead of JUnit 4
+* `gradle init --type java-library --test-framework testng`: Uses http://testng.org/doc/index.html[TestNG] for testing instead of JUnit 4
 
 
-[[sec:kotlinapplication_]]
-=== `kotlin-application` build init type
+[[sec:java_gradle_plugin]]
+=== `java-gradle-plugin` build type
 
-The “`kotlin-application`” build init type is not inferable. It must be explicitly specified.
+The “`java-gradle-plugin`” build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`org.jetbrains.kotlin.jvm`” and "`application`" plugins to produce a command-line application implemented in Kotlin
+* Uses the “`java-gradle-plugin`” plugin to produce a Gradle plugin implemented in Java
+* Uses the “`jcenter`” dependency repository
+* Uses https://junit.org/junit4/[JUnit 4] and TestKit for testing
+* Has directories in the conventional locations for source code
+* Contains a sample class and unit test, if there are no existing source or test files
+
+
+[[sec:kotlin_application]]
+=== `kotlin-application` build type
+
+The “`kotlin-application`” build type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the “`org.jetbrains.kotlin.jvm`” and “`application`“ plugins to produce a command-line application implemented in Kotlin
 * Uses the “`jcenter`” dependency repository
 * Uses Kotlin 1.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
@@ -139,14 +177,14 @@ It has the following features:
 * Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
 
 
-[[sec:kotlinlibrary_]]
-=== `kotlin-library` build init type
+[[sec:kotlin_library]]
+=== `kotlin-library` build type
 
-The “`kotlin-library`” build init type is not inferable. It must be explicitly specified.
+The “`kotlin-library`” build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`org.jetbrains.kotlin.jvm`” plugin to produce a library Jar
+* Uses the “`org.jetbrains.kotlin.jvm`” plugin to produce a library implemented in Kotlin
 * Uses the “`jcenter`” dependency repository
 * Uses Kotlin 1.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
@@ -154,30 +192,45 @@ It has the following features:
 * Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
 
 
-[[sec:scalalibrary_]]
-=== `scala-library` build init type
+[[sec:kotlin_gradle_plugin]]
+=== `kotlin-gradle-plugin` build type
 
-The “`scala-library`” build init type is not inferable. It must be explicitly specified.
+The “`kotlin-gradle-plugin`” build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`scala`” plugin to produce a library Jar
+* Uses the “`java-gradle-plugin`” and “`org.jetbrains.kotlin.jvm`” plugins to produce a Gradle plugin implemented in Kotlin
+* Uses the “`jcenter`” dependency repository
+* Uses Kotlin 1.x
+* Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] and TestKit for testing
+* Has directories in the conventional locations for source code
+* Contains a sample class and unit test, if there are no existing source or test files
+
+
+[[sec:scala_library]]
+=== `scala-library` build type
+
+The “`scala-library`” build type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the “`scala`” plugin to produce a library implemented in Scala
 * Uses the “`jcenter`” dependency repository
 * Uses Scala 2.11
 * Uses http://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
-* Contains a sample scala class and an associated ScalaTest test suite, if there are no existing source or test files
+* Contains a sample Scala class and an associated ScalaTest test suite, if there are no existing source or test files
 * Uses the Zinc Scala compiler by default
 
 
-[[sec:groovylibrary_]]
-=== `groovy-library` build init type
+[[sec:groovy_library]]
+=== `groovy-library` build type
 
-The “`groovy-library`” build init type is not inferable. It must be explicitly specified.
+The “`groovy-library`” build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`groovy`” plugin to produce a library Jar
+* Uses the “`groovy`” plugin to produce a library implemented in Groovy
 * Uses the “`jcenter`” dependency repository
 * Uses Groovy 2.x
 * Uses http://spockframework.org[Spock testing framework] for testing
@@ -185,15 +238,14 @@ It has the following features:
 * Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files
 
 
-[[sec:groovyapplication_]]
-=== `groovy-application` build init type
+[[sec:groovy_application]]
+=== `groovy-application` build type
 
-The “`groovy-application`” build init type is not inferable. It must be explicitly specified.
+The “`groovy-application`” build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`groovy`” plugin
-* Uses the “`application`” plugin to produce a command-line application implemented using Groovy
+* Uses the “`application`” and “`groovy`” plugins to produce a command-line application implemented in Groovy
 * Uses the “`jcenter`” dependency repository
 * Uses Groovy 2.x
 * Uses http://spockframework.org[Spock testing framework] for testing
@@ -201,33 +253,50 @@ It has the following features:
 * Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files
 
 
-[[sec:cppapplication_]]
-=== `cpp-application` build init type
+[[sec:groovy_gradle_plugin]]
+=== `groovy-gradle-plugin` build type
 
-The “`cpp-application`” build init type is not inferable. It must be explicitly specified.
+The “`groovy-gradle-plugin`” build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`cpp-application`” plugin
+* Uses the “`java-gradle-plugin`” and “`groovy`” plugins to produce a Gradle plugin implemented in Groovy
+* Uses the “`jcenter`” dependency repository
+* Uses Groovy 2.x
+* Uses http://spockframework.org[Spock testing framework] and TestKit for testing
+* Has directories in the conventional locations for source code
+* Contains a sample class and unit test, if there are no existing source or test files
+
+
+[[sec:cpp_application]]
+=== `cpp-application` build type
+
+The “`cpp-application`” build type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the “`cpp-application`” plugin to produce a command-line application implemented in C++
 * Uses the “`cpp-unit-test`” plugin to build and run simple unit tests
 * Has directories in the conventional locations for source code
 * Contains a sample C++ class, a private header file and an associated test class, if there are no existing source or test files
 
-[[sec:cpplibrary_]]
-=== `cpp-library` build init type
 
-The “`cpp-library`” build init type is not inferable. It must be explicitly specified.
+[[sec:cpp_library]]
+=== `cpp-library` build type
+
+The “`cpp-library`” build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`cpp-library`” plugin
+* Uses the “`cpp-library`” plugin to produce a C++ library
 * Uses the “`cpp-unit-test`” plugin to build and run simple unit tests
 * Has directories in the conventional locations for source code
 * Contains a sample C++ class, a public header file and an associated test class, if there are no existing source or test files
 
-[[sec:basic]]
-=== `basic` build init type
 
-The “`basic`” build init type is useful for creating a fresh new Gradle project. It creates sample settings and build files, with comments and links to help get started.
+[[sec:basic]]
+=== `basic` build type
+
+The “`basic`” build type is useful for creating a new Gradle build. It creates sample settings and build files, with comments and links to help get started.
 
 This type is used when no type was explicitly specified, and no type could be inferred.

@@ -36,6 +36,7 @@ public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
 
     private final Map<String, PgpSignatory> signatories = new LinkedHashMap<String, PgpSignatory>();
 
+    @Override
     public void configure(final SigningExtension settings, Closure closure) {
         ConfigureUtil.configure(closure, new Object() {
             @SuppressWarnings("unused") // invoked by Groovy
@@ -61,10 +62,12 @@ public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
         }
     }
 
+    @Override
     public PgpSignatory getDefaultSignatory(Project project) {
         return factory.createSignatory(project);
     }
 
+    @Override
     public PgpSignatory getSignatory(String name) {
         return signatories.get(name);
     }

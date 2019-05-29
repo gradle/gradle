@@ -93,18 +93,22 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             && equal(classifier, other.classifier);
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getType() {
         return type;
     }
 
+    @Override
     public String getExtension() {
         return extension;
     }
 
+    @Override
     public String getClassifier() {
         return classifier;
     }

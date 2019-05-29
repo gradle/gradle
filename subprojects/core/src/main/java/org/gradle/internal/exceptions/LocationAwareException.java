@@ -84,6 +84,7 @@ public class LocationAwareException extends GradleException implements FailureRe
      *
      * @return the message. May return null.
      */
+    @Override
     public String getMessage() {
         String location = getLocation();
         String message = getCause().getMessage();
@@ -99,6 +100,7 @@ public class LocationAwareException extends GradleException implements FailureRe
         return String.format("%s%n%s", location, message);
     }
 
+    @Override
     public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
         if (getCause() instanceof FailureResolutionAware) {
             FailureResolutionAware resolutionAware = (FailureResolutionAware) getCause();

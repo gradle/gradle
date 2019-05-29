@@ -16,12 +16,16 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeSelector;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
@@ -39,6 +43,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +51,21 @@ import java.util.Map;
 public class IvyDescriptorFileGenerator {
     private static final String IVY_FILE_ENCODING = "UTF-8";
     private static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
+    private static final Action<XmlProvider> ADD_GRADLE_METADATA_MARKER = new Action<XmlProvider>() {
+        @Override
+        public void execute(XmlProvider xmlProvider) {
+            StringBuilder builder = xmlProvider.asString();
+            int idx = builder.indexOf("<info");
+            builder.insert(idx, xmlComments(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES)
+                + "  "
+                + xmlComment(MetaDataParser.GRADLE_METADATA_MARKER)
+                + "  ");
+        }
+    };
 
     private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
     private final IvyPublicationIdentity projectIdentity;
-    private final boolean writeGradleRedirectionMarker;
+    private final VersionMappingStrategyInternal versionMappingStrategy;
     private String branch;
     private String status;
     private List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
@@ -62,9 +78,12 @@ public class IvyDescriptorFileGenerator {
     private List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
     private List<IvyExcludeRule> globalExcludes = new ArrayList<IvyExcludeRule>();
 
-    public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity, boolean writeGradleRedirectionMarker) {
+    public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity, boolean writeGradleRedirectionMarker, VersionMappingStrategyInternal versionMappingStrategy) {
         this.projectIdentity = projectIdentity;
-        this.writeGradleRedirectionMarker = writeGradleRedirectionMarker;
+        this.versionMappingStrategy = versionMappingStrategy;
+        if (writeGradleRedirectionMarker) {
+            xmlTransformer.addFinalizer(ADD_GRADLE_METADATA_MARKER);
+        }
     }
 
     public void setStatus(String status) {
@@ -124,6 +143,7 @@ public class IvyDescriptorFileGenerator {
 
     public IvyDescriptorFileGenerator writeTo(File file) {
         xmlTransformer.transform(file, IVY_FILE_ENCODING, new Action<Writer>() {
+            @Override
             public void execute(Writer writer) {
                 try {
                     writeDescriptor(writer);
@@ -140,13 +160,6 @@ public class IvyDescriptorFileGenerator {
         xmlWriter.startElement("ivy-module").attribute("version", "2.0");
         if (usesClassifier()) {
             xmlWriter.attribute("xmlns:m", "http://ant.apache.org/ivy/maven");
-        }
-
-        if (writeGradleRedirectionMarker) {
-            for (String commentLine : MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES) {
-                xmlWriter.comment(commentLine);
-            }
-            xmlWriter.comment(MetaDataParser.GRADLE_METADATA_MARKER);
         }
 
         xmlWriter.startElement("info")
@@ -244,11 +257,17 @@ public class IvyDescriptorFileGenerator {
     private void writeDependencies(OptionalAttributeXmlWriter xmlWriter) throws IOException {
         xmlWriter.startElement("dependencies");
         for (IvyDependencyInternal dependency : dependencies) {
+            String resolvedVersion = versionMappingStrategy.findStrategyForVariant(dependency.getAttributes()).maybeResolveVersion(dependency.getOrganisation(), dependency.getModule());
+
             xmlWriter.startElement("dependency")
                     .attribute("org", dependency.getOrganisation())
                     .attribute("name", dependency.getModule())
-                    .attribute("rev", dependency.getRevision())
+                    .attribute("rev", resolvedVersion != null ? resolvedVersion : dependency.getRevision())
                     .attribute("conf", dependency.getConfMapping());
+
+            if(resolvedVersion != null && isDynamicVersion(dependency.getRevision())) {
+                xmlWriter.attribute("revConstraint", dependency.getRevision());
+            }
 
             if (!dependency.isTransitive()) {
                 xmlWriter.attribute("transitive", "false");
@@ -266,6 +285,10 @@ public class IvyDescriptorFileGenerator {
             writeGlobalExclude(excludeRule, xmlWriter);
         }
         xmlWriter.endElement();
+    }
+
+    private boolean isDynamicVersion(String version) {
+        return VersionRangeSelector.ALL_RANGE.matcher(version).matches() || version.endsWith("+") || version.startsWith("latest.");
     }
 
     private void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
@@ -317,5 +340,13 @@ public class IvyDescriptorFileGenerator {
             super.comment(comment);
             return this;
         }
+    }
+
+    private static String xmlComments(String[] lines) {
+        return Joiner.on("  ").join(Iterables.transform(Arrays.asList(lines), IvyDescriptorFileGenerator::xmlComment));
+    }
+
+    private static String xmlComment(String content) {
+        return "<!-- " + content + " -->\n";
     }
 }

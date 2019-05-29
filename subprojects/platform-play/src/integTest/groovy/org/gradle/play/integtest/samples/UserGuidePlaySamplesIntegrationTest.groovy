@@ -37,6 +37,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample play26Sample = new Sample(temporaryFolder, "play/play-2.6")
 
     def setup() {
+        executer.noDeprecationChecks()
         executer.withRepositoryMirrors()
     }
 

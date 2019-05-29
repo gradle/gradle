@@ -34,6 +34,7 @@ public class UnionFileCollection extends CompositeFileCollection {
         this.source = GUtil.addToCollection(new LinkedHashSet<FileCollection>(), source);
     }
 
+    @Override
     public String getDisplayName() {
         return "file collection";
     }

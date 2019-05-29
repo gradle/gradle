@@ -24,7 +24,7 @@ import org.junit.Test;
 import java.io.*;
 
 import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 public class FilterChainTest {

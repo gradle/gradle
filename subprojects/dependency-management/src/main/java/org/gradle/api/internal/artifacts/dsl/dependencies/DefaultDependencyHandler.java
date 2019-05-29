@@ -48,7 +48,7 @@ import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
-public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
+public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
@@ -169,22 +169,27 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         return dependencyConstraintHandler;
     }
 
+    @Override
     public void components(Action<? super ComponentMetadataHandler> configureAction) {
         configureAction.execute(getComponents());
     }
 
+    @Override
     public ComponentMetadataHandler getComponents() {
         return componentMetadataHandler;
     }
 
+    @Override
     public void modules(Action<? super ComponentModuleMetadataHandler> configureAction) {
         configureAction.execute(getModules());
     }
 
+    @Override
     public ComponentModuleMetadataHandler getModules() {
         return componentModuleMetadataHandler;
     }
 
+    @Override
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
         return resolutionQueryFactory.createArtifactResolutionQuery();
     }

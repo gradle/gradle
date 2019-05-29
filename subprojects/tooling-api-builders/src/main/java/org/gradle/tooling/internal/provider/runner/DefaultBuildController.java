@@ -48,6 +48,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     /**
      * This is used by consumers 1.8-rc-1 to 4.3
      */
+    @Override
     @Deprecated
     public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
         return new ProviderBuildResult<Object>(gradle);
@@ -56,6 +57,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     /**
      * This is used by consumers 1.8-rc-1 to 4.3
      */
+    @Override
     @Deprecated
     public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
         return getModel(target, modelIdentifier, null);
@@ -64,6 +66,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     /**
      * This is used by consumers 4.4 and later
      */
+    @Override
     public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
         BuildCancellationToken cancellationToken = gradle.getServices().get(BuildCancellationToken.class);

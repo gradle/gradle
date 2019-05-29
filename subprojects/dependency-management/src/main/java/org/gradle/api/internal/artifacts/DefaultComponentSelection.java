@@ -34,6 +34,7 @@ public class DefaultComponentSelection implements ComponentSelectionInternal {
         this.metadataProvider = metadataProvider;
     }
 
+    @Override
     public ModuleComponentIdentifier getCandidate() {
         return candidate;
     }
@@ -59,15 +60,18 @@ public class DefaultComponentSelection implements ComponentSelectionInternal {
         return null;
     }
 
+    @Override
     public void reject(String reason) {
         rejected = true;
         rejectionReason = reason;
     }
 
+    @Override
     public boolean isRejected() {
         return rejected;
     }
 
+    @Override
     public String getRejectionReason() {
         return rejectionReason;
     }

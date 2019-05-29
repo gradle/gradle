@@ -34,7 +34,7 @@ public class LineBufferingOutputStream extends OutputStream {
     private int counter;
 
     public LineBufferingOutputStream(TextStream handler) {
-        this(handler, 2048);
+        this(handler, 8192);
     }
 
     public LineBufferingOutputStream(TextStream handler, int bufferLength) {
@@ -55,6 +55,7 @@ public class LineBufferingOutputStream extends OutputStream {
      * <code>close</code> is that it closes the output stream. A closed stream cannot perform output operations and
      * cannot be reopened.
      */
+    @Override
     public void close() throws IOException {
         hasBeenClosed = true;
         flush();
@@ -70,6 +71,7 @@ public class LineBufferingOutputStream extends OutputStream {
      * @throws java.io.IOException if an I/O error occurs. In particular, an <code>IOException</code> may be thrown if
      * the output stream has been closed.
      */
+    @Override
     public void write(final int b) throws IOException {
         if (hasBeenClosed) {
             throw new IOException("The stream has been closed.");
@@ -89,6 +91,7 @@ public class LineBufferingOutputStream extends OutputStream {
         return currentByte == lastLineSeparatorByte || currentByte == '\n';
     }
 
+    @Override
     public void flush() {
         String text = buffer.readAsString();
         if (text.length() > 0) {

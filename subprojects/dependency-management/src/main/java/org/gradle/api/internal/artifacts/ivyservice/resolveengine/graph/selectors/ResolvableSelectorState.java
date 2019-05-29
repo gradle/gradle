@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -63,4 +64,7 @@ public interface ResolvableSelectorState {
 
     boolean isFromLock();
 
+    default boolean isProject() {
+        return getSelector() instanceof ProjectComponentSelector;
+    }
 }

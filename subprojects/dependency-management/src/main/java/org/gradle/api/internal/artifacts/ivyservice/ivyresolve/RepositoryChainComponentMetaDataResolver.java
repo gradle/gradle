@@ -55,6 +55,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         repositoryNames.add(repository.getName());
     }
 
+    @Override
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         if (!(identifier instanceof ModuleComponentIdentifier)) {
             throw new UnsupportedOperationException("Can resolve meta-data for module components only.");

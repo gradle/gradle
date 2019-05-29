@@ -143,6 +143,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
     }
 
+    @Override
     public void stop() {
         ArrayList<Throwable> failures = new ArrayList<Throwable>();
         awaitTaskCompletion(failures);

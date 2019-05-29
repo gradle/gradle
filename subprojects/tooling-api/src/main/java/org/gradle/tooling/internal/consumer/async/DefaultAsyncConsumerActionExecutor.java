@@ -37,18 +37,23 @@ public class DefaultAsyncConsumerActionExecutor implements AsyncConsumerActionEx
         lifecycle = new ServiceLifecycle(actionExecutor.getDisplayName());
     }
 
+    @Override
     public String getDisplayName() {
         return actionExecutor.getDisplayName();
     }
 
+    @Override
     public void stop() {
         CompositeStoppable.stoppable(lifecycle, executor, actionExecutor).stop();
     }
 
+    @Override
     public <T> void run(final ConsumerAction<? extends T> action, final ResultHandlerVersion1<? super T> handler) {
         lifecycle.use(new Runnable() {
+            @Override
             public void run() {
                 executor.execute(new Runnable() {
+                    @Override
                     public void run() {
                         T result;
                         try {

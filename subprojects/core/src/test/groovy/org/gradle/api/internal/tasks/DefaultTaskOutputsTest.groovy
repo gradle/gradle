@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
@@ -23,7 +24,10 @@ import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -63,7 +67,10 @@ class DefaultTaskOutputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
 
-    def outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [] as Set, [] as List, new TestCrossBuildInMemoryCacheFactory())), fileCollectionFactory)
+    def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [:], [Object, GroovyObject], [Object, GroovyObject], [ConfigurableFileCollection, Property], Internal, { false }, cacheFactory)
+    def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [], [], typeAnnotationMetadataStore, cacheFactory))
+    def outputs = new DefaultTaskOutputs(task, taskStatusNagger, walker, fileCollectionFactory)
 
     void hasNoOutputsByDefault() {
         setup:

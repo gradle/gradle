@@ -45,206 +45,257 @@ public class RestrictiveCodeVisitor extends CodeVisitorSupport {
         );
     }
 
+    @Override
     public void visitBlockStatement(BlockStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitForLoop(ForStatement forLoop) {
         restrict(forLoop);
     }
 
+    @Override
     public void visitWhileLoop(WhileStatement loop) {
         restrict(loop);
     }
 
+    @Override
     public void visitDoWhileLoop(DoWhileStatement loop) {
         restrict(loop);
     }
 
+    @Override
     public void visitIfElse(IfStatement ifElse) {
         restrict(ifElse);
     }
 
+    @Override
     public void visitExpressionStatement(ExpressionStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitReturnStatement(ReturnStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitAssertStatement(AssertStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitTryCatchFinally(TryCatchStatement finally1) {
         restrict(finally1);
     }
 
+    @Override
     public void visitSwitch(SwitchStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitCaseStatement(CaseStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitBreakStatement(BreakStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitContinueStatement(ContinueStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitThrowStatement(ThrowStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitSynchronizedStatement(SynchronizedStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitCatchStatement(CatchStatement statement) {
         restrict(statement);
     }
 
+    @Override
     public void visitMethodCallExpression(MethodCallExpression call) {
         restrict(call);
     }
 
+    @Override
     public void visitStaticMethodCallExpression(StaticMethodCallExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitConstructorCallExpression(ConstructorCallExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitTernaryExpression(TernaryExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitShortTernaryExpression(ElvisOperatorExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitBinaryExpression(BinaryExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitPrefixExpression(PrefixExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitPostfixExpression(PostfixExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitBooleanExpression(BooleanExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitClosureExpression(ClosureExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitTupleExpression(TupleExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitMapExpression(MapExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitMapEntryExpression(MapEntryExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitListExpression(ListExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitRangeExpression(RangeExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitPropertyExpression(PropertyExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitAttributeExpression(AttributeExpression attributeExpression) {
         restrict(attributeExpression);
     }
 
+    @Override
     public void visitFieldExpression(FieldExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitMethodPointerExpression(MethodPointerExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitConstantExpression(ConstantExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitClassExpression(ClassExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitVariableExpression(VariableExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitDeclarationExpression(DeclarationExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitGStringExpression(GStringExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitArrayExpression(ArrayExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitSpreadExpression(SpreadExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitSpreadMapExpression(SpreadMapExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitNotExpression(NotExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitUnaryMinusExpression(UnaryMinusExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitUnaryPlusExpression(UnaryPlusExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitBitwiseNegationExpression(BitwiseNegationExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitCastExpression(CastExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitArgumentlistExpression(ArgumentListExpression expression) {
         restrict(expression);
     }
 
+    @Override
     public void visitClosureListExpression(ClosureListExpression closureListExpression) {
         restrict(closureListExpression);
     }
 
+    @Override
     public void visitBytecodeExpression(BytecodeExpression expression) {
         restrict(expression);
     }

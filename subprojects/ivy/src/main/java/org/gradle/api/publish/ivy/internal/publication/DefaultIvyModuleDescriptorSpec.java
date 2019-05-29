@@ -22,6 +22,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -57,26 +58,32 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
         this.objectFactory = objectFactory;
     }
 
+    @Override
     public String getStatus() {
         return status;
     }
 
+    @Override
     public void setStatus(String status) {
         this.status = status;
     }
 
+    @Override
     public String getBranch() {
         return branch;
     }
 
+    @Override
     public void setBranch(String branch) {
         this.branch = branch;
     }
 
+    @Override
     public IvyExtraInfoSpec getExtraInfo() {
         return extraInfo;
     }
 
+    @Override
     public void extraInfo(String namespace, String elementName, String value) {
         if (elementName == null) {
             throw new InvalidUserDataException("Cannot add an extra info element with null element name");
@@ -87,26 +94,32 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
         extraInfo.add(namespace, elementName, value);
     }
 
+    @Override
     public IvyPublicationIdentity getProjectIdentity() {
         return ivyPublication.getIdentity();
     }
 
+    @Override
     public void withXml(Action<? super XmlProvider> action) {
         xmlActions.add(new UserCodeAction<XmlProvider>("Could not apply withXml() to Ivy module descriptor", action));
     }
 
+    @Override
     public Action<XmlProvider> getXmlAction() {
         return xmlActions;
     }
 
+    @Override
     public Set<IvyConfiguration> getConfigurations() {
         return ivyPublication.getConfigurations();
     }
 
+    @Override
     public Set<IvyArtifact> getArtifacts() {
         return ivyPublication.getArtifacts();
     }
 
+    @Override
     public Set<IvyDependencyInternal> getDependencies() {
         return ivyPublication.getDependencies();
     }
@@ -147,6 +160,11 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     @Override
     public IvyModuleDescriptorDescription getDescription() {
         return description;
+    }
+
+    @Override
+    public VersionMappingStrategyInternal getVersionMappingStrategy() {
+        return ivyPublication.getVersionMappingStrategy();
     }
 
     @Override

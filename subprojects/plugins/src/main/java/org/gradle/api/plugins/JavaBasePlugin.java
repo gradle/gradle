@@ -95,6 +95,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         this.objectFactory = objectFactory;
     }
 
+    @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
@@ -146,6 +147,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
+            @Override
             public void execute(final SourceSet sourceSet) {
                 ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
 
@@ -176,6 +178,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 compileTask.setSource(sourceDirectorySet);
                 ConventionMapping conventionMapping = compileTask.getConventionMapping();
                 conventionMapping.map("classpath", new Callable<Object>() {
+                    @Override
                     public Object call() {
                         return sourceSet.getCompileClasspath();
                     }
@@ -196,7 +199,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(ProcessResources resourcesTask) {
                 resourcesTask.setDescription("Processes " + resourceSet + ".");
-                new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
+                new DslObject(resourcesTask.getRootSpec()).getConventionMapping().map("destinationDir", new Callable<File>() {
+                    @Override
                     public File call() {
                         return sourceSet.getOutput().getResourcesDir();
                     }
@@ -222,6 +226,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
         outputConventionMapping.map("resourcesDir", new Callable<Object>() {
+            @Override
             public Object call() {
                 String classesDirName = "resources/" + sourceSet.getName();
                 return new File(project.getBuildDir(), classesDirName);
@@ -314,14 +319,17 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
         project.getTasks().withType(AbstractCompile.class).configureEach(new Action<AbstractCompile>() {
+            @Override
             public void execute(final AbstractCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
                 conventionMapping.map("sourceCompatibility", new Callable<Object>() {
+                    @Override
                     public Object call() {
                         return javaConvention.getSourceCompatibility().toString();
                     }
                 });
                 conventionMapping.map("targetCompatibility", new Callable<Object>() {
+                    @Override
                     public Object call() {
                         return javaConvention.getTargetCompatibility().toString();
                     }
@@ -332,13 +340,16 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
         project.getTasks().withType(Javadoc.class).configureEach(new Action<Javadoc>() {
+            @Override
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
+                    @Override
                     public Object call() {
                         return new File(convention.getDocsDir(), "javadoc");
                     }
                 });
                 javadoc.getConventionMapping().map("title", new Callable<Object>() {
+                    @Override
                     public Object call() {
                         return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
                     }
@@ -379,6 +390,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
         project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
+            @Override
             public void execute(final Test test) {
                 configureTestDefaults(test, project, convention);
             }
@@ -390,16 +402,19 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
 
         xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
+            @Override
             public Object call() {
                 return new File(convention.getTestResultsDir(), test.getName());
             }
         });
         htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
+            @Override
             public Object call() {
                 return new File(convention.getTestReportDir(), test.getName());
             }
         });
         test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
+            @Override
             public Object call() {
                 return new File(convention.getTestResultsDir(), test.getName() + "/binary");
             }

@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
@@ -51,7 +52,13 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
     @Override
     public FileCollectionResolveContext add(Object element) {
         // TODO - need to sync with DefaultFileCollectionResolveContext
-        if (element instanceof TaskDependencyContainer) {
+        if (element instanceof ProviderInternal) {
+            // When a provider is an element of a file collection and its producing tasks are not known, unpack its value if the value is declared as Buildable
+            ProviderInternal<?> provider = (ProviderInternal<?>) element;
+            if (!provider.maybeVisitBuildDependencies(taskContext) && provider.getType() != null && Buildable.class.isAssignableFrom(provider.getType())) {
+                taskContext.add(provider.get());
+            }
+        } else if (element instanceof TaskDependencyContainer) {
             taskContext.add(element);
         } else if (element instanceof Buildable) {
             taskContext.add(element);
@@ -66,7 +73,7 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
                 add(deferredResult);
             }
         } else if (element instanceof Iterable && !(element instanceof Path)) {
-            // Ignore Path
+            // Ignore Path (which is-a Iterable)
             Iterable<?> iterable = (Iterable) element;
             for (Object value : iterable) {
                 add(value);

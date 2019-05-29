@@ -61,6 +61,7 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     protected void addFailuresTab() {
         if (!results.getFailures().isEmpty()) {
             addTab("Failed tests", new ErroringAction<SimpleHtmlWriter>() {
+                @Override
                 public void doExecute(SimpleHtmlWriter element) throws IOException {
                     renderFailures(element);
                 }
@@ -93,6 +94,7 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     protected void addIgnoredTab() {
         if (!results.getIgnored().isEmpty()) {
             addTab("Ignored tests", new ErroringAction<SimpleHtmlWriter>() {
+                @Override
                 public void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
                     renderIgnoredTests(htmlWriter);
                 }

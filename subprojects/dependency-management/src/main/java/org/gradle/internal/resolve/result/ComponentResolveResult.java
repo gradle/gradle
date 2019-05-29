@@ -51,6 +51,7 @@ public interface ComponentResolveResult extends ResolveResult {
     /**
      * Returns the resolve failure, if any.
      */
+    @Override
     @Nullable
     ModuleVersionResolveException getFailure();
 }

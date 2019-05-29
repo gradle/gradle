@@ -36,6 +36,7 @@ public class DefaultIvyPatternRepositoryLayout extends AbstractRepositoryLayout 
     /**
      * {@inheritDoc}
      */
+    @Override
     public void artifact(String pattern) {
         artifactPatterns.add(pattern);
     }
@@ -43,6 +44,7 @@ public class DefaultIvyPatternRepositoryLayout extends AbstractRepositoryLayout 
     /**
      * {@inheritDoc}
      */
+    @Override
     public void ivy(String pattern) {
         ivyPatterns.add(pattern);
     }
@@ -50,6 +52,7 @@ public class DefaultIvyPatternRepositoryLayout extends AbstractRepositoryLayout 
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean getM2Compatible() {
         return m2compatible;
     }
@@ -57,6 +60,7 @@ public class DefaultIvyPatternRepositoryLayout extends AbstractRepositoryLayout 
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setM2compatible(boolean m2compatible) {
         this.m2compatible = m2compatible;
     }

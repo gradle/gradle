@@ -28,6 +28,7 @@ class PlayAppWithFailingTestsIntegrationTest extends PlayMultiVersionIntegration
     PlayApp playApp = new WithFailingTestsApp()
 
     def setup() {
+        executer.noDeprecationChecks()
         playApp.writeSources(testDirectory)
         buildFile << """
 model {

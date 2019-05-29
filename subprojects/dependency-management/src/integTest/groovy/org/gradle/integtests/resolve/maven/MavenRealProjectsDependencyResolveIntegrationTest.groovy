@@ -97,7 +97,7 @@ task check {
                     }
                 }
                 edge('commons-collections:commons-collections:3.0', 'commons-collections:commons-collections:3.1') {
-                    byConflictResolution("between versions 3.0 and 3.1")
+                    byConflictResolution("between versions 3.1 and 3.0")
                 }
             }
         }

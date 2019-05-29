@@ -29,6 +29,10 @@ public interface ParameterValidationContext {
         }
 
         @Override
+        public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
+        }
+
+        @Override
         public void visitErrorStrict(String message) {
         }
     };
@@ -44,7 +48,14 @@ public interface ParameterValidationContext {
     void visitError(String message);
 
     /**
-     * Visits a strict validation error. Strict errors are not ignored for tasks, whereas for backwards compatibility other errors are ignored (at runtime) or treated as warnings (at plugin build time).
+     * Visits a strict validation error associated with the given property.
+     * Strict errors are not ignored for tasks, whereas for backwards compatibility other errors are ignored (at runtime) or treated as warnings (at plugin build time).
+     */
+    void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message);
+
+    /**
+     * Visits a strict validation error.
+     * Strict errors are not ignored for tasks, whereas for backwards compatibility other errors are ignored (at runtime) or treated as warnings (at plugin build time).
      */
     void visitErrorStrict(String message);
 }

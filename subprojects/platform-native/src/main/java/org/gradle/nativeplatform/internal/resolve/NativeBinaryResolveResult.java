@@ -48,6 +48,7 @@ public class NativeBinaryResolveResult {
 
     public List<NativeDependencySet> getAllResults() {
         return CollectionUtils.collect(getAllResolutions(), new Transformer<NativeDependencySet, NativeBinaryRequirementResolveResult>() {
+            @Override
             public NativeDependencySet transform(NativeBinaryRequirementResolveResult original) {
                 return original.getNativeDependencySet();
             }
@@ -66,6 +67,7 @@ public class NativeBinaryResolveResult {
 
     public List<NativeBinaryRequirementResolveResult> getPendingResolutions() {
         return CollectionUtils.filter(resolutions, new Spec<NativeBinaryRequirementResolveResult>() {
+            @Override
             public boolean isSatisfiedBy(NativeBinaryRequirementResolveResult element) {
                 return !element.isComplete();
             }

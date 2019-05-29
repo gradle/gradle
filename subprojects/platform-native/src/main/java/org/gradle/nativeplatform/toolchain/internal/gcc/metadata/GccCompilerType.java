@@ -30,10 +30,12 @@ public enum GccCompilerType implements CompilerType {
         this.description = description;
     }
 
+    @Override
     public String getIdentifier() {
         return identifier;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }

@@ -187,6 +187,22 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return deprecatedThis;
     }
 
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+            @Override
+            public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
+                context.add(value.getTaskDependencies());
+            }
+
+            @Override
+            public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
+                context.add(actualValue);
+            }
+        });
+    }
+
     private static class TaskInputUnionFileCollection extends CompositeFileCollection implements Describable {
         private final boolean skipWhenEmptyOnly;
         private final String taskDisplayName;

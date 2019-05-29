@@ -27,6 +27,7 @@ import org.gradle.platform.base.ApplicationSpec;
 @Managed
 @Incubating
 @HasInternalProtocol
+@Deprecated
 public interface PlayApplicationSpec extends ApplicationSpec, PlayPlatformAwareComponentSpec {
 
     /**

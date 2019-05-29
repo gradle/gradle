@@ -70,6 +70,7 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
             return true;
         }
 
+        @Override
         public void execute(MultipleCandidatesResult<Usage> details) {
             if (details.getConsumerValue() == null) {
                 Set<Usage> candidates = details.getCandidateValues();

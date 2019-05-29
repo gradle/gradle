@@ -16,15 +16,16 @@
 
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.LinkedHashMultimap
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
@@ -37,6 +38,8 @@ import org.gradle.internal.component.model.Exclude
 import static com.google.common.collect.ImmutableList.copyOf
 
 class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
+
+    private final static ExcludeSpec NOTHING = new ModuleExclusions().nothing()
 
     @Override
     ExternalDependencyDescriptor create(ModuleComponentSelector selector) {
@@ -101,40 +104,40 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
     def "excludes nothing when no exclude rules provided"() {
         def dep = createWithExcludes(requested, [])
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
+        def moduleExclusions = new ModuleExclusions()
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration("from").hierarchy))) == ModuleExclusions.excludeNone()
-        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration("anything").hierarchy))) == ModuleExclusions.excludeNone()
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration("from").hierarchy))) == NOTHING
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration("anything").hierarchy))) == NOTHING
     }
 
     def "excludes nothing when traversing a different configuration"() {
         def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", "*"), ["from"] as String[], PatternMatchers.EXACT)
         def dep = createWithExcludes(requested, [exclude])
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
+        def moduleExclusions = new ModuleExclusions()
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration("anything").hierarchy))) == ModuleExclusions.excludeNone()
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration("anything").hierarchy))) == NOTHING
     }
 
     def "applies exclude rules when traversing a configuration"() {
         def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", "*"), ["from"] as String[], PatternMatchers.EXACT)
         def dep = createWithExcludes(requested, [exclude])
         def configuration = configuration("from")
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
+        def moduleExclusions = new ModuleExclusions()
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(exclude)
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(ImmutableList.of(exclude))
     }
 
     def "applies rules when traversing a child of specified configuration"() {
         def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", "*"), ["from"] as String[], PatternMatchers.EXACT)
         def dep = createWithExcludes(requested, [exclude])
         def configuration = configuration("child", "from")
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
+        def moduleExclusions = new ModuleExclusions()
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(exclude)
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(ImmutableList.of(exclude))
     }
 
     def "applies matching exclude rules"() {
@@ -143,10 +146,10 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def exclude3 = new DefaultExclude(DefaultModuleIdentifier.newId("group3", "*"), ["other"] as String[], PatternMatchers.EXACT)
         def dep = createWithExcludes(requested, [exclude1, exclude2, exclude3])
         def configuration = configuration("from")
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
+        def moduleExclusions = new ModuleExclusions()
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(exclude1, exclude2)
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(ImmutableList.of(exclude1, exclude2))
     }
 
     def "selects no configurations when no configuration mappings provided"() {

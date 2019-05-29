@@ -243,6 +243,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *
      * @since 4.0
      */
+    @Override
     @Incubating
     void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule);
 
@@ -254,6 +255,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *
      * @since 4.0
      */
+    @Override
     @Incubating
     void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
 

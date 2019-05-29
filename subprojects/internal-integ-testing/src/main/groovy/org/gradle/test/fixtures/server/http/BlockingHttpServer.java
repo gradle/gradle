@@ -464,6 +464,23 @@ public class BlockingHttpServer extends ExternalResource {
          * Waits for the expected number of concurrent requests to be received.
          */
         void waitForAllPendingCalls();
+
+        /**
+         * Waits for the expected number of concurrent requests to be received or until the given {@link FailureTracker} provides a
+         * failure captured during execution which should be reported without waiting further.
+         */
+        void waitForAllPendingCalls(FailureTracker failureTracker);
+    }
+
+    public interface FailureTracker {
+        FailureTracker NO_FAILURE_TRACKER = new FailureTracker() {
+            @Override
+            public RuntimeException getFailure() {
+                return null;
+            }
+        };
+
+        RuntimeException getFailure();
     }
 
     private static class SendEmptyResponse extends ErroringAction<HttpExchange> {

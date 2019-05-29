@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -55,28 +56,34 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     Attribute<String> STATUS_ATTRIBUTE = Attribute.of("org.gradle.status", String.class);
 
+    @Override
     ProjectInternal getParent();
 
+    @Override
     ProjectInternal getRootProject();
 
     Project evaluate();
 
     ProjectInternal bindAllModelRules();
 
+    @Override
     TaskContainerInternal getTasks();
 
     ScriptSource getBuildScriptSource();
 
     void addChildProject(ProjectInternal childProject);
 
+    @Override
     ProjectInternal project(String path) throws UnknownProjectException;
 
+    @Override
     ProjectInternal findProject(String path);
 
     ProjectRegistry<ProjectInternal> getProjectRegistry();
 
     DynamicObject getInheritedScope();
 
+    @Override
     GradleInternal getGradle();
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
@@ -94,12 +101,15 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     StandardOutputCapture getStandardOutputCapture();
 
+    @Override
     ProjectStateInternal getState();
 
+    @Override
     ExtensionContainerInternal getExtensions();
 
     ProjectConfigurationActionContainer getConfigurationActions();
 
+    @Override
     ModelRegistry getModelRegistry();
 
     ClassLoaderScope getClassLoaderScope();
@@ -115,6 +125,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     /**
      * Returns a unique path for this project within its containing build.
      */
+    @Override
     Path getProjectPath();
 
     /**
@@ -134,4 +145,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action);
 
     ProjectState getMutationState();
+
+    @Override
+    ScriptHandlerInternal getBuildscript();
 }

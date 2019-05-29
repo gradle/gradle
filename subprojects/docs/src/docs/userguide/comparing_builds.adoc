@@ -16,10 +16,10 @@
 = Comparing Builds
 
 
-[NOTE]
+[CAUTION]
 ====
 
-Build comparison support is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature. This means that it is incomplete and not yet at regular Gradle production quality. This also means that this Gradle User Guide chapter is a work in progress.
+This plugin is deprecated and will be removed in the next major Gradle release. New builds should not use this plugin.
 
 ====
 

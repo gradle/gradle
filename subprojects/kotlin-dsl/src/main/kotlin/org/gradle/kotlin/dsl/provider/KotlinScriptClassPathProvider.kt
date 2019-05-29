@@ -25,7 +25,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.api.internal.file.DefaultFileCollectionFactory
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.internal.classloader.ClassLoaderVisitor
@@ -59,15 +59,15 @@ fun gradleKotlinDslOf(project: Project): List<File> =
 
 
 fun gradleKotlinDslJarsOf(project: Project): FileCollection =
-    fileCollectionOf(
+    project.fileCollectionOf(
         kotlinScriptClassPathProviderOf(project).gradleKotlinDslJars.asFiles.filter(::isGradleKotlinDslJar),
         "gradleKotlinDsl"
     )
 
 
 internal
-fun fileCollectionOf(files: Collection<File>, name: String): FileCollection =
-    DefaultFileCollectionFactory().fixed(name, files)
+fun Project.fileCollectionOf(files: Collection<File>, name: String): FileCollection =
+    serviceOf<FileCollectionFactory>().fixed(name, files)
 
 
 internal

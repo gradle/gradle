@@ -25,13 +25,15 @@ import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompiler;
-import org.gradle.play.internal.routes.RoutesCompilerFactory;
+import org.gradle.play.internal.routes.RoutesCompilerAdapterFactory;
+import org.gradle.play.internal.routes.VersionedRoutesCompilerAdapter;
 import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.run.PlayApplicationRunnerFactory;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
-import org.gradle.play.internal.twirl.TwirlCompilerFactory;
+import org.gradle.play.internal.twirl.TwirlCompilerAdapterFactory;
+import org.gradle.play.internal.twirl.VersionedTwirlCompilerAdapter;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -72,14 +74,13 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     @Override
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
         if (TwirlCompileSpec.class.isAssignableFrom(spec)) {
-            TwirlCompiler twirlCompiler = TwirlCompilerFactory.create(targetPlatform);
-            return cast(new DaemonPlayCompiler<TwirlCompileSpec>(daemonWorkingDir, twirlCompiler, workerDaemonFactory, twirlClasspath, twirlCompiler.getClassLoaderPackages(), forkOptionsFactory));
+            VersionedTwirlCompilerAdapter adapter = TwirlCompilerAdapterFactory.createAdapter(targetPlatform);
+            return cast(new DaemonPlayCompiler<TwirlCompileSpec>(daemonWorkingDir, TwirlCompiler.class, new Object[] {adapter}, workerDaemonFactory, twirlClasspath, adapter.getClassLoaderPackages(), forkOptionsFactory));
         } else if (RoutesCompileSpec.class.isAssignableFrom(spec)) {
-            RoutesCompiler routesCompiler = RoutesCompilerFactory.create(targetPlatform);
-            return cast(new DaemonPlayCompiler<RoutesCompileSpec>(daemonWorkingDir, routesCompiler, workerDaemonFactory, routesClasspath, routesCompiler.getClassLoaderPackages(), forkOptionsFactory));
+            VersionedRoutesCompilerAdapter adapter = RoutesCompilerAdapterFactory.createAdapter(targetPlatform);
+            return cast(new DaemonPlayCompiler<RoutesCompileSpec>(daemonWorkingDir, RoutesCompiler.class, new Object[] {adapter}, workerDaemonFactory, routesClasspath, adapter.getClassLoaderPackages(), forkOptionsFactory));
         } else if (JavaScriptCompileSpec.class.isAssignableFrom(spec)) {
-            GoogleClosureCompiler javaScriptCompiler = new GoogleClosureCompiler();
-            return cast(new DaemonPlayCompiler<JavaScriptCompileSpec>(daemonWorkingDir, javaScriptCompiler, workerDaemonFactory, javaScriptClasspath, javaScriptCompiler.getClassLoaderPackages(), forkOptionsFactory));
+            return cast(new DaemonPlayCompiler<JavaScriptCompileSpec>(daemonWorkingDir, GoogleClosureCompiler.class, new Object[] {}, workerDaemonFactory, javaScriptClasspath, GoogleClosureCompiler.SHARED_PACKAGES, forkOptionsFactory));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }

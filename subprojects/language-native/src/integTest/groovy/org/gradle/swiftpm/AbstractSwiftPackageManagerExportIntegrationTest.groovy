@@ -21,6 +21,7 @@ import org.gradle.language.swift.SwiftPmRunner
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.test.fixtures.file.ExecOutput
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
 abstract class AbstractSwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
@@ -31,10 +32,17 @@ abstract class AbstractSwiftPackageManagerExportIntegrationTest extends Abstract
 """
     }
 
-    void swiftPmBuildSucceeds() {
-        SwiftPmRunner.create(swiftc)
+    ExecOutput swiftPmBuildSucceeds() {
+        return SwiftPmRunner.create(swiftc)
             .withProjectDir(testDirectory)
             .withArguments("build")
             .build()
+    }
+
+    ExecOutput swiftPmBuildFails() {
+        return SwiftPmRunner.create(swiftc)
+                .withProjectDir(testDirectory)
+                .withArguments("build")
+                .buildAndFails()
     }
 }

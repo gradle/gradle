@@ -37,6 +37,7 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
         this.attributes = attributes;
     }
 
+    @Override
     public boolean isTransitive() {
         return transitive;
     }
@@ -55,11 +56,13 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
         }
     }
 
+    @Override
     public void add(Object dependency) {
         queue.add(dependency);
     }
 
     private class DependencyGraph implements DirectedGraph<Object, FileCollection> {
+        @Override
         public void getNodeValues(Object node, Collection<? super FileCollection> values, Collection<? super Object> connectedNodes) {
             if (node instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) node;

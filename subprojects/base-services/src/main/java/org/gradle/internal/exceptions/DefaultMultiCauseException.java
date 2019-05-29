@@ -82,6 +82,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         };
     }
 
+    @Override
     public List<? extends Throwable> getCauses() {
         return causes;
     }

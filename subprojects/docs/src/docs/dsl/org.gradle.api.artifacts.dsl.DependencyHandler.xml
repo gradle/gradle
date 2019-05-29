@@ -65,6 +65,9 @@
             <tr>
                 <td>createArtifactResolutionQuery</td>
             </tr>
+            <tr>
+                <td>registerTransform</td>
+            </tr>
         </table>
     </section>
 </section>

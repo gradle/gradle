@@ -40,6 +40,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,14 +54,15 @@ import java.util.stream.StreamSupport;
  * Converts JFR recordings to the collapsed stacks format used by the FlameGraph tool.
  */
 class JfrToStacksConverter {
-    public void convertToStacks(IItemCollection recording, File targetFile, Options options) {
-        Map<String, Long> foldedStacks = foldStacks(recording, options);
+    public void convertToStacks(Collection<IItemCollection> recordings, File targetFile, Options options) {
+        Map<String, Long> foldedStacks = foldStacks(recordings, options);
         writeFoldedStacks(foldedStacks, targetFile);
     }
 
-    private Map<String, Long> foldStacks(IItemCollection recording, Options options) {
+    private Map<String, Long> foldStacks(Collection<IItemCollection> recordings, Options options) {
         StackFolder folder = new StackFolder(options);
-        StreamSupport.stream(recording.spliterator(), false)
+        recordings.stream()
+            .flatMap(recording -> StreamSupport.stream(recording.spliterator(), false))
             .flatMap(eventStream -> StreamSupport.stream(eventStream.spliterator(), false))
             .filter(options.eventType::matches)
             .filter(event -> getStackTrace(event) != null)

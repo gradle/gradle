@@ -18,7 +18,6 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.Describables;
@@ -41,12 +40,12 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
     private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultCppApplication(String name, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultCppApplication(String name, ObjectFactory objectFactory) {
         super(name, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppExecutable.class);
         this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
-        this.mainVariant = new MainExecutableVariant(collectionCallbackActionDecorator);
+        this.mainVariant = new MainExecutableVariant(objectFactory);
     }
 
     public DefaultCppExecutable addExecutable(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {

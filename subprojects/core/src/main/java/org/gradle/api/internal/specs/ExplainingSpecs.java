@@ -19,9 +19,11 @@ package org.gradle.api.internal.specs;
 public class ExplainingSpecs {
 
     private static final ExplainingSpec<Object> SATISFIES_ALL = new ExplainingSpec<Object>() {
+        @Override
         public boolean isSatisfiedBy(Object element) {
             return true;
         }
+        @Override
         public String whyUnsatisfied(Object element) {
             return null;
         }
@@ -32,9 +34,11 @@ public class ExplainingSpecs {
     }
 
     private static final ExplainingSpec<Object> SATISFIES_NONE = new ExplainingSpec<Object>() {
+        @Override
         public boolean isSatisfiedBy(Object element) {
             return false;
         }
+        @Override
         public String whyUnsatisfied(Object element) {
             return "Never satisfies any.";
         }

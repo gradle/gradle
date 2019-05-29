@@ -15,27 +15,22 @@
  */
 package org.gradle.kotlin.dsl.tooling.builders
 
-import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
-import org.gradle.language.base.plugins.LifecycleBasePlugin
-
-import org.gradle.api.internal.project.ProjectInternal
-
+import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.inClassPathMode
 import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsFilePath
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 
 
 internal
@@ -107,11 +102,9 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
 open class GenerateSourceRootsFile : DefaultTask() {
 
     @get:Input
-    @get:PathSensitive(PathSensitivity.NONE)
     val sourceRoots = project.objects.listProperty<String>()
 
     @get:OutputFile
-    @get:PathSensitive(PathSensitivity.RELATIVE)
     val destinationFile = project.objects.fileProperty()
 
     @TaskAction

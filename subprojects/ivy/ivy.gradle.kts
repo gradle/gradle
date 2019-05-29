@@ -23,19 +23,39 @@ plugins {
 }
 
 dependencies {
-    api(project(":core"))
-    api(project(":publish"))
-    api(project(":plugins")) // for base plugin to get archives conf
-    api(project(":pluginUse"))
-    api(project(":dependencyManagement"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":baseServicesGroovy")) // for 'Specs'
+    implementation(project(":files"))
+    implementation(project(":resources"))
+    implementation(project(":publish"))
+    implementation(project(":plugins")) // for base plugin to get archives conf
+    implementation(project(":pluginUse"))
+    implementation(project(":dependencyManagement"))
 
+    implementation(library("groovy")) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
     implementation(library("ivy"))
 
+    testImplementation(project(":native"))
+    testImplementation(project(":processServices"))
+
     integTestImplementation(project(":ear"))
+    integTestImplementation(testLibrary("jetty"))
+
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":apiMetadata"))
+
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(library("slf4j_api"))
+    testLibraries("sshd").forEach { testFixturesImplementation(it) }
 }
 
 gradlebuildJava {

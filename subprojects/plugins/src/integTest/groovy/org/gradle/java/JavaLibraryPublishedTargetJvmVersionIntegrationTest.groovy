@@ -90,35 +90,47 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
         then:
         failure.assertHasCause('''Unable to find a matching variant of org:producer:1.0:
   - Variant 'apiElementsJdk6' capability org:producer:1.0:
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '5' and found incompatible value '6'.
-      - Found org.gradle.status 'release' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '5' and found incompatible value '6'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Found org.gradle.status 'release' but wasn't required.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'apiElementsJdk7' capability org:producer:1.0:
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '5' and found incompatible value '7'.
-      - Found org.gradle.status 'release' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '5' and found incompatible value '7'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Found org.gradle.status 'release' but wasn't required.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'apiElementsJdk9' capability org:producer:1.0:
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '5' and found incompatible value '9'.
-      - Found org.gradle.status 'release' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '5' and found incompatible value '9'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Found org.gradle.status 'release' but wasn't required.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'runtimeElementsJdk6' capability org:producer:1.0:
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '5' and found incompatible value '6'.
-      - Found org.gradle.status 'release' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '5' and found incompatible value '6'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Found org.gradle.status 'release' but wasn't required.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.
   - Variant 'runtimeElementsJdk7' capability org:producer:1.0:
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '5' and found incompatible value '7'.
-      - Found org.gradle.status 'release' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '5' and found incompatible value '7'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Found org.gradle.status 'release' but wasn't required.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.
   - Variant 'runtimeElementsJdk9' capability org:producer:1.0:
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '5' and found incompatible value '9'.
-      - Found org.gradle.status 'release' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.''')
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '5' and found incompatible value '9'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Found org.gradle.status 'release' but wasn't required.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.''')
     }
 
     @Unroll

@@ -68,6 +68,7 @@ public class TypeNameResolver {
      */
     public void resolve(final TypeMetaData type, final ClassMetaData classMetaData) {
         type.visitTypes(new Action<TypeMetaData>() {
+            @Override
             public void execute(TypeMetaData t) {
                 t.setName(resolve(t.getName(), classMetaData));
             }

@@ -21,7 +21,8 @@ import org.gradle.internal.service.ServiceLookup;
 import java.lang.annotation.Annotation;
 
 /**
- * Creates instances of the given type. This is similar to {@link org.gradle.internal.reflect.Instantiator}, but produces instances of the given type only. This allows it to provides some additional metadata about the type, such as which services it requires, and can potentially produce instances more quickly due to the extra context it holds.
+ * Creates instances of the given type. This is similar to {@link org.gradle.internal.reflect.Instantiator}, but produces instances of the given type only. This allows it to provides some
+ * additional metadata about the type, such as which services it requires, and may be more performant at creating instances due to the extra context it holds.
  */
 public interface InstanceFactory<T> {
     /**

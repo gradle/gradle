@@ -43,7 +43,7 @@ import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.internal.twirl.DefaultTwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
-import org.gradle.play.internal.twirl.TwirlCompilerFactory;
+import org.gradle.play.internal.twirl.TwirlCompilerAdapterFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
@@ -59,6 +59,7 @@ import java.util.Set;
  * Task for compiling Twirl templates into Scala code.
  */
 @Incubating
+@Deprecated
 public class TwirlCompile extends SourceTask {
 
     /**
@@ -109,7 +110,7 @@ public class TwirlCompile extends SourceTask {
 
     @Input
     public Object getDependencyNotation() {
-        return TwirlCompilerFactory.createAdapter(platform).getDependencyNotation();
+        return TwirlCompilerAdapterFactory.createAdapter(platform).getDependencyNotation();
     }
 
     /**
@@ -148,12 +149,14 @@ public class TwirlCompile extends SourceTask {
         } else {
             final Set<File> sourcesToCompile = new HashSet<File>();
             inputs.outOfDate(new Action<InputFileDetails>() {
+                @Override
                 public void execute(InputFileDetails inputFileDetails) {
                     sourcesToCompile.add(inputFileDetails.getFile());
                 }
             });
             final Set<File> staleOutputFiles = new HashSet<File>();
             inputs.removed(new Action<InputFileDetails>() {
+                @Override
                 public void execute(InputFileDetails inputFileDetails) {
                     staleOutputFiles.add(inputFileDetails.getFile());
                 }

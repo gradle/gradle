@@ -40,23 +40,28 @@ public class DefaultArtifactPom implements ArtifactPom {
         this.pom = pom;
     }
 
+    @Override
     public MavenPom getPom() {
         return pom;
     }
 
+    @Override
     public PublishArtifact getArtifact() {
         return artifact;
     }
 
+    @Override
     public Set<PublishArtifact> getAttachedArtifacts() {
         return Collections.unmodifiableSet(classifiers);
     }
 
+    @Override
     public PublishArtifact writePom(final File pomFile) {
         getPom().writeTo(pomFile);
         return new PomArtifact(pomFile);
     }
 
+    @Override
     public void addArtifact(Artifact artifact, File src) {
         throwExceptionIfArtifactOrSrcIsNull(artifact, src);
         PublishArtifact publishArtifact = new MavenArtifact(artifact, src);
@@ -150,14 +155,17 @@ public class DefaultArtifactPom implements ArtifactPom {
             this.file = file;
         }
 
+        @Override
         public File getFile() {
             return file;
         }
 
+        @Override
         public String getName() {
             return pom.getArtifactId();
         }
 
+        @Override
         public Date getDate() {
             return null;
         }
@@ -171,14 +179,17 @@ public class DefaultArtifactPom implements ArtifactPom {
             this.artifact = artifact;
         }
 
+        @Override
         public String getClassifier() {
             return DefaultArtifactPom.this.getClassifier(artifact);
         }
 
+        @Override
         public String getExtension() {
             return artifact.getExt();
         }
 
+        @Override
         public String getType() {
             return artifact.getType();
         }
@@ -189,18 +200,22 @@ public class DefaultArtifactPom implements ArtifactPom {
             super(pomFile);
         }
 
+        @Override
         public String getExtension() {
             return "pom";
         }
 
+        @Override
         public String getType() {
             return "pom";
         }
 
+        @Override
         public String getClassifier() {
             return null;
         }
 
+        @Override
         public Date getDate() {
             return null;
         }

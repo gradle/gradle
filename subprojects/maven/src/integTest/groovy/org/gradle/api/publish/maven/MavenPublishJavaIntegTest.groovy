@@ -501,6 +501,56 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         version << ['1.+', 'latest.milestone']
     }
 
+    def "can publish java-library without warning when dependency with maven incompatible version and using versionMapping"() {
+        requiresExternalDependencies = true
+
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                implementation "commons-collections:commons-collections:1.+"
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        versionMapping {
+                            allVariants {
+                                fromResolutionResult()
+                            }
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        outputDoesNotContain(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:1.0")
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("commons-collections:commons-collections:1.0") {
+                rejects()
+                noMoreExcludes()
+            }
+            noMoreDependencies()
+        }
+    }
+
     def "can publish java-library with attached artifacts"() {
         given:
         createBuildScripts("""

@@ -22,30 +22,32 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.TaskInstantiationException;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.util.NameValidator;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
 public class TaskFactory implements ITaskFactory {
     private final ProjectInternal project;
-    private final Instantiator instantiator;
+    private final InstantiationScheme instantiationScheme;
 
     public TaskFactory() {
         this(null, null);
     }
 
-    private TaskFactory(ProjectInternal project, Instantiator instantiator) {
+    private TaskFactory(ProjectInternal project, InstantiationScheme instantiationScheme) {
         this.project = project;
-        this.instantiator = instantiator;
-    }
-
-    public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
-        return new TaskFactory(project, instantiator);
+        this.instantiationScheme = instantiationScheme;
     }
 
     @Override
-    public <S extends Task> S create(final TaskIdentity<S> identity, final Object... args) {
+    public ITaskFactory createChild(ProjectInternal project, InstantiationScheme instantiationScheme) {
+        return new TaskFactory(project, instantiationScheme);
+    }
+
+    @Override
+    public <S extends Task> S create(final TaskIdentity<S> identity, @Nullable final Object[] constructorArgs) {
         if (!Task.class.isAssignableFrom(identity.type)) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task of type '%s' as it does not implement the Task interface.",
@@ -54,17 +56,24 @@ public class TaskFactory implements ITaskFactory {
 
         NameValidator.validate(identity.name, "task name", "");
 
-        final Class<? extends Task> implType;
+        final Class<? extends AbstractTask> implType;
         if (identity.type.isAssignableFrom(DefaultTask.class)) {
             implType = DefaultTask.class;
         } else {
-            implType = identity.type;
+            implType = identity.type.asSubclass(AbstractTask.class);
         }
 
         return AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
+            @Override
             public S call() {
                 try {
-                    return identity.type.cast(instantiator.newInstance(implType, args));
+                    Task instance;
+                    if (constructorArgs != null) {
+                        instance = instantiationScheme.instantiator().newInstance(implType, constructorArgs);
+                    } else {
+                        instance = instantiationScheme.deserializationInstantiator().newInstance(implType, AbstractTask.class);
+                    }
+                    return identity.type.cast(instance);
                 } catch (ObjectInstantiationException e) {
                     throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", identity.type.getSimpleName()),
                         e.getCause());

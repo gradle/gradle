@@ -21,6 +21,8 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
@@ -42,8 +44,12 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
+    VersionMappingStrategyInternal versionMappingStrategy = Mock() {
+        findStrategyForVariant(_) >> Mock(VariantVersionMappingStrategyInternal)
+    }
+
     def projectIdentity = new DefaultIvyPublicationIdentity("my-org", "my-name", "my-version")
-    IvyDescriptorFileGenerator generator = new IvyDescriptorFileGenerator(projectIdentity, false)
+    IvyDescriptorFileGenerator generator = new IvyDescriptorFileGenerator(projectIdentity, false, versionMappingStrategy)
 
     def "writes correct prologue and schema declarations"() {
         expect:
@@ -55,7 +61,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes Gradle metadata marker"() {
         given:
-        generator = new IvyDescriptorFileGenerator(projectIdentity, markerPresent)
+        generator = new IvyDescriptorFileGenerator(projectIdentity, markerPresent, versionMappingStrategy)
 
         expect:
         ivyFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER) == markerPresent
@@ -84,7 +90,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     def "encodes coordinates for XML and unicode"() {
         when:
         def projectIdentity = new DefaultIvyPublicationIdentity('org-ぴ₦ガき∆ç√∫', 'module-<tag attrib="value"/>-markup', 'version-&"')
-        generator = new IvyDescriptorFileGenerator(projectIdentity, false)
+        generator = new IvyDescriptorFileGenerator(projectIdentity, false, null)
 
 
         then:

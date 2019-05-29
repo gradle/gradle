@@ -17,6 +17,7 @@
 package org.gradle.performance.results;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.ci.common.model.FlakyTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,17 +32,17 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.FAILED;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.FLAKY;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.FROM_CACHE;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.IMPROVED;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.NEARLY_FAILED;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.REGRESSED;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.UNKNOWN;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.UNTAGGED;
 import static org.gradle.performance.results.ScenarioBuildResultData.ExecutionData;
 import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_SUCCESS;
 import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_UNKNOWN;
+import static org.gradle.performance.results.Tag.FixedTag.FAILED;
+import static org.gradle.performance.results.Tag.FixedTag.FLAKY;
+import static org.gradle.performance.results.Tag.FixedTag.FROM_CACHE;
+import static org.gradle.performance.results.Tag.FixedTag.IMPROVED;
+import static org.gradle.performance.results.Tag.FixedTag.NEARLY_FAILED;
+import static org.gradle.performance.results.Tag.FixedTag.REGRESSED;
+import static org.gradle.performance.results.Tag.FixedTag.UNKNOWN;
+import static org.gradle.performance.results.Tag.FixedTag.UNTAGGED;
 
 public class IndexPageGenerator extends AbstractTablePageGenerator {
     private static final int DEFAULT_RETRY_COUNT = 3;
@@ -56,8 +57,8 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
         .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
         .thenComparing(ScenarioBuildResultData::getScenarioName);
 
-    public IndexPageGenerator(ResultsStore resultsStore, File resultJson) {
-        super(resultsStore, resultJson);
+    public IndexPageGenerator(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore resultsStore, File resultJson) {
+        super(flakinessAnalyzer, resultsStore, resultJson);
     }
 
     @Override
@@ -185,9 +186,14 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 if (scenario.isFromCache()) {
                     result.add(FROM_CACHE);
                 }
+
                 if (isFlaky(scenario)) {
                     result.add(FLAKY);
                 }
+
+                markKnownFlakyTestIfFound(scenario, result);
+
+
                 if (scenario.isUnknown()) {
                     result.add(UNKNOWN);
                 } else if (scenario.isBuildFailed()) {
@@ -204,6 +210,13 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                     result.add(UNTAGGED);
                 }
                 return result;
+            }
+
+            private void markKnownFlakyTestIfFound(ScenarioBuildResultData scenario, Set<Tag> result) {
+                FlakyTest flakyTest = flakinessAnalyzer.findKnownFlakyTest(scenario);
+                if (flakyTest != null) {
+                    result.add(new Tag.KnownFlakyTag(flakyTest));
+                }
             }
 
             @Override

@@ -27,6 +27,7 @@ public class CompositeIdGenerator implements IdGenerator<Object> {
         this.generator = generator;
     }
 
+    @Override
     public Object generateId() {
         return new CompositeId(scope, generator.generateId());
     }

@@ -25,6 +25,7 @@ import org.gradle.platform.base.PlatformAwareComponentSpec;
  */
 @Incubating
 @HasInternalProtocol
+@Deprecated
 public interface PlayPlatformAwareComponentSpec extends PlatformAwareComponentSpec {
 
     void platform(Object platformRequirements);

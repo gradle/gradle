@@ -29,14 +29,17 @@ public class DefaultIvyConfiguration implements IvyConfiguration {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void extend(String configuration) {
         extendsFrom.add(configuration);
     }
 
+    @Override
     public Set<String> getExtends() {
         return extendsFrom;
     }

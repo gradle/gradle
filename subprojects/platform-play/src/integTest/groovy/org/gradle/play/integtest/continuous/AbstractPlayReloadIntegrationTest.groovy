@@ -34,6 +34,7 @@ abstract class AbstractPlayReloadIntegrationTest extends AbstractMultiVersionPla
     PlayApp playApp = new AdvancedPlayApp(versionNumber)
 
     def cleanup() {
+        ignoreShutdownTimeoutException = true
         stopGradle()
         if (runningApp.isInitialized()) {
             appIsStopped()

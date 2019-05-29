@@ -108,6 +108,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
                         cached.getExternalResourceMetaData(),
                         new Factory<ExternalResourceMetaData>() {
+                            @Override
                             public ExternalResourceMetaData create() {
                                 return remoteMetaData;
                             }
@@ -214,6 +215,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     private LocallyAvailableExternalResource moveIntoCache(final ExternalResourceName source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
         return artifactCacheLockingManager.useCache(new Factory<LocallyAvailableExternalResource>() {
+            @Override
             public LocallyAvailableExternalResource create() {
                 LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
                 File fileInFileStore = cachedResource.getFile();

@@ -34,6 +34,7 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
         this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
+    @Override
     public void process(final CopyActionProcessingStreamAction action) {
         spec.walk(new CopySpecActionImpl(action, instantiator, fileSystem, reproducibleFileOrder));
     }

@@ -159,6 +159,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             return componentAttributeMatcher.match(effectiveSchema, candidates, requested, fallback);
         }
 
+        @Override
         public List<MatchingDescription> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
             return componentAttributeMatcher.describeMatching(effectiveSchema, candidate, requested);
         }

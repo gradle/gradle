@@ -16,16 +16,22 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
-    public CppLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public CppLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
+        super(templateOperationFactory, documentationRegistry);
     }
 
     @Override
     public String getId() {
         return "cpp-library";
+    }
+
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.LIBRARY;
     }
 
     @Override
@@ -47,11 +53,12 @@ public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .plugin(
-                "Apply the cpp-library plugin to add support for building CPP libraries",
+                "Apply the cpp-library plugin to add support for building C++ libraries",
                 "cpp-library")
-            .plugin("Apply the cpp-unit-test plugin to add support for building and running CPP test executables",
+            .plugin("Apply the cpp-unit-test plugin to add support for building and running C++ test executables",
                 "cpp-unit-test")
-            .block("Set the target operating system and architecture for this library", "library")
-            .methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
+            .block("Set the target operating system and architecture for this library", "library", b -> {
+                b.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
+            });
     }
 }

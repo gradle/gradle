@@ -18,26 +18,43 @@ import java.util.*
  * limitations under the License.
  */
 plugins {
+    java
     gradlebuild.classycle
 }
 
 dependencies {
-    implementation("org.codehaus.plexus:plexus-container-default")
-    implementation("org.apache.maven:maven-compat")
-    implementation("org.apache.maven:maven-plugin-api")
-    implementation(library("groovy"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
     implementation(project(":core"))
+    implementation(project(":files"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":platformBase"))
     implementation(project(":platformNative"))
     implementation(project(":plugins"))
     implementation(project(":wrapper"))
 
-    testFixturesImplementation(project(":internalTesting"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
+    implementation("org.codehaus.plexus:plexus-container-default")
+    implementation("org.apache.maven:maven-compat")
+    implementation("org.apache.maven:maven-plugin-api")
+
+    testImplementation(project(":cli"))
+    testImplementation(project(":baseServicesGroovy"))
+
+    integTestImplementation(testLibrary("jetty"))
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra
     allTestRuntimeDependencies.forEach {
-        integTestRuntime(it)
+        integTestRuntimeOnly(it)
     }
+    
+    testFixturesImplementation(project(":internalTesting"))
 }
 
 gradlebuildJava {
@@ -65,6 +82,7 @@ tasks {
             findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:latest.release", versionProperties)
             findLatest("groovy", "org.codehaus.groovy:groovy:(2.5,)", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
+            findLatest("junit-jupiter", "org.junit.jupiter:junit-jupiter-api:(5,)", versionProperties)
             findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
 
@@ -112,6 +130,7 @@ val devSuffixes = arrayOf(
     "-beta-?\\d+",
     "-dev-?\\d+",
     "-rc-?\\d+",
+    "-RC-?\\d+",
     "-M\\d+",
     "-eap-?\\d+"
 )

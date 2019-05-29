@@ -31,10 +31,12 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
         return featureUsage.getSummary();
     }
 
+    @Override
     public String getRemovalDetails() {
         return featureUsage.getRemovalDetails();
     }
 
+    @Override
     public String getAdvice() {
         return featureUsage.getAdvice();
     }

@@ -89,27 +89,43 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     }
 
     @Override
-    public Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable ProjectExecutionServiceRegistry services) {
+    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable ProjectExecutionServiceRegistry services) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
-        ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
         FileCollectionFingerprinterRegistry fingerprinterRegistry = getFingerprinterRegistry(
             owningProject != null && services != null ? services.getProjectService(owningProject, FileCollectionFingerprinterRegistry.class) : null
         );
         isolateTransformerParameters(fingerprinterRegistry);
-        return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
-            ImmutableList.Builder<File> builder = ImmutableList.builder();
-            for (File inputArtifact : inputArtifacts) {
-                Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, inputArtifact, dependencies, subjectToTransform, fingerprinterRegistry);
 
-                if (result.getFailure().isPresent()) {
-                    return Try.failure(result.getFailure().get());
-                }
-                builder.addAll(result.get());
+        Try<ArtifactTransformDependencies> resolvedDependencies = dependenciesResolver.forTransformer(transformer);
+        return resolvedDependencies.getSuccessfulOrElse(dependencies -> {
+            ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
+            if (inputArtifacts.isEmpty()) {
+                return CacheableInvocation.cached(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
+            } else if (inputArtifacts.size() > 1) {
+                return CacheableInvocation.nonCached(() ->
+                        doTransform(subjectToTransform, fingerprinterRegistry, dependencies, inputArtifacts)
+                );
+            } else {
+                File inputArtifact = inputArtifacts.iterator().next();
+                return transformerInvoker.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, fingerprinterRegistry)
+                    .map(subjectToTransform::createSubjectFromResult);
             }
-            return Try.successful(subjectToTransform.createSubjectFromResult(builder.build()));
-        });
+        }, failure -> CacheableInvocation.cached(Try.failure(failure)));
+    }
+
+    private Try<TransformationSubject> doTransform(TransformationSubject subjectToTransform, FileCollectionFingerprinterRegistry fingerprinterRegistry, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
+        ImmutableList.Builder<File> builder = ImmutableList.builder();
+        for (File inputArtifact : inputArtifacts) {
+            Try<ImmutableList<File>> result = transformerInvoker.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, fingerprinterRegistry).invoke();
+
+            if (result.getFailure().isPresent()) {
+                return Try.failure(result.getFailure().get());
+            }
+            builder.addAll(result.get());
+        }
+        return Try.successful(subjectToTransform.createSubjectFromResult(builder.build()));
     }
 
     public FileCollectionFingerprinterRegistry getFingerprinterRegistry(@Nullable FileCollectionFingerprinterRegistry candidate) {

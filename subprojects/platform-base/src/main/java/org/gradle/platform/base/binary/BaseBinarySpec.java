@@ -23,7 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.reflect.Instantiator;
@@ -74,13 +74,13 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     /**
      * Creates a {@link BaseBinarySpec}.
      *
-     * @since 5.0
+     * @since 5.6
      */
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
                                                       ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
                                                       Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator,
-                                                      CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        NEXT_BINARY_INFO.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskInstantiator, instantiator, collectionCallbackActionDecorator));
+                                                      CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+        NEXT_BINARY_INFO.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskInstantiator, instantiator, collectionCallbackActionDecorator, domainObjectCollectionFactory));
         try {
             try {
                 return instantiator.newInstance(implementationType);
@@ -101,7 +101,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         this.publicType = info.publicType;
         this.componentNode = info.componentNode;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskInstantiator, info.collectionCallbackActionDecorator);
-        this.inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, info.collectionCallbackActionDecorator);
+        this.inputSourceSets = info.domainObjectCollectionFactory.newDomainObjectSet(LanguageSourceSet.class);
 
         MutableModelNode modelNode = info.modelNode;
         sources = ModelMaps.addModelMapNode(modelNode, LANGUAGE_SOURCE_SET_MODELTYPE, "sources");
@@ -223,8 +223,9 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         private final Instantiator instantiator;
         private final ComponentSpecIdentifier componentId;
         private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+        private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-        private BinaryInfo(ComponentSpecIdentifier componentId, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, NamedEntityInstantiator<Task> taskInstantiator, Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        private BinaryInfo(ComponentSpecIdentifier componentId, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, NamedEntityInstantiator<Task> taskInstantiator, Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
             this.componentId = componentId;
             this.publicType = publicType;
             this.modelNode = modelNode;
@@ -232,6 +233,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
             this.taskInstantiator = taskInstantiator;
             this.instantiator = instantiator;
             this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
+            this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         }
     }
 

@@ -28,6 +28,8 @@ import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 class PlayJavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     def "can compile Java class incorporating annotation processing"() {
+        executer.noDeprecationChecks()
+
         given:
         buildFile << """
             plugins {

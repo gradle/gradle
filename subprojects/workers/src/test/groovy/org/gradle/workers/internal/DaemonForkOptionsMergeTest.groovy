@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.classloader.ClassLoaderSpec
 import org.gradle.process.JavaForkOptions
 import spock.lang.Specification
 
@@ -90,6 +91,21 @@ class DaemonForkOptionsMergeTest extends Specification {
             .sharedPackages(["baz.bar", "other"])
             .keepAliveMode(KeepAliveMode.DAEMON)
             .build()
+
+        when:
+        options1.mergeWith(options2)
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
+    def "throws an exception when merging options with different classloader structures"() {
+        options2 = new DaemonForkOptionsBuilder(TestFiles.execFactory())
+                .javaForkOptions(forkOptions)
+                .classpath([new File("lib/lib2.jar"), new File("lib/lib3.jar")])
+                .sharedPackages(["baz.bar", "other"])
+                .withClassLoaderStrucuture(new ClassLoaderStructure(Mock(ClassLoaderSpec)))
+                .build()
 
         when:
         options1.mergeWith(options2)

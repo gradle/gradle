@@ -116,6 +116,7 @@ public abstract class Units<Q> implements Comparable<Units<Q>> {
             return BigDecimal.ONE;
         }
 
+        @Override
         public int compareTo(Units<Q> o) {
             if (o == this) {
                 return 0;
@@ -176,6 +177,7 @@ public abstract class Units<Q> implements Comparable<Units<Q>> {
             return factor;
         }
 
+        @Override
         public int compareTo(Units<Q> o) {
             if (o.getType() != getType()) {
                 throw new IllegalArgumentException(String.format("Cannot compare units of %s with units of %s.", getType(), o.getType()));

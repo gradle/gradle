@@ -26,6 +26,7 @@ public class DefaultIvyExtraInfoSpec extends DefaultIvyExtraInfo implements IvyE
         super();
     }
 
+    @Override
     public void add(String namespace, String name, String value) {
         if (XmlValidation.isValidXmlName(name)) {
             extraInfo.put(new NamespaceId(namespace, name), value);

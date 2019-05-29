@@ -17,11 +17,12 @@
 package org.gradle.nativeplatform.internal.resolve
 
 import org.gradle.api.DomainObjectSet
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class CachingLibraryBinaryLocatorTest extends Specification {
     def target = Mock(LibraryBinaryLocator)
-    def locator = new CachingLibraryBinaryLocator(target)
+    def locator = new CachingLibraryBinaryLocator(target, TestUtil.domainObjectCollectionFactory())
 
     def "locates library once and reuses result for subsequent lookups"() {
         def lib = new LibraryIdentifier("project", "lib")

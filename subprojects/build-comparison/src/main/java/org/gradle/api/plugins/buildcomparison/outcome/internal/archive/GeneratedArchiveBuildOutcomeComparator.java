@@ -43,10 +43,12 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
         this.archiveToEntriesTransformer = archiveToEntriesTransformer;
     }
 
+    @Override
     public Class<GeneratedArchiveBuildOutcome> getComparedType() {
         return GeneratedArchiveBuildOutcome.class;
     }
 
+    @Override
     public GeneratedArchiveBuildOutcomeComparisonResult compare(BuildOutcomeAssociation<GeneratedArchiveBuildOutcome> association) {
         GeneratedArchiveBuildOutcome source = association.getSource();
         GeneratedArchiveBuildOutcome target = association.getTarget();
@@ -66,6 +68,7 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
         }
 
         CollectionUtils.SetDiff<ArchiveEntry> diff = CollectionUtils.diffSetsBy(sourceEntries, targetEntries, new Transformer<ArchiveEntry.Path, ArchiveEntry>() {
+            @Override
             public ArchiveEntry.Path transform(ArchiveEntry entry) {
                 return entry.getPath();
             }

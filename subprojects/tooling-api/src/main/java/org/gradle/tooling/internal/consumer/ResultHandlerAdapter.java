@@ -33,10 +33,12 @@ public class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
         this.exceptionTransformer = exceptionTransformer;
     }
 
+    @Override
     public void onComplete(T result) {
         handler.onComplete(result);
     }
 
+    @Override
     public void onFailure(Throwable failure) {
         handler.onFailure(exceptionTransformer.transform(failure));
     }

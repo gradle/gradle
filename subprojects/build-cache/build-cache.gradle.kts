@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -15,25 +13,27 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
-
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(library("inject"))
-    api(project(":coreApi"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":persistentCache"))
     implementation(project(":resources"))
     implementation(project(":logging"))
 
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
+    implementation(library("inject"))
 
     jmh(library("ant")) {
         version {
@@ -50,12 +50,14 @@ dependencies {
     jmh("io.airlift:aircompressor:0.8")
     jmh("org.iq80.snappy:snappy:0.4")
     jmh("org.kamranzafar:jtar:2.3")
+
+    testImplementation(project(":modelCore"))
+    testImplementation(project(":files"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
-
 
 testFixtures {
     from(":core")

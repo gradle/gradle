@@ -53,7 +53,11 @@ class DaemonHealthStatsTest extends Specification {
         runningStats.getAllBuildsTime() >> 1000
 
         then:
-        healthStats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, GC rate: 1.00/s, heap usage: 10% of 1.0 kB, non-heap usage: 50% of 2.0 kB]"
+        healthStats.healthInfo.startsWith("Starting 2nd build in daemon [uptime: 3 mins, performance: 98%,")
+        // Subsequent builds can also report on GC rate and memory usage
+        healthStats.healthInfo.contains(" GC rate:")
+        healthStats.healthInfo.contains(" heap usage:")
+        healthStats.healthInfo.contains(" non-heap usage:")
     }
 
     def "handles no garbage collection data"() {

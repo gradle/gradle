@@ -32,6 +32,7 @@ public class ModelFactory extends NamedFactory {
         this.model = model;
     }
 
+    @Override
     public Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attrs) throws InstantiationException, IllegalAccessException {
         return model;
     }

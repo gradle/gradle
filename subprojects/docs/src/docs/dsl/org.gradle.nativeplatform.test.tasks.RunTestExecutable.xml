@@ -7,6 +7,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>ignoreFailures</td>
+            </tr>
         </table>
     </section>
     <section>

@@ -93,6 +93,21 @@ include::sample[dir="java-platform/multiproject/groovy/platform",files="build.gr
 include::sample[dir="java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=project-constraints]"]
 ====
 
+The project notation will become a classical `group:name:version` notation in the published metadata.
+
+[[sec:java_platform_bom_import]]
+== Sourcing constraints from another platform
+
+Sometimes the platform you define is an extension of another existing platform.
+
+In order to have your platform include the constraints from that third party platform, it needs to be imported as a `platform` _dependency_:
+
+.Importing a platform
+====
+include::sample[dir="java-platform/quickstart/groovy",files="build.gradle[tags=platform]"]
+include::sample[dir="java-platform/quickstart/kotlin",files="build.gradle.kts[tags=platform]"]
+====
+
 [[sec:java_platform_publishing]]
 == Publishing platforms
 

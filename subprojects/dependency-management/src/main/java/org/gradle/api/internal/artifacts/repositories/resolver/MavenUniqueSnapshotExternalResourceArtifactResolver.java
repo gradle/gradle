@@ -35,10 +35,12 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
         return snapshot;
     }
 
+    @Override
     public boolean artifactExists(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
         return delegate.artifactExists(timestamp(artifact), result);
     }
 
+    @Override
     public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
         return delegate.resolveArtifact(timestamp(artifact), result);
     }

@@ -52,9 +52,11 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         this.patternSetFactory = patternSetFactory;
     }
 
+    @Override
     public Set<File> getFiles() {
         final Set<File> files = new LinkedHashSet<File>();
         visit(new EmptyFileVisitor() {
+            @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 files.add(fileDetails.getFile());
             }
@@ -66,6 +68,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     public boolean isEmpty() {
         final MutableBoolean found = new MutableBoolean();
         visit(new EmptyFileVisitor() {
+            @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 found.set(true);
                 fileDetails.stopVisiting();
@@ -74,6 +77,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return !found.get();
     }
 
+    @Override
     public FileTree matching(Closure filterConfigClosure) {
         return matching(configure(filterConfigClosure, patternSetFactory.create()));
     }
@@ -85,6 +89,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return matching(patternSet);
     }
 
+    @Override
     public FileTree matching(PatternFilterable patterns) {
         PatternSet patternSet = (PatternSet) patterns;
         return new FilteredFileTreeImpl(this, patternSet.getAsSpec());
@@ -93,6 +98,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     public Map<String, File> getAsMap() {
         final Map<String, File> map = new LinkedHashMap<String, File>();
         visit(new EmptyFileVisitor() {
+            @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 map.put(fileDetails.getRelativePath().getPathString(), fileDetails.getFile());
             }
@@ -111,11 +117,13 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     protected boolean visitAll() {
         final MutableBoolean hasContent = new MutableBoolean();
         visit(new FileVisitor() {
+            @Override
             public void visitDir(FileVisitDetails dirDetails) {
                 dirDetails.getFile();
                 hasContent.set(true);
             }
 
+            @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 fileDetails.getFile();
                 hasContent.set(true);
@@ -129,10 +137,12 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return this;
     }
 
+    @Override
     public FileTree plus(FileTree fileTree) {
         return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
+    @Override
     public FileTree visit(Closure closure) {
         return visit(fileVisitorFrom(closure));
     }
@@ -185,14 +195,17 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
             return fileTree.getBuildDependencies();
         }
 
+        @Override
         public FileTree visit(final FileVisitor visitor) {
             fileTree.visit(new FileVisitor() {
+                @Override
                 public void visitDir(FileVisitDetails dirDetails) {
                     if (spec.isSatisfiedBy(dirDetails)) {
                         visitor.visitDir(dirDetails);
                     }
                 }
 
+                @Override
                 public void visitFile(FileVisitDetails fileDetails) {
                     if (spec.isSatisfiedBy(fileDetails)) {
                         visitor.visitFile(fileDetails);

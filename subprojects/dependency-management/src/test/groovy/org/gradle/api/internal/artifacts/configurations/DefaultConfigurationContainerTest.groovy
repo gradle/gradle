@@ -76,7 +76,7 @@ class DefaultConfigurationContainerTest extends Specification {
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
             globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
             immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, projectStateRegistry,
-            documentationRegistry, callbackActionDecorator, userCodeApplicationContext)
+            documentationRegistry, callbackActionDecorator, userCodeApplicationContext, TestUtil.domainObjectCollectionFactory())
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

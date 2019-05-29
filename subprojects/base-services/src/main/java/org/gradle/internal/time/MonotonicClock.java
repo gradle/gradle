@@ -75,6 +75,7 @@ class MonotonicClock implements Clock {
         this.currentTime.set(currentTimeMillis);
     }
 
+    @Override
     public long getCurrentTime() {
         long nowNanos = timeSource.nanoTime();
         long syncNanos = syncNanosRef.get();

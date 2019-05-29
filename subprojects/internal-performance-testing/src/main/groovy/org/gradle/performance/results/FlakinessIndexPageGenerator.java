@@ -17,8 +17,6 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.Sets;
-import org.gradle.ci.github.GitHubIssuesClient;
-import org.gradle.ci.tagging.flaky.GitHubKnownIssuesProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +30,7 @@ import java.util.Set;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.performance.results.ScenarioBuildResultData.FLAKINESS_DETECTION_THRESHOLD;
+import static org.gradle.performance.results.Tag.FixedTag.FLAKY;
 
 public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
     public static final int MOST_RECENT_EXECUTIONS = 9;
@@ -42,11 +41,10 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             .thenComparing(comparing(FlakinessIndexPageGenerator::isFlaky).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
-    private final FlakinessIssueReporter issueReporter;
 
-    public FlakinessIndexPageGenerator(ResultsStore resultsStore, File resultJson, GitHubIssuesClient gitHubIssuesClient) {
-        super(resultsStore, resultJson);
-        issueReporter = new FlakinessIssueReporter(gitHubIssuesClient, new GitHubKnownIssuesProvider(gitHubIssuesClient));
+
+    public FlakinessIndexPageGenerator(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore resultsStore, File resultJson) {
+        super(flakinessAnalyzer, resultsStore, resultJson);
     }
 
     @Override
@@ -104,7 +102,7 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected Set<Tag> determineTags(ScenarioBuildResultData scenario) {
-                return isFlaky(scenario) ? Sets.newHashSet(Tag.FLAKY) : Collections.emptySet();
+                return isFlaky(scenario) ? Sets.newHashSet(FLAKY) : Collections.emptySet();
             }
 
             @Override
@@ -114,8 +112,9 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
     }
 
     public void reportToIssueTracker() {
-        scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).forEach(issueReporter::report);
+        scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).forEach(flakinessAnalyzer::report);
     }
+
     private static boolean isFlaky(ScenarioBuildResultData scenario) {
         return scenario.getExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
     }

@@ -67,6 +67,7 @@ object ProjectGroups {
     val Project.publicProjects
         get() = pluginProjects +
             implementationPluginProjects +
-            publicJavaProjects -
+            publicJavaProjects +
+            rootProject.project(":kotlinDsl") -
             setOf(":smokeTest", ":soak").map { rootProject.project(it) }
 }

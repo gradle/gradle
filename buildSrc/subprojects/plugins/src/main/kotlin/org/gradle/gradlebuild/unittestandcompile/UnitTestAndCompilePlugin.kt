@@ -46,46 +46,33 @@ import java.util.jar.Attributes
 import kotlin.reflect.full.declaredFunctions
 
 
-enum class ModuleType(val compatibility: JavaVersion) {
+enum class ModuleType(val compatibility: JavaVersion = JavaVersion.VERSION_1_8) {
 
     /**
-     * This module type is used by modules that contain code that is used by one
-     * of the entry points of using Gradle, such as the Wrapper, the Launcher
-     * and the Tooling API.
-     * Such entry points need to run on older Java versions than those parts of
-     * the codebase are executed from builds, if only to print a message
-     * indicating that the old JDK is not supported anymore.
+     * the first modules loaded during startup that support an older Java version
+     * to print a proper error message when running on an old JDK
      */
-    ENTRY_POINT(JavaVersion.VERSION_1_6),
+    STARTUP(JavaVersion.VERSION_1_6),
 
     /**
-     * This module type is used by modules that contain code that needs to
-     * be able to run in worker JVMs where we usually support older Java
-     * versions.
-     * Some of these modules use APIs that are not available in the specified
-     * Java version but only in parts that are not called from workers.
+     * modules that may run as part of a worker process that supports an older JDK version
      */
     WORKER(JavaVersion.VERSION_1_6),
 
     /**
-     * This module type is used by all modules that end up in the distribution
-     * and are not used by entry points or workers.
+     * modules that end up in the distribution in addition to STARTUP and WORKER
      */
-    CORE(JavaVersion.VERSION_1_8),
+    CORE,
 
     /**
-     * This module type is used by internal modules that are not part of
-     * the distribution.
+     * modules that are published as plugins on the portal
      */
-    INTERNAL(JavaVersion.VERSION_1_8),
+    PORTAL_PLUGINS,
 
     /**
-     * This module type is used for one-off modules that would normally use
-     * {@link #ENTRY_POINT} or {@link #WORKER} but explicitly require Java 8,
-     * e.g. due to the requirements of a downstream dependency (e.g. JUnit
-     * Platform).
+     * internal modules, like test fixtures, that are not part of the distribution
      */
-    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8)
+    INTERNAL,
 }
 
 
@@ -164,13 +151,13 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.addDependencies() {
         dependencies {
-            val testCompile = configurations.getByName("testCompile")
-            val testRuntime = configurations.getByName("testRuntime")
-            testCompile(library("junit"))
-            testCompile(library("groovy"))
-            testCompile(testLibrary("spock"))
-            testRuntime(testLibrary("bytebuddy"))
-            testRuntime(library("objenesis"))
+            val testImplementation = configurations.getByName("testImplementation")
+            val testRuntimeOnly = configurations.getByName("testRuntimeOnly")
+            testImplementation(library("junit"))
+            testImplementation(library("groovy"))
+            testImplementation(testLibrary("spock"))
+            testRuntimeOnly(testLibrary("bytebuddy"))
+            testRuntimeOnly(library("objenesis"))
         }
     }
 
@@ -272,6 +259,7 @@ open class UnitTestAndCompileExtension(val project: Project) {
     var moduleType: ModuleType? = null
         set(value) {
             field = value!!
+            project.addPlatformDependency(value)
             project.java.targetCompatibility = value.compatibility
             project.java.sourceCompatibility = value.compatibility
             project.java.disableAutoTargetJvmGradle53()
@@ -281,6 +269,19 @@ open class UnitTestAndCompileExtension(val project: Project) {
         project.afterEvaluate {
             if (this@UnitTestAndCompileExtension.moduleType == null) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
+            }
+        }
+    }
+
+    private
+    fun Project.addPlatformDependency(moduleType: ModuleType) {
+        val platformProject = ":distributionsDependencies"
+        dependencies {
+            if (moduleType == ModuleType.PORTAL_PLUGINS) {
+                "compileOnly"(platform(project(platformProject)))
+                "testImplementation"(platform(project(platformProject)))
+            } else {
+                "implementation"(platform(project(platformProject)))
             }
         }
     }

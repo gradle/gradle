@@ -286,6 +286,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 final File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
                 Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
+                    @Override
                     public BTreePersistentIndexedCache<K, V> create() {
                         return doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
                     }
@@ -400,14 +401,17 @@ public class DefaultCacheAccess implements CacheCoordinator {
             return cacheDisplayName;
         }
 
+        @Override
         public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException {
             return getFileLock().readFile(action);
         }
 
+        @Override
         public void updateFile(Runnable action) throws LockTimeoutException {
             getFileLock().updateFile(action);
         }
 
+        @Override
         public void writeFile(Runnable action) throws LockTimeoutException {
             getFileLock().writeFile(action);
         }

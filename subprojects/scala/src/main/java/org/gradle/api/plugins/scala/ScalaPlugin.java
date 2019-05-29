@@ -45,6 +45,7 @@ public class ScalaPlugin implements Plugin<Project> {
 
     public static final String SCALA_DOC_TASK_NAME = "scaladoc";
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ScalaBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);

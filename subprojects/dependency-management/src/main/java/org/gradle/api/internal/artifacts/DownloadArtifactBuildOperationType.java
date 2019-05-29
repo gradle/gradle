@@ -45,6 +45,7 @@ public final class DownloadArtifactBuildOperationType implements BuildOperationT
             this.artifactIdentifier = artifactIdentifier;
         }
 
+        @Override
         public String getArtifactIdentifier() {
             return artifactIdentifier;
         }

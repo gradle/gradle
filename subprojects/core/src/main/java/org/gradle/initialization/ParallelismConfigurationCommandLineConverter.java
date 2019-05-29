@@ -29,6 +29,7 @@ public class ParallelismConfigurationCommandLineConverter extends AbstractComman
 
     private List<BuildOption<ParallelismConfiguration>> buildOptions = ParallelismBuildOptions.get();
 
+    @Override
     public ParallelismConfiguration convert(ParsedCommandLine options, ParallelismConfiguration target) throws CommandLineArgumentException {
         for (BuildOption<ParallelismConfiguration> option : buildOptions) {
             option.applyFromCommandLine(options, target);
@@ -37,6 +38,7 @@ public class ParallelismConfigurationCommandLineConverter extends AbstractComman
         return target;
     }
 
+    @Override
     public void configure(CommandLineParser parser) {
         for (BuildOption<ParallelismConfiguration> option : buildOptions) {
             option.configure(parser);

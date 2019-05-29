@@ -93,6 +93,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
         });
     }
 
+    @Override
     public ResolvedModuleVersion getModuleVersion() {
         return new DefaultResolvedModuleVersion(owner);
     }

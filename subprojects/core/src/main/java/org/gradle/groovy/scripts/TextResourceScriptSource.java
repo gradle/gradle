@@ -37,10 +37,12 @@ public class TextResourceScriptSource implements ScriptSource {
         this.resource = resource;
     }
 
+    @Override
     public TextResource getResource() {
         return resource;
     }
 
+    @Override
     public String getFileName() {
         ResourceLocation location = resource.getLocation();
         if (location.getFile() != null) {
@@ -52,6 +54,7 @@ public class TextResourceScriptSource implements ScriptSource {
         return getClassName();
     }
 
+    @Override
     public String getDisplayName() {
         return resource.getDisplayName();
     }
@@ -60,6 +63,7 @@ public class TextResourceScriptSource implements ScriptSource {
      * Returns the class name for use for this script source.  The name is intended to be unique to support mapping
      * class names to source files even if many sources have the same file name (e.g. build.gradle).
      */
+    @Override
     public String getClassName() {
         if (className == null) {
             this.className = initClassName();

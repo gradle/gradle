@@ -16,8 +16,7 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -30,11 +29,11 @@ import javax.annotation.Nullable;
 
 public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public ProjectLibraryBinaryLocator(ProjectModelResolver projectModelResolver, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public ProjectLibraryBinaryLocator(ProjectModelResolver projectModelResolver, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.projectModelResolver = projectModelResolver;
-        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
+        this.domainObjectCollectionFactory = domainObjectCollectionFactory;
     }
 
     // Converts the binaries of a project library into regular binary instances
@@ -52,7 +51,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
             return null;
         }
         ModelMap<NativeBinarySpec> projectBinaries = library.getBinaries().withType(NativeBinarySpec.class);
-        DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class, collectionCallbackActionDecorator);
+        DomainObjectSet<NativeLibraryBinary> binaries = domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);
         for (NativeBinarySpec nativeBinarySpec : projectBinaries.values()) {
             binaries.add((NativeLibraryBinary) nativeBinarySpec);
         }

@@ -65,6 +65,7 @@ import java.util.Map;
  *
  * Please see the “Comparing Builds” chapter of the Gradle User Manual for more information.
  */
+@Deprecated
 public class CompareGradleBuilds extends DefaultTask implements VerificationTask {
 
     public static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
@@ -86,6 +87,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
 
         // Never up to date
         getOutputs().upToDateWhen(new Spec<Task>() {
+            @Override
             public boolean isSatisfiedBy(Task element) {
                 return false;
             }
@@ -181,6 +183,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
      *
      * @return True if a comparison between non identical builds will fail the task execution, otherwise false.
      */
+    @Override
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
@@ -190,6 +193,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
      *
      * @param ignoreFailures false to fail the task on non identical builds, true to not fail the task. The default is false.
      */
+    @Override
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }

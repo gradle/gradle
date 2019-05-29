@@ -35,6 +35,7 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 
@@ -43,10 +44,12 @@ import java.io.File;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
+@Deprecated
 public class PlayTestPlugin extends RuleSource {
     @Mutate
     void createTestTasks(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Test", "org.gradle.playframework-test");
         for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
             final FileCollection testCompileClasspath = getTestCompileClasspath(binary, configurations);
 
@@ -55,6 +58,7 @@ public class PlayTestPlugin extends RuleSource {
             final FileCollection testSources = ImmutableFileCollection.of(testSourceDir).getAsFileTree().matching(new PatternSet().include("**/*.scala", "**/*.java"));
             final File testClassesDir = new File(buildDir, binary.getProjectScopedName() + "/testClasses");
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
+                @Override
                 public void execute(PlatformScalaCompile scalaCompile) {
                     scalaCompile.setDescription("Compiles the scala and java test sources for the " + binary.getDisplayName() + ".");
 
@@ -77,6 +81,7 @@ public class PlayTestPlugin extends RuleSource {
             final String testTaskName = binary.getTasks().taskName("test");
             final File binaryBuildDir = new File(buildDir, binary.getProjectScopedName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
+                @Override
                 public void execute(Test test) {
                     test.setDescription("Runs " + WordUtils.uncapitalize(binary.getDisplayName() + "."));
 

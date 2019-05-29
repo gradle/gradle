@@ -43,6 +43,7 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
         this.exceptionTransformer = exceptionTransformer;
     }
 
+    @Override
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (!versionDetails.maySupportModel(type)) {
             throw Exceptions.unsupportedModel(type, versionDetails.getVersion());

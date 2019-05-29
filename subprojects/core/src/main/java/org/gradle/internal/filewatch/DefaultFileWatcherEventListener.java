@@ -65,6 +65,7 @@ public class DefaultFileWatcherEventListener implements FileWatcherEventListener
         return event.getType() != CREATE || event.getFile().isDirectory();
     }
 
+    @Override
     public void reportChanges(StyledTextOutput logger) {
         for (Map.Entry<File, FileWatcherEvent.Type> entry : aggregatedEvents.entrySet()) {
             FileWatcherEvent.Type changeType = entry.getValue();

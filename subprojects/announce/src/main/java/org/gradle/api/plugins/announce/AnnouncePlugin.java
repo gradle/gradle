@@ -27,6 +27,7 @@ import org.gradle.util.SingleMessageLogger;
  */
 @Deprecated
 public class AnnouncePlugin implements Plugin<Project> {
+    @Override
     public void apply(Project project) {
         SingleMessageLogger.nagUserOfDeprecatedPlugin("Announce");
         project.getExtensions().create("announce", AnnouncePluginExtension.class, project);

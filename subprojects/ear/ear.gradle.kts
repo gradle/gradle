@@ -15,11 +15,29 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    `java-library`
+}
 
 dependencies {
-    compile(project(":core"))
-    compile(project(":plugins"))
-    compile(library("inject"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":files"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":plugins"))
+    implementation(project(":platformJvm"))
+
+    implementation(library("groovy"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
+
+    testImplementation(project(":native"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(library("ant"))
 }
 
 gradlebuildJava {

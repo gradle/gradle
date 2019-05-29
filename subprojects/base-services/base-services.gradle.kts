@@ -14,17 +14,14 @@ plugins {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.WORKER
 }
 
 dependencies {
-    api(project(":distributionsDependencies"))
-
-    api(library("guava"))
     api(library("jsr305"))
-    api(library("fastutil"))
 
     implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("asm"))
@@ -34,6 +31,8 @@ dependencies {
             prefer(libraryVersion("bouncycastle_provider"))
         }
     }
+
+    integTestImplementation(project(":logging"))
 }
 
 testFixtures {

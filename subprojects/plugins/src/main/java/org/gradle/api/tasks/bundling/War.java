@@ -69,6 +69,7 @@ public class War extends Jar {
             @Override
             public void execute(CopySpec copySpec) {
                 copySpec.from(new Callable<Iterable<File>>() {
+                    @Override
                     public Iterable<File> call() {
                         FileCollection classpath = getClasspath();
                         return classpath != null ? classpath.filter(IS_DIRECTORY) : Collections.<File>emptyList();
@@ -77,8 +78,10 @@ public class War extends Jar {
             }
         });
         webInf.into("lib", new Action<CopySpec>() {
+            @Override
             public void execute(CopySpec it) {
                 it.from(new Callable<Iterable<File>>() {
+                    @Override
                     public Iterable<File> call() {
                         FileCollection classpath = getClasspath();
                         return classpath != null ? classpath.filter(IS_FILE) : Collections.<File>emptyList();
@@ -88,13 +91,16 @@ public class War extends Jar {
 
         });
         webInf.into("", new Action<CopySpec>() {
+            @Override
             public void execute(CopySpec it) {
                 it.from(new Callable<File>() {
+                    @Override
                     public File call() {
                         return getWebXml();
                     }
                 });
                 it.rename(new Transformer<String, String>() {
+                    @Override
                     public String transform(String it) {
                         return "web.xml";
                     }

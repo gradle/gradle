@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Task;
 import org.gradle.api.provider.Property;
 
 public interface PropertyInternal<T> extends ProviderInternal<T> {
@@ -23,6 +24,11 @@ public interface PropertyInternal<T> extends ProviderInternal<T> {
      * Sets the property's value from some arbitrary object. Used from the Groovy DSL.
      */
     void setFromAnyValue(Object object);
+
+    /**
+     * Associates this property with the task that produces its value.
+     */
+    void attachProducer(Task producer);
 
     /**
      * Same semantics as {@link Property#finalizeValue()}. Finalizes the value of this property eagerly.

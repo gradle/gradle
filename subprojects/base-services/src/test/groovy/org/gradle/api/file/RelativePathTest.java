@@ -21,7 +21,7 @@ import org.junit.Test;
 import java.io.File;
 
 import static org.gradle.util.Matchers.strictlyEqual;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 public class RelativePathTest {

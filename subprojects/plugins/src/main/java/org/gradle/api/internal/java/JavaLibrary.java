@@ -70,10 +70,12 @@ public class JavaLibrary implements SoftwareComponentInternal {
         return artifacts;
     }
 
+    @Override
     public String getName() {
         return "java";
     }
 
+    @Override
     public Set<UsageContext> getUsages() {
         if (featureVariants == null) {
             return ImmutableSet.of(runtimeUsage, compileUsage);

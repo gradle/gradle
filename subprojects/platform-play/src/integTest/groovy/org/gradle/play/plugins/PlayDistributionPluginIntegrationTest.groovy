@@ -31,6 +31,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
+        executer.noDeprecationChecks()
         settingsFile << """ rootProject.name = 'dist-play-app' """
         buildFile << """
             plugins {
@@ -146,6 +147,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
+        executer.noDeprecationChecks()
         succeeds "dist"
 
         then:

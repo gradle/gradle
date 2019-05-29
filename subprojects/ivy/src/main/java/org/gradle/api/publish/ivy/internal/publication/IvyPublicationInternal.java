@@ -25,6 +25,7 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.tasks.TaskProvider;
 
 import java.util.Set;
 
@@ -32,11 +33,12 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
 
     IvyPublicationIdentity getIdentity();
 
+    @Override
     IvyModuleDescriptorSpecInternal getDescriptor();
 
-    void setIvyDescriptorGenerator(Task descriptorGenerator);
+    void setIvyDescriptorGenerator(TaskProvider<? extends Task> descriptorGenerator);
 
-    void setModuleDescriptorGenerator(Task descriptorGenerator);
+    void setModuleDescriptorGenerator(TaskProvider<? extends Task> descriptorGenerator);
 
     /**
      * @deprecated Kept to not break third-party plugins

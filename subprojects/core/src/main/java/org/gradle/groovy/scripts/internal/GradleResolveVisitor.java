@@ -113,6 +113,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             this.isPrimaryNode = false;
         }
 
+        @Override
         public boolean hasPackageName() {
             if (redirect() != this) {
                 return super.hasPackageName();
@@ -120,6 +121,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             return knownEnclosingType.hasPackageName();
         }
 
+        @Override
         public String setName(String name) {
             if (redirect() != this) {
                 return super.setName(name);
@@ -148,6 +150,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             this.className = name;
         }
 
+        @Override
         public String getName() {
             if (redirect() != this) {
                 return super.getName();
@@ -155,6 +158,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             return prefix + className;
         }
 
+        @Override
         public boolean hasPackageName() {
             if (redirect() != this) {
                 return super.hasPackageName();
@@ -162,6 +166,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             return getName().indexOf('.') != -1;
         }
 
+        @Override
         public String setName(String name) {
             if (redirect() != this) {
                 return super.setName(name);
@@ -185,6 +190,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             this.className = name;
         }
 
+        @Override
         public String getName() {
             if (redirect() != this) {
                 return super.getName();
@@ -192,6 +198,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             return className;
         }
 
+        @Override
         public boolean hasPackageName() {
             if (redirect() != this) {
                 return super.hasPackageName();
@@ -199,6 +206,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             return false;
         }
 
+        @Override
         public String setName(String name) {
             if (redirect() != this) {
                 return super.setName(name);
@@ -215,11 +223,13 @@ public class GradleResolveVisitor extends ResolveVisitor {
         this.simpleNameToFQN = simpleNameToFQN;
     }
 
+    @Override
     public void startResolving(ClassNode node, SourceUnit source) {
         this.source = source;
         visitClass(node);
     }
 
+    @Override
     protected void visitConstructorOrMethod(MethodNode node, boolean isConstructor) {
         VariableScope oldScope = currentScope;
         currentScope = node.getVariableScope();
@@ -249,6 +259,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         currentScope = oldScope;
     }
 
+    @Override
     public void visitField(FieldNode node) {
         ClassNode t = node.getType();
         if (!fieldTypesChecked.contains(node)) {
@@ -257,6 +268,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         super.visitField(node);
     }
 
+    @Override
     public void visitProperty(PropertyNode node) {
         ClassNode t = node.getType();
         resolveOrFail(t, node);
@@ -838,6 +850,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
     }
 
 
+    @Override
     public Expression transform(Expression exp) {
         if (exp == null) {
             return null;
@@ -979,6 +992,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return pe;
     }
 
+    @Override
     protected Expression transformPropertyExpression(PropertyExpression pe) {
         boolean itlp = isTopLevelProperty;
         boolean ipe = inPropertyExpression;
@@ -1082,6 +1096,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
     }
 
+    @Override
     protected Expression transformVariableExpression(VariableExpression ve) {
         visitAnnotations(ve);
         Variable v = ve.getAccessedVariable();
@@ -1153,6 +1168,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             || op == Types.SYNTH_MAP;
     }
 
+    @Override
     protected Expression transformBinaryExpression(BinaryExpression be) {
         Expression left = transform(be.getLeftExpression());
         int type = be.getOperation().getType();
@@ -1220,6 +1236,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return be;
     }
 
+    @Override
     protected Expression transformClosureExpression(ClosureExpression ce) {
         boolean oldInClosure = inClosure;
         inClosure = true;
@@ -1246,6 +1263,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return ce;
     }
 
+    @Override
     protected Expression transformConstructorCallExpression(ConstructorCallExpression cce) {
         ClassNode type = cce.getType();
         resolveOrFail(type, cce);
@@ -1261,6 +1279,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return (node.isInterface() ? "interface" : "class") + " '" + node.getName() + "'";
     }
 
+    @Override
     protected Expression transformMethodCallExpression(MethodCallExpression mce) {
         Expression args = transform(mce.getArguments());
         Expression method = transform(mce.getMethod());
@@ -1278,6 +1297,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return result;
     }
 
+    @Override
     protected Expression transformDeclarationExpression(DeclarationExpression de) {
         visitAnnotations(de);
         Expression oldLeft = de.getLeftExpression();
@@ -1309,6 +1329,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
     }
 
+    @Override
     protected Expression transformAnnotationConstantExpression(AnnotationConstantExpression ace) {
         AnnotationNode an = (AnnotationNode) ace.getValue();
         ClassNode type = an.getClassNode();
@@ -1319,6 +1340,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return ace;
     }
 
+    @Override
     public void visitAnnotations(AnnotatedNode node) {
         List<AnnotationNode> annotations = node.getAnnotations();
         if (annotations.isEmpty()) {
@@ -1406,6 +1428,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
     }
 
+    @Override
     public void visitClass(ClassNode node) {
         ClassNode oldNode = currentClass;
 
@@ -1522,6 +1545,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
     }
 
+    @Override
     public void visitCatchStatement(CatchStatement cs) {
         resolveOrFail(cs.getExceptionType(), cs);
         if (cs.getExceptionType() == ClassHelper.DYNAMIC_TYPE) {
@@ -1530,11 +1554,13 @@ public class GradleResolveVisitor extends ResolveVisitor {
         super.visitCatchStatement(cs);
     }
 
+    @Override
     public void visitForLoop(ForStatement forLoop) {
         resolveOrFail(forLoop.getVariableType(), forLoop);
         super.visitForLoop(forLoop);
     }
 
+    @Override
     public void visitBlockStatement(BlockStatement block) {
         VariableScope oldScope = currentScope;
         currentScope = block.getVariableScope();
@@ -1542,6 +1568,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         currentScope = oldScope;
     }
 
+    @Override
     protected SourceUnit getSourceUnit() {
         return source;
     }
@@ -1625,6 +1652,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
 
     }
 
+    @Override
     public void setClassNodeResolver(ClassNodeResolver classNodeResolver) {
         this.classNodeResolver = classNodeResolver;
     }

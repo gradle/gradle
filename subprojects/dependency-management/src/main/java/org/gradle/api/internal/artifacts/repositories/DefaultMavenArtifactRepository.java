@@ -151,20 +151,24 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return describer.transform(this);
     }
 
+    @Override
     public URI getUrl() {
         return url == null ? null : fileResolver.resolveUri(url);
     }
 
+    @Override
     public void setUrl(URI url) {
         invalidateDescriptor();
         this.url = url;
     }
 
+    @Override
     public void setUrl(Object url) {
         invalidateDescriptor();
         this.url = url;
     }
 
+    @Override
     public Set<URI> getArtifactUrls() {
         Set<URI> result = new LinkedHashSet<URI>();
         for (Object additionalUrl : additionalUrls) {
@@ -173,6 +177,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return result;
     }
 
+    @Override
     public void artifactUrls(Object... urls) {
         invalidateDescriptor();
         additionalUrls.addAll(Lists.newArrayList(urls));
@@ -184,15 +189,18 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         setArtifactUrls((Iterable<?>) urls);
     }
 
+    @Override
     public void setArtifactUrls(Iterable<?> urls) {
         invalidateDescriptor();
         additionalUrls = Lists.newArrayList(urls);
     }
 
+    @Override
     public ModuleVersionPublisher createPublisher() {
         return createRealResolver();
     }
 
+    @Override
     public ConfiguredModuleComponentRepository createResolver() {
         return createRealResolver();
     }

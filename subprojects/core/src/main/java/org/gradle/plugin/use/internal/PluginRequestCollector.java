@@ -63,6 +63,7 @@ public class PluginRequestCollector {
             this.lineNumber = lineNumber;
         }
 
+        @Override
         public PluginDependencySpec version(String version) {
             this.version = version;
             return this;
@@ -79,6 +80,7 @@ public class PluginRequestCollector {
 
     public PluginDependenciesSpec createSpec(final int lineNumber) {
         return new PluginDependenciesSpec() {
+            @Override
             public PluginDependencySpec id(String id) {
                 DependencySpecImpl spec = new DependencySpecImpl(id, lineNumber);
                 specs.add(spec);
@@ -97,12 +99,14 @@ public class PluginRequestCollector {
     @VisibleForTesting
     List<PluginRequestInternal> listPluginRequests() {
         List<PluginRequestInternal> pluginRequests = collect(specs, new Transformer<PluginRequestInternal, DependencySpecImpl>() {
+            @Override
             public PluginRequestInternal transform(DependencySpecImpl original) {
                 return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
             }
         });
 
         Map<PluginId, Collection<PluginRequestInternal>> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequestInternal>() {
+            @Override
             public PluginId transform(PluginRequestInternal pluginRequest) {
                 return pluginRequest.getId();
             }

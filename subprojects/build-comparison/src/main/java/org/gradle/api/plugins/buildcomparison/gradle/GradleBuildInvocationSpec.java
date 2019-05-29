@@ -25,6 +25,7 @@ import java.util.List;
 /**
  * A specification for launching a Gradle build with a specified Gradle version.
   */
+@Deprecated
 public interface GradleBuildInvocationSpec {
 
     /**

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.ClientModule
@@ -31,9 +32,13 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
+import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.Factory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import java.util.concurrent.Callable
 
 class DefaultDependencyHandlerTest extends Specification {
 
@@ -326,5 +331,24 @@ class DefaultDependencyHandlerTest extends Specification {
 
         then:
         1 * dependencyFactory.createDependency(null)
+    }
+
+    @CompileStatic
+    void "can configure ExtensionAware statically"() {
+        String dependency = "some:random-dependency:0.1.1"
+        when:
+
+        Callable<List<String>> exampleDependencies = {
+            [dependency]
+        }
+
+        def callableType = new TypeOf<Callable<List<String>>>() {}
+        dependencyHandler.extensions.add(callableType, "example", exampleDependencies)
+
+        ExtensionContainer extension = dependencyHandler.extensions
+        Callable<List<String>> backOut = (extension.getByName("example") as Callable<List<String>>)
+        String backOutValue = backOut().first()
+        then:
+        backOutValue == dependency
     }
 }

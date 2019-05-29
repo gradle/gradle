@@ -17,12 +17,11 @@
 package org.gradle.launcher.cli
 
 import com.google.common.base.Function
-import org.apache.commons.lang3.text.StrBuilder
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
 import org.gradle.internal.time.MockClock
-import org.gradle.launcher.cli.CommandLineActionFactory.WelcomeMessageAction
+import org.gradle.launcher.cli.DefaultCommandLineActionFactory.WelcomeMessageAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -31,7 +30,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-import static org.gradle.launcher.cli.CommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY
+import static org.gradle.launcher.cli.DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY
 
 class WelcomeMessageActionTest extends Specification {
 
@@ -187,7 +186,7 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
 
     private static class ToStringLogger extends OutputEventListenerBackedLogger {
 
-        private final StrBuilder log = new StrBuilder()
+        private final StringBuilder log = new StringBuilder()
 
         ToStringLogger() {
             super("ToStringLogger", new OutputEventListenerBackedLoggerContext(new MockClock()), new MockClock())
@@ -195,7 +194,8 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
 
         @Override
         void lifecycle(String message) {
-            log.appendln(message)
+            log.append(message)
+            log.append('\n')
         }
 
         @Override

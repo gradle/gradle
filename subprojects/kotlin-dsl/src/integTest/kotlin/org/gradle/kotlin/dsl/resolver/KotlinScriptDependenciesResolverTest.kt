@@ -59,18 +59,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `returns given Java home`() {
-
-        val javaHome = System.getProperty("java.home")
-        val env = arrayOf("gradleJavaHome" to javaHome)
-        assertThat(
-            resolvedScriptDependencies(env = *env)?.javaHome,
-            equalTo(javaHome)
-        )
-    }
-
-
-    @Test
     fun `succeeds on init script`() {
 
         assertSucceeds(withFile("my.init.gradle.kts", """

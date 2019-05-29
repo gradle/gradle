@@ -169,7 +169,6 @@ model {
 
         then:
         resultDebug.size() == 1
-        resultDebug[0].assertTasksExecuted(':compileMainWin32DebugExecutableMainCpp', ':linkMainWin32DebugExecutable', ':mainWin32DebugExecutable', ':installMainWin32DebugExecutable')
         debugBinary.assertExists()
         installation('build/install/main/win32/debug').assertInstalled()
     }
@@ -202,8 +201,6 @@ model {
 
         then:
         resultDebug.size() == 2
-        resultDebug[0].assertTasksExecuted(':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
-        resultDebug[1].assertTasksExecuted(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary')
         debugBinaryLib.assertExists()
         debugBinaryDll.assertExists()
     }

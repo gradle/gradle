@@ -19,6 +19,7 @@ import org.apache.maven.model.Exclusion;
 import org.gradle.api.artifacts.ExcludeRule;
 
 class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
+    @Override
     public Exclusion convert(ExcludeRule excludeRule) {
         if (isConvertible(excludeRule)) {
             Exclusion exclusion = new Exclusion();

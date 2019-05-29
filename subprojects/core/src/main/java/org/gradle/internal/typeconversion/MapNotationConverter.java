@@ -46,6 +46,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         visitor.candidate("Maps");
     }
 
+    @Override
     public T parseType(Map values) throws UnsupportedNotationException {
         Map<String, Object> mutableValues = new HashMap<String, Object>(values);
         Set<String> missing = null;

@@ -28,18 +28,22 @@ public class DelegatingScriptSource implements ScriptSource {
         return source;
     }
     
+    @Override
     public String getClassName() {
         return source.getClassName();
     }
 
+    @Override
     public String getDisplayName() {
         return source.getDisplayName();
     }
 
+    @Override
     public String getFileName() {
         return source.getFileName();
     }
 
+    @Override
     public TextResource getResource() {
         return source.getResource();
     }

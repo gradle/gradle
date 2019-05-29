@@ -17,6 +17,7 @@ package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 
 import java.util.HashSet;
@@ -78,17 +79,17 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
     @Override
     public Action<? super T> registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
-        return registerEagerAddDecoratedAction(type, decorate(addAction));
+        return registerEagerAddDecoratedAction(type, addAction);
     }
 
     @Override
     public Action<? super T> registerLazyAddAction(Action<? super T> addAction) {
-        return registerLazyAddDecoratedAction(decorate(addAction));
+        return registerLazyAddDecoratedAction(addAction);
     }
 
     @Override
     public void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction) {
-        registerRemoveDecoratedAction(decorate(removeAction));
+        registerRemoveDecoratedAction(removeAction);
     }
 
     private Action<? super T> registerEagerAddDecoratedAction(Class<? extends T> type, Action<? super T> decorated) {
@@ -105,17 +106,9 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
         removeActions = removeActions.add(decorated);
     }
 
-    private Action<? super T> decorate(Action<? super T> action) {
-        return decorator.decorate(action);
-    }
-
-    private <S extends T> Action<? super T> decorate(Action<? super S> action, CollectionFilter<S> filter) {
-        return filter.filtered(decorator.decorate(action));
-    }
-
     @Override
     public <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter) {
-        return new FilteredEventRegister<S>(filter);
+        return new FilteredEventRegister<S>(filter, this);
     }
 
     private void subscribe(Class<? extends T> type) {
@@ -135,14 +128,16 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
     private class FilteredEventRegister<S extends T> implements CollectionEventRegister<S> {
         private final CollectionFilter<S> filter;
+        private final CollectionEventRegister<S> delegate;
 
-        FilteredEventRegister(CollectionFilter<S> filter) {
+        FilteredEventRegister(CollectionFilter<S> filter, CollectionEventRegister<T> delegate) {
             this.filter = filter;
+            this.delegate = Cast.uncheckedCast(delegate);
         }
 
         @Override
         public CollectionCallbackActionDecorator getDecorator() {
-            return decorator;
+            return delegate.getDecorator();
         }
 
         @Override
@@ -167,22 +162,22 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
         @Override
         public Action<? super S> registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
-            return registerEagerAddDecoratedAction(type, decorate(addAction, filter));
+            return delegate.registerEagerAddAction(type, filter.filtered(addAction));
         }
 
         @Override
         public Action<? super S> registerLazyAddAction(Action<? super S> addAction) {
-            return registerLazyAddDecoratedAction(decorate(addAction, filter));
+            return delegate.registerLazyAddAction(filter.filtered(addAction));
         }
 
         @Override
         public void registerRemoveAction(Class<? extends S> type, Action<? super S> removeAction) {
-            registerRemoveDecoratedAction(decorate(removeAction, filter));
+            delegate.registerRemoveAction(type, filter.filtered(removeAction));
         }
 
         @Override
         public <N extends S> CollectionEventRegister<N> filtered(CollectionFilter<N> filter) {
-            return new FilteredEventRegister<N>(filter);
+            return new FilteredEventRegister<N>(filter, (CollectionEventRegister<T>) this);
         }
     }
 

@@ -33,14 +33,17 @@ public class DefaultBuildComparisonSpec implements BuildComparisonSpec {
         this.outcomeAssociations = Collections.unmodifiableList(new ArrayList<BuildOutcomeAssociation<?>>(outcomeAssociations));
     }
 
+    @Override
     public Set<BuildOutcome> getSource() {
         return source;
     }
 
+    @Override
     public Set<BuildOutcome> getTarget() {
         return target;
     }
 
+    @Override
     public List<BuildOutcomeAssociation<?>> getOutcomeAssociations() {
         return outcomeAssociations;
     }

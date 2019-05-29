@@ -56,6 +56,7 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
         return isolationMode;
     }
 
+    @Override
     public void setIsolationMode(IsolationMode isolationMode) {
         this.isolationMode = isolationMode == null ? IsolationMode.AUTO : isolationMode;
     }

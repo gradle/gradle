@@ -22,7 +22,7 @@ import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 

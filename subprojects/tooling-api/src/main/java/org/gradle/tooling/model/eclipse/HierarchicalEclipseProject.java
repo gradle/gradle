@@ -32,11 +32,13 @@ public interface HierarchicalEclipseProject extends HierarchicalElement, HasGrad
     /**
      * {@inheritDoc}
      */
+    @Override
     HierarchicalEclipseProject getParent();
 
     /**
      * {@inheritDoc}
      */
+    @Override
     DomainObjectSet<? extends HierarchicalEclipseProject> getChildren();
 
     /**

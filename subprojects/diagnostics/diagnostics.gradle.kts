@@ -21,18 +21,31 @@ plugins {
 }
 
 dependencies {
-    api(library("groovy"))
-
-    api(project(":core"))
-    api(project(":reporting"))
-    api(project(":platformBase"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":files"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":reporting"))
+    implementation(project(":platformBase"))
     implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
     implementation(project(":baseServicesGroovy"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
     implementation(library("guava"))
-    implementation(library("jatl"))
     implementation(library("commons_lang"))
+    implementation(library("inject"))
+    implementation(library("jatl"))
+
+    testImplementation(project(":processServices"))
+
+    integTestImplementation(testLibrary("jsoup"))
+    integTestImplementation(testLibrary("jetty"))
+
+    testFixturesImplementation(project(":internalIntegTesting"))
 
     integTestRuntimeOnly(project(":plugins"))
     integTestRuntimeOnly(project(":platformNative"))
@@ -47,7 +60,7 @@ testFixtures {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.WORKER
+    moduleType = ModuleType.CORE
 }
 
 testFilesCleanup {

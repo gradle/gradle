@@ -37,6 +37,7 @@ class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
         delegate.describe(visitor);
     }
 
+    @Override
     public T parseNotation(N notation) {
         String failure;
         //TODO SF add quotes to both formats (there will be *lots* of tests failing so I'm not sure if it is worth it).

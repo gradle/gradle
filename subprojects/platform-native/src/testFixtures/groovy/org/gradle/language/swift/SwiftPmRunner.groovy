@@ -17,6 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.test.fixtures.file.ExecOutput
 
 
 class SwiftPmRunner {
@@ -43,20 +44,38 @@ class SwiftPmRunner {
         return this
     }
 
-    void build() {
+    ExecOutput build() {
+        def result = run()
+        if (result.exitCode != 0) {
+            throw new AssertionError("Swift PM exited with non-zero exit code. Output:\n${result.out}")
+        }
+        return result
+    }
+
+    ExecOutput buildAndFails() {
+        def result = run()
+        if (result.exitCode == 0) {
+            throw new AssertionError("Swift PM unexpectedly succeeded. Output:\n${result.out}")
+        }
+        return result
+    }
+
+    private ExecOutput run() {
         assert projectDir != null
         def builder = new ProcessBuilder()
         builder.command([swiftc.tool("swift").absolutePath] + args)
         println "Running " + builder.command()
         builder.directory(projectDir)
         builder.redirectErrorStream(true)
+        swiftc.runtimeEnv.each {
+            def var = it.split("=")
+            builder.environment().put(var[0], var[1])
+        }
         def process = builder.start()
         process.outputStream.close()
         def output = process.inputStream.text
         println output
         int exitCode = process.waitFor()
-        if (exitCode != 0) {
-            throw new AssertionError("Swift PM exited with non-zero exit code. Output:\n${output}")
-        }
+        return new ExecOutput(exitCode, output, "")
     }
 }

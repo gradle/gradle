@@ -41,6 +41,7 @@ public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends Ab
         nameDescription = type.getSimpleName() + " name";
     }
 
+    @Override
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
         NameValidator.validate(name, nameDescription, "");
         return super.create(name, configureAction);

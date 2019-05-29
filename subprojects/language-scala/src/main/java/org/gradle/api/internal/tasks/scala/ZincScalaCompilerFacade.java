@@ -16,19 +16,18 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 
 public class ZincScalaCompilerFacade implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
-    private static final Logger LOGGER = Logging.getLogger(ZincScalaCompilerFacade.class);
     private final Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
 
+    @Inject
     public ZincScalaCompilerFacade(Iterable<File> scalaClasspath, Iterable<File> zincClasspath) {
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;

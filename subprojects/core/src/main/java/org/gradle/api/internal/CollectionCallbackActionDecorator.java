@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 
 public interface CollectionCallbackActionDecorator {
 
-    @Nullable
     <T> Action<T> decorate(@Nullable Action<T> action);
 
     CollectionCallbackActionDecorator NOOP = new CollectionCallbackActionDecorator() {

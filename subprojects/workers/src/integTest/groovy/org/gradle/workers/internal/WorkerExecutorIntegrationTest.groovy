@@ -376,6 +376,104 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         succeeds "verifyNotIsolated"
     }
 
+    def "user classes are isolated when using IsolationMode.CLASSLOADER"() {
+        fixture.withRunnableClassInBuildScript()
+
+        buildFile << """
+            class MutableItem {
+                static String value = "foo"
+            }
+            
+            class MutatingRunnable extends TestRunnable {
+                final String value
+                
+                @Inject
+                public MutatingRunnable(List<String> files, File outputDir, Foo foo) {
+                    super(files, outputDir, foo);
+                    this.value = files[0]
+                }
+                
+                public void run() {
+                    MutableItem.value = value
+                }
+            }
+            
+            task mutateValue(type: WorkerTask) {
+                list = [ "bar" ]
+                isolationMode = IsolationMode.CLASSLOADER
+                runnableClass = MutatingRunnable.class
+            } 
+            
+            task verifyIsolated {
+                dependsOn mutateValue
+                doLast {
+                    assert MutableItem.value == "foo"
+                }
+            }
+        """
+
+        expect:
+        succeeds "verifyIsolated"
+    }
+
+    def "user classpath is isolated when using IsolationMode.CLASSLOADER"() {
+        fixture.withRunnableClassInBuildScript()
+
+        buildFile << """
+            import java.util.jar.Manifest 
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            configurations {
+                customGuava
+            }
+            
+            dependencies {
+                customGuava "com.google.guava:guava:23.1-jre"
+            }
+            
+            class GuavaVersionRunnable extends TestRunnable {
+                @Inject
+                public GuavaVersionRunnable(List<String> files, File outputDir, Foo foo) {
+                    super(files, outputDir, foo)
+                }
+                
+                public void run() {
+                    Enumeration<URL> resources = this.getClass().getClassLoader()
+                            .getResources("META-INF/MANIFEST.MF")
+                    while (resources.hasMoreElements()) {
+                        InputStream inputStream = resources.nextElement().openStream()
+                        Manifest manifest = new Manifest(inputStream)
+                        java.util.jar.Attributes mainAttributes = manifest.getMainAttributes()
+                        String symbolicName = mainAttributes.getValue("Bundle-SymbolicName")
+                        if ("com.google.guava".equals(symbolicName)) {
+                            println "Guava version: " + mainAttributes.getValue("Bundle-Version")
+                            break
+                        }
+                    }
+                    
+                    // This method was removed in Guava 24.0
+                    def predicatesClass = this.getClass().getClassLoader().loadClass("com.google.common.base.Predicates")
+                    assert predicatesClass.getDeclaredMethods().any { it.name == "assignableFrom" }
+                }
+            }
+            
+            task checkGuavaVersion(type: WorkerTask) {
+                isolationMode = IsolationMode.CLASSLOADER
+                runnableClass = GuavaVersionRunnable.class
+                additionalClasspath = configurations.customGuava
+            } 
+        """
+
+        expect:
+        succeeds "checkGuavaVersion"
+
+        and:
+        outputContains("Guava version: 23.1.0.jre")
+    }
+
     void withParameterClassReferencingClassInAnotherPackage() {
         file("buildSrc/src/main/java/org/gradle/another/Bar.java").text = """
             package org.gradle.another;

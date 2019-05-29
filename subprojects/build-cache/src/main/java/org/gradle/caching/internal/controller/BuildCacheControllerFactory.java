@@ -210,18 +210,22 @@ public final class BuildCacheControllerFactory {
             this.config = config;
         }
 
+        @Override
         public String getClassName() {
             return className;
         }
 
+        @Override
         public boolean isPush() {
             return push;
         }
 
+        @Override
         public String getType() {
             return type;
         }
 
+        @Override
         public Map<String, String> getConfig() {
             return config;
         }

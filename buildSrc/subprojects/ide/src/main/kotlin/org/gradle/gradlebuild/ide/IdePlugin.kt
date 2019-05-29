@@ -120,7 +120,7 @@ open class IdePlugin : Plugin<Project> {
         apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
         tasks.named("idea") {
             doFirst {
-                throw RuntimeException("To import in IntelliJ, please follow the insturctions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij")
+                throw RuntimeException("To import in IntelliJ, please follow the instructions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij")
             }
         }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
@@ -55,6 +56,14 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
     @Override
     public Class<T> getType() {
         return type;
+    }
+
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        if (super.maybeVisitBuildDependencies(context)) {
+            return true;
+        }
+        return provider.maybeVisitBuildDependencies(context);
     }
 
     @Override

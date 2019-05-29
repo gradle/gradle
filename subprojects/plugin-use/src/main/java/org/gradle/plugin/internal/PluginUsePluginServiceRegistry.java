@@ -59,6 +59,7 @@ import java.util.List;
 
 public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistry {
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
     }

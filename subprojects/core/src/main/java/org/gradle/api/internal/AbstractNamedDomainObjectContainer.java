@@ -70,11 +70,13 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
      */
     protected abstract T doCreate(String name);
 
+    @Override
     public T create(String name) {
         assertMutable("create(String)");
         return create(name, Actions.doNothing());
     }
 
+    @Override
     public T maybeCreate(String name) {
         T item = findByName(name);
         if (item != null) {
@@ -83,11 +85,13 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
         return create(name);
     }
 
+    @Override
     public T create(String name, Closure configureClosure) {
         assertMutable("create(String, Closure)");
         return create(name, ConfigureUtil.configureUsing(configureClosure));
     }
 
+    @Override
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
         assertMutable("create(String, Action)");
         assertCanAdd(name);
@@ -101,12 +105,14 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
         return new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
     }
 
+    @Override
     public AbstractNamedDomainObjectContainer<T> configure(Closure configureClosure) {
         ConfigureDelegate delegate = createConfigureDelegate(configureClosure);
         ConfigureUtil.configureSelf(configureClosure, this, delegate);
         return this;
     }
 
+    @Override
     public String getDisplayName() {
         return getTypeDisplayName() + " container";
     }

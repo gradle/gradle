@@ -22,14 +22,25 @@ plugins {
 }
 
 dependencies {
-    api(project(":core"))
-    api(project(":dependencyManagement"))
-    api(project(":plugins"))
-    api(project(":pluginUse"))
-    api(project(":publish"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":files"))
+    implementation(project(":resources"))
+    implementation(project(":baseServicesGroovy"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":plugins"))
+    implementation(project(":pluginUse"))
+    implementation(project(":publish"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
+    implementation(library("ant"))
     implementation(library("ivy"))
     implementation(library("maven3"))
     implementation(library("pmaven_common"))
@@ -39,13 +50,19 @@ dependencies {
     implementation(library("plexus_container"))
     implementation(library("aether_connector"))
 
+    testImplementation(project(":native"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":snapshots"))
+    testImplementation(project(":resourcesHttp"))
     testImplementation(testLibrary("xmlunit"))
 
     integTestImplementation(project(":ear"))
+    integTestImplementation(testLibrary("jetty"))
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":apiMetadata"))
 
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
 }
 

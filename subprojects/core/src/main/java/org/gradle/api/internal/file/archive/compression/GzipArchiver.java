@@ -34,6 +34,7 @@ public class GzipArchiver extends AbstractArchiver {
         super(resource);
     }
 
+    @Override
     protected String getSchemePrefix() {
         return "gzip:";
     }
@@ -42,6 +43,7 @@ public class GzipArchiver extends AbstractArchiver {
         // this is not very beautiful but at some point we will
         // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
         return new ArchiveOutputStreamFactory() {
+            @Override
             public OutputStream createArchiveOutputStream(File destination) throws FileNotFoundException {
                 OutputStream outStr = new FileOutputStream(destination);
                 try {
@@ -55,6 +57,7 @@ public class GzipArchiver extends AbstractArchiver {
         };
     }
 
+    @Override
     public InputStream read() {
         InputStream input = new BufferedInputStream(resource.read());
         try {

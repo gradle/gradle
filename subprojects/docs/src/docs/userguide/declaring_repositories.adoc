@@ -111,7 +111,7 @@ See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDe
 For Maven repositories, it's often the case that a repository would either contain releases or snapshots.
 Gradle lets you declare what kind of artifacts are found in a repository using this DSL:
 
-.Splitting snaphshots and releases
+.Splitting snapshots and releases
 ====
 include::sample[dir="/userguide/dependencyManagement/declaringRepositories/filtering/groovy",files="build.gradle[tags=repository-snapshots]"]
 include::sample[dir="/userguide/dependencyManagement/declaringRepositories/filtering/kotlin",files="build.gradle.kts[tags=repository-snapshots]"]

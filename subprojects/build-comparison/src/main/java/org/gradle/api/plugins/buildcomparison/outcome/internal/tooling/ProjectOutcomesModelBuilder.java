@@ -32,10 +32,12 @@ import java.util.List;
 public class ProjectOutcomesModelBuilder implements ToolingModelBuilder {
     private final PublishArtifactToFileBuildOutcomeTransformer artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
 
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.outcomes.ProjectOutcomes");
     }
 
+    @Override
     public Object buildAll(String modelName, Project project) {
         return buildProjectOutput(project.getRootProject(), null);
     }

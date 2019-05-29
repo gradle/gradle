@@ -48,5 +48,8 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
         return destinationDir == null ? null : fileResolver.resolve(destinationDir);
     }
 
-
+    // TODO:instant-execution - remove this
+    public CopySpecInternal getDelegate() {
+        return delegate;
+    }
 }

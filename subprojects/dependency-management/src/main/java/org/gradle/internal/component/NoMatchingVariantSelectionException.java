@@ -23,7 +23,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Collection;
 
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatches;
+import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForIncompatibility;
 
 public class NoMatchingVariantSelectionException extends VariantSelectionException {
     public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
@@ -36,7 +36,7 @@ public class NoMatchingVariantSelectionException extends VariantSelectionExcepti
         formatter.startChildren();
         for (ResolvedVariant variant : candidates) {
             formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatches(formatter, consumer, matcher, variant.getAttributes());
+            formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable());
         }
         formatter.endChildren();
         return formatter.toString();

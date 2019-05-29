@@ -33,6 +33,7 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
         this.taskSelector = taskSelector;
     }
 
+    @Override
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
         Set<String> excludedTaskNames = gradle.getStartParameter().getExcludedTaskNames();

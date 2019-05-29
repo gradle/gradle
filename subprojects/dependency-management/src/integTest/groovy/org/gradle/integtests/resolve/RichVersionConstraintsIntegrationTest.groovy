@@ -601,7 +601,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
    Dependency path ':test:unspecified' --> 'org:foo:{strictly [0,1]}'""")
     }
 
-    void "should pass if strict version ranges overlap"() {
+    void    "should pass if strict version ranges overlap"() {
         given:
         repository {
             'org:foo' {

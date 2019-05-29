@@ -34,6 +34,7 @@ public abstract class AbstractPublishArtifact implements PublishArtifact {
         this(null, tasks);
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return taskDependency;
     }

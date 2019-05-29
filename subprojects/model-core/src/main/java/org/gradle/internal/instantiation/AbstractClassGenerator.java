@@ -16,10 +16,15 @@
 
 package org.gradle.internal.instantiation;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
+import com.google.common.reflect.TypeParameter;
+import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
@@ -34,7 +39,9 @@ import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -68,6 +75,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * Generates a subclass of the target class to mix-in some DSL behaviour.
@@ -88,18 +96,37 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Lock CACHE_LOCK = new ReentrantLock();
     private final ImmutableSet<Class<? extends Annotation>> disabledAnnotations;
     private final ImmutableSet<Class<? extends Annotation>> enabledAnnotations;
+    private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
 
     public AbstractClassGenerator(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations) {
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
+        ImmutableListMultimap.Builder<Class<? extends Annotation>, TypeToken<?>> allowedTypesBuilder = ImmutableListMultimap.builder();
         for (InjectAnnotationHandler handler : allKnownAnnotations) {
-            if (!enabledAnnotations.contains(handler.getAnnotationType())) {
-                builder.add(handler.getAnnotationType());
+            Class<? extends Annotation> annotationType = handler.getAnnotationType();
+            if (!enabledAnnotations.contains(annotationType)) {
+                builder.add(annotationType);
+            } else {
+                InjectionPointQualifier injectionPointQualifier = annotationType.getAnnotation(InjectionPointQualifier.class);
+                if (injectionPointQualifier != null) {
+                    for (Class<?> supportedType : injectionPointQualifier.supportedTypes()) {
+                        allowedTypesBuilder.put(annotationType, TypeToken.of(supportedType));
+                    }
+                    for (Class<?> supportedProviderType : injectionPointQualifier.supportedProviderTypes()) {
+                        allowedTypesBuilder.put(annotationType, providerOf(supportedProviderType));
+                    }
+                }
             }
         }
         this.disabledAnnotations = builder.build();
+        this.allowedTypesForAnnotation = allowedTypesBuilder.build();
     }
 
+    private <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
+        return new TypeToken<Provider<T>>() {}.where(new TypeParameter<T>() {}, providerType);
+    }
+
+    @Override
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
         CACHE_LOCK.lock();
         try {
@@ -148,11 +175,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         handlers.add(injectionHandler);
 
         // Order is significant
-        List<ClassValidator> validators = new ArrayList<ClassValidator>(1 + disabledAnnotations.size());
+        List<ClassValidator> validators = new ArrayList<ClassValidator>(2 + disabledAnnotations.size());
         for (Class<? extends Annotation> annotation : disabledAnnotations) {
             validators.add(new DisabledAnnotationValidator(annotation));
         }
-        validators.add(new InjectionAnnotationValidator(enabledAnnotations));
+        validators.add(new InjectionAnnotationValidator(enabledAnnotations, allowedTypesForAnnotation));
 
         final Class<?> subclass;
         try {
@@ -381,6 +408,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             @Override
             public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
                 return annotationsTriggeringServiceInjection.contains(serviceAnnotation);
+            }
+
+            @Override
+            public Class<?> getGeneratedClass() {
+                return constructor.getDeclaringClass();
             }
 
             @Override
@@ -945,9 +977,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static class InjectionAnnotationValidator implements ClassValidator {
         private final Set<Class<? extends Annotation>> annotationTypes;
+        private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
 
-        InjectionAnnotationValidator(Set<Class<? extends Annotation>> annotationTypes) {
+        InjectionAnnotationValidator(Set<Class<? extends Annotation>> annotationTypes, ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation) {
             this.annotationTypes = annotationTypes;
+            this.allowedTypesForAnnotation = allowedTypesForAnnotation;
         }
 
         @Override
@@ -1009,6 +1043,30 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 formatter.append(" annotation on method ");
                 formatter.appendMethod(method);
                 formatter.append(" as it is not public or protected.");
+                throw new IllegalArgumentException(formatter.toString());
+            }
+            ImmutableCollection<TypeToken<?>> allowedTypes = allowedTypesForAnnotation.get(annotationType);
+            if (!allowedTypes.isEmpty()) {
+                Type returnType = method.getGenericReturnType();
+                for (TypeToken<?> allowedType : allowedTypes) {
+                    if (allowedType.isSubtypeOf(returnType)) {
+                        return;
+                    }
+                }
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Cannot use ");
+                formatter.appendAnnotation(annotationType);
+                formatter.append(" annotation on property ");
+                formatter.appendMethod(method);
+                formatter.append(" of type ");
+                formatter.append(TypeToken.of(returnType).toString());
+                formatter.append(". Allowed property types: ");
+                formatter.append(allowedTypes.stream()
+                    .map(TypeToken::toString)
+                    .sorted()
+                    .collect(Collectors.joining(", "))
+                );
+                formatter.append(".");
                 throw new IllegalArgumentException(formatter.toString());
             }
         }

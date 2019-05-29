@@ -85,9 +85,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
     public void setExecHandle(ExecHandle execHandle) {
         this.execHandle = execHandle;
         execHandle.addListener(new ExecHandleListener() {
+            @Override
             public void executionStarted(ExecHandle execHandle) {
             }
 
+            @Override
             public void executionFinished(ExecHandle execHandle, ExecResult execResult) {
                 onProcessStop(execResult);
             }
@@ -155,10 +157,12 @@ public class DefaultWorkerProcess implements WorkerProcess {
                 + '}';
     }
 
+    @Override
     public ObjectConnection getConnection() {
         return connection;
     }
 
+    @Override
     public WorkerProcess start() {
         try {
             doStart();
@@ -206,6 +210,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
         }
     }
 
+    @Override
     public ExecResult waitForStop() {
         try {
             return execHandle.waitForFinish().assertNormalExitValue();

@@ -110,6 +110,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
         @Override
         public JointCompileTaskConfig getTransformTask() {
             return new JointCompileTaskConfig() {
+                @Override
                 public String getTaskPrefix() {
                     return "compile";
                 }
@@ -119,10 +120,12 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     return candidate instanceof ScalaLanguageSourceSet || candidate instanceof JavaSourceSet;
                 }
 
+                @Override
                 public Class<? extends DefaultTask> getTaskType() {
                     return PlatformScalaCompile.class;
                 }
 
+                @Override
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
                     configureScalaTask(compile, ((WithJvmAssembly) binarySpec).getAssembly(), "Compiles " + sourceSet + ".");

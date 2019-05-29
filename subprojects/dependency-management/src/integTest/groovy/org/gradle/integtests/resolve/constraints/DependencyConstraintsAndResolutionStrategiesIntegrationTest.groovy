@@ -91,7 +91,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
 
         then:
         failure.assertHasCause """Conflict(s) found for the following module(s):
-  - org:foo between versions 1.0 and 1.1"""
+  - org:foo between versions 1.1 and 1.0"""
     }
 
     void "dependency substitution rules are applied to dependency constraints"() {

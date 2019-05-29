@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
@@ -238,5 +239,31 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         namespace                | name
         null                     | "'foo'"
         "'http://my.extra.info'" | null
+    }
+
+    def "withXml should not loose Gradle metadata marker"() {
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
+        buildFile << """
+            publishing {
+                repositories {
+                    ivy { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    ivy {
+                        descriptor.withXml {
+                           asNode().info[0].@resolver = 'wonderland'
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublished()
+        module.hasGradleMetadataRedirectionMarker()
+        def parsedIvy = module.parsedIvy
+        parsedIvy.resolver == 'wonderland'
     }
 }

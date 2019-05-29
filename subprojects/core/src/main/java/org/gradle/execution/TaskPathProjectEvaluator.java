@@ -28,6 +28,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         this.cancellationToken = cancellationToken;
     }
 
+    @Override
     public void configure(ProjectInternal project) {
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException();
@@ -56,6 +57,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         project.bindAllModelRules();
     }
 
+    @Override
     public void configureHierarchy(ProjectInternal project) {
         configure(project);
         for (Project sub : project.getSubprojects()) {

@@ -1,22 +1,39 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(project(":core"))
-    compile(project(":platformJvm"))
-    compile(project(":platformBase"))
+    api(library("jsr305"))
 
-    testRuntime(project(":languageJava"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":files"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":workers"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
 
-    testFixturesApi(project(":internalIntegTesting"))
+    implementation(library("groovy")) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+    implementation(library("guava"))
+    implementation(library("inject"))
+
+    testImplementation(project(":native"))
+    testImplementation(project(":resources"))
+    testRuntimeOnly(project(":languageJava"))
+
+    testFixturesImplementation(library("commons_lang"))
+    testFixturesImplementation(project(":internalIntegTesting"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.WORKER
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

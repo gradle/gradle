@@ -189,6 +189,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * A {@link org.gradle.api.Namer} namer for tasks that returns {@link #getName()}.
      */
     class Namer implements org.gradle.api.Namer<Task> {
+        @Override
         public String determineName(Task c) {
             return c.getName();
         }

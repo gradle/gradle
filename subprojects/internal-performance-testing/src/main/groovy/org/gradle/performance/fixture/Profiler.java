@@ -35,6 +35,18 @@ public abstract class Profiler {
 
     public abstract List<String> getAdditionalJvmOpts(BuildExperimentSpec spec);
 
+    /**
+     * The {@literal ;} separated list of jvm arguments to start a recording.
+     *
+     * This can be passed to the {@link org.gradle.performance.generator.JavaTestProject}s to enable recordings for the compiler daemon via:
+     * <pre>
+     * runner.args += ["-PjavaCompileJvmArgs=${Profiler.create().getJvmOptsForUseInBuild("compiler-daemon")}"]
+     * </pre>
+     * @param recordingsDirectoryRelativePath The directory where the profiler recordings will be generated.
+     *                                        Relative to the base path where all the recordings are stored.
+     */
+    public abstract String getJvmOptsForUseInBuild(String recordingsDirectoryRelativePath);
+
     public abstract List<String> getAdditionalGradleArgs(BuildExperimentSpec spec);
 
     public abstract void start(BuildExperimentSpec spec);

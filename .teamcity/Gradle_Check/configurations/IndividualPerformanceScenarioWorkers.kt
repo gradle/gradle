@@ -35,7 +35,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
         param("env.ANDROID_HOME", "/opt/android/sdk")
         param("env.JAVA_HOME", buildJavaHome)
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
-        param("env.PATH", "%env.PATH%:/opt/swift/latest/usr/bin")
+        param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
     }
 
     steps {

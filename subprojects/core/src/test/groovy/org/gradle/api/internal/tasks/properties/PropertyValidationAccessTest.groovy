@@ -74,8 +74,8 @@ class PropertyValidationAccessTest extends Specification {
     def "warns about missing @PathSensitive annotation for @CacheableTask"() {
         expect:
         assertHasValidationProblems(CacheableTaskWithoutPathSensitivity, [
-            "property 'inputFile' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE",
-            "property 'inputFiles' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE"
+            "property 'inputFile' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE",
+            "property 'inputFiles' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE"
         ])
     }
 
@@ -242,7 +242,21 @@ class PropertyValidationAccessTest extends Specification {
         @Nested BeanWithNonAnnotatedType nestedBean
     }
 
+    def "warns about primitive @Input being @Optional"() {
+        expect:
+        assertHasValidationProblems(TaskWithOptionalPrimitiveInputs, [
+            "property 'booleanInput' @Input properties with primitive type 'boolean' cannot be @Optional",
+            "property 'intInput' @Input properties with primitive type 'int' cannot be @Optional",
+        ])
+    }
+
+    static class TaskWithOptionalPrimitiveInputs extends DefaultTask {
+        @Optional @Input boolean booleanInput
+        @Optional @Input int intInput
+        @Optional @Input String nonPrimitiveInput
+    }
+
     private static Set<String> validationProblems(Class<?> task, List messages) {
-        messages.collect { "Task type '${task.name}': ${it}." }*.toString() as Set
+        messages.collect { "Type '${task.name}': ${it}." }*.toString() as Set
     }
 }

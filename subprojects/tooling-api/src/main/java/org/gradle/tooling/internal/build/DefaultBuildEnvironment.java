@@ -58,6 +58,7 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
                 return gradleUserHome;
             }
 
+            @Override
             public String getGradleVersion() {
                 return gradleVersion;
             }
@@ -66,10 +67,12 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
 
     public JavaEnvironment getJava() {
         return new JavaEnvironment() {
+            @Override
             public File getJavaHome() {
                 return javaHome;
             }
 
+            @Override
             public List<String> getJvmArguments() {
                 return jvmArguments;
             }

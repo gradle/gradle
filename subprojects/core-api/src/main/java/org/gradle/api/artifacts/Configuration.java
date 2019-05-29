@@ -103,6 +103,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * A {@link org.gradle.api.Namer} namer for configurations that returns {@link #getName()}.
      */
     class Namer implements org.gradle.api.Namer<Configuration> {
+        @Override
         public String determineName(Configuration c) {
             return c.getName();
         }
@@ -279,6 +280,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @return a TaskDependency object
      */
+    @Override
     TaskDependency getBuildDependencies();
 
     /**

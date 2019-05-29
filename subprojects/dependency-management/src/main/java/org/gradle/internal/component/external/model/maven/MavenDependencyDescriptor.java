@@ -80,6 +80,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      *    - Otherwise, choose 'runtime' if it exists, or 'default'. Also include 'compile' if it's not a parent of chosen ('runtime'/'default').
      *    - Always include 'master' if it exists, and it has dependencies and/or artifacts.
      */
+    @Override
     public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         ImmutableList.Builder<ConfigurationMetadata> result = ImmutableList.builder();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");

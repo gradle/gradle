@@ -25,12 +25,16 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         this.moduleRegistry = moduleRegistry;
     }
 
+    @Override
     public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_RUNTIME")) {
             return moduleRegistry.getModule("gradle-launcher").getAllRequiredModulesClasspath();
         }
         if (name.equals("GRADLE_INSTALLATION_BEACON")) {
             return moduleRegistry.getModule("gradle-installation-beacon").getImplementationClasspath();
+        }
+        if (name.equals("LANGUAGE-GROOVY")) {
+            return moduleRegistry.getModule("gradle-language-groovy").getAllRequiredModulesClasspath();
         }
         if (name.equals("ANT")) {
             ClassPath classpath = ClassPath.EMPTY;

@@ -53,6 +53,7 @@ public class BuildEnvironmentReportTask extends DefaultTask {
 
     public BuildEnvironmentReportTask() {
         getOutputs().upToDateWhen(new Spec<Task>() {
+            @Override
             public boolean isSatisfiedBy(Task element) {
                 return false;
             }

@@ -37,32 +37,39 @@ public abstract class AbstractMavenArtifact implements MavenArtifact {
         this.allBuildDependencies = new CompositeTaskDependency();
     }
 
+    @Override
     public abstract File getFile();
 
+    @Override
     public final String getExtension() {
         return extension != null ? extension : getDefaultExtension();
     }
 
     protected abstract String getDefaultExtension();
 
+    @Override
     public final void setExtension(String extension) {
         this.extension = Strings.nullToEmpty(extension);
     }
 
+    @Override
     public final String getClassifier() {
         return Strings.emptyToNull(classifier != null ? classifier : getDefaultClassifier());
     }
 
     protected abstract String getDefaultClassifier();
 
+    @Override
     public final void setClassifier(String classifier) {
         this.classifier = Strings.nullToEmpty(classifier);
     }
 
+    @Override
     public final void builtBy(Object... tasks) {
         additionalBuildDependencies.add(tasks);
     }
 
+    @Override
     public final TaskDependency getBuildDependencies() {
         return allBuildDependencies;
     }

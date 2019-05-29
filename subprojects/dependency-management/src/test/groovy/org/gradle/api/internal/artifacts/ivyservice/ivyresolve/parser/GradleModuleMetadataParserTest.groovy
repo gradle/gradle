@@ -645,6 +645,53 @@ class GradleModuleMetadataParserTest extends Specification {
         0 * metadata._
     }
 
+    @Unroll
+    def "fails for missing #label"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+
+        when:
+        parser.parse(resource("""
+        { 
+            "formatVersion": "1.0", 
+            "variants": [
+                {
+                    $variantDefinition
+                }
+            ]
+        }"""), metadata)
+
+        then:
+        0 * _
+        def e = thrown(MetaDataParseException)
+        e.cause.message == "missing '$attribute' at $path"
+
+        where:
+        label                         | path                                                    | attribute | variantDefinition
+        'variant name'                | '/variants[0]'                                          | 'name'    | ''
+
+        'available-at url'            | '/variants[0]/available-at'                             | 'url'     | '"name": "v", "available-at": { "group": "g", "module": "c", "version": "1.0" }'
+        'available-at group'          | '/variants[0]/available-at'                             | 'group'   | '"name": "v", "available-at": { "url": "path", "module": "c", "version": "1.0" }'
+        'available-at module'         | '/variants[0]/available-at'                             | 'module'  | '"name": "v", "available-at": { "url": "path", "group": "g", "version": "1.0" }'
+        'available-at version'        | '/variants[0]/available-at'                             | 'version' | '"name": "v", "available-at": { "url": "path", "group": "g", "module": "c" }'
+
+        'dependency group'            | '/variants[0]/dependencies[0]'                          | 'group'   | '"name": "v", "dependencies": [{ "module": "c" }]'
+        'dependency module'           | '/variants[0]/dependencies[0]'                          | 'module'  | '"name": "v", "dependencies": [{ "group": "g" }]'
+
+        'capability group'            | '/variants[0]/capabilities[0]'                          | 'group'   | '"name": "v", "capabilities": [{ "name": "c", "version": "1.0" }]'
+        'capability name'             | '/variants[0]/capabilities[0]'                          | 'name'    | '"name": "v", "capabilities": [{ "group": "g", "version": "1.0" }]'
+        'capability version'          | '/variants[0]/capabilities[0]'                          | 'version' | '"name": "v", "capabilities": [{ "group": "g", "name": "c" }]'
+
+        'req capability group'        | '/variants[0]/dependencies[0]/requestedCapabilities[0]' | 'group'   | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "name": "c", "version": "1.0" }] }]'
+        'req capability name'         | '/variants[0]/dependencies[0]/requestedCapabilities[0]' | 'name'    | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "group": "g", "version": "1.0" }] }]'
+        'req capability version'      | '/variants[0]/dependencies[0]/requestedCapabilities[0]' | 'version' | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "group": "g", "name": "c" }] }]'
+
+        'dependency constraint group' | '/variants[0]/dependencyConstraints[0]'                 | 'group'   | '"name": "v", "dependencyConstraints": [{ "module": "c" }]'
+        'dependency constraint module'| '/variants[0]/dependencyConstraints[0]'                 | 'module'  | '"name": "v", "dependencyConstraints": [{ "group": "g" }]'
+
+        'file name'                   | '/variants[0]/files[0]'                                 | 'name'    | '"name": "v", "files": [{ "url": "g/c/c.jar" }]'
+        'file url'                    | '/variants[0]/files[0]'                                 | 'url'     | '"name": "v", "files": [{ "name": "c.jar" }]'
+    }
+
     def "fails when content does not contain a json object"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 

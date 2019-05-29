@@ -81,6 +81,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param e the item to add to the collection
      * @return {@code true} if the item was added, or {@code} false if an item with the same name already exists.
      */
+    @Override
     boolean add(T e);
 
     /**
@@ -89,6 +90,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param c the items to add to the collection
      * @return {@code true} if any item was added, or {@code} false if all items have non unique names within this collection.
      */
+    @Override
     boolean addAll(Collection<? extends T> c);
 
     /**
@@ -206,16 +208,19 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     /**
      * {@inheritDoc}
      */
+    @Override
     <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     NamedDomainObjectCollection<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     NamedDomainObjectCollection<T> matching(Closure spec);
 
     /**

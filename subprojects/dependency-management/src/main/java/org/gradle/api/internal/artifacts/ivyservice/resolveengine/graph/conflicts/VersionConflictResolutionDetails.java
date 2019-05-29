@@ -35,7 +35,7 @@ public class VersionConflictResolutionDetails implements Describable {
 
     public VersionConflictResolutionDetails(Collection<? extends ComponentResolutionState> candidates) {
         this.candidates = candidates;
-        this.hashCode = Objects.hashCode(candidates);
+        this.hashCode = candidates.hashCode();
     }
 
     public Collection<? extends ComponentResolutionState> getCandidates() {

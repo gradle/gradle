@@ -25,6 +25,7 @@ public class StreamingStyledTextOutputFactory extends AbstractStyledTextOutputFa
         this.target = target;
     }
 
+    @Override
     public StyledTextOutput create(String logCategory, LogLevel logLevel) {
         return new StreamingStyledTextOutput(target);
     }

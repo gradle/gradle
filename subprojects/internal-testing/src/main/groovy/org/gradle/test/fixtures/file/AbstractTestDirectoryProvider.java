@@ -49,6 +49,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         cleanup = false;
     }
 
+    @Override
     public void suppressCleanupErrors() {
         suppressCleanupErrors = true;
     }
@@ -68,6 +69,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         }
     }
 
+    @Override
     public Statement apply(final Statement base, Description description) {
         init(description.getMethodName(), description.getTestClass().getSimpleName());
 
@@ -134,6 +136,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         }
     }
 
+    @Override
     public TestFile getTestDirectory() {
         if (dir == null) {
            dir = createUniqueTestDirectory();

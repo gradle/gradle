@@ -75,6 +75,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
         throw e;
     }
 
+    @Override
     public byte readByte() throws EOFException {
         try {
             return input.readByte();
@@ -83,6 +84,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
         }
     }
 
+    @Override
     public void readBytes(byte[] buffer, int offset, int count) throws EOFException {
         try {
             input.readBytes(buffer, offset, count);
@@ -91,6 +93,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
         }
     }
 
+    @Override
     public long readLong() throws EOFException {
         try {
             return input.readLong();
@@ -99,6 +102,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
         }
     }
 
+    @Override
     public long readSmallLong() throws EOFException, IOException {
         try {
             return input.readLong(true);
@@ -107,6 +111,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
         }
     }
 
+    @Override
     public int readInt() throws EOFException {
         try {
             return input.readInt();
@@ -115,6 +120,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
         }
     }
 
+    @Override
     public int readSmallInt() throws EOFException {
         try {
             return input.readInt(true);
@@ -123,6 +129,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
         }
     }
 
+    @Override
     public boolean readBoolean() throws EOFException {
         try {
             return input.readBoolean();
@@ -131,10 +138,12 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
         }
     }
 
+    @Override
     public String readString() throws EOFException {
         return readNullableString();
     }
 
+    @Override
     public String readNullableString() throws EOFException {
         try {
             return input.readString();
@@ -150,6 +159,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
         return input.total() + extraSkipped;
     }
 
+    @Override
     public void close() throws IOException {
         input.close();
     }

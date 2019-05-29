@@ -22,6 +22,7 @@ import java.util.Set;
 class DetachedConfigurationsProvider implements ConfigurationsProvider {
     private ConfigurationInternal theOnlyConfiguration;
 
+    @Override
     public Set<ConfigurationInternal> getAll() {
         return ImmutableSet.of(theOnlyConfiguration);
     }

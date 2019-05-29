@@ -29,7 +29,7 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import java.io.File;
 
 /**
- * Task for generating a filters file.
+ * Task for generating a Visual Studio filters file (e.g. {@code foo.vcxproj.filters}).
  */
 @Incubating
 public class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> {

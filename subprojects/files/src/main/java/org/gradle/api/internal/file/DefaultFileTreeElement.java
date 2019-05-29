@@ -41,34 +41,42 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
         return new DefaultFileTreeElement(file, path, fileSystem, fileSystem);
     }
 
+    @Override
     public File getFile() {
         return file;
     }
 
+    @Override
     public String getDisplayName() {
         return "file '" + file + "'";
     }
 
+    @Override
     public long getLastModified() {
         return file.lastModified();
     }
 
+    @Override
     public long getSize() {
         return file.length();
     }
 
+    @Override
     public boolean isDirectory() {
         return file.isDirectory();
     }
 
+    @Override
     public InputStream open() {
         return GFileUtils.openInputStream(file);
     }
 
+    @Override
     public RelativePath getRelativePath() {
         return relativePath;
     }
 
+    @Override
     public int getMode() {
         return stat.getUnixMode(file);
     }

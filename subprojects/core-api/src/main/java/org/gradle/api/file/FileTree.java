@@ -119,6 +119,7 @@ public interface FileTree extends FileCollection {
      *
      * @return this
      */
+    @Override
     FileTree getAsFileTree();
 
     /**
@@ -126,5 +127,6 @@ public interface FileTree extends FileCollection {
      *
      * @return The files. Returns an empty set if this tree is empty.
      */
+    @Override
     Set<File> getFiles();
 }

@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.provider.Provider
 import org.gradle.test.fixtures.file.TestFile
@@ -455,6 +457,88 @@ class DefaultProjectLayoutTest extends Specification {
 
         and:
         !var.present
+    }
+
+    def "producer task for a directory is not known by default"() {
+        def var = layout.directoryProperty()
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        def visited = var.maybeVisitBuildDependencies(context)
+
+        then:
+        !visited
+        0 * context._
+    }
+
+    def "can specify the producer task for a directory"() {
+        def var = layout.directoryProperty()
+        def task = Mock(Task)
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        var.attachProducer(task)
+        def visited = var.maybeVisitBuildDependencies(context)
+
+        then:
+        visited
+        1 * context.add(task)
+        0 * context._
+    }
+
+    def "can discard the producer task for a directory"() {
+        def var = layout.directoryProperty()
+        def task = Mock(Task)
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        var.attachProducer(task)
+        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+
+        then:
+        !visited
+        0 * context._
+    }
+
+    def "producer task for a regular file is not known by default"() {
+        def var = layout.fileProperty()
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        def visited = var.maybeVisitBuildDependencies(context)
+
+        then:
+        !visited
+        0 * context._
+    }
+
+    def "can specify the producer task for a regular file"() {
+        def var = layout.fileProperty()
+        def task = Mock(Task)
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        var.attachProducer(task)
+        def visited = var.maybeVisitBuildDependencies(context)
+
+        then:
+        visited
+        1 * context.add(task)
+        0 * context._
+    }
+
+    def "can discard the producer task for a regular file"() {
+        def var = layout.fileProperty()
+        def task = Mock(Task)
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        var.attachProducer(task)
+        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+
+        then:
+        !visited
+        0 * context._
     }
 
     def "can query and mutate the build directory using resolvable type"() {

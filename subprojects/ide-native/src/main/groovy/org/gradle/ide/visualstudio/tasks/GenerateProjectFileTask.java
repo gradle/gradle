@@ -38,7 +38,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
- * Task for generating a project file.
+ * Task for generating a Visual Studio project file (e.g. {@code foo.vcxproj}).
  */
 @Incubating
 public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {

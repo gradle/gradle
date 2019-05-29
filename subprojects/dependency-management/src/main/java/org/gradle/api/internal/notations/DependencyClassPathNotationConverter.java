@@ -40,6 +40,7 @@ import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
@@ -76,6 +77,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         visitor.candidate("ClassPathNotation").example("gradleApi()");
     }
 
+    @Override
     public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
@@ -118,13 +120,25 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
         // Remove optional Kotlin DSL and Kotlin jars
         List<File> kotlinDsl = classPathRegistry.getClassPath(GRADLE_KOTLIN_DSL.name()).getAsFiles();
+        List<File> kotlinImpl = kotlinImplFrom(apiClasspath);
         List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
         apiClasspath.removeAll(groovyImpl);
         apiClasspath.removeAll(kotlinDsl);
         apiClasspath.removeAll(installationBeacon);
 
         return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", RuntimeShadedJarType.API)
-            .plus(fileResolver.resolveFiles(groovyImpl, installationBeacon));
+            .plus(fileResolver.resolveFiles(groovyImpl, kotlinImpl, installationBeacon));
+    }
+
+    private List<File> kotlinImplFrom(Collection<File> classPath) {
+        ArrayList<File> files = new ArrayList<>();
+        for (File file : classPath) {
+            String name = file.getName();
+            if (name.startsWith("kotlin-stdlib-") || name.startsWith("kotlin-reflect-")) {
+                files.add(file);
+            }
+        }
+        return files;
     }
 
     private FileCollectionInternal gradleTestKitFileCollection(Collection<File> testKitClasspath) {

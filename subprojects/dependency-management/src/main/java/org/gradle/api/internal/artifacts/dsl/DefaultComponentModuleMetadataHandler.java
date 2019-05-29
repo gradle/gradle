@@ -28,10 +28,12 @@ public class DefaultComponentModuleMetadataHandler implements ComponentModuleMet
         this.moduleMetadataContainer = new ComponentModuleMetadataContainer(moduleIdentifierFactory);
     }
 
+    @Override
     public void module(Object moduleNotation, Action<? super ComponentModuleMetadataDetails> rule) {
         rule.execute(moduleMetadataContainer.module(moduleNotation));
     }
 
+    @Override
     public ModuleReplacementsData getModuleReplacements() {
         return moduleMetadataContainer;
     }

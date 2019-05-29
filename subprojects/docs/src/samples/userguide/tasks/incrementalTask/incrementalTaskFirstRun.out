@@ -1,4 +1,4 @@
-ALL inputs considered out of date
-out of date: 1.txt
-out of date: 2.txt
-out of date: 3.txt
+Executing non-incrementally
+ADDED: 1.txt
+ADDED: 2.txt
+ADDED: 3.txt

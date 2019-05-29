@@ -22,23 +22,29 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":baseServicesGroovy"))
-    api(project(":logging"))
-    api(project(":persistentCache"))
-    api(project(":processServices"))
-    api(project(":resources"))
+    implementation(project(":baseServices"))
+    implementation(project(":baseServicesGroovy"))
+    implementation(project(":logging"))
+    implementation(project(":persistentCache"))
+    implementation(project(":processServices"))
+    implementation(project(":resources"))
 
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
     implementation(library("ant"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
 
+    testImplementation(library("asm"))
+    testImplementation(library("asm_commons"))
+    
     testFixturesImplementation(project(":internalTesting"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

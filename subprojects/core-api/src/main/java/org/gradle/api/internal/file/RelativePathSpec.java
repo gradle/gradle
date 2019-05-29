@@ -26,6 +26,7 @@ public class RelativePathSpec implements Spec<FileTreeElement> {
         this.pathSpec = pathSpec;
     }
 
+    @Override
     public boolean isSatisfiedBy(FileTreeElement element) {
         return pathSpec.isSatisfiedBy(element.getRelativePath());
     }

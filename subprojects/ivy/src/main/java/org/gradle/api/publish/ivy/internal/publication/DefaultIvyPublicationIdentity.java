@@ -35,26 +35,32 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
         this.revision = revision;
     }
 
+    @Override
     public String getOrganisation() {
         return organisation != null ? organisation : (delegate != null ? delegate.getGroup() : null);
     }
 
+    @Override
     public void setOrganisation(String organisation) {
         this.organisation = organisation;
     }
 
+    @Override
     public String getModule() {
         return module != null ? module : (delegate != null ? delegate.getName() : null);
     }
 
+    @Override
     public void setModule(String module) {
         this.module = module;
     }
 
+    @Override
     public String getRevision() {
         return revision != null ? revision : (delegate != null ? delegate.getVersion() : null);
     }
 
+    @Override
     public void setRevision(String revision) {
         this.revision = revision;
     }

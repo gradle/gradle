@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -34,7 +34,7 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
 
     DependencyGraphSelector getSelector();
 
-    ModuleExclusion getExclusions();
+    ExcludeSpec getExclusions();
 
     boolean contributesArtifacts();
 

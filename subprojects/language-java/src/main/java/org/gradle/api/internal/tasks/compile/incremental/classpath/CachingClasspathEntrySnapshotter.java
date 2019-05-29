@@ -42,6 +42,7 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     public ClasspathEntrySnapshot createSnapshot(final File classpathEntry) {
         final HashCode hash = getHash(classpathEntry);
         return cache.get(classpathEntry, new Factory<ClasspathEntrySnapshot>() {
+            @Override
             public ClasspathEntrySnapshot create() {
                 return snapshotter.createSnapshot(hash, classpathEntry);
             }

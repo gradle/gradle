@@ -33,6 +33,7 @@ public class RegExpNameMapper implements Transformer<String, String> {
         replacement = replaceWith;
     }
 
+    @Override
     public String transform(String source) {
         String result = source;
         matcher.reset(source);

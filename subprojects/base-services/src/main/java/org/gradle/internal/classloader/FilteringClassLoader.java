@@ -62,6 +62,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             super(parent);
         }
 
+        @Override
         protected Package[] getPackages() {
             return super.getPackages();
         }
@@ -78,6 +79,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         disallowedPackagePrefixes = new TrieSet(spec.disallowedPackagePrefixes);
     }
 
+    @Override
     public void visit(ClassLoaderVisitor visitor) {
         visitor.visitSpec(new Spec(classNames, packageNames, packagePrefixes, resourcePrefixes, resourceNames, disallowedClassNames, disallowedPackagePrefixes));
         visitor.visitParent(getParent());

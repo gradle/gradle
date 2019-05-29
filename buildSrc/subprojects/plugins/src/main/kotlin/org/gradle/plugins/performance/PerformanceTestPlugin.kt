@@ -78,8 +78,6 @@ const val performanceExperimentCategory = "org.gradle.performance.categories.Per
 class PerformanceTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        apply(plugin = "java")
-
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addConfigurationAndDependencies()
         createCheckNoIdenticalBuildFilesTask()
@@ -118,21 +116,17 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.addConfigurationAndDependencies() {
 
         configurations {
-
-            val testCompile by getting
-
-            "performanceTestCompile" {
-                extendsFrom(testCompile)
+            val testImplementation by getting
+            "performanceTestImplementation" {
+                extendsFrom(testImplementation)
             }
 
-            val testRuntime by getting
-
-            "performanceTestRuntime" {
-                extendsFrom(testRuntime)
+            val testRuntimeOnly by getting
+            "performanceTestRuntimeOnly" {
+                extendsFrom(testRuntimeOnly)
             }
 
             val performanceTestRuntimeClasspath by getting
-
             "partialDistribution" {
                 extendsFrom(performanceTestRuntimeClasspath)
             }
@@ -141,7 +135,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         dependencies {
-            "performanceTestCompile"(project(":internalPerformanceTesting"))
+            "performanceTestImplementation"(project(":internalPerformanceTesting"))
             "junit"("junit:junit:4.12")
         }
     }

@@ -60,6 +60,7 @@ import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.GUtil;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -73,6 +74,7 @@ import static org.gradle.internal.FileUtils.hasExtension;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
+@Deprecated
 public class PlayDistributionPlugin extends RuleSource {
     public static final String DISTRIBUTION_GROUP = "distribution";
     public static final String DIST_LIFECYCLE_TASK_NAME = "dist";
@@ -80,6 +82,7 @@ public class PlayDistributionPlugin extends RuleSource {
 
     @Model
     PlayDistributionContainer distributions(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Distribution", "org.gradle.playframework-distribution");
         return new DefaultPlayDistributionContainer(instantiator, collectionCallbackActionDecorator);
     }
 

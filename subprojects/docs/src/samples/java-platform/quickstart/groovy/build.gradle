@@ -36,8 +36,14 @@ dependencies {
 }
 // end::constraints[]
 
+// tag::platform[]
 // tag::allow-dependencies[]
 javaPlatform {
     allowDependencies()
 }
 // end::allow-dependencies[]
+
+dependencies {
+    api platform('com.fasterxml.jackson:jackson-bom:2.9.8')
+}
+// end::platform[]

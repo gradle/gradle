@@ -33,6 +33,7 @@ public class ClientModuleNotationParserFactory implements Factory<NotationParser
         this.stringInterner = stringInterner;
     }
 
+    @Override
     public NotationParser<Object, ClientModule> create() {
         return NotationParserBuilder.toType(ClientModule.class)
                 .fromCharSequence(new DependencyStringNotationConverter<DefaultClientModule>(instantiator, DefaultClientModule.class, stringInterner))
