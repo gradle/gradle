@@ -244,7 +244,7 @@ This means that if project `A` depends on project `B` and a class in `B` is chan
 Some of the types of changes that do not affect the public API and are ignored, see <<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>> for a detailed list.
 
 However, similar to Java's annotation processing, there're various ways to https://melix.github.io/blog/2011/05/12/customizing_groovy_compilation_process.html[customize Groovy compilation process], in which implementation details matter.
-A well-known example is http://groovy-lang.org/metaprogramming.html#_code_generation_transformations[Groovy AST transformations].
+Some well-known examples are http://groovy-lang.org/metaprogramming.html#_code_generation_transformations[Groovy AST transformations].
 In these cases, these dependencies must be declared separately in a classpath called `compilerPluginClasspath`:
 
 .Declaring AST transformations
