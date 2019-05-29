@@ -130,7 +130,6 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                         if (!taskContainer.addInternal(task)) {
                             Task alreadyAdded = taskContainer.getByPath(task.getPath());
                             LOGGER.debug("Task {} added via ModelMap already existed in task container. Existing task: {}, same instance: {}", task, alreadyAdded, task == alreadyAdded);
-                            throw new RuntimeException("Cannot add task " + task + " since it already exists in the task container");
                         };
                     }
                 }));
