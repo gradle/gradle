@@ -336,6 +336,7 @@ class DefaultInstantExecution(
                 withPropertyName(propertyName)
                 optional(optional)
                 skipWhenEmpty(skipWhenEmpty)
+                @Suppress("unchecked_cast")
                 withNormalizer(normalizer as Class<out FileNormalizer>)
             }
         }
