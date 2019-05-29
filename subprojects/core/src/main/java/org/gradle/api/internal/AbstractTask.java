@@ -421,7 +421,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public int compareTo(Task otherTask) {
         int depthCompare = project.compareTo(otherTask.getProject());
         if (depthCompare == 0) {
-            return getPath().compareTo(otherTask.getPath());
+            int pathCompare = getPath().compareTo(otherTask.getPath());
+            if (this != otherTask) {
+                BUILD_LOGGER.debug("Two task instances {} ({}) and {} ({})", this, getClass(), otherTask, otherTask.getClass());
+            }
+            return pathCompare;
         } else {
             return depthCompare;
         }

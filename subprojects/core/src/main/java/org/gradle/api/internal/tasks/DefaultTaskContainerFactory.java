@@ -36,6 +36,8 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
@@ -45,6 +47,8 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private static final ModelType<Task> TASK_MODEL_TYPE = ModelType.of(Task.class);
     private static final ModelReference<Task> TASK_MODEL_REFERENCE = ModelReference.of(TASK_MODEL_TYPE);
     private static final SimpleModelRuleDescriptor COPY_TO_TASK_CONTAINER_DESCRIPTOR = new SimpleModelRuleDescriptor("copyToTaskContainer");
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskContainerFactory.class);
+
     private final ModelRegistry modelRegistry;
     private final Instantiator instantiator;
     private final ITaskFactory taskFactory;
@@ -123,7 +127,11 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                     @Override
                     public void execute(MutableModelNode modelNode, Task task) {
                         TaskContainerInternal taskContainer = modelNode.getParent().getPrivateData(TaskContainerInternal.MODEL_TYPE);
-                        taskContainer.addInternal(task);
+                        if (!taskContainer.addInternal(task)) {
+                            Task alreadyAdded = taskContainer.getByPath(task.getPath());
+                            LOGGER.debug("Task {} added via ModelMap already existed in task container. Existing task: {}, same instance: {}", task, alreadyAdded, task == alreadyAdded);
+                            throw new RuntimeException("Cannot add task " + task + " since it already exists in the task container");
+                        };
                     }
                 }));
             }

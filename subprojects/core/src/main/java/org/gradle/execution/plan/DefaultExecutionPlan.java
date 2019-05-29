@@ -579,7 +579,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         boolean foundReadyNode = false;
         while (iterator.hasNext()) {
             Node node = iterator.next();
-            LOGGER.debug("Trying to execute {} - dependencies complete: {}", node, node.allDependenciesComplete());
+            LOGGER.debug("Trying to execute {} - dependencies complete: {}, identity: {}", node, node.allDependenciesComplete(), System.identityHashCode(node));
             if (node.allDependenciesComplete() && !node.isReady()) {
                 LOGGER.debug("The dependencies of node {} completed, but it is not ready to execute, but {} instead.", node, node.getState());
             }
@@ -624,7 +624,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         for (Node predecessor : node.getAllPredecessors()) {
             boolean becameComplete = predecessor.updateAllDependenciesComplete();
             boolean isReady = predecessor.isReady();
-            LOGGER.debug("Dependencies for node {} are completed: {}, node is ready: {}, dependencies completed now: {}", predecessor, predecessor.allDependenciesComplete(), isReady, becameComplete);
+            LOGGER.debug("Dependencies for node {} are completed: {}, node is ready: {}, dependencies completed now: {}, node identity: {}", predecessor, predecessor.allDependenciesComplete(), isReady, becameComplete,  System.identityHashCode(predecessor));
             maybeNodesReady |= becameComplete && isReady;
         }
     }

@@ -22,6 +22,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.internal.ImmutableActionSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -30,6 +32,8 @@ import java.util.Set;
  * A {@link TaskNode} implementation for a task in the current build.
  */
 public class LocalTaskNode extends TaskNode {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalTaskNode.class);
+
     private final TaskInternal task;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
 
@@ -127,6 +131,7 @@ public class LocalTaskNode extends TaskNode {
     @SuppressWarnings("NullableProblems")
     public int compareTo(Node other) {
         if (getClass() != other.getClass()) {
+            LOGGER.debug("Different classes between {} ({}) and {} ({})", this, getClass(), other, other.getClass());
             return getClass().getName().compareTo(other.getClass().getName());
         }
         LocalTaskNode localTask = (LocalTaskNode) other;
