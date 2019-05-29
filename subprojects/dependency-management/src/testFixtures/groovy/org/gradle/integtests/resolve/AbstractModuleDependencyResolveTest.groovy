@@ -100,8 +100,9 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     private String getMavenRepository() {
         """
             repositories {
-                maven { 
-                   url "${mavenHttpRepo.uri}"
+                maven {
+                    url "${mavenHttpRepo.uri}"
+                    allowInsecureProtocol true
                 }
             }
         """
@@ -110,8 +111,9 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     private String getIvyRepository() {
         """
             repositories {
-                ivy { 
-                   url "${ivyHttpRepo.uri}"
+                ivy {
+                    url "${ivyHttpRepo.uri}"
+                    allowInsecureProtocol true
                 }
             }
         """

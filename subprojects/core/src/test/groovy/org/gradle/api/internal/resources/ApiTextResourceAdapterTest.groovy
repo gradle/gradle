@@ -71,7 +71,7 @@ class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
 
     def "get input properties"() {
         expect:
-        resource.getInputProperties() == new URI("http://www.gradle.org/unknown.txt")
+        resource.getInputProperties() == new URI("https://www.gradle.org/unknown.txt")
     }
 
     def "read as file when file in depending resource is null"() {

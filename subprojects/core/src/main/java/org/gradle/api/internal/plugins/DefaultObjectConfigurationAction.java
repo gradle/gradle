@@ -42,6 +42,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
+    private boolean allowInsecureProtocol = false;
     private final ClassLoaderScope classLoaderScope;
     private final TextUrlResourceLoader.Factory resourceLoaderFactory;
     private final Object defaultTarget;
@@ -65,16 +66,18 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     @Override
     public ObjectConfigurationAction from(final Object script) {
-        return from(script, false);
-    }
-
-    public ObjectConfigurationAction from(final Object script, final boolean allowInsecureProtocol) {
         actions.add(new Runnable() {
             @Override
             public void run() {
-                applyScript(script, allowInsecureProtocol);
+                applyScript(script);
             }
         });
+        return this;
+    }
+
+    @Override
+    public ObjectConfigurationAction allowInsecureProtocol(final boolean allowInsecureProtocol) {
+        this.allowInsecureProtocol = allowInsecureProtocol;
         return this;
     }
 
@@ -111,7 +114,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    private void applyScript(Object script, boolean allowInsecureProtocol) {
+    private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
         TextResource resource = resourceLoaderFactory.allowInsecureProtocol(allowInsecureProtocol).loadUri("script", scriptUri);
         ScriptSource scriptSource = new TextResourceScriptSource(resource);

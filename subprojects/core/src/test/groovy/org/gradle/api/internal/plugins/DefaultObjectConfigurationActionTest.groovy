@@ -36,6 +36,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def scriptCompileScope = Mock(ClassLoaderScope)
     def parentCompileScope = Mock(ClassLoaderScope)
     def textUrlResourceLoaderFactory = Mock(TextUrlResourceLoader.Factory)
+    def textUrlResourceLoader = Mock(TextUrlResourceLoader)
     def configurer = Mock(ScriptPlugin)
 
     DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, textUrlResourceLoaderFactory, target)
@@ -51,6 +52,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         1 * resolver.resolveUri('script') >> file
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
+        1 * textUrlResourceLoaderFactory.allowInsecureProtocol(false) >> textUrlResourceLoader
         1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
 
         when:
@@ -68,6 +70,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
         1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
+        1 * textUrlResourceLoaderFactory.allowInsecureProtocol(false) >> textUrlResourceLoader
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
@@ -87,6 +90,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
         1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
+        1 * textUrlResourceLoaderFactory.allowInsecureProtocol(false) >> textUrlResourceLoader
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope

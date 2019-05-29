@@ -50,7 +50,7 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
     void optionallyExpectDeprecation() {
         if (shouldWarnAboutDeprecation()) {
-            outputContains("Resolving dependencies over insecure protocol http")
+            outputContains("Uploading or resolving content over insecure protocol ")
         }
     }
 

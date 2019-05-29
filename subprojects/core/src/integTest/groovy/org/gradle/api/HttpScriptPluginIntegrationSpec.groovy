@@ -35,13 +35,17 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
+    private void applyTrustStore() {
+        def keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+        keyStore.configureServerCert(executer)
+    }
+
     @Unroll
     def "can apply script via #scheme"() {
         when:
         if (useKeystore) {
-            def keyStore = TestKeyStore.init(resources.dir)
-            keyStore.enableSslWithServerCert(server)
-            keyStore.configureServerCert(executer)
+            applyTrustStore()
         }
 
         def script = file('external.gradle')
@@ -59,12 +63,15 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 """
 
         then:
+        if (expectDepricationWarning) {
+            executer.expectDeprecationWarning()
+        }
         succeeds()
 
         where:
-        scheme  | useKeystore
-        "http"  | false
-        "https" | true
+        scheme  | useKeystore | expectDepricationWarning
+        "http"  | false       | true
+        "https" | true        | false
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2891")
@@ -179,11 +186,13 @@ task check {
         buildFile << "apply from: '${server.uri}/script.gradle'"
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds 'check'
     }
 
     def "assumes utf-8 encoding when none specified by http server"() {
         given:
+        applyTrustStore()
         executer.withDefaultCharacterEncoding("ISO-8859-15")
 
         and:
@@ -210,6 +219,7 @@ task check {
     @Unroll
     def "will not download cached #source resource when run with --offline"() {
         given:
+        applyTrustStore()
         def scriptName = "script-offline.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
@@ -249,6 +259,7 @@ task check {
     @Unroll
     def "can recover from failure to download cached #source resource by running with --offline"() {
         given:
+        applyTrustStore()
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
         server.expectGet('/' + scriptName, scriptFile)
@@ -305,7 +316,7 @@ task check {
 
         and:
         [file('settings.gradle'), file('init.gradle'), file("projA/build.gradle"), file("projB/build.gradle")].each {
-            it << "apply from: '${server.uri}/${scriptName}'"
+            it << "apply from: '${server.uri}/${scriptName}', allowInsecureProtocol: true"
         }
 
         when:
@@ -334,7 +345,7 @@ task check {
         scriptFile.makeOlder()
 
         and:
-        buildFile << "apply from: '${server.uri}/${scriptName}'"
+        buildFile << "apply from: '${server.uri}/${scriptName}', allowInsecureProtocol: true"
 
         when:
         server.expectGet('/' + scriptName, scriptFile)
@@ -369,7 +380,7 @@ task check {
         """
 
         buildFile << """
-            apply from: '${scriptUrl}'
+            apply from: '${scriptUrl}', allowInsecureProtocol: true
         """
 
         when:

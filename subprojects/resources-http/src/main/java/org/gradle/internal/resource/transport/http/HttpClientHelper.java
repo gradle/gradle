@@ -159,7 +159,7 @@ public class HttpClientHelper implements Closeable {
 
         final String scheme = url.getScheme();
         if (!"https".equalsIgnoreCase(scheme)) {
-            DeprecationLogger.nagUserOfDeprecated("Resolving content over insecure protocol '" + scheme + "'");
+            DeprecationLogger.nagUserOfDeprecated("Uploading or resolving content over insecure protocol '" + scheme + "'");
         }
     }
 
