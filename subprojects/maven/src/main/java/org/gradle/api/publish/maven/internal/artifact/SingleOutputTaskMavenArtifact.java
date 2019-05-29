@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -55,6 +56,18 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
         return buildDependencies;
+    }
+
+    @Override
+    public boolean getIgnoreIfAbsent() {
+        return false;
+    }
+
+    @Override
+    public void setIgnoreIfAbsent(boolean ignoreIfAbsent) {
+        if (ignoreIfAbsent) {
+            throw new InvalidUserDataException("maven pom and descriptor artifact cannot be set as ignoreIfAbsent.");
+        }
     }
 
     public boolean isEnabled() {

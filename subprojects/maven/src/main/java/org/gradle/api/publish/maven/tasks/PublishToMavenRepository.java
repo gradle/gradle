@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.maven.internal.publisher.FilteringMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.Internal;
@@ -74,6 +75,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
             protected void publish() {
                 MavenPublisher remotePublisher = getMavenPublishers().getRemotePublisher(getTemporaryDirFactory());
                 remotePublisher = new ValidatingMavenPublisher(remotePublisher);
+                remotePublisher = new FilteringMavenPublisher(remotePublisher);
                 remotePublisher.publish(publication.asNormalisedPublication(), repository);
             }
         }.run();

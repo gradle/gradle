@@ -23,6 +23,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.publish.ivy.internal.publisher.ContextualizingIvyPublisher;
 import org.gradle.api.publish.ivy.internal.publisher.DependencyResolverIvyPublisher;
+import org.gradle.api.publish.ivy.internal.publisher.FilteringIvyPublisher;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.publish.ivy.internal.publisher.ValidatingIvyPublisher;
 import org.gradle.internal.resource.local.FileResourceRepository;
@@ -42,6 +43,7 @@ public class IvyServices extends AbstractPluginServiceRegistry {
         IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, IvyMutableModuleMetadataFactory metadataFactory) {
             IvyPublisher publisher = new DependencyResolverIvyPublisher();
             publisher = new ValidatingIvyPublisher(publisher, moduleIdentifierFactory, fileResourceRepository, metadataFactory);
+            publisher = new FilteringIvyPublisher(publisher);
             return new ContextualizingIvyPublisher(publisher, ivyContextManager);
         }
 

@@ -59,6 +59,11 @@ public class DerivedIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
+    public boolean getIgnoreIfAbsent() {
+        return true;
+    }
+
+    @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
         return (TaskDependencyInternal) original.getBuildDependencies();
     }

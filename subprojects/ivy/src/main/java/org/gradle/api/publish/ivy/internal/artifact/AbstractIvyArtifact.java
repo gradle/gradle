@@ -35,6 +35,7 @@ public abstract class AbstractIvyArtifact implements IvyArtifact {
     private String extension;
     private String classifier;
     private String conf;
+    private boolean ignoreIfAbsent;
 
     protected AbstractIvyArtifact() {
         this.additionalBuildDependencies = new DefaultTaskDependency();
@@ -101,6 +102,16 @@ public abstract class AbstractIvyArtifact implements IvyArtifact {
     @Override
     public void setConf(@Nullable String conf) {
         this.conf = Strings.nullToEmpty(conf);
+    }
+
+    @Override
+    public boolean getIgnoreIfAbsent() {
+        return ignoreIfAbsent;
+    }
+
+    @Override
+    public void setIgnoreIfAbsent(boolean ignoreIfAbsent) {
+        this.ignoreIfAbsent = ignoreIfAbsent;
     }
 
     @Override

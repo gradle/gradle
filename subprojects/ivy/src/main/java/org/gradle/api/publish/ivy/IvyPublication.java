@@ -256,6 +256,11 @@ public interface IvyPublication extends Publication {
      *         extension "html"
      *         builtBy genDocs
      *       }
+     *       artifact("break-notes-${project.version})}.html") {
+     *           type "breaknotes"
+     *           //  This artifact will be ignored if the file doesn't exist
+     *           ignoreIfAbsent true
+     *       }
      *     }
      *   }
      * }

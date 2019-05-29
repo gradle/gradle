@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,33 +21,14 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import java.io.File;
 import java.util.Set;
 
-public class IvyNormalizedPublication {
+public interface IvyNormalizedPublication {
+    String getName();
 
-    private final String name;
-    private final IvyPublicationIdentity projectIdentity;
-    private final File ivyDescriptorFile;
-    private final Set<IvyArtifact> allArtifacts;
+    IvyPublicationIdentity getProjectIdentity();
 
-    public IvyNormalizedPublication(String name, IvyPublicationIdentity projectIdentity, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
-        this.name = name;
-        this.projectIdentity = projectIdentity;
-        this.ivyDescriptorFile = ivyDescriptorFile;
-        this.allArtifacts = allArtifacts;
-    }
+    File getIvyDescriptorFile();
 
-    public String getName() {
-        return name;
-    }
-
-    public IvyPublicationIdentity getProjectIdentity() {
-        return projectIdentity;
-    }
-
-    public File getIvyDescriptorFile() {
-        return ivyDescriptorFile;
-    }
-
-    public Set<IvyArtifact> getAllArtifacts() {
-        return allArtifacts;
-    }
+    //TODO Indeed, it should be an 'ordered' set because the iteration order is important for publishing.
+    // See: IvyPublishHttpIntegTest."does not upload meta-data file if artifact upload fails"
+    Set<IvyArtifact> getAllArtifacts();
 }

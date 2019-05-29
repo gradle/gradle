@@ -71,6 +71,7 @@ import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependencySet;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
+import org.gradle.api.publish.ivy.internal.publisher.DefaultIvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.specs.Spec;
@@ -456,14 +457,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public IvyNormalizedPublication asNormalisedPublication() {
-        populateFromComponent();
-        DomainObjectSet<IvyArtifact> existingDerivedArtifacts = derivedArtifacts.matching(new Spec<IvyArtifact>() {
-            @Override
-            public boolean isSatisfiedBy(IvyArtifact artifact) {
-                return artifact.getFile().exists();
-            }
-        });
-        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts).matching(new Spec<IvyArtifact>() {
+        DomainObjectSet<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts).matching(new Spec<IvyArtifact>() {
             @Override
             public boolean isSatisfiedBy(IvyArtifact element) {
                 if (gradleModuleDescriptorArtifact == element) {
@@ -473,7 +467,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 return true;
             }
         });
-        return new IvyNormalizedPublication(name, getIdentity(), getIvyDescriptorFile(), artifactsToBePublished);
+        return new DefaultIvyNormalizedPublication(name, getIdentity(), getIvyDescriptorFile(), artifactsToBePublished);
     }
 
     @Override

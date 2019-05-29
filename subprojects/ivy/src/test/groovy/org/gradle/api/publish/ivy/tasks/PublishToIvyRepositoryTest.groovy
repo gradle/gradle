@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.publish.internal.PublicationArtifactSet
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
-import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication
+import org.gradle.api.publish.ivy.internal.publisher.DefaultIvyNormalizedPublication
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskPropertyTestUtils.getInputFiles
@@ -29,7 +29,7 @@ class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
 
     PublishToIvyRepository publish
 
-    def normalizedPublication = Mock(IvyNormalizedPublication)
+    def normalizedPublication = Mock(DefaultIvyNormalizedPublication)
 
     def publication = Mock(IvyPublicationInternal) {
         asNormalisedPublication() >> normalizedPublication

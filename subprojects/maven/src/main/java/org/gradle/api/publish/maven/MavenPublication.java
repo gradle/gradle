@@ -130,7 +130,7 @@ public interface MavenPublication extends Publication {
      *
      * Currently 3 types of component are supported: 'components.java' (added by the JavaPlugin), 'components.web' (added by the WarPlugin)
      * and `components.javaPlatform` (added by the JavaPlatformPlugin).
-     * 
+     *
      * For any individual MavenPublication, only a single component can be provided in this way.
      *
      * The following example demonstrates how to publish the 'java' component to a Maven repository.
@@ -212,6 +212,11 @@ public interface MavenPublication extends Publication {
      *       artifact("my-docs-file.htm") {
      *         classifier "documentation"
      *         extension "html"
+     *       }
+     *       artifact("break-notes-${project.version})}.html") {
+     *           classifier "breaknotes"
+     *           //  This artifact will be ignored if the file doesn't exist
+     *           ignoreIfAbsent true
      *       }
      *     }
      *   }

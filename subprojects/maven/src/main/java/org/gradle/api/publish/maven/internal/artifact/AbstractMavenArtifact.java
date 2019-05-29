@@ -31,6 +31,7 @@ public abstract class AbstractMavenArtifact implements MavenArtifact {
     private final DefaultTaskDependency additionalBuildDependencies;
     private String extension;
     private String classifier;
+    private boolean ignoreIfAbsent;
 
     protected AbstractMavenArtifact() {
         this.additionalBuildDependencies = new DefaultTaskDependency();
@@ -62,6 +63,16 @@ public abstract class AbstractMavenArtifact implements MavenArtifact {
     @Override
     public final void setClassifier(String classifier) {
         this.classifier = Strings.nullToEmpty(classifier);
+    }
+
+    @Override
+    public boolean getIgnoreIfAbsent() {
+        return ignoreIfAbsent;
+    }
+
+    @Override
+    public void setIgnoreIfAbsent(boolean ignoreIfAbsent) {
+        this.ignoreIfAbsent = ignoreIfAbsent;
     }
 
     @Override

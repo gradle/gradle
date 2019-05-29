@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.publish.PublicationArtifact;
 
 import javax.annotation.Nullable;
@@ -87,4 +88,24 @@ public interface IvyArtifact extends PublicationArtifact {
      * @param conf The value of 'conf' for this artifact.
      */
     void setConf(@Nullable String conf);
+
+    /**
+     * Return whether this artifact can be ignored if file is absent. If it is true, the {@link PublicationArtifact#getFile()}
+     * can be nonexistent when publishing.
+     *
+     * @return true if this artifact can be ignored when absent
+     * @since 5.6
+     */
+    @Incubating
+    boolean getIgnoreIfAbsent();
+
+    /**
+     * Sets whether this artifact can be ignored if file is absent. If it is true, the {@link PublicationArtifact#getFile()}
+     * can be nonexistent when publishing. The default value is false.
+     *
+     * @param ignoreIfAbsent Whether this artifact can be ignored when absent
+     * @since 5.6
+     */
+    @Incubating
+    void setIgnoreIfAbsent(boolean ignoreIfAbsent);
 }

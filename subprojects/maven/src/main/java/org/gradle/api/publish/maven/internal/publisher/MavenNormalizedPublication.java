@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,79 +17,37 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-public class MavenNormalizedPublication {
+public interface MavenNormalizedPublication {
+    String getName();
 
-    private final String name;
-    private final ModuleComponentIdentifier coordinates;
-    private final String packaging;
-    private final MavenArtifact pomArtifact;
-    private final MavenArtifact mainArtifact;
-    private final Set<MavenArtifact> allArtifacts;
+    ModuleComponentIdentifier getProjectIdentity();
 
-    public MavenNormalizedPublication(String name, MavenProjectIdentity projectIdentity, String packaging, MavenArtifact pomArtifact, MavenArtifact mainArtifact, Set<MavenArtifact> allArtifacts) {
-        this.name = name;
-        this.coordinates = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(projectIdentity.getGroupId().get(), projectIdentity.getArtifactId().get()), projectIdentity.getVersion().get());
-        this.packaging = packaging;
-        this.pomArtifact = pomArtifact;
-        this.mainArtifact = mainArtifact;
-        this.allArtifacts = allArtifacts;
-    }
+    String getGroupId();
 
-    public String getName() {
-        return name;
-    }
+    String getArtifactId();
 
-    public ModuleComponentIdentifier getProjectIdentity() {
-        return coordinates;
-    }
+    String getVersion();
 
-    public String getGroupId() {
-        return coordinates.getGroup();
-    }
-
-    public String getArtifactId() {
-        return coordinates.getModule();
-    }
-
-    public String getVersion() {
-        return coordinates.getVersion();
-    }
-
-    public String getPackaging() {
-        return packaging;
-    }
+    String getPackaging();
 
     /**
      * @deprecated Kept to not break third-party plugins
      */
     @Deprecated
-    public File getPomFile() {
-        return pomArtifact.getFile();
-    }
+    File getPomFile();
 
-    public MavenArtifact getPomArtifact() {
-        return pomArtifact;
-    }
+    MavenArtifact getPomArtifact();
 
-    public MavenArtifact getMainArtifact() {
-        return mainArtifact;
-    }
+    @Nullable
+    MavenArtifact getMainArtifact();
 
-    public Set<MavenArtifact> getAdditionalArtifacts() {
-        return allArtifacts.stream()
-                .filter(artifact -> artifact != pomArtifact && artifact != mainArtifact)
-                .collect(Collectors.toSet());
-    }
+    Set<MavenArtifact> getAdditionalArtifacts();
 
-    public Set<MavenArtifact> getAllArtifacts() {
-        return allArtifacts;
-    }
+    Set<MavenArtifact> getAllArtifacts();
 }
