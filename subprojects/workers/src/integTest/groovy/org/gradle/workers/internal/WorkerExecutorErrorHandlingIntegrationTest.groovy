@@ -289,6 +289,28 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << [IsolationMode.CLASSLOADER, IsolationMode.NONE]
     }
 
+    def "produces a sensible error when worker fails before logging is initialized"() {
+        fixture.withRunnableClassInBuildScript()
+
+        buildFile << """
+            $runnableWithDifferentConstructor
+
+            task runInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+                additionalForkOptions = {
+                    it.systemProperty("org.gradle.native.dir", "/dev/null")
+                }
+            }
+        """.stripIndent()
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        fails("runInWorker")
+
+        then:
+        result.assertHasErrorOutput("net.rubygrapefruit.platform.NativeException: Failed to load native library")
+    }
+
     String getUnrecognizedOptionError() {
         def jvm = Jvm.current()
         if (jvm.ibmJvm) {
