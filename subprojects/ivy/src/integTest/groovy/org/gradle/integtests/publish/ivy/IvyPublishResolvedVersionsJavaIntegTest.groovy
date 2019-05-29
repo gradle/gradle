@@ -97,8 +97,8 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
 
         where:
         [apiMapping, runtimeMapping] << ([
-            [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)"), apiJarsUsingUsage(), apiJarsUsingUsage("fromResolutionOf('compileClasspath')"), apiJarsUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
-            [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)"), runtimeJarsUsingUsage(), runtimeJarsUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeJarsUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
+            [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
+            [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
         ].combinations() + [[allVariants(), noop()]])
     }
 
@@ -177,8 +177,8 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
 
         where:
         [apiMapping, runtimeMapping] << ([
-            [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)"), apiJarsUsingUsage(), apiJarsUsingUsage("fromResolutionOf('compileClasspath')"), apiJarsUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
-            [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)"), runtimeJarsUsingUsage(), runtimeJarsUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeJarsUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
+            [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
+            [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
         ].combinations() + [[allVariants(), noop()]])
     }
 
@@ -393,14 +393,6 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
 
     private static String apiUsingUsage(String config = "fromResolutionResult()") {
         """ usage("java-api") { $config } """
-    }
-
-    private static String apiJarsUsingUsage(String config = "fromResolutionResult()") {
-        """ usage("java-api-jars") { $config } """
-    }
-
-    private static String runtimeJarsUsingUsage(String config = "fromResolutionResult()") {
-        """ usage("java-runtime-jars") { $config } """
     }
 
     private static String runtimeUsingUsage(String config = "fromResolutionResult()") {

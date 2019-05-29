@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.Format;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.java.TargetJvmVersion;
@@ -133,8 +134,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         apiElements.extendsFrom(api);
         final Configuration runtimeElements = export(runtimeElementsConfigurationName);
         runtimeElements.extendsFrom(impl);
-        configureUsage(apiElements, Usage.JAVA_API_JARS);
-        configureUsage(runtimeElements, Usage.JAVA_RUNTIME_JARS);
+        configureUsage(apiElements, Usage.JAVA_API);
+        configureUsage(runtimeElements, Usage.JAVA_RUNTIME);
         configurePacking(apiElements);
         configurePacking(runtimeElements);
         configureTargetPlatform(apiElements);
@@ -241,6 +242,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             @Override
             public void execute(AttributeContainer attrs) {
                 attrs.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, usage));
+                attrs.attribute(Format.FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.JAR));
             }
         });
     }

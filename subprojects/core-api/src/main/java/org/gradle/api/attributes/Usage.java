@@ -41,7 +41,7 @@ public interface Usage extends Named {
      *
      * @since 4.0
      */
-    @Incubating
+    @Deprecated
     String JAVA_API_CLASSES = "java-api-classes";
 
     /**
@@ -49,7 +49,7 @@ public interface Usage extends Named {
      *
      * @since 5.3
      */
-    @Incubating
+    @Deprecated
     String JAVA_API_JARS = "java-api-jars";
 
     /**
@@ -65,7 +65,7 @@ public interface Usage extends Named {
      *
      * @since 4.0
      */
-    @Incubating
+    @Deprecated
     String JAVA_RUNTIME_JARS = "java-runtime-jars";
 
     /**
@@ -73,7 +73,7 @@ public interface Usage extends Named {
      *
      * @since 4.0
      */
-    @Incubating
+    @Deprecated
     String JAVA_RUNTIME_CLASSES = "java-runtime-classes";
 
     /**
@@ -81,7 +81,7 @@ public interface Usage extends Named {
      *
      * @since 4.0
      */
-    @Incubating
+    @Deprecated
     String JAVA_RUNTIME_RESOURCES = "java-runtime-resources";
 
     /**

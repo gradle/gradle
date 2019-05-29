@@ -21,6 +21,7 @@ org.slf4j:slf4j-log4j12:1.6.1
    variant "compile" [
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
+      org.gradle.format              = jar (compatible with: classes)
       org.gradle.category            = library (not requested)
 
       Requested attributes not found in the selected variant:
