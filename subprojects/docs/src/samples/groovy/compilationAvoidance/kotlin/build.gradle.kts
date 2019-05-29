@@ -34,7 +34,7 @@ project(":astTransformationConsumer") {
     }
                 
     tasks.withType<GroovyCompile> {
-        getCompilerPluginClasspath().from(configurations.getByName("astTransformation"))
+        compilerPluginClasspath.from(configurations.getByName("astTransformation"))
     }
 // end::groovy-compilation-avoidance[]
 }
