@@ -66,8 +66,12 @@ class InstantExecutionHost internal constructor(
     private
     val startParameter = gradle.startParameter
 
-    override val isSkipLoadingState: Boolean
-        get() = gradle.startParameter.isRefreshDependencies
+    override val skipLoadingStateReason: String?
+        get() = if (gradle.startParameter.isRefreshDependencies) {
+            "--refresh-dependencies"
+        } else {
+            null
+        }
 
     override val currentBuild: ClassicModeBuild =
         DefaultClassicModeBuild()
@@ -94,6 +98,8 @@ class InstantExecutionHost internal constructor(
         )
 
     inner class DefaultClassicModeBuild : ClassicModeBuild {
+        override val buildSrc: Boolean
+            get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == "buildSrc"
 
         override val scheduledTasks: List<Task>
             get() = gradle.taskGraph.allTasks

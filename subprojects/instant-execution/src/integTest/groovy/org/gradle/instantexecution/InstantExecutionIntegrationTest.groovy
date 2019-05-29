@@ -92,6 +92,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateStored()
+        outputContains("Calculating task graph as no instant execution cache is available for tasks: a")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -102,6 +103,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
+        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -112,6 +114,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateStored()
+        outputContains("Calculating task graph as no instant execution cache is available for tasks: b")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -122,6 +125,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
+        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
