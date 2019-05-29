@@ -63,7 +63,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
         when:
         withBuildCache().run "customTask"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":customTask")
 
         when:
         file("buildSrc/build").deleteDir()
@@ -72,12 +72,12 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
         withBuildCache().run "customTask"
         then:
-        skippedTasks.contains ":customTask"
+        result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
     @LeaksFileHandles
-    def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
+    def "changing custom Kotlin task implementation in buildSrc invalidates cached result"() {
         withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
         taskSourceFile << customKotlinTask()
@@ -91,7 +91,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
         when:
         withBuildCache().run "customTask"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":customTask")
         file("build/output.txt").text == "input"
 
         when:
@@ -100,7 +100,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
         cleanBuildDir()
         withBuildCache().run "customTask"
         then:
-        nonSkippedTasks.contains ":customTask"
+        result.assertTaskNotSkipped(":customTask")
         file("build/output.txt").text == "input modified"
     }
 
