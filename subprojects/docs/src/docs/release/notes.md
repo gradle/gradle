@@ -68,7 +68,8 @@ This improves performance for projects with a large amount of resource files.
 
 ## Incubating support for Groovy compilation avoidance
 
-Gradle now supports experimental compilation avoidance for Groovy. This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
+Gradle now supports experimental compilation avoidance for Groovy. 
+This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
 See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compile_avoidance) for more details.
 
 ## Fixed issues
