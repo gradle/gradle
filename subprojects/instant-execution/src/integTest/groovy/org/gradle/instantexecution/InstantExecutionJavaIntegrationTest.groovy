@@ -139,7 +139,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         new ZipTestFixture(jarFile).assertContainsFile("b/B.class")
     }
 
-    def "processResources on single project Java build"() {
+    def "processResources on single project Java build honors task inputs"() {
         given:
         settingsFile << """
             rootProject.name = 'resources'
@@ -161,6 +161,16 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         then:
         instantExecution.assertStateLoaded()
         file("build/resources/main/answer.txt").text == "42"
+
+        when: "task input changes"
+        file("src/main/resources/answer.txt").text = "forty-two"
+
+        and:
+        instantRun ":processResources"
+
+        then:
+        instantExecution.assertStateLoaded()
+        file("build/resources/main/answer.txt").text == "forty-two"
     }
 
     def "assemble on Java application build with no dependencies"() {

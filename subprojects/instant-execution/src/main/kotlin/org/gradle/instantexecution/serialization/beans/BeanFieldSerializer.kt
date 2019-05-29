@@ -35,26 +35,31 @@ import java.util.function.Supplier
 class BeanFieldSerializer(
     private val beanType: Class<*>
 ) {
-    fun WriteContext.serialize(bean: Any) {
+    fun WriteContext.serializeFieldsOf(bean: Any) {
         for (field in relevantStateOf(beanType)) {
             field.isAccessible = true
-            val fieldValue = field.get(bean)
-            val conventionalValue = fieldValue ?: conventionalValueOf(bean, field.name)
-            val finalValue = unpack(conventionalValue)
-            val writeValue = writeActionFor(finalValue)
-            if (writeValue == null) {
-                logFieldWarning("serialize", beanType, field.name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue!!).name}'")
-                continue
-            }
-            writeString(field.name)
-            try {
-                writeValue(finalValue)
-            } catch (e: Throwable) {
-                throw GradleException("Could not save the value of field '${beanType.name}.${field.name}' with type ${finalValue?.javaClass?.name}.", e)
-            }
-            logFieldSerialization("serialize", beanType, field.name, finalValue)
+            val fieldName = field.name
+            val fieldValue = field.get(bean) ?: conventionalValueOf(bean, fieldName)
+            serializeField(fieldName, fieldValue)
         }
         writeString("")
+    }
+
+    fun WriteContext.serializeField(fieldName: String, fieldValue: Any?): Boolean {
+        val finalValue = unpack(fieldValue)
+        val writeValue = writeActionFor(finalValue)
+        if (writeValue == null) {
+            logFieldWarning("serialize", beanType, fieldName, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue!!).name}'")
+            return false
+        }
+        writeString(fieldName)
+        try {
+            writeValue(finalValue)
+        } catch (e: Throwable) {
+            throw GradleException("Could not save the value of field '${beanType.name}.$fieldName' with type ${finalValue?.javaClass?.name}.", e)
+        }
+        logFieldSerialization("serialize", beanType, fieldName, finalValue)
+        return true
     }
 
     private

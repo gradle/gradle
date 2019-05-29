@@ -36,7 +36,7 @@ class BeanFieldDeserializer(
     private val beanType: Class<*>,
     private val filePropertyFactory: FilePropertyFactory
 ) {
-    fun ReadContext.deserialize(bean: Any) {
+    fun ReadContext.deserializeFieldsOf(bean: Any) {
         val fieldsByName = relevantStateOf(beanType).associateBy { it.name }
         while (true) {
             val fieldName = readString()

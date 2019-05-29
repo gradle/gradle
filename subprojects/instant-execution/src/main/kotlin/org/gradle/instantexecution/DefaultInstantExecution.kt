@@ -20,25 +20,33 @@ import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.file.FilePropertyFactory
+import org.gradle.api.internal.tasks.DefaultTaskInputs
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType
+import org.gradle.api.internal.tasks.properties.PropertyValue
+import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.FileNormalizer
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.MutableReadContext
 import org.gradle.instantexecution.serialization.MutableWriteContext
 import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.codecs.Codecs
+import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanFieldDeserializer
 import org.gradle.instantexecution.serialization.beans.BeanFieldSerializer
+import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.readClassPath
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readCollectionInto
+import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readStrings
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeClass
 import org.gradle.instantexecution.serialization.writeClassPath
 import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.instantexecution.serialization.writeEnum
 import org.gradle.instantexecution.serialization.writeStrings
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
@@ -252,7 +260,8 @@ class DefaultInstantExecution(
 
         withIsolate(task) {
             BeanFieldSerializer(taskType).run {
-                serialize(task)
+                serializeFieldsOf(task)
+                writeRegisteredPropertiesOf(task, this)
             }
         }
     }
@@ -268,11 +277,68 @@ class DefaultInstantExecution(
 
         withIsolate(task) {
             BeanFieldDeserializer(taskType, filePropertyFactory).run {
-                deserialize(task)
+                deserializeFieldsOf(task)
+                readRegisteredPropertiesOf(task)
             }
         }
 
         return task to taskDependencies
+    }
+
+    private
+    fun WriteContext.writeRegisteredPropertiesOf(task: Task, beanFieldSerializer: BeanFieldSerializer) {
+        (task.inputs as? DefaultTaskInputs)?.visitRegisteredProperties(
+            object : PropertyVisitor.Adapter() {
+                override fun visitInputFileProperty(
+                    propertyName: String,
+                    optional: Boolean,
+                    skipWhenEmpty: Boolean,
+                    incremental: Boolean,
+                    fileNormalizer: Class<out FileNormalizer>?,
+                    value: PropertyValue,
+                    filePropertyType: InputFilePropertyType
+                ) {
+                    val fieldValue = value.call() ?: return
+                    beanFieldSerializer.run {
+                        if (!serializeField(propertyName, fieldValue)) {
+                            return
+                        }
+                    }
+                    writeEnum(filePropertyType)
+                    writeBoolean(optional)
+                    writeBoolean(skipWhenEmpty)
+                    writeClass(fileNormalizer!!)
+                }
+            }
+        )
+        writeString("")
+    }
+
+    private
+    fun MutableReadContext.readRegisteredPropertiesOf(task: Task) {
+        while (true) {
+            val propertyName = readString()
+            if (propertyName == "") {
+                break
+            }
+            val propertyValue = read()!!
+            val filePropertyType = readEnum<InputFilePropertyType>()
+            val optional = readBoolean()
+            val skipWhenEmpty = readBoolean()
+            val normalizer = readClass()
+            task.inputs.run {
+                when (filePropertyType) {
+                    InputFilePropertyType.FILE -> file(propertyValue)
+                    InputFilePropertyType.DIRECTORY -> dir(propertyValue)
+                    InputFilePropertyType.FILES -> files(propertyValue)
+                }
+            }.run {
+                withPropertyName(propertyName)
+                optional(optional)
+                skipWhenEmpty(skipWhenEmpty)
+                withNormalizer(normalizer as Class<out FileNormalizer>)
+            }
+        }
     }
 
     private

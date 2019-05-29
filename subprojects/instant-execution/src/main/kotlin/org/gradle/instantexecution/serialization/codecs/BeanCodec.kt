@@ -44,7 +44,7 @@ class BeanCodec(
             val beanType = GeneratedSubclasses.unpackType(value)
             writeClass(beanType)
             BeanFieldSerializer(beanType).run {
-                serialize(value)
+                serializeFieldsOf(value)
             }
         }
     }
@@ -65,7 +65,7 @@ class BeanCodec(
         val bean = constructor.newInstance()
         isolate.identities.putInstance(id, bean)
         BeanFieldDeserializer(bean.javaClass, filePropertyFactory).run {
-            deserialize(bean)
+            deserializeFieldsOf(bean)
         }
         return bean
     }

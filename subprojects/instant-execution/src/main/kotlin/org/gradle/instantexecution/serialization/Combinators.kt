@@ -198,3 +198,12 @@ inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
     }
     return container
 }
+
+
+fun <E : Enum<E>> WriteContext.writeEnum(value: E) {
+    writeSmallInt(value.ordinal)
+}
+
+
+inline fun <reified E : Enum<E>> ReadContext.readEnum(): E =
+    readSmallInt().let { ordinal -> enumValues<E>().first { it.ordinal == ordinal } }
