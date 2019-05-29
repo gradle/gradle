@@ -1,8 +1,11 @@
-val compile = configurations.create("compile")
+val implementation = configurations.create("implementation")
+val compileClasspath = configurations.create("compileClasspath") {
+    extendsFrom(implementation)
+}
 
 // tag::generated-file-dependencies[]
 dependencies {
-    compile(files("$buildDir/classes") {
+    implementation(files("$buildDir/classes") {
         builtBy("compile")
     })
 }
@@ -14,9 +17,9 @@ tasks.register("compile") {
 }
 
 tasks.register("list") {
-    dependsOn(configurations["compile"])
+    dependsOn(configurations["compileClasspath"])
     doLast {
-        println("classpath = ${configurations["compile"].map { file: File -> file.name }}")
+        println("classpath = ${configurations["compileClasspath"].map { file: File -> file.name }}")
     }
 }
 // end::generated-file-dependencies[]

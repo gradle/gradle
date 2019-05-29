@@ -28,6 +28,7 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
     static impl = "-impl"
 
     def setup() {
+        executer.noDeprecationChecks() // this an example that uses the legacy publishing plugin (uploadArchives)
         executer.withRepositoryMirrors()
     }
 

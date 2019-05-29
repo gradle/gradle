@@ -6,7 +6,7 @@ import static org.junit.Assert.*
 
 apply plugin: 'java'
 repositories.mavenCentral()
-dependencies.testCompile 'junit:junit:4.+'
+dependencies.testImplementation 'junit:junit:4.+'
 test.ignoreFailures = false
 
 def events = []

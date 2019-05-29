@@ -1,5 +1,5 @@
 subprojects {
-    apply(plugin = "java")
+    apply(plugin = "java-library")
     apply(plugin = "maven-publish")
 
     repositories {
@@ -17,7 +17,7 @@ subprojects {
 
 project(":project1") {
     dependencies {
-        "compile"("org.slf4j:slf4j-api:1.7.10")
+        "api"("org.slf4j:slf4j-api:1.7.10")
     }
 
     // tag::customize-identity[]
@@ -37,8 +37,8 @@ project(":project1") {
 
 project(":project2") {
     dependencies {
-        "compile"("commons-collections:commons-collections:3.2.2")
-        "compile"(project(":project1"))
+        "implementation"("commons-collections:commons-collections:3.2.2")
+        "api"(project(":project1"))
     }
 
     // tag::multiple-publications[]

@@ -7,13 +7,13 @@ repositories {
 configurations {
     gradleApi
     gradleApi.extendsFrom groovy
-    compile.extendsFrom gradleApi
+    implementation.extendsFrom gradleApi
 }
 
 dependencies {
     gradleApi gradleApi()
-    compile localGroovy()
-    compile 'com.google.guava:guava:11.0.2'
+    implementation localGroovy()
+    implementation 'com.google.guava:guava:11.0.2'
 }
 
 task dist(type: Zip) {
@@ -24,7 +24,7 @@ task dist(type: Zip) {
         into('init.d') { from 'src/initScripts' }
         into('init.d/libs') {
             from jar
-            from configurations.runtime - configurations.gradleApi
+            from configurations.runtimeClasspath - configurations.gradleApi
         }
         from gradle.gradleHomeDir
     }
