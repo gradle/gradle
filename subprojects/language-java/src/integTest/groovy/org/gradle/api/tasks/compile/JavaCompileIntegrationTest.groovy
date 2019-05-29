@@ -206,6 +206,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     def "implementation dependencies should not leak into compile classpath of consumer"() {
+        executer.expectDeprecationWarning() // compile configuration
+
         mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
 

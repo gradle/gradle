@@ -590,6 +590,9 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
     void "maps dependencies in the correct Maven scope"() {
+        if (deprecatedConfiguration) {
+            executer.expectDeprecationWarning()
+        }
         given:
         file("settings.gradle") << '''
             rootProject.name = 'publishTest' 
@@ -638,17 +641,17 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         where:
-        plugin         | gradleConfiguration | mavenScope
-        'java'         | 'compile'           | 'compile'
-        'java'         | 'runtime'           | 'compile'
-        'java'         | 'implementation'    | 'runtime'
-        'java'         | 'runtimeOnly'       | 'runtime'
+        plugin         | gradleConfiguration | mavenScope | deprecatedConfiguration
+        'java'         | 'compile'           | 'compile'  | true
+        'java'         | 'runtime'           | 'compile'  | true
+        'java'         | 'implementation'    | 'runtime'  | false
+        'java'         | 'runtimeOnly'       | 'runtime'  | false
 
-        'java-library' | 'api'               | 'compile'
-        'java-library' | 'compile'           | 'compile'
-        'java-library' | 'runtime'           | 'compile'
-        'java-library' | 'runtimeOnly'       | 'runtime'
-        'java-library' | 'implementation'    | 'runtime'
+        'java-library' | 'api'               | 'compile'  | false
+        'java-library' | 'compile'           | 'compile'  | true
+        'java-library' | 'runtime'           | 'compile'  | true
+        'java-library' | 'runtimeOnly'       | 'runtime'  | false
+        'java-library' | 'implementation'    | 'runtime'  | false
 
     }
 
