@@ -30,7 +30,6 @@ project(":astTransformationConsumer") {
     dependencies {
         astTransformation(project(":astTransformation"))
     }
-                
     tasks.withType<GroovyCompile> {
         compilerPluginClasspath.from(astTransformation)
     }

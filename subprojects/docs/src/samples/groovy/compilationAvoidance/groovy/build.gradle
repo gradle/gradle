@@ -26,13 +26,10 @@ subprojects {
 
 project(':astTransformationConsumer') {
 // tag::groovy-compilation-avoidance[]
-    configurations { 
-        astTransformation 
-    }
+    configurations { astTransformation }
     dependencies {
-         astTransformation project(':astTransformation')
+        astTransformation(project(":astTransformation"))
     }
-                
     tasks.withType(GroovyCompile) {
         compilerPluginClasspath.from(configurations.astTransformation)
     }
