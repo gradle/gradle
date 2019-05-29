@@ -15,7 +15,9 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.Format;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.DisambiguationRule;
 import org.gradle.api.internal.attributes.EmptySchema;
@@ -23,7 +25,6 @@ import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -37,13 +38,15 @@ import java.util.Set;
  * declaring no preference for a particular variant.
  */
 public class PreferJavaRuntimeVariant extends EmptySchema {
-    private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Collections.<Attribute<?>>singleton(Usage.USAGE_ATTRIBUTE);
-    private final PreferRuntimeVariantUsageDisambiguationRule disambiguationRule;
+    private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Sets.newHashSet(Usage.USAGE_ATTRIBUTE, Format.FORMAT_ATTRIBUTE);
+    private final PreferRuntimeVariantUsageDisambiguationRule usageDisambiguationRule;
+    private final PreferJarVariantUsageDisambiguationRule formatDisambiguationRule;
 
     public PreferJavaRuntimeVariant(NamedObjectInstantiator instantiator) {
         Usage runtimeUsage = instantiator.named(Usage.class, Usage.JAVA_RUNTIME);
-        Usage runtimeJarsUsage = instantiator.named(Usage.class, Usage.JAVA_RUNTIME_JARS);
-        disambiguationRule = new PreferRuntimeVariantUsageDisambiguationRule(runtimeUsage, runtimeJarsUsage);
+        Format jarFormat = instantiator.named(Format.class, Format.JAR);
+        usageDisambiguationRule = new PreferRuntimeVariantUsageDisambiguationRule(runtimeUsage);
+        formatDisambiguationRule = new PreferJarVariantUsageDisambiguationRule(jarFormat);
     }
 
     @Override
@@ -54,18 +57,19 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
     @Override
     public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
         if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
-            return Cast.uncheckedCast(disambiguationRule);
+            return Cast.uncheckedCast(usageDisambiguationRule);
+        }
+        if (Format.FORMAT_ATTRIBUTE.equals(attribute)) {
+            return Cast.uncheckedCast(formatDisambiguationRule);
         }
         return super.disambiguationRules(attribute);
     }
 
     private static class PreferRuntimeVariantUsageDisambiguationRule implements DisambiguationRule<Usage> {
         private final Usage runtimeUsage;
-        private final Usage runtimeJarsUsage;
 
-        public PreferRuntimeVariantUsageDisambiguationRule(Usage runtimeUsage, Usage runtimeJarsUsage) {
+        public PreferRuntimeVariantUsageDisambiguationRule(Usage runtimeUsage) {
             this.runtimeUsage = runtimeUsage;
-            this.runtimeJarsUsage = runtimeJarsUsage;
         }
 
         @Override
@@ -77,10 +81,31 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
         public void execute(MultipleCandidatesResult<Usage> details) {
             if (details.getConsumerValue() == null) {
                 Set<Usage> candidates = details.getCandidateValues();
-                if (candidates.contains(runtimeJarsUsage)) {
-                    details.closestMatch(runtimeJarsUsage);
-                } else if (candidates.contains(runtimeUsage)) {
+                if (candidates.contains(runtimeUsage)) {
                     details.closestMatch(runtimeUsage);
+                }
+            }
+        }
+    }
+
+    private static class PreferJarVariantUsageDisambiguationRule implements DisambiguationRule<Format> {
+        private final Format jarFormat;
+
+        public PreferJarVariantUsageDisambiguationRule(Format jarFormat) {
+            this.jarFormat = jarFormat;
+        }
+
+        @Override
+        public boolean doesSomething() {
+            return true;
+        }
+
+        @Override
+        public void execute(MultipleCandidatesResult<Format> details) {
+            if (details.getConsumerValue() == null) {
+                Set<Format> candidates = details.getCandidateValues();
+                if (candidates.contains(jarFormat)) {
+                    details.closestMatch(jarFormat);
                 }
             }
         }

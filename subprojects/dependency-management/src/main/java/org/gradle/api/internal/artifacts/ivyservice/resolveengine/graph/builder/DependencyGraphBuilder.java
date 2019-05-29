@@ -406,7 +406,7 @@ public class DependencyGraphBuilder {
             Object v1 = firstAttributes.getAttribute(attribute);
             Object v2 = secondAttributes.getAttribute(attribute);
             // for all commons attributes, make sure they are compatible with each other
-            if (!compatible(rule, v1, v2) || !compatible(rule, v2, v1)) {
+            if (!compatible(rule, v1, v2) && !compatible(rule, v2, v1)) {
                 incompatibleNodes.add(first);
                 incompatibleNodes.add(second);
             }

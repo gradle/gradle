@@ -262,10 +262,10 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge('org:test:1.0', 'org:test:1.0') {
-                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', custom: 'c2'])
+                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.format': 'jar', custom: 'c2'])
                     }
                     module('org:test:1.0') {
-                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', custom: 'c2'])
+                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.format': 'jar', custom: 'c2'])
                     }
                 }
             }
@@ -358,7 +358,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     byConflictResolution('between versions 1.1 and 1.0')
                     // the following assertion is true but limitations to the test fixtures make it hard to check
                     //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.format': 'jar'])
                     artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c2'
                     artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c3'
                 }
@@ -447,7 +447,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         then:
         failure.assertHasCause("""Multiple incompatible variants of org:foo:1.1 were selected:
    - Variant org:foo:1.1 variant altruntime has attributes {custom=c3, org.gradle.status=${defaultStatus()}}
-   - Variant org:foo:1.1 variant runtime has attributes {custom=c2, org.gradle.status=${defaultStatus()}, org.gradle.usage=java-runtime-jars}""")
+   - Variant org:foo:1.1 variant runtime has attributes {custom=c2, org.gradle.format=jar, org.gradle.status=${defaultStatus()}, org.gradle.usage=java-runtime}""")
 
     }
 
@@ -587,7 +587,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.1 and 1.0')
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.format': 'jar'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'c2'
                 }
                 module('org:bar:1.0') {
@@ -634,7 +634,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
+                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.format': 'jar'])
                     artifact group: 'org', module: 'foo', version: '1.0'
                 }
                 module('org:foo:1.0') {

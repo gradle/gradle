@@ -79,7 +79,8 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                             'org.gradle.category': 'library',
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                            'org.gradle.usage': "java-api-jars"]) // this is a bit curious, it's an artifact of how selection is done
+                            'org.gradle.usage': 'java-api',
+                            'org.gradle.format': 'jar'])
                     switch (expected) {
                         case "jar":
                             artifact(name: "groovyLib")
