@@ -18,9 +18,9 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.IsolationMode
-import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
@@ -291,7 +291,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << [IsolationMode.CLASSLOADER, IsolationMode.NONE]
     }
 
-    @Requires({TestPrecondition.NOT_WINDOWS})
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "produces a sensible error when worker fails before logging is initialized"() {
         fixture.withRunnableClassInBuildScript()
 
