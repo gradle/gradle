@@ -128,9 +128,8 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                     public void execute(MutableModelNode modelNode, Task task) {
                         TaskContainerInternal taskContainer = modelNode.getParent().getPrivateData(TaskContainerInternal.MODEL_TYPE);
                         if (!taskContainer.addInternal(task)) {
-                            Task alreadyAdded = taskContainer.getByPath(task.getPath());
-                            LOGGER.debug("Task {} added via ModelMap already existed in task container. Existing task: {}, same instance: {}", task, alreadyAdded, task == alreadyAdded);
-                        };
+                            LOGGER.debug("Task {} added via ModelMap already existed in task container.", task);
+                        }
                     }
                 }));
             }
