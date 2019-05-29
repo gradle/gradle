@@ -16,13 +16,11 @@
 
 package org.gradle.java.compile
 
+import groovy.transform.SelfType
 import spock.lang.Issue
 
-abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends AbstractJavaCompileAvoidanceIntegrationSpec {
-    def setup() {
-        useJar()
-    }
-
+@SelfType(AbstractJavaGroovyCompileAvoidanceIntegrationSpec)
+trait AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
     def "doesn't recompile when implementation manifest is changed"() {
         given:
         buildFile << """
@@ -32,20 +30,20 @@ abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends Abs
                 }
             }
         """
-        def sourceFile = file("a/src/main/java/ToolImpl.java")
+        def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl { public void execute() { int i = 12; } }
         """
-        file("b/src/main/java/Main.java") << """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
             public class Main { ToolImpl t = new ToolImpl(); }
         """
 
         when:
-        succeeds ':b:compileJava'
+        succeeds ":b:${language.compileTaskName}"
 
         then:
-        executedAndNotSkipped ':a:compileJava'
-        executedAndNotSkipped ':b:compileJava'
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        executedAndNotSkipped ":b:${language.compileTaskName}"
 
         when:
         buildFile << """
@@ -55,9 +53,9 @@ abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends Abs
 """
 
         then:
-        succeeds ':b:compileJava'
+        succeeds ":b:${language.compileTaskName}"
         executedAndNotSkipped ':a:jar'
-        skipped ':b:compileJava'
+        skipped ":b:${language.compileTaskName}"
     }
 
     @Issue("gradle/gradle#1457")
@@ -73,12 +71,12 @@ abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends Abs
                 jar.enabled = false
             }
         """
-        file("b/src/main/java/Main.java") << """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
             public class Main { }
         """
 
         when:
-        succeeds ':b:compileJava'
+        succeeds ":b:${language.compileTaskName}"
 
         then:
         noExceptionThrown()
