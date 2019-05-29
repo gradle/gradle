@@ -219,7 +219,6 @@ task check {
     @Unroll
     def "will not download cached #source resource when run with --offline"() {
         given:
-        applyTrustStore()
         def scriptName = "script-offline.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
@@ -234,7 +233,7 @@ task check {
         when:
         def scriptUri = "${server.uri}/${scriptName}"
         file(sourceFile) << """
-            apply from: '${scriptUri}'
+            apply from: '${scriptUri}', allowInsecureProtocol: true
         """
 
         then:
@@ -259,7 +258,6 @@ task check {
     @Unroll
     def "can recover from failure to download cached #source resource by running with --offline"() {
         given:
-        applyTrustStore()
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
         server.expectGet('/' + scriptName, scriptFile)
@@ -273,7 +271,7 @@ task check {
         when:
         def scriptUri = "${server.uri}/${scriptName}"
         file(sourceFile) << """
-            apply from: '${scriptUri}'
+            apply from: '${scriptUri}', allowInsecureProtocol: true
         """
 
         then:
