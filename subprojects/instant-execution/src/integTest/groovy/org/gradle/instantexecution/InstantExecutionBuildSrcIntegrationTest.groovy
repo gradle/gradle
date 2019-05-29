@@ -49,9 +49,16 @@ class InstantExecutionBuildSrcIntegrationTest extends AbstractInstantExecutionIn
 
         when:
         instantRun("greeting")
+
+        then:
+        result.assertTaskExecuted(":buildSrc:build")
+        result.assertTaskExecuted(":greeting")
+
+        when:
         instantRun("greeting")
 
         then:
+        result.assertTasksExecuted(":greeting")
         outputContains("yo instant execution")
     }
 }
