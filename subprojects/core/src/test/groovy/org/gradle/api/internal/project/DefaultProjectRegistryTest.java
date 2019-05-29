@@ -29,7 +29,7 @@ import java.util.TreeSet;
 
 import static org.gradle.util.WrapUtil.toSet;
 import static org.gradle.util.WrapUtil.toSortedSet;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 public class DefaultProjectRegistryTest {

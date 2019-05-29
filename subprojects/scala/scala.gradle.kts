@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -16,18 +14,41 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    `java-library`
+}
+
 dependencies {
-    compile(library("groovy"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":workerProcesses"))
+    implementation(project(":files"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":workers"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":languageJvm"))
+    implementation(project(":languageJava"))
+    implementation(project(":languageScala"))
+    implementation(project(":plugins"))
+    implementation(project(":reporting"))
+    implementation(project(":dependencyManagement"))
 
-    compile(project(":core"))
-    compile(project(":languageJvm"))
-    compile(project(":languageScala"))
-    compile(project(":plugins"))
+    implementation(library("groovy"))
+    implementation(library("guava"))
+    implementation(library("inject"))
 
-    testCompile(library("slf4j_api"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(library("slf4j_api"))
+    testImplementation(library("commons_io"))
 
-    integTestRuntime(project(":ide"))
-    integTestRuntime(project(":maven"))
+    integTestImplementation(project(":jvmServices"))
+    integTestRuntimeOnly(project(":ide"))
+    integTestRuntimeOnly(project(":maven"))
 }
 
 gradlebuildJava {
@@ -35,7 +56,8 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(":plugins") // include core test fixtures
+    from(":core")
+    from(":plugins")
     from(":languageJvm")
     from(":languageScala")
 }

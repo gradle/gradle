@@ -29,7 +29,7 @@ import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 public class Matchers {
 

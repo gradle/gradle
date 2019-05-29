@@ -17,16 +17,27 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(library("groovy"))
-    compile(project(":core"))
-    compile(project(":ide"))
-    compile(project(":platformPlay"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":files"))
+    implementation(project(":ide"))
+    implementation(project(":languageScala"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":platformPlay"))
 
-    integTestRuntime(project(":compositeBuilds"))
+    implementation(library("groovy"))
+    implementation(library("guava"))
+
+    integTestRuntimeOnly(project(":compositeBuilds"))
 }
 
 gradlebuildJava {

@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Issue
@@ -36,6 +36,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
+    private static final int HTTP_UNRECOVERABLE_ERROR = 415
     private static final String BAD_CREDENTIALS = '''
 credentials {
     username 'testuser'
@@ -191,7 +192,7 @@ credentials {
         then:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+        failure.assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme        | credsName | creds
@@ -237,7 +238,7 @@ credentials {
         then:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
+        failure.assertThatCause(CoreMatchers.containsString('Received status code 500 from server: broken'))
 
         when:
         server.stop()
@@ -375,7 +376,7 @@ credentials {
         """
 
         and:
-        module.jar.expectPutBroken()
+        module.jar.expectPutBroken(HTTP_UNRECOVERABLE_ERROR)
 
         when:
         fails ':publish'
@@ -383,5 +384,49 @@ credentials {
         then:
         module.jarFile.assertExists()
         module.ivyFile.assertDoesNotExist()
+    }
+
+    def "retries artifact upload for transient network error"() {
+        given:
+        server.start()
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.gradle'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyHttpRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        and:
+        module.jar.expectPutBroken()
+        module.jar.expectPutBroken()
+        module.jar.expectPut()
+        module.jar.sha1.expectPut()
+
+        module.ivy.expectPutBroken()
+        module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
+
+        module.moduleMetadata.expectPutBroken()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
+
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertMetadataAndJarFilePublished()
     }
 }

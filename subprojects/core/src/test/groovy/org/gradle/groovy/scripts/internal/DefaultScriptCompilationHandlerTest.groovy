@@ -52,7 +52,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.CoreMatchers.instanceOf
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertThat

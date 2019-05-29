@@ -30,8 +30,8 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.TextUtil.normaliseFileSeparators
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {

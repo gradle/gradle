@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {

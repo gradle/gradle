@@ -66,7 +66,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.cleanTasks = ["clean"]
         runner.runs = runs
         runner.minimumVersion = "5.4"
-        runner.targetVersions = ["5.4-20190403012714+0000"]
+        runner.targetVersions = ["5.5-20190524010357+0000"]
         runner.addBuildExperimentListener(cleanTransformsCacheBeforeInvocation())
 
         when:

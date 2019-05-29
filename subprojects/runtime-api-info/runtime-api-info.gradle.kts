@@ -35,7 +35,6 @@ configurations {
 }
 
 dependencies {
-    compile(project(":distributionsDependencies"))
     "gradleApiRuntime"(project(":"))
     "testKitPackages"(project(":testKit"))
 }

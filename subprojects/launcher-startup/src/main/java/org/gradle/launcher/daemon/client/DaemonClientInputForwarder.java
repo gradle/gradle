@@ -36,7 +36,7 @@ import java.io.InputStream;
 public class DaemonClientInputForwarder implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DaemonClientInputForwarder.class);
 
-    public static final int DEFAULT_BUFFER_SIZE = 1024;
+    public static final int DEFAULT_BUFFER_SIZE = 8192;
     private final InputForwarder forwarder;
 
     public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super InputMessage> dispatch,

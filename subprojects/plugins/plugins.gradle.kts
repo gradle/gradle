@@ -16,37 +16,55 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    `java-library`
+}
 
 dependencies {
-    compile(library("groovy"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":files"))
+    implementation(project(":persistentCache"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":workers"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":reporting"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":languageJvm"))
+    implementation(project(":languageJava"))
+    implementation(project(":languageGroovy"))
+    implementation(project(":diagnostics"))
+    implementation(project(":testingBase"))
+    implementation(project(":testingJvm"))
+    implementation(project(":snapshots"))
 
-    compile(project(":core"))
-    compile(project(":workers"))
-    compile(project(":dependencyManagement"))
-    compile(project(":reporting"))
-    compile(project(":platformJvm"))
-    compile(project(":languageJvm"))
-    compile(project(":languageJava"))
-    compile(project(":languageGroovy"))
-    compile(project(":diagnostics"))
-    compile(project(":testingJvm"))
-    compile(project(":snapshots"))
-
-    compile(library("ant"))
-    compile(library("asm"))
-    compile(library("commons_io"))
-    compile(library("commons_lang"))
-    compile(library("slf4j_api"))
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
+    implementation(library("ant"))
+    implementation(library("asm"))
+    implementation(library("guava"))
+    implementation(library("commons_io"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
 
     // This dependency makes the services provided by `:compositeBuilds` available at runtime for all integration tests in all subprojects
     // Making this better would likely involve a separate `:gradleRuntime` module that brings in `:core`, `:dependencyManagement` and other key subprojects
-    runtime(project(":compositeBuilds"))
+    runtimeOnly(project(":compositeBuilds"))
 
-    testFixturesApi(project(":internalIntegTesting"))
+    testImplementation(project(":messaging"))
+    testImplementation(project(":native"))
+    testImplementation(project(":resources"))
 
-    testCompile(testLibrary("jsoup"))
+    testFixturesImplementation(project(":baseServicesGroovy"))
+    testFixturesImplementation(project(":internalIntegTesting"))
 
-    integTestRuntime(project(":maven"))
+    testImplementation(testLibrary("jsoup"))
+
+    integTestRuntimeOnly(project(":maven"))
 }
 
 
@@ -57,7 +75,11 @@ gradlebuildJava {
 testFixtures {
     from(":core")
     from(":core", "testFixtures")
+    from(":launcher")
     from(":dependencyManagement")
+    from(":resourcesHttp")
+    from(":platformNative")
+    from(":languageJvm")
     from(":languageJava")
     from(":languageGroovy")
     from(":diagnostics")

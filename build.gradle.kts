@@ -33,7 +33,7 @@ plugins {
     // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
     // the plugin has been already applied. For that the plugin has to be applied with the new plugin DSL syntax.
     com.gradle.`build-scan`
-    id("org.gradle.ci.tag-single-build") version("0.64")
+    id("org.gradle.ci.tag-single-build") version("0.67")
 }
 
 defaultTasks("assemble")
@@ -186,7 +186,6 @@ apply(plugin = "gradlebuild.minify")
 apply(from = "gradle/testDependencies.gradle")
 apply(plugin = "gradlebuild.wrapper")
 apply(plugin = "gradlebuild.ide")
-apply(plugin = "gradlebuild.no-resolution-at-configuration")
 apply(plugin = "gradlebuild.update-versions")
 apply(plugin = "gradlebuild.dependency-vulnerabilities")
 apply(plugin = "gradlebuild.add-verify-production-environment-task")

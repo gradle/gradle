@@ -44,7 +44,7 @@ class MutableClassDetails implements ClassDetails {
     }
 
     @Override
-    public List<Method> getInstanceMethods() {
+    public Collection<Method> getInstanceMethods() {
         return instanceMethods.getValues();
     }
 

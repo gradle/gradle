@@ -16,30 +16,31 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.tasks.TaskProvider;
 
 import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
-    private final Task generator;
+    private final TaskProvider<? extends Task> generator;
     private final IvyPublicationIdentity identity;
     private final String extension;
     private final String type;
     private final String classifier;
-    private final DefaultTaskDependency buildDependencies;
+    private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskIvyArtifact(Task generator, IvyPublicationIdentity identity, String extension, String type, String classifier) {
+    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, IvyPublicationIdentity identity, String extension, String type, String classifier) {
         this.generator = generator;
         this.identity = identity;
         this.extension = extension;
         this.type = type;
         this.classifier = classifier;
-        this.buildDependencies = new DefaultTaskDependency(null, ImmutableSet.<Object>of(generator));
+        this.buildDependencies = new GeneratorTaskDependency();
     }
 
     @Override
@@ -74,10 +75,17 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     public File getFile() {
-        return generator.getOutputs().getFiles().getSingleFile();
+        return generator.get().getOutputs().getFiles().getSingleFile();
     }
 
     public boolean isEnabled() {
-        return generator.getEnabled();
+        return generator.get().getEnabled();
+    }
+
+    private class GeneratorTaskDependency extends AbstractTaskDependency {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(generator.get());
+        }
     }
 }

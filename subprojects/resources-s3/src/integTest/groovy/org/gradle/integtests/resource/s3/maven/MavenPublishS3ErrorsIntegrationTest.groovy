@@ -70,7 +70,6 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
         when:
         def module = mavenS3Repo.module("org.gradle", "publishS3Test", "1.45")
         module.artifact.expectPutAuthenticationError()
-        module.pom.expectPutAuthenticationError()
 
         then:
         fails 'publish'

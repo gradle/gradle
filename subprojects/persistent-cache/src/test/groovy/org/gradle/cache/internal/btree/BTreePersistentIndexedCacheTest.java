@@ -35,9 +35,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class BTreePersistentIndexedCacheTest {
     @Rule
@@ -214,7 +215,7 @@ public class BTreePersistentIndexedCacheTest {
         cache.put("key_5", "abcd");
 
         long len = cacheFile.length();
-        assertThat(len, greaterThan(0L));
+        assertTrue(len > 0L);
 
         cache.put("key_1", "1234");
         assertThat(cacheFile.length(), equalTo(len));
@@ -224,7 +225,7 @@ public class BTreePersistentIndexedCacheTest {
         assertThat(cacheFile.length(), equalTo(len));
 
         cache.put("key_new", "longer value");
-        assertThat(cacheFile.length(), greaterThan(len));
+        assertTrue(cacheFile.length() > len);
         len = cacheFile.length();
 
         cache.put("key_1", "1234");
@@ -246,15 +247,15 @@ public class BTreePersistentIndexedCacheTest {
 
         long len = cacheFile.length();
 
-        checkAddsAndRemoves(Collections.<Integer>reverseOrder(), values);
+        checkAddsAndRemoves(Collections.reverseOrder(), values);
 
         // need to make this better
-        assertThat(cacheFile.length(), lessThan((long)(1.4 * len)));
+        assertTrue(cacheFile.length() < (long)(1.4 * len));
 
         checkAdds(values);
 
         // need to make this better
-        assertThat(cacheFile.length(), lessThan((long) (1.4 * 1.4 * len)));
+        assertTrue(cacheFile.length() < (long) (1.4 * 1.4 * len));
 
         cache.close();
     }

@@ -26,8 +26,8 @@ import static java.util.Collections.singletonMap;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.toList;
 import static org.gradle.util.WrapUtil.toSet;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class NameMatcherTest {

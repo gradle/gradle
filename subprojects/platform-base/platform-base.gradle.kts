@@ -1,16 +1,25 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
 }
 
 dependencies {
-    compile(library("groovy"))
-    compile(project(":core"))
-    compile(project(":dependencyManagement"))
-    compile(project(":workers"))
-    compile(project(":execution"))
-    compile(library("commons_lang"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":workers"))
+    implementation(project(":execution"))
+
+    implementation(library("groovy"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+
+    testFixturesImplementation(project(":files"))
 }
 
 gradlebuildJava {
@@ -24,7 +33,3 @@ testFixtures {
     from(":modelCore", "testFixtures")
     from(":diagnostics", "testFixtures")
 }
-
-// classycle {
-//     excludePatterns.set(listOf("org.gradle.language.base.internal/**"))
-// }

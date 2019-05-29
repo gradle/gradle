@@ -16,31 +16,51 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 import java.io.File;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MavenNormalizedPublication {
 
     private final String name;
+    private final ModuleComponentIdentifier coordinates;
     private final String packaging;
     private final MavenArtifact pomArtifact;
-    private final MavenProjectIdentity projectIdentity;
-    private final Set<MavenArtifact> allArtifacts;
     private final MavenArtifact mainArtifact;
+    private final Set<MavenArtifact> allArtifacts;
 
-    public MavenNormalizedPublication(String name, String packaging, MavenArtifact pomArtifact, MavenProjectIdentity projectIdentity, Set<MavenArtifact> allArtifacts, MavenArtifact mainArtifact) {
+    public MavenNormalizedPublication(String name, MavenProjectIdentity projectIdentity, String packaging, MavenArtifact pomArtifact, MavenArtifact mainArtifact, Set<MavenArtifact> allArtifacts) {
         this.name = name;
+        this.coordinates = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(projectIdentity.getGroupId().get(), projectIdentity.getArtifactId().get()), projectIdentity.getVersion().get());
         this.packaging = packaging;
         this.pomArtifact = pomArtifact;
-        this.projectIdentity = projectIdentity;
-        this.allArtifacts = allArtifacts;
         this.mainArtifact = mainArtifact;
+        this.allArtifacts = allArtifacts;
     }
 
     public String getName() {
         return name;
+    }
+
+    public ModuleComponentIdentifier getProjectIdentity() {
+        return coordinates;
+    }
+
+    public String getGroupId() {
+        return coordinates.getGroup();
+    }
+
+    public String getArtifactId() {
+        return coordinates.getModule();
+    }
+
+    public String getVersion() {
+        return coordinates.getVersion();
     }
 
     public String getPackaging() {
@@ -59,16 +79,17 @@ public class MavenNormalizedPublication {
         return pomArtifact;
     }
 
-    public Set<MavenArtifact> getAllArtifacts() {
-        return allArtifacts;
-    }
-
-    public MavenProjectIdentity getProjectIdentity() {
-        return projectIdentity;
-    }
-
     public MavenArtifact getMainArtifact() {
         return mainArtifact;
     }
 
+    public Set<MavenArtifact> getAdditionalArtifacts() {
+        return allArtifacts.stream()
+                .filter(artifact -> artifact != pomArtifact && artifact != mainArtifact)
+                .collect(Collectors.toSet());
+    }
+
+    public Set<MavenArtifact> getAllArtifacts() {
+        return allArtifacts;
+    }
 }

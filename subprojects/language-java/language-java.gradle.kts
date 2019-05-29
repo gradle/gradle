@@ -2,28 +2,51 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":workerProcesses"))
+    implementation(project(":files"))
+    implementation(project(":persistentCache"))
+    implementation(project(":jvmServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":workers"))
+    implementation(project(":snapshots"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":languageJvm"))
+    implementation(project(":toolingApi"))
 
     compileOnly(project(":launcherStartup"))
-
-    implementation(library("asm"))
-    implementation(library("asm_commons"))
-    implementation(library("groovy"))
-
-    compile(project(":core"))
-    compile(project(":platformJvm"))
-    compile(project(":languageJvm"))
-    compile(project(":toolingApi"))
-    implementation(project(":snapshots"))
-
     runtimeOnly(project(":launcher"))
 
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("fastutil"))
+    implementation(library("ant")) // for 'ZipFile' and 'ZipEntry'
+    implementation(library("asm"))
+    implementation(library("asm_commons"))
+    implementation(library("inject"))
+
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(library("commons_io"))
+
+    testFixturesImplementation(project(":internalIntegTesting"))
+
     // TODO - get rid of this cycle
-    integTestRuntime(project(":plugins"))
+    integTestRuntimeOnly(project(":plugins"))
 }
 
 gradlebuildJava {

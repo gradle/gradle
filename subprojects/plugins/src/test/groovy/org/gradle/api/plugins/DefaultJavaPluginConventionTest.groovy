@@ -31,7 +31,7 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.Test
 
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 import static org.junit.Assert.assertThat
 
 class DefaultJavaPluginConventionTest extends Specification {

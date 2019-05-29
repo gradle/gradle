@@ -48,6 +48,10 @@ Previously, it was possible to pass `Task.dependsOn()` a `Provider<File>`, `Prov
 
 Note that it is still possible to to pass `dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDir })`.
 
+==== Enhanced validation of names for `publishing.publications` and `publishing.repositories`
+
+The repository and publication names are used to construct task names when publishing. Previously is was possible to supply a name that resulted in an invalid task name. These names are now restricted to `[A-Za-z0-9_\\-.]+`.
+
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
 
@@ -72,7 +76,19 @@ Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
 
 ==== Embedded Ant version upgraded to 1.9.14
 
-The version of Ant distributed with Gradle has been upgraded to link:https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.14.html(1.9.14) from 1.9.13.
+The version of Ant distributed with Gradle has been upgraded to link:https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.14.html[1.9.14] from 1.9.13.
+
+=== Deprecations
+
+==== Play
+
+The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated and will be replaced by a new link:https://gradle.github.io/playframework[Play Framework plugin] available from the plugin portal.
+
+==== Build Comparison
+
+The <<comparing_builds.adoc#comparing_builds, build comparison>> plugin has been deprecated and will be removed in the next major version of Gradle.
+
+link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/[Gradle Enterprise] to directly compare two build's build-scans.
 
 [[changes_5.4]]
 == Upgrading from 5.3 and earlier

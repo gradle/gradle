@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.BuildEnvironment.javaVersion
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
@@ -9,12 +8,15 @@ plugins {
 }
 
 dependencies {
-    api(project(":core"))
-    api(project(":resources"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+    implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
+    
     implementation(library("slf4j_api"))
     implementation(library("guava"))
+    implementation(library("nativePlatform"))
     implementation(library("awsS3_core"))
     implementation(library("awsS3_s3"))
     implementation(library("awsS3_kms"))
@@ -25,9 +27,15 @@ dependencies {
     implementation(library("commons_httpclient"))
     implementation(library("joda"))
     implementation(library("commons_lang"))
+
+    integTestImplementation(project(":logging"))
+    integTestImplementation(library("commons_io"))
+    integTestImplementation(testLibrary("littleproxy"))
+    integTestImplementation(testLibrary("jetty"))
 }
 
 testFixtures {
+    from(":core")
     from(":dependencyManagement")
     from(":ivy")
     from(":maven")

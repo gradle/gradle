@@ -22,8 +22,6 @@ import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVers
 
 import org.hamcrest.Matcher
 
-import javax.annotation.Nullable
-
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.not
@@ -109,7 +107,6 @@ class AccessorsClassPathModelCrossVersionSpec extends AbstractKotlinScriptModelC
         return projectDir.toPath().relativize(classFilePath).toFile()
     }
 
-    @Nullable
     private File accessorsClassFor(File buildFile) {
         return classPathFor(projectDir, buildFile)
             .tap { println(it) }

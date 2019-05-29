@@ -25,7 +25,7 @@ import org.gradle.util.GradleVersion
 
 import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
 import static org.gradle.testing.fixture.TestNGCoverage.STANDARD_COVERAGE
-import static org.hamcrest.Matchers.is
+import static org.hamcrest.CoreMatchers.is
 
 @TargetCoverage({STANDARD_COVERAGE})
 class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {

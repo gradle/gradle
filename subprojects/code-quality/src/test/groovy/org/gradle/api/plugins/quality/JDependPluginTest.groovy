@@ -21,7 +21,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class JDependPluginTest extends AbstractProjectBuilderSpec {

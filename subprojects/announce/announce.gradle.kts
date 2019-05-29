@@ -16,11 +16,18 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 dependencies {
-    compile(library("commons_codec"))
-    compile(library("slf4j_api"))
-    compile(library("commons_io"))
-    compile(project(":core"))
-    testRuntime(project(":plugins"))
+    implementation(project(":modelCore"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("commons_codec"))
+    implementation(library("commons_io"))
+
+    testRuntimeOnly(project(":plugins"))
 }
 
 gradlebuildJava {

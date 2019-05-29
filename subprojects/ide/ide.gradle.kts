@@ -1,4 +1,3 @@
-import accessors.groovy
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
@@ -17,24 +16,44 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    `java-library`
+}
 
 dependencies {
-    compile(library("groovy"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":files"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":baseServicesGroovy"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":plugins"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":languageJava"))
+    implementation(project(":languageScala"))
+    implementation(project(":scala"))
+    implementation(project(":ear"))
+    implementation(project(":toolingApi"))
 
-    compile(project(":scala"))
-    compile(project(":core"))
-    compile(project(":plugins"))
-    compile(project(":ear"))
-    compile(project(":toolingApi"))
-    compile(library("slf4j_api"))
-    compile(library("inject"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("commons_io"))
+    implementation(library("inject"))
 
-    testCompile(testLibrary("xmlunit"))
-    testCompile("nl.jqno.equalsverifier:equalsverifier:2.1.6")
-    testCompile(project(":dependencyManagement"))
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
 
-    testFixturesApi(project(":internalTesting"))
-    testFixturesApi(project(":internalIntegTesting"))
+    testImplementation(project(":dependencyManagement"))
+    testImplementation(testLibrary("xmlunit"))
+    testImplementation("nl.jqno.equalsverifier:equalsverifier:2.1.6")
+
+    integTestImplementation(testLibrary("jetty"))
 }
 
 gradlebuildJava {

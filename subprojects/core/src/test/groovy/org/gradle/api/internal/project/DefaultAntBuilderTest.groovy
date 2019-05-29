@@ -29,8 +29,8 @@ import spock.lang.Unroll
 
 import java.lang.reflect.Field
 
-import static org.hamcrest.Matchers.not
-import static org.hamcrest.Matchers.sameInstance
+import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.sameInstance
 import static org.junit.Assert.assertThat
 
 class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {

@@ -20,14 +20,14 @@ import com.google.common.collect.Iterators;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class CollectingMacroLookup implements MacroLookup {
-    private final List<MacroSource> uncollected = new ArrayList<MacroSource>();
+    private final Deque<MacroSource> uncollected = new ArrayDeque<>();
     private final IncludeDirectives includeDirectives;
     private Map<File, IncludeDirectives> visible;
 
@@ -84,7 +84,7 @@ public class CollectingMacroLookup implements MacroLookup {
 
     private void collectAll() {
         while (!uncollected.isEmpty()) {
-            MacroSource source = uncollected.remove(0);
+            MacroSource source = uncollected.removeFirst();
             source.collectInto(this);
         }
     }

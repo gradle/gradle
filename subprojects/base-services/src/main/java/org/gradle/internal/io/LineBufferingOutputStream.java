@@ -34,7 +34,7 @@ public class LineBufferingOutputStream extends OutputStream {
     private int counter;
 
     public LineBufferingOutputStream(TextStream handler) {
-        this(handler, 2048);
+        this(handler, 8192);
     }
 
     public LineBufferingOutputStream(TextStream handler, int bufferLength) {

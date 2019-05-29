@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.Ignore
 
 /**
  * Tests “simple” maven publishing scenarios
@@ -142,6 +141,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.rootMetaData.artifactId == "root"
         repoModule.rootMetaData.versions == ["1.0"]
         repoModule.rootMetaData.releaseVersion == "1.0"
+        repoModule.rootMetaData.latestVersion == "1.0"
 
         when:
         succeeds 'publishToMavenLocal'
@@ -150,9 +150,68 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         localModule.assertPublished()
 
         and:
+        localModule.rootMetaData.groupId == "group"
+        localModule.rootMetaData.artifactId == "root"
+        localModule.rootMetaData.versions == ["1.0"]
+        localModule.rootMetaData.releaseVersion == "1.0"
+        localModule.rootMetaData.latestVersion == "1.0"
+
+        and:
         resolveArtifacts(repoModule) {
             expectFiles 'root-1.0.jar'
         }
+    }
+
+    def "can republish simple component"() {
+        given:
+        using m2
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+        succeeds 'publish', 'publishToMavenLocal'
+        buildFile.text = buildFile.text.replace("1.0", "2.0")
+
+        def repoModule = javaLibrary(mavenRepo.module('group', 'root', '2.0'))
+        def localModule = javaLibrary(localM2Repo.module('group', 'root', '2.0'))
+
+        when:
+        succeeds 'publish', 'publishToMavenLocal'
+
+        then:
+        repoModule.assertPublished()
+        localModule.assertPublished()
+
+        and:
+        repoModule.rootMetaData.groupId == "group"
+        repoModule.rootMetaData.artifactId == "root"
+        repoModule.rootMetaData.versions == ["1.0", "2.0"]
+        repoModule.rootMetaData.releaseVersion == "2.0"
+        repoModule.rootMetaData.latestVersion == "2.0"
+
+        and:
+        localModule.rootMetaData.groupId == "group"
+        localModule.rootMetaData.artifactId == "root"
+        localModule.rootMetaData.versions == ["1.0", "2.0"]
+        localModule.rootMetaData.releaseVersion == "2.0"
+        localModule.rootMetaData.latestVersion == "2.0"
     }
 
     def "can publish to custom maven local repo defined in settings.xml"() {
@@ -216,13 +275,13 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
-    @Ignore("Not yet implemented - currently the second publication will overwrite")
-    def "cannot publish multiple maven publications with the same identity"() {
+    def "publishes to all defined repositories"() {
         given:
-        settingsFile << "rootProject.name = 'bad-project'"
+        def mavenRepo2 = maven("maven-repo-2")
+
+        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
-            apply plugin: 'war'
 
             group = 'org.gradle.test'
             version = '1.0'
@@ -230,22 +289,21 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
+                    maven { url "${mavenRepo2.uri}" }
                 }
                 publications {
-                    mavenJava(MavenPublication) {
-                        from components.java
-                    }
-                    mavenWeb(MavenPublication) {
-                        from components.web
-                    }
+                    maven(MavenPublication)
                 }
             }
         """
         when:
-        fails 'publish'
+        succeeds 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
-        failure.assertHasCause("Publication with name 'mavenJava' already exists")
+        def module = mavenRepo.module('org.gradle.test', 'root', '1.0')
+        module.assertPublished()
+        def module2 = mavenRepo2.module('org.gradle.test', 'root', '1.0')
+        module2.assertPublished()
     }
+
 }

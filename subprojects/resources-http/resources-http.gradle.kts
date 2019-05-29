@@ -25,11 +25,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":resources"))
-    api(project(":baseServices"))
-    api(project(":core"))
-    api(library("commons_httpclient"))
+    implementation(project(":resources"))
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
 
+    implementation(library("commons_httpclient"))
     implementation(library("slf4j_api"))
     implementation(library("jcl_to_slf4j"))
     implementation(library("jcifs"))
@@ -41,6 +42,8 @@ dependencies {
 
     testImplementation(testLibrary("jetty"))
 
+    testFixturesImplementation(project(":logging"))
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
 }
 

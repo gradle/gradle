@@ -30,10 +30,10 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.isEmpty
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.hasItem
-import static org.hamcrest.Matchers.instanceOf
-import static org.hamcrest.Matchers.nullValue
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.hasItem
+import static org.hamcrest.CoreMatchers.instanceOf
+import static org.hamcrest.CoreMatchers.nullValue
 import static org.junit.Assert.assertThat
 
 class DefaultSourceSetTest extends Specification {

@@ -37,7 +37,7 @@ public class DaemonCommandExecution {
     final private Command command;
     final private DaemonContext daemonContext;
     final private DaemonStateControl daemonStateControl;
-    final private List<DaemonCommandAction> actions;
+    final private LinkedList<DaemonCommandAction> actions;
 
     private Object result;
 
@@ -101,7 +101,7 @@ public class DaemonCommandExecution {
         if (actions.isEmpty()) {
             return false;
         } else {
-            actions.remove(0).execute(this);
+            actions.removeFirst().execute(this);
             return true;
         }
     }

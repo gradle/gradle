@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -131,7 +131,7 @@ uploadArchives {
         then:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         failure.assertHasCause('Could not publish configuration \'archives\'')
-        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+        failure.assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme                   | credsName | creds
@@ -168,7 +168,7 @@ uploadArchives {
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         failure.assertHasCause('Could not publish configuration \'archives\'')
-        failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
+        failure.assertThatCause(CoreMatchers.containsString('Received status code 500 from server: broken'))
 
         when:
         server.stop()

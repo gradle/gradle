@@ -26,11 +26,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":modelCore"))
-    api(library("groovy"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
     implementation(project(":baseServicesGroovy"))
+
+    implementation(library("groovy"))
     implementation(library("guava"))
 }
 

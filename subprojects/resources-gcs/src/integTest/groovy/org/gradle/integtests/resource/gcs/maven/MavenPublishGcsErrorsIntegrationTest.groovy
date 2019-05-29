@@ -71,7 +71,6 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest
         when:
         def module = mavenGcsRepo.module("org.gradle", "publishGcsTest", "1.45")
         module.artifact.expectPutAuthenticationError()
-        module.pom.expectPutAuthenticationError()
 
         then:
         fails 'publish'
