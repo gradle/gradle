@@ -49,6 +49,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private final LogContent output;
     private final LogContent error;
+    private boolean includeBuildSrc;
     private final LogContent mainContent;
     private final LogContent postBuild;
     private final LogContent errorContent;
@@ -69,18 +70,19 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public static OutputScrapingExecutionResult from(String output, String error) {
         // Should provide a Gradle version as parameter so this check can be more precise
         if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED")) {
-            return new OutputScrapingExecutionFailure(output, error);
+            return new OutputScrapingExecutionFailure(output, error, true);
         }
-        return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error));
+        return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error), true);
     }
 
     /**
      * @param output The build stdout content.
      * @param error The build stderr content. Must have normalized line endings.
      */
-    protected OutputScrapingExecutionResult(LogContent output, LogContent error) {
+    protected OutputScrapingExecutionResult(LogContent output, LogContent error, boolean includeBuildSrc) {
         this.output = output;
         this.error = error;
+        this.includeBuildSrc = includeBuildSrc;
 
         // Split out up the output into main content and post build content
         LogContent filteredOutput = this.output.ansiCharsToPlainText().removeDebugPrefix();
@@ -93,6 +95,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             this.postBuild = match.getRight().drop(1);
         }
         this.errorContent = error.ansiCharsToPlainText();
+    }
+
+    @Override
+    public ExecutionResult getIgnoreBuildSrc() {
+        return new OutputScrapingExecutionResult(output, error, false);
     }
 
     @Override
@@ -351,20 +358,22 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 if (matcher.matches()) {
                     String taskStatusLine = matcher.group().replace(TASK_PREFIX, "");
                     String taskName = matcher.group(2);
-                    if (!taskName.contains(":buildSrc:")) {
-                        // The task status line may appear twice - once for the execution, once for the UP-TO-DATE/SKIPPED/etc
-                        // So don't add to the task list if this is an update to a previously added task.
-
-                        // Find the status line for the previous record of this task
-                        String previousTaskStatusLine = tasks.contains(taskName) ? taskStatusLines.get(tasks.lastIndexOf(taskName)) : "";
-                        // Don't add if our last record has a `:taskName` status, and this one is `:taskName SOMETHING`
-                        if (previousTaskStatusLine.equals(taskName) && !taskStatusLine.equals(taskName)) {
-                            return;
-                        }
-
-                        taskStatusLines.add(taskStatusLine);
-                        tasks.add(taskName);
+                    if (!includeBuildSrc && taskName.startsWith(":buildSrc:")) {
+                        return;
                     }
+
+                    // The task status line may appear twice - once for the execution, once for the UP-TO-DATE/SKIPPED/etc
+                    // So don't add to the task list if this is an update to a previously added task.
+
+                    // Find the status line for the previous record of this task
+                    String previousTaskStatusLine = tasks.contains(taskName) ? taskStatusLines.get(tasks.lastIndexOf(taskName)) : "";
+                    // Don't add if our last record has a `:taskName` status, and this one is `:taskName SOMETHING`
+                    if (previousTaskStatusLine.equals(taskName) && !taskStatusLine.equals(taskName)) {
+                        return;
+                    }
+
+                    taskStatusLines.add(taskStatusLine);
+                    tasks.add(taskName);
                 }
             }
         });

@@ -255,7 +255,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
 
         then:
-        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+        result.ignoreBuildSrc.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
         outputContains("Hello from root build's plugin")
     }
 

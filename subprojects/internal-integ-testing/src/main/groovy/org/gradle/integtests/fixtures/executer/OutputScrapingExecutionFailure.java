@@ -57,11 +57,11 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
      * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
      */
     public static OutputScrapingExecutionFailure from(String output, String error) {
-        return new OutputScrapingExecutionFailure(output, error);
+        return new OutputScrapingExecutionFailure(output, error, true);
     }
 
-    protected OutputScrapingExecutionFailure(String output, String error) {
-        super(LogContent.of(output), LogContent.of(error));
+    protected OutputScrapingExecutionFailure(String output, String error, boolean includeBuildSrc) {
+        super(LogContent.of(output), LogContent.of(error), includeBuildSrc);
 
         LogContent withoutDebug = LogContent.of(output).ansiCharsToPlainText().removeDebugPrefix();
 
@@ -114,6 +114,11 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         } else {
             resolution = matcher.group(1).trim();
         }
+    }
+
+    @Override
+    public ExecutionFailure getIgnoreBuildSrc() {
+        return new OutputScrapingExecutionFailure(getOutput(), getError(), false);
     }
 
     @Override

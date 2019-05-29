@@ -31,6 +31,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -461,20 +462,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             }
 
             String taskPath = path(task);
-            if (taskPath.startsWith(":buildSrc:")) {
-                return;
-            }
-
             executedTasks.add(taskPath);
         }
 
         @Override
         public void afterExecute(Task task, TaskState state) {
             String taskPath = path(task);
-            if (taskPath.startsWith(":buildSrc:")) {
-                return;
-            }
-
             if (state.getSkipped()) {
                 skippedTasks.add(taskPath);
             }
@@ -486,14 +479,22 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     public static class InProcessExecutionResult implements ExecutionResult {
-        private final List<String> executedTasks;
-        private final Set<String> skippedTasks;
-        private final OutputScrapingExecutionResult outputResult;
+        protected static final Spec<String> NOT_BUILD_SRC_TASK = t -> !t.startsWith(":buildSrc:");
+        protected final List<String> executedTasks;
+        protected final Set<String> skippedTasks;
+        private final ExecutionResult outputResult;
 
-        InProcessExecutionResult(List<String> executedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
+        InProcessExecutionResult(List<String> executedTasks, Set<String> skippedTasks, ExecutionResult outputResult) {
             this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
             this.outputResult = outputResult;
+        }
+
+        @Override
+        public ExecutionResult getIgnoreBuildSrc() {
+            List<String> executedTasks = CollectionUtils.filter(this.executedTasks, NOT_BUILD_SRC_TASK);
+            Set<String> skippedTasks = CollectionUtils.filter(this.skippedTasks, NOT_BUILD_SRC_TASK);
+            return new InProcessExecutionResult(executedTasks, skippedTasks, outputResult.getIgnoreBuildSrc());
         }
 
         @Override
@@ -662,13 +663,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
         private static final Pattern LOCATION_PATTERN = Pattern.compile("(?m)^((\\w+ )+'.+') line: (\\d+)$");
-        private final OutputScrapingExecutionFailure outputFailure;
+        private final ExecutionFailure outputFailure;
         private final Throwable failure;
         private final List<String> fileNames = new ArrayList<String>();
         private final List<String> lineNumbers = new ArrayList<String>();
         private final List<String> descriptions = new ArrayList<String>();
 
-        InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, Throwable failure) {
+        InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, ExecutionFailure outputFailure, Throwable failure) {
             super(tasks, skippedTasks, outputFailure);
             this.outputFailure = outputFailure;
             this.failure = failure;
@@ -692,6 +693,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             } else {
                 descriptions.add(failureMessage.trim());
             }
+        }
+
+        @Override
+        public InProcessExecutionFailure getIgnoreBuildSrc() {
+            List<String> executedTasks = CollectionUtils.filter(this.executedTasks, NOT_BUILD_SRC_TASK);
+            Set<String> skippedTasks = CollectionUtils.filter(this.skippedTasks, NOT_BUILD_SRC_TASK);
+            return new InProcessExecutionFailure(executedTasks, skippedTasks, outputFailure.getIgnoreBuildSrc(), failure);
         }
 
         @Override
