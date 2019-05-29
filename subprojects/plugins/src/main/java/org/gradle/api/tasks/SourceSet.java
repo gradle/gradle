@@ -246,13 +246,17 @@ public interface SourceSet extends ExtensionAware {
     /**
      * Returns the name of the compile configuration for this source set.
      * @return The configuration name
+     * @deprecated Use {@link #getImplementationConfigurationName()}, {@link #getApiConfigurationName()}, {@link #getCompileClasspathConfigurationName()} or {@link #getApiElementsConfigurationName()} instead.
      */
+    @Deprecated
     String getCompileConfigurationName();
 
     /**
      * Returns the name of the runtime configuration for this source set.
      * @return The runtime configuration name
+     * @deprecated Use {@link #getRuntimeOnlyConfigurationName()}, {@link #getRuntimeClasspathConfigurationName()} or {@link #getRuntimeElementsConfigurationName()} instead.
      */
+    @Deprecated
     String getRuntimeConfigurationName();
 
     /**
