@@ -72,6 +72,10 @@ Contributed by link:https://github.com/fraenkelc[Christian Fränkel]
 
 <<jacoco_plugin#jacoco_plugin, The JaCoCo plugin>> has been upgraded to use link:http://www.jacoco.org/jacoco/trunk/doc/changes.html[JaCoCo version 0.8.4] instead of 0.8.3 by default.
 
+==== Default PMD version upgraded to 6.15.0
+
+<<pmd_plugin#pmd_plugin, The PMD plugin>> has been upgraded to use link:https://pmd.github.io/pmd-6.15.0/pmd_release_notes.html[PMD version 6.15.0] instead of 6.8.0 by default.
+
 Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
 
 ==== Embedded Ant version upgraded to 1.9.14
