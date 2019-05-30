@@ -76,6 +76,40 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    def "useful help message when property cannot be expanded"() {
+        given:
+        buildFile << """
+            task copy (type: Copy) {
+                // two.a expects "one" to be defined
+                from('src/two/two.a')
+                into('dest')
+                expand("notused": "notused")
+            }
+        """
+        when:
+        fails 'copy'
+        then:
+        failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'.")
+    }
+
+    def "useful help message when property cannot be expanded in filter chain"() {
+        given:
+        buildFile << """
+            task copy (type: Copy) {
+                // two.a expects "one" to be defined
+                from('src/two/two.a')
+                into('dest')
+                // expect "two" to be defined as well
+                filter { line -> '\$two ' + line }
+                expand("notused": "notused")
+            }
+        """
+        when:
+        fails 'copy'
+        then:
+        failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'.")
+    }
+
     def "multiple source with inherited include and exclude patterns"() {
         given:
         buildScript '''
