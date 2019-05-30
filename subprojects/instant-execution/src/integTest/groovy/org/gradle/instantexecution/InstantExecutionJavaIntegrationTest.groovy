@@ -140,6 +140,11 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         new ZipTestFixture(jarFile).assertContainsFile("b/B.class")
     }
 
+    /**
+     * TODO: Understand why it fails due to:
+     * ':processResources' is not up-to-date because:
+     *   Input property 'rootSpec$1' file /.../src/main/resources has been removed.
+     */
     @Ignore("wip")
     def "processResources on single project Java build honors up-to-date check"() {
         given:
@@ -152,7 +157,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantRun ":processResources"
 
         and:
-        instantRun ":processResources"
+        instantRun ":processResources" /*, "--info" */
 
         then:
         file("build/resources/main/answer.txt").text == "42"
