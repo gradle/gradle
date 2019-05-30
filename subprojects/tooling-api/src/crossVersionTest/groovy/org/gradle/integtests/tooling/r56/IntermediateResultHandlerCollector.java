@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.integtests.tooling.r56;
 
-import org.gradle.api.Task
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.tooling.IntermediateResultHandler;
 
+public class IntermediateResultHandlerCollector<T> implements IntermediateResultHandler<T> {
+    private T result = null;
 
-interface ClassicModeBuild {
-    val buildSrc: Boolean
+    @Override
+    public void onComplete(T result) {
+        this.result = result;
+    }
 
-    val rootProject: ProjectInternal
-
-    val scheduledTasks: List<Task>
-
-    fun dependenciesOf(task: Task): Set<Task>
+    public T getResult() {
+        return result;
+    }
 }

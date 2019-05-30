@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.api.Task
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies;
 
+import java.io.Serializable;
 
-interface ClassicModeBuild {
-    val buildSrc: Boolean
+public class DefaultRunClosedProjectBuildDependencies implements RunClosedProjectBuildDependencies, Serializable {
+    public static final RunClosedProjectBuildDependencies INSTANCE = new DefaultRunClosedProjectBuildDependencies();
 
-    val rootProject: ProjectInternal
-
-    val scheduledTasks: List<Task>
-
-    fun dependenciesOf(task: Task): Set<Task>
+    private DefaultRunClosedProjectBuildDependencies() {
+    }
 }

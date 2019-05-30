@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.api.Task
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.tooling.model.eclipse.EclipseRuntime;
+import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 
+public class DefaultEclipseRuntime implements EclipseRuntime {
 
-interface ClassicModeBuild {
-    val buildSrc: Boolean
+    private EclipseWorkspace workspace;
 
-    val rootProject: ProjectInternal
+    public DefaultEclipseRuntime(EclipseWorkspace workspace) {
+        this.workspace = workspace;
+    }
 
-    val scheduledTasks: List<Task>
+    @Override
+    public EclipseWorkspace getWorkspace() {
+        return workspace;
+    }
 
-    fun dependenciesOf(task: Task): Set<Task>
+    @Override
+    public void setWorkspace(EclipseWorkspace eclipseWorkspace) {
+        this.workspace = eclipseWorkspace;
+    }
 }

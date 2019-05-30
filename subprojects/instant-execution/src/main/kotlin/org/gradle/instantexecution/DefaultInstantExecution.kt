@@ -53,7 +53,7 @@ class DefaultInstantExecution(
 
     interface Host {
 
-        val isSkipLoadingState: Boolean
+        val skipLoadingStateReason: String?
 
         val currentBuild: ClassicModeBuild
 
@@ -74,8 +74,8 @@ class DefaultInstantExecution(
         !isInstantExecutionEnabled -> {
             false
         }
-        host.isSkipLoadingState -> {
-            logger.lifecycle("Calculating task graph as skipping instant execution cache was requested")
+        host.skipLoadingStateReason != null -> {
+            logger.lifecycle("Calculating task graph as instant execution cache cannot be reused due to ${host.skipLoadingStateReason}")
             false
         }
         !instantExecutionStateFile.isFile -> {
@@ -215,9 +215,11 @@ class DefaultInstantExecution(
         Files.createDirectories(parentFile.toPath())
     }
 
+    // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
     val isInstantExecutionEnabled: Boolean
-        get() = host.getSystemProperty("org.gradle.unsafe.instant-execution") != null
+        get() = host.getSystemProperty("org.gradle.unsafe.instant-execution") != null && !host.currentBuild.buildSrc
+
 
     private
     val instantExecutionStateFile by lazy {

@@ -43,7 +43,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "tasks"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":buildSrc:compileGroovy")
         listCacheFiles().size() == 1 // compileGroovy
 
         expect:
@@ -52,7 +52,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "tasks"
         then:
-        output.contains ":buildSrc:compileGroovy FROM-CACHE"
+        result.groupedOutput.task(":buildSrc:compileGroovy").outcome == "FROM-CACHE"
     }
 
     def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
@@ -68,7 +68,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":customTask")
 
         when:
         file("buildSrc/build").deleteDir()
@@ -77,10 +77,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         withBuildCache().run "customTask"
         then:
-        skippedTasks.contains ":customTask"
+        result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
 
-    def "changing custom Groovy task implementation in buildSrc doesn't invalidate built-in task"() {
+    def "changing custom Groovy task implementation in buildSrc invalidates its cached result"() {
         configureCacheForBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
         taskSourceFile << customGroovyTask()
@@ -94,7 +94,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":customTask")
         file("build/output.txt").text == "input"
 
         when:
@@ -103,7 +103,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         cleanBuildDir()
         withBuildCache().run "customTask"
         then:
-        nonSkippedTasks.contains ":customTask"
+        result.assertTaskNotSkipped(":customTask")
         file("build/output.txt").text == "input modified"
     }
 

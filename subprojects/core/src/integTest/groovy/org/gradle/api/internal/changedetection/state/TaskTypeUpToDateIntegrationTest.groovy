@@ -120,25 +120,24 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: succeeds "copy"
-        then: skippedTasks.empty
+        then: result.ignoreBuildSrc.assertTasksSkipped()
 
         file("output.txt").makeOlder()
 
         when: succeeds "copy"
-        then: skippedTasks == ([":copy"] as Set)
+        then: result.ignoreBuildSrc.assertTasksSkipped(":copy")
 
         when:
         file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").text = declareSimpleCopyTaskType(true)
 
         succeeds "copy"
 
-        then:
-        skippedTasks.empty
+        then: result.ignoreBuildSrc.assertTasksSkipped()
 
         when:
         succeeds "copy"
 
-        then: skippedTasks == ([":copy"] as Set)
+        then: result.ignoreBuildSrc.assertTasksSkipped(":copy")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1910")
@@ -157,25 +156,24 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: succeeds "copy"
-        then: skippedTasks.empty
+        then: result.ignoreBuildSrc.assertTasksSkipped()
 
         file("output.txt").makeOlder()
 
         when: succeeds "copy"
-        then: skippedTasks == ([":copy"] as Set)
+        then: result.ignoreBuildSrc.assertTasksSkipped(":copy")
 
         when:
         file("buildSrc/build.gradle").text = guavaDependency("19.0")
 
         succeeds "copy"
 
-        then:
-        skippedTasks.empty
+        then: result.ignoreBuildSrc.assertTasksSkipped()
 
         when:
         succeeds "copy"
 
-        then: skippedTasks == ([":copy"] as Set)
+        then: result.ignoreBuildSrc.assertTasksSkipped(":copy")
     }
 
     private static String declareSimpleCopyTask(boolean modification = false) {

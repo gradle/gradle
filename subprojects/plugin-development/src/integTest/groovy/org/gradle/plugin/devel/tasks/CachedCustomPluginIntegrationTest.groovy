@@ -68,14 +68,14 @@ class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implemen
         executer.inDirectory(originalProjectDir)
         withBuildCache().run "customTask"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":customTask")
 
         when:
         setupProjectInDirectory(newProjectDir)
         executer.inDirectory(newProjectDir)
         withBuildCache().run "customTask"
         then:
-        skippedTasks.contains ":customTask"
+        result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
 
     private static String customGroovyTask(String suffix = "") {

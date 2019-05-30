@@ -29,6 +29,11 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public ExecutionResult getIgnoreBuildSrc() {
+        return new ErrorsOnStdoutScrapingExecutionResult(delegate.getIgnoreBuildSrc());
+    }
+
+    @Override
     public String getOutput() {
         return delegate.getOutput();
     }

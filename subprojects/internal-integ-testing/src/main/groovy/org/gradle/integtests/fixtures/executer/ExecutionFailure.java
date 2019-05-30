@@ -18,6 +18,12 @@ package org.gradle.integtests.fixtures.executer;
 import org.hamcrest.Matcher;
 
 public interface ExecutionFailure extends ExecutionResult {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ExecutionFailure getIgnoreBuildSrc();
+
     ExecutionFailure assertHasLineNumber(int lineNumber);
 
     ExecutionFailure assertHasFileName(String filename);
