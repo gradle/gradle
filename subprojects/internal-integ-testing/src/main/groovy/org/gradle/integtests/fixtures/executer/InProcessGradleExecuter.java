@@ -27,6 +27,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
@@ -474,7 +475,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         private String path(Task task) {
-            return task.getProject().getGradle().getParent() == null ? task.getPath() : ":" + task.getProject().getRootProject().getName() + task.getPath();
+            return ((TaskInternal)task).getIdentityPath().getPath();
         }
     }
 
