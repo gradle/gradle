@@ -26,6 +26,7 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.xml.XmlTransformer;
@@ -72,6 +73,8 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +92,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     private DefaultGradleProject rootGradleProject;
     private Project currentProject;
     private EclipseRuntime eclipseRuntime;
+    private Map<String, Boolean> projectOpenStatus = new HashMap<>();
 
     @VisibleForTesting
     public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services, EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider) {
@@ -114,6 +118,11 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     @Override
     public Object buildAll(String modelName, EclipseRuntime eclipseRuntime, Project project) {
         this.eclipseRuntime = eclipseRuntime;
+        List<EclipseWorkspaceProject> projects = eclipseRuntime.getWorkspace().getProjects();
+        HashSet<EclipseWorkspaceProject> projectsInBuild = new HashSet<>(projects);
+        projectsInBuild.removeAll(gatherExternalProjects(project.getRootProject(), projects));
+        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseWorkspaceProject::isOpen, (a, b) -> a | b));
+
         return buildAll(modelName, project);
     }
 
@@ -185,63 +194,18 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     private void populate(Project project) {
         EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
-        EclipseClasspath eclipseClasspath = eclipseModel.getClasspath();
 
-        eclipseClasspath.setProjectDependenciesOnly(projectDependenciesOnly);
+        boolean projectDependenciesOnly = this.projectDependenciesOnly;
 
-        List<ClasspathEntry> classpathEntries;
-        if (eclipseClasspath.getFile() == null) {
-            classpathEntries = eclipseClasspath.resolveDependencies();
-        } else {
-            Classpath classpath = new Classpath(eclipseClasspath.getFileReferenceFactory());
-            eclipseClasspath.mergeXmlClasspath(classpath);
-            classpathEntries = classpath.getEntries();
-        }
-
-        final List<DefaultEclipseExternalDependency> externalDependencies = new LinkedList<DefaultEclipseExternalDependency>();
-        final List<DefaultEclipseProjectDependency> projectDependencies = new LinkedList<DefaultEclipseProjectDependency>();
-        final List<DefaultEclipseSourceDirectory> sourceDirectories = new LinkedList<DefaultEclipseSourceDirectory>();
-        final List<DefaultEclipseClasspathContainer> classpathContainers = new LinkedList<DefaultEclipseClasspathContainer>();
-        DefaultEclipseOutputLocation outputLocation = null;
-
-        for (ClasspathEntry entry : classpathEntries) {
-            //we don't handle Variables at the moment because users didn't request it yet
-            //and it would probably push us to add support in the tooling api to retrieve the variable mappings.
-            if (entry instanceof Library) {
-                AbstractLibrary library = (AbstractLibrary) entry;
-                final File file = library.getLibrary().getFile();
-                final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
-                final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-                DefaultEclipseExternalDependency dependency = new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library));
-                externalDependencies.add(dependency);
-            } else if (entry instanceof ProjectDependency) {
-                final ProjectDependency projectDependency = (ProjectDependency) entry;
-                // By removing the leading "/", this is no longer a "path" as defined by Eclipse
-                final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
-                projectDependencies.add(dependency);
-            } else if (entry instanceof SourceFolder) {
-                final SourceFolder sourceFolder = (SourceFolder) entry;
-                String path = sourceFolder.getPath();
-                List<String> excludes = sourceFolder.getExcludes();
-                List<String> includes = sourceFolder.getIncludes();
-                String output = sourceFolder.getOutput();
-                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, output, createAttributes(sourceFolder), createAccessRules(sourceFolder)));
-            } else if (entry instanceof Container) {
-                final Container container = (Container) entry;
-                classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(), container.isExported(), createAttributes(container), createAccessRules(container)));
-            } else if (entry instanceof Output) {
-                outputLocation = new DefaultEclipseOutputLocation(((Output)entry).getPath());
-            }
-        }
+        ClasspathElements classpathElements = gatherClasspathElements(projectOpenStatus, eclipseModel.getClasspath(), projectDependenciesOnly);
 
         DefaultEclipseProject eclipseProject = findEclipseProject(project);
 
-        eclipseProject.setClasspath(externalDependencies);
-        eclipseProject.setProjectDependencies(projectDependencies);
-        eclipseProject.setSourceDirectories(sourceDirectories);
-        eclipseProject.setClasspathContainers(classpathContainers);
-        eclipseProject.setOutputLocation(outputLocation != null ? outputLocation : new DefaultEclipseOutputLocation("bin"));
+        eclipseProject.setClasspath(classpathElements.getExternalDependencies());
+        eclipseProject.setProjectDependencies(classpathElements.getProjectDependencies());
+        eclipseProject.setSourceDirectories(classpathElements.getSourceDirectories());
+        eclipseProject.setClasspathContainers(classpathElements.getClasspathContainers());
+        eclipseProject.setOutputLocation(classpathElements.getEclipseOutputLocation() != null ? classpathElements.getEclipseOutputLocation() : new DefaultEclipseOutputLocation("bin"));
         eclipseProject.setAutoBuildTasks(!eclipseModel.getAutoBuildTasks().getDependencies(null).isEmpty());
 
         org.gradle.plugins.ide.eclipse.model.Project xmlProject = new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
@@ -260,6 +224,62 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
         }
+    }
+
+    public static ClasspathElements gatherClasspathElements(Map<String, Boolean> projectOpenStatus, EclipseClasspath eclipseClasspath, boolean projectDependenciesOnly) {
+        ClasspathElements classpathElements = new ClasspathElements();
+        eclipseClasspath.setProjectDependenciesOnly(projectDependenciesOnly);
+
+        List<ClasspathEntry> classpathEntries;
+        if (eclipseClasspath.getFile() == null) {
+            classpathEntries = eclipseClasspath.resolveDependencies();
+        } else {
+            Classpath classpath = new Classpath(eclipseClasspath.getFileReferenceFactory());
+            eclipseClasspath.mergeXmlClasspath(classpath);
+            classpathEntries = classpath.getEntries();
+        }
+
+        final Map<String, DefaultEclipseProjectDependency> projectDependencyMap = new HashMap<>();
+
+        for (ClasspathEntry entry : classpathEntries) {
+            //we don't handle Variables at the moment because users didn't request it yet
+            //and it would probably push us to add support in the tooling api to retrieve the variable mappings.
+            if (entry instanceof Library) {
+                AbstractLibrary library = (AbstractLibrary) entry;
+                final File file = library.getLibrary().getFile();
+                final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
+                final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
+                DefaultEclipseExternalDependency dependency = new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library));
+                classpathElements.getExternalDependencies().add(dependency);
+            } else if (entry instanceof ProjectDependency) {
+                final ProjectDependency projectDependency = (ProjectDependency) entry;
+                // By removing the leading "/", this is no longer a "path" as defined by Eclipse
+                final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
+                boolean isProjectOpen = projectOpenStatus.getOrDefault(path, true);
+                if (!isProjectOpen) {
+                    final File source = projectDependency.getPublicationSourcePath() == null ? null : projectDependency.getPublicationSourcePath().getFile();
+                    final File javadoc = projectDependency.getPublicationJavadocPath() == null ? null : projectDependency.getPublicationJavadocPath().getFile();
+                    classpathElements.getExternalDependencies().add(new DefaultEclipseExternalDependency(projectDependency.getPublication().getFile(), javadoc, source, null, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency)));
+                    classpathElements.getBuildDependencies().add(projectDependency.getBuildDependencies());
+                } else {
+                    projectDependencyMap.put(path, new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency)));
+                }
+            } else if (entry instanceof SourceFolder) {
+                final SourceFolder sourceFolder = (SourceFolder) entry;
+                String path = sourceFolder.getPath();
+                List<String> excludes = sourceFolder.getExcludes();
+                List<String> includes = sourceFolder.getIncludes();
+                String output = sourceFolder.getOutput();
+                classpathElements.getSourceDirectories().add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, output, createAttributes(sourceFolder), createAccessRules(sourceFolder)));
+            } else if (entry instanceof Container) {
+                final Container container = (Container) entry;
+                classpathElements.getClasspathContainers().add(new DefaultEclipseClasspathContainer(container.getPath(), container.isExported(), createAttributes(container), createAccessRules(container)));
+            } else if (entry instanceof Output) {
+                classpathElements.setEclipseOutputLocation(new DefaultEclipseOutputLocation(((Output) entry).getPath()));
+            }
+        }
+        classpathElements.getProjectDependencies().addAll(projectDependencyMap.values());
+        return classpathElements;
     }
 
     private static void populateEclipseProjectTasks(DefaultEclipseProject eclipseProject, Iterable<Task> projectTasks) {
@@ -325,7 +345,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     private static List<DefaultAccessRule> createAccessRules(AbstractClasspathEntry classpathEntry) {
         List<DefaultAccessRule> result = Lists.newArrayList();
-        for(AccessRule accessRule : classpathEntry.getAccessRules()) {
+        for (AccessRule accessRule : classpathEntry.getAccessRules()) {
             result.add(createAccessRule(accessRule));
         }
         return result;
@@ -376,21 +396,30 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             return Collections.emptyList();
         }
 
+        List<String> reservedProjectNames = new ArrayList<>();
+        List<EclipseWorkspaceProject> externalProjects = gatherExternalProjects(rootProject, projects);
+        for (EclipseWorkspaceProject externalProject : externalProjects) {
+            reservedProjectNames.add(externalProject.getName());
+        }
+
+        return reservedProjectNames;
+    }
+
+    private List<EclipseWorkspaceProject> gatherExternalProjects(Project rootProject, List<EclipseWorkspaceProject> projects) {
         // The eclipse workspace contains projects from root and included builds. Check projects from all builds
         // so that models built for included builds do not consider projects from parent builds as external.
         Set<File> gradleProjectLocations = collectAllProjects(new ArrayList<>(), getRootBuild(rootProject.getGradle())).stream()
             .map(p -> p.getProjectDir().getAbsoluteFile()).collect(Collectors.toSet());
-        List<String> reservedProjectNames = new ArrayList<>();
+        List<EclipseWorkspaceProject> externalProjects = new ArrayList<>();
         for (EclipseWorkspaceProject project : projects) {
             if (project == null || project.getLocation() == null || project.getName() == null || project.getLocation() == null) {
                 continue;
             }
             if (!gradleProjectLocations.contains(project.getLocation().getAbsoluteFile())) {
-                reservedProjectNames.add(project.getName());
+                externalProjects.add(project);
             }
         }
-
-        return reservedProjectNames;
+        return externalProjects;
     }
 
 
@@ -402,5 +431,42 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
      */
     private static String convertGString(CharSequence original) {
         return original.toString();
+    }
+
+    public static class ClasspathElements {
+        private final List<DefaultEclipseExternalDependency> externalDependencies = new ArrayList<>();
+        private final List<DefaultEclipseProjectDependency> projectDependencies = new ArrayList<>();
+        private final List<DefaultEclipseSourceDirectory> sourceDirectories = new ArrayList<>();
+        private final List<DefaultEclipseClasspathContainer> classpathContainers = new ArrayList<>();
+        private final List<TaskDependency> buildDependencies = new ArrayList<>();
+        private DefaultEclipseOutputLocation eclipseOutputLocation;
+
+        public List<DefaultEclipseExternalDependency> getExternalDependencies() {
+            return externalDependencies;
+        }
+
+        public List<DefaultEclipseProjectDependency> getProjectDependencies() {
+            return projectDependencies;
+        }
+
+        public List<DefaultEclipseSourceDirectory> getSourceDirectories() {
+            return sourceDirectories;
+        }
+
+        public List<DefaultEclipseClasspathContainer> getClasspathContainers() {
+            return classpathContainers;
+        }
+
+        public List<TaskDependency> getBuildDependencies() {
+            return buildDependencies;
+        }
+
+        public DefaultEclipseOutputLocation getEclipseOutputLocation() {
+            return eclipseOutputLocation;
+        }
+
+        public void setEclipseOutputLocation(DefaultEclipseOutputLocation eclipseOutputLocation) {
+            this.eclipseOutputLocation = eclipseOutputLocation;
+        }
     }
 }

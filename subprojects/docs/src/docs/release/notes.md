@@ -24,6 +24,13 @@ details of 2
 ## n
 -->
 
+## Substitute closed Eclipse projects in Buildship
+
+Closed gradle projects in an eclipse workspace can now be substituted for their respective jar files. In addition to this 
+those jars can now be built during Buildship eclipse model synchronization.
+
+The upcoming version of Buildship is required to take advantage of this behavior.
+
 ## Upgrade Instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
