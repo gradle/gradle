@@ -532,7 +532,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1581")
-    def "classpath snapshotting should accept non-utf8 characters in filenames"() {
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Java 9 compiler throws error already: java.nio.file.InvalidPathException: Path: nul character not allowed
+    def "compile classpath snapshotting should warn when jar on classpath has non-utf8 characters in filenames"() {
         buildFile << '''
             apply plugin: 'java'
             
@@ -540,14 +541,19 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
                compile files('broken-utf8.jar')
             }
         '''
+        // This file has a file name which is not UTF-8.
+        // See https://bugs.openjdk.java.net/browse/JDK-7062777?focusedCommentId=12254124&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12254124.
         resources.findResource('broken-utf8.is-a-jar').copyTo(file('broken-utf8.jar'))
         file('src/main/java/Hello.java') << 'public class Hello {}'
+        executer.withStackTraceChecksDisabled()
 
         when:
         run 'compileJava', '--debug'
 
         then:
         executedAndNotSkipped ':compileJava'
+        outputContains "Malformed jar 'broken-utf8.jar' found on classpath"
+
     }
 
     @Issue("gradle/gradle#1358")
@@ -577,7 +583,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains "Malformed archive 'foo.jar'"
+        outputContains "Malformed jar 'foo.jar' found on classpath."
     }
 
     @Issue("gradle/gradle#1358")
