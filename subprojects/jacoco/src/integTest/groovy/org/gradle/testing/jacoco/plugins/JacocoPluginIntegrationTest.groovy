@@ -95,6 +95,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
 
         then:
+        executedAndNotSkipped(":jacocoTestReport")
         htmlReport().exists()
         reportResourceDir.exists()
 
@@ -102,7 +103,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('jacocoTestReport')
 
         then:
-        skippedTasks.contains(":jacocoTestReport")
+        skipped(":jacocoTestReport")
         htmlReport().exists()
         reportResourceDir.exists()
 
@@ -111,7 +112,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
 
         then:
-        !skippedTasks.contains(":jacocoTestReport")
+        executedAndNotSkipped(":jacocoTestReport")
         htmlReport().exists()
         reportResourceDir.exists()
     }

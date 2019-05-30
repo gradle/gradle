@@ -380,7 +380,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         executedInOrder ":buildB:b2:compileJava", ":buildB:b2:jar", ":buildB:b1:compileJava", ":buildB:b1:jar"
-        result.executedTasks.count {it == ":buildB:b2:jar"} == 1
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
@@ -679,8 +678,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         then:
         failure.assertHasFailures(1)
         failure.assertHasDescription("Execution failed for task ':buildB:b2:jar'.")
-        executedTasks.containsAll(":buildB:b1:jar", ":resolve", ":buildB:b2:jar")
-        !executedTasks.containsAll(":resolveRuntime")
+        executed(":buildB:b1:jar", ":resolve", ":buildB:b2:jar")
+        notExecuted(":resolveRuntime")
     }
 
     def "new substitutions can be discovered while building the task graph for the first level included builds"() {
@@ -716,7 +715,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         execute(buildA, "jar")
 
         then:
-        executedTasks.contains(":secondLevel:jar")
+        executed(":secondLevel:jar")
     }
 
     private void resolveArtifacts() {
@@ -736,15 +735,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
     }
 
     private void executedInOrder(String... tasks) {
-        def executedTasks = result.executedTasks
-        def beforeTask
-        for (String task : tasks) {
-            result.assertTaskExecuted(task)
-
-            if (beforeTask != null) {
-                assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"
-            }
-            beforeTask = task
-        }
+        result.assertTaskOrder(tasks)
     }
 }

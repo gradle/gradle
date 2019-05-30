@@ -87,7 +87,7 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
         errorPageHasTaskFailure("compilePlayBinaryScala")
         waitForBuildFinish()
         serverStartCount == 1
-        !executedTasks.contains('runPlayBinary')
+        notExecuted('runPlayBinary')
 
         when:
         fixBadCode()
@@ -211,6 +211,6 @@ task otherTask {
 
         then:
         errorPageHasTaskFailure("otherTask")
-        !executedTasks.contains('runPlayBinary')
+        notExecuted('runPlayBinary')
     }
 }

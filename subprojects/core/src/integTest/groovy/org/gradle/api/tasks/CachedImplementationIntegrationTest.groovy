@@ -147,7 +147,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds "compileJava", "--info"
         then:
-        executedTasks.contains ":compileJava"
+        executed ":compileJava"
         output.contains "Using remote in-memory build cache for the root build."
 
         expect:
@@ -157,6 +157,6 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds "compileJava"
         then:
-        skippedTasks.contains ":compileJava"
+        skipped ":compileJava"
     }
 }

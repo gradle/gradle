@@ -96,14 +96,18 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         goodCode()
 
         expect:
-        succeeds("findbugsMain") && ":findbugsMain" in nonSkippedTasks
-        succeeds(":findbugsMain") && ":findbugsMain" in skippedTasks
+        succeeds("findbugsMain")
+        executedAndNotSkipped(":findbugsMain")
+
+        succeeds(":findbugsMain")
+        skipped(":findbugsMain")
 
         when:
         file("build/reports/findbugs/main.xml").delete()
 
         then:
-        succeeds("findbugsMain") && ":findbugsMain" in nonSkippedTasks
+        succeeds("findbugsMain")
+        executedAndNotSkipped(":findbugsMain")
     }
 
     def "cannot generate multiple reports"() {
@@ -305,16 +309,14 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
 
         then:
         file("build/reports/findbugs/main.xml").exists()
-        ":findbugsMain" in nonSkippedTasks
-        !(":findbugsMain" in skippedTasks)
+        executedAndNotSkipped(":findbugsMain")
 
         when:
         succeeds "findbugsMain"
 
         then:
         file("build/reports/findbugs/main.xml").exists()
-        !(":findbugsMain" in nonSkippedTasks)
-        ":findbugsMain" in skippedTasks
+        skipped(":findbugsMain")
 
         when:
         buildFile << """
@@ -327,8 +329,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
 
         then:
         file("build/reports/findbugs/main.xml").exists()
-        ":findbugsMain" in nonSkippedTasks
-        !(":findbugsMain" in skippedTasks)
+        executedAndNotSkipped(":findbugsMain" )
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -354,8 +355,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         then:
         file("build/reports/findbugs/main.xml").exists()
         containsXmlMessages(file("build/reports/findbugs/main.xml"))
-        ":findbugsMain" in nonSkippedTasks
-        !(":findbugsMain" in skippedTasks)
+        executedAndNotSkipped(":findbugsMain")
 
         when:
         succeeds "findbugsMain"
@@ -363,8 +363,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         then:
         file("build/reports/findbugs/main.xml").exists()
         containsXmlMessages(file("build/reports/findbugs/main.xml"))
-        !(":findbugsMain" in nonSkippedTasks)
-        ":findbugsMain" in skippedTasks
+        skipped(":findbugsMain")
 
         when:
         buildFile << """
@@ -383,8 +382,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         then:
         file("build/reports/findbugs/main.xml").exists()
         !containsXmlMessages(file("build/reports/findbugs/main.xml"))
-        ":findbugsMain" in nonSkippedTasks
-        !(":findbugsMain" in skippedTasks)
+        executedAndNotSkipped(":findbugsMain")
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -423,8 +421,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         then:
         !file("build/reports/findbugs/main.xml").exists()
         file("build/reports/findbugs/main.html").exists()
-        !(":findbugsMain" in nonSkippedTasks)
-        ":findbugsMain" in skippedTasks
+        skipped(":findbugsMain")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3214")
@@ -664,7 +661,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         succeeds('clean', 'check')
 
         then:
-        nonSkippedTasks.contains(':findbugsMain')
+        executedAndNotSkipped(':findbugsMain')
         output.contains("Analyzing classes")
     }
 

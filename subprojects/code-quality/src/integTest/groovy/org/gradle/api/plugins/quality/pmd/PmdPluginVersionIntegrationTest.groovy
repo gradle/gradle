@@ -242,7 +242,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         succeeds('clean', 'check')
 
         then:
-        nonSkippedTasks.contains(':pmdMain')
+        executedAndNotSkipped(':pmdMain')
         output.contains("PMD rule violations were found")
     }
 

@@ -123,13 +123,13 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped(":run")
 
         when:
         run "run"
 
         then:
-        ":run" in skippedTasks
+        skipped(":run")
 
         when:
         file('build/out.txt').delete()
@@ -138,7 +138,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped(":run")
     }
 
     def "arguments can be passed by using argument providers"() {

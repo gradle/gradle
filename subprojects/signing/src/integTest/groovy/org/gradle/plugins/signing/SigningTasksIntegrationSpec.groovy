@@ -44,7 +44,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar"
 
         then:
-        ":signJar" in nonSkippedTasks
+        executedAndNotSkipped(":signJar")
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
@@ -53,7 +53,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar"
 
         then:
-        ":signJar" in skippedTasks
+        skipped(":signJar")
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -73,7 +73,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar", "signJavadocJar", "signSourcesJar"
 
         then:
-        [":signJar", ":signJavadocJar", ":signSourcesJar"].every { it in nonSkippedTasks }
+        executedAndNotSkipped(":signJar", ":signJavadocJar", ":signSourcesJar")
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
@@ -84,7 +84,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar", "signJavadocJar", "signSourcesJar"
 
         then:
-        [":signJar", ":signJavadocJar", ":signSourcesJar"].every { it in skippedTasks }
+        skipped(":signJar", ":signJavadocJar", ":signSourcesJar")
     }
 
     @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
@@ -103,7 +103,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar"
 
         then:
-        ":signJar" in nonSkippedTasks
+        executedAndNotSkipped(":signJar")
 
         when:
         def newSignMethod = originalSignMethod == GPG_CMD ? OPEN_GPG : GPG_CMD
@@ -119,13 +119,13 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar"
 
         then:
-        ":signJar" in nonSkippedTasks
+        executedAndNotSkipped(":signJar")
 
         when:
         run "signJar"
 
         then:
-        ":signJar" in skippedTasks
+        skipped(":signJar")
     }
 
     def "out-of-date when signatureType changes"() {
@@ -142,7 +142,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar"
 
         then:
-        ":signJar" in nonSkippedTasks
+        executedAndNotSkipped(":signJar")
 
         when:
         buildFile << """
@@ -153,13 +153,13 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar"
 
         then:
-        ":signJar" in nonSkippedTasks
+        executedAndNotSkipped(":signJar")
 
         when:
         run "signJar"
 
         then:
-        ":signJar" in skippedTasks
+        skipped(":signJar")
     }
 
     def "out-of-date when input file changes"() {
@@ -180,7 +180,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signCustomFile"
 
         then:
-        ":signCustomFile" in nonSkippedTasks
+        executedAndNotSkipped(":signCustomFile")
         file("input.txt.asc").exists()
 
         when:
@@ -188,13 +188,13 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signCustomFile"
 
         then:
-        ":signCustomFile" in nonSkippedTasks
+        executedAndNotSkipped(":signCustomFile")
 
         when:
         run "signCustomFile"
 
         then:
-        ":signCustomFile" in skippedTasks
+        skipped(":signCustomFile")
     }
 
     def "out-of-date when output file is deleted"() {
@@ -214,7 +214,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signCustomFile"
 
         then:
-        ":signCustomFile" in nonSkippedTasks
+        executedAndNotSkipped(":signCustomFile")
         def outputFile = file("input.txt.asc")
         outputFile.exists()
 
@@ -223,13 +223,13 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signCustomFile"
 
         then:
-        ":signCustomFile" in nonSkippedTasks
+        executedAndNotSkipped(":signCustomFile")
 
         when:
         run "signCustomFile"
 
         then:
-        ":signCustomFile" in skippedTasks
+        skipped(":signCustomFile")
     }
 
     def "up-to-date when order of signed files changes"() {
@@ -254,7 +254,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signCustomFiles"
 
         then:
-        ":signCustomFiles" in nonSkippedTasks
+        executedAndNotSkipped(":signCustomFiles")
         file("input1.txt.asc").exists()
         file("input2.txt.asc").exists()
 
@@ -263,7 +263,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signCustomFiles"
 
         then:
-        ":signCustomFiles" in skippedTasks
+        skipped(":signCustomFiles")
     }
 
     @Unroll
@@ -328,7 +328,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar"
 
         then:
-        ":signJar" in nonSkippedTasks
+        executedAndNotSkipped(":signJar")
 
         and:
         file("build", "libs", "changed-1.0-custom.jar.asc").text
@@ -350,7 +350,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         run "signJar"
 
         then:
-        ":signJar" in nonSkippedTasks
+        executedAndNotSkipped(":signJar")
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text

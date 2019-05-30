@@ -124,7 +124,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "sourcesJar"
-        ":compileJava" in executedTasks
+        executed(":compileJava")
     }
 
     def "can model annotation processor arguments"() {

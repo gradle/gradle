@@ -253,39 +253,42 @@ class AbstractIntegrationSpec extends Specification {
         result = failure
     }
 
-    protected List<String> getExecutedTasks() {
-        assertHasResult()
-        result.executedTasks
-    }
-
-    protected Set<String> getSkippedTasks() {
-        assertHasResult()
-        result.skippedTasks
-    }
-
-    protected List<String> getNonSkippedTasks() {
-        executedTasks - skippedTasks
-    }
-
     protected void executedAndNotSkipped(String... tasks) {
+        assertHasResult()
         tasks.each {
             result.assertTaskNotSkipped(it)
         }
     }
 
+    protected void noneSkipped() {
+        assertHasResult()
+        assert !result.executedTasks.empty
+        assert result.skippedTasks.empty
+    }
+
+    protected void allSkipped() {
+        assertHasResult()
+        assert !result.executedTasks.empty
+        def nonSkippedTasks = result.executedTasks - result.skippedTasks
+        assert nonSkippedTasks.empty
+    }
+
     protected void skipped(String... tasks) {
+        assertHasResult()
         tasks.each {
             result.assertTaskSkipped(it)
         }
     }
 
     protected void notExecuted(String... tasks) {
+        assertHasResult()
         tasks.each {
             result.assertTaskNotExecuted(it)
         }
     }
 
     protected void executed(String... tasks) {
+        assertHasResult()
         tasks.each {
             result.assertTaskExecuted(it)
         }

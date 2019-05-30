@@ -73,7 +73,7 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         run "compile"
 
         then:
-        ":compile" in nonSkippedTasks
+        executedAndNotSkipped(":compile")
 
         and:
         def f1 = file("build/compiled/js/dir1/thing1.js")
@@ -88,6 +88,6 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         run "compile"
 
         then:
-        ":compile" in skippedTasks
+        skipped(":compile")
     }
 }

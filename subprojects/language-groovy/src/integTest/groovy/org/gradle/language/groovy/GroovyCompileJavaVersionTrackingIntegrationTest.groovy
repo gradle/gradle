@@ -53,19 +53,19 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         executer.withJavaHome jdk9.javaHome
         succeeds ":compileGroovy"
         then:
-        nonSkippedTasks.contains ":compileGroovy"
+        executedAndNotSkipped ":compileGroovy"
 
         when:
         executer.withJavaHome jdk9.javaHome
         succeeds ":compileGroovy"
         then:
-        skippedTasks.contains ":compileGroovy"
+        skipped ":compileGroovy"
 
         when:
         executer.withJavaHome jdk8.javaHome
         succeeds ":compileGroovy", "--info"
         then:
-        nonSkippedTasks.contains ":compileGroovy"
+        executedAndNotSkipped ":compileGroovy"
         output.contains "Value of input property 'groovyCompilerJvmVersion' has changed for task ':compileGroovy'"
     }
 
@@ -80,14 +80,14 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         executer.withJavaHome jdk9.javaHome
         succeeds "compileGroovy"
         then:
-        nonSkippedTasks.contains ":compileGroovy"
+        executedAndNotSkipped ":compileGroovy"
 
         when:
         compileWithJavaJdk(jdk9)
         executer.withJavaHome jdk9.javaHome
         succeeds "compileGroovy", "--info"
         then:
-        nonSkippedTasks.contains ":compileGroovy"
+        executedAndNotSkipped ":compileGroovy"
         output.contains "Value of input property 'javaToolChain.version' has changed for task ':compileGroovy'"
     }
 

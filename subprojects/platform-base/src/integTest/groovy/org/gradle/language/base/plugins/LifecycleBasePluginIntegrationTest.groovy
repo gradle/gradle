@@ -56,7 +56,7 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds(taskName)
-        ":myTask" in executedTasks
+        executed(":myTask")
 
         where:
         taskName << ["check", "build"]

@@ -728,7 +728,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "shouldRun"
         then:
-        ":tar" in executedTasks
+        executed(":tar")
     }
 
     @Issue("https://github.com/gradle/gradle#1108")

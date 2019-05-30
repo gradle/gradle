@@ -90,18 +90,18 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         when:
         run "compile"
         then:
-        nonSkippedTasks.contains ":compile"
+        executedAndNotSkipped ":compile"
 
         when:
         run "compile"
         then:
-        skippedTasks.contains ":compile"
+        skipped ":compile"
 
         when:
         buildFile.text = buildScriptWithClasspath("lib2.jar", "lib1.jar")
         run "compile"
         then:
-        nonSkippedTasks.contains ":compile"
+        executedAndNotSkipped ":compile"
     }
 
     def "stays up-to-date after file renamed on classpath"() {
@@ -114,12 +114,12 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         when:
         run "compile"
         then:
-        nonSkippedTasks.contains ":compile"
+        executedAndNotSkipped ":compile"
 
         when:
         run "compile"
         then:
-        skippedTasks.contains ":compile"
+        skipped ":compile"
 
         when:
         file("lib1.jar").renameTo(file("lib1-renamed.jar"))
@@ -127,7 +127,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         run "compile"
         then:
-        skippedTasks.contains ":compile"
+        skipped ":compile"
     }
 
     def buildScriptWithClasspath(String... dependencies) {
@@ -175,7 +175,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         when:
         succeeds "test"
         then:
-        nonSkippedTasks.contains ":test"
+        executedAndNotSkipped ":test"
         javaClassFile("com/example/Foo.class").assertIsFile()
 
         when:
@@ -201,7 +201,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         succeeds "test"
         then:
-        nonSkippedTasks.contains ":test"
+        executedAndNotSkipped ":test"
         javaClassFile("com/example/Foo.class").assertIsFile()
     }
 

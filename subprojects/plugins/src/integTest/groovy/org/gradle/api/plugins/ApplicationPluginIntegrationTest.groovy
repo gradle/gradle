@@ -552,13 +552,13 @@ rootProject.name = 'sample'
         succeeds("startScripts")
 
         then:
-        nonSkippedTasks.contains(":startScripts")
+        executedAndNotSkipped(":startScripts")
 
         and:
         succeeds("startScripts")
 
         then:
-        skippedTasks.contains(":startScripts")
+        skipped(":startScripts")
     }
 
     def "up-to-date if only the content change"() {
@@ -570,7 +570,7 @@ rootProject.name = 'sample'
         succeeds("startScripts")
 
         then:
-        skippedTasks.contains(":startScripts")
+        skipped(":startScripts")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4627")

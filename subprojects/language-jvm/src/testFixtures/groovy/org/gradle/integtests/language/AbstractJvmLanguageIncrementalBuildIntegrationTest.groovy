@@ -74,7 +74,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         run "mainJar"
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "rebuilds jar and classfile is removed when source file removed"() {
