@@ -8,6 +8,7 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 [Andrew K.](https://github.com/miokowpak),
+[Semyon Levin](https://github.com/remal),
 and [John Rodriguez](https://github.com/jrodbx).
 
 <!-- 
