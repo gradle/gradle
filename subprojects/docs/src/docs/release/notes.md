@@ -7,7 +7,8 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
-[Andrew K.](https://github.com/miokowpak)
+[Andrew K.](https://github.com/miokowpak),
+and [John Rodriguez](https://github.com/jrodbx).
 
 <!-- 
 ## 1
