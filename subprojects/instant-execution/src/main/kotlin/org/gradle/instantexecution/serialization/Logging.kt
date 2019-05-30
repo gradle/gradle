@@ -25,6 +25,9 @@ enum class PropertyKind {
     },
     InputProperty {
         override fun toString() = "input property"
+    },
+    OutputProperty {
+        override fun toString() = "output property"
     }
 }
 

@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import spock.lang.Ignore
 
 class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
@@ -139,11 +140,28 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         new ZipTestFixture(jarFile).assertContainsFile("b/B.class")
     }
 
+    @Ignore("wip")
+    def "processResources on single project Java build honors up-to-date check"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+        """
+        file("src/main/resources/answer.txt") << "42"
+
+        when:
+        instantRun ":processResources"
+
+        and:
+        instantRun ":processResources"
+
+        then:
+        file("build/resources/main/answer.txt").text == "42"
+        result.assertTasksSkipped(":processResources")
+        instantExecution.assertStateLoaded()
+    }
+
     def "processResources on single project Java build honors task inputs"() {
         given:
-        settingsFile << """
-            rootProject.name = 'resources'
-        """
         buildFile << """
             apply plugin: 'java'
         """
@@ -171,6 +189,27 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         then:
         instantExecution.assertStateLoaded()
         file("build/resources/main/answer.txt").text == "forty-two"
+    }
+
+    def "processResources on single project Java build honors task outputs"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+        """
+        file("src/main/resources/answer.txt") << "42"
+
+        when:
+        instantRun ":processResources"
+
+        and:
+        file("build/resources/main/answer.txt").text == "forty-two"
+
+        and:
+        instantRun ":processResources"
+
+        then:
+        instantExecution.assertStateLoaded()
+        file("build/resources/main/answer.txt").text == "42"
     }
 
     def "assemble on Java application build with no dependencies"() {
