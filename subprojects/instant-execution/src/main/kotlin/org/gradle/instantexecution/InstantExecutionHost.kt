@@ -132,6 +132,7 @@ class InstantExecutionHost internal constructor(
                 settingsPreparer.prepareSettings(this)
 
                 rootProject = createProject(null, rootProjectName)
+                defaultProject = rootProject
             }
         }
 
