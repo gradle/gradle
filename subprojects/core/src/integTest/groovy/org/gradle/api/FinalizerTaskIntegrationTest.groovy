@@ -105,7 +105,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'a'
 
         then:
-        executedTasks == [':c']
+        result.assertTasksExecuted(':c')
 
         where:
         taskDisablingStatement << ['a.enabled = false', 'a.onlyIf {false}']

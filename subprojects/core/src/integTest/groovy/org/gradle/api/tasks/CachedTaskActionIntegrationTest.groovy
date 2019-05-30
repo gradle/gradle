@@ -43,7 +43,7 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         when:
         withBuildCache().run "first", "second"
         then:
-        nonSkippedTasks == [":first", ":second"]
+        executedAndNotSkipped(":first", ":second")
         file("first.txt").text == "Hello from the first task"
         file("second.txt").text == "Hello from the second task"
     }
@@ -76,8 +76,8 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         when:
         withBuildCache().run "taskA", "taskB"
         then:
-        nonSkippedTasks == [":taskA"]
-        skippedTasks as List == [":taskB"]
+        executedAndNotSkipped(":taskA")
+        skipped(":taskB")
     }
 
     def "built-in tasks with different actions don't share results"() {
@@ -110,7 +110,7 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         when:
         withBuildCache().run "compileA", "compileB"
         then:
-        nonSkippedTasks == [":compileA", ":compileB"]
+        executedAndNotSkipped(":compileA", ":compileB")
         file("build/compile-a/output.txt").text == "From compile task A"
         file("build/compile-b/output.txt").text == "From compile task B"
     }

@@ -55,7 +55,7 @@ model {
         run "mainExecutable"
 
         then:
-        !executedTasks.contains(":compileMainExecutableMainRc")
+        notExecuted(":compileMainExecutableMainRc")
     }
 
     @Requires(TestPrecondition.WINDOWS)

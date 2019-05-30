@@ -227,7 +227,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
         then:
         modelType.isInstance modelInstance
-        modelOperation.result.executedTasks.empty
+        modelOperation.result.assertTasksExecuted()
 
         where:
         modelType << [EclipseProject, IdeaProject]

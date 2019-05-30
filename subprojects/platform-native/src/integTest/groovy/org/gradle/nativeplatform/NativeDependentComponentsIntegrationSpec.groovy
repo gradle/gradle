@@ -82,13 +82,8 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
         succeeds task
 
         then:
-        executedTasks.containsAll(getExpectedTasks(task))
-        def unexpectedTasks = getUnexpectedTasks(task)
-        if(unexpectedTasks) {
-            unexpectedTasks.each {
-                assert !executedTasks.contains(it)
-            }
-        }
+        executed(getExpectedTasks(task))
+        notExecuted(getUnexpectedTasks(task))
 
         where:
         task                                       | _

@@ -39,9 +39,9 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
         run "test"
 
         then:
-        ":test" in executedTasks
-        ":compileApiJava" in executedTasks
-        ":compileImplJava" in executedTasks
+        executed(":test")
+        executed(":compileApiJava")
+        executed(":compileImplJava")
     }
 
     def "poms contain the right dependencies"() {

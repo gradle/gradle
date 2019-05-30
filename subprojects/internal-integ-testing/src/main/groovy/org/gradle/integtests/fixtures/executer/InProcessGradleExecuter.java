@@ -115,7 +115,6 @@ import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
@@ -577,7 +576,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
             Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
-            assertEquals(new TreeSet<String>(executedTasks), new TreeSet<String>(expected));
+            assertTasksExecuted(expected);
+            assertTaskOrder(taskPaths);
             outputResult.assertTasksExecutedInOrder(taskPaths);
             return this;
         }
@@ -613,8 +613,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         @Override
         public ExecutionResult assertTaskOrder(Object... taskPaths) {
-            Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
-            assertThat(executedTasks, hasItems(expected.toArray(new String[]{})));
+            TaskOrderSpecs.exact(taskPaths).assertMatches(-1, executedTasks);
             outputResult.assertTaskOrder(taskPaths);
             return this;
         }

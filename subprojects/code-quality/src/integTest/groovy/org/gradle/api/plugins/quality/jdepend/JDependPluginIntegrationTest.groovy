@@ -62,14 +62,18 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
         goodCode()
 
         expect:
-        succeeds("jdependMain") && ":jdependMain" in nonSkippedTasks
-        succeeds(":jdependMain") && ":jdependMain" in skippedTasks
+        succeeds("jdependMain")
+        executedAndNotSkipped(":jdependMain")
+
+        succeeds(":jdependMain")
+        skipped(":jdependMain")
 
         when:
         file("build/reports/jdepend/main.xml").delete()
 
         then:
-        succeeds("jdependMain") && ":jdependMain" in nonSkippedTasks
+        succeeds("jdependMain")
+        executedAndNotSkipped(":jdependMain")
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})

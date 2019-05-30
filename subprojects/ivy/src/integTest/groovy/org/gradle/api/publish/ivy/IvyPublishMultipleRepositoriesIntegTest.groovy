@@ -70,8 +70,8 @@ class IvyPublishMultipleRepositoriesIntegTest extends AbstractIvyPublishIntegTes
         succeeds "publish"
 
         then:
-        ":publishIvyPublicationToIvyRepository" in executedTasks
-        ":publishIvyPublicationToRepo2Repository" in executedTasks
+        executed(":publishIvyPublicationToIvyRepository")
+        executed(":publishIvyPublicationToRepo2Repository")
 
         and:
         repo1Module.ivyFile.exists()

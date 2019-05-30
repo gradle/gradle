@@ -180,7 +180,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         execute "copy"
         then:
-        skippedTasks.empty
+        executedAndNotSkipped ":copy"
 
         assert file("src").renameTo(file("source"))
 
@@ -197,7 +197,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         execute "copy"
         then:
-        skippedTasks as List == [":copy"]
+        skipped ":copy"
     }
 
     def "copy task is not up-to-date when files end up copied to a different destination"() {
@@ -214,7 +214,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         execute "copy"
         then:
-        skippedTasks.empty
+        executedAndNotSkipped ":copy"
 
         assert file("src/data/input.txt").renameTo(file("src/data/input-renamed.txt"))
 
@@ -222,6 +222,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         cleanWorkspace()
         execute "copy"
         then:
-        skippedTasks.empty
+        executedAndNotSkipped ":copy"
     }
 }

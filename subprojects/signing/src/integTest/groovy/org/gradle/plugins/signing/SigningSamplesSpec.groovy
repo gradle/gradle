@@ -67,7 +67,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         run "uploadArchives"
 
         then:
-        ":signArchives" in skippedTasks
+        skipped(":signArchives")
 
         and:
         def module = repoFor(dsl).module('gradle', 'conditional', '1.0-SNAPSHOT')

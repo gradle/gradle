@@ -72,7 +72,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         run "mainExecutable"
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

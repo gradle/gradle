@@ -850,7 +850,7 @@ class SomeTask extends DefaultTask {
         then:
         failure.assertHasDescription("A problem was found with the configuration of task ':consumer'.")
         failure.assertHasCause("No value has been specified for property 'bean.inputFile'.")
-        executedTasks == [':consumer']
+        failure.assertTasksExecuted(':consumer')
     }
 
     @ToBeImplemented("Absent Provider in FileCollection throws exception")

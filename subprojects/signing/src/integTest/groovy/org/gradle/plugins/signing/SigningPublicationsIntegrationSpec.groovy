@@ -46,7 +46,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         run "signMavenJavaPublication"
 
         then:
-        ":signMavenJavaPublication" in nonSkippedTasks
+        executedAndNotSkipped(":signMavenJavaPublication")
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
@@ -79,7 +79,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         run "signMavenJavaPublication"
 
         then:
-        ":signMavenJavaPublication" in nonSkippedTasks
+        executedAndNotSkipped(":signMavenJavaPublication")
 
         and:
         file("build", "libs", "sign-3.0.jar.asc").text
@@ -112,7 +112,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         run "signIvyJavaPublication"
 
         then:
-        ":signIvyJavaPublication" in nonSkippedTasks
+        executedAndNotSkipped(":signIvyJavaPublication")
 
         and:
         file("build", "libs", "sign-3.0.jar.asc").text
@@ -154,7 +154,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         run "signCustomPublication"
 
         then:
-        ":signCustomPublication" in nonSkippedTasks
+        executedAndNotSkipped(":signCustomPublication")
 
         and:
         file("build", "libs", "sign-1.0-custom2.jar.asc").text
@@ -184,7 +184,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         run "signIvyJavaPublication"
 
         then:
-        ":signIvyJavaPublication" in nonSkippedTasks
+        executedAndNotSkipped(":signIvyJavaPublication")
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
@@ -222,8 +222,8 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         run "signIvyPublication", "signMavenPublication"
 
         then:
-        ":signIvyPublication" in nonSkippedTasks
-        ":signMavenPublication" in nonSkippedTasks
+        executedAndNotSkipped(":signIvyPublication")
+        executedAndNotSkipped(":signMavenPublication")
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
@@ -272,7 +272,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         succeeds "publishMavenJavaPublicationToM2Repository"
 
         then:
-        ":publishMavenJavaPublicationToM2Repository" in nonSkippedTasks
+        executedAndNotSkipped(":publishMavenJavaPublicationToM2Repository")
 
         and:
         pom().assertExists()
@@ -330,7 +330,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         succeeds "publishIvyJavaPublicationToIvyRepository"
 
         then:
-        ":publishIvyJavaPublicationToIvyRepository" in nonSkippedTasks
+        executedAndNotSkipped(":publishIvyJavaPublicationToIvyRepository")
 
         and:
         ivyRepoFile(jarFileName).assertExists()
@@ -375,7 +375,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         run "signMavenJavaPublication"
 
         then:
-        ":signMavenJavaPublication" in nonSkippedTasks
+        executedAndNotSkipped(":signMavenJavaPublication")
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").assertDoesNotExist()
@@ -420,7 +420,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         succeeds "publishMavenJavaPublicationToM2Repository"
 
         then:
-        ":publishMavenJavaPublicationToM2Repository" in nonSkippedTasks
+        executedAndNotSkipped(":publishMavenJavaPublicationToM2Repository")
 
         and:
         pomSignature().assertExists()
@@ -455,8 +455,8 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         run "signIvyPublication", "signMavenPublication"
 
         then:
-        ":signIvyPublication" in nonSkippedTasks
-        ":signMavenPublication" in nonSkippedTasks
+        executedAndNotSkipped(":signIvyPublication")
+        executedAndNotSkipped(":signMavenPublication")
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").assertExists()
@@ -540,10 +540,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         succeeds "publish"
 
         then:
-        ":signIvyPublication" in skippedTasks
-        ":signMavenPublication" in skippedTasks
-        ":publishIvyPublicationToIvyRepository" in nonSkippedTasks
-        ":publishMavenPublicationToMavenRepository" in nonSkippedTasks
+        skipped(":signIvyPublication")
+        skipped(":signMavenPublication")
+        executedAndNotSkipped(":publishIvyPublicationToIvyRepository")
+        executedAndNotSkipped(":publishMavenPublicationToMavenRepository")
 
         and:
         pom().assertExists()
