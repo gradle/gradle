@@ -19,9 +19,9 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.api.internal.TaskInputsInternal
+import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.FilePropertyFactory
-import org.gradle.api.internal.tasks.DefaultTaskInputs
-import org.gradle.api.internal.tasks.DefaultTaskOutputs
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
@@ -88,9 +88,9 @@ class TaskGraphCodec(
     private
     fun MutableWriteContext.writeTask(task: Task, dependencies: Set<Task>) {
         val taskType = GeneratedSubclasses.unpack(task.javaClass)
+        writeClass(taskType)
         writeString(task.project.path)
         writeString(task.name)
-        writeClass(taskType)
         writeStrings(dependencies.map { it.path })
 
         withIsolate(task) {
@@ -103,9 +103,9 @@ class TaskGraphCodec(
 
     private
     fun MutableReadContext.readTask(): Pair<Task, List<String>> {
+        val taskType = readClass().asSubclass(Task::class.java)
         val projectPath = readString()
         val taskName = readString()
-        val taskType = readClass().asSubclass(Task::class.java)
         val taskDependencies = readStrings()
 
         val task = createTask(projectPath, taskName, taskType)
@@ -123,110 +123,94 @@ class TaskGraphCodec(
 
 
 private
-fun WriteContext.writeRegisteredPropertiesOf(task: Task, propertyWriter: BeanPropertyWriter) {
-    propertyWriter.run {
+fun WriteContext.writeRegisteredPropertiesOf(
+    task: Task,
+    propertyWriter: BeanPropertyWriter
+) = propertyWriter.run {
 
-        fun writeProperty(propertyName: String, propertyValue: PropertyValue, kind: PropertyKind): Boolean {
-            val value = propertyValue.call() ?: return false
-            return writeNextProperty(propertyName, value, kind)
-        }
+    fun writeProperty(propertyName: String, propertyValue: PropertyValue, kind: PropertyKind): Boolean {
+        val value = propertyValue.call() ?: return false
+        return writeNextProperty(propertyName, value, kind)
+    }
 
-        fun writeInputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
-            writeProperty(propertyName, propertyValue, PropertyKind.InputProperty)
+    fun writeInputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
+        writeProperty(propertyName, propertyValue, PropertyKind.InputProperty)
 
-        fun writeOutputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
-            writeProperty(propertyName, propertyValue, PropertyKind.OutputProperty)
+    fun writeOutputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
+        writeProperty(propertyName, propertyValue, PropertyKind.OutputProperty)
 
-        (task.outputs as? DefaultTaskOutputs)?.visitRegisteredProperties(
-            object : PropertyVisitor.Adapter() {
+    writingProperties {
+        (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
 
-                override fun visitOutputFilePropertiesOnly(): Boolean =
-                    true
-
-                override fun visitOutputFileProperty(
-                    propertyName: String,
-                    optional: Boolean,
-                    value: PropertyValue,
-                    filePropertyType: OutputFilePropertyType
-                ) {
-                    if (!writeOutputProperty(propertyName, value)) {
-                        return
-                    }
-                    writeBoolean(optional)
-                    writeEnum(filePropertyType)
+            override fun visitInputFileProperty(
+                propertyName: String,
+                optional: Boolean,
+                skipWhenEmpty: Boolean,
+                incremental: Boolean,
+                fileNormalizer: Class<out FileNormalizer>?,
+                propertyValue: PropertyValue,
+                filePropertyType: InputFilePropertyType
+            ) {
+                if (!writeInputProperty(propertyName, propertyValue)) {
+                    return
                 }
+                writeBoolean(optional)
+                writeBoolean(true)
+                writeEnum(filePropertyType)
+                writeBoolean(skipWhenEmpty)
+                writeClass(fileNormalizer!!)
             }
-        )
-        writeString("")
 
-        (task.inputs as? DefaultTaskInputs)?.visitRegisteredProperties(
-            object : PropertyVisitor.Adapter() {
-
-                override fun visitInputProperty(
-                    propertyName: String,
-                    propertyValue: PropertyValue,
-                    optional: Boolean
-                ) {
-                    if (!writeInputProperty(propertyName, propertyValue)) {
-                        return
-                    }
-                    writeBoolean(optional)
-                    writeBoolean(false)
+            override fun visitInputProperty(
+                propertyName: String,
+                propertyValue: PropertyValue,
+                optional: Boolean
+            ) {
+                if (!writeInputProperty(propertyName, propertyValue)) {
+                    return
                 }
-
-                override fun visitInputFileProperty(
-                    propertyName: String,
-                    optional: Boolean,
-                    skipWhenEmpty: Boolean,
-                    incremental: Boolean,
-                    fileNormalizer: Class<out FileNormalizer>?,
-                    propertyValue: PropertyValue,
-                    filePropertyType: InputFilePropertyType
-                ) {
-                    if (!writeInputProperty(propertyName, propertyValue)) {
-                        return
-                    }
-                    writeBoolean(optional)
-                    writeBoolean(true)
-                    writeEnum(filePropertyType)
-                    writeBoolean(skipWhenEmpty)
-                    writeClass(fileNormalizer!!)
-                }
+                writeBoolean(optional)
+                writeBoolean(false)
             }
-        )
-        writeString("")
+        })
+    }
+
+    writingProperties {
+        (task.outputs as TaskOutputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
+
+            override fun visitOutputFileProperty(
+                propertyName: String,
+                optional: Boolean,
+                value: PropertyValue,
+                filePropertyType: OutputFilePropertyType
+            ) {
+                if (!writeOutputProperty(propertyName, value)) {
+                    return
+                }
+                writeBoolean(optional)
+                writeEnum(filePropertyType)
+            }
+        })
     }
 }
 
 
 private
-fun MutableReadContext.readRegisteredPropertiesOf(task: Task, propertyReader: BeanPropertyReader) {
-    propertyReader.run {
+fun ReadContext.readRegisteredPropertiesOf(task: Task, propertyReader: BeanPropertyReader) {
+    readInputPropertiesOf(task, propertyReader)
+    readOutputPropertiesOf(task, propertyReader)
+}
 
-        while (true) {
-            val (propertyName, propertyValue) = readNextProperty(PropertyKind.OutputProperty) ?: break
-            require(propertyValue != null)
-            val optional = readBoolean()
-            val filePropertyType = readEnum<OutputFilePropertyType>()
-            task.outputs.run {
-                when (filePropertyType) {
-                    OutputFilePropertyType.DIRECTORY -> dir(propertyValue)
-                    OutputFilePropertyType.DIRECTORIES -> dirs(propertyValue)
-                    OutputFilePropertyType.FILE -> file(propertyValue)
-                    OutputFilePropertyType.FILES -> files(propertyValue)
-                }
-            }.run {
-                withPropertyName(propertyName)
-                optional(optional)
-            }
-        }
 
-        while (true) {
-            val (propertyName, propertyValue) = readNextProperty(PropertyKind.InputProperty) ?: break
-            require(propertyValue != null)
-            val optional = readBoolean()
-            val isFileInputProperty = readBoolean()
-            if (isFileInputProperty) {
+private
+fun ReadContext.readInputPropertiesOf(task: Task, propertyReader: BeanPropertyReader) = propertyReader.run {
+    while (true) {
+        val (propertyName, propertyValue) = readNextProperty(PropertyKind.InputProperty) ?: break
+        val optional = readBoolean()
+        val isFileInputProperty = readBoolean()
+        require(propertyValue != null)
+        when {
+            isFileInputProperty -> {
                 val filePropertyType = readEnum<InputFilePropertyType>()
                 val skipWhenEmpty = readBoolean()
                 val normalizer = readClass()
@@ -243,11 +227,34 @@ fun MutableReadContext.readRegisteredPropertiesOf(task: Task, propertyReader: Be
                     @Suppress("unchecked_cast")
                     withNormalizer(normalizer as Class<out FileNormalizer>)
                 }
-            } else {
+            }
+            else -> {
                 task.inputs
                     .property(propertyName, propertyValue)
                     .optional(optional)
             }
+        }
+    }
+}
+
+
+private
+fun ReadContext.readOutputPropertiesOf(task: Task, propertyReader: BeanPropertyReader) = propertyReader.run {
+    while (true) {
+        val (propertyName, propertyValue) = readNextProperty(PropertyKind.OutputProperty) ?: break
+        val optional = readBoolean()
+        val filePropertyType = readEnum<OutputFilePropertyType>()
+        require(propertyValue != null)
+        task.outputs.run {
+            when (filePropertyType) {
+                OutputFilePropertyType.DIRECTORY -> dir(propertyValue)
+                OutputFilePropertyType.DIRECTORIES -> dirs(propertyValue)
+                OutputFilePropertyType.FILE -> file(propertyValue)
+                OutputFilePropertyType.FILES -> files(propertyValue)
+            }
+        }.run {
+            withPropertyName(propertyName)
+            optional(optional)
         }
     }
 }

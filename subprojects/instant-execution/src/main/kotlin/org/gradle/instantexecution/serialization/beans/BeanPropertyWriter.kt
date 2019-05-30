@@ -38,11 +38,21 @@ class BeanPropertyWriter(
      * Serializes a bean by serializing the value of each of its fields.
      */
     fun WriteContext.writeFieldsOf(bean: Any) {
-        for (field in relevantStateOf(beanType)) {
-            val fieldName = field.name
-            val fieldValue = field.get(bean) ?: conventionalValueOf(bean, fieldName)
-            writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
+        writingProperties {
+            for (field in relevantStateOf(beanType)) {
+                val fieldName = field.name
+                val fieldValue = field.get(bean) ?: conventionalValueOf(bean, fieldName)
+                writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
+            }
         }
+    }
+
+    /**
+     * Ensures a sequence of [writeNextProperty] calls is properly terminated
+     * by the end marker (empty String) so that it can be read by [BeanPropertyReader.readNextProperty].
+     */
+    inline fun WriteContext.writingProperties(block: BeanPropertyWriter.() -> Unit) {
+        block()
         writeString("")
     }
 
