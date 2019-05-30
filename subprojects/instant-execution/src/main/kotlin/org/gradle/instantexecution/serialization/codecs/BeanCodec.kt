@@ -22,8 +22,8 @@ import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.beans.BeanFieldDeserializer
-import org.gradle.instantexecution.serialization.beans.BeanFieldSerializer
+import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.writeClass
 import sun.reflect.ReflectionFactory
@@ -43,8 +43,8 @@ class BeanCodec(
             writeSmallInt(isolate.identities.putInstance(value))
             val beanType = GeneratedSubclasses.unpackType(value)
             writeClass(beanType)
-            BeanFieldSerializer(beanType).run {
-                serializeFieldsOf(value)
+            BeanPropertyWriter(beanType).run {
+                writeFieldsOf(value)
             }
         }
     }
@@ -64,8 +64,8 @@ class BeanCodec(
         }
         val bean = constructor.newInstance()
         isolate.identities.putInstance(id, bean)
-        BeanFieldDeserializer(bean.javaClass, filePropertyFactory).run {
-            deserializeFieldsOf(bean)
+        BeanPropertyReader(bean.javaClass, filePropertyFactory).run {
+            readFieldsOf(bean)
         }
         return bean
     }

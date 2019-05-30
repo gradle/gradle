@@ -23,42 +23,47 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logFieldSerialization
-import org.gradle.instantexecution.serialization.logFieldWarning
+import org.gradle.instantexecution.serialization.logProperty
+import org.gradle.instantexecution.serialization.logPropertyWarning
 import java.util.function.Supplier
 
 
-/**
- * Serializes a bean by serializing the value of each of its fields.
- */
-class BeanFieldSerializer(
+class BeanPropertyWriter(
     private val beanType: Class<*>
 ) {
-    fun WriteContext.serializeFieldsOf(bean: Any) {
+    /**
+     * Serializes a bean by serializing the value of each of its fields.
+     */
+    fun WriteContext.writeFieldsOf(bean: Any) {
         for (field in relevantStateOf(beanType)) {
-            field.isAccessible = true
             val fieldName = field.name
             val fieldValue = field.get(bean) ?: conventionalValueOf(bean, fieldName)
-            serializeField(fieldName, fieldValue)
+            writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
         writeString("")
     }
 
-    fun WriteContext.serializeField(fieldName: String, fieldValue: Any?): Boolean {
-        val finalValue = unpack(fieldValue)
+    /**
+     * Returns whether the given property could be written. A property can only be written when there's
+     * a suitable [Codec] for its [value].
+     */
+    fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
+        val finalValue = unpack(value)
         val writeValue = writeActionFor(finalValue)
         if (writeValue == null) {
-            logFieldWarning("serialize", beanType, fieldName, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue!!).name}'")
+            logPropertyWarning("serialize", kind, beanType, name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue!!).name}'")
             return false
         }
-        writeString(fieldName)
+        writeString(name)
         try {
             writeValue(finalValue)
         } catch (e: Throwable) {
-            throw GradleException("Could not save the value of field '${beanType.name}.$fieldName' with type ${finalValue?.javaClass?.name}.", e)
+            throw GradleException("Could not save the value of $kind '${beanType.name}.$name' with type ${finalValue?.javaClass?.name}.", e)
         }
-        logFieldSerialization("serialize", beanType, fieldName, finalValue)
+        logProperty("serialize", kind, beanType, name, finalValue)
         return true
     }
 

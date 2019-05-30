@@ -34,6 +34,8 @@ fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
         type.declaredFields.asSequence().filterNot { field ->
             Modifier.isStatic(field.modifiers) || Modifier.isTransient(field.modifiers)
         }
+    }.onEach {
+        it.isAccessible = true
     }
 
 

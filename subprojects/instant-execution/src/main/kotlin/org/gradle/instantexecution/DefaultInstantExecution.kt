@@ -31,10 +31,11 @@ import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.MutableReadContext
 import org.gradle.instantexecution.serialization.MutableWriteContext
+import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.beans.BeanFieldDeserializer
-import org.gradle.instantexecution.serialization.beans.BeanFieldSerializer
+import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.readClassPath
@@ -259,8 +260,8 @@ class DefaultInstantExecution(
         writeStrings(dependencies.map { it.path })
 
         withIsolate(task) {
-            BeanFieldSerializer(taskType).run {
-                serializeFieldsOf(task)
+            BeanPropertyWriter(taskType).run {
+                writeFieldsOf(task)
                 writeRegisteredPropertiesOf(task, this)
             }
         }
@@ -276,9 +277,9 @@ class DefaultInstantExecution(
         val task = createTask(projectPath, taskName, taskType)
 
         withIsolate(task) {
-            BeanFieldDeserializer(taskType, filePropertyFactory).run {
-                deserializeFieldsOf(task)
-                readRegisteredPropertiesOf(task)
+            BeanPropertyReader(taskType, filePropertyFactory).run {
+                readFieldsOf(task)
+                readRegisteredPropertiesOf(task, this)
             }
         }
 
@@ -286,58 +287,57 @@ class DefaultInstantExecution(
     }
 
     private
-    fun WriteContext.writeRegisteredPropertiesOf(task: Task, beanFieldSerializer: BeanFieldSerializer) {
-        (task.inputs as? DefaultTaskInputs)?.visitRegisteredProperties(
-            object : PropertyVisitor.Adapter() {
-                override fun visitInputFileProperty(
-                    propertyName: String,
-                    optional: Boolean,
-                    skipWhenEmpty: Boolean,
-                    incremental: Boolean,
-                    fileNormalizer: Class<out FileNormalizer>?,
-                    value: PropertyValue,
-                    filePropertyType: InputFilePropertyType
-                ) {
-                    val fieldValue = value.call() ?: return
-                    beanFieldSerializer.run {
-                        if (!serializeField(propertyName, fieldValue)) {
+    fun WriteContext.writeRegisteredPropertiesOf(task: Task, propertyWriter: BeanPropertyWriter) {
+        propertyWriter.run {
+            (task.inputs as? DefaultTaskInputs)?.visitRegisteredProperties(
+                object : PropertyVisitor.Adapter() {
+                    override fun visitInputFileProperty(
+                        propertyName: String,
+                        optional: Boolean,
+                        skipWhenEmpty: Boolean,
+                        incremental: Boolean,
+                        fileNormalizer: Class<out FileNormalizer>?,
+                        propertyValue: PropertyValue,
+                        filePropertyType: InputFilePropertyType
+                    ) {
+                        val value = propertyValue.call() ?: return
+                        if (!writeNextProperty(propertyName, value, PropertyKind.InputProperty)) {
                             return
                         }
+                        writeEnum(filePropertyType)
+                        writeBoolean(optional)
+                        writeBoolean(skipWhenEmpty)
+                        writeClass(fileNormalizer!!)
                     }
-                    writeEnum(filePropertyType)
-                    writeBoolean(optional)
-                    writeBoolean(skipWhenEmpty)
-                    writeClass(fileNormalizer!!)
                 }
-            }
-        )
-        writeString("")
+            )
+            writeString("")
+        }
     }
 
     private
-    fun MutableReadContext.readRegisteredPropertiesOf(task: Task) {
-        while (true) {
-            val propertyName = readString()
-            if (propertyName == "") {
-                break
-            }
-            val propertyValue = read()!!
-            val filePropertyType = readEnum<InputFilePropertyType>()
-            val optional = readBoolean()
-            val skipWhenEmpty = readBoolean()
-            val normalizer = readClass()
-            task.inputs.run {
-                when (filePropertyType) {
-                    InputFilePropertyType.FILE -> file(propertyValue)
-                    InputFilePropertyType.DIRECTORY -> dir(propertyValue)
-                    InputFilePropertyType.FILES -> files(propertyValue)
+    fun MutableReadContext.readRegisteredPropertiesOf(task: Task, propertyReader: BeanPropertyReader) {
+        propertyReader.run {
+            while (true) {
+                val (propertyName, propertyValue) = readNextProperty(PropertyKind.InputProperty) ?: break
+                require(propertyValue != null)
+                val filePropertyType = readEnum<InputFilePropertyType>()
+                val optional = readBoolean()
+                val skipWhenEmpty = readBoolean()
+                val normalizer = readClass()
+                task.inputs.run {
+                    when (filePropertyType) {
+                        InputFilePropertyType.FILE -> file(propertyValue)
+                        InputFilePropertyType.DIRECTORY -> dir(propertyValue)
+                        InputFilePropertyType.FILES -> files(propertyValue)
+                    }
+                }.run {
+                    withPropertyName(propertyName)
+                    optional(optional)
+                    skipWhenEmpty(skipWhenEmpty)
+                    @Suppress("unchecked_cast")
+                    withNormalizer(normalizer as Class<out FileNormalizer>)
                 }
-            }.run {
-                withPropertyName(propertyName)
-                optional(optional)
-                skipWhenEmpty(skipWhenEmpty)
-                @Suppress("unchecked_cast")
-                withNormalizer(normalizer as Class<out FileNormalizer>)
             }
         }
     }

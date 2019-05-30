@@ -19,18 +19,28 @@ package org.gradle.instantexecution.serialization
 import kotlin.reflect.KClass
 
 
-fun IsolateContext.logFieldWarning(action: String, type: Class<*>, fieldName: String, message: String) {
+enum class PropertyKind {
+    Field {
+        override fun toString() = "field"
+    },
+    InputProperty {
+        override fun toString() = "input property"
+    }
+}
+
+
+fun IsolateContext.logPropertyWarning(action: String, kind: PropertyKind, type: Class<*>, fieldName: String, message: String) {
     logger.warn(
-        "instant-execution > task '{}' field '{}.{}' cannot be {}d because {}.",
-        isolate.owner.path, type.name, fieldName, action, message
+        "instant-execution > task '{}' {} '{}.{}' cannot be {}d because {}.",
+        isolate.owner.path, kind, type.name, fieldName, action, message
     )
 }
 
 
-fun IsolateContext.logFieldSerialization(action: String, type: Class<*>, fieldName: String, value: Any?) {
+fun IsolateContext.logProperty(action: String, kind: PropertyKind, type: Class<*>, name: String, value: Any?) {
     logger.info(
-        "instant-execution > task '{}' field '{}.{}' {}d value {}",
-        isolate.owner.path, type.name, fieldName, action, value
+        "instant-execution > task '{}' {} '{}.{}' {}d value {}",
+        isolate.owner.path, kind, type.name, name, action, value
     )
 }
 
