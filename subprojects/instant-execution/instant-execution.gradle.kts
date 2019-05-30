@@ -18,9 +18,13 @@ dependencies {
     implementation(library("slf4j_api"))
     implementation(futureKotlin("stdlib-jdk8"))
 
+    integTestImplementation(project(":toolingApi"))
+
     integTestImplementation(library("guava"))
     integTestImplementation(library("ant"))
     integTestImplementation(library("inject"))
+
+    integTestRuntimeOnly(project(":toolingApiBuilders"))
 }
 
 gradlebuildJava {
