@@ -217,7 +217,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return error.withNormalizedEol();
     }
 
-    @Override
     public List<String> getExecutedTasks() {
         return ImmutableList.copyOf(findExecutedTasksInOrderStarted());
     }
@@ -277,7 +276,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
-    @Override
     public Set<String> getSkippedTasks() {
         return new TreeSet<String>(grepTasks(SKIPPED_TASK_PATTERN));
     }
