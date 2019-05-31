@@ -17,10 +17,8 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.internal.credentials.DefaultPasswordCredentials
-import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -36,11 +34,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Rule
     HttpServer redirectServer
 
-    @Rule
-    TestResources resources = new TestResources(temporaryFolder)
-
-    TestKeyStore keyStore = TestKeyStore.init(resources.dir)
-
     MavenHttpRepository mavenRemoteRepo
     MavenHttpModule module
 
@@ -51,10 +44,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     def setup() {
         server.start()
-
-        keyStore.enableSslWithServerCert(server)
-        keyStore.enableSslWithServerCert(redirectServer)
-        keyStore.configureServerCert(executer)
 
         mavenRemoteRepo = new MavenHttpRepository(server, repoPath, mavenRepo)
         group = "org.gradle"

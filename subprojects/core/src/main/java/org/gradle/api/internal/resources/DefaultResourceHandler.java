@@ -48,8 +48,4 @@ public class DefaultResourceHandler implements ResourceHandler {
     public TextResourceFactory getText() {
         return textResourceFactory;
     }
-
-    interface Factory {
-        DefaultResourceHandler create(FileOperations fileOperations);
-    }
 }

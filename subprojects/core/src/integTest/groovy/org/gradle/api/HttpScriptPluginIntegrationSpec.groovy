@@ -229,7 +229,7 @@ task check {
         when:
         def scriptUri = "${server.uri}/${scriptName}"
         file(sourceFile) << """
-            apply from: '${scriptUri}', allowInsecureProtocol: true
+            apply from: '${scriptUri}'
         """
 
         then:
@@ -267,7 +267,7 @@ task check {
         when:
         def scriptUri = "${server.uri}/${scriptName}"
         file(sourceFile) << """
-            apply from: '${scriptUri}', allowInsecureProtocol: true
+            apply from: '${scriptUri}'
         """
 
         then:
@@ -310,7 +310,7 @@ task check {
 
         and:
         [file('settings.gradle'), file('init.gradle'), file("projA/build.gradle"), file("projB/build.gradle")].each {
-            it << "apply from: '${server.uri}/${scriptName}', allowInsecureProtocol: true"
+            it << "apply from: '${server.uri}/${scriptName}'"
         }
 
         when:
@@ -339,7 +339,7 @@ task check {
         scriptFile.makeOlder()
 
         and:
-        buildFile << "apply from: '${server.uri}/${scriptName}', allowInsecureProtocol: true"
+        buildFile << "apply from: '${server.uri}/${scriptName}'"
 
         when:
         server.expectGet('/' + scriptName, scriptFile)
@@ -374,7 +374,7 @@ task check {
         """
 
         buildFile << """
-            apply from: '${scriptUrl}', allowInsecureProtocol: true
+            apply from: '${scriptUrl}'
         """
 
         when:

@@ -62,6 +62,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
+import javax.annotation.Nonnull;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -219,8 +220,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     protected RepositoryDescriptor createDescriptor() {
-        validate();
-        return new MavenRepositoryDescriptor.Builder(getName(), getUrl())
+        URI rootUri = validateUrl();
+        return new MavenRepositoryDescriptor.Builder(getName(), rootUri)
             .setAuthenticated(getConfiguredCredentials() != null)
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
@@ -228,16 +229,18 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             .create();
     }
 
-    protected void validate() {
+    @Nonnull
+    protected URI validateUrl() {
         URI rootUri = getUrl();
         if (rootUri == null) {
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
+        return rootUri;
     }
 
     protected MavenResolver createRealResolver() {
-        validate();
-        MavenResolver resolver = createResolver(getUrl());
+        URI rootUrl = validateUrl();
+        MavenResolver resolver = createResolver(rootUrl);
 
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);

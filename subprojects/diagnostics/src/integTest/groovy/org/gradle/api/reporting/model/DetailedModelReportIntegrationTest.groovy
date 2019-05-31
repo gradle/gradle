@@ -17,8 +17,6 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
@@ -28,16 +26,6 @@ class DetailedModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final HttpServer server = new HttpServer()
-
-    @Rule
-    TestResources resources = new TestResources(temporaryFolder)
-
-    TestKeyStore keyStore = TestKeyStore.init(resources.dir)
-
-    def setup() {
-        keyStore.enableSslWithServerCert(server)
-        keyStore.configureServerCert(executer)
-    }
 
     def "includes a relative path to the build script"() {
         given:

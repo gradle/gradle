@@ -45,7 +45,6 @@ trait HttpBuildCacheFixture {
                 remote(HttpBuildCache) {
                     url = "${uri}/"
                     push = true
-                    allowUntrustedProtocol = true
                 }
             }
         """

@@ -69,8 +69,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
 
     @Override
     protected MavenResolver createRealResolver() {
-        URI rootUri = getUrl();
-        validate();
+        URI rootUri = validateUrl();
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), getResourcesFileStore());
