@@ -569,11 +569,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
-        public List<String> getExecutedTasks() {
-            return new ArrayList<String>(executedTasks);
-        }
-
-        @Override
         public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
             Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
             assertTasksExecuted(expected);
@@ -616,11 +611,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             TaskOrderSpecs.exact(taskPaths).assertMatches(-1, executedTasks);
             outputResult.assertTaskOrder(taskPaths);
             return this;
-        }
-
-        @Override
-        public Set<String> getSkippedTasks() {
-            return new TreeSet<String>(skippedTasks);
         }
 
         @Override

@@ -17,9 +17,6 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 
-import java.util.List;
-import java.util.Set;
-
 public interface ExecutionResult {
     /**
      * Returns a copy of this result that ignores `buildSrc` tasks.
@@ -116,13 +113,6 @@ public interface ExecutionResult {
     ExecutionResult assertHasPostBuildOutput(String expectedOutput);
 
     /**
-     * Returns the tasks have been executed in order started (includes tasks that were skipped). Asserts that each task appears once only.
-     *
-     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
-     */
-    List<String> getExecutedTasks();
-
-    /**
      * Asserts that exactly the given set of tasks have been executed in the given order.
      * Each task path can be either a String or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions
      * and an explanation of their usage.  Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
@@ -155,13 +145,6 @@ public interface ExecutionResult {
      * Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
      */
     ExecutionResult assertTaskOrder(Object... taskPaths);
-
-    /**
-     * Returns the tasks that were skipped, in an undefined order.
-     *
-     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
-     */
-    Set<String> getSkippedTasks();
 
     /**
      * Asserts that exactly the given set of tasks have been skipped.

@@ -262,15 +262,12 @@ class AbstractIntegrationSpec extends Specification {
 
     protected void noneSkipped() {
         assertHasResult()
-        assert !result.executedTasks.empty
-        assert result.skippedTasks.empty
+        result.assertTasksSkipped()
     }
 
     protected void allSkipped() {
         assertHasResult()
-        assert !result.executedTasks.empty
-        def nonSkippedTasks = result.executedTasks - result.skippedTasks
-        assert nonSkippedTasks.empty
+        result.assertTasksNotSkipped()
     }
 
     protected void skipped(String... tasks) {
