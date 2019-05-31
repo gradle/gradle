@@ -39,6 +39,8 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
     def setupServer() {
         beforeServerStart()
+        server.setForceLocalhostUrl(true)
+        backingServer.setForceLocalhostUrl(true)
         backingServer.start()
     }
 
@@ -65,7 +67,9 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         backingServer.expectGet('/redirected/group/projectA/1.0/projectA-1.0.jar', module.jarFile)
 
         then:
-        executer.expectDeprecationWarning()
+        if (shouldWarnAboutDeprecation()) {
+            executer.expectDeprecationWarning()
+        }
         succeeds('listJars')
 
         and:
@@ -81,7 +85,9 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         backingServer.expectGetBroken('/redirected/group/projectA/1.0/ivy-1.0.xml')
 
         then:
-        executer.expectDeprecationWarning()
+        if (shouldWarnAboutDeprecation()) {
+            executer.expectDeprecationWarning()
+        }
         fails('listJars')
 
         and:
@@ -100,7 +106,9 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
         then:
         executer.beforeExecute { withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000") }
-        executer.expectDeprecationWarning()
+        if (shouldWarnAboutDeprecation()) {
+            executer.expectDeprecationWarning()
+        }
         fails('listJars')
 
         and:

@@ -135,7 +135,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         jarProgress[0].details.spans[0].styleName == 'Normal'
         jarProgress[0].details.spans[0].text == "from jar task${getPlatformLineSeparator()}"
 
-        def downloadEvent = operations.only("Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar")
+        def downloadEvent = operations.only("Download ${server.uri}/repo/org/foo/1.0/foo-1.0.jar")
         operations.parentsOf(downloadEvent).find {
             it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":resolve"
         }

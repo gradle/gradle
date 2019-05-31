@@ -63,15 +63,12 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 """
 
         then:
-        if (expectDepricationWarning) {
-            executer.expectDeprecationWarning()
-        }
         succeeds()
 
         where:
-        scheme  | useKeystore | expectDepricationWarning
-        "http"  | false       | true
-        "https" | true        | false
+        scheme  | useKeystore
+        "http"  | false
+        "https" | true
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2891")
@@ -186,7 +183,6 @@ task check {
         buildFile << "apply from: '${server.uri}/script.gradle'"
 
         expect:
-        executer.expectDeprecationWarning()
         succeeds 'check'
     }
 

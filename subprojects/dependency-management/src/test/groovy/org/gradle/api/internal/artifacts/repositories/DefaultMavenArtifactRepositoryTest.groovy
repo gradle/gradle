@@ -63,7 +63,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', _) >> transport()
+        transportFactory.createTransport('file', 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -81,7 +81,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('http', 'repo', _) >> transport()
+        transportFactory.createTransport('http', 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -103,7 +103,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createTransport('http', 'repo', _) >> transport()
+        transportFactory.createTransport('http', 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -126,7 +126,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("s3://localhost:9090/repo")
         _ * resolver.resolveUri(_) >> uri
-        transportFactory.createTransport(_, 'repo', _) >> transport()
+        transportFactory.createTransport(_, 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -154,7 +154,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri(_) >> uri
-        transportFactory.createTransport(_, 'repo', _) >> transport()
+        transportFactory.createTransport(_, 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -172,7 +172,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         resolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport('http', 'name', _) >> transport()
+        transportFactory.createTransport('http', 'name', _, _) >> transport()
 
         given:
         repository.setMetadataSupplier(CustomMetadataSupplier)
@@ -190,7 +190,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         resolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport('http', 'name', _) >> transport()
+        transportFactory.createTransport('http', 'name', _, _) >> transport()
 
         given:
         repository.setMetadataSupplier(CustomMetadataSupplierWithParams) { it.params("a", 12, [1, 2, 3]) }
@@ -208,7 +208,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         resolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport('http', 'name', _) >> transport()
+        transportFactory.createTransport('http', 'name', _, _) >> transport()
 
         given:
         repository.setComponentVersionsLister(CustomVersionLister)
@@ -225,7 +225,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         resolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport('http', 'name', _) >> transport()
+        transportFactory.createTransport('http', 'name', _, _) >> transport()
 
         given:
         repository.setComponentVersionsLister(CustomVersionListerWithParams) { it.params("a", 12, [1, 2, 3]) }

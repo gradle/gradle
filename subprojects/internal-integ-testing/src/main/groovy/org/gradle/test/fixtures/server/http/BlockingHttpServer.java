@@ -77,7 +77,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public URI getUri() {
         try {
-            return new URI("http://localhost:" + getPort());
+            return new URI("http://127.0.0.1:" + getPort());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -88,7 +88,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public URI uri(String resource) {
         try {
-            return new URI("http", null, "localhost", getPort(), "/" + resource, null, null);
+            return new URI("http", null, "127.0.0.1", getPort(), "/" + resource, null, null);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
