@@ -27,10 +27,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.zip.ZipEntry;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
@@ -66,12 +68,13 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     }
 
     @Override
-    public HashCode hash(ZipEntry zipEntry) throws IOException {
+    public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
         if (!isClassFile(zipEntry.getName())) {
             return null;
         }
-        byte[] content = new byte[zipEntry.size()];
-        ByteStreams.readFully(zipEntry.getInputStream(), content);
+
+        byte[] content = new byte[(int)zipEntry.getSize()];
+        ByteStreams.readFully(zipInput, content);
         return hashClassBytes(content);
     }
 
