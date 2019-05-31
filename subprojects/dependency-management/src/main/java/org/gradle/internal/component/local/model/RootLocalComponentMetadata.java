@@ -37,6 +37,7 @@ import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
@@ -48,9 +49,9 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, List<String> consumptionAlternatives, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+        DefaultLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionAlternatives, canBeResolved, capabilities);
         addToConfigurations(name, conf);
         return conf;
     }
@@ -67,9 +68,10 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                                        ImmutableSet<String> hierarchy,
                                        ImmutableAttributes attributes,
                                        boolean canBeConsumed,
+                                       List<String> consumptionAlternatives,
                                        boolean canBeResolved,
                                        ImmutableCapabilities capabilities) {
-            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionAlternatives, canBeResolved, capabilities);
         }
 
         @Override

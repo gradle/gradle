@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
@@ -104,6 +105,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -124,6 +126,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -222,6 +225,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private AtomicInteger copyCount = new AtomicInteger(0);
 
     private Action<? super ConfigurationInternal> beforeLocking;
+
+    private List<String> declarationAlternatives;
+    private List<String> consumptionAlternatives;
+    private List<String> resolutionAlternatives;
 
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
                                 String name,
@@ -1318,6 +1325,61 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @VisibleForTesting
     ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
         return dependencyResolutionListeners;
+    }
+
+
+    @Override
+    @Nullable
+    public List<String> getDeclarationAlternatives() {
+        if (declarationAlternatives == null && isNotMeantForDeclaration()) {
+            declarationAlternatives = Collections.emptyList();
+        }
+        return declarationAlternatives;
+    }
+
+    /**
+     * A configuration that is clearly marked as 'consumable' OR 'resolvable' is not meant for
+     * acting as a bucket for declared dependencies.
+     */
+    private boolean isNotMeantForDeclaration() {
+        return (canBeConsumed && consumptionAlternatives == null) != (canBeResolved && resolutionAlternatives == null);
+    }
+
+    @Nullable
+    @Override
+    public List<String> getConsumptionAlternatives() {
+        return consumptionAlternatives;
+    }
+
+    @Nullable
+    @Override
+    public List<String> getResolutionAlternatives() {
+        return resolutionAlternatives;
+    }
+
+    @Override
+    public boolean isFullyDeprecated() {
+        return (isNotMeantForDeclaration() || declarationAlternatives != null) &&
+            (!canBeConsumed || consumptionAlternatives != null) &&
+            (!canBeResolved || resolutionAlternatives != null);
+    }
+
+    @Override
+    public DeprecatableConfiguration deprecateForDeclaration(String... alternativesForDeclaring) {
+        this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
+        return this;
+    }
+
+    @Override
+    public DeprecatableConfiguration deprecateForConsumption(String... alternativesForConsumption) {
+        this.consumptionAlternatives = ImmutableList.copyOf(alternativesForConsumption);
+        return this;
+    }
+
+    @Override
+    public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
+        this.resolutionAlternatives =ImmutableList.copyOf(alternativesForResolving);
+        return this;
     }
 
     /**

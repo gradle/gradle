@@ -113,6 +113,11 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
     }
 
     @Override
+    public List<String> getConsumptionAlternatives() {
+        return null;
+    }
+
+    @Override
     public boolean isCanBeResolved() {
         return false;
     }
