@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
  * <a href="https://docs.gradle.org/current/userguide/building_java_projects.html#sec:java_source_sets">user manual</a>.
  * <p>
  * The following example shows how you can configure the 'main' source set, which in this
- * case involves excluding classes whose package begins 'some.unwatned.package' from
+ * case involves excluding classes whose package begins 'some.unwanted.package' from
  * compilation of the source files in the 'java' {@link SourceDirectorySet}:
  *
  * <pre class='autoTested'>
