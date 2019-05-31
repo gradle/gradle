@@ -23,7 +23,7 @@ import org.gradle.util.TextUtil
 @Requires(TestPrecondition.WINDOWS)
 class SubstIntegrationTest extends AbstractIntegrationSpec {
     def "up to date check works from filesystem's root - intput folder to output file"() {
-        def drive = 'X:'.toUpperCase()
+        def drive = 'X:'
         def root = substRoot(drive)
 
         def inputFileName = "input.txt"
@@ -59,7 +59,7 @@ class SubstIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "up to date check works from filesystem's root - intput file to output folder copy"() {
-        def drive = 'Y:'.toUpperCase()
+        def drive = 'Y:'
         substRoot(drive)
 
         def inputFileName = "input.txt"
@@ -104,7 +104,7 @@ class SubstIntegrationTest extends AbstractIntegrationSpec {
     }
 
     static isPresent(String drive) {
-        File.listRoots().any { "${it}".toUpperCase().startsWith(drive) }
+        File.listRoots().any { "${it}".toUpperCase().startsWith(drive.toUpperCase()) }
     }
 
     def cleanupSubst(String drive) {
