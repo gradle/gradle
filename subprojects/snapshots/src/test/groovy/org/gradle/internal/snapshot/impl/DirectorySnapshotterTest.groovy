@@ -30,6 +30,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.nio.file.Paths
+
 @UsesNativeServices
 class DirectorySnapshotterTest extends Specification {
     @Rule
@@ -83,6 +85,20 @@ class DirectorySnapshotterTest extends Specification {
             'subdir1', 'subdir1/a', 'subdir1/a/b', 'subdir1/a/b/c.html',
             'a.txt'
         ].collect { 'root/' + it }) as Set
+    }
+
+    def "should snapshot file system root"() {
+        given:
+        def fileSystemRoot = fileSystemRoot()
+        def patterns = new PatternSet().exclude("*")
+        def actuallyFiltered = new MutableBoolean(false)
+
+        when:
+        def snapshot = directorySnapshotter.snapshot(fileSystemRoot, patterns, actuallyFiltered)
+
+        then:
+        snapshot.absolutePath == fileSystemRoot
+        snapshot.name == ""
     }
 
     def "should snapshot with filters"() {
@@ -151,6 +167,10 @@ class DirectorySnapshotterTest extends Specification {
 
         !defaultExcludes.excludeFile('.svnsomething')
         !defaultExcludes.excludeFile('#some')
+    }
+
+    private static String fileSystemRoot() {
+        "${Paths.get("").toAbsolutePath().root}"
     }
 }
 
