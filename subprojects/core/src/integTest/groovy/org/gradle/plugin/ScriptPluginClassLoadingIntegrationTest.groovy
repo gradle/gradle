@@ -351,6 +351,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "help"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1262")
     def "plugins can be applied with plugin id in script plugins"() {
         given:
         def jar = file("plugin.jar")
@@ -373,6 +374,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "hello"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1322")
     def "plugins can be applied with plugin id in init script"() {
         given:
         def jar = file("plugin.jar")
