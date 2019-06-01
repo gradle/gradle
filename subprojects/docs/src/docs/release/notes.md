@@ -10,7 +10,8 @@ Include only their name, impactful features should be called out separately belo
 [Andrew K.](https://github.com/miokowpak),
 [Semyon Levin](https://github.com/remal),
 [wreulicke](https://github.com/wreulicke),
-and [John Rodriguez](https://github.com/jrodbx).
+[John Rodriguez](https://github.com/jrodbx),
+and [Ivo Anjo](https://github.com/ivoanjo).
 
 <!-- 
 ## 1
