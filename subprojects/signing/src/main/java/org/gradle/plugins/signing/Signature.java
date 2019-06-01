@@ -15,11 +15,14 @@
  */
 package org.gradle.plugins.signing;
 
+import com.google.common.annotations.VisibleForTesting;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
+import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
@@ -412,7 +415,7 @@ public class Signature extends AbstractPublishArtifact {
     public void generate() {
         File toSign = getToSign();
         if (toSign == null) {
-            if (signatureSpec.isRequired()) {
+            if (!getIgnoreIfAbsent()) {
                 throw new InvalidUserDataException("Unable to generate signature as the file to sign has not been specified");
             } else {
                 return;
@@ -421,7 +424,7 @@ public class Signature extends AbstractPublishArtifact {
 
         Signatory signatory = getSignatory();
         if (signatory == null) {
-            if (signatureSpec.isRequired()) {
+            if (!getIgnoreIfAbsent()) {
                 throw new InvalidUserDataException("Unable to generate signature for \'" + toSign + "\' as no signatory is available to sign");
             } else {
                 return;
@@ -430,13 +433,40 @@ public class Signature extends AbstractPublishArtifact {
 
         SignatureType signatureType = getSignatureType();
         if (signatureType == null) {
-            if (signatureSpec.isRequired()) {
+            if (!getIgnoreIfAbsent()) {
                 throw new InvalidUserDataException("Unable to generate signature for \'" + toSign + "\' as no signature type has been configured");
             } else {
                 return;
             }
         }
 
+        if (!toSign.exists()) {
+            if (!getIgnoreIfAbsent()) {
+                throw new InvalidUserDataException("Unable to generate signature for \'" + toSign + "\' as the file doesn't exists");
+            } else {
+                return;
+            }
+        }
+
         signatureType.sign(signatory, toSign);
+    }
+
+    @Internal
+    @VisibleForTesting
+    boolean getIgnoreIfAbsent() {
+        if (!signatureSpec.isRequired()) {
+            return true;
+        }
+
+        final boolean sourceCanBeIgnored;
+        if (source instanceof MavenArtifact) {
+            sourceCanBeIgnored = ((MavenArtifact) source).getIgnoreIfAbsent();
+        } else if (source instanceof IvyArtifact) {
+            sourceCanBeIgnored = ((IvyArtifact) source).getIgnoreIfAbsent();
+        } else {
+            sourceCanBeIgnored = false;
+        }
+
+        return sourceCanBeIgnored;
     }
 }

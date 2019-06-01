@@ -31,14 +31,13 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":publish"))
     implementation(project(":maven"))
+    implementation(project(":ivy"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("bouncycastle_pgp"))
-
-    testImplementation(project(":ivy"))
 }
 
 gradlebuildJava {
