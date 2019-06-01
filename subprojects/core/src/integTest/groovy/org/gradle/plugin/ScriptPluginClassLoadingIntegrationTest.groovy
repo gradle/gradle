@@ -350,4 +350,26 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "help"
     }
+
+    def "plugins can be applied with plugin id in script plugins"() {
+        given:
+        def jar = file("plugin.jar")
+        pluginBuilder.addPlugin("project.task('hello')")
+        pluginBuilder.publishTo(executer, jar)
+
+        buildScript """
+            apply from: "script.gradle"
+        """
+
+        file("script.gradle") << """
+            buildscript {
+                dependencies { classpath files("plugin.jar") }
+            }
+
+            apply plugin: "test-plugin"
+        """
+
+        expect:
+        succeeds "hello"
+    }
 }
