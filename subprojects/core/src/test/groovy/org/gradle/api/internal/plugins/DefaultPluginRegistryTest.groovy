@@ -34,6 +34,7 @@ class DefaultPluginRegistryTest extends Specification {
     def classLoader = Mock(ClassLoader)
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> classLoader
+        isUsable() >> true
     }
     def pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
     private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoaderScope)
@@ -298,6 +299,7 @@ class DefaultPluginRegistryTest extends Specification {
         given:
         PluginRegistry child = pluginRegistry.createChild(lookupScope)
         _ * lookupScope.localClassLoader >> childClassLoader
+        _ * lookupScope.isUsable() >> true
         _ * childClassLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * childClassLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 

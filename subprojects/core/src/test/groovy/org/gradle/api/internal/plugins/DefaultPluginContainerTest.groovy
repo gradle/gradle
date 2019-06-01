@@ -346,6 +346,7 @@ class DefaultPluginContainerTest extends Specification {
     def scope(ClassLoader classLoader) {
         return Stub(ClassLoaderScope) {
             getLocalClassLoader() >> classLoader
+            isUsable() >> true
         }
     }
 }

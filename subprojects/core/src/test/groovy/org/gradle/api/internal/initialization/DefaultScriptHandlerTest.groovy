@@ -43,6 +43,7 @@ class DefaultScriptHandlerTest extends Specification {
     def baseClassLoader = new ClassLoader() {}
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader
+        isUsable() >> true
     }
     def classpathResolver = Mock(ScriptClassPathResolver)
     def instantiator = TestUtil.objectInstantiator()

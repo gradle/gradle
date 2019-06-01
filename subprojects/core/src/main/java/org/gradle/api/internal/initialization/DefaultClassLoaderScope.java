@@ -107,7 +107,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 }
             } else { // creating before locking, have to create the most flexible setup
-                if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
+                if (isStrictModeEnabled()) {
                     throw new IllegalStateException("Attempt to define scope class loader before scope is locked, scope identifier is " + id);
                 }
 
@@ -120,6 +120,10 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
             exportLoaders = null;
         }
+    }
+
+    private boolean isStrictModeEnabled() {
+        return Boolean.getBoolean(STRICT_MODE_PROPERTY);
     }
 
     @Override
@@ -227,6 +231,11 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     @Override
     public boolean isLocked() {
         return locked;
+    }
+    
+    @Override
+    public boolean isUsable() {
+        return effectiveLocalClassLoader != null || isLocked() || !isStrictModeEnabled();
     }
 
     @Override

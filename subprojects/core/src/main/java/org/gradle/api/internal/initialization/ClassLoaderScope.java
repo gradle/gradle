@@ -109,6 +109,8 @@ public interface ClassLoaderScope {
      */
     ClassLoaderScope lock();
 
+    boolean isUsable();
+
     boolean isLocked();
 
     /**
