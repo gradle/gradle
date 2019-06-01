@@ -1289,7 +1289,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         TextUriResourceLoader.Factory textUriResourceLoaderFactory = services.get(TextUriResourceLoader.Factory.class);
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), textUriResourceLoaderFactory, this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), getClassLoaderScope(), textUriResourceLoaderFactory, this);
     }
 
     @Inject

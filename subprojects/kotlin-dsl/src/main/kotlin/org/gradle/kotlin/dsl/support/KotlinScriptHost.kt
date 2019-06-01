@@ -77,6 +77,7 @@ class KotlinScriptHost<out T : Any>(
             serviceRegistry.get(),
             serviceRegistry.get(),
             baseScope,
+            targetScope,
             serviceRegistry.get(),
             target)
 }

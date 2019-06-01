@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginManager;
@@ -31,6 +32,8 @@ public interface PluginManagerInternal extends PluginManager {
     <P extends Plugin> P addImperativePlugin(Class<P> plugin);
 
     PluginContainer getPluginContainer();
+
+    void apply(ClassLoaderScope classLoaderScope, String pluginId);
 
     DomainObjectSet<PluginWithId> pluginsForId(String id);
 

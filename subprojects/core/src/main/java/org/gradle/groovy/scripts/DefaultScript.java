@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
@@ -109,6 +110,7 @@ public abstract class DefaultScript extends BasicScript {
             __scriptServices.get(ScriptPluginFactory.class),
             __scriptServices.get(ScriptHandlerFactory.class),
             classLoaderScope,
+            getBuildscript() instanceof ScriptHandlerInternal ? ((ScriptHandlerInternal) getBuildscript()).getClassLoaderScope() : null,
             __scriptServices.get(TextUriResourceLoader.Factory.class),
             getScriptTarget()
         );

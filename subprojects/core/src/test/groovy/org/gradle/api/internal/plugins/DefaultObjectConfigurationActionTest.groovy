@@ -38,7 +38,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def textResourceLoaderFactory = Mock(TextUriResourceLoader.Factory)
     def configurer = Mock(ScriptPlugin)
 
-    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, textResourceLoaderFactory, target)
+    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, scriptCompileScope, textResourceLoaderFactory, target)
 
     def setup() {
        textResourceLoaderFactory.create(_) >> Mock(TextUriResourceLoader)

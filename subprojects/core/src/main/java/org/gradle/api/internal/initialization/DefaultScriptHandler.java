@@ -165,4 +165,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         return dynamicObject;
     }
+
+    @Override
+    public ClassLoaderScope getClassLoaderScope() {
+        return classLoaderScope;
+    }
 }

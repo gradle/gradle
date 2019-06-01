@@ -45,17 +45,20 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
-    private final ClassLoaderScope classLoaderScope;
+    private final ClassLoaderScope parentClassLoaderScope;
+    private final ClassLoaderScope scriptClassLoaderScope;
     private final TextUriResourceLoader.Factory textUriFileResourceLoaderFactory;
     private final Object defaultTarget;
 
     public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
-                                            ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
+                                            ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope parentClassLoaderScope,
+                                            ClassLoaderScope scriptClassLoaderScope,
                                             TextUriResourceLoader.Factory textUriFileResourceLoaderFactory, Object defaultTarget) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
-        this.classLoaderScope = classLoaderScope;
+        this.parentClassLoaderScope = parentClassLoaderScope;
+        this.scriptClassLoaderScope = scriptClassLoaderScope;
         this.textUriFileResourceLoaderFactory = textUriFileResourceLoaderFactory;
         this.defaultTarget = defaultTarget;
     }
@@ -144,9 +147,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             resource = textUriFileResourceLoaderFactory.create(redirectVerifier).loadUri("script", scriptUri);
         }
         ScriptSource scriptSource = new TextResourceScriptSource(resource);
-        ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri.toString());
+        ClassLoaderScope classLoaderScopeChild = parentClassLoaderScope.createChild("script-" + scriptUri.toString());
         ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild);
-        ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, classLoaderScope, false);
+        ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, parentClassLoaderScope, false);
         for (Object target : targets) {
             configurer.apply(target);
         }
@@ -159,7 +162,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private void applyType(String pluginId) {
         for (Object target : targets) {
             if (target instanceof PluginAware) {
-                ((PluginAware) target).getPluginManager().apply(pluginId);
+                PluginManagerInternal pluginManager = (PluginManagerInternal) ((PluginAware) target).getPluginManager();
+                pluginManager.apply(scriptClassLoaderScope, pluginId);
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target.toString(), target.getClass().getName()));
             }

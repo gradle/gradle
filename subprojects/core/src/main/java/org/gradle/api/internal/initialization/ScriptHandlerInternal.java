@@ -24,5 +24,5 @@ public interface ScriptHandlerInternal extends ScriptHandler {
 
     ClassPath getScriptClassPath();
 
-
+    ClassLoaderScope getClassLoaderScope();
 }

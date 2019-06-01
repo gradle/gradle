@@ -24,6 +24,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
@@ -129,7 +130,13 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Override
     public void apply(String pluginId) {
-        PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(pluginId));
+        apply(null, pluginId);
+    }
+
+    @Override
+    public void apply(ClassLoaderScope classLoaderScope, String pluginId) {
+        PluginRegistry pluginRegistryForScope = classLoaderScope != null ? pluginRegistry.createChild(classLoaderScope) : pluginRegistry;
+        PluginImplementation<?> plugin = pluginRegistryForScope.lookup(DefaultPluginId.unvalidated(pluginId));
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }

@@ -462,6 +462,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             getScriptPluginFactory(),
             getScriptHandlerFactory(),
             getClassLoaderScope(),
+            getClassLoaderScope(),
             getResourceLoaderFactory(),
             this
         );
