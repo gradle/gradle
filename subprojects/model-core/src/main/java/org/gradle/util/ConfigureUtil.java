@@ -156,6 +156,7 @@ public class ConfigureUtil {
 
     public static class WrappedConfigureAction<T> implements Action<T> {
         private final Closure configureClosure;
+        private final static ThreadLocal<Closure> CURRENT_CONFIGURE_CLOSURE = new ThreadLocal<>();
 
         WrappedConfigureAction(Closure configureClosure) {
             this.configureClosure = configureClosure;
@@ -163,11 +164,21 @@ public class ConfigureUtil {
 
         @Override
         public void execute(T t) {
-            configure(configureClosure, t);
+            Closure previous = CURRENT_CONFIGURE_CLOSURE.get();
+            try {
+                CURRENT_CONFIGURE_CLOSURE.set(configureClosure);
+                configure(configureClosure, t);
+            } finally {
+                CURRENT_CONFIGURE_CLOSURE.set(previous);
+            }
         }
 
         public Closure getConfigureClosure() {
             return configureClosure;
+        }
+
+        public static Closure getCurrentConfigureClosure() {
+            return CURRENT_CONFIGURE_CLOSURE.get();
         }
     }
 }

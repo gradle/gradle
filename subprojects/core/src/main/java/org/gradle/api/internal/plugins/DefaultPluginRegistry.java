@@ -126,6 +126,10 @@ public class DefaultPluginRegistry implements PluginRegistry {
             }
         }
 
+        if (!classLoaderScope.isLocked()) {
+            // don't lookup in scope if it's not locked
+            return null;
+        }
         return lookup(pluginId, classLoaderScope.getLocalClassLoader());
     }
 

@@ -16,20 +16,24 @@
 
 package org.gradle.api.internal.plugins;
 
+import groovy.lang.Closure;
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
@@ -160,10 +164,22 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private void applyType(String pluginId) {
+        ClassLoaderScope pluginClassLoaderScope = scriptClassLoaderScope;
+
+        // use the classloader scope of the owner (the script) of the currently executing closure (if any)
+        // for doing the plugin lookup by id
+        Closure currentConfigureClosure = ConfigureUtil.WrappedConfigureAction.getCurrentConfigureClosure();
+        if (currentConfigureClosure != null && currentConfigureClosure.getOwner() instanceof DefaultScript) {
+            ScriptHandler scriptHandler = ((DefaultScript) currentConfigureClosure.getOwner()).getBuildscript();
+            if (scriptHandler instanceof ScriptHandlerInternal) {
+                pluginClassLoaderScope = ((ScriptHandlerInternal) scriptHandler).getClassLoaderScope();
+            }
+        }
+
         for (Object target : targets) {
             if (target instanceof PluginAware) {
                 PluginManagerInternal pluginManager = (PluginManagerInternal) ((PluginAware) target).getPluginManager();
-                pluginManager.apply(scriptClassLoaderScope, pluginId);
+                pluginManager.apply(pluginClassLoaderScope, pluginId);
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target.toString(), target.getClass().getName()));
             }
