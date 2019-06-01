@@ -169,7 +169,11 @@ public class ConfigureUtil {
                 CURRENT_CONFIGURE_CLOSURE.set(configureClosure);
                 configure(configureClosure, t);
             } finally {
-                CURRENT_CONFIGURE_CLOSURE.set(previous);
+                if (previous != null) {
+                    CURRENT_CONFIGURE_CLOSURE.set(previous);
+                } else {
+                    CURRENT_CONFIGURE_CLOSURE.remove();
+                }
             }
         }
 
