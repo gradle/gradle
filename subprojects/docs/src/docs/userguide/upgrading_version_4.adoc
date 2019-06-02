@@ -220,7 +220,7 @@ Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property
 
  * You can no longer use GPath syntax with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[tasks.withType()].
 +
-Use https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead. For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
+Use http://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead. For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
 
 [[changes_4.8]]
 == Upgrading from 4.7 and earlier

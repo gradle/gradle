@@ -102,7 +102,7 @@ public class LinkRenderer {
 
         if (className.startsWith("groovy.")) {
             Element linkElement = document.createElement("ulink");
-            linkElement.setAttribute("url", String.format("https://docs.groovy-lang.org/%s/html/gapi/%s.html", groovyVersion, className.replace(
+            linkElement.setAttribute("url", String.format("http://docs.groovy-lang.org/%s/html/gapi/%s.html", groovyVersion, className.replace(
                     ".", "/")));
             Element classNameElement = document.createElement("classname");
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));

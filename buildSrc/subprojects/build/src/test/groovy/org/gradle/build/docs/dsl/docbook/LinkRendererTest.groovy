@@ -72,7 +72,7 @@ class LinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('groovy.lang.Closure'), listener)
 
         then:
-        format(link) == '<ulink url="https://docs.groovy-lang.org/groovyVersion/html/gapi/groovy/lang/Closure.html"><classname>Closure</classname></ulink>'
+        format(link) == '<ulink url="http://docs.groovy-lang.org/groovyVersion/html/gapi/groovy/lang/Closure.html"><classname>Closure</classname></ulink>'
     }
 
     def rendersLinkToGroovyClassArray() {
@@ -80,7 +80,7 @@ class LinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('groovy.lang.Closure', true), listener)
 
         then:
-        format(link) == '<classname><ulink url="https://docs.groovy-lang.org/groovyVersion/html/gapi/groovy/lang/Closure.html"><classname>Closure</classname></ulink>[]</classname>'
+        format(link) == '<classname><ulink url="http://docs.groovy-lang.org/groovyVersion/html/gapi/groovy/lang/Closure.html"><classname>Closure</classname></ulink>[]</classname>'
     }
 
     def rendersLinkToExternalClass() {
