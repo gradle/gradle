@@ -280,6 +280,36 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
+
+    @Unroll
+    @UsesSample("maven-publish/optional-artifact")
+    def "publishes optional artifacts with #dsl dsl"() {
+        given:
+        def sampleDir = sampleProject.dir.file(dsl)
+        inDirectory(sampleDir)
+        def artifactId = "optional-artifact"
+        def version = "1.0"
+        def repo = maven(sampleDir.file("build/repo"))
+        def module = repo.module("org.gradle.sample", artifactId, version)
+
+        when:
+        succeeds "publish"
+
+        then:
+        executed ":compileJava", ":sourcesJar"
+        skipped ":javadocJar"
+
+        and:
+        module.assertPublished()
+        module.assertArtifactsPublished(
+            "optional-artifact-1.0.jar",
+            "optional-artifact-1.0-sources.jar",
+            "optional-artifact-1.0.pom")
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
     private void verifyPomFile(MavenFileModule module, String outputFileName) {
         def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
         assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file(outputFileName))

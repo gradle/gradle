@@ -154,6 +154,16 @@ NOTE: There is currently no easy way to define dependency information for a cust
 
 The `groupId` and `artifactId` properties are specific to Maven publications. See link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication] for the relevant Ivy properties.
 
+== Adding optional artifacts to a publication
+
+If you have some artifacts not always necessary, you can configure them as `ignoreIfAbsent`. These artifacts will be ignored if their files don't exist when publishing. This is useful when the task that produces the artifact can be set as disabled or the file to published only exists in some situations.
+
+.Set an artifact as ignoreIfAbsent
+====
+include::sample[dir="maven-publish/optional-artifact/groovy",files="build.gradle[tags=set-artifact-ignoreIfAbsent]"]
+include::sample[dir="maven-publish/optional-artifact/kotlin",files="build.gradle.kts[tags=set-artifact-ignoreIfAbsent]"]
+====
+
 [[publishing_maven:signing]]
 == Signing artifacts
 

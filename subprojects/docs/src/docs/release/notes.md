@@ -46,6 +46,11 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+## Maven and Ivy publication now support set artifacts as `ignoreIfAbsent`
+
+When using the `maven-publish` and `ivy-publish` plugin, you can now configure artifacts as `ignoreIfAbsent` so they will not break 
+publishing even if the files don't exist. You can get an example in [this section of the user guide](userguide/publishing_overview.html#adding_optional_artifacts_to_a_publication).
+
 ## Improvements for plugin authors
 
 ### Task dependencies are honored for `@Input` properties of type `Property`

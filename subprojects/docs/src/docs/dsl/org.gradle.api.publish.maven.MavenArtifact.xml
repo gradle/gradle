@@ -13,6 +13,9 @@
             <tr>
                 <td>classifier</td>
             </tr>
+            <tr>
+                <td>ignoreIfAbsent</td>
+            </tr>
         </table>
     </section>
     <section>
