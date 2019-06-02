@@ -319,7 +319,7 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     PublicApi.excludes.each {
         exclude it
     }
-    options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)
+    options.links(javaApiUrl, mavenApiUrl)
     title = "Gradle API $version"
     ext.entryPoint = "$destinationDir/index.html"
 
