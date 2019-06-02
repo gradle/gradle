@@ -65,7 +65,7 @@ As part of the dependency resolution process, Gradle downloads the metadata file
 
 The artifact query API provides access to the raw files of a module. Currently, it allows getting a handle to the metadata file and some selected, additional artifacts (e.g. a JVM-based module's source and Javadoc files). The main API entry point is link:{groovyDslPath}/org.gradle.api.artifacts.query.ArtifactResolutionQuery.html[ArtifactResolutionQuery].
 
-Let's say you wanted to post-process the metadata file of a Maven module. The group, name and version of the module component serve as input to the artifact resolution query. After executing the query, you get a handle to all components that match the criteria and their underlying files. Additionally, it's very easy to post-process the metadata file. The example code uses Groovy's link:http://docs.groovy-lang.org/latest/html/api/groovy/util/XmlSlurper.html[XmlSlurper] to ask for POM element values.
+Let's say you wanted to post-process the metadata file of a Maven module. The group, name and version of the module component serve as input to the artifact resolution query. After executing the query, you get a handle to all components that match the criteria and their underlying files. Additionally, it's very easy to post-process the metadata file. The example code uses Groovy's link:https://docs.groovy-lang.org/latest/html/api/groovy/util/XmlSlurper.html[XmlSlurper] to ask for POM element values.
 
 .Accessing a Maven module's metadata artifact
 

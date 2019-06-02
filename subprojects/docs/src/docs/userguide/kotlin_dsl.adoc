@@ -974,7 +974,7 @@ The following example demonstrates several features of the method on the object 
 ====
 include::sample[dir="kotlinDsl/interoperability/groovy-builder",files="build.gradle.kts[tags=withGroovyBuilder]"]
 ====
-<1> The receiver is a link:http://docs.groovy-lang.org/latest/html/api/groovy/lang/GroovyObject.html[GroovyObject] and provides Kotlin helpers
+<1> The receiver is a link:https://docs.groovy-lang.org/latest/html/api/groovy/lang/GroovyObject.html[GroovyObject] and provides Kotlin helpers
 <2> The `GroovyObject` API is available
 <3> Invoke the `methodName` method, passing some parameters
 <4> Configure the `blockName` property, maps to a `Closure` taking method invocation
