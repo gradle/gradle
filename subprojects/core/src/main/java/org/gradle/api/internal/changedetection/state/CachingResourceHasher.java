@@ -23,8 +23,6 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.ZipEntry;
 
 /**
  * Caches the result of hashing regular files with a {@link ResourceHasher}.
@@ -51,8 +49,8 @@ public class CachingResourceHasher implements ResourceHasher {
     }
 
     @Override
-    public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
-        return delegate.hash(zipEntry, zipInput);
+    public HashCode hash(ZipEntry zipEntry) throws IOException {
+        return delegate.hash(zipEntry);
     }
 
     @Override
