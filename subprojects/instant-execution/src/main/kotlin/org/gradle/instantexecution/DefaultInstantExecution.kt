@@ -17,7 +17,6 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.Task
-import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
@@ -156,7 +155,7 @@ class DefaultInstantExecution(
         codecs(),
         decoder,
         logger,
-        BeanPropertyReader.factoryFor(filePropertyFactory)
+        BeanPropertyReader.factoryFor(service())
     )
 
     private
@@ -165,8 +164,7 @@ class DefaultInstantExecution(
         fileCollectionFactory = service(),
         fileResolver = service(),
         instantiator = service(),
-        listenerManager = service(),
-        filePropertyFactory = service()
+        listenerManager = service()
     )
 
     private
@@ -191,10 +189,6 @@ class DefaultInstantExecution(
         }.toSortedSet()
 
     private
-    val filePropertyFactory: FilePropertyFactory
-        get() = service()
-
-    private
     val buildOperationExecutor: BuildOperationExecutor
         get() = service()
 
@@ -207,11 +201,16 @@ class DefaultInstantExecution(
         host.classLoaderFor(classPath)
 
     private
-    fun classPathFor(tasks: List<Task>) = linkedSetOf<File>().also { classPathFiles ->
-        for (task in tasks) {
-            ClasspathUtil.collectClasspathOf(task.javaClass.classLoader, classPathFiles)
+    fun classPathFor(tasks: List<Task>) = DefaultClassPath.of(
+        linkedSetOf<File>().also { classPathFiles ->
+            for (task in tasks) {
+                ClasspathUtil.collectClasspathOf(
+                    task.javaClass.classLoader,
+                    classPathFiles
+                )
+            }
         }
-    }.let(DefaultClassPath::of)
+    )
 
     private
     fun stateFileOutputStream(): FileOutputStream = instantExecutionStateFile.run {
