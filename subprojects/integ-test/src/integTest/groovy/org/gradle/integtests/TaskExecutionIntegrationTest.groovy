@@ -20,6 +20,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Timeout
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
@@ -819,5 +820,62 @@ import javax.inject.Inject
         run(":application:printer", "--max-workers=70", "--parallel")
         then:
         skipped(":application:finalTask")
+    }
+
+    @Timeout(10)
+    def "software model duplicate tasks"() {
+        buildFile << """
+            class IdentityPrintingTask extends DefaultTask {
+                IdentityPrintingTask() {
+                    println("\${name} - identity " + System.identityHashCode(this))
+                }
+
+                @TaskAction
+                void printIdentityAndDependencies() {
+                    println("Running \${name} - identity " + System.identityHashCode(this))
+                    println("\${name} dependencies:")
+                    dependsOn.each {
+                        println("  \${it}: " + System.identityHashCode(it))
+                    }
+                }
+            }
+            
+            tasks.create("finalTask") {
+                dependsOn("taskFromModelMap")
+                dependsOn("taskFromTaskContainer")
+            }
+            tasks.create("startTask")
+            
+            class DuplicateRule extends RuleSource {
+                @Mutate
+                void createInTaskContainer(TaskContainer tasks) {
+                    println("creating duplicateTask in TaskContainer...")
+                    def b = tasks.create("duplicateTask", IdentityPrintingTask) {
+                        println("From container: \${System.identityHashCode(it)}")
+                        dependsOn("startTask")
+                    }
+                    tasks.create("taskFromTaskContainer", IdentityPrintingTask) {
+                        dependsOn(b)
+                    }
+                    println("creating duplicateTask in TaskContainer...done")
+                }
+                @Mutate
+                void createInModelMap(ModelMap<Task> tasks) {
+                    println("creating duplicateTask in ModelMap...")
+                    tasks.create("duplicateTask", IdentityPrintingTask) {
+                        dependsOn("startTask")
+                    }
+                    tasks.create("taskFromModelMap", IdentityPrintingTask) {
+                        def b = tasks.get("duplicateTask")
+                        dependsOn(b)
+                    }
+                    println("creating someTask in ModelMap...done")
+                }
+            }
+            
+            apply plugin: DuplicateRule
+        """
+        expect:
+        succeeds("finalTask")
     }
 }
