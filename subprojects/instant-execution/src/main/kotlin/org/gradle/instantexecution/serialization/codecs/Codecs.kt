@@ -121,18 +121,16 @@ class Codecs(
         writeByte(NULL_VALUE)
     }
 
+    private
+    val encodings = HashMap<Class<*>, Encoding?>()
+
     override fun WriteContext.encodingFor(candidate: Any?): Encoding? = when (candidate) {
         null -> nullEncoding
         is Project -> unsupportedState(Project::class)
         is Gradle -> unsupportedState(Gradle::class)
         is Settings -> unsupportedState(Settings::class)
         else -> candidate.javaClass.let { type ->
-            bindings.find { it.type.isAssignableFrom(type) }?.run {
-                encoding { value ->
-                    writeByte(tag)
-                    codec.run { encode(value!!) }
-                }
-            }
+            encodings.computeIfAbsent(type, ::computeEncoding)
         }
     }
 
@@ -140,6 +138,15 @@ class Codecs(
         NULL_VALUE -> null
         else -> bindings[tag.toInt()].codec.run { decode() }
     }
+
+    private
+    fun computeEncoding(type: Class<*>): Encoding? =
+        bindings.find { it.type.isAssignableFrom(type) }?.run {
+            encoding { value ->
+                writeByte(tag)
+                codec.run { encode(value!!) }
+            }
+        }
 
     private
     fun IsolateContext.unsupportedState(type: KClass<*>): Encoding? {

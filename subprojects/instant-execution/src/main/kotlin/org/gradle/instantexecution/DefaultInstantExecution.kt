@@ -98,7 +98,7 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withStoreOperation {
             KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                DefaultWriteContext(codecs, encoder, logger).run {
+                writeContextFor(encoder).run {
 
                     val build = host.currentBuild
                     writeString(build.rootProject.name)
@@ -122,7 +122,7 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
-                DefaultReadContext(codecs, decoder, logger, BeanPropertyReader.factoryFor(filePropertyFactory)).run {
+                readContextFor(decoder).run {
 
                     val rootProjectName = readString()
                     val build = host.createBuild(rootProjectName)
@@ -145,17 +145,29 @@ class DefaultInstantExecution(
     }
 
     private
-    val codecs by lazy {
-        Codecs(
-            directoryFileTreeFactory = service(),
-            fileCollectionFactory = service(),
-            fileResolver = service(),
-            instantiator = service(),
-            listenerManager = service(),
-            filePropertyFactory = service()
-        )
-    }
+    fun writeContextFor(encoder: KryoBackedEncoder) = DefaultWriteContext(
+        codecs(),
+        encoder,
+        logger
+    )
 
+    private
+    fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
+        codecs(),
+        decoder,
+        logger,
+        BeanPropertyReader.factoryFor(filePropertyFactory)
+    )
+
+    private
+    fun codecs() = Codecs(
+        directoryFileTreeFactory = service(),
+        fileCollectionFactory = service(),
+        fileResolver = service(),
+        instantiator = service(),
+        listenerManager = service(),
+        filePropertyFactory = service()
+    )
 
     private
     fun Encoder.writeRelevantProjectsFor(tasks: List<Task>) {
