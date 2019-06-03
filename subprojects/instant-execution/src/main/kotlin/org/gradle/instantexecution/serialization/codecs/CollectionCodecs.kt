@@ -23,6 +23,7 @@ import org.gradle.instantexecution.serialization.readMap
 import org.gradle.instantexecution.serialization.readSet
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeMap
+import java.util.TreeMap
 
 
 internal
@@ -33,10 +34,22 @@ val listCodec: Codec<List<*>> = codec(
 
 
 internal
-val setCodec: Codec<Set<*>> = codec(
+val hashSetCodec: Codec<HashSet<*>> = codec(
     { writeCollection(it) },
     { readSet() }
 )
+
+
+internal
+val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { HashMap<Any?, Any?>(it) }
+
+
+internal
+val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
+
+
+internal
+val treeMapCodec: Codec<TreeMap<Any?, Any?>> = mapCodec { TreeMap<Any?, Any?>() }
 
 
 internal

@@ -80,7 +80,7 @@ fun WriteContext.writeClass(value: Class<*>) {
 
 internal
 fun ReadContext.readClass(): Class<*> =
-    classLoader.loadClass(readString())
+    Class.forName(readString(), false, classLoader)
 
 
 internal

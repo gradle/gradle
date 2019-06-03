@@ -219,7 +219,6 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         file("build/resources/main/answer.txt").text == "42"
     }
 
-    @Ignore("Some test task state is not restored yet")
     def "check on Java build with JUnit tests"() {
         given:
         settingsFile << """

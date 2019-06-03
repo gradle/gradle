@@ -37,6 +37,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logUnsupported
 import org.gradle.instantexecution.serialization.ownerProjectService
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
@@ -49,7 +50,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
-import java.util.TreeMap
 import kotlin.reflect.KClass
 
 
@@ -81,12 +81,15 @@ class Codecs(
         bind(ClassCodec)
 
         bind(listCodec)
-        bind(setCodec)
+
+        // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
+        bind(hashSetCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
-        bind(LinkedHashMap::class, mapCodec { LinkedHashMap<Any?, Any?>(it) })
-        bind(HashMap::class, mapCodec { HashMap<Any?, Any?>(it) })
-        bind(TreeMap::class, mapCodec { TreeMap<Any?, Any?>() })
+        bind(linkedHashMapCodec)
+        bind(hashMapCodec)
+        bind(treeMapCodec)
+        bind(EnumMapCodec())
 
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
@@ -105,6 +108,7 @@ class Codecs(
         bind(ownerProjectService<Instantiator>())
         bind(ownerProjectService<FileCollectionFactory>())
         bind(ownerProjectService<FileOperations>())
+        bind(ownerProjectService<BuildOperationExecutor>())
 
         bind(BeanCodec(filePropertyFactory))
     }
