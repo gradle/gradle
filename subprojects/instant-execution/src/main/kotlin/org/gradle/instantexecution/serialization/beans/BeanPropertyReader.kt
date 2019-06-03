@@ -62,7 +62,7 @@ class BeanPropertyReader(
                 read().also {
                     logProperty("deserialize", kind, beanType, name, it)
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 throw GradleException("Could not load the value of $kind '${beanType.name}.$name'.", e)
             }
 

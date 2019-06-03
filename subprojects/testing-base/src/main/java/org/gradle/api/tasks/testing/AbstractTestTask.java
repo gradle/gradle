@@ -216,7 +216,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @return the test result directory, containing the test results in binary format.
      */
     @ReplacedBy("binaryResultsDirectory")
-    @Internal
     @Incubating
     public File getBinResultsDir() {
         return binaryResultsDirectory.getAsFile().getOrNull();
