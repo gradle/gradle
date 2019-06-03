@@ -16,6 +16,7 @@
 
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
@@ -81,6 +82,18 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 2.7
      */
     TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods);
+
+    /**
+     * Runs the tests in debug mode.
+     *
+     * @param port the target port where to wait for the debugger
+     * @param suspend whether to suspend the JVM running the tests until the debugger is attached
+     * @return this
+     *
+     * @since 5.6
+     */
+    @Incubating
+    TestLauncher withDebugOptions(int port, boolean suspend);
 
     /**
      * Executes the tests, blocking until complete.

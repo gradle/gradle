@@ -455,6 +455,17 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
+     * TODO document.
+     * TODO should we move the declaration to the interface.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    public void setDebugOptions(int port, boolean suspend) {
+        forkOptions.setDebugOptions(port, suspend);
+    }
+
+    /**
      * Enables fail fast behavior causing the task to fail on the first failed test.
      */
     @Option(option = "fail-fast", description = "Stops test execution after the first failed test.")

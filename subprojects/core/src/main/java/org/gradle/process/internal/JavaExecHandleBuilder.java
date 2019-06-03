@@ -188,6 +188,11 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
+    public void setDebugOptions(int port, boolean suspend) {
+        javaOptions.setDebugOptions(port, suspend);
+    }
+
+    @Override
     public String getMain() {
         return mainClass;
     }

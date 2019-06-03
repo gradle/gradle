@@ -226,6 +226,14 @@ public interface JavaForkOptions extends ProcessForkOptions {
     void setDebug(boolean enabled);
 
     /**
+     * TODO document.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    void setDebugOptions(int port, boolean suspend);
+
+    /**
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define
      * system properties, the minimum/maximum heap size, and the bootstrap classpath.
      *

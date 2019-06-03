@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
@@ -35,13 +36,15 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final Set<InternalTestDescriptor> testDescriptors;
     private final Set<String> classNames;
     private final Set<InternalJvmTestRequest> internalJvmTestRequests;
+    private final InternalDebugOptions debugOptions;
 
-    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests) {
+    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;
         this.classNames = providerClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
+        this.debugOptions = debugOptions;
     }
 
     // Unpacks the request to serialize across to the daemon and creates instance of
@@ -53,7 +56,8 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         return new TestExecutionRequestAction(clientSubscriptions, startParameter,
                                                 ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),
                                                 ImmutableSet.copyOf(testClassNames),
-                                                providerInternalJvmTestRequests);
+                                                providerInternalJvmTestRequests,
+                                                testExecutionRequest.getDebugOptions());
     }
 
     private static List<InternalJvmTestRequest> toProviderInternalJvmTestRequest(Collection<InternalJvmTestRequest> internalJvmTestRequests, Collection<String> testClassNames) {
@@ -90,5 +94,9 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
 
     public Collection<InternalTestDescriptor> getTestExecutionDescriptors() {
         return testDescriptors;
+    }
+
+    public InternalDebugOptions getDebugOptions() {
+        return debugOptions;
     }
 }
