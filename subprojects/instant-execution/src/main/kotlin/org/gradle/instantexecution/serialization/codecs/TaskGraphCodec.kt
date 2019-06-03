@@ -21,7 +21,6 @@ import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
@@ -47,9 +46,7 @@ import org.gradle.instantexecution.serialization.writeStrings
 
 
 internal
-class TaskGraphCodec(
-    private val filePropertyFactory: FilePropertyFactory
-) {
+class TaskGraphCodec {
 
     internal
     fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
@@ -111,7 +108,7 @@ class TaskGraphCodec(
         val task = createTask(projectPath, taskName, taskType)
 
         withIsolate(task) {
-            BeanPropertyReader(taskType, filePropertyFactory).run {
+            beanPropertyReaderFor(taskType).run {
                 readFieldsOf(task)
                 readRegisteredPropertiesOf(task, this)
             }

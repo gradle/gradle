@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
+import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
 import org.gradle.instantexecution.serialization.readClassPath
@@ -107,7 +108,7 @@ class DefaultInstantExecution(
                     val tasksClassPath = classPathFor(scheduledTasks)
                     writeClassPath(tasksClassPath)
 
-                    TaskGraphCodec(filePropertyFactory).run {
+                    TaskGraphCodec().run {
                         writeTaskGraphOf(build, scheduledTasks)
                     }
                 }
@@ -121,7 +122,7 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
-                DefaultReadContext(codecs, decoder, logger).run {
+                DefaultReadContext(codecs, decoder, logger, BeanPropertyReader.factoryFor(filePropertyFactory)).run {
 
                     val rootProjectName = readString()
                     val build = host.createBuild(rootProjectName)
@@ -134,7 +135,7 @@ class DefaultInstantExecution(
                     val taskClassLoader = classLoaderFor(tasksClassPath)
                     initialize(build::getProject, taskClassLoader)
 
-                    val scheduledTasks = TaskGraphCodec(filePropertyFactory).run {
+                    val scheduledTasks = TaskGraphCodec().run {
                         readTaskGraph()
                     }
                     build.scheduleTasks(scheduledTasks)

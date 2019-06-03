@@ -19,6 +19,7 @@ package org.gradle.instantexecution.serialization
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
+import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -54,6 +55,8 @@ interface ReadContext : IsolateContext, Decoder {
     override val isolate: ReadIsolate
 
     val classLoader: ClassLoader
+
+    fun beanPropertyReaderFor(beanType: Class<*>): BeanPropertyReader
 
     fun getProject(path: String): ProjectInternal
 

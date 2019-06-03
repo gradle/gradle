@@ -113,7 +113,7 @@ class Codecs(
         bind(ownerProjectService<FileOperations>())
         bind(ownerProjectService<BuildOperationExecutor>())
 
-        bind(BeanCodec(filePropertyFactory))
+        bind(BeanCodec())
     }
 
     private
