@@ -48,7 +48,6 @@ import org.gradle.instantexecution.serialization.writeStrings
 internal
 class TaskGraphCodec {
 
-    internal
     fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
         writeCollection(tasks) { task ->
             try {
@@ -59,7 +58,6 @@ class TaskGraphCodec {
         }
     }
 
-    internal
     fun MutableReadContext.readTaskGraph(): List<Task> {
         val tasksWithDependencies = readTasksWithDependencies()
         wireTaskDependencies(tasksWithDependencies)
