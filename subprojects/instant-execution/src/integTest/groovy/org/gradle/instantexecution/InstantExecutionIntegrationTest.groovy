@@ -179,7 +179,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         noExceptionThrown()
     }
 
-    def "instant execution for multi-level subproject"() {
+    def "instant execution for multi-level projects"() {
         given:
         settingsFile << """
             include 'a:b', 'a:c'
@@ -253,6 +253,10 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             class SomeBean {
                 ${type} value 
             }
+            
+            enum SomeEnum {
+                One, Two
+            }
 
             class SomeTask extends DefaultTask {
                 private final SomeBean bean = new SomeBean()
@@ -282,27 +286,31 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = ${output}")
 
         where:
-        type                   | reference                | output
-        String.name            | "'value'"                | "value"
-        String.name            | "null"                   | "null"
-        Boolean.name           | "true"                   | "true"
-        boolean.name           | "true"                   | "true"
-        Byte.name              | "12"                     | "12"
-        byte.name              | "12"                     | "12"
-        Short.name             | "12"                     | "12"
-        short.name             | "12"                     | "12"
-        Integer.name           | "12"                     | "12"
-        int.name               | "12"                     | "12"
-        Long.name              | "12"                     | "12"
-        long.name              | "12"                     | "12"
-        Float.name             | "12.1"                   | "12.1"
-        float.name             | "12.1"                   | "12.1"
-        Double.name            | "12.1"                   | "12.1"
-        double.name            | "12.1"                   | "12.1"
-        Class.name             | "SomeBean"               | "class SomeBean"
-        "List<String>"         | "['a', 'b', 'c']"        | "[a, b, c]"
-        "Set<String>"          | "['a', 'b', 'c'] as Set" | "[a, b, c]"
-        "Map<String, Integer>" | "[a: 1, b: 2]"           | "[a:1, b:2]"
+        type                             | reference                         | output
+        String.name                      | "'value'"                         | "value"
+        String.name                      | "null"                            | "null"
+        Boolean.name                     | "true"                            | "true"
+        boolean.name                     | "true"                            | "true"
+        Byte.name                        | "12"                              | "12"
+        byte.name                        | "12"                              | "12"
+        Short.name                       | "12"                              | "12"
+        short.name                       | "12"                              | "12"
+        Integer.name                     | "12"                              | "12"
+        int.name                         | "12"                              | "12"
+        Long.name                        | "12"                              | "12"
+        long.name                        | "12"                              | "12"
+        Float.name                       | "12.1"                            | "12.1"
+        float.name                       | "12.1"                            | "12.1"
+        Double.name                      | "12.1"                            | "12.1"
+        double.name                      | "12.1"                            | "12.1"
+        Class.name                       | "SomeBean"                        | "class SomeBean"
+        "SomeEnum"                       | "SomeEnum.Two"                    | "Two"
+        "List<String>"                   | "['a', 'b', 'c']"                 | "[a, b, c]"
+        "Set<String>"                    | "['a', 'b', 'c'] as Set"          | "[a, b, c]"
+        "Map<String, Integer>"           | "[a: 1, b: 2]"                    | "[a:1, b:2]"
+        "HashMap<String, Integer>"       | "new HashMap([a: 1, b: 2])"       | "[a:1, b:2]"
+        "LinkedHashMap<String, Integer>" | "new LinkedHashMap([a: 1, b: 2])" | "[a:1, b:2]"
+        "TreeMap<String, Integer>"       | "new TreeMap([a: 1, b: 2])"       | "[a:1, b:2]"
     }
 
     @Unroll

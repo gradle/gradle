@@ -64,7 +64,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factories
-import org.gradle.internal.event.ListenerBroadcast
+import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
@@ -103,7 +103,7 @@ class DefaultConfigurationSpec extends Specification {
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
 
     def setup() {
-        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
+        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
         _ * resolver.getRepositories() >> []
         _ * projectStateRegistry.stateFor(_) >> projectState
         _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
@@ -1080,7 +1080,7 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
-        def listenerBroadcaster = Mock(ListenerBroadcast)
+        def listenerBroadcaster = Mock(AnonymousListenerBroadcast)
 
         when:
         def config = conf("conf")

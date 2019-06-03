@@ -40,7 +40,7 @@ val setCodec: Codec<Set<*>> = codec(
 
 
 internal
-val mapCodec: Codec<Map<*, *>> = codec(
+fun <T : MutableMap<Any?, Any?>> mapCodec(factory: (Int) -> T): Codec<T> = codec(
     { writeMap(it) },
-    { readMap() }
+    { readMap(factory) }
 )
