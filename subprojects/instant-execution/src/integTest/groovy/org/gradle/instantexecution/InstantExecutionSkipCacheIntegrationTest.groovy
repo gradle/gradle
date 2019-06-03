@@ -62,6 +62,7 @@ class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionI
 
         then:
         outputContains("bar")
+        outputContains("Calculating task graph as instant execution cache cannot be reused due to --refresh-dependencies")
         instantExecution.assertStateStored()
 
         when:

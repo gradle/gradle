@@ -149,8 +149,7 @@ class DefaultInstantExecution(
             fileCollectionFactory = service(),
             fileResolver = service(),
             instantiator = service(),
-            objectFactory = service(),
-            patternSpecFactory = service(),
+            listenerManager = service(),
             filePropertyFactory = service()
         )
     }

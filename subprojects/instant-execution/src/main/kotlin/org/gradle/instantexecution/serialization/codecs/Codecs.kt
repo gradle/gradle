@@ -36,7 +36,7 @@ import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logUnsupported
 import org.gradle.instantexecution.serialization.ownerProjectService
-import org.gradle.instantexecution.serialization.singleton
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
@@ -49,6 +49,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
+import java.util.TreeMap
 import kotlin.reflect.KClass
 
 
@@ -57,8 +58,7 @@ class Codecs(
     private val fileCollectionFactory: FileCollectionFactory,
     private val fileResolver: FileResolver,
     private val instantiator: Instantiator,
-    private val objectFactory: ObjectFactory,
-    private val patternSpecFactory: PatternSpecFactory,
+    private val listenerManager: ListenerManager,
     private val filePropertyFactory: FilePropertyFactory
 ) : EncodingProvider, DecodingProvider {
 
@@ -84,24 +84,26 @@ class Codecs(
         bind(setCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
-        bind(HashMap::class, mapCodec)
+        bind(LinkedHashMap::class, mapCodec { LinkedHashMap<Any?, Any?>(it) })
+        bind(HashMap::class, mapCodec { HashMap<Any?, Any?>(it) })
+        bind(TreeMap::class, mapCodec { TreeMap<Any?, Any?>() })
 
+        bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
         bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory))
         bind(ArtifactCollectionCodec)
-
-        bind(singleton(objectFactory))
-        bind(singleton(patternSpecFactory))
-        bind(singleton(fileResolver))
-        bind(singleton(instantiator))
-        bind(singleton(fileCollectionFactory))
 
         bind(DefaultCopySpecCodec(fileResolver, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))
 
         bind(TaskReferenceCodec)
 
+        bind(ownerProjectService<ObjectFactory>())
+        bind(ownerProjectService<PatternSpecFactory>())
+        bind(ownerProjectService<FileResolver>())
+        bind(ownerProjectService<Instantiator>())
+        bind(ownerProjectService<FileCollectionFactory>())
         bind(ownerProjectService<FileOperations>())
 
         bind(BeanCodec(filePropertyFactory))

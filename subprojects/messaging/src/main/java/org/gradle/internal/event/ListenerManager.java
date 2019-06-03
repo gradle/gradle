@@ -82,7 +82,7 @@ public interface ListenerManager {
      * @return A broadcaster that forwards method calls to all listeners assigned to it, or of the same type that have
      *         been (or will be) registered with this manager.
      */
-    <T> ListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass);
+    <T> AnonymousListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass);
 
     /**
      * Uses the given object as a logger. Each listener class has exactly one logger associated with it. Any existing

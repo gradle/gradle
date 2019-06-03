@@ -113,9 +113,9 @@ fun WriteContext.writeMap(value: Map<*, *>) {
 
 
 internal
-fun ReadContext.readMap(): Map<Any?, Any?> {
+fun <T : MutableMap<Any?, Any?>> ReadContext.readMap(factory: (Int) -> T): T {
     val size = readSmallInt()
-    val items = LinkedHashMap<Any?, Any?>()
+    val items = factory(size)
     for (i in 0 until size) {
         val key = read()
         val value = read()

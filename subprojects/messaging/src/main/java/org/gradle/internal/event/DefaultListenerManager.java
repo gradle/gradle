@@ -97,8 +97,8 @@ public class DefaultListenerManager implements ListenerManager {
     }
 
     @Override
-    public <T> ListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
-        ListenerBroadcast<T> broadcast = new ListenerBroadcast(listenerClass);
+    public <T> AnonymousListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
+        AnonymousListenerBroadcast<T> broadcast = new AnonymousListenerBroadcast<T>(listenerClass);
         broadcast.add(getBroadcasterInternal(listenerClass).getDispatch(true));
         return broadcast;
     }
