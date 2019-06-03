@@ -17,6 +17,10 @@ import accessors.groovy
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
 
+plugins {
+    `java-library`
+}
+
 val smokeTest: SourceSet by sourceSets.creating {
     compileClasspath += sourceSets.main.get().output
     runtimeClasspath += sourceSets.main.get().output

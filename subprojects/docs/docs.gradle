@@ -30,7 +30,7 @@ import org.gradle.gradlebuild.docs.RenderMarkdownTask
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    id 'base'
+    id 'java-library'
     id 'gradlebuild.jsoup'
     id 'javascript-base'
     id 'org.asciidoctor.convert'

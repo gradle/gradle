@@ -16,6 +16,10 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
+plugins {
+    `java-library`
+}
+
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))

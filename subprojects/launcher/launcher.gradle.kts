@@ -4,6 +4,7 @@ import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
@@ -28,6 +29,8 @@ dependencies {
     runtimeOnly(library("commons_lang"))
     runtimeOnly(library("slf4j_api"))
 
+    testImplementation(project(":launcherBootstrap"))
+    testImplementation(project(":launcherStartup"))
     testImplementation(project(":native"))
     testImplementation(project(":cli"))
     testImplementation(project(":processServices"))

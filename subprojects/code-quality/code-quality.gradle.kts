@@ -15,6 +15,10 @@
  */
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
+plugins {
+    `java-library`
+}
+
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
