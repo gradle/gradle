@@ -454,6 +454,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setDebugOptions(int port) {
+        forkOptions.setDebugOptions(port);
+    }
+
+    /**
      * Enables fail fast behavior causing the task to fail on the first failed test.
      */
     @Option(option = "fail-fast", description = "Stops test execution after the first failed test.")

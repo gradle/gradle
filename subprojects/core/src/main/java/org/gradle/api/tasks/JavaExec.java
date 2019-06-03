@@ -305,6 +305,11 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecHandleBuilder.setDebug(enabled);
     }
 
+    @Override
+    public void setDebugOptions(int port) {
+        javaExecHandleBuilder.setDebugOptions(port);
+    }
+
     /**
      * {@inheritDoc}
      */

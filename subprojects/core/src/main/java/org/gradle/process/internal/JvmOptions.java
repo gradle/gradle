@@ -36,6 +36,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JvmOptions {
     private static final String XMS_PREFIX = "-Xms";
@@ -48,6 +50,8 @@ public class JvmOptions {
     public static final String USER_VARIANT_KEY = "user.variant";
     public static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
     public static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
+
+    private static final Pattern DEBUG_JVM_ARG = Pattern.compile("-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=localhost:(\\d+)");
 
     public static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
         FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY
@@ -66,6 +70,7 @@ public class JvmOptions {
     private String maxHeapSize;
     private boolean assertionsEnabled;
     private boolean debug;
+    private int debugPort;
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<String, Object>();
 
@@ -135,8 +140,13 @@ public class JvmOptions {
         if (assertionsEnabled) {
             args.add("-ea");
         }
+
         if (debug) {
-            args.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+            if (debugPort <= 0) {
+                args.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+            } else {
+                args.add("-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=localhost:" + debugPort);
+            }
         }
         return args;
     }
@@ -195,21 +205,34 @@ public class JvmOptions {
         boolean xdebugFound = false;
         boolean xrunjdwpFound = false;
         boolean xagentlibJdwpFound = false;
+        int debugOptionsPort = -1;
         Set<Object> matches = new HashSet<Object>();
         for (Object extraJvmArg : extraJvmArgs) {
-            if (extraJvmArg.toString().equals("-Xdebug")) {
+            String extraJvmArgString = extraJvmArg.toString();
+            if (extraJvmArgString.equals("-Xdebug")) {
                 xdebugFound = true;
                 matches.add(extraJvmArg);
-            } else if (extraJvmArg.toString().equals("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")) {
+            } else if (extraJvmArgString.equals("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")) {
                 xrunjdwpFound = true;
                 matches.add(extraJvmArg);
-            } else if (extraJvmArg.toString().equals("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")) {
+            } else if (extraJvmArgString.equals("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")) {
                 xagentlibJdwpFound = true;
                 matches.add(extraJvmArg);
+            } else {
+                Matcher matcher = DEBUG_JVM_ARG.matcher(extraJvmArgString);
+                if (matcher.matches()) {
+                    debugOptionsPort = Integer.valueOf(matcher.group(1));
+                }
             }
         }
         if (xdebugFound && xrunjdwpFound || xagentlibJdwpFound) {
             debug = true;
+            extraJvmArgs.removeAll(matches);
+        }
+
+        if (debugOptionsPort >= 0) {
+            debug = true;
+            debugPort = debugOptionsPort;
             extraJvmArgs.removeAll(matches);
         }
     }
@@ -308,6 +331,14 @@ public class JvmOptions {
         debug = enabled;
     }
 
+    public int getDebugPort() {
+        return this.debugPort;
+    }
+
+    public void setDebugPort(int debugPort) {
+        this.debugPort = debugPort;
+    }
+
     public void copyTo(JavaForkOptions target) {
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(mutableSystemProperties);
@@ -316,6 +347,7 @@ public class JvmOptions {
         target.setBootstrapClasspath(getBootstrapClasspath());
         target.setEnableAssertions(assertionsEnabled);
         target.setDebug(debug);
+        target.setDebugOptions(debugPort);
         target.systemProperties(immutableSystemProperties);
     }
 
@@ -330,6 +362,7 @@ public class JvmOptions {
         }
         target.setEnableAssertions(assertionsEnabled);
         target.setDebug(debug);
+        target.setDebugPort(debugPort);
         target.systemProperties(immutableSystemProperties);
         return target;
     }

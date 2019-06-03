@@ -21,6 +21,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.OperationDescriptorWrapper;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.util.CollectionUtils;
@@ -32,11 +33,17 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
     private final Collection<InternalTestDescriptor> testDescriptors;
     private final Collection<String> testClassNames;
     private final Collection<InternalJvmTestRequest> internalJvmTestRequests;
+    private final InternalDebugOptions debugOptions;
 
-    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors, Collection<String> testClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests) {
+    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors, Collection<String> testClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions) {
         this.testDescriptors = adaptDescriptors(operationDescriptors);
         this.testClassNames = testClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
+        this.debugOptions = debugOptions;
+    }
+
+    public InternalDebugOptions getDebugOptions() {
+        return debugOptions;
     }
 
     @Override

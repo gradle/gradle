@@ -95,6 +95,24 @@ class JvmOptionsTest extends Specification {
         opts.debug == false
     }
 
+    def "debug port can be set via allJvmArgs"() {
+        setup:
+        def opts = createOpts()
+
+        when:
+        opts.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=localhost:4456']
+
+        then:
+        opts.debug
+        opts.debugPort == 4456
+
+        when:
+        opts.allJvmArgs = []
+
+        then:
+        opts.debug == false
+    }
+
     def "managed jvm args includes heap settings"() {
         expect:
         parse("-Xms1G -XX:-PrintClassHistogram -Xmx2G -Dfoo.encoding=blah").managedJvmArgs == ["-Xms1G", "-Xmx2G", "-Dfile.encoding=${defaultCharset}", *localePropertyStrings()]
