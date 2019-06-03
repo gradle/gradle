@@ -172,12 +172,12 @@ class PluginBuilder {
         this
     }
 
-    PluginBuilder addPlugin(String impl, String id = "test-plugin", String className = "TestPlugin") {
+    PluginBuilder addPlugin(String impl, String id = "test-plugin", String className = "TestPlugin", Class pluginTypeClass = Project) {
         addPluginSource(id, className, """
             ${packageName ? "package $packageName" : ""}
 
-            class $className implements $Plugin.name<$Project.name> {
-                void apply($Project.name project) {
+            class $className implements $Plugin.name<$pluginTypeClass.name> {
+                void apply($pluginTypeClass.name ${pluginTypeClass.simpleName.toLowerCase()}) {
                     $impl
                 }
             }

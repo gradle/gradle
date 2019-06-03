@@ -16,6 +16,7 @@
 
 package org.gradle.plugin
 
+import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -395,6 +396,29 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "hello", "-I", file("init.gradle").absolutePath
+    }
+
+    def "plugins can be applied with plugin id in settings script"() {
+        given:
+        def jar = file("plugin.jar")
+        pluginBuilder.addPlugin("settings.rootProject.name = 'hello'", 'test-plugin', 'TestPlugin', Settings)
+        pluginBuilder.publishTo(executer, jar)
+
+        buildScript 'task hello { doLast { println "rootProject name is ${rootProject.name}" } }'
+
+        file("settings.gradle") << """
+            buildscript {
+                dependencies { classpath files("plugin.jar") }
+            }
+
+            apply plugin: "test-plugin"
+        """
+
+        when:
+        succeeds "hello"
+
+        then:
+        outputContains("rootProject name is hello")
     }
 
 }
