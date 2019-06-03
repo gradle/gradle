@@ -83,13 +83,16 @@ class Codecs(
         bind(listCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
+        bind(linkedHashSetCodec)
         bind(hashSetCodec)
+        bind(treeSetCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
         bind(linkedHashMapCodec)
         bind(hashMapCodec)
         bind(treeMapCodec)
-        bind(EnumMapCodec())
+
+        bind(arrayCodec)
 
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)

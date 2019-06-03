@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.beans
 
 import groovy.lang.GroovyObject
+import groovy.lang.MetaClass
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
@@ -32,7 +33,8 @@ internal
 fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
     relevantTypeHierarchyOf(taskType).flatMap { type ->
         type.declaredFields.asSequence().filterNot { field ->
-            Modifier.isStatic(field.modifiers) || Modifier.isTransient(field.modifiers)
+            // Ignore the `metaClass` field that Groovy generates
+            Modifier.isStatic(field.modifiers) || (field.isSynthetic && field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
         }
     }.onEach {
         it.isAccessible = true
