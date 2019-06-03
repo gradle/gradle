@@ -70,8 +70,13 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         if (!isClassFile(zipEntry.getName())) {
             return null;
         }
-        byte[] content = new byte[zipEntry.size()];
-        ByteStreams.readFully(zipEntry.getInputStream(), content);
+        byte[] content;
+        if (zipEntry.size() >= 0) {
+            content = new byte[zipEntry.size()];
+            ByteStreams.readFully(zipEntry.getInputStream(), content);
+        } else {
+            content = ByteStreams.toByteArray(zipEntry.getInputStream());
+        }
         return hashClassBytes(content);
     }
 

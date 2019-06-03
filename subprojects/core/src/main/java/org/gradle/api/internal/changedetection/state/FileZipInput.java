@@ -17,8 +17,11 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.AbstractIterator;
+import org.gradle.api.JavaVersion;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -29,10 +32,29 @@ import java.util.zip.ZipFile;
 
 class FileZipInput implements ZipInput {
 
+    public static ZipInput create(File file) {
+        if (isZipFileSafeToUse()) {
+            return new FileZipInput(file);
+        } else {
+            try {
+                return new StreamZipInput(new FileInputStream(file));
+            } catch (FileNotFoundException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+    }
+
+    /**
+     * {@link ZipFile} is more efficient, but causes memory leaks on older Java versions, so we only use it on more recent ones.
+     */
+    private static boolean isZipFileSafeToUse() {
+        return JavaVersion.current().isJava11Compatible();
+    }
+
     private final ZipFile file;
     private final Enumeration<? extends java.util.zip.ZipEntry> entries;
 
-    public FileZipInput(File file) {
+    private FileZipInput(File file) {
         try {
             this.file = new ZipFile(file);
         } catch (IOException e) {
