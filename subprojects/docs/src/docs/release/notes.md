@@ -72,7 +72,7 @@ The following are the features that have been promoted in this Gradle release.
 
 Gradle now supports experimental compilation avoidance for Groovy. 
 This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
-See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compile_avoidance) for more details.
+See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
 
 ## Fixed issues
 
