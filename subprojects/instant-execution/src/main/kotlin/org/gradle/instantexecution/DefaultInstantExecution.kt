@@ -30,6 +30,7 @@ import org.gradle.instantexecution.serialization.writeClassPath
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
@@ -193,12 +194,11 @@ class DefaultInstantExecution(
         host.classLoaderFor(classPath)
 
     private
-    fun classPathFor(tasks: List<Task>) =
-        tasks.map(::taskClassPath).fold(ClassPath.EMPTY, ClassPath::plus)
-
-    private
-    fun taskClassPath(task: Task) =
-        task.javaClass.classLoader.let(ClasspathUtil::getClasspath)
+    fun classPathFor(tasks: List<Task>) = linkedSetOf<File>().also { classPathFiles ->
+        for (task in tasks) {
+            ClasspathUtil.collectClasspathOf(task.javaClass.classLoader, classPathFiles)
+        }
+    }.let(DefaultClassPath::of)
 
     private
     fun stateFileOutputStream(): FileOutputStream = instantExecutionStateFile.run {
