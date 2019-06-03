@@ -88,10 +88,6 @@ fun ReadContext.readList() = readCollectionInto { size -> ArrayList<Any?>(size) 
 
 
 internal
-fun ReadContext.readSet() = readCollectionInto { size -> LinkedHashSet<Any?>(size) }
-
-
-internal
 fun WriteContext.writeCollection(value: Collection<*>) {
     writeCollection(value) { write(it) }
 }
@@ -113,7 +109,7 @@ fun WriteContext.writeMap(value: Map<*, *>) {
 
 
 internal
-fun <T : MutableMap<Any?, Any?>> ReadContext.readMap(factory: (Int) -> T): T {
+fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) -> T): T {
     val size = readSmallInt()
     val items = factory(size)
     for (i in 0 until size) {
