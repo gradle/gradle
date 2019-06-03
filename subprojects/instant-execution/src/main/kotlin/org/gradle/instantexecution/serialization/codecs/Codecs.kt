@@ -20,7 +20,6 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
@@ -58,8 +57,7 @@ class Codecs(
     private val fileCollectionFactory: FileCollectionFactory,
     private val fileResolver: FileResolver,
     private val instantiator: Instantiator,
-    private val listenerManager: ListenerManager,
-    private val filePropertyFactory: FilePropertyFactory
+    private val listenerManager: ListenerManager
 ) : EncodingProvider, DecodingProvider {
 
     private
@@ -113,7 +111,7 @@ class Codecs(
         bind(ownerProjectService<FileOperations>())
         bind(ownerProjectService<BuildOperationExecutor>())
 
-        bind(BeanCodec(filePropertyFactory))
+        bind(BeanCodec())
     }
 
     private
@@ -121,25 +119,30 @@ class Codecs(
         writeByte(NULL_VALUE)
     }
 
+    private
+    val encodings = HashMap<Class<*>, Encoding?>()
+
     override fun WriteContext.encodingFor(candidate: Any?): Encoding? = when (candidate) {
         null -> nullEncoding
         is Project -> unsupportedState(Project::class)
         is Gradle -> unsupportedState(Gradle::class)
         is Settings -> unsupportedState(Settings::class)
-        else -> candidate.javaClass.let { type ->
-            bindings.find { it.type.isAssignableFrom(type) }?.run {
-                encoding { value ->
-                    writeByte(tag)
-                    codec.run { encode(value!!) }
-                }
-            }
-        }
+        else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
     }
 
     override fun ReadContext.decode(): Any? = when (val tag = readByte()) {
         NULL_VALUE -> null
         else -> bindings[tag.toInt()].codec.run { decode() }
     }
+
+    private
+    fun computeEncoding(type: Class<*>): Encoding? =
+        bindings.find { it.type.isAssignableFrom(type) }?.run {
+            encoding { value ->
+                writeByte(tag)
+                codec.run { encode(value!!) }
+            }
+        }
 
     private
     fun IsolateContext.unsupportedState(type: KClass<*>): Encoding? {

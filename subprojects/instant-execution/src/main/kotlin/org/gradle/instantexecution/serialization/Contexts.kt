@@ -19,6 +19,7 @@ package org.gradle.instantexecution.serialization
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
+import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -67,9 +68,15 @@ class DefaultReadContext(
     private
     val decoder: Decoder,
 
-    override val logger: Logger
+    override val logger: Logger,
+
+    private
+    val beanPropertyReaderFactory: (Class<*>) -> BeanPropertyReader
 
 ) : AbstractIsolateContext<ReadIsolate>(), MutableReadContext, Decoder by decoder {
+
+    private
+    val beanPropertyReaders = hashMapOf<Class<*>, BeanPropertyReader>()
 
     private
     lateinit var projectProvider: ProjectProvider
@@ -88,6 +95,9 @@ class DefaultReadContext(
 
     override val isolate: ReadIsolate
         get() = getIsolate()
+
+    override fun beanPropertyReaderFor(beanType: Class<*>): BeanPropertyReader =
+        beanPropertyReaders.computeIfAbsent(beanType, beanPropertyReaderFactory)
 
     override fun getProject(path: String): ProjectInternal =
         projectProvider(path)

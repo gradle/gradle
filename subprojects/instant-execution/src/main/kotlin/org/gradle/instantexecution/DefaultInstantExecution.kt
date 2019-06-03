@@ -17,11 +17,11 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.Task
-import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
+import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
 import org.gradle.instantexecution.serialization.readClassPath
@@ -30,6 +30,7 @@ import org.gradle.instantexecution.serialization.writeClassPath
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
@@ -96,7 +97,7 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withStoreOperation {
             KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                DefaultWriteContext(codecs, encoder, logger).run {
+                writeContextFor(encoder).run {
 
                     val build = host.currentBuild
                     writeString(build.rootProject.name)
@@ -106,7 +107,7 @@ class DefaultInstantExecution(
                     val tasksClassPath = classPathFor(scheduledTasks)
                     writeClassPath(tasksClassPath)
 
-                    TaskGraphCodec(filePropertyFactory).run {
+                    TaskGraphCodec().run {
                         writeTaskGraphOf(build, scheduledTasks)
                     }
                 }
@@ -120,7 +121,7 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
-                DefaultReadContext(codecs, decoder, logger).run {
+                readContextFor(decoder).run {
 
                     val rootProjectName = readString()
                     val build = host.createBuild(rootProjectName)
@@ -133,7 +134,7 @@ class DefaultInstantExecution(
                     val taskClassLoader = classLoaderFor(tasksClassPath)
                     initialize(build::getProject, taskClassLoader)
 
-                    val scheduledTasks = TaskGraphCodec(filePropertyFactory).run {
+                    val scheduledTasks = TaskGraphCodec().run {
                         readTaskGraph()
                     }
                     build.scheduleTasks(scheduledTasks)
@@ -143,17 +144,28 @@ class DefaultInstantExecution(
     }
 
     private
-    val codecs by lazy {
-        Codecs(
-            directoryFileTreeFactory = service(),
-            fileCollectionFactory = service(),
-            fileResolver = service(),
-            instantiator = service(),
-            listenerManager = service(),
-            filePropertyFactory = service()
-        )
-    }
+    fun writeContextFor(encoder: KryoBackedEncoder) = DefaultWriteContext(
+        codecs(),
+        encoder,
+        logger
+    )
 
+    private
+    fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
+        codecs(),
+        decoder,
+        logger,
+        BeanPropertyReader.factoryFor(service())
+    )
+
+    private
+    fun codecs() = Codecs(
+        directoryFileTreeFactory = service(),
+        fileCollectionFactory = service(),
+        fileResolver = service(),
+        instantiator = service(),
+        listenerManager = service()
+    )
 
     private
     fun Encoder.writeRelevantProjectsFor(tasks: List<Task>) {
@@ -177,10 +189,6 @@ class DefaultInstantExecution(
         }.toSortedSet()
 
     private
-    val filePropertyFactory: FilePropertyFactory
-        get() = service()
-
-    private
     val buildOperationExecutor: BuildOperationExecutor
         get() = service()
 
@@ -193,12 +201,16 @@ class DefaultInstantExecution(
         host.classLoaderFor(classPath)
 
     private
-    fun classPathFor(tasks: List<Task>) =
-        tasks.map(::taskClassPath).fold(ClassPath.EMPTY, ClassPath::plus)
-
-    private
-    fun taskClassPath(task: Task) =
-        task.javaClass.classLoader.let(ClasspathUtil::getClasspath)
+    fun classPathFor(tasks: List<Task>) = DefaultClassPath.of(
+        linkedSetOf<File>().also { classPathFiles ->
+            for (task in tasks) {
+                ClasspathUtil.collectClasspathOf(
+                    task.javaClass.classLoader,
+                    classPathFiles
+                )
+            }
+        }
+    )
 
     private
     fun stateFileOutputStream(): FileOutputStream = instantExecutionStateFile.run {
