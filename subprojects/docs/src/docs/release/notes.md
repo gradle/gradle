@@ -87,10 +87,6 @@ The [C++ guides](https://gradle.org/guides/?q=Native) have been updated to refle
 
 See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
 
-## Factory methods for creating domain object collections
-
-The [`ObjectFactory`](javadoc/org/gradle/api/model/ObjectFactory.html) has methods for creating [`NamedDomainObjectContainer`](javadoc/org/gradle/api/NamedDomainObjectContainer.html) and [`DomainObjectSet`](javadoc/org/gradle/api/DomainObjectSet.html).
-
 ## Improved Eclipse project name deduplication in Buildship
 
 When importing Gradle Eclipse projects into Buildship, the current Eclipse workpace state is taken into account. This allows Gradle to import/synchronize in Eclipse workspaces that include
@@ -103,6 +99,12 @@ Contributed by [Christian Fränkel](https://github.com/fraenkelc)
 ## Gradle Kotlin DSL compiler upgraded to Kotlin 1.3.31
 
 The Gradle Kotlin DSL embedded Kotlin compiler has been upgraded from version `1.2.21` to version `1.3.31`, please refer to the [Kotlin 1.3.30 release blog entry](https://blog.jetbrains.com/kotlin/2019/04/kotlin-1-3-30-released/) and the [Kotlin 1.3.31 GitHub release notes](https://github.com/JetBrains/kotlin/releases/tag/v1.3.31) for details.
+
+## `ObjectFactory` methods for creating domain object collections in plugins
+
+The [`ObjectFactory`](javadoc/org/gradle/api/model/ObjectFactory.html) now has methods for creating [`NamedDomainObjectContainer`](javadoc/org/gradle/api/NamedDomainObjectContainer.html) and [`DomainObjectSet`](javadoc/org/gradle/api/DomainObjectSet.html).
+
+Previously, it was only possible to create a domain object collection by using the APIs provided by a `Project`. Any place where a `ObjectFactory` is available can now create a domain object collection. 
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
