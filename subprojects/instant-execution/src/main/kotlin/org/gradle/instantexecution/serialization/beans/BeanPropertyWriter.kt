@@ -41,7 +41,7 @@ class BeanPropertyWriter(
         writingProperties {
             for (field in relevantStateOf(beanType)) {
                 val fieldName = field.name
-                val fieldValue = field.get(bean) ?: conventionalValueOf(bean, fieldName)
+                val fieldValue = unpack(field.get(bean)) ?: unpack(conventionalValueOf(bean, fieldName))
                 writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
             }
         }
@@ -61,19 +61,18 @@ class BeanPropertyWriter(
      * a suitable [Codec] for its [value].
      */
     fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
-        val finalValue = unpack(value)
-        val writeValue = writeActionFor(finalValue)
+        val writeValue = writeActionFor(value)
         if (writeValue == null) {
-            logPropertyWarning("serialize", kind, beanType, name, "there's no serializer for type '${GeneratedSubclasses.unpackType(finalValue!!).name}'")
+            logPropertyWarning("serialize", kind, beanType, name, "there's no serializer for type '${GeneratedSubclasses.unpackType(value!!).name}'")
             return false
         }
         writeString(name)
         try {
-            writeValue(finalValue)
+            writeValue(value)
         } catch (e: Throwable) {
-            throw GradleException("Could not save the value of $kind '${beanType.name}.$name' with type ${finalValue?.javaClass?.name}.", e)
+            throw GradleException("Could not save the value of $kind '${beanType.name}.$name' with type ${value?.javaClass?.name}.", e)
         }
-        logProperty("serialize", kind, beanType, name, finalValue)
+        logProperty("serialize", kind, beanType, name, value)
         return true
     }
 
