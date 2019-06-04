@@ -22,8 +22,6 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification
 
-import java.util.zip.ZipEntry
-
 class CachingResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def path = "some"
@@ -79,19 +77,19 @@ class CachingResourceHasherTest extends Specification {
         def zipEntry = Mock(ZipEntry)
 
         when:
-        def actualHash = cachingHasher.hash(zipEntry, inputStream)
+        def actualHash = cachingHasher.hash(zipEntry)
 
         then:
-        1 * delegate.hash(zipEntry, inputStream) >> expectedHash
+        1 * delegate.hash(zipEntry) >> expectedHash
         0 * _
 
         actualHash == expectedHash
 
         when:
-        actualHash = cachingHasher.hash(zipEntry, inputStream)
+        actualHash = cachingHasher.hash(zipEntry)
 
         then:
-        1 * delegate.hash(zipEntry, inputStream) >> expectedHash
+        1 * delegate.hash(zipEntry) >> expectedHash
         0 * _
 
         actualHash == expectedHash
