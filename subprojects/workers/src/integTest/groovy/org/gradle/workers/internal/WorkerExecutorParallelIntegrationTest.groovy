@@ -195,29 +195,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    def "a task that depends on a task with work does not start until the work is complete"() {
-        given:
-        buildFile << """
-            task anotherParallelWorkTask(type: MultipleWorkItemTask) {
-                doLast { 
-                    submitWorkItem("taskAction1")  
-                    submitWorkItem("taskAction2") 
-                }
-            }
-            task parallelWorkTask(type: MultipleWorkItemTask) {
-                doLast { submitWorkItem("taskAction3") }
-                
-                dependsOn anotherParallelWorkTask
-            }
-        """
-        blockingHttpServer.expectConcurrent("taskAction1", "taskAction2")
-        blockingHttpServer.expectConcurrent("taskAction3")
-
-        expect:
-        args("--max-workers=3")
-        succeeds("parallelWorkTask")
-    }
-
     @Unroll
     def "all errors are reported when submitting failing work in #isolationModeDescription"() {
         given:
@@ -535,7 +512,68 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         assertSameDaemonWasUsed("workItem0", "workItem1")
     }
 
-    def "can start another task when the current task is waiting on async work"() {
+    def "does not start dependent task until all submitted work for current task is complete"() {
+        given:
+        buildFile << """
+            task anotherParallelWorkTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("taskAction1")  
+                    submitWorkItem("taskAction2") 
+                }
+            }
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("taskAction3") }
+                
+                dependsOn anotherParallelWorkTask
+            }
+        """
+        blockingHttpServer.expectConcurrent("taskAction1", "taskAction2")
+        blockingHttpServer.expectConcurrent("taskAction3")
+
+        expect:
+        args("--max-workers=3")
+        succeeds("parallelWorkTask")
+    }
+
+    def "starts dependent task in another project as soon as submitted work for current task is complete (with --parallel)"() {
+        given:
+        settingsFile << """
+            include ':childProject'
+        """
+        buildFile << """
+            task firstTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("firstTask")
+                }
+            }
+            
+            task otherTask {
+                doLast { 
+                    ${blockingHttpServer.callFromBuild("otherTask1")} 
+                    ${blockingHttpServer.callFromBuild("otherTask2")} 
+                }
+            }
+            
+            project(':childProject') {
+                task secondTask(type: MultipleWorkItemTask) {
+                    doLast { submitWorkItem("secondTask") }
+                    
+                    dependsOn project(':').firstTask
+                }
+            }
+        """
+
+        blockingHttpServer.expectConcurrent("firstTask", "otherTask1")
+        // TODO:DAZ 'secondTask' should be able to run in parallel with 'otherTask'
+        blockingHttpServer.expectConcurrent("otherTask2")
+        blockingHttpServer.expectConcurrent("secondTask")
+
+        expect:
+        args("--max-workers=3", "--parallel")
+        succeeds(":firstTask", ":otherTask", ":childProject:secondTask")
+    }
+
+    def "can start a non-dependent task when the current task submits async work"() {
         given:
         buildFile << """
             task firstTask(type: MultipleWorkItemTask) {
@@ -558,7 +596,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "can start another task when the current task has multiple actions and is waiting on async work"() {
+    def "can start another task when the current task has multiple actions and submits async work"() {
         given:
         buildFile << """
             task firstTask(type: MultipleWorkItemTask) {
@@ -583,7 +621,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "does not start a task in another project when a task action is executing without --parallel"() {
+    def "does not start task in another project when a task action is executing without --parallel"() {
         given:
         settingsFile << """
             include ':childProject'
@@ -612,7 +650,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "can start a task in another project when a task is waiting for async work without --parallel"() {
+    def "can start task in another project when a task submits async work without --parallel"() {
         given:
         settingsFile << """
             include ':childProject'
@@ -640,7 +678,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "does not start another task when the user is waiting on async work"() {
+    def "does not start another task when a task awaits async work"() {
         given:
         buildFile << """
             task firstTask(type: MultipleWorkItemTask) {
@@ -669,7 +707,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "does not start another task in a different project when the user is waiting on async work"() {
+    def "does not start task in another project when a task awaits async work"() {
         given:
         settingsFile << """
             include ':childProject'
@@ -703,7 +741,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
-    def "can start another task in a different project when the user is waiting on async work with --parallel"() {
+    def "can start task in another project when a task awaits async work (with --parallel)"() {
         given:
         settingsFile << """
             include ':childProject'
