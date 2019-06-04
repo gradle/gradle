@@ -71,8 +71,8 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionPerformanc
         LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | storing
         SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | hot    | loading
         SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | hot    | storing
-        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | loading
-        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | storing
+//        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | loading
+//        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | storing
     }
 
     private BuildExperimentListener listenerFor(String action) {
