@@ -84,6 +84,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             "gradle-native",
             "gradle-dependency-management",
             "gradle-workers",
+            "gradle-worker-processes",
             "gradle-process-services",
             "gradle-persistent-cache",
             "gradle-model-core",
