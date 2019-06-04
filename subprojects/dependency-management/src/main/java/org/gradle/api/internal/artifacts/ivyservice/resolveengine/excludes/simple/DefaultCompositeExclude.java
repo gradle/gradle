@@ -76,7 +76,7 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
         for (ExcludeSpec component : components) {
             boolean found = false;
             if (fastCheckIterator != null && fastCheckIterator.next().equalsIgnoreArtifact(component)) {
-                break;
+                continue;
             }
             // we're unlucky, sets are either different, or in a different order
             fastCheckIterator = null;

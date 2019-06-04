@@ -16,6 +16,8 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.classloader.FilteringClassLoader;
+
 public class FlatClassLoaderRegistry implements ClassLoaderRegistry {
 
     private final ClassLoader classLoader;
@@ -42,5 +44,15 @@ public class FlatClassLoaderRegistry implements ClassLoaderRegistry {
     @Override
     public ClassLoader getGradleCoreApiClassLoader() {
         return classLoader;
+    }
+
+    @Override
+    public FilteringClassLoader.Spec getGradleApiFilterSpec() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public MixInLegacyTypesClassLoader.Spec getGradleWorkerExtensionSpec() {
+        throw new UnsupportedOperationException();
     }
 }

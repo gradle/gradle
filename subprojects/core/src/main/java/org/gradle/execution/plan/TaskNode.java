@@ -28,14 +28,13 @@ import java.util.Set;
 public abstract class TaskNode extends Node {
 
     private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
-    private final Set<Node> mustPredecessors = Sets.newHashSet();
     private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> finalizers = Sets.newTreeSet();
     private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
 
     @Override
-    public boolean doCheckDependenciesComplete() {
-        if (!super.doCheckDependenciesComplete()) {
+    public boolean allDependenciesComplete() {
+        if (!super.allDependenciesComplete()) {
             return false;
         }
         for (Node dependency : mustSuccessors) {
@@ -70,9 +69,8 @@ public abstract class TaskNode extends Node {
         return shouldSuccessors;
     }
 
-    protected void addMustSuccessor(TaskNode toNode) {
+    protected void addMustSuccessor(Node toNode) {
         mustSuccessors.add(toNode);
-        toNode.mustPredecessors.add(this);
     }
 
     protected void addFinalizingSuccessor(TaskNode finalized) {
@@ -104,11 +102,6 @@ public abstract class TaskNode extends Node {
             finalizingSuccessors.descendingSet(),
             shouldSuccessors.descendingSet()
         );
-    }
-
-    @Override
-    public Iterable<Node> getAllPredecessors() {
-        return Iterables.concat(mustPredecessors, finalizers, super.getAllPredecessors());
     }
 
     @Override

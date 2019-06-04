@@ -26,5 +26,5 @@ public interface ActionExecutionSpec extends Serializable, Describable {
     @Override
     String getDisplayName();
 
-    Object[] getParams(ClassLoader classLoader);
+    Object[] getParams();
 }
