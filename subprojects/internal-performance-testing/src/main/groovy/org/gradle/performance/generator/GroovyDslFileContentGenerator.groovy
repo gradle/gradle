@@ -39,7 +39,7 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
         int testForkEvery = getProperty('testForkEvery') as Integer
         List<String> javaCompileJvmArgs = findProperty('javaCompileJvmArgs')?.tokenize(';') ?: []
 
-        tasks.withType(JavaCompile) {
+        tasks.withType(AbstractCompile) {
             options.fork = true
             options.incremental = true
             options.forkOptions.memoryInitialSize = compilerMemory
@@ -104,7 +104,7 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
 
     @Override
     protected String directDependencyDeclaration(String configuration, String notation) {
-        "$configuration '$notation'"
+        notation.endsWith('()') ? "$configuration $notation" : "$configuration '$notation'"
     }
 
     @Override

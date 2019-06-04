@@ -38,7 +38,7 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
         val testRunnerMemory: String by project
         val testForkEvery: String by project
 
-        tasks.withType<JavaCompile> {
+        tasks.withType<AbstractCompile> {
             options.isFork = true
             options.isIncremental = true
             options.forkOptions.memoryInitialSize = compilerMemory
@@ -102,7 +102,7 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
 
     @Override
     protected String directDependencyDeclaration(String configuration, String notation) {
-        "\"$configuration\"(\"$notation\")"
+        notation.endsWith('()') ? "\"$configuration\"($notation)" : "\"$configuration\"(\"$notation\")"
     }
 
     @Override
