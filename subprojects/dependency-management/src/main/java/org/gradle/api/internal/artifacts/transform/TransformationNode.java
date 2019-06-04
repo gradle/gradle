@@ -66,11 +66,6 @@ public abstract class TransformationNode extends Node {
     }
 
     @Override
-    public boolean requiresMonitoring() {
-        return false;
-    }
-
-    @Override
     public String toString() {
         return transformationStep.getDisplayName();
     }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-
+import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.internal.Factory
 import org.gradle.process.internal.ExecHandleFactory
@@ -27,7 +27,9 @@ import javax.tools.JavaCompiler
 
 class DefaultJavaCompilerFactoryTest extends Specification {
     Factory<JavaCompiler> javaCompilerFinder = Mock()
-    def factory = new DefaultJavaCompilerFactory({ new File("daemon-work-dir") }, Mock(WorkerDaemonFactory), javaCompilerFinder, Mock(JavaForkOptionsFactory), Mock(ExecHandleFactory), Stub(AnnotationProcessorDetector))
+    def factory = new DefaultJavaCompilerFactory({
+        new File("daemon-work-dir")
+    }, Mock(WorkerDaemonFactory), javaCompilerFinder, Mock(JavaForkOptionsFactory), Mock(ExecHandleFactory), Stub(AnnotationProcessorDetector), Stub(ClassPathRegistry))
 
     def "creates in-process compiler when JavaCompileSpec is provided"() {
         expect:

@@ -244,8 +244,8 @@ public class GradleUserHomeScopeServices {
         );
     }
 
-    WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository) {
-        return new WorkerProcessClassPathProvider(cacheRepository);
+    WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
+        return new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry);
     }
 
     DefaultGeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {

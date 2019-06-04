@@ -392,7 +392,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "report setters for property with mutable type #type"() {
+    def "report setters for property of mutable type #type"() {
         @Language("JAVA") myTask = """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.InputFiles;
@@ -417,7 +417,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Type 'MyTask': property 'mutablePropertyWithSetter' with mutable type '${type.replaceAll("<.+>", "")}' is redundant. Use methods on the property value itself to mutate it
+            Warning: Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself
         """.stripIndent().trim()
 
         where:

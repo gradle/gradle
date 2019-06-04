@@ -25,10 +25,10 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
@@ -57,8 +57,13 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             if (instantiatorFactory == null) {
                 instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.<InjectAnnotationHandler>emptyList());
             }
+            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", workerProcessContext.getServiceRegistry());
+            // Make the argument serializers available so work implementations can register their own serializers
+            RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
+            serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
+            workerProcessContext.getServerConnection().useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
             workerImplementation = Class.forName(workerImplementationName);
-            implementation = instantiatorFactory.inject(workerProcessContext.getServiceRegistry()).newInstance(workerImplementation);
+            implementation = instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);
         } catch (Throwable e) {
             failure = e;
         }
@@ -89,26 +94,26 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     }
 
     @Override
-    public void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, BuildOperationRef buildOperation) {
+    public void runThenStop(Request request) {
         try {
-            run(methodName, paramTypes, args, buildOperation);
+            run(request);
         } finally {
             stop();
         }
     }
 
     @Override
-    public void run(String methodName, Class<?>[] paramTypes, Object[] args, BuildOperationRef buildOperation) {
+    public void run(Request request) {
         if (failure != null) {
             responder.infrastructureFailed(failure);
             return;
         }
         try {
-            Method method = workerImplementation.getDeclaredMethod(methodName, paramTypes);
-            CurrentBuildOperationRef.instance().set(buildOperation);
+            Method method = workerImplementation.getDeclaredMethod(request.getMethodName(), request.getParamTypes());
+            CurrentBuildOperationRef.instance().set(request.getBuildOperation());
             Object result;
             try {
-                result = method.invoke(implementation, args);
+                result = method.invoke(implementation, request.getArgs());
             } catch (InvocationTargetException e) {
                 Throwable failure = e.getCause();
                 if (failure instanceof NoClassDefFoundError) {

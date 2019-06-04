@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.internal.serialize.SerializerRegistry;
+
 /**
  * Configures and builds single request workers. A single request worker runs each request in a separate forked worker process.
  *
@@ -28,4 +30,9 @@ public interface SingleRequestWorkerProcessBuilder<T> extends WorkerProcessSetti
      * Creates the worker. The returned value can be used to run multiple requests, each will run in a separate worker process.
      */
     T build();
+
+    /**
+     * Registers a serializer to use when handling arguments to methods of {@link T}.
+     */
+    void registerArgumentSerializer(SerializerRegistry serializerRegistry);
 }
