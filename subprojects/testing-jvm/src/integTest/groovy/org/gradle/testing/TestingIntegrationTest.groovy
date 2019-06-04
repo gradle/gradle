@@ -43,7 +43,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile "junit:junit:4.12" }
+            dependencies { testImplementation "junit:junit:4.12" }
         """
 
         and:
@@ -91,7 +91,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         file('build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.12' }
         """
 
         when:
@@ -134,7 +134,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
         """
 
@@ -163,7 +163,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile "junit:junit:4.12" }
+            dependencies { testImplementation "junit:junit:4.12" }
             test.workingDir = "${testWorkingDir.toURI()}"
         """
 
@@ -190,7 +190,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            dependencies { testCompile "$dependency" }
+            dependencies { testImplementation "$dependency" }
             test { $framework() }
         """
         and:
@@ -218,15 +218,15 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 apply plugin:'java'
                 ${mavenCentralRepository()}
 
-                sourceSets{
-	                othertests{
+                sourceSets {
+	                othertests {
 		                java.srcDir file('src/othertests/java')
 	                    resources.srcDir file('src/othertests/resources')
 	                }
                 }
 
                 dependencies{
-	                othertestsCompile "junit:junit:4.12"
+	                othertestsImplementation "junit:junit:4.12"
                 }
 
                 task othertestsTest(type:Test){
@@ -285,9 +285,9 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 // guarantee ordering
                 first 'com.google.guava:guava:15.0'
                 last 'com.google.collections:google-collections:1.0'
-                compile configurations.first + configurations.last
+                implementation configurations.first + configurations.last
 
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
         """
 
@@ -321,7 +321,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
             tasks.withType(JavaCompile) {
                 options.with {
@@ -368,7 +368,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin:'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
             test {
                 testLogging {
@@ -450,7 +450,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin:'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.12' }
         """
 
         and:

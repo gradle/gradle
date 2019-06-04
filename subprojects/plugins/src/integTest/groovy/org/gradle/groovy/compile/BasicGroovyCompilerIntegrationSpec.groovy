@@ -313,7 +313,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasErrorOutput('unable to resolve class AntBuilder')
 
         when:
-        buildFile << "dependencies { compile 'org.codehaus.groovy:groovy-ant:${version}' }"
+        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-ant:${version}' }"
 
         then:
         succeeds("compileGroovy")
@@ -420,7 +420,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
             apply plugin: 'groovy'
             ${mavenCentralRepository()}
             dependencies {
-                compile 'org.codehaus.groovy:groovy:2.4.3:grooid'
+                implementation 'org.codehaus.groovy:groovy:2.4.3:grooid'
             }
         """
 
@@ -541,7 +541,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     private void configureGroovy() {
         buildFile << """
 dependencies {
-    compile '${groovyDependency.toString()}'
+    implementation '${groovyDependency.toString()}'
 }
 
 ${compilerConfiguration()}

@@ -45,7 +45,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         given:
         buildFile << """
         dependencies {
-            testCompile 'org.junit.platform:junit-platform-runner:1.0.3'
+            testImplementation 'org.junit.platform:junit-platform-runner:1.0.3'
         }
         """
         createSimpleJupiterTest()

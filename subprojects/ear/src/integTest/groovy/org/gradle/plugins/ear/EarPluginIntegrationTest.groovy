@@ -29,7 +29,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 @TestReproducibleArchives
 class EarPluginIntegrationTest extends AbstractIntegrationSpec {
 
-    void "setup"() {
+    def "setup"() {
         file("rootLib.jar").createNewFile()
         file("earLib.jar").createNewFile()
 
@@ -438,9 +438,9 @@ ear {
                 }
             }
             project(":b") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 dependencies {
-                    compile project(':c')
+                    api project(':c')
                 }
             }
             project(":c") {

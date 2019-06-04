@@ -40,7 +40,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
                 apply plugin: 'groovy'
 
                 dependencies {
-                    compile $groovyVersion
+                    implementation $groovyVersion
                 }
             }
         """
@@ -111,7 +111,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Unroll
-    void "Doesn't fail with a PermGen space error or a missing method exception"() {
+    void "does not fail with a PermGen space error or a missing method exception"() {
         given:
         buildFile << """
 buildscript {

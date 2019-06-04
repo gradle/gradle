@@ -28,7 +28,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -121,7 +121,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
             project(':c') {
@@ -129,7 +129,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
                     processor
                 }
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                     processor project(':b')
                 }
                 ${language.compileTaskName}.options.annotationProcessorPath = configurations.processor
@@ -220,12 +220,12 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
             project(':c') {
                 dependencies {
-                    compile project(':b')
+                    implementation project(':b')
                 }
                 ${language.compileTaskName}.options.annotationProcessorPath = files()
             }

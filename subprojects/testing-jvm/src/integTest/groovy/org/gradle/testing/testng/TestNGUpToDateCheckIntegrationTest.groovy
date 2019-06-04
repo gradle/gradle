@@ -59,7 +59,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             apply plugin: "java"
             ${jcenterRepository()}
-            dependencies { testCompile "org.testng:testng:${TestNGCoverage.NEWEST}" }
+            dependencies { testImplementation "org.testng:testng:${TestNGCoverage.NEWEST}" }
             test {
                 useTestNG {
                     $property $modification
@@ -102,7 +102,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             apply plugin: "java"
             ${jcenterRepository()}
-            dependencies { testCompile "org.testng:testng:${TestNGCoverage.NEWEST}" }
+            dependencies { testImplementation "org.testng:testng:${TestNGCoverage.NEWEST}" }
             test {
                 useTestNG {
                     $property $modification

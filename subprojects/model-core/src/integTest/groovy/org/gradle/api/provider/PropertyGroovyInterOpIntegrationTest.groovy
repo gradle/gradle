@@ -31,8 +31,8 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
                 id("groovy")
             }
             dependencies {
-                compile gradleApi()
-                compile localGroovy()
+                implementation gradleApi()
+                implementation localGroovy()
             }
         """
         pluginDir.file("src/main/groovy/SomeTask.groovy") << """

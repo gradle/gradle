@@ -1,5 +1,5 @@
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     group = 'org.gradle.sample'
     version = '1.0'
 }
@@ -9,7 +9,7 @@ project(':api') {
         spi
     }
     dependencies {
-        compile project(':shared')
+        implementation project(':shared')
     }
     task spiJar(type: Jar) {
         archiveBaseName = 'api-spi'
@@ -23,8 +23,8 @@ project(':api') {
 
 project(':services:personService') {
     dependencies {
-        compile project(':shared')
-        compile project(path: ':api', configuration: 'spi')
-        testCompile "junit:junit:4.12", project(':api')
+        implementation project(':shared')
+        implementation project(path: ':api', configuration: 'spi')
+        testImplementation "junit:junit:4.12", project(':api')
     }
 }

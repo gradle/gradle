@@ -100,7 +100,7 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
             targetCompatibility = "1.7"
                
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
 
             compileGroovy {

@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.eclipse
 
 class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclipseIntegrationSpec {
 
-    def "Custom source and javadoc location"() {
+    def "custom source and javadoc location"() {
         setup:
         String customSourcePath = temporaryFolder.file('guava-custom-source.jar').absolutePath.replace('\\', '\\\\')
         String customJavadocPath = temporaryFolder.file('guava-custom-javadoc.jar').absolutePath.replace('\\', '\\\\')
@@ -29,7 +29,7 @@ class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclip
             ${jcenterRepository()}
 
             dependencies {
-                compile 'com.google.guava:guava:18.0'
+                implementation 'com.google.guava:guava:18.0'
             }
 
             eclipse {

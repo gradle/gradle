@@ -53,7 +53,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "java-gradle-plugin"
 
             dependencies {
-                compile gradleApi()
+                implementation gradleApi()
             }
 
             validateTaskProperties {
@@ -278,7 +278,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "groovy"
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
         """
         file("src/main/groovy/MyTask.groovy") << """
@@ -557,7 +557,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies {
-                compile 'com.typesafe:config:1.3.2'
+                implementation 'com.typesafe:config:1.3.2'
             }
         """
 
@@ -594,12 +594,12 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java'
 
                 dependencies {
-                    compile 'com.typesafe:config:1.3.2'
+                    implementation 'com.typesafe:config:1.3.2'
                 }
             }          
 
             dependencies {
-                compile project(':lib')
+                implementation project(':lib')
             }
         """
         file("lib/src/main/java/MyUtil.java") << """
@@ -636,7 +636,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "groovy"
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
             
             validateTaskProperties.enableStricterValidation = project.hasProperty('strict')

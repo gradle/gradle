@@ -34,7 +34,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildA.buildFile << """
             task resolve(type: Copy) {
-                from configurations.compile
+                from configurations.runtimeClasspath
                 into 'libs'
             }
 """
@@ -72,7 +72,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             }
 
             artifacts {
-                compile myJar
+                implementation myJar
             }
 """
 
@@ -107,7 +107,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 maven { url "${mavenRepo.uri}" }
             }
             dependencies {
-                compile 'org.test:buildC:1.0'
+                implementation 'org.test:buildC:1.0'
             }
 """
 
@@ -125,7 +125,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             dependencies {
-                compile 'org.test:buildC:1.0'
+                implementation 'org.test:buildC:1.0'
             }
 """
         def buildC = singleProjectBuild("buildC") {
@@ -151,7 +151,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             dependencies {
-                compile 'org.test:buildC:1.0'
+                implementation 'org.test:buildC:1.0'
             }
 """
         def buildC = singleProjectBuild("buildC") {
@@ -176,7 +176,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             dependencies {
-                compile 'org.test:b1:1.0'
+                implementation 'org.test:b1:1.0'
             }
 """
 
@@ -194,8 +194,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             dependencies {
-                compile project(':b1')
-                compile project(path: ':b2', configuration: 'other')
+                implementation project(':b1')
+                implementation project(path: ':b2', configuration: 'other')
             }
 
             project('b2') {
@@ -229,7 +229,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 classifier '1'
             }
             dependencies {
-                compile files(jar1.archivePath) { builtBy jar1 }
+                implementation files(jar1.archivePath) { builtBy jar1 }
             }
 """
 
@@ -245,7 +245,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                compile group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
             }
 """
 
@@ -277,7 +277,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                compile 'org.test:buildB:1.0@zip'
+                implementation 'org.test:buildB:1.0@zip'
             }
 """
 
@@ -287,7 +287,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 from 'src'
             }
             artifacts {
-                compile myZip
+                implementation myZip
             }
 """
 
@@ -303,8 +303,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                compile group: 'org.test', name: 'buildB', version: '1.0', classifier: 'my'
-                compile(group: 'org.test', name: 'buildB', version: '1.0') {
+                implementation group: 'org.test', name: 'buildB', version: '1.0', classifier: 'my'
+                implementation(group: 'org.test', name: 'buildB', version: '1.0') {
                     artifact {
                         name = 'another'
                         type = 'jar'
@@ -321,8 +321,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 baseName 'another'
             }
             artifacts {
-                compile myJar
-                compile anotherJar
+                implementation myJar
+                implementation anotherJar
             }
 """
 
@@ -338,8 +338,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                compile group: 'org.test', name: 'buildB', version: '1.0'
-                compile group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                implementation group: 'org.test', name: 'buildB', version: '1.0'
+                implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
             }
 """
 
@@ -371,7 +371,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         buildB.buildFile << """
             project(':b1') {
                 dependencies {
-                    compile project(':b2')
+                    implementation project(':b2')
                 }
             }
 """
@@ -394,12 +394,12 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         buildB.buildFile << """
             project(':b1') {
                 dependencies {
-                    compile 'org.test:buildC:1.0'
+                    implementation 'org.test:buildC:1.0'
                 }
             }
             project(':b2') {
                 dependencies {
-                    compile 'org.test:buildC:1.0'
+                    implementation 'org.test:buildC:1.0'
                 }
             }
 """
@@ -423,8 +423,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                compile group: 'org.test', name: 'buildB', version: '1.0'
-                compile group: 'org.test', name: 'buildC', version: '1.0'
+                implementation group: 'org.test', name: 'buildB', version: '1.0'
+                implementation group: 'org.test', name: 'buildC', version: '1.0'
             }
 """
 
@@ -432,7 +432,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             buildFile << """
                 apply plugin: 'java'
                 dependencies {
-                    compile group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                    implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
                 }
 """
         }
@@ -467,7 +467,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             buildFile << """
                 apply plugin: 'java'
                 dependencies {
-                    compile 'org.test:b2:1.0'
+                    implementation 'org.test:b2:1.0'
                 }
 """
         }
@@ -566,7 +566,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
     }
 
-    def "handles separate compile and compileOnly dependencies on different subprojects"() {
+    def "handles separate implementation and compileOnly dependencies on different subprojects"() {
         given:
         dependency 'org.test:buildC:1.0'
 
@@ -580,7 +580,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             buildFile << """
                 apply plugin: 'java'
                 dependencies {
-                    compile 'org.test:b1:1.0'
+                    implementation 'org.test:b1:1.0'
                     compileOnly 'org.test:b2:1.0'
                 }
 """
@@ -619,7 +619,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             dependencies {
-                compile "org.test:buildC:1.0"
+                implementation "org.test:buildC:1.0"
             }
 """
         def buildC = singleProjectBuild("buildC") {
@@ -650,15 +650,15 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         dependency 'org.test:b1:1.0'
         buildA.buildFile << """
             dependencies {
-                runtime 'org.test:b2:1.0'
+                compileOnly 'org.test:b2:1.0'
             }
             resolve.doLast {
                 ${server.callFromTaskAction("resolve")}
             }
-            task resolveRuntime(type: Copy) {
+            task resolveCompile(type: Copy) {
                 dependsOn "resolve"
-                from configurations.runtime
-                into 'libs-runtime'
+                from configurations.compileClasspath
+                into 'libs-compile'
             }
 """
 
@@ -673,13 +673,13 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         when:
         server.expectConcurrent("resolve", "b2")
-        fails buildA, ":resolveRuntime"
+        fails buildA, ":resolveCompile"
 
         then:
         failure.assertHasFailures(1)
         failure.assertHasDescription("Execution failed for task ':buildB:b2:jar'.")
         executed(":buildB:b1:jar", ":resolve", ":buildB:b2:jar")
-        notExecuted(":resolveRuntime")
+        notExecuted(":resolveCompile")
     }
 
     def "new substitutions can be discovered while building the task graph for the first level included builds"() {

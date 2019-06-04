@@ -634,7 +634,7 @@ sourceSets {
 
         buildFile << """
         ${jcenterRepository()}
-dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
+dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
 """
         expect:
         succeeds "compileJava"
@@ -652,7 +652,7 @@ dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
         buildFile << """
             ${jcenterRepository()}
             if (hasProperty("withIcu")) {
-                dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
+                dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
             }
 
         """
@@ -672,7 +672,7 @@ dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
 
         buildFile << """
 ${jcenterRepository()}
-dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
+dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
 """
         expect:
         run "compileJava"
@@ -1036,7 +1036,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
 
         buildFile << """
         ${jcenterRepository()}
-dependencies { compile 'com.google.guava:guava:21.0' }
+dependencies { implementation 'com.google.guava:guava:21.0' }
 """
         outputs.snapshot { succeeds 'compileJava' }
 

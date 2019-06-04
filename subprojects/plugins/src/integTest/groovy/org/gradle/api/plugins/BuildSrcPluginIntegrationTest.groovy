@@ -33,7 +33,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/build.gradle") << """
             apply plugin: "groovy"
             dependencies {
-                runtime project(":testplugin")
+                runtimeOnly project(":testplugin")
             }
         """
 
@@ -41,8 +41,8 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "groovy"
 
             dependencies {
-                compile localGroovy()
-                compile gradleApi()
+                implementation localGroovy()
+                implementation gradleApi()
             }
         """
 
@@ -146,12 +146,12 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
             allprojects {
                 apply plugin: 'groovy'
                 dependencies {
-                    compile gradleApi()
-                    compile localGroovy()
+                    implementation gradleApi()
+                    implementation localGroovy()
                 }
             }
             dependencies {
-                runtime project(":subproject")
+                runtimeOnly project(":subproject")
             }
         """
         file("buildSrc/settings.gradle") << """

@@ -38,7 +38,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
                 apply plugin: 'groovy'
 
                 dependencies {
-                    compile localGroovy()
+                    implementation localGroovy()
                 }
             }
         """
@@ -48,7 +48,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             allprojects {
                 dependencies{
-                    testCompile "junit:junit:4.12"
+                    testImplementation "junit:junit:4.12"
                 }
             }
 """

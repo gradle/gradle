@@ -44,19 +44,19 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
 
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
 
             task validate {
                 doLast {
-                    def compile = configurations.compile.resolvedConfiguration
-                    assert compile.hasError()
+                    def compileClasspath = configurations.compileClasspath.resolvedConfiguration
+                    assert compileClasspath.hasError()
                     println "evaluating:"
-                    compile.${expression}
+                    compileClasspath.${expression}
                 }
             }
         """
@@ -91,16 +91,16 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
 
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
 
             task validate {
                 doLast {
-                    def compile = configurations.compile.resolvedConfiguration
+                    def compile = configurations.compileClasspath.resolvedConfiguration
 
                     assert !compile.hasError() // all dependencies resolved ok
                     assert compile.lenientConfiguration.unresolvedModuleDependencies.empty
@@ -140,16 +140,16 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
 
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def resolved = compile.firstLevelModuleDependencies
 
@@ -214,17 +214,17 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                compile 'org.foo:a:1.0'
-                compile 'org.foo:b:1.0'
-                compile 'org.foo:d:1.0'
-                compile 'org.foo:e:1.0'
+                implementation 'org.foo:a:1.0'
+                implementation 'org.foo:b:1.0'
+                implementation 'org.foo:d:1.0'
+                implementation 'org.foo:e:1.0'
                 
                 modules.module('org.foo:c') { replacedBy('org.foo:f') }
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def resolved = compile.firstLevelModuleDependencies
 
@@ -279,16 +279,16 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
 
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency, plus missing jar
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency, plus missing jar
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def resolved = compile.firstLevelModuleDependencies
 
@@ -344,13 +344,13 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
             }
 
             dependencies {
-                compile 'org.foo:hiphop:1.0'
+                implementation 'org.foo:hiphop:1.0'
                 someConf 'org.foo:unknown:1.0' //does not exist
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def unresolved = compile.getUnresolvedModuleDependencies()
                     def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
@@ -388,13 +388,13 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                compile 'org:foo:[1,3]'
-                compile 'org:bar:1'
+                implementation 'org:foo:[1,3]'
+                implementation 'org:bar:1'
             }
 
             task validate {
                 doLast {
-                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration compile = configurations.compileClasspath.resolvedConfiguration.lenientConfiguration
 
                     def resolved = compile.firstLevelModuleDependencies
 

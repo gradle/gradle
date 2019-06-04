@@ -44,14 +44,14 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:hiphop:1.0'
-                compile 'org.foo:unknown:1.0' //does not exist
-                compile project(":child")
-                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+                implementation 'org.foo:hiphop:1.0'
+                implementation 'org.foo:unknown:1.0' //does not exist
+                implementation project(":child")
+                implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
 
             task resolve(type: Copy) {
-                from configurations.compile
+                from configurations.compileClasspath
                 into "build/resolved"
             }
         """
@@ -71,11 +71,11 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.configurationName == "compile"
+        op.details.configurationName == "compileClasspath"
         op.details.projectPath == ":"
         op.details.buildPath == ":"
         op.details.scriptConfiguration == false
-        op.details.configurationDescription ==~ /Dependencies for source set 'main'.*/
+        op.details.configurationDescription ==~ /Compile classpath for source set 'main'.*/
         op.details.configurationVisible == false
         op.details.configurationTransitive == true
 
@@ -130,12 +130,12 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:root-dep:1.0'
-                compile 'org.foo:my-composite-app:1.0'
+                implementation 'org.foo:root-dep:1.0'
+                implementation 'org.foo:my-composite-app:1.0'
             }
 
             task resolve(type: Copy) {
-                from configurations.compile
+                from configurations.compileClasspath
                 into "build/resolved"
             }
         """
@@ -150,11 +150,11 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         then: "configuration of composite are exposed"
         def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         resolveOperations.size() == 2
-        resolveOperations[0].details.configurationName == "compile"
+        resolveOperations[0].details.configurationName == "compileClasspath"
         resolveOperations[0].details.projectPath == ":"
         resolveOperations[0].details.buildPath == ":"
         resolveOperations[0].details.scriptConfiguration == false
-        resolveOperations[0].details.configurationDescription ==~ /Dependencies for source set 'main'.*/
+        resolveOperations[0].details.configurationDescription ==~ /Compile classpath for source set 'main'.*/
         resolveOperations[0].details.configurationVisible == false
         resolveOperations[0].details.configurationTransitive == true
         resolveOperations[0].result.resolvedDependenciesCount == 2
@@ -333,7 +333,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
             
             dependencies {
-                compile 'org.foo:app-dep:1.0'
+                implementation 'org.foo:app-dep:1.0'
             }
             
             tasks.withType(JavaCompile) {
@@ -455,7 +455,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
                         
             dependencies {
-               compile 'org:a:1.0'
+               implementation 'org:a:1.0'
             }
             
             task resolve {
@@ -463,7 +463,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                   // this will shutdown the project scope services, which is going to trigger a
                   // fatal dependency resolution error
                   services.close()
-                  println(configurations.compile.files.name)
+                  println(configurations.compileClasspath.files.name)
               }
             }
             
@@ -474,7 +474,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         and:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.configurationName == "compile"
+        op.details.configurationName == "compileClasspath"
         op.failure == "org.gradle.api.artifacts.ResolveException: Could not resolve all dependencies for configuration ':compile'."
         op.result == null
     }
@@ -512,18 +512,18 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:direct1:1.0'
-                compile 'org.foo:direct2:1.0'
-                compile project(':child')
+                implementation 'org.foo:direct1:1.0'
+                implementation 'org.foo:direct2:1.0'
+                implementation project(':child')
             }
 
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.runtimeClasspath.resolve() } }
             
             project(':child') {
                 apply plugin: "java"
                 dependencies {
-                    compile 'org.foo:child-transitive1:1.0'
-                    compile 'org.foo:child-transitive2:1.0'
+                    implementation 'org.foo:child-transitive1:1.0'
+                    implementation 'org.foo:child-transitive2:1.0'
                 }
             }
         """
@@ -577,17 +577,17 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:direct1:1.0'
-                compile 'org.foo:missing-direct:1.0' // does not exist
-                compile project(':child')
+                implementation 'org.foo:direct1:1.0'
+                implementation 'org.foo:missing-direct:1.0' // does not exist
+                implementation project(':child')
             }
 
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.runtimeClasspath.resolve() } }
             
             project(':child') {
                 apply plugin: "java"
                 dependencies {
-                    compile 'org.foo:broken-transitive:1.0' // throws exception trying to resolve
+                    implementation 'org.foo:broken-transitive:1.0' // throws exception trying to resolve
                 }
             }
         """
@@ -629,10 +629,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
             dependencies {
-                compile 'org.foo:good:1.0'
+                implementation 'org.foo:good:1.0'
             }
 
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath.resolve() } }
         """
         def module = mavenHttpRepo.module('org.foo', 'good').publish()
         server.authenticationScheme = AuthScheme.BASIC

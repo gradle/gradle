@@ -41,8 +41,8 @@ allprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:api')
-        testCompile project(':shared:model')
+        implementation project(':shared:api')
+        testImplementation project(':shared:model')
     }
 }
 
@@ -91,7 +91,7 @@ allprojects {
 
 project(':api') {
     dependencies {
-        compile project(':')
+        implementation project(':')
     }
 }
 """
@@ -135,7 +135,7 @@ project(":library") {
 
 project(":application") {
     dependencies {
-        compile project(":library")
+        implementation project(":library")
     }
 }
 """
@@ -178,8 +178,8 @@ subprojects {
 
 project(':api') {
     dependencies {
-        compile project(':util')
-        compile project(':other')
+        implementation project(':util')
+        implementation project(':other')
     }
 }
 
@@ -189,7 +189,7 @@ project(':other') {
 
 project(':util') {
     dependencies {
-        testCompile project(':')
+        testImplementation project(':')
     }
 }
 
@@ -244,7 +244,7 @@ allprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:api'), project(':shared:model')
+        implementation project(':shared:api'), project(':shared:model')
     }
 }
 
@@ -258,7 +258,7 @@ project(':shared:model') {
 
 project(':services:utilities') {
     dependencies {
-        compile project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
+        implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
     }
     idea {
         module {
@@ -329,7 +329,7 @@ subprojects {
 
 project(':api') {
     dependencies {
-        compile project(':shared:model')
+        implementation project(':shared:model')
     }
 }
 """
@@ -358,25 +358,25 @@ include 'three'
         def buildFile = file("master/build.gradle")
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
 }
 
 project(':one') {
     dependencies {
-        compile project(':two')
+        api project(':two')
     }
 }
 
 project(':two') {
     dependencies {
-        compile project(':three')
+        api project(':three')
     }
 }
 
 project(':three') {
     dependencies {
-        compile project(':one')
+        api project(':one')
     }
 }
 """
@@ -414,7 +414,7 @@ include 'two'
         def buildFile = file("master/build.gradle")
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
 
     repositories {
@@ -424,16 +424,16 @@ allprojects {
 
 project(':one') {
     dependencies {
-        compile ('someGroup:someLib:1.0') {
+        implementation ('someGroup:someLib:1.0') {
             force = project.hasProperty("forceDeps")
         }
-        compile project(':two')
+        implementation project(':two')
     }
 }
 
 project(':two') {
     dependencies {
-        compile 'someGroup:someLib:2.0'
+        api 'someGroup:someLib:2.0'
     }
 }
 
@@ -507,7 +507,7 @@ project(':api') {
     apply plugin: 'idea'
 
     dependencies {
-        compile project(':nonIdeaProject')
+        implementation project(':nonIdeaProject')
     }
 }
 """
@@ -558,15 +558,15 @@ allprojects {
 
 project(':impl') {
     dependencies {
-        compile project(':api')
+        implementation project(':api')
     }
 }
 
 project(':app') {
     dependencies {
-        compile project(':api')
-        testCompile project(':impl')
-        runtime project(':impl')
+        implementation project(':api')
+        testImplementation project(':impl')
+        runtimeOnly project(':impl')
     }
 }
 """

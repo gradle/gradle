@@ -100,8 +100,8 @@ task copyFiles(type:Copy) {
             }
             
             dependencies {
-                compile('org.test:module1:1.0')
-                testCompile('org.test:module2:1.0')
+                implementation('org.test:module1:1.0')
+                testImplementation('org.test:module2:1.0')
             }
             
             configurations.all { configuration ->
@@ -114,8 +114,8 @@ task copyFiles(type:Copy) {
             
             task resolveDependencies {
                 doLast {
-                    configurations.compile.files
-                    configurations.testCompile.files
+                    configurations.compileClasspath.files
+                    configurations.testCompileClasspath.files
                 }
             }
 """

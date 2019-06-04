@@ -37,12 +37,12 @@ plugins {
 ${jcenterRepository()}
 
 dependencies {
-    compile "com.google.guava:guava:19.0"
+    implementation "com.google.guava:guava:19.0"
 }
 
 task show {
     doLast {
-        configurations.compile.files.each { println it }
+        configurations.runtimeClasspath.files.each { println it }
     }
 }
 """

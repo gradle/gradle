@@ -67,7 +67,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         buildFile << """
             apply plugin:'java'
             dependencies {
-                compile 'org.acme:nested-changed:+'
+                implementation 'org.acme:nested-changed:+'
             }
         """
 
@@ -86,7 +86,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
                 includeBuild "nested-nested"
             """
             file("build.gradle") << """
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 group = 'org.acme'
             """
             dir("buildSrc") {

@@ -34,7 +34,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
 
     void usingTestNG(String version) {
         buildFile << """
-            dependencies { testCompile "org.testng:testng:${version}" }
+            dependencies { testImplementation "org.testng:testng:${version}" }
         """
     }
 

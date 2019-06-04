@@ -78,7 +78,7 @@ class ScalaCompilationFixture {
 
             dependencies {
                 zinc "com.typesafe.zinc:zinc:${zincVersion}"
-                compile "org.scala-lang:scala-library:${scalaVersion}" 
+                implementation "org.scala-lang:scala-library:${scalaVersion}" 
             }
             
             sourceSets {

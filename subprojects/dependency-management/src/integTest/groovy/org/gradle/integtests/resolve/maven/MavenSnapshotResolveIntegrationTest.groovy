@@ -22,7 +22,7 @@ import spock.lang.Issue
 
 class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
     }
 
     def "can resolve unique and non-unique snapshots"() {
@@ -40,7 +40,7 @@ dependencies {
     compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
 }
 """
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
 
         when:

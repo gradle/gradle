@@ -56,7 +56,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
         buildA.buildFile << """
             task resolveArtifacts(type: Copy) {
-                from configurations.compile
+                from configurations.compileClasspath
                 into 'libs'
             }
 """

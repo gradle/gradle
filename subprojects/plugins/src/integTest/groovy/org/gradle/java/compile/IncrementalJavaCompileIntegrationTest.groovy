@@ -85,7 +85,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
             }            
             project(':app') {
                 dependencies {
-                    compile project(':lib')
+                    implementation project(':lib')
                 }
             }
         '''.stripIndent()

@@ -31,7 +31,7 @@ class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile "org.testng:testng:6.3.1"
+                testImplementation "org.testng:testng:6.3.1"
             }
             test.useTestNG()
         """

@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
 
 class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
+    def resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration("runtime")
 
     def setup() {
         resolve.prepare()

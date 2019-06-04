@@ -101,7 +101,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
             "javaProject-1.0-javadoc.jar",
             "javaProject-1.0.pom")
         module.parsedPom.packaging == null
-        module.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
+        module.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2")
 
         where:
         dsl << ['groovy', 'kotlin']

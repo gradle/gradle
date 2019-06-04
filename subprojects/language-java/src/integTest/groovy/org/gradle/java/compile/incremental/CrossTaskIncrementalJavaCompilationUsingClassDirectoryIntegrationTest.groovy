@@ -22,18 +22,8 @@ class CrossTaskIncrementalJavaCompilationUsingClassDirectoryIntegrationTest exte
     @Override
     protected String getProjectDependencyBlock() {
         '''
-            subprojects {
-                configurations {
-                    classesDir {
-                        extendsFrom(compile)
-                    }
-                }
-                artifacts {
-                    classesDir file: compileJava.destinationDir, builtBy:compileJava
-                }
-            }
             project(':impl') {
-                dependencies { compile project(path:':api', configuration: 'classesDir') }
+                dependencies { api project(':api') }
             }
         '''
     }
@@ -42,7 +32,7 @@ class CrossTaskIncrementalJavaCompilationUsingClassDirectoryIntegrationTest exte
     protected void addDependency(String from, String to) {
         buildFile << """
             project(':$from') {
-                dependencies { compile project(path:':$to', configuration: 'classesDir') }
+                dependencies { implementation project(':$to') }
             }
         """
     }

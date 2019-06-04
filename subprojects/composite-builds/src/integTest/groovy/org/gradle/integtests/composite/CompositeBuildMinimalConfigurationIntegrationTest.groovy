@@ -34,7 +34,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     version "2.0"
                 }
 """
@@ -42,7 +42,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 """
         }
     }

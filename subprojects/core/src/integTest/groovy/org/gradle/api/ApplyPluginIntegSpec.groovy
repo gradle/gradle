@@ -153,7 +153,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
                 static Project createProject(File gradleUserHome) {
                     def project = ProjectBuilder.builder().withGradleUserHomeDir(gradleUserHome).build()
                     project.plugins.apply('java')
-                    project.dependencies.add('compile', project.dependencies.gradleApi())
+                    project.dependencies.add('implementation', project.dependencies.gradleApi())
                     project
                 }
             }
@@ -172,7 +172,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             ${basicBuildScript()}
 
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation  'junit:junit:4.12'
             }
         """
     }
@@ -182,7 +182,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             ${basicBuildScript()}
 
             dependencies {
-                testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+                testImplementation ('org.spockframework:spock-core:1.0-groovy-2.4') {
                     exclude module: 'groovy-all'
                 }
             }
@@ -196,8 +196,8 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile gradleApi()
-                compile localGroovy()
+                implementation gradleApi()
+                implementation localGroovy()
             }
         """
     }
