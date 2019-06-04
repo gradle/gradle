@@ -20,7 +20,6 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.writeClass
 
@@ -36,7 +35,7 @@ class BeanCodec : Codec<Any> {
             writeSmallInt(isolate.identities.putInstance(value))
             val beanType = GeneratedSubclasses.unpackType(value)
             writeClass(beanType)
-            BeanPropertyWriter(beanType).run {
+            beanPropertyWriterFor(beanType).run {
                 writeFieldsOf(value)
             }
         }

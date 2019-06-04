@@ -34,12 +34,16 @@ import java.util.function.Supplier
 class BeanPropertyWriter(
     private val beanType: Class<*>
 ) {
+
+    private
+    val relevantFields = relevantStateOf(beanType)
+
     /**
      * Serializes a bean by serializing the value of each of its fields.
      */
     fun WriteContext.writeFieldsOf(bean: Any) {
         writingProperties {
-            for (field in relevantStateOf(beanType)) {
+            for (field in relevantFields) {
                 val fieldName = field.name
                 val fieldValue = unpack(field.get(bean)) ?: unpack(conventionalValueOf(bean, fieldName))
                 writeNextProperty(fieldName, fieldValue, PropertyKind.Field)

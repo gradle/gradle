@@ -89,7 +89,7 @@ class TaskGraphCodec {
         writeStrings(dependencies.map { it.path })
 
         withIsolate(task) {
-            BeanPropertyWriter(taskType).run {
+            beanPropertyWriterFor(taskType).run {
                 writeFieldsOf(task)
                 writeRegisteredPropertiesOf(task, this)
             }

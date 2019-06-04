@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -38,6 +39,8 @@ interface Codec<T> {
 interface WriteContext : IsolateContext, Encoder {
 
     override val isolate: WriteIsolate
+
+    fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter
 
     fun writeActionFor(value: Any?): Encoding?
 

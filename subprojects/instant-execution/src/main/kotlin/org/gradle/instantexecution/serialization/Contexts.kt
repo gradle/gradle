@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -36,6 +37,12 @@ class DefaultWriteContext(
     override val logger: Logger
 
 ) : AbstractIsolateContext<WriteIsolate>(), MutableWriteContext, Encoder by encoder {
+
+    private
+    val beanPropertyWriters = hashMapOf<Class<*>, BeanPropertyWriter>()
+
+    override fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter =
+        beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
 
     override val isolate: WriteIsolate
         get() = getIsolate()
