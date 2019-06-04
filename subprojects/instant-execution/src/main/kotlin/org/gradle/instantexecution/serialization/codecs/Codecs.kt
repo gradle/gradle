@@ -54,10 +54,10 @@ import kotlin.reflect.KClass
 
 class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val fileResolver: FileResolver,
-    private val instantiator: Instantiator,
-    private val listenerManager: ListenerManager
+    fileCollectionFactory: FileCollectionFactory,
+    fileResolver: FileResolver,
+    instantiator: Instantiator,
+    listenerManager: ListenerManager
 ) : EncodingProvider, DecodingProvider {
 
     private
@@ -95,6 +95,7 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
+        bind(ConfigurableFileCollectionCodec(fileSetSerializer, fileCollectionFactory))
         bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory))
         bind(ArtifactCollectionCodec)
 
