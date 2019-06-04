@@ -34,7 +34,7 @@ A property may be _mutable_, meaning that it has both a getter method and setter
 
 [NOTE]
 ====
-Managed properties are currently an experimental <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
+Managed properties are currently an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
 ====
 
 ==== Mutable managed properties
