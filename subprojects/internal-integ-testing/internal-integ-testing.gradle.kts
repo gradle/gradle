@@ -38,7 +38,6 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":jvmServices"))
     implementation(project(":launcher"))
-    implementation(project(":launcherStartup"))
     implementation(project(":internalTesting"))
 
     implementation(library("groovy"))

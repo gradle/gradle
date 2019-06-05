@@ -30,7 +30,7 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":baseServicesGroovy"))
-    
+
     integTestImplementation(library("commons_lang"))
     integTestRuntimeOnly(project(":plugins"))
 }

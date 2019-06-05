@@ -38,7 +38,7 @@ dependencies {
 
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
-    integTestImplementation(project(":launcherStartup"))
+    integTestImplementation(project(":launcher"))
     integTestImplementation(project(":buildOption"))
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(library("slf4j_api"))

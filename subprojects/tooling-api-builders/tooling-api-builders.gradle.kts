@@ -7,10 +7,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly(project(":launcherStartup"))
-    testCompileOnly(project(":launcherStartup"))
-    runtimeOnly(project(":launcher"))
-
+    implementation(project(":launcher"))
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
