@@ -116,7 +116,7 @@ class TestProjectGeneratorConfigurationBuilder {
         config.dsl = this.dsl
         config.buildSrc = this.buildSrc
 
-        config.plugins = this.dsl == GradleDsl.GROOVY ? ['groovy', 'java', 'eclipse', 'idea'] : ['java', 'eclipse', 'idea']
+        config.plugins = this.language == Language.GROOVY ? ['groovy', 'java', 'eclipse', 'idea'] : ['java', 'eclipse', 'idea']
         config.repositories = [mavenCentralRepositoryDefinition(this.dsl)]
         config.externalApiDependencies = ['commons-lang:commons-lang:2.5', 'commons-httpclient:commons-httpclient:3.0',
                                           'commons-codec:commons-codec:1.2', 'org.slf4j:jcl-over-slf4j:1.7.10']
