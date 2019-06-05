@@ -68,11 +68,13 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
 /**
@@ -368,11 +370,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
-        for (InputChangesAwareTaskAction action : new ArrayList<InputChangesAwareTaskAction>(task.getTaskActions())) {
+        Iterator<InputChangesAwareTaskAction> actions = new ArrayList<>(task.getTaskActions()).iterator();
+        while (actions.hasNext()) {
+            InputChangesAwareTaskAction action = actions.next();
             task.getState().setDidWork(true);
             task.getStandardOutputCapture().start();
+            boolean hasAnotherAction = actions.hasNext();
             try {
-                executeAction(action.getDisplayName(), task, action, inputChanges);
+                executeAction(action.getDisplayName(), task, action, inputChanges, hasAnotherAction);
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -385,7 +390,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeAction(final String actionDisplayName, final TaskInternal task, final InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges) {
+    private void executeAction(final String actionDisplayName, final TaskInternal task, final InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges, boolean hasAnotherAction) {
         if (inputChanges != null) {
             action.setInputChanges(inputChanges);
         }
@@ -408,7 +413,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
 
                 try {
-                    asyncWorkTracker.waitForCompletion(currentOperation, RELEASE_PROJECT_LOCKS);
+                    asyncWorkTracker.waitForCompletion(currentOperation, hasAnotherAction ? RELEASE_AND_REACQUIRE_PROJECT_LOCKS : RELEASE_PROJECT_LOCKS);
                 } catch (Throwable t) {
                     List<Throwable> failures = Lists.newArrayList();
 

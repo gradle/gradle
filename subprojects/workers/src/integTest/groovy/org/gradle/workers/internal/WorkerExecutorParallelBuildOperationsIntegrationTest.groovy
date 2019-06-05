@@ -37,11 +37,14 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         withMultipleActionTaskTypeInBuildScript()
     }
 
-    def "task completes as soon as submitted work items are finished (while another task is executing in parallel)"() {
+    def "worker-based task completes as soon as work items are finished (while another task is executing in parallel)"() {
         given:
         buildFile << """
             def state = "init"
             task workTask(type: MultipleWorkItemTask) {
+                doLast {
+                    println "pre-action"
+                }
                 doLast { 
                     submitWorkItem("workTask")
                 }
@@ -63,6 +66,36 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
 
         then:
         endTime(":workTask").isBefore endTime(":slowTask")
+    }
+
+    def "worker-based task with further actions does not complete when work items finish (while another task is executing in parallel)"() {
+        given:
+        buildFile << """
+            task workTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("workTask")
+                }
+                doLast {
+                    println "post-action"
+                }
+            }
+            
+            task slowTask {
+                doLast { 
+                    ${blockingHttpServer.callFromBuild("slowTask")} 
+                    sleep 10
+                }
+            }
+        """
+
+        blockingHttpServer.expectConcurrent("workTask", "slowTask")
+
+        when:
+        args("--max-workers=4")
+        succeeds(":workTask", ":slowTask")
+
+        then:
+        endTime(":workTask").isAfter endTime(":slowTask")
     }
 
     def endTime(String taskPath) {
