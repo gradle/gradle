@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DecodingProvider
@@ -40,6 +41,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.CHAR_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.DOUBLE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FLOAT_SERIALIZER
@@ -49,6 +51,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import kotlin.reflect.KClass
 
 
@@ -69,6 +72,7 @@ class Codecs(
         bind(STRING_SERIALIZER)
         bind(BOOLEAN_SERIALIZER)
         bind(INTEGER_SERIALIZER)
+        bind(CHAR_SERIALIZER)
         bind(SHORT_SERIALIZER)
         bind(LONG_SERIALIZER)
         bind(BYTE_SERIALIZER)
@@ -111,6 +115,7 @@ class Codecs(
         bind(ownerProjectService<FileCollectionFactory>())
         bind(ownerProjectService<FileOperations>())
         bind(ownerProjectService<BuildOperationExecutor>())
+        bind(ownerProjectService<ToolingModelBuilderRegistry>())
 
         bind(BeanCodec())
     }
@@ -128,6 +133,7 @@ class Codecs(
         is Project -> unsupportedState(Project::class)
         is Gradle -> unsupportedState(Gradle::class)
         is Settings -> unsupportedState(Settings::class)
+        is TaskContainer -> unsupportedState(TaskContainer::class)
         else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
     }
 
