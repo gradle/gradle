@@ -46,12 +46,16 @@ import java.util.List;
 import java.util.Map;
 
 public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
-    private final AttributeContainerSerializer attributeContainerSerializer;
+    private final OptimizingAttributeContainerSerializer attributeContainerSerializer;
     private final BuildIdentifierSerializer buildIdentifierSerializer;
 
     public ComponentSelectorSerializer(AttributeContainerSerializer attributeContainerSerializer) {
         this.attributeContainerSerializer = new OptimizingAttributeContainerSerializer(attributeContainerSerializer);
         this.buildIdentifierSerializer = new BuildIdentifierSerializer();
+    }
+
+    void reset() {
+        attributeContainerSerializer.reset();
     }
 
     public ComponentSelector read(Decoder decoder) throws IOException {
@@ -240,6 +244,16 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             this.delegate = delegate;
         }
 
+        /**
+         * If the cache expired, or that it contains too many entries,
+         * it is possible for the same file to be read multiple times, in which
+         * case the internal state of the reader _must_ be reset.
+         */
+        public void reset() {
+            writeIndex.clear();
+            readIndex.clear();
+        }
+
         @Override
         public ImmutableAttributes read(Decoder decoder) throws IOException {
             boolean empty = decoder.readBoolean();
@@ -278,4 +292,5 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             }
         }
     }
+
 }
