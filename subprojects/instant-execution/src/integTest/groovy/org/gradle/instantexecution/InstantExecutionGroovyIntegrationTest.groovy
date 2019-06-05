@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 
@@ -98,11 +97,5 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
 
         and:
         assertTestsExecuted("ThingTest", "ok")
-    }
-
-    protected void assertTestsExecuted(String testClass, String... testNames) {
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass(testClass)
-            .assertTestsExecuted(testNames)
     }
 }

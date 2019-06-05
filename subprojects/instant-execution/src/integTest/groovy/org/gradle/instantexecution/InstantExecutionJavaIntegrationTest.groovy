@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
 import spock.lang.Ignore
@@ -254,7 +253,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         testClassFile.isFile()
         def testResults = file("build/test-results/test")
         testResults.isDirectory()
-        new DefaultTestExecutionResult(testDirectory).testClass("ThingTest").assertTestsExecuted("ok")
+        assertTestsExecuted("ThingTest", "ok")
 
         when:
         classFile.delete()
@@ -268,7 +267,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         classFile.isFile()
         testClassFile.isFile()
         testResults.isDirectory()
-        new DefaultTestExecutionResult(testDirectory).testClass("ThingTest").assertTestsExecuted("ok")
+        assertTestsExecuted("ThingTest", "ok")
     }
 
     def "assemble on Java application build with no dependencies"() {
