@@ -22,6 +22,9 @@ import org.gradle.internal.operations.BuildOperationRef;
  * Allows asynchronous work to be tracked based on the build operation it is associated with.
  */
 public interface AsyncWorkTracker {
+    enum ProjectLockRetention {
+        RETAIN_PROJECT_LOCKS, RELEASE_PROJECT_LOCKS, RELEASE_AND_REACQUIRE_PROJECT_LOCKS
+    }
     /**
      * Register a new item of asynchronous work with the provided build operation.
      *
@@ -38,9 +41,9 @@ public interface AsyncWorkTracker {
      * thrown.
      *
      * @param operation - The build operation whose asynchronous work should be completed
-     * @param releaseLocks - Whether or not project locks should be released while waiting on work
+     * @param lockRetention - How project locks should be treated while waiting on work
      */
-    void waitForCompletion(BuildOperationRef operation, boolean releaseLocks);
+    void waitForCompletion(BuildOperationRef operation, ProjectLockRetention lockRetention);
 
     /**
      * Returns true if the given operation has work registered that has not completed.

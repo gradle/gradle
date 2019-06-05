@@ -73,6 +73,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
+
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
@@ -406,7 +408,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
 
                 try {
-                    asyncWorkTracker.waitForCompletion(currentOperation, true);
+                    asyncWorkTracker.waitForCompletion(currentOperation, RELEASE_PROJECT_LOCKS);
                 } catch (Throwable t) {
                     List<Throwable> failures = Lists.newArrayList();
 

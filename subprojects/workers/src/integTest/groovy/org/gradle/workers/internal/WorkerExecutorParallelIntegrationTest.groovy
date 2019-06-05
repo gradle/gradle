@@ -564,9 +564,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         """
 
         blockingHttpServer.expectConcurrent("firstTask", "otherTask1")
-        // TODO:DAZ 'secondTask' should be able to run in parallel with 'otherTask'
-        blockingHttpServer.expectConcurrent("otherTask2")
-        blockingHttpServer.expectConcurrent("secondTask")
+        blockingHttpServer.expectConcurrent("secondTask", "otherTask2")
 
         expect:
         args("--max-workers=3", "--parallel")

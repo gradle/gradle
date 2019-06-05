@@ -60,6 +60,7 @@ import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
 
 import static java.util.Collections.emptyList
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
 
 class ExecuteActionsTaskExecuterTest extends Specification {
     def task = Mock(TaskInternal)
@@ -177,7 +178,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -189,7 +190,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action2.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -225,7 +226,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -251,7 +252,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
 
@@ -284,7 +285,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -315,7 +316,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -327,7 +328,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action2.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
 
@@ -355,7 +356,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true) >> {
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
@@ -393,7 +394,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true) >> {
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
@@ -430,7 +431,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true) >> {
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS) >> {
             throw new DefaultMultiCauseException("mock failures", failure)
         }
         then:
