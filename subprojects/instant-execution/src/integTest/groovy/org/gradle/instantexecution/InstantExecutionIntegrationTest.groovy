@@ -21,9 +21,11 @@ import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Unroll
@@ -291,6 +293,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         String.name                      | "null"                                                        | "null"
         Boolean.name                     | "true"                                                        | "true"
         boolean.name                     | "true"                                                        | "true"
+        Character.name                   | "'a'"                                                         | "a"
+        char.name                        | "'a'"                                                         | "a"
         Byte.name                        | "12"                                                          | "12"
         byte.name                        | "12"                                                          | "12"
         Short.name                       | "12"                                                          | "12"
@@ -351,9 +355,10 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         noExceptionThrown()
 
         where:
-        type               | reference | invocation
-        Logger.name        | "logger"  | "info('hi')"
-        ObjectFactory.name | "objects" | "newInstance(SomeBean)"
+        type                             | reference                                                   | invocation
+        Logger.name                      | "logger"                                                    | "info('hi')"
+        ObjectFactory.name               | "objects"                                                   | "newInstance(SomeBean)"
+        ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
     }
 
     @Unroll
@@ -494,11 +499,12 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.reference = null")
 
         where:
-        type          | reference
-        Project.name  | "project"
-        Gradle.name   | "project.gradle"
-        Settings.name | "project.gradle.settings"
-        Task.name     | "project.tasks.other"
+        type               | reference
+        Project.name       | "project"
+        Gradle.name        | "project.gradle"
+        Settings.name      | "project.gradle.settings"
+        Task.name          | "project.tasks.other"
+        TaskContainer.name | "project.tasks"
     }
 
     def "task can reference itself"() {
