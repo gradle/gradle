@@ -86,14 +86,14 @@ class BeanPropertyWriter(
     }
 
     private
-    fun unpack(fieldValue: Any?) = when (fieldValue) {
+    fun unpack(fieldValue: Any?): Any? = when (fieldValue) {
         is DirectoryProperty -> fieldValue.asFile.orNull
         is RegularFileProperty -> fieldValue.asFile.orNull
         is Property<*> -> fieldValue.orNull
         is Provider<*> -> fieldValue.orNull
         is Supplier<*> -> fieldValue.get()
         is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
-        is Lazy<*> -> fieldValue.value
+        is Lazy<*> -> unpack(fieldValue.value)
         else -> fieldValue
     }
 }
