@@ -100,21 +100,45 @@ Contributed by [Christian Fränkel](https://github.com/fraenkelc)
 
 The Gradle Kotlin DSL embedded Kotlin compiler has been upgraded from version `1.2.21` to version `1.3.31`, please refer to the [Kotlin 1.3.30 release blog entry](https://blog.jetbrains.com/kotlin/2019/04/kotlin-1-3-30-released/) and the [Kotlin 1.3.31 GitHub release notes](https://github.com/JetBrains/kotlin/releases/tag/v1.3.31) for details.
 
-## `ObjectFactory` methods for creating domain object collections in plugins
+## Improvements for plugin authors
 
-The [`ObjectFactory`](javadoc/org/gradle/api/model/ObjectFactory.html) now has methods for creating [`NamedDomainObjectContainer`](javadoc/org/gradle/api/NamedDomainObjectContainer.html) and [`DomainObjectSet`](javadoc/org/gradle/api/DomainObjectSet.html).
+### Abstract service injection methods
 
-Previously, it was only possible to create a domain object collection by using the APIs provided by a `Project`. Any place where a `ObjectFactory` is available can now create a domain object collection. 
+Gradle provides several useful services that are available for injection into various custom types, including task types, plugins and project extensions. One such service, for example, is the  
+`ObjectFactory` type.
 
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+In previous Gradle versions, a type could receive a service by declaring a property getter with a dummy method body. Now, these property getters can be abstract, which is more convenient and clearer.
 
-The following are the features that have been promoted in this Gradle release.
+See the [user manual](userguide/custom_gradle_types.html#service_injection) for more details and examples.
 
-<!--
-### Example promoted
--->
+### `ObjectFactory` methods for creating domain object collections
+
+Gradle provides a number of types that plugin authors can use to manage a collection of objects. These are called the "domain object collection" types and provide useful features such as DSL support 
+and lazy configuration. These types are used extensively throughout the Gradle API, for example `project.tasks` and `project.repositories` are domain object collections.  
+
+Previously, it was only possible to create a domain object collection by using the APIs provided by a `Project`. However, a `Project` object is not always available, for example
+in a `Settings` plugin or in a project extension object.
+
+The [`ObjectFactory`](javadoc/org/gradle/api/model/ObjectFactory.html) service now has methods for creating [`NamedDomainObjectContainer`](javadoc/org/gradle/api/NamedDomainObjectContainer.html) and [`DomainObjectSet`](javadoc/org/gradle/api/DomainObjectSet.html) instances.
+This means that any code where a `ObjectFactory` is available can now create collection instances. 
+
+See the [user manual](userguide/custom_gradle_types.html#collection_types) for more details and examples.
+
+### Abstract model properties
+
+A custom type, such as a task type, plugin or project extension can now be implemented as an abstract class or, in the case of project extensions and other data types, an interface.
+Gradle can provide an implementation for abstract properties.
+
+For a property with abstract getter and setter methods, Gradle will provide implementations for the getter and setters.
+
+For a read only property with an abstract getter method, Gradle will provide an implementation for the getter method and also create a value for the property.
+For plugin authors, this simplifies the process of providing configuration properties for a task or project extension.
+
+See the [user manual](userguide/custom_gradle_types.html#managed_properties) for more details and examples.
+
+### Additional documentation
+
+There is a new user manual [chapter](userguide/custom_gradle_types.html) that describes how to use these features in your custom Gradle types.
 
 ## Fixed issues
 
