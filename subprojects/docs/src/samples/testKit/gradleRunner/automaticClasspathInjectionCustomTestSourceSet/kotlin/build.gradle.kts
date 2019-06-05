@@ -31,7 +31,7 @@ gradlePlugin {
 }
 
 dependencies {
-    "functionalTestImplementation"("org.spockframework:spock-core:1.1-groovy-2.4") {
+    "functionalTestImplementation"("org.spockframework:spock-core:1.3-groovy-2.4") {
         exclude(module = "groovy-all")
     }
 }

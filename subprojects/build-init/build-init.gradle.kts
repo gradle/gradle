@@ -87,7 +87,7 @@ tasks {
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
 
             val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-            versionProperties["spock"] = "1.2-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+            versionProperties["spock"] = "1.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
 
             findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
             findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)
