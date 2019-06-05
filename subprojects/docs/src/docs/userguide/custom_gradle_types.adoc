@@ -221,6 +221,7 @@ include::{samplesPath}/userguide/plugins/nestedObjects/groovy/buildSrc/src/main/
 ----
 ====
 
+[[collection_types]]
 == Collection types
 
 Gradle provides types for maintaining collections of objects, intended to work well with the Gradle DSL and provide useful features such as lazy configuration.
