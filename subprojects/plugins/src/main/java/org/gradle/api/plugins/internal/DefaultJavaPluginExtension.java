@@ -21,6 +21,11 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
+import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.model.ObjectFactory;
@@ -28,13 +33,22 @@ import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginManager;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.util.TextUtil;
 
 import java.util.regex.Pattern;
 
+import static org.gradle.api.plugins.internal.JavaPluginsHelper.addApiToSourceSet;
+
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final static Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
+    private final static String TEST_FIXTURE_SOURCESET_NAME = "testFixtures";
+    private final static String TEST_FIXTURES_FEATURE_NAME = "testFixtures";
+    private final static String TEST_FIXTURES_API = "testFixturesApi";
+    private final static String TEST_FIXTURES_CAPABILITY_APPENDIX = "-test-fixtures";
+
     private final JavaPluginConvention convention;
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
@@ -94,6 +108,43 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         convention.disableAutoTargetJvm();
     }
 
+    @Override
+    public void enableTestFixtures() {
+        SourceSet testFixtures = convention.getSourceSets().create(TEST_FIXTURE_SOURCESET_NAME);
+        registerFeature(TEST_FIXTURES_FEATURE_NAME, featureSpec -> featureSpec.usingSourceSet(testFixtures));
+        addApiToSourceSet(project, testFixtures, configurations);
+        createImplicitTestFixturesDependencies();
+    }
+
+    private void createImplicitTestFixturesDependencies() {
+        DependencyHandler dependencies = project.getDependencies();
+        dependencies.add(TEST_FIXTURES_API, dependencies.create(project));
+        ProjectDependency testDependency = (ProjectDependency) dependencies.add(findTestSourceSet().getImplementationConfigurationName(), dependencies.create(project));
+        testDependency.capabilities(new ProjectTestFixtures(project));
+    }
+
+    private SourceSet findTestSourceSet() {
+        return convention.getSourceSets().getByName("test");
+    }
+
+    @Override
+    public void usesTestFixturesOf(Object notation) {
+        DependencyHandler dependencies = project.getDependencies();
+        Dependency testFixturesDependency = dependencies.add(findTestSourceSet().getImplementationConfigurationName(), dependencies.create(notation));
+        if (testFixturesDependency instanceof ProjectDependency) {
+            ProjectDependency projectDependency = (ProjectDependency) testFixturesDependency;
+            projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
+        } else if (testFixturesDependency instanceof ModuleDependency) {
+            ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
+            moduleDependency.capabilities(capabilities -> {
+                    capabilities.requireCapability(new ImmutableCapability(
+                        moduleDependency.getGroup(),
+                        moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX,
+                        null));
+                });
+        }
+    }
+
     private static String validateFeatureName(String name) {
         if (!VALID_FEATURE_NAME.matcher(name).matches()) {
             throw new InvalidUserDataException("Invalid feature name '" + name + "'. Must match " + VALID_FEATURE_NAME.pattern());
@@ -130,6 +181,19 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         @Override
         public String getVersion() {
             return notNull("version", project.getVersion());
+        }
+    }
+
+    private static class ProjectTestFixtures implements Action<ModuleDependencyCapabilitiesHandler> {
+        private final Project project;
+
+        private ProjectTestFixtures(Project project) {
+            this.project = project;
+        }
+
+        @Override
+        public void execute(ModuleDependencyCapabilitiesHandler capabilities) {
+            capabilities.requireCapability(new LazyDefaultFeatureCapability(project, TEST_FIXTURES_FEATURE_NAME));
         }
     }
 }
