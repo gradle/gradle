@@ -75,30 +75,7 @@ Gradle now looks for a `gradle.properties` file in the Gradle distribution used 
 
 By placing a `gradle.properties` file in a [custom Gradle distribution](userguide/organizing_gradle_projects.html#sec:custom_gradle_distribution), an organization can add default properties for the entire organization or tweak the default Gradle daemon memory parameters with `org.gradle.jvmargs`.
 
-<a name="native-support"/>
-
-## Building native software with Gradle
-
-Gradle's user manual now includes new chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects.  The DSL guide now includes [C++ related types](dsl/index.html#N10808).
-
-Reference chapters were also created for [all of the C++ plugins](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins](userguide/plugin_reference.html#ide_integration).
-
-The [C++ guides](https://gradle.org/guides/?q=Native) have been updated to reflect all the new features available to C++ developers.
-
-See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
-
-## Improved Eclipse project name deduplication in Buildship
-
-When importing Gradle Eclipse projects into Buildship, the current Eclipse workpace state is taken into account. This allows Gradle to import/synchronize in Eclipse workspaces that include
-non-Gradle projects that conflict with project names in the imported project.
-
-The upcoming 3.1.1 version of Buildship is required to take advantage of this behavior.
-
-Contributed by [Christian Fränkel](https://github.com/fraenkelc)
-
-## Gradle Kotlin DSL compiler upgraded to Kotlin 1.3.31
-
-The Gradle Kotlin DSL embedded Kotlin compiler has been upgraded from version `1.2.21` to version `1.3.31`, please refer to the [Kotlin 1.3.30 release blog entry](https://blog.jetbrains.com/kotlin/2019/04/kotlin-1-3-30-released/) and the [Kotlin 1.3.31 GitHub release notes](https://github.com/JetBrains/kotlin/releases/tag/v1.3.31) for details.
+<a name="improvements-plugin-authors"/>
 
 ## Improvements for plugin authors
 
@@ -139,6 +116,31 @@ See the [user manual](userguide/custom_gradle_types.html#managed_properties) for
 ### Additional documentation
 
 There is a new user manual [chapter](userguide/custom_gradle_types.html) that describes how to use these features in your custom Gradle types.
+
+<a name="native-support"/>
+
+## Building native software with Gradle
+
+Gradle's user manual now includes new chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects.  The DSL guide now includes [C++ related types](dsl/index.html#N10808).
+
+Reference chapters were also created for [all of the C++ plugins](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins](userguide/plugin_reference.html#ide_integration).
+
+The [C++ guides](https://gradle.org/guides/?q=Native) have been updated to reflect all the new features available to C++ developers.
+
+See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
+
+## Improved Eclipse project name deduplication in Buildship
+
+When importing Gradle Eclipse projects into Buildship, the current Eclipse workpace state is taken into account. This allows Gradle to import/synchronize in Eclipse workspaces that include
+non-Gradle projects that conflict with project names in the imported project.
+
+The upcoming 3.1.1 version of Buildship is required to take advantage of this behavior.
+
+Contributed by [Christian Fränkel](https://github.com/fraenkelc)
+
+## Gradle Kotlin DSL compiler upgraded to Kotlin 1.3.31
+
+The Gradle Kotlin DSL embedded Kotlin compiler has been upgraded from version `1.2.21` to version `1.3.31`, please refer to the [Kotlin 1.3.30 release blog entry](https://blog.jetbrains.com/kotlin/2019/04/kotlin-1-3-30-released/) and the [Kotlin 1.3.31 GitHub release notes](https://github.com/JetBrains/kotlin/releases/tag/v1.3.31) for details.
 
 ## Fixed issues
 
