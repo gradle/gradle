@@ -84,6 +84,10 @@ Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
 
 The version of Ant distributed with Gradle has been upgraded to link:https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.14.html[1.9.14] from 1.9.13.
 
+==== `DependencyHandler` now staticaly exposes `ExtensionAware`
+
+This affects Kotlin DSL build scripts that make use of `ExtensionAware` extension members such as the `extra` properties accessor inside the `dependencies {}` block. The receiver for those members will no longer be the enclosing `Project` instance but the `dependencies` object itself, the innermost `ExtensionAware` conforming receiver. In order to address `Project` extra properties inside `dependencies {}` the receiver must be explicitly qualified i.e. `project.extra` instead of just `extra`. Affected extensions also include `the<T>()` and `configure<T>(T.() -> Unit)`.
+
 === Deprecations
 
 ==== Play

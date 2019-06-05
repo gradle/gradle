@@ -196,6 +196,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         }
 
         private ResolvedComponentResult deserialize(Decoder decoder) {
+            componentSelectorSerializer.reset();
             int valuesRead = 0;
             byte type = -1;
             Timer clock = Time.startTimer();
