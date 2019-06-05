@@ -65,6 +65,10 @@ dependencies {
     testImplementation(testLibrary("jsoup"))
 
     integTestRuntimeOnly(project(":maven"))
+
+    testImplementation(library("gson")) {
+        because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
+    }
 }
 
 

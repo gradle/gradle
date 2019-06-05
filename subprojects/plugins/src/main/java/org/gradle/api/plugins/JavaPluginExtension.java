@@ -72,4 +72,26 @@ public interface JavaPluginExtension {
      */
     @Incubating
     void disableAutoTargetJvm();
+
+    /**
+     * If this method is called, a new source set will be created for test fixtures.
+     * This source set will automatically depend on the main component, and the tests
+     * will also automatically depend on test fixtures.
+     *
+     * Consumers of this project may use this test fixtures by calling the {@link #usesTestFixturesOf(Object)} method
+     *
+     * @since 5.6
+     */
+    @Incubating
+    void enableTestFixtures();
+
+    /**
+     * Indicates that this project uses the test fixtures of another project or external module.
+     * It is assumed that those test fixtures were enabled using the {@link #enableTestFixtures()} method
+     * of the producer.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    void usesTestFixturesOf(Object notation);
 }
