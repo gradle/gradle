@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule

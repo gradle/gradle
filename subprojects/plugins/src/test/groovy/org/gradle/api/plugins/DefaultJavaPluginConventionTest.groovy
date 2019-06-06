@@ -26,7 +26,7 @@ import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.Test

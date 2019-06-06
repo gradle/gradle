@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.fixtures
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.CollectionUtils
 
 class RunningPlayAppTest extends Specification {
