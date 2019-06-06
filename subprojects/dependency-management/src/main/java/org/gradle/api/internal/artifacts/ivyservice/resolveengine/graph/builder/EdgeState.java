@@ -154,7 +154,9 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public void removeFromTargetConfigurations() {
-        if (!targetNodes.isEmpty()) {
+        if (targetNodes.isEmpty()) {
+            selector.getTargetModule().removeUnattachedDependency(this);
+        } else {
             for (NodeState targetConfiguration : targetNodes) {
                 targetConfiguration.removeIncomingEdge(this);
             }

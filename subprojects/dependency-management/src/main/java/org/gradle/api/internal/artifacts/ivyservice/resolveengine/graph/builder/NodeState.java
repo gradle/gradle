@@ -842,6 +842,7 @@ public class NodeState implements DependencyGraphNode {
 
     void makePending(EdgeState edgeState) {
         outgoingEdges.remove(edgeState);
+        edgeState.getSelector().release();
         registerActivatingConstraint(edgeState.getDependencyState());
     }
 
