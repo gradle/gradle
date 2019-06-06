@@ -220,6 +220,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private UserCodeApplicationContext userCodeApplicationContext;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
+    private int copyCount;
     private Action<? super ConfigurationInternal> beforeLocking;
 
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
@@ -964,7 +965,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
-        String newName = name + "Copy";
+        copyCount++;
+        String newName = name + "Copy" + (copyCount > 1 ? copyCount : "");
+
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
