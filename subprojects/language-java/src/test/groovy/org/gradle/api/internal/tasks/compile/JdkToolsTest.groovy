@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.internal.jvm.JavaInfo
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

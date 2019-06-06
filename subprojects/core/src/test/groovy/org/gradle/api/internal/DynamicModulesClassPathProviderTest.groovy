@@ -21,7 +21,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import spock.lang.Unroll
 
 class DynamicModulesClassPathProviderTest extends Specification {

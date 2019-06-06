@@ -27,7 +27,7 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.time.Clock
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
