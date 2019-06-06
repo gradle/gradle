@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -38,7 +40,9 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.ConfigureUtil;
@@ -47,6 +51,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
 public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
@@ -266,6 +271,31 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         Dependency dep = enforcedPlatform(notation);
         configureAction.execute(dep);
         return dep;
+    }
+
+    @Override
+    public Dependency testFixtures(Object notation) {
+        Dependency testFixturesDependency = create(notation);
+        if (testFixturesDependency instanceof ProjectDependency) {
+            ProjectDependency projectDependency = (ProjectDependency) testFixturesDependency;
+            projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
+        } else if (testFixturesDependency instanceof ModuleDependency) {
+            ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
+            moduleDependency.capabilities(capabilities -> {
+                capabilities.requireCapability(new ImmutableCapability(
+                    moduleDependency.getGroup(),
+                    moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX,
+                    null));
+            });
+        }
+        return testFixturesDependency;
+    }
+
+    @Override
+    public Dependency testFixtures(Object notation, Action<? super Dependency> configureAction) {
+        Dependency testFixturesDependency = testFixtures(notation);
+        configureAction.execute(testFixturesDependency);
+        return testFixturesDependency;
     }
 
     private Category toCategory(String category) {
