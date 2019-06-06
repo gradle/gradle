@@ -11,6 +11,7 @@ Include only their name, impactful features should be called out separately belo
 [Semyon Levin](https://github.com/remal),
 [wreulicke](https://github.com/wreulicke),
 [John Rodriguez](https://github.com/jrodbx),
+[mig4](https://github.com/mig4),
 and [Ivo Anjo](https://github.com/ivoanjo).
 
 <!-- 
