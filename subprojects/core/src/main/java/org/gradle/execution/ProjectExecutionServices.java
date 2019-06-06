@@ -50,6 +50,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.IncrementalContext;
@@ -113,7 +114,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskExecutionListener taskExecutionListener,
                                     TaskCacheabilityResolver taskCacheabilityResolver,
                                     WorkExecutor<IncrementalContext, CachingResult> workExecutor,
-                                    ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry
+                                    ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
+                                    ListenerManager listenerManager
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -128,7 +130,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             asyncWorkTracker,
             actionListener,
             taskCacheabilityResolver,
-            workExecutor
+            workExecutor,
+            listenerManager
         );
         executer = new ResolveBeforeExecutionStateTaskExecuter(classLoaderHierarchyHasher, valueSnapshotter, taskFingerprinter, executer);
         executer = new ValidatingTaskExecuter(executer, reservedFileSystemLocationRegistry);

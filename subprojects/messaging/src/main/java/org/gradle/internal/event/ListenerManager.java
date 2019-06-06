@@ -51,6 +51,17 @@ public interface ListenerManager {
     void removeListener(Object listener);
 
     /**
+     * Allows a client to query if any listeners of a particular type are currently registered.
+     * If no, then the broadcaster for this listener type will not forward calls to any listeners.
+     *
+     * <p>Calling this method will instantiate a broadcaster for the type, if none yet exists.</p>
+     *
+     * @param listenerClass The type of listener to check.
+     * @return True if a listener of the specified type is currently registered, false otherwise.
+     */
+    <T> boolean hasListeners(Class<T> listenerClass);
+
+    /**
      * Returns a broadcaster for the given listenerClass. Any method invoked on the broadcaster is forwarded to all registered
      * listeners of the given type. This is done synchronously. Any listener method with a non-void return type will return a null.
      * Exceptions are propagated, and multiple failures are packaged up in a {@link ListenerNotificationException}.

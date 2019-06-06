@@ -32,6 +32,7 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.CachingResult
@@ -86,6 +87,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
     def buildCacheController = Mock(BuildCacheController)
+    def listenerManager = Mock(ListenerManager)
     def workExecutor = new DefaultWorkExecutor<IncrementalContext, CachingResult>(
         new ResolveCachingStateStep(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
@@ -116,7 +118,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         asyncWorkTracker,
         actionListener,
         taskCacheabilityResolver,
-        workExecutor
+        workExecutor,
+        listenerManager
     )
 
     def setup() {

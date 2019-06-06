@@ -38,6 +38,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
@@ -92,6 +93,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
+    private final ListenerManager listenerManager;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -102,7 +104,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
-        WorkExecutor<IncrementalContext, CachingResult> workExecutor
+        WorkExecutor<IncrementalContext, CachingResult> workExecutor,
+        ListenerManager listenerManager
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.scanPluginApplied = scanPluginApplied;
@@ -113,6 +116,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.actionListener = actionListener;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
         this.workExecutor = workExecutor;
+        this.listenerManager = listenerManager;
     }
 
     @Override
@@ -370,14 +374,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
+        boolean hasTaskListener = listenerManager.hasListeners(TaskActionListener.class);
         Iterator<InputChangesAwareTaskAction> actions = new ArrayList<>(task.getTaskActions()).iterator();
         while (actions.hasNext()) {
             InputChangesAwareTaskAction action = actions.next();
             task.getState().setDidWork(true);
             task.getStandardOutputCapture().start();
-            boolean hasAnotherAction = actions.hasNext();
+            boolean hasMoreWork = hasTaskListener || actions.hasNext();
             try {
-                executeAction(action.getDisplayName(), task, action, inputChanges, hasAnotherAction);
+                executeAction(action.getDisplayName(), task, action, inputChanges, hasMoreWork);
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -390,7 +395,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeAction(final String actionDisplayName, final TaskInternal task, final InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges, boolean hasAnotherAction) {
+    private void executeAction(final String actionDisplayName, final TaskInternal task, final InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges, boolean hasMoreWork) {
         if (inputChanges != null) {
             action.setInputChanges(inputChanges);
         }
@@ -413,7 +418,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
 
                 try {
-                    asyncWorkTracker.waitForCompletion(currentOperation, hasAnotherAction ? RELEASE_AND_REACQUIRE_PROJECT_LOCKS : RELEASE_PROJECT_LOCKS);
+                    asyncWorkTracker.waitForCompletion(currentOperation, hasMoreWork ? RELEASE_AND_REACQUIRE_PROJECT_LOCKS : RELEASE_PROJECT_LOCKS);
                 } catch (Throwable t) {
                     List<Throwable> failures = Lists.newArrayList();
 

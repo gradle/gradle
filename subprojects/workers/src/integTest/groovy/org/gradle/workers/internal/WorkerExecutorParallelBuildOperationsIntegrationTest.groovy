@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -35,12 +36,19 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
     def setup() {
         blockingHttpServer.start()
         withMultipleActionTaskTypeInBuildScript()
+        buildFile << """
+            task slowTask {
+                doLast { 
+                    ${blockingHttpServer.callFromBuild("slowTask")} 
+                    sleep 10
+                }
+            }
+"""
     }
 
     def "worker-based task completes as soon as work items are finished (while another task is executing in parallel)"() {
-        given:
+        when:
         buildFile << """
-            def state = "init"
             task workTask(type: MultipleWorkItemTask) {
                 doLast {
                     println "pre-action"
@@ -50,26 +58,14 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
                 }
             }
             
-            task slowTask {
-                doLast { 
-                    ${blockingHttpServer.callFromBuild("slowTask")} 
-                    sleep 10
-                }
-            }
         """
 
-        blockingHttpServer.expectConcurrent("workTask", "slowTask")
-
-        when:
-        args("--max-workers=4")
-        succeeds(":workTask", ":slowTask")
-
         then:
-        endTime(":workTask").isBefore endTime(":slowTask")
+        workTaskCompletesFirst()
     }
 
     def "worker-based task with further actions does not complete when work items finish (while another task is executing in parallel)"() {
-        given:
+        when:
         buildFile << """
             task workTask(type: MultipleWorkItemTask) {
                 doLast { 
@@ -79,23 +75,64 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
                     println "post-action"
                 }
             }
-            
-            task slowTask {
+        """
+
+        then:
+        workTaskDoesNotCompleteFirst()
+    }
+
+    def "worker-based task with task action listener does not complete while another task is executing in parallel"() {
+        when:
+        buildFile << """
+            gradle.addListener(new TaskActionListener() {
+                void beforeActions(Task task) {}
+                void afterActions(Task task) {}
+            })
+
+            task workTask(type: MultipleWorkItemTask) {
                 doLast { 
-                    ${blockingHttpServer.callFromBuild("slowTask")} 
-                    sleep 10
+                    submitWorkItem("workTask")
                 }
             }
         """
 
-        blockingHttpServer.expectConcurrent("workTask", "slowTask")
+        then:
+        workTaskDoesNotCompleteFirst()
+    }
 
+    def "worker-based task with task execution listener does not complete while another task is executing in parallel"() {
         when:
-        args("--max-workers=4")
-        succeeds(":workTask", ":slowTask")
+        buildFile << """
+            gradle.addListener(new TaskExecutionListener() {
+                void beforeExecute(Task task) {}
+                void afterExecute(Task task, TaskState state) {}
+            })
+
+            task workTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("workTask")
+                }
+            }
+        """
 
         then:
-        endTime(":workTask").isAfter endTime(":slowTask")
+        workTaskCompletesFirst()
+    }
+
+    private void workTaskCompletesFirst() {
+        invokeBuild()
+        assert endTime(":workTask").isBefore(endTime(":slowTask"))
+    }
+
+    private void workTaskDoesNotCompleteFirst() {
+        invokeBuild()
+        assert !endTime(":workTask").isBefore(endTime(":slowTask"))
+    }
+
+    private void invokeBuild() {
+        blockingHttpServer.expectConcurrent("workTask", "slowTask")
+        args("--max-workers=4")
+        succeeds(":workTask", ":slowTask")
     }
 
     def endTime(String taskPath) {
