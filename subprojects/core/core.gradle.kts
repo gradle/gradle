@@ -28,7 +28,7 @@ configurations {
 }
 
 tasks.classpathManifest {
-    optionalProjects = listOf("gradle-kotlin-dsl")
+    optionalProjects.add(":kotlinDsl")
 }
 
 dependencies {

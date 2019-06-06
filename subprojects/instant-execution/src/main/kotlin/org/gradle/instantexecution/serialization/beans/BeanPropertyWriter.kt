@@ -28,6 +28,7 @@ import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logProperty
 import org.gradle.instantexecution.serialization.logPropertyWarning
+import java.util.concurrent.Callable
 import java.util.function.Supplier
 
 
@@ -85,12 +86,12 @@ class BeanPropertyWriter(
         conventionMapping.getConventionValue<Any?>(null, fieldName, false)
     }
 
-    private
     fun unpack(fieldValue: Any?): Any? = when (fieldValue) {
         is DirectoryProperty -> fieldValue.asFile.orNull
         is RegularFileProperty -> fieldValue.asFile.orNull
         is Property<*> -> fieldValue.orNull
         is Provider<*> -> fieldValue.orNull
+        is Callable<*> -> fieldValue.call()
         is Supplier<*> -> fieldValue.get()
         is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
         is Lazy<*> -> unpack(fieldValue.value)

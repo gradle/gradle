@@ -16,11 +16,12 @@
 package org.gradle.build
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -33,52 +34,77 @@ import org.gradle.kotlin.dsl.*
 
 import java.io.File
 import java.util.Properties
+import javax.inject.Inject
 
 
 @CacheableTask
 @Suppress("unused")
-open class ClasspathManifest : DefaultTask() {
+abstract class ClasspathManifest @Inject constructor(
+    providers: ProviderFactory
+) : DefaultTask() {
 
     @get:Internal
-    val input: Configuration = project.configurations["runtimeClasspath"]
-
-    @get:Input
-    var optionalProjects: List<String> = emptyList()
+    abstract val additionalProjects: ListProperty<String>
 
     @get:Internal
-    var additionalProjects: List<Project> = emptyList()
-
-    @get:OutputFile
-    val manifestFile: File
-        get() {
-            return File(project.gradlebuildJava.generatedResourcesDir, "${project.base.archivesBaseName}-classpath.properties")
-        }
+    abstract val optionalProjects: ListProperty<String>
 
     @get:Input
-    val runtime: String
-        get() = input
+    internal
+    val runtime: Provider<String> = providers.provider {
+        runtimeClasspath
             .fileCollection { it is ExternalDependency || it is FileCollectionDependency }
             .joinForProperties { it.name }
+    }
 
     @get:Input
-    val projects: String
-        get() = (input.allDependencies.withType<ProjectDependency>().filter { it.dependencyProject.plugins.hasPlugin("java-base") }.map { it.dependencyProject.base.archivesBaseName }
-            + additionalProjects.map { it.base.archivesBaseName })
+    internal
+    val projects: Provider<String> = providers.provider {
+
+        val inputProjectsArchivesBaseNames = runtimeClasspath.allDependencies
+            .withType<ProjectDependency>()
+            .filter { it.dependencyProject.plugins.hasPlugin("java-base") }
+            .map { it.dependencyProject.base.archivesBaseName }
+
+        val additionalProjectsArchivesBaseNames = additionalProjects.get()
+            .map { project.project(it).base.archivesBaseName }
+
+        (inputProjectsArchivesBaseNames + additionalProjectsArchivesBaseNames)
             .joinForProperties()
+    }
+
+    @get:Input
+    internal
+    val optional: Provider<String> = providers.provider {
+        optionalProjects.get()
+            .map { project.project(it).base.archivesBaseName }
+            .joinForProperties()
+    }
+
+    @get:OutputFile
+    internal
+    val manifestFile: Provider<File> = providers.provider {
+        project.gradlebuildJava.generatedResourcesDir
+            .resolve("${project.base.archivesBaseName}-classpath.properties")
+    }
 
     @TaskAction
     fun generate() {
-        ReproduciblePropertiesWriter.store(createProperties(), manifestFile)
+        ReproduciblePropertiesWriter.store(createProperties(), manifestFile.get())
     }
 
     private
     fun createProperties() = Properties().also { properties ->
-        properties["runtime"] = runtime
-        properties["projects"] = projects
-        if (optionalProjects.isNotEmpty()) {
-            properties["optional"] = optionalProjects.joinForProperties()
+        properties["runtime"] = runtime.get()
+        properties["projects"] = projects.get()
+        optional.get().takeIf { it.isNotEmpty() }?.let { optional ->
+            properties["optional"] = optional
         }
     }
+
+    private
+    val runtimeClasspath
+        get() = project.configurations["runtimeClasspath"]
 
     private
     fun <T : Any> Iterable<T>.joinForProperties(transform: ((T) -> CharSequence)? = null) =
