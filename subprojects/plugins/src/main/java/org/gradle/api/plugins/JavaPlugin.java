@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -53,6 +54,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.util.DeprecationLogger;
 
@@ -203,6 +205,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "annotationProcessor";
 
     /**
+     * The name of the annotation processor classpath configuration.
+     *
+     * @since 5.7
+     */
+    @Incubating
+    public static final String ANNOTATION_PROCESSOR_CLASSPATH_CONFIGURATION_NAME = "annotationProcessorClasspath";
+
+    /**
      * The name of the test compile dependencies configuration.
      *
      * @deprecated Use {@link #TEST_IMPLEMENTATION_CONFIGURATION_NAME} instead.
@@ -251,6 +261,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * @since 4.6
      */
     public static final String TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "testAnnotationProcessor";
+
+    /**
+     * The name of the test annotation processor classpath configuration.
+     *
+     * @since 5.7
+     */
+    @Incubating
+    public static final String TEST_ANNOTATION_PROCESSOR_CLASSPATH_CONFIGURATION_NAME = "testAnnotationProcessorClasspath";
 
     /**
      * The name of the test runtime classpath configuration.

@@ -32,14 +32,8 @@ class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIn
 
         // annotation processor path uses @Classpath
         file('a/build.gradle') << '''
-            configurations {
-                annotationProcessor
-            }
             dependencies {
                 annotationProcessor project(':b')
-            }
-            compileJava {
-                options.annotationProcessorPath = configurations.annotationProcessor
             }
         '''
 

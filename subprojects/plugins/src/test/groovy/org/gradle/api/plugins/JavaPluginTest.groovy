@@ -249,7 +249,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
         set.compileClasspath.is(project.configurations.compileClasspath)
-        set.annotationProcessorPath.is(project.configurations.annotationProcessor)
+        set.annotationProcessorPath.is(project.configurations.annotationProcessorClasspath)
         set.java.outputDir == new File(project.buildDir, 'classes/java/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.CLASSES_TASK_NAME ]
@@ -266,7 +266,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.resources.srcDirs == toLinkedSet(project.file('src/test/resources'))
         set.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
         set.compileClasspath.contains(new File(project.buildDir, 'classes/java/main'))
-        set.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
+        set.annotationProcessorPath.is(project.configurations.testAnnotationProcessorClasspath)
         set.java.outputDir == new File(project.buildDir, 'classes/java/test')
         set.output.resourcesDir == new File(project.buildDir, 'resources/test')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.TEST_CLASSES_TASK_NAME ]
@@ -288,7 +288,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.compileClasspath.is(project.configurations.customCompileClasspath)
-        set.annotationProcessorPath.is(project.configurations.customAnnotationProcessor)
+        set.annotationProcessorPath.is(project.configurations.customAnnotationProcessorClasspath)
         set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ 'customClasses' ]
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))

@@ -17,6 +17,7 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.ExtensionAware;
@@ -276,13 +277,23 @@ public interface SourceSet extends ExtensionAware {
     String getCompileClasspathConfigurationName();
 
     /**
-     * Returns the name of the configuration containing annotation processors and their
-     * dependencies needed to compile this source set.
+     * Returns the name of the configuration for defining annotation processors dependencies.
      *
      * @return the name of the annotation processor configuration.
      * @since 4.6
      */
     String getAnnotationProcessorConfigurationName();
+
+    /**
+     * Returns the name of the configuration containing annotation processors and their
+     * dependencies needed to compile this source set.
+     *
+     * @return The annotation processor classpath configuration
+     *
+     * @since 5.7
+     */
+    @Incubating
+    String getAnnotationProcessorClasspathConfigurationName();
 
     /**
      * Returns the name of the API configuration for this source set. The API configuration

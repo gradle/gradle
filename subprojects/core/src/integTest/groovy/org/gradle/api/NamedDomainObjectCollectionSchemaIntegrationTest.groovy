@@ -86,6 +86,7 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
                     )
                     assertSchemaIs(configurations, 
                         'annotationProcessor':'Configuration', 
+                        'annotationProcessorClasspath':'Configuration',
                         'apiElements':'Configuration', 
                         'archives':'Configuration', 
                         'compile':'Configuration', 
@@ -97,7 +98,8 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
                         'runtimeClasspath':'Configuration', 
                         'runtimeElements':'Configuration', 
                         'runtimeOnly':'Configuration', 
-                        'testAnnotationProcessor':'Configuration', 
+                        'testAnnotationProcessor':'Configuration',
+                        'testAnnotationProcessorClasspath':'Configuration',
                         'testCompile':'Configuration', 
                         'testCompileClasspath':'Configuration', 
                         'testCompileOnly':'Configuration', 
