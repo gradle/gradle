@@ -2,33 +2,40 @@ package org.gradle.distribution
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
+import org.gradle.api.provider.*
+import org.gradle.api.file.*
 
+import groovy.transform.CompileStatic
+
+/**
+ * Downloads a given version of Gradle into a known location.
+ */
+@CompileStatic
 class DownloadGradle extends DefaultTask {
     @Input
-    String gradleVersion
+    final Property<String> gradleVersion = project.objects.property(String).value("5.4")
 
     @Input
-    String gradleDownloadBase = 'http://services.gradle.org/distributions'
+    final Property<String> gradleDownloadBase = 
+        project.objects.property(String).convention("https://services.gradle.org/distributions")
+
+    @OutputFile
+    final RegularFileProperty destinationFile = 
+        project.objects.fileProperty().convention(project.layout.projectDirectory.dir("gradle-downloads/").file(downloadFileName))
 
     @TaskAction
     void doDownloadGradle() {
-        destinationFile.withOutputStream { it << downloadUrl.newInputStream() }
+        URL downloadUrl = new URL(gradleDownloadBase.get() + "/" + downloadFileName.get())
+        destinationFile.get().asFile.withOutputStream { it << downloadUrl.newInputStream() }
     }
 
-    URL getDownloadUrl() {
-        new URL("$gradleDownloadBase/$downloadFileName")
+    @Internal
+    Provider<String> getDistributionNameBase() {
+        return gradleVersion.map { "gradle-" + it }
     }
 
-    String getDistributionNameBase() {
-        "gradle-$gradleVersion"
-    }
-
-    String getDownloadFileName() {
-        "$distributionNameBase-bin.zip"
-    }
-
-    @OutputFile
-    File getDestinationFile() {
-        new File(project.file("gradle-downloads"), downloadFileName)
+    @Internal
+    private Provider<String> getDownloadFileName() {
+        return distributionNameBase.map { it + "-bin.zip" }
     }
 }
