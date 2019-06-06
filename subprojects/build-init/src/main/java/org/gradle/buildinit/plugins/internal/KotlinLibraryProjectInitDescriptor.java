@@ -60,6 +60,9 @@ public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor
         super.generate(settings, buildScriptBuilder, templateFactory);
 
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
+        buildScriptBuilder.dependencies().platformDependency(
+            "implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom"
+        );
         buildScriptBuilder
             .fileComment("This generated file contains a sample Kotlin library project to get you started.")
             .plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.", "org.jetbrains.kotlin.jvm", kotlinVersion)
