@@ -504,7 +504,13 @@ allprojects {
 
 project(':child') {
     configurations {
+        runtimeOnly {
+            canBeConsumed = false
+            canBeResolved = false
+        }
         runtimeElements {
+            extendsFrom(runtimeOnly)
+            canBeConsumed = true
             canBeResolved = false
             attributes {
                 attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
@@ -516,7 +522,7 @@ project(':child') {
     artifacts {
         buildDir.mkdirs()
         file("\$buildDir/test.jar").text = "toto"
-        runtimeElements file("\$buildDir/test.jar")
+        runtimeOnly file("\$buildDir/test.jar")
     }
 }
 

@@ -50,17 +50,24 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                         def processResources = p.tasks.processResources
                         buildTypes.each { bt ->
                             flavors.each { f ->
-                                String baseName = "compile${f.capitalize()}${bt.capitalize()}"
-                                def compileConfig = p.configurations.create(baseName) {
+                                String baseName = "${f.capitalize()}${bt.capitalize()}"
+                                def implementationConfig = p.configurations.create("implementation$baseName") {
                                     extendsFrom p.configurations.implementation
+                                    canBeConsumed = false
+                                    canBeResolved = false
+                                }
+                                def compileConfig = p.configurations.create("compile$baseName") {
+                                    extendsFrom p.configurations.implementation
+                                    canBeConsumed = true
                                     canBeResolved = false
                                     attributes.attribute(buildType, bt)
                                     attributes.attribute(flavor, f)
                                     attributes.attribute(usage, 'compile')
                                 }
-                                def _compileConfig = p.configurations.create("_$baseName") {
-                                    extendsFrom p.configurations.implementation
+                                def _compileConfig = p.configurations.create("_compile$baseName") {
+                                    extendsFrom implementationConfig
                                     canBeConsumed = false
+                                    canBeResolved = true
                                     attributes.attribute(buildType, bt)
                                     attributes.attribute(flavor, f)
                                     attributes.attribute(usage, 'compile')
@@ -99,8 +106,8 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                     task.baseName = "${p.name}-${f}${bt}"
                                     task.from compileTask.outputs.files
                                 }
-                                p.artifacts.add(baseName, jarTask)
-                                p.artifacts.add("_$baseName", aarTask)
+                                p.artifacts.add("compile$baseName", jarTask)
+                                p.artifacts.add("_compile$baseName", aarTask)
                                 //p.artifacts.add(mergedResourcesConf.name, mergeResourcesTask)
                             }
                         }
@@ -139,7 +146,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         projectDir {
             withVariants(buildFile)
             withExternalDependencies(buildFile, '''
-                _compileFreeDebug 'org.apache.commons:commons-lang3:3.5'
+                implementationFreeDebug 'org.apache.commons:commons-lang3:3.5'
             ''')
             src {
                 main {
@@ -173,7 +180,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             def buildDotGradle = file('build.gradle')
             withVariants(buildDotGradle)
             withExternalDependencies(buildDotGradle, '''
-                _compileFreeDebug 'org.apache.commons:commons-lang3:3.5'
+                implementationFreeDebug 'org.apache.commons:commons-lang3:3.5'
             ''')
             src {
                 main {
