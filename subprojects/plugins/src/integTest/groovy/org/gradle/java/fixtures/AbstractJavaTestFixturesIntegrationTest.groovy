@@ -44,10 +44,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
 
     def "can compile test fixtures"() {
         buildFile << """
-            java {
-                enableTestFixtures()
-            }
-
+            apply plugin: 'java-test-fixtures'
         """
         addPersonDomainClass()
         addPersonTestFixture()
@@ -77,9 +74,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
 
     def "test fixtures can use their own dependencies"() {
         buildFile << """
-            java {
-                enableTestFixtures()
-            }
+            apply plugin: 'java-test-fixtures'
         
             dependencies {
                 testFixturesImplementation 'org.apache.commons:commons-lang3:3.9'
@@ -113,9 +108,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
 
     def "test fixtures implementation dependencies to not leak into the test compile classpath"() {
         buildFile << """
-            java {
-                enableTestFixtures()
-            }
+            apply plugin: 'java-test-fixtures'
         
             dependencies {
                 testFixturesImplementation 'org.apache.commons:commons-lang3:3.9'
@@ -141,9 +134,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
 
     def "test fixtures api dependencies are visible on the test compile classpath"() {
         buildFile << """
-            java {
-                enableTestFixtures()
-            }
+            apply plugin: 'java-test-fixtures'
         
             dependencies {
                 testFixturesApi 'org.apache.commons:commons-lang3:3.9'
@@ -169,13 +160,11 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
             include 'sub'
         """
         file("sub/build.gradle") << """
-            java {
-                enableTestFixtures()
-            }
+            apply plugin: 'java-test-fixtures'
         """
         buildFile << """
-            java {
-                usesTestFixturesOf(project(":sub"))
+            dependencies {
+                testImplementation(testFixtures(project(":sub")))
             }           
         """
         addPersonDomainClass("sub")
@@ -198,10 +187,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
 
         buildFile << """
             apply plugin: 'maven-publish'
-
-            java {
-                enableTestFixtures()
-            }
+            apply plugin: 'java-test-fixtures'
 
             dependencies {
                 testFixturesImplementation 'org.apache.commons:commons-lang3:3.9'
@@ -272,8 +258,8 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
             .withModuleMetadata()
             .publish()
         buildFile << """
-            java {
-                usesTestFixturesOf('com.acme:external-module:1.3')
+            dependencies {
+                testImplementation(testFixtures('com.acme:external-module:1.3'))
             }
             repositories {
                 maven {
