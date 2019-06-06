@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
@@ -46,6 +45,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Responsible for snapshotting various aspects of the file system.
@@ -90,10 +90,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 return snapshot.getHash();
             }
         }
-        return producingSnapshots.guardByKey(absolutePath, new Factory<HashCode>() {
+        return producingSnapshots.guardByKey(absolutePath, new Supplier<HashCode>() {
             @Nullable
             @Override
-            public HashCode create() {
+            public HashCode get() {
                 InternableString internableAbsolutePath = new InternableString(absolutePath);
                 FileMetadataSnapshot metadata = statAndCache(internableAbsolutePath, file);
                 if (metadata.getType() != FileType.RegularFile) {
@@ -110,9 +110,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         final String absolutePath = file.getAbsolutePath();
         FileSystemLocationSnapshot result = fileSystemMirror.getSnapshot(absolutePath);
         if (result == null) {
-            result = producingSnapshots.guardByKey(absolutePath, new Factory<FileSystemLocationSnapshot>() {
+            result = producingSnapshots.guardByKey(absolutePath, new Supplier<FileSystemLocationSnapshot>() {
                 @Override
-                public FileSystemLocationSnapshot create() {
+                public FileSystemLocationSnapshot get() {
                     return snapshotAndCache(file, null);
                 }
             });
@@ -187,9 +187,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (snapshot != null) {
             return filterSnapshot(snapshot, patterns);
         }
-        return producingSnapshots.guardByKey(path, new Factory<FileSystemSnapshot>() {
+        return producingSnapshots.guardByKey(path, new Supplier<FileSystemSnapshot>() {
             @Override
-            public FileSystemSnapshot create() {
+            public FileSystemSnapshot get() {
                 FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
                 if (snapshot == null) {
                     snapshot = snapshotAndCache(root, patterns);
