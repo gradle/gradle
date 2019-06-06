@@ -86,7 +86,6 @@ class BeanPropertyWriter(
         conventionMapping.getConventionValue<Any?>(null, fieldName, false)
     }
 
-    private
     fun unpack(fieldValue: Any?): Any? = when (fieldValue) {
         is DirectoryProperty -> fieldValue.asFile.orNull
         is RegularFileProperty -> fieldValue.asFile.orNull

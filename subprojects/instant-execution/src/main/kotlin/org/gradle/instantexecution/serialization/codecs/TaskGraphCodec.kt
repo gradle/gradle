@@ -124,7 +124,7 @@ fun WriteContext.writeRegisteredPropertiesOf(
 ) = propertyWriter.run {
 
     fun writeProperty(propertyName: String, propertyValue: PropertyValue, kind: PropertyKind): Boolean {
-        val value = propertyValue.call() ?: return false
+        val value = unpack(propertyValue.call()) ?: return false
         return writeNextProperty(propertyName, value, kind)
     }
 
