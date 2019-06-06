@@ -40,6 +40,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
+import org.gradle.internal.component.external.model.TestFixturesSupport;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -127,7 +128,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
                     }
                 }));
 
-                if (SourceSet.MAIN_SOURCE_SET_NAME.equals(sourceSet.getName())) {
+                if (SourceSet.MAIN_SOURCE_SET_NAME.equals(sourceSet.getName()) || TestFixturesSupport.TEST_FIXTURE_SOURCESET_NAME.equals(sourceSet.getName())) {
                     // The user has chosen to use the java-library plugin;
                     // add a classes variant for groovy's main sourceSet compilation,
                     // so default-configuration project dependencies will see groovy's output.
