@@ -33,8 +33,11 @@ internal
 fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
     relevantTypeHierarchyOf(taskType).flatMap { type ->
         type.declaredFields.asSequence().filterNot { field ->
-            // Ignore the `metaClass` field that Groovy generates
-            Modifier.isStatic(field.modifiers) || (field.isSynthetic && field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
+            Modifier.isStatic(field.modifiers)
+                // Ignore the `metaClass` field that Groovy generates
+                || (field.isSynthetic && field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
+                // Ignore the `__meta_class__` field that Gradle generates
+                || (field.name == "__meta_class__" && MetaClass::class.java.isAssignableFrom(field.type))
         }
     }.onEach {
         it.isAccessible = true
