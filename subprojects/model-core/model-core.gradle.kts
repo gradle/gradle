@@ -23,7 +23,6 @@ plugins {
 }
 
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
 
     implementation(project(":baseServices"))
     implementation(project(":logging"))
@@ -31,6 +30,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":baseServicesGroovy"))
 
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     implementation(library("inject"))
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

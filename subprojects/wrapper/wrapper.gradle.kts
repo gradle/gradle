@@ -37,7 +37,7 @@ dependencies {
 
     crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":persistentCache"))
-    crossVersionTestImplementation(project(":launcherStartup"))
+    crossVersionTestImplementation(project(":launcher"))
 }
 
 gradlebuildJava {

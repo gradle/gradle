@@ -8,6 +8,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":launcher"))
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -26,9 +27,6 @@ dependencies {
     implementation(project(":platformJvm"))
     implementation(project(":languageJvm"))
     implementation(project(":toolingApi"))
-
-    compileOnly(project(":launcherStartup"))
-    runtimeOnly(project(":launcher"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

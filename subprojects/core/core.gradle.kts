@@ -94,7 +94,7 @@ dependencies {
 
     integTestImplementation(project(":workers"))
     integTestImplementation(project(":dependencyManagement"))
-    integTestImplementation(project(":launcherStartup"))
+    integTestImplementation(project(":launcher"))
     integTestImplementation(project(":plugins"))
     integTestImplementation(library("jansi"))
     integTestImplementation(library("jetbrains_annotations"))

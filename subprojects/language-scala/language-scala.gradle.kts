@@ -30,8 +30,9 @@ dependencies {
     integTestImplementation(library("commons_lang"))
     integTestImplementation(library("ant"))
 
-    // keep in sync with ScalaLanguagePlugin code
-    compileOnly("com.typesafe.zinc:zinc:0.3.15")
+    compileOnly("com.typesafe.zinc:zinc:0.3.15") {
+        because("this dependency is downloaded by the antlr plugin; version should be in sync with ScalaLanguagePlugin code")
+    }
 }
 
 gradlebuildJava {
