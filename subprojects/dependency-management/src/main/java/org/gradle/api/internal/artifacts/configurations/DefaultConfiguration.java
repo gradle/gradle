@@ -284,7 +284,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.ownDependencyConstraints.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
 
         this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
-        this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), ownDependencyConstraints);
+        this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), this, ownDependencyConstraints);
 
         this.ownArtifacts = (DefaultDomainObjectSet<PublishArtifact>) domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class);
         this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
@@ -569,6 +569,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
+        warnIfConfigurationIsDeprecatedForResolving();
 
         if (!projectStateHandler.hasMutableProjectState()) {
             // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
@@ -582,6 +583,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             });
         } else {
             resolveExclusively(requestedState);
+        }
+    }
+
+    private void warnIfConfigurationIsDeprecatedForResolving() {
+        if (resolutionAlternatives != null) {
+            DeprecationLogger.nagUserOfReplacedConfiguration(this.name, DeprecationLogger.ConfigurationDeprecationType.RESOLUTION, resolutionAlternatives);
         }
     }
 
@@ -808,7 +815,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (Configuration configuration : this.extendsFrom) {
             inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
         }
-        allDependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "all dependency constraints"), inheritedDependencyConstraints);
+        allDependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "all dependency constraints"), this, inheritedDependencyConstraints);
     }
 
     @Override
