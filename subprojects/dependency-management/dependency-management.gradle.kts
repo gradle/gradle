@@ -104,5 +104,5 @@ testFilesCleanup {
 }
 
 tasks.classpathManifest {
-    additionalProjects = listOf(project(":runtimeApiInfo"))
+    additionalProjects.add(":runtimeApiInfo")
 }
