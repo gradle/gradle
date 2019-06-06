@@ -860,7 +860,7 @@ The filename extension for the archive. By default, this is set based on the arc
 <<#sub:sharing_copy_specs,As described earlier>>, you can use the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:copySpec(org.gradle.api.Action)[Project.copySpec(org.gradle.api.Action)] method to share content between archives.
 
 [[sec:reproducible_archives]]
-=== Reproducible archives
+=== Reproducible builds
 
 Sometimes it's desirable to recreate archives exactly the same, byte for byte, on different machines. You want to be sure that building an artifact from source code produces the same result no matter when and where it is built. This is necessary for projects like https://reproducible-builds.org/[reproducible-builds.org].
 
