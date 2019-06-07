@@ -111,6 +111,11 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     @Override
+    public boolean isImmutable() {
+        return false;
+    }
+
+    @Override
     public AttributeContainer getAttributes() {
         return this;
     }

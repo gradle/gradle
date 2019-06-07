@@ -135,8 +135,12 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         target.setArtifacts(new HashSet<DependencyArtifact>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
-        target.setAttributes(attributes);
-        target.moduleDependencyCapabilities = moduleDependencyCapabilities;
+        target.setAttributes(getAttributes());
+        target.setAttributesFactory(attributesFactory);
+        target.setCapabilityNotationParser(capabilityNotationParser);
+        if (moduleDependencyCapabilities != null) {
+            target.moduleDependencyCapabilities = moduleDependencyCapabilities.copy();
+        }
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {
@@ -180,7 +184,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     @Override
-    public AttributeContainer getAttributes() {
+    public AttributeContainerInternal getAttributes() {
         return attributes == null ? ImmutableAttributes.EMPTY : attributes.asImmutable();
     }
 
@@ -193,6 +197,10 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         }
         if (attributes == null) {
             attributes = attributesFactory.mutable();
+        } else if (attributes.isImmutable()) {
+            // We might have been given an immutable attributes via {@link #copyTo}, in which case
+            // we need to copy-on-write and make it mutable.
+            attributes = attributesFactory.mutable(attributes);
         }
         configureAction.execute(attributes);
         return this;
@@ -236,7 +244,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return attributesFactory;
     }
 
-    void setAttributes(AttributeContainerInternal attributes) {
+    private void setAttributes(AttributeContainerInternal attributes) {
         this.attributes = attributes;
     }
 

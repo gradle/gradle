@@ -218,6 +218,11 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     }
 
     @Override
+    public boolean isImmutable() {
+        return true;
+    }
+
+    @Override
     public AttributeContainer getAttributes() {
         return this;
     }
