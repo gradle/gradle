@@ -41,12 +41,10 @@ dependencies {
 
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":files"))
+    testImplementation(testFixtures(project(":core")))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
 }

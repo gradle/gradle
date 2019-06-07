@@ -16,15 +16,13 @@ dependencies {
     implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("jansi"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":logging")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.WORKER
-}
-
-testFixtures {
-    from(":core")
-    from(":logging")
 }
 
 jmh {

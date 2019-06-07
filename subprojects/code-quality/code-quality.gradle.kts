@@ -43,14 +43,17 @@ dependencies {
 
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":files"))
+    testImplementation(testFixtures(project(":core")))
     testRuntimeOnly("com.google.code.findbugs:bcel:2.0.1")
     testRuntimeOnly("jaxen:jaxen:1.1")
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":baseServices"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

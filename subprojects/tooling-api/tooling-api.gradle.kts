@@ -51,11 +51,15 @@ dependencies {
 
     publishImplementation(library("slf4j_api")) { version { prefer(libraryVersion("slf4j_api")) } }
 
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":modelCore"))
+    testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":baseServicesGroovy"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("commons_io"))
+    testFixturesImplementation(library("slf4j_api"))
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":persistentCache"))
@@ -64,24 +68,32 @@ dependencies {
 
     crossVersionTestImplementation(project(":jvmServices"))
     crossVersionTestImplementation(testLibrary("jetty"))
+    crossVersionTestImplementation(library("commons_io"))
 
     crossVersionTestRuntimeOnly(project(":kotlinDsl"))
+    crossVersionTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    crossVersionTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
     crossVersionTestRuntimeOnly(project(":buildComparison"))
     crossVersionTestRuntimeOnly(project(":ivy"))
     crossVersionTestRuntimeOnly(project(":maven"))
     crossVersionTestRuntimeOnly(project(":apiMetadata"))
+    crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
+    crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
+    crossVersionTestRuntimeOnly(testLibrary("cglib")) {
+        because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
+    }
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":logging")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":ide")))
+    testImplementation(testFixtures(project(":workers")))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":logging")
-    from(":dependencyManagement")
-    from(":ide")
-    from(":workers")
 }
 
 apply(from = "buildship.gradle")

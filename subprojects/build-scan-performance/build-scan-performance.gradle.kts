@@ -29,11 +29,13 @@ dependencies {
         performanceTestRuntimeOnly(it)
     }
 
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesApi(project(":internalPerformanceTesting"))
+    testFixturesApi(library("commons_io"))
+    testFixturesApi(project(":baseServices"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(project(":internalPerformanceTesting"))
-    testFixturesImplementation(library("commons_io"))
+
+    performanceTestImplementation(project(":internalIntegTesting"))
 }
 
 gradlebuildJava {

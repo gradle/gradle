@@ -40,26 +40,28 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("asm"))
 
+    testFixturesApi(testFixtures(project(":diagnostics")))
+    testFixturesApi(testFixtures(project(":core")))
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(library("guava"))
 
     testImplementation(project(":processServices"))
     testImplementation(project(":files"))
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
+    testImplementation(testFixtures(project(":coreApi")))
 
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    
     integTestImplementation(project(":platformBase"))
     
     integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core", "testFixtures")
-    from(":coreApi")
-    from(":diagnostics", "testFixtures")
 }
 
 classycle {

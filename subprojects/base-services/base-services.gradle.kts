@@ -33,10 +33,12 @@ dependencies {
     }
 
     integTestImplementation(project(":logging"))
-}
-
-testFixtures {
-    from(":core")
+    
+    testFixturesImplementation(library("guava"))
+    testImplementation(testFixtures(project(":core")))
+    testRuntimeOnly(library("xerces"))
+    
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 jmh {

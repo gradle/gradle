@@ -43,12 +43,15 @@ dependencies {
     integTestImplementation(project(":kotlinDslTestFixtures"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 
     crossVersionTestImplementation(project(":persistentCache"))
     crossVersionTestImplementation(library("slf4j_api"))
     crossVersionTestImplementation(library("guava"))
     crossVersionTestImplementation(library("ant"))
     crossVersionTestRuntimeOnly(project(":pluginDevelopment"))
+    crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
+
 }
 
 tasks {

@@ -41,7 +41,9 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
     testImplementation(project(":processServices"))
-    
+    testImplementation(testFixtures(project(":core")))
+
+    testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
@@ -49,14 +51,13 @@ dependencies {
     testFixturesImplementation(library("commons_io"))
     testFixturesImplementation(library("commons_httpclient"))
     testFixturesImplementation(library("jsch"))
+    testFixturesImplementation(library("guava"))
 
     integTestImplementation(project(":launcher"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}
