@@ -15,16 +15,31 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
 import static org.gradle.api.plugins.internal.JavaPluginsHelper.addApiToSourceSet;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.*;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURE_SOURCESET_NAME;
 
+/**
+ * Adds support for producing test fixtures. This plugin will automatically
+ * create a `testFixtures` source set, and wires the tests to use those
+ * test fixtures automatically.
+ *
+ * Other projects may consume the test fixtures of the current project by
+ * declaring a dependency using the {@link DependencyHandler#testFixtures(Object)}
+ * method.
+ *
+ * @since 5.6
+ */
+@Incubating
 public class JavaTestFixturesPlugin implements Plugin<Project> {
 
     @Override
