@@ -31,17 +31,9 @@ import java.lang.reflect.Modifier
 
 internal
 fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
-    relevantTypeHierarchyOf(taskType).flatMap { type ->
-        type.declaredFields.asSequence().filterNot { field ->
-            Modifier.isStatic(field.modifiers)
-                // Ignore the `metaClass` field that Groovy generates
-                || (field.isSynthetic && field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
-                // Ignore the `__meta_class__` field that Gradle generates
-                || (field.name == "__meta_class__" && MetaClass::class.java.isAssignableFrom(field.type))
-        }
-    }.onEach {
-        it.isAccessible = true
-    }
+    relevantTypeHierarchyOf(taskType)
+        .flatMap(Class<*>::relevantFields)
+        .map(Field::accessible)
 
 
 private
@@ -69,3 +61,21 @@ val irrelevantDeclaringClasses = setOf(
     AbstractTask::class.java,
     ConventionTask::class.java
 )
+
+
+private
+val Class<*>.relevantFields: Sequence<Field>
+    get() = declaredFields.asSequence()
+        .filterNot { field ->
+            Modifier.isStatic(field.modifiers)
+                // Ignore the `metaClass` field that Groovy generates
+                || (field.isSynthetic && field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
+                // Ignore the `__meta_class__` field that Gradle generates
+                || (field.name == "__meta_class__" && MetaClass::class.java.isAssignableFrom(field.type))
+        }
+
+
+private
+fun Field.accessible() = apply {
+    if (!isAccessible) isAccessible = true
+}
