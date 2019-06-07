@@ -19,7 +19,6 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -394,36 +393,70 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         ins.close()
     }
 
-    @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/9586")
-    @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
-    def "change in case of input file still syncs properly"() {
+    def "change in case of input files and folders will still syncs properly"() {
         given:
-        buildFile << """
-            task writeFile {
-                def outputFile = new File(buildDir, project.hasProperty("capitalize") ? "OUTPUT" : "output")
-                outputs.file outputFile
-                doLast {
-                    outputFile.text = "hello"
-                }
+        buildFile << '''
+            task syncIt(type: Sync) {
+                from project.hasProperty("capitalizeFile") ? "FILE.TXT" : "file.txt"
+                from project.hasProperty("capitalizeDir") ? "DIR" : "dir"
+                into buildDir
             }
-            task sync(type: Sync) {
-                from writeFile
-                into new File(buildDir, "sync")
-            }
-        """
-        when:
-        succeeds("sync")
-        then:
-        file("build/output").assertExists()
-        file("build/sync/output").assertExists()
+        '''
+
+        def lowercaseFile = file('file.txt')
+        lowercaseFile.text = 'file'
+
+        file('dir').create {
+            file('file2.txt') << 'file2'
+            file('file3.txt') << 'file3'
+            file('file4.txt') << 'file4'
+        }
+
+        and:
+        run 'syncIt'
+        file('build').assertHasDescendants(
+            'file.txt',
+            'file2.txt',
+            'file3.txt',
+            'file4.txt'
+        )
+
+        and:
+        lowercaseFile.delete() // renameTo wouldn't change the case
+        def uppercaseFile = file('FILE.TXT')
+        uppercaseFile.text = 'FILE'
+        assert uppercaseFile.canonicalFile.name == 'FILE.TXT'
+        and:
+        file('dir/file3.txt').delete()
+
+        file('dir/file4.txt').delete()
+        file('dir/File4.txt') << 'File4'
 
         when:
-        succeeds("sync", "-Pcapitalize")
+        succeeds('syncIt', '-PcapitalizeFile')
+        def uppercaseOutputFile = file('build/FILE.TXT')
         then:
-        file("build/OUTPUT").assertExists()
-        // TODO: This should exist
-        file("build/sync/OUTPUT").assertDoesNotExist()
+        executedAndNotSkipped ':syncIt'
+        uppercaseOutputFile.parentFile.listFiles() != [].toArray()
+        uppercaseOutputFile.assertExists()
+        uppercaseOutputFile.text == 'FILE'
+        uppercaseOutputFile.canonicalFile.name == 'FILE.TXT'
+        and:
+        file('build/file2.txt').assertExists()
+        file('build/file3.txt').assertDoesNotExist()
+        file('build/File4.txt').canonicalFile.name == 'File4.txt'
+
+        when:
+        file('dir').deleteDir()
+        file('DIR').create {
+            file('file4.txt') << 'file4'
+        }
+        and:
+        succeeds('sync', '-PcapitalizeDir')
+        then:
+        executedAndNotSkipped ':syncIt'
+        file('build/file4.txt').canonicalFile.name == 'file4.txt'
     }
 
     def "sync from file tree"() {
