@@ -61,7 +61,7 @@ class FileTreeCodec(
 
         override fun visitCollection(fileCollection: Iterable<File>) = throw UnsupportedOperationException()
 
-        override fun visitGenericFileTree(fileTree: FileTreeInternal) = throw UnsupportedOperationException()
+        override fun visitGenericFileTree(fileTree: FileCollectionLeafVisitor.VisitableFileTree) = throw UnsupportedOperationException()
 
         override fun visitFileTree(root: File, patterns: PatternSet) {
             roots.add(root)

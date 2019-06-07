@@ -26,7 +26,7 @@ import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 @UsesNativeServices
-public class AbstractFileTreeTest extends Specification {
+class AbstractFileTreeTest extends Specification {
     def isEmptyWhenVisitsNoFiles() {
         def tree = new TestFileTree([])
 
@@ -130,15 +130,29 @@ public class AbstractFileTreeTest extends Specification {
         sum.files.sort() == [file1, file2]
     }
 
-    public void "can visit root elements"() {
-        def tree = new TestFileTree([])
+    void "can visit root elements"() {
+        def file = new File("f1")
+        def tree = new TestFileTree([fileVisitDetails(file)])
         def visitor = Mock(FileCollectionLeafVisitor)
 
         when:
         tree.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.visitGenericFileTree(tree)
+        1 * visitor.visitGenericFileTree(_ as FileCollectionLeafVisitor.VisitableFileTree) >> { args ->
+            args[0].visit(new FileVisitor() {
+
+                @Override
+                void visitDir(FileVisitDetails dirDetails) {
+                    assert false
+                }
+
+                @Override
+                void visitFile(FileVisitDetails fileDetails) {
+                    assert fileDetails.getFile() == file
+                }
+            })
+        }
         0 * visitor._
     }
 
@@ -149,16 +163,16 @@ public class AbstractFileTreeTest extends Specification {
     }
 
     class TestFileTree extends AbstractFileTree {
-        List contents
+        List<FileVisitDetails> contents
         TaskDependency buildDependencies
 
-        def TestFileTree(List files, TaskDependency dependencies = null) {
+        TestFileTree(List files, TaskDependency dependencies = null) {
             this.contents = files
             this.buildDependencies = dependencies
         }
 
         String getDisplayName() {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException()
         }
 
         FileTree visit(FileVisitor visitor) {

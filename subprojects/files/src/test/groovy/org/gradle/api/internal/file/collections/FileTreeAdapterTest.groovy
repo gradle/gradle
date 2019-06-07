@@ -169,7 +169,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.visitGenericFileTree(adapter)
+        1 * visitor.visitGenericFileTree(_ as FileCollectionLeafVisitor.VisitableFileTree)
         0 * visitor._
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
@@ -27,17 +28,20 @@ import java.io.File;
 public interface FileCollectionLeafVisitor {
     /**
      * Visits a {@link FileCollectionInternal} element that cannot be visited in further detail.
-     * @param fileCollection
      */
     void visitCollection(Iterable<File> fileCollection);
 
     /**
-     * Visits a {@link FileTreeInternal} that does not represents a directory in the file system.
+     * Visits a leaf that does not represents a directory in the file system but some other root.
      */
-    void visitGenericFileTree(FileTreeInternal fileTree);
+    void visitGenericFileTree(VisitableFileTree fileTree);
 
     /**
      * Visits a file tree at a root file on the file system (potentially filtered).
      */
     void visitFileTree(File root, PatternSet patterns);
+
+    interface VisitableFileTree {
+        void visit(FileVisitor visitor);
+    }
 }

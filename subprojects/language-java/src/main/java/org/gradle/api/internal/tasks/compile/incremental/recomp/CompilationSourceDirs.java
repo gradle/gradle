@@ -72,7 +72,7 @@ public class CompilationSourceDirs {
         }
 
         @Override
-        public void visitGenericFileTree(FileTreeInternal fileTree) {
+        public void visitGenericFileTree(VisitableFileTree fileTree) {
             cannotInferSourceRoots(fileTree);
         }
 

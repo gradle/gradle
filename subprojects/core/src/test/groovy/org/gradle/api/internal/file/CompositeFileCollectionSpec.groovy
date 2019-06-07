@@ -27,7 +27,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class CompositeFileCollectionSpec extends Specification {
     def "visits contents on each query"() {
-        def visited = 0;
+        def visited = 0
         def collection = new TestCollection() {
             @Override
             void visitContents(FileCollectionResolveContext context) {
@@ -52,7 +52,7 @@ class CompositeFileCollectionSpec extends Specification {
     }
 
     def "visits contents when task dependencies are queried"() {
-        def visited = 0;
+        def visited = 0
         def task = Stub(Task)
         def dependency = Stub(Task)
         def child = collectionDependsOn(dependency)
@@ -86,7 +86,7 @@ class CompositeFileCollectionSpec extends Specification {
     }
 
     def "subtype can avoid creating content when task dependencies are queried"() {
-        def visited = 0;
+        def visited = 0
         def task = Stub(Task)
         def dependency = Stub(Task)
         def collection = new TestCollection() {
@@ -290,9 +290,10 @@ class CompositeFileCollectionSpec extends Specification {
         collection.buildDependencies.getDependencies(task) == [dependency1, dependency2] as LinkedHashSet
     }
 
-    public void "can visit root elements"() {
+    void "can visit root elements"() {
         def child1 = Stub(FileCollectionInternal)
         def child2 = Stub(FileTreeInternal)
+        def visitableFileTree = Mock(FileCollectionLeafVisitor.VisitableFileTree)
 
         def tree = new TestCollection() {
             @Override
@@ -308,9 +309,9 @@ class CompositeFileCollectionSpec extends Specification {
 
         then:
         child1.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitCollection(child1) }
-        child2.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitGenericFileTree(child2) }
+        child2.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitGenericFileTree(visitableFileTree) }
         1 * visitor.visitCollection(child1)
-        1 * visitor.visitGenericFileTree(child2)
+        1 * visitor.visitGenericFileTree(visitableFileTree)
         0 * visitor._
     }
 
