@@ -51,6 +51,7 @@ abstract class FileContentGenerator {
         import org.gradle.util.GradleVersion
 
         ${missingJavaLibrarySupportFlag()}
+        ${noJavaLibraryPluginFlag()}
 
         ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
         
@@ -379,7 +380,7 @@ abstract class FileContentGenerator {
         if (plugin.contains('java')) {
             if (projectHasParents) {
                 return """
-                    if(missingJavaLibrarySupport) {
+                    if (missingJavaLibrarySupport || noJavaLibraryPlugin) {
                         ${imperativelyApplyPlugin("java")}
                     } else {
                         ${imperativelyApplyPlugin("java-library")}
@@ -430,6 +431,8 @@ abstract class FileContentGenerator {
     }
 
     protected abstract String missingJavaLibrarySupportFlag()
+
+    protected abstract String noJavaLibraryPluginFlag()
 
     protected abstract String tasksConfiguration()
 
