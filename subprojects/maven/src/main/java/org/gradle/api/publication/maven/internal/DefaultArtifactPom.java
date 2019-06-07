@@ -16,7 +16,6 @@
 package org.gradle.api.publication.maven.internal;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;
@@ -139,12 +138,12 @@ public class DefaultArtifactPom implements ArtifactPom {
         @Override
         public boolean equals(Object o) {
             ArtifactKey other = (ArtifactKey) o;
-            return ObjectUtils.equals(type, other.type) && ObjectUtils.equals(classifier, other.classifier);
+            return Objects.equals(type, other.type) && Objects.equals(classifier, other.classifier);
         }
 
         @Override
         public int hashCode() {
-            return ObjectUtils.hashCode(type) ^ ObjectUtils.hashCode(classifier);
+            return Objects.hashCode(type) ^ Objects.hashCode(classifier);
         }
     }
 

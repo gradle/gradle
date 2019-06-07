@@ -16,11 +16,11 @@
 package org.gradle.util;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class DiffUtil {
@@ -62,7 +62,7 @@ public class DiffUtil {
 
     @VisibleForTesting
     static boolean checkEquality(Object obj1, Object obj2) {
-        return ObjectUtils.equals(obj1, obj2) || checkEnumEquality(obj1, obj2);
+        return Objects.equals(obj1, obj2) || checkEnumEquality(obj1, obj2);
     }
 
     private static boolean checkEnumEquality(Object obj1, Object obj2) {
