@@ -27,8 +27,9 @@ import java.io.File;
 public interface FileCollectionLeafVisitor {
     /**
      * Visits a {@link FileCollectionInternal} element that cannot be visited in further detail.
+     * @param fileCollection
      */
-    void visitCollection(FileCollectionInternal fileCollection);
+    void visitCollection(Iterable<File> fileCollection);
 
     /**
      * Visits a {@link FileTreeInternal} that does not represents a directory in the file system.

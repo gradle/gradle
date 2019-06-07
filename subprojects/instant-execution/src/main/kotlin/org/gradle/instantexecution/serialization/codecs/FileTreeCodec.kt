@@ -17,7 +17,6 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.internal.file.DefaultCompositeFileTree
-import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionLeafVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
@@ -60,7 +59,7 @@ class FileTreeCodec(
         internal
         var roots = LinkedHashSet<File>()
 
-        override fun visitCollection(fileCollection: FileCollectionInternal) = throw UnsupportedOperationException()
+        override fun visitCollection(fileCollection: Iterable<File>) = throw UnsupportedOperationException()
 
         override fun visitGenericFileTree(fileTree: FileTreeInternal) = throw UnsupportedOperationException()
 

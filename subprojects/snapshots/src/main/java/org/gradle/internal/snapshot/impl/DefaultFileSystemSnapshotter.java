@@ -236,7 +236,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
 
         @Override
-        public void visitCollection(FileCollectionInternal fileCollection) {
+        public void visitCollection(Iterable<File> fileCollection) {
             for (File file : fileCollection) {
                 roots.add(snapshot(file));
             }

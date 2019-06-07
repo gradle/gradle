@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
@@ -68,7 +67,7 @@ public class CompilationSourceDirs {
         private List<File> sourceRoots = Lists.newArrayList();
 
         @Override
-        public void visitCollection(FileCollectionInternal fileCollection) {
+        public void visitCollection(Iterable<File> fileCollection) {
             cannotInferSourceRoots(fileCollection);
         }
 
