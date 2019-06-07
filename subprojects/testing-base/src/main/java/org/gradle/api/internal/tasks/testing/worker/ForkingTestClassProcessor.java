@@ -137,7 +137,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("commons-lang3").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("junit").getImplementationClasspath().getAsURLs()
         );
     }

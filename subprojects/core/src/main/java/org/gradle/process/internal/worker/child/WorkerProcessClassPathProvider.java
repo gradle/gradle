@@ -97,7 +97,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             "jul-to-slf4j",
             "native-platform",
             "kryo",
-            "commons-lang",
+            "commons-lang3",
             "guava",
             "javax.inject",
             "groovy-all"
