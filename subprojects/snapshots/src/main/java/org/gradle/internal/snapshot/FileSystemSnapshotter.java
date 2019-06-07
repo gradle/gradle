@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionLeafs;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -51,5 +51,5 @@ public interface FileSystemSnapshotter {
     /**
      * Returns snapshots of the roots of a file collection.
      */
-    List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection);
+    List<FileSystemSnapshot> snapshot(FileCollectionLeafs fileCollection);
 }

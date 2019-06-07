@@ -22,8 +22,8 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionLeafs;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.ProducerGuard;
@@ -120,7 +120,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
+    public List<FileSystemSnapshot> snapshot(FileCollectionLeafs fileCollection) {
         FileCollectionLeafVisitorImpl visitor = new FileCollectionLeafVisitorImpl();
         fileCollection.visitLeafCollections(visitor);
         return visitor.getRoots();

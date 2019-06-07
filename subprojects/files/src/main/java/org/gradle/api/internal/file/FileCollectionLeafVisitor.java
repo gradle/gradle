@@ -17,12 +17,12 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.FilePatternSet;
 
 import java.io.File;
 
 /**
- * Used with {@link FileCollectionInternal#visitLeafCollections(FileCollectionLeafVisitor)} this visitor
+ * Used with {@link FileCollectionLeafs#visitLeafCollections(FileCollectionLeafVisitor)} this visitor
  * gets called for each element in a file collection that represents a root of a file tree.
  */
 public interface FileCollectionLeafVisitor {

@@ -19,7 +19,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 
-public interface FileCollectionInternal extends FileCollection {
+public interface FileCollectionInternal extends FileCollection, FileCollectionLeafs {
 
     /**
      * Adds a logical description of the potential contents of this collection to the builder.
@@ -32,13 +32,4 @@ public interface FileCollectionInternal extends FileCollection {
      * @param builder the receiver of the description.
      */
     void registerWatchPoints(FileSystemSubset.Builder builder);
-
-    /**
-     * In a {@link FileCollection} hierarchy visits the leaves of the hierarchy.
-     *
-     * <p>The implementation of this method should not do any work to calculate the files that make up this collection. The visitor may choose to query each element it receives for its elements, or may not.
-     *
-     * <p>The implementation should call the most specific method on {@link FileCollectionLeafVisitor} that it is able to.</p>
-     */
-    void visitLeafCollections(FileCollectionLeafVisitor visitor);
 }
