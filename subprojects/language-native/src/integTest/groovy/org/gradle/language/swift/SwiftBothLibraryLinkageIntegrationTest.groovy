@@ -44,6 +44,12 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
     }
 
     @Override
+    void assertComponentUnderTestWasBuilt() {
+        file("build/modules/main/debug/shared/${componentUnderTest.moduleName}.swiftmodule").assertIsFile()
+        sharedLibrary("build/lib/main/debug/shared/${componentUnderTest.moduleName}").assertExists()
+    }
+
+    @Override
     protected String getComponentUnderTestDsl() {
         return "library"
     }
