@@ -35,21 +35,21 @@ dependencies {
     implementation(library("slf4j_api"))
     implementation(library("guava"))
 
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":launcher")))
+
     integTestImplementation(project(":buildOption"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":ide"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
     integTestRuntimeOnly(project(":testKit"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":dependencyManagement")
-    from(":launcher")
 }
 
 testFilesCleanup {

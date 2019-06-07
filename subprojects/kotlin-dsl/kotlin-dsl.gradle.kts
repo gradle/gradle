@@ -90,6 +90,8 @@ dependencies {
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 // --- Enable automatic generation of API extensions -------------------

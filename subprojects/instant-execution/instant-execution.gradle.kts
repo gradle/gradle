@@ -18,6 +18,8 @@ dependencies {
     implementation(library("slf4j_api"))
     implementation(futureKotlin("stdlib-jdk8"))
 
+    testImplementation(testFixtures(project(":core")))
+
     integTestImplementation(project(":toolingApi"))
 
     integTestImplementation(library("guava"))
@@ -25,12 +27,13 @@ dependencies {
     integTestImplementation(library("inject"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
+
+    testRuntimeOnly(kotlin("reflect"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

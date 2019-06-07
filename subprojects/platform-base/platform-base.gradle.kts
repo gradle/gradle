@@ -19,17 +19,19 @@ dependencies {
     implementation(library("guava"))
     implementation(library("commons_lang"))
 
-    testFixturesImplementation(project(":files"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":coreApi")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesApi(project(":core"))
+    testFixturesApi(project(":files"))
+    testFixturesApi(testFixtures(project(":modelCore")))
+    testFixturesImplementation(library("guava"))
+    testFixturesApi(testFixtures(project(":modelCore")))
+    testFixturesApi(testFixtures(project(":diagnostics")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":coreApi")
-    from(":core", "testFixtures")
-    from(":modelCore", "testFixtures")
-    from(":diagnostics", "testFixtures")
 }

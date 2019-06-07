@@ -36,16 +36,22 @@ dependencies {
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
     testImplementation(library("ant"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":files")))
+    testImplementation(testFixtures(project(":messaging")))
+    
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":files"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":baseServices")
-    from(":files")
-    from(":messaging")
-    from(":core")
-    from(":coreApi")
-}
