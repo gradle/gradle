@@ -64,7 +64,7 @@ class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest
 
         where:
         testProject                   | warmUpRuns | runs
-        LARGE_JAVA_MULTI_PROJECT      | 2          | 6
+        LARGE_JAVA_MULTI_PROJECT      | 2          | 3
     }
 
     private static BaselineVersion buildBaselineResults(CrossBuildPerformanceResults results, String name) {
