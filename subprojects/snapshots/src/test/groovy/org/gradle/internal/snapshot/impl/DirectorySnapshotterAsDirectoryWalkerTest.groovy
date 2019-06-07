@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.AbstractDirectoryWalkerTest
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
-import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.internal.MutableBoolean
@@ -33,6 +32,7 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Predicate
 
 class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectorySnapshotter> {
     def "directory snapshotter returns the same details as directory walker"() {
@@ -41,9 +41,9 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
         def patternSet = Mock(PatternSet)
         List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker(TestFiles.fileSystem()))
-        Spec<FileTreeElement> assertingSpec = new Spec<FileTreeElement>() {
+        Predicate<FileTreeElement> assertingPredicate = new Predicate<FileTreeElement>() {
             @Override
-            boolean isSatisfiedBy(FileTreeElement element) {
+            boolean test(FileTreeElement element) {
                 def elementFromFileWalker = visitedWithJdk7Walker.find { it.file == element.file }
                 assert elementFromFileWalker != null
                 assert element.directory == elementFromFileWalker.directory
@@ -61,7 +61,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         when:
         directorySnapshotter().snapshot(rootDir.absolutePath, patternSet, new MutableBoolean())
         then:
-        1 * patternSet.getAsSpec() >> assertingSpec
+        1 * patternSet.getAsPredicate() >> assertingPredicate
 
         visitedWithJdk7Walker.empty
     }

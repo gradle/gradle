@@ -49,6 +49,14 @@
             "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getDuplicatePublicationTracker()",
             "acceptation": "Injected service",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.util.PatternSet",
+            "member": "Class org.gradle.api.tasks.util.PatternSet",
+            "acceptation": "Extracted a new immutable interface from PatternSet",
+            "changes": [
+                "org.gradle.api.tasks.util.FilePatternSet"
+            ]
         }
     ]
 }

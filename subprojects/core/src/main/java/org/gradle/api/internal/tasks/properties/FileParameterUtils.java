@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.FilePatternSet;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
@@ -145,7 +145,7 @@ public class FileParameterUtils {
                 }
 
                 @Override
-                public void visitFileTree(File root, PatternSet patterns) {
+                public void visitFileTree(File root, FilePatternSet patterns) {
                     // We could support an unfiltered DirectoryFileTree here as a cacheable root,
                     // but because @OutputDirectory also doesn't support it we choose not to.
                     nonFileRoot.set(true);

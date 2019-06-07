@@ -24,7 +24,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileCollectionLeafs;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.FilePatternSet;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.MutableBoolean;
@@ -44,6 +44,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -126,7 +127,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return visitor.getRoots();
     }
 
-    private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable PatternSet patternSet) {
+    private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable FilePatternSet patternSet) {
         InternableString absolutePath = new InternableString(file.getAbsolutePath());
         FileMetadataSnapshot metadata = statAndCache(absolutePath, file);
         return snapshotAndCache(absolutePath, file, metadata, patternSet);
@@ -141,7 +142,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return metadata;
     }
 
-    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable PatternSet patternSet) {
+    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable FilePatternSet patternSet) {
         FileSystemLocationSnapshot fileSystemLocationSnapshot = fileSystemMirror.getSnapshot(absolutePath.asNonInterned());
         if (fileSystemLocationSnapshot == null) {
             MutableBoolean hasBeenFiltered = new MutableBoolean(false);
@@ -153,7 +154,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return fileSystemLocationSnapshot;
     }
 
-    private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternSet patternSet, File file, FileMetadataSnapshot metadata, MutableBoolean hasBeenFiltered) {
+    private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable FilePatternSet patternSet, File file, FileMetadataSnapshot metadata, MutableBoolean hasBeenFiltered) {
         String name = stringInterner.intern(file.getName());
         switch (metadata.getType()) {
             case Missing:
@@ -178,7 +179,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * then we cache the result as unfiltered tree.
      */
     @VisibleForTesting
-    FileSystemSnapshot snapshotDirectoryTree(File root, PatternSet patterns) {
+    FileSystemSnapshot snapshotDirectoryTree(File root, FilePatternSet patterns) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         String path = root.getAbsolutePath();
 
@@ -220,15 +221,15 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return builder.build();
     }
 
-    private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, PatternSet patterns) {
+    private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, FilePatternSet patterns) {
         if (snapshot.getType() == FileType.Missing) {
             return FileSystemSnapshot.EMPTY;
         }
         if (patterns.isEmpty()) {
             return snapshot;
         }
-        Spec<FileTreeElement> spec = patterns.getAsSpec();
-        return FileSystemSnapshotFilter.filterSnapshot(spec, snapshot, fileSystem);
+        Predicate<FileTreeElement> predicate = patterns.getAsPredicate();
+        return FileSystemSnapshotFilter.filterSnapshot(predicate, snapshot, fileSystem);
     }
 
     private class FileCollectionLeafVisitorImpl implements FileCollectionLeafVisitor {
@@ -247,7 +248,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         }
 
         @Override
-        public void visitFileTree(File root, PatternSet patterns) {
+        public void visitFileTree(File root, FilePatternSet patterns) {
             roots.add(snapshotDirectoryTree(root, patterns));
         }
 

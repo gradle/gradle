@@ -18,8 +18,6 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -27,8 +25,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.FilePatternSet;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
@@ -56,6 +53,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class DirectorySnapshotter {
     private final FileHasher hasher;
@@ -70,13 +68,13 @@ public class DirectorySnapshotter {
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
     }
 
-    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
+    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable FilePatternSet patterns, final MutableBoolean hasBeenFiltered) {
         Path rootPath = Paths.get(absolutePath);
-        final Spec<FileTreeElement> spec = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsSpec();
+        final Predicate<FileTreeElement> predicate = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsPredicate();
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
 
         try {
-            Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new PathVisitor(builder, spec, hasBeenFiltered));
+            Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new PathVisitor(builder, predicate, hasBeenFiltered));
         } catch (IOException e) {
             throw new GradleException(String.format("Could not list contents of directory '%s'.", rootPath), e);
         }
@@ -105,15 +103,17 @@ public class DirectorySnapshotter {
                     if (firstStar == -1) {
                         excludeFiles.add(defaultExclude);
                     } else {
-                        Predicate<String> start = firstStar == 0 ? Predicates.<String>alwaysTrue() : new StartMatcher(defaultExclude.substring(0, firstStar));
-                        Predicate<String> end = firstStar == length - 1 ? Predicates.<String>alwaysTrue() : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
-                        excludeFileSpecs.add(Predicates.and(start, end));
+                        Predicate<String> start = firstStar == 0 ? x -> true : new StartMatcher(defaultExclude.substring(0, firstStar));
+                        Predicate<String> end = firstStar == length - 1 ? x -> true : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
+                        excludeFileSpecs.add(start.and(end));
                     }
                 }
             }
 
             this.excludeFileNames = ImmutableSet.copyOf(excludeFiles);
-            this.excludedFileNameSpec = Predicates.or(excludeFileSpecs);
+            this.excludedFileNameSpec = excludeFileSpecs
+                .stream()
+                .reduce(x -> false, Predicate::or);
             this.excludedDirNames = ImmutableSet.copyOf(excludeDirs);
         }
 
@@ -122,7 +122,7 @@ public class DirectorySnapshotter {
         }
 
         public boolean excludeFile(String name) {
-            return excludeFileNames.contains(name) || excludedFileNameSpec.apply(name);
+            return excludeFileNames.contains(name) || excludedFileNameSpec.test(name);
         }
 
         private static class EndMatcher implements Predicate<String> {
@@ -133,7 +133,7 @@ public class DirectorySnapshotter {
             }
 
             @Override
-            public boolean apply(String element) {
+            public boolean test(String element) {
                 return element.endsWith(end);
             }
         }
@@ -146,7 +146,7 @@ public class DirectorySnapshotter {
             }
 
             @Override
-            public boolean apply(String element) {
+            public boolean test(String element) {
                 return element.startsWith(start);
             }
         }
@@ -242,12 +242,12 @@ public class DirectorySnapshotter {
 
     private class PathVisitor implements java.nio.file.FileVisitor<Path> {
         private final MerkleDirectorySnapshotBuilder builder;
-        private final Spec<FileTreeElement> spec;
+        private final Predicate<FileTreeElement> predicate;
         private final MutableBoolean hasBeenFiltered;
 
-        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable Spec<FileTreeElement> spec, MutableBoolean hasBeenFiltered) {
+        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable Predicate<FileTreeElement> predicate, MutableBoolean hasBeenFiltered) {
             this.builder = builder;
-            this.spec = spec;
+            this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;
         }
 
@@ -332,10 +332,10 @@ public class DirectorySnapshotter {
             } else if (defaultExcludes.excludeFile(name)) {
                 return false;
             }
-            if (spec == null) {
+            if (predicate == null) {
                 return true;
             }
-            boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, fileSystem));
+            boolean allowed = predicate.test(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, fileSystem));
             if (!allowed) {
                 hasBeenFiltered.set(true);
             }

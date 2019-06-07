@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.FilePatternSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +77,7 @@ public class CompilationSourceDirs {
         }
 
         @Override
-        public void visitFileTree(File root, PatternSet patterns) {
+        public void visitFileTree(File root, FilePatternSet patterns) {
             // We need to add missing files as source roots, since the package name for deleted files provided by IncrementalTaskInputs also need to be determined.
             if (!root.exists() || root.isDirectory()) {
                 sourceRoots.add(root);

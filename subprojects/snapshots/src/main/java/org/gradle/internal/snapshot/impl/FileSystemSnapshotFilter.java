@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -35,13 +34,14 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.function.Predicate;
 
 public class FileSystemSnapshotFilter {
 
     private FileSystemSnapshotFilter() {
     }
 
-    public static FileSystemSnapshot filterSnapshot(final Spec<FileTreeElement> spec, FileSystemSnapshot unfiltered, final FileSystem fileSystem) {
+    public static FileSystemSnapshot filterSnapshot(final Predicate<FileTreeElement> predicate, FileSystemSnapshot unfiltered, final FileSystem fileSystem) {
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
         unfiltered.accept(new FileSystemSnapshotVisitor() {
@@ -51,7 +51,7 @@ public class FileSystemSnapshotFilter {
             public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 boolean root = relativePathTracker.isRoot();
                 relativePathTracker.enter(directorySnapshot);
-                if (root || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot, relativePathTracker.getRelativePath(), fileSystem))) {
+                if (root || predicate.test(new LogicalFileTreeElement(directorySnapshot, relativePathTracker.getRelativePath(), fileSystem))) {
                     builder.preVisitDirectory(directorySnapshot);
                     return true;
                 } else {
@@ -66,7 +66,7 @@ public class FileSystemSnapshotFilter {
                 boolean root = relativePathTracker.isRoot();
                 relativePathTracker.enter(fileSnapshot);
                 Iterable<String> relativePathForFiltering = root ? ImmutableList.of(fileSnapshot.getName()) : relativePathTracker.getRelativePath();
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePathForFiltering, fileSystem))) {
+                if (predicate.test(new LogicalFileTreeElement(fileSnapshot, relativePathForFiltering, fileSystem))) {
                     builder.visit(fileSnapshot);
                 } else {
                     hasBeenFiltered.set(true);

@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileCollectionLeafVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.tasks.util.FilePatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -63,7 +63,7 @@ class FileTreeCodec(
 
         override fun visitGenericFileTree(fileTree: FileCollectionLeafVisitor.VisitableFileTree) = throw UnsupportedOperationException()
 
-        override fun visitFileTree(root: File, patterns: PatternSet) {
+        override fun visitFileTree(root: File, patterns: FilePatternSet) {
             roots.add(root)
         }
     }

@@ -32,11 +32,12 @@ import org.gradle.util.CollectionUtils;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Standalone implementation of {@link PatternFilterable}.
  */
-public class PatternSet implements AntBuilderAware, PatternFilterable {
+public class PatternSet implements AntBuilderAware, PatternFilterable, FilePatternSet {
 
     private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
     private final PatternSpecFactory patternSpecFactory;
@@ -154,11 +155,17 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
      *
      * @return true when no includes or excludes have been added to this instance
      */
+    @Override
     public boolean isEmpty() {
         return (includes == null || includes.isEmpty())
             && (excludes == null || excludes.isEmpty())
             && (includeSpecs == null || includeSpecs.isEmpty())
             && (excludeSpecs == null || excludeSpecs.isEmpty());
+    }
+
+    @Override
+    public Predicate<FileTreeElement> getAsPredicate() {
+        return getAsSpec()::isSatisfiedBy;
     }
 
     private static class IntersectionPatternSet extends PatternSet {

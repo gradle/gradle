@@ -31,8 +31,8 @@ import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Specification
 import org.junit.Rule
+import spock.lang.Specification
 
 @CleanupTestDirectory
 class FileSystemSnapshotFilterTest extends Specification {
@@ -72,7 +72,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "filters empty tree"() {
         expect:
-        FileSystemSnapshotFilter.filterSnapshot(include("**/*").asSpec, FileSystemSnapshot.EMPTY, fileSystem) == FileSystemSnapshot.EMPTY
+        FileSystemSnapshotFilter.filterSnapshot(include("**/*").asPredicate, FileSystemSnapshot.EMPTY, fileSystem) == FileSystemSnapshot.EMPTY
     }
 
     def "root directory is always matched"() {
@@ -101,12 +101,12 @@ class FileSystemSnapshotFilterTest extends Specification {
         def unfiltered = snapshotter.snapshotDirectoryTree(root, new PatternSet())
 
         expect:
-        FileSystemSnapshotFilter.filterSnapshot(include("**/*File*").asSpec, unfiltered, fileSystem).is(unfiltered)
+        FileSystemSnapshotFilter.filterSnapshot(include("**/*File*").asPredicate, unfiltered, fileSystem).is(unfiltered)
     }
 
     private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        FileSystemSnapshotFilter.filterSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new FileSystemSnapshotVisitor() {
+        FileSystemSnapshotFilter.filterSnapshot(patterns.asPredicate, unfiltered, fileSystem).accept(new FileSystemSnapshotVisitor() {
             @Override
             boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 result << new File(directorySnapshot.absolutePath)
