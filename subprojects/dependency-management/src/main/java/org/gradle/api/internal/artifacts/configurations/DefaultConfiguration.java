@@ -221,7 +221,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private UserCodeApplicationContext userCodeApplicationContext;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    private AtomicInteger copyCount = new AtomicInteger(-1);
+    private AtomicInteger copyCount = new AtomicInteger(0);
 
     private Action<? super ConfigurationInternal> beforeLocking;
 
@@ -968,7 +968,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
 
-        String newName = name + getNameWithCopySuffix();
+        String newName = getNameWithCopySuffix();
 
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
@@ -1018,9 +1018,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private String getNameWithCopySuffix() {
         int count = copyCount.incrementAndGet();
-        return count == 0
-            ? name
-            : name + "Copy" + count;
+        String copyName = name + "Copy";
+        return count == 1
+            ? copyName
+            : copyName + count;
     }
 
     @Override

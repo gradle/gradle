@@ -742,6 +742,23 @@ class DefaultConfigurationSpec extends Specification {
         assert copiedConfiguration.extendsFrom.empty
     }
 
+    def "multiple copies create unique configuration names"() {
+        def configuration = prepareConfigurationForCopyTest()
+        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
+
+        when:
+        3 * resolutionStrategy.copy() >> resolutionStrategyCopy
+
+        def copied1Configuration = configuration.copy()
+        def copied2Configuration = configuration.copy()
+        def copied3Configuration = configuration.copyRecursive()
+
+        then:
+        checkCopiedConfiguration(configuration, copied1Configuration, resolutionStrategyCopy)
+        checkCopiedConfiguration(configuration, copied2Configuration, resolutionStrategyCopy, 2)
+        checkCopiedConfiguration(configuration, copied3Configuration, resolutionStrategyCopy, 3)
+    }
+
     @Unroll
     void "copies configuration role"() {
         def configuration = prepareConfigurationForCopyTest()
@@ -776,7 +793,7 @@ class DefaultConfigurationSpec extends Specification {
 
         and:
         def copiedConfiguration = configuration.copy(new Spec<Dependency>() {
-            public boolean isSatisfiedBy(Dependency element) {
+            boolean isSatisfiedBy(Dependency element) {
                 return !element.getGroup().equals("group3");
             }
         })
@@ -868,8 +885,8 @@ class DefaultConfigurationSpec extends Specification {
         return configuration
     }
 
-    private void checkCopiedConfiguration(Configuration original, Configuration copy, def resolutionStrategyInCopy) {
-        assert copy.name == original.name + "Copy"
+    private void checkCopiedConfiguration(Configuration original, Configuration copy, def resolutionStrategyInCopy, int copyCount = 1) {
+        assert copy.name == original.name + "Copy${copyCount > 1 ? copyCount : ''}"
         assert copy.visible == original.visible
         assert copy.transitive == original.transitive
         assert copy.description == original.description
