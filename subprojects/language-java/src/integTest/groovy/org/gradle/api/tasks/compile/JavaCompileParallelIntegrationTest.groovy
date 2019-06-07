@@ -82,7 +82,7 @@ project(':$projectName') {
 }
 """
             file("${projectName}/src/main/java/Foo.java") << """
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class Foo {
     public String capitalize(String str) {

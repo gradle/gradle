@@ -63,7 +63,7 @@ import org.gradle.model.Path;
 import javax.inject.Inject;
 import java.util.Set;
 
-import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 /**
  * Adds the ability to publish in the Ivy format to Ivy repositories.

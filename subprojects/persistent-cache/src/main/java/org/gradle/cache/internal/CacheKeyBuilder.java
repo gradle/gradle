@@ -21,8 +21,8 @@ import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 
-import static org.apache.commons.lang.ArrayUtils.EMPTY_OBJECT_ARRAY;
-import static org.apache.commons.lang.ArrayUtils.add;
+import static org.apache.commons.lang3.ArrayUtils.EMPTY_OBJECT_ARRAY;
+import static org.apache.commons.lang3.ArrayUtils.add;
 
 /**
  * Builds keys suitable to be used with {@link org.gradle.cache.CacheRepository#cache(String)}.

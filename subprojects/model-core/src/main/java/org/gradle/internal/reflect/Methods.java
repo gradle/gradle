@@ -17,7 +17,7 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.base.Equivalence;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class Foo {
   public String toString() {

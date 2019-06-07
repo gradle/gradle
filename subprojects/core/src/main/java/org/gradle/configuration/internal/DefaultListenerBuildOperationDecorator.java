@@ -18,7 +18,7 @@ package org.gradle.configuration.internal;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.gradle.BuildListener;
 import org.gradle.api.Action;
 import org.gradle.api.ProjectEvaluationListener;

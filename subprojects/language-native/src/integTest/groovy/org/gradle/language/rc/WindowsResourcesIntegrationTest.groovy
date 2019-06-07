@@ -16,7 +16,7 @@
 package org.gradle.language.rc
 
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain

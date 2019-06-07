@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-import org.apache.commons.lang.LocaleUtils
+import org.apache.commons.lang3.LocaleUtils
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.util.GradleVersion
 import spock.lang.Issue

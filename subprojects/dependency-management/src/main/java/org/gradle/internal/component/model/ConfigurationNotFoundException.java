@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 public class ConfigurationNotFoundException extends RuntimeException {

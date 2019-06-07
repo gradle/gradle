@@ -5,7 +5,7 @@ import org.junit.runner._
 import play.api.test._
 import play.api.test.Helpers._
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import com.google.common.collect.Lists
 
 /**

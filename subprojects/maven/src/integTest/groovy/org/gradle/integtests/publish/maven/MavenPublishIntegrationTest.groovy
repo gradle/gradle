@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.publish.maven
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.AuthScheme

@@ -18,10 +18,9 @@ package org.gradle.api.plugins.buildcomparison.compare.internal
 
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcome
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparator
-
 import spock.lang.Specification
 
-import static org.apache.commons.lang.StringUtils.getLevenshteinDistance
+import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance
 
 class DefaultBuildComparatorTest extends Specification {
 

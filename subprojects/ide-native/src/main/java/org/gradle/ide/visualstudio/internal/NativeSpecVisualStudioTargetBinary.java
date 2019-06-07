@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio.internal;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Buildable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Transformer;

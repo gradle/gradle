@@ -17,13 +17,17 @@
 package org.gradle.api.plugins.buildcomparison.render.internal.html
 
 import groovy.xml.MarkupBuilder
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 import org.gradle.api.Transformer
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome
-import org.gradle.api.plugins.buildcomparison.render.internal.*
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRenderer
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRendererFactory
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeRenderer
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeRendererFactory
 
 import java.nio.charset.Charset
 

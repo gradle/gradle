@@ -16,10 +16,10 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.string
 
-import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResultSupport
+import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociation
 
-import static org.apache.commons.lang.StringUtils.getLevenshteinDistance
+import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance
 
 class StringBuildOutcomeComparisonResult extends BuildOutcomeComparisonResultSupport<StringBuildOutcome> {
 

@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Transforms from the Gradle specific build outcomes into source agnostic outcomes.

@@ -17,8 +17,8 @@
 package org.gradle.cache.internal;
 
 import com.google.common.primitives.Ints;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 

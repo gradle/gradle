@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.Description;

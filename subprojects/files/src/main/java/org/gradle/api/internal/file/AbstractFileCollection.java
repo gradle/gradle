@@ -18,7 +18,7 @@ package org.gradle.api.internal.file;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 import groovy.lang.Closure;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;

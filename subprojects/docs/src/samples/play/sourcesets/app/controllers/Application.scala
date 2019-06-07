@@ -4,7 +4,7 @@ import javax.inject._
 import play.api._
 import play.api.mvc._
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 
 @Singleton
 class Application @Inject() extends InjectedController {

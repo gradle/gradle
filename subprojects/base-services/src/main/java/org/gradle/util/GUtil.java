@@ -17,7 +17,7 @@
 package org.gradle.util;
 
 import com.google.common.base.Charsets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;

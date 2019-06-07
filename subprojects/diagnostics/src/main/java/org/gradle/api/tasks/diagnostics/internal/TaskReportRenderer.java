@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.initialization.BuildClientMetaData;
@@ -26,7 +26,10 @@ import org.gradle.util.GUtil;
 
 import java.util.List;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * <p>A {@code TaskReportRenderer} is responsible for rendering the model of a project task report.</p>

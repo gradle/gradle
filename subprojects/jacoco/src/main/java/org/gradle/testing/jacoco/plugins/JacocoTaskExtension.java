@@ -17,7 +17,7 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;

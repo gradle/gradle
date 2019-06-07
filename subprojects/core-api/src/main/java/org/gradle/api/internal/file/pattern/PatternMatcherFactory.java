@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file.pattern;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 

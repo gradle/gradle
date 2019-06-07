@@ -17,7 +17,7 @@
 package org.gradle.api.reporting.components.internal;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;

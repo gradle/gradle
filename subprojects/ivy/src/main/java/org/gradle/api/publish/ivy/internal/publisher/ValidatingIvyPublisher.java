@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;

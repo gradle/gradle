@@ -17,8 +17,8 @@ package org.gradle.api.internal.tasks.userinput;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;

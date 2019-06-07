@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 

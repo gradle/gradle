@@ -4,7 +4,7 @@ import play.api.http.Status
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import com.google.common.collect.Lists
 
 /**

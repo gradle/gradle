@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.reflect.JavaMethod;

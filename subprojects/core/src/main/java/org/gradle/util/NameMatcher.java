@@ -15,11 +15,15 @@
  */
 package org.gradle.util;
 
-import java.util.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Selects a single item from a list of candidates based on a camel-case pattern.

@@ -1,6 +1,6 @@
 package org.gradle;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * <p>Represents a person.</p>

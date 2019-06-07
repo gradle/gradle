@@ -21,7 +21,7 @@ import groovy.util.IndentPrinter;
 import groovy.util.Node;
 import groovy.util.XmlNodePrinter;
 import groovy.util.XmlParser;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;

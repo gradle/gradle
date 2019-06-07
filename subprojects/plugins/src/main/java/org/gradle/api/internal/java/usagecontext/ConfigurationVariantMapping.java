@@ -17,7 +17,7 @@ package org.gradle.api.internal.java.usagecontext;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;

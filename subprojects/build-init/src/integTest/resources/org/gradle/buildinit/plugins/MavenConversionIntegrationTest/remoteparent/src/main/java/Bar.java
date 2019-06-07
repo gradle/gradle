@@ -1,4 +1,4 @@
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class Bar {
     public String toString() {

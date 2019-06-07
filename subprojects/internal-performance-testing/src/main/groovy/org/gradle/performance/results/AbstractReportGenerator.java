@@ -16,7 +16,7 @@
 
 package org.gradle.performance.results;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,7 +29,9 @@ import org.gradle.util.GUtil;
 import java.io.IOException;
 import java.util.List;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * <p>Displays a list of projects in the build. An instance of this type is used when you execute the {@code projects}

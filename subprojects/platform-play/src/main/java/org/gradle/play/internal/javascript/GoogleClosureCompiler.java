@@ -17,7 +17,7 @@
 package org.gradle.play.internal.javascript;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;

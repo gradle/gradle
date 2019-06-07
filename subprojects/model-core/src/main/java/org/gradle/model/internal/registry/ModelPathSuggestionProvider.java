@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import javax.annotation.concurrent.ThreadSafe;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.util.CollectionUtils;

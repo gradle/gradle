@@ -16,7 +16,7 @@
 package org.gradle.jvm.plugins;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -81,7 +81,7 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
             @Override
             public void execute(final Test test) {
                 test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
+                test.setDescription(String.format("Runs %s.", StringUtils.uncapitalize(binary.getDisplayName())));
                 test.dependsOn(jvmAssembly);
                 test.setTestClassesDirs(ImmutableFileCollection.of(binary.getClassesDir()));
                 test.setClasspath(binary.getRuntimeClasspath());

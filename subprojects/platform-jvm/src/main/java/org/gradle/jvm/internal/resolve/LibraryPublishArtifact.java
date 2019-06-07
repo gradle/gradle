@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.internal.resolve;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 
 import java.io.File;

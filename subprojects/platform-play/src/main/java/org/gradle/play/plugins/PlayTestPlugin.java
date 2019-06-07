@@ -16,7 +16,7 @@
 
 package org.gradle.play.plugins;
 
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
@@ -83,7 +83,7 @@ public class PlayTestPlugin extends RuleSource {
             tasks.create(testTaskName, Test.class, new Action<Test>() {
                 @Override
                 public void execute(Test test) {
-                    test.setDescription("Runs " + WordUtils.uncapitalize(binary.getDisplayName() + "."));
+                    test.setDescription("Runs " + StringUtils.uncapitalize(binary.getDisplayName() + "."));
 
                     test.setClasspath(getRuntimeClasspath(testClassesDir, testCompileClasspath));
 

@@ -20,7 +20,7 @@ import play.*;
 import play.mvc.*;
 import views.html.*;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 

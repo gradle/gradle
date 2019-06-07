@@ -16,12 +16,12 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import javax.annotation.concurrent.ThreadSafe;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptSource;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

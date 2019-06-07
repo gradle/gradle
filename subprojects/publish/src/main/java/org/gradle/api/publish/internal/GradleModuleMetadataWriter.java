@@ -19,7 +19,7 @@ package org.gradle.api.publish.internal;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.gson.stream.JsonWriter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;

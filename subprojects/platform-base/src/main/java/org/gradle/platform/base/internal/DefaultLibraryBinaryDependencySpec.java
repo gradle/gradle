@@ -16,7 +16,7 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.platform.base.DependencySpec;

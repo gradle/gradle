@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.internal;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;

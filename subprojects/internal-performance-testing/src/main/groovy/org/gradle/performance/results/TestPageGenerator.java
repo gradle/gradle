@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.googlecode.jatl.Html;
 import groovy.json.JsonOutput;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.performance.util.Git;
 
 import javax.annotation.Nullable;

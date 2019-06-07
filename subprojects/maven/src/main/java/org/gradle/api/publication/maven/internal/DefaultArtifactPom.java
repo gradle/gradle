@@ -16,7 +16,7 @@
 package org.gradle.api.publication.maven.internal;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;

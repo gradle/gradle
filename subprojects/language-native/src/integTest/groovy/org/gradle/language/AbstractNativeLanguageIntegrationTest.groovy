@@ -16,7 +16,7 @@
 
 package org.gradle.language
 
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.test.fixtures.file.TestFile

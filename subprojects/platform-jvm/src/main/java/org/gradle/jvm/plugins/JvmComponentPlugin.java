@@ -84,7 +84,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link JvmLibrarySpec} library type for the components
