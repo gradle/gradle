@@ -78,7 +78,7 @@ class ForkingGradleSession implements GradleSession {
     }
 
     private void run(BuildExperimentInvocationInfo invocationInfo, GradleInvocationSpec invocation, List<String> tasks) {
-        String jvmArgs = invocation.jvmOpts.collect { '\'' + it + '\'' }.join(' ')
+        String jvmArgs = invocation.jvmOpts.join(' ')
         Map<String, String> env = [:]
         List<String> args = []
         if (OperatingSystem.current().isWindows()) {
