@@ -143,7 +143,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         file('build/install/sample').exists()
 
         when:
-        runViaUnixStartScript()
+        runViaStartScript()
 
         then:
         outputContains('Hello World!')
@@ -172,7 +172,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    public void "java PID equals script PID"() {
+    def "java PID equals script PID"() {
         given:
         succeeds('installDist')
         def binFile = file('build/install/sample/bin/sample')
@@ -182,7 +182,7 @@ $binFile.text
 """
 
         when:
-        ExecutionResult result = runViaUnixStartScript()
+        runViaStartScript()
         def pids = result.output.findAll(/PID: \d+/)
 
         then:
@@ -199,14 +199,13 @@ $binFile.text
         file('build/install/sample').exists()
 
         when:
-        runViaWindowsStartScript()
+        runViaStartScript()
 
         then:
         outputContains('Hello World!')
     }
 
-    ExecutionResult runViaUnixStartScript() {
-        TestFile startScriptDir = file('build/install/sample/bin')
+    ExecutionResult runViaUnixStartScript(TestFile startScriptDir) {
         buildFile << """
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
@@ -229,8 +228,7 @@ task execStartScript(type: Exec) {
         return succeeds('execStartScript')
     }
 
-    ExecutionResult runViaWindowsStartScript() {
-        TestFile startScriptDir = file('build/install/sample/bin')
+    ExecutionResult runViaWindowsStartScript(TestFile startScriptDir) {
         String escapedStartScriptDir = startScriptDir.canonicalPath.replaceAll('\\\\', '\\\\\\\\')
         buildFile << """
 task execStartScript(type: Exec) {
@@ -275,6 +273,11 @@ executableDir = ''
         then:
         file('build/install/sample/sample').exists()
         file('build/install/sample/sample.bat').exists()
+
+        when:
+        runViaStartScript(file('build/install/sample'))
+        then:
+        outputContains("Hello World")
     }
 
     def "executables can be placed in a custom directory"() {
@@ -288,6 +291,11 @@ executableDir = 'foo/bar'
         then:
         file('build/install/sample/foo/bar/sample').exists()
         file('build/install/sample/foo/bar/sample.bat').exists()
+
+        when:
+        runViaStartScript(file('build/install/sample/foo/bar'))
+        then:
+        outputContains("Hello World")
     }
 
     def "includes transitive implementation dependencies in distribution"() {
@@ -474,8 +482,8 @@ startScripts {
         outputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
-    ExecutionResult runViaStartScript() {
-        OperatingSystem.current().isWindows() ? runViaWindowsStartScript() : runViaUnixStartScript()
+    ExecutionResult runViaStartScript(TestFile startScriptDir = file('build/install/sample/bin')) {
+        OperatingSystem.current().isWindows() ? runViaWindowsStartScript(startScriptDir) : runViaUnixStartScript(startScriptDir)
     }
 
     private void createSampleProjectSetup() {

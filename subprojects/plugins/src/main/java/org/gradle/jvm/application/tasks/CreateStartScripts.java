@@ -19,6 +19,7 @@ package org.gradle.jvm.application.tasks;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
@@ -296,7 +297,11 @@ public class CreateStartScripts extends ConventionTask {
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
         generator.setExitEnvironmentVar(getExitEnvironmentVar());
         generator.setClasspath(getRelativeClasspath());
-        generator.setScriptRelPath(getExecutableDir() + "/" + getUnixScript().getName());
+        if (StringUtils.isEmpty(getExecutableDir())) {
+            generator.setScriptRelPath(getUnixScript().getName());
+        } else {
+            generator.setScriptRelPath(getExecutableDir() + "/" + getUnixScript().getName());
+        }
         generator.generateUnixScript(getUnixScript());
         generator.generateWindowsScript(getWindowsScript());
     }
