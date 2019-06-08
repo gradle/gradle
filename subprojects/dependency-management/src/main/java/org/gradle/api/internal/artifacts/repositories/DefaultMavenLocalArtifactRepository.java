@@ -49,8 +49,6 @@ import java.net.URI;
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
 
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
                                                FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
@@ -64,7 +62,6 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                IsolatableFactory isolatableFactory,
                                                ObjectFactory objectFactory) {
         super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory, objectFactory);
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     @Override
