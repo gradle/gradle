@@ -23,7 +23,7 @@ As a build grows in complexity, knowing when and where a particular value is con
 [NOTE]
 ====
 
-The Provider API is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The `Property` API is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener

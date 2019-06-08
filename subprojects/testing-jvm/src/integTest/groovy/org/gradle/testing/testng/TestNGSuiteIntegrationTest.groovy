@@ -61,7 +61,7 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     apply plugin: 'java'
     ${mavenCentralRepository()}
     dependencies {
-        testCompile 'org.testng:testng:$version'
+        testImplementation 'org.testng:testng:$version'
     }
     test {
         useTestNG {
@@ -91,7 +91,7 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile 'org.testng:testng:$version'
+                testImplementation 'org.testng:testng:$version'
             }
             test {
               useTestNG {

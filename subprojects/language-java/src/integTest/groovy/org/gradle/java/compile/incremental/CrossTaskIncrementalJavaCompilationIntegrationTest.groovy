@@ -23,7 +23,7 @@ class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTa
     protected String getProjectDependencyBlock() {
         '''
             project(':impl') {
-                dependencies { compile project(':api') }
+                dependencies { api project(':api') }
             }
         '''
     }
@@ -32,7 +32,7 @@ class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTa
     protected void addDependency(String from, String to) {
         buildFile << """
             project(':$from') {
-                dependencies { compile project(':$to') }
+                dependencies { implementation project(path:':$to', configuration: 'runtimeElements') } // 'runtimeElements' exposes the jar files rather than the class folders (apiElements)
             }
         """
     }

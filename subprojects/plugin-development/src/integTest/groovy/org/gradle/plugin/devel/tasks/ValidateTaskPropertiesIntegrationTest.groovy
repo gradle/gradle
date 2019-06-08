@@ -53,7 +53,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "java-gradle-plugin"
 
             dependencies {
-                compile gradleApi()
+                implementation gradleApi()
             }
 
             validateTaskProperties {
@@ -278,7 +278,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "groovy"
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
         """
         file("src/main/groovy/MyTask.groovy") << """
@@ -392,7 +392,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "report setters for property with mutable type #type"() {
+    def "report setters for property of mutable type #type"() {
         @Language("JAVA") myTask = """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.InputFiles;
@@ -417,7 +417,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Type 'MyTask': property 'mutablePropertyWithSetter' with mutable type '${type.replaceAll("<.+>", "")}' is redundant. Use methods on the property value itself to mutate it
+            Warning: Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself
         """.stripIndent().trim()
 
         where:
@@ -557,7 +557,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies {
-                compile 'com.typesafe:config:1.3.2'
+                implementation 'com.typesafe:config:1.3.2'
             }
         """
 
@@ -594,12 +594,12 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java'
 
                 dependencies {
-                    compile 'com.typesafe:config:1.3.2'
+                    implementation 'com.typesafe:config:1.3.2'
                 }
             }          
 
             dependencies {
-                compile project(':lib')
+                implementation project(':lib')
             }
         """
         file("lib/src/main/java/MyUtil.java") << """
@@ -636,7 +636,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "groovy"
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
             
             validateTaskProperties.enableStricterValidation = project.hasProperty('strict')

@@ -19,7 +19,7 @@ package org.gradle.internal.instantiation
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.service.ServiceLookup
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 
 class DependencyInjectionUsingLenientConstructorSelectorTest extends Specification {
     def services = Mock(ServiceLookup)

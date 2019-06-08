@@ -39,7 +39,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         buildFile << """
             apply plugin: 'java'
             ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toString())}
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath.resolve() } }
         """
 
         when:
@@ -47,7 +47,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.configurationName == 'compile'
+        op.details.configurationName == 'compileClasspath'
         op.details.projectPath == ":"
         op.details.buildPath == ":"
         def repos = op.details.repositories
@@ -160,7 +160,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             }
             apply plugin: 'org.example.plugin2'
             repositories { maven { url = '$mavenRepo.uri' } }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath.resolve() } }
         """
 
         when:
@@ -181,7 +181,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             allprojects { 
                 apply plugin: 'java'
                 repositories { jcenter() }
-                task resolve { doLast { configurations.compile.resolve() } }
+                task resolve { doLast { configurations.compileClasspath. resolve() } }
             }
         """
 
@@ -213,7 +213,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath. resolve() } }
         """
 
         when:
@@ -244,7 +244,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     name = 'custom repo'
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath. resolve() } }
         """
 
         when:
@@ -281,7 +281,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath. resolve() } }
         """
 
         when:
@@ -323,7 +323,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     ${definition}
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath. resolve() } }
         """
 
         when:
@@ -385,7 +385,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     dirs 'lib1', 'lib2'
                 }
             }
-            task resolve { doLast { configurations.compile.resolve() } }
+            task resolve { doLast { configurations.compileClasspath. resolve() } }
         """
 
         when:

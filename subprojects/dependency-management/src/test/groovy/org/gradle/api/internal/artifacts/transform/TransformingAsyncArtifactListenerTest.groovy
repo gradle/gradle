@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.internal.Try
 import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import spock.lang.Unroll
 
 class TransformingAsyncArtifactListenerTest extends Specification {

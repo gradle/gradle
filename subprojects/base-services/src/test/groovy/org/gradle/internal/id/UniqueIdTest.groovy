@@ -16,7 +16,7 @@
 
 package org.gradle.internal.id
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 
 class UniqueIdTest extends Specification {
 

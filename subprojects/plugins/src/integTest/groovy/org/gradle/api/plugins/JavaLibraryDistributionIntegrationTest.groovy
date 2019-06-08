@@ -103,7 +103,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
         ${mavenCentralRepository()}
         dependencies {
-            runtime 'commons-lang:commons-lang:2.6'
+            runtimeOnly 'commons-lang:commons-lang:2.6'
         }
         """
 
@@ -161,7 +161,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.gradle.test:compile:1.0'
+    implementation 'org.gradle.test:compile:1.0'
     compileOnly 'org.gradle.test:compileOnly:1.0'
 }
 """

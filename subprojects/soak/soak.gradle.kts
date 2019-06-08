@@ -30,7 +30,7 @@ dependencies {
 
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":persistentCache"))
-    integTestImplementation(project(":launcherStartup"))
+    integTestImplementation(project(":launcher"))
     integTestImplementation(library("slf4j_api"))
     integTestImplementation(testLibrary("jetty"))
 }

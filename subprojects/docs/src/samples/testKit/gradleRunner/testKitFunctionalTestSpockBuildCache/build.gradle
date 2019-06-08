@@ -18,7 +18,7 @@ apply plugin: 'groovy'
 apply plugin: 'java-gradle-plugin'
 
 dependencies {
-    testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+    testImplementation('org.spockframework:spock-core:1.3-groovy-2.4') {
         exclude module: 'groovy-all'
     }
 }

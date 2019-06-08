@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Ignore
 
 @RequiredFeatures([
     // we only need to check without experimental, it doesn't depend on this flag
@@ -991,7 +990,6 @@ group:projectB:2.2;release
         outputContains 'Providing metadata for group:projectA:1.2'
     }
 
-    @Ignore
     def "can cache the result of processing a rule across projects"() {
         settingsFile << """
             include 'b'

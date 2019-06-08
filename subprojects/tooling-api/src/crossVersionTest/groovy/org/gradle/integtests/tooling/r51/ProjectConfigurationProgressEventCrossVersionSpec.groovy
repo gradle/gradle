@@ -207,12 +207,12 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
         then:
         def plugins = getPluginConfigurationOperationResult(":").getPluginApplicationResults().collect { it.plugin.displayName }
-        plugins == [
+        plugins.sort() == [
             "org.gradle.build-init", "org.gradle.wrapper", "org.gradle.help-tasks",
             "build.gradle", "script.gradle",
             "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin", "org.gradle.api.plugins.BasePlugin",
             "org.gradle.language.base.plugins.LifecycleBasePlugin", "org.gradle.api.plugins.ReportingBasePlugin"
-        ]
+        ].sort()
     }
 
     def "reports plugin configuration results for remote script plugins"() {

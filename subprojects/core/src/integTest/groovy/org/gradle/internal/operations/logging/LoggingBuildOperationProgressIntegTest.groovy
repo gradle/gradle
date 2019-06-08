@@ -69,7 +69,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             }
             
             dependencies {
-                runtime 'org:foo:1.0'
+                runtimeOnly 'org:foo:1.0'
             }
             
             jar.doLast {
@@ -79,7 +79,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             task resolve {
                 doLast {
                     // force resolve
-                    configurations.runtime.files
+                    configurations.runtimeClasspath.files
                 }
             }
             
@@ -401,7 +401,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                 ${jcenterRepository()}
             }
             dependencies {
-                testCompile 'junit:junit:4.10'
+                testImplementation 'junit:junit:4.10'
             }
             
         """

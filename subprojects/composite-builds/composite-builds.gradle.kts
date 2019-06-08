@@ -22,10 +22,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly(project(":launcherStartup"))
-    integTestCompileOnly(project(":launcherStartup"))
-    runtimeOnly(project(":launcher"))
-
+    implementation(project(":launcher"))
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))

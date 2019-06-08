@@ -34,7 +34,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
         buildFile << """
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${mavenCentralRepository()}
             }
             $projectDependencyBlock
@@ -142,7 +142,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         when:
         buildFile << """
             project(':impl') {
-                configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
+                configurations.api.dependencies.clear() //so that api jar is no longer on classpath
             }
         """
         run "impl:compileJava"
@@ -158,7 +158,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         when:
         buildFile << """
             project(':impl') {
-                configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
+                configurations.api.dependencies.clear() //so that api jar is no longer on classpath
             }
         """
         fails "impl:compileJava"
@@ -222,7 +222,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         when:
         buildFile << """
             project(':impl') {
-                configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
+                configurations.api.dependencies.clear() //so that api jar is no longer on classpath
             }
         """
         run "impl:compileJava"
@@ -422,7 +422,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         buildFile << """
             project(':impl') {
                 ${jcenterRepository()}     
-                dependencies { compile 'org.apache.commons:commons-lang3:3.3' }
+                dependencies { implementation 'org.apache.commons:commons-lang3:3.3' }
             }
         """
         java api: ["class A {}", "class B { }"], impl: ["class ImplA extends A {}", """import org.apache.commons.lang3.StringUtils;
@@ -491,10 +491,10 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         settingsFile << "\n include 'other'" //add an extra project
         java impl: ["class ImplA extends A {}"], api: ["class A {}"], other: ["class Other {}"]
 
-        //new separate compile task (integTestCompile) depends on class from the extra project
+        //new separate compile task (compileIntegTestJava) depends on class from the extra project
         file("impl/build.gradle") << """
             sourceSets { integTest.java.srcDir 'src/integTest/java' }
-            dependencies { integTestCompile project(":other") }
+            dependencies { integTestImplementation project(":other") }
         """
         file("impl/src/integTest/java/SomeIntegTest.java") << "class SomeIntegTest extends Other {}"
 
@@ -519,7 +519,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     def "the order of classpath items is unchanged"() {
         java api: ["class A {}"], impl: ["class B {}"]
         file("impl/build.gradle") << """
-            dependencies { compile "org.mockito:mockito-core:1.9.5", "junit:junit:4.12" }
+            dependencies { implementation "org.mockito:mockito-core:1.9.5", "junit:junit:4.12" }
             compileJava.doFirst {
                 file("classpath.txt").createNewFile(); file("classpath.txt").text = classpath.files*.name.collect { it.replace('main','api.jar') }.join(', ')
             }
@@ -538,21 +538,21 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar"
 
         when: //transitive dependency is excluded
-        file("impl/build.gradle") << "configurations.compile.exclude module: 'hamcrest-core' \n"
+        file("impl/build.gradle") << "configurations.implementation.exclude module: 'hamcrest-core' \n"
         run("impl:compileJava")
 
         then:
         file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar"
 
         when: //direct dependency is excluded
-        file("impl/build.gradle") << "configurations.compile.exclude module: 'junit' \n"
+        file("impl/build.gradle") << "configurations.implementation.exclude module: 'junit' \n"
         run("impl:compileJava")
 
         then:
         file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, objenesis-1.0.jar"
 
         when: //new dependency is added
-        file("impl/build.gradle") << "dependencies { compile 'org.testng:testng:6.8.7' } \n"
+        file("impl/build.gradle") << "dependencies { implementation 'org.testng:testng:6.8.7' } \n"
         run("impl:compileJava")
 
         then:
@@ -585,8 +585,8 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     def "new jar with duplicate class appearing earlier on classpath must trigger compilation"() {
         java impl: ["class A extends org.junit.Assert {}"]
         file("impl/build.gradle") << """
-            configurations.compile.dependencies.clear()
-            dependencies { compile 'junit:junit:4.12' }
+            configurations.api.dependencies.clear()
+            dependencies { implementation 'junit:junit:4.12' }
         """
 
         impl.snapshot { run("impl:compileJava") }
@@ -594,7 +594,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         when:
         //add new jar with duplicate class that will be earlier on the classpath (project dependencies are earlier on classpath)
         file("api/src/main/java/org/junit/Assert.java") << "package org.junit; public class Assert {}"
-        file("impl/build.gradle") << "dependencies { compile project(':api') }"
+        file("impl/build.gradle") << "dependencies { implementation project(':api') }"
         run("impl:compileJava")
 
         then:
@@ -606,7 +606,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run("impl:compileJava") }
 
         when:
-        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.12' }"
+        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.12' }"
         run("impl:compileJava")
 
         then:
@@ -616,7 +616,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     def "changed jar with duplicate class appearing earlier on classpath must trigger compilation"() {
         java impl: ["class A extends org.junit.Assert {}"]
         file("impl/build.gradle") << """
-            dependencies { compile 'junit:junit:4.12' }
+            dependencies { implementation 'junit:junit:4.12' }
         """
 
         impl.snapshot { run("impl:compileJava") }
@@ -634,14 +634,14 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         file("api/src/main/java/org/junit/Assert.java") << "package org.junit; public class Assert {}"
         java impl: ["class A extends org.junit.Assert {}"]
 
-        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.12' }"
+        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.12' }"
 
         impl.snapshot { run("impl:compileJava") }
 
         when:
         file("impl/build.gradle").text = """
-            configurations.compile.dependencies.clear()  //kill project dependency
-            dependencies { compile 'junit:junit:4.11' }  //leave only junit
+            configurations.api.dependencies.clear()  //kill project dependency
+            dependencies { implementation 'junit:junit:4.11' }  //leave only junit
         """
         run("impl:compileJava")
 

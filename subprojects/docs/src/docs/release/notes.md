@@ -11,6 +11,8 @@ Include only their name, impactful features should be called out separately belo
 [Semyon Levin](https://github.com/remal),
 [wreulicke](https://github.com/wreulicke),
 [John Rodriguez](https://github.com/jrodbx),
+[mig4](https://github.com/mig4),
+[Evgeny Mandrikov](https://github.com/Godin),
 and [Ivo Anjo](https://github.com/ivoanjo).
 
 <!-- 
@@ -63,6 +65,15 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+## Improved handling of ZIP archives on classpaths
+
+Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
+It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of cache hits for tasks
+that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
+
+The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
+This improves performance for projects with a large amount of resource files.
 
 <!--
 ### Example promoted

@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures.timeout
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore

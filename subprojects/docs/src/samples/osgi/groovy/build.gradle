@@ -18,8 +18,8 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy:2.4.15'
-    compile 'org.eclipse:osgi:3.5.0.v20090520'
+    implementation 'org.codehaus.groovy:groovy:2.4.15'
+    implementation 'org.eclipse:osgi:3.5.0.v20090520'
 }
 
 jar {

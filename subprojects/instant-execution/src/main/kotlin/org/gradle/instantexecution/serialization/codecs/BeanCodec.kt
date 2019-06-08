@@ -16,24 +16,16 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import groovy.lang.GroovyObjectSupport
 import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
-import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.writeClass
-import sun.reflect.ReflectionFactory
-import java.lang.reflect.Constructor
 
 
 internal
-class BeanCodec(
-    private val filePropertyFactory: FilePropertyFactory
-) : Codec<Any> {
+class BeanCodec : Codec<Any> {
 
     override fun WriteContext.encode(value: Any) {
         val id = isolate.identities.getId(value)
@@ -43,7 +35,7 @@ class BeanCodec(
             writeSmallInt(isolate.identities.putInstance(value))
             val beanType = GeneratedSubclasses.unpackType(value)
             writeClass(beanType)
-            BeanPropertyWriter(beanType).run {
+            beanPropertyWriterFor(beanType).run {
                 writeFieldsOf(value)
             }
         }
@@ -56,22 +48,11 @@ class BeanCodec(
             return previousValue
         }
         val beanType = readClass()
-        val constructor = if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
-            // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
-            newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
-        } else {
-            newConstructorForSerialization(beanType, Object::class.java.getConstructor())
-        }
-        val bean = constructor.newInstance()
-        isolate.identities.putInstance(id, bean)
-        BeanPropertyReader(bean.javaClass, filePropertyFactory).run {
+        return beanPropertyReaderFor(beanType).run {
+            val bean = newBean()
+            isolate.identities.putInstance(id, bean)
             readFieldsOf(bean)
+            bean
         }
-        return bean
     }
-
-    // TODO: What about the runtime decorations a serialized bean might have had at configuration time?
-    private
-    fun newConstructorForSerialization(beanType: Class<*>, constructor: Constructor<*>): Constructor<out Any> =
-        ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, constructor)
 }

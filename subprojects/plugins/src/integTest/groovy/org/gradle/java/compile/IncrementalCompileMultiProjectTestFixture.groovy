@@ -31,7 +31,7 @@ trait IncrementalCompileMultiProjectTestFixture {
                 
                 project(':app') {
                     dependencies {
-                        compile project(':library')
+                        implementation project(':library')
                     }
                 }
             '''.stripIndent()

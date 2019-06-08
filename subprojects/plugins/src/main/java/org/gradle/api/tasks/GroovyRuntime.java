@@ -45,7 +45,7 @@ import java.util.List;
  *     }
  *
  *     dependencies {
- *         compile "org.codehaus.groovy:groovy-all:2.1.2"
+ *         implementation "org.codehaus.groovy:groovy-all:2.1.2"
  *     }
  *
  *     def groovyClasspath = groovyRuntime.inferGroovyClasspath(configurations.compile)

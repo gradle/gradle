@@ -35,7 +35,9 @@ dependencies {
     implementation(library("guava"))
     implementation(library("inject"))
 
-    compileOnly("antlr:antlr:2.7.7")
+    compileOnly("antlr:antlr:2.7.7") {
+        because("this dependency is downloaded by the antlr plugin")
+    }
 
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":files"))

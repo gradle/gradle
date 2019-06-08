@@ -30,7 +30,7 @@ class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
             project(":b") {
                 apply plugin: 'java'
                 dependencies {
-                    compile project(":a")
+                    implementation project(":a")
                 }
                 compileJava.doFirst {
                     assert classpath.collect { it.name } == ['a.jar']
@@ -63,7 +63,7 @@ class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
             project(":a") {
                 apply plugin: 'war'
                 dependencies {
-                    compile project(":b")
+                    implementation project(":b")
                 }
                 war.doFirst {
                     assert classpath.collect { it.name }.containsAll(['b.jar', 'c.jar', 'd.jar'])
@@ -73,7 +73,7 @@ class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
             project(":b") {
                 apply plugin: 'java'
                 dependencies {
-                    compile project(':c')
+                    implementation project(':c')
                     compileOnly project(':e')
                 }
             }

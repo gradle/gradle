@@ -48,7 +48,7 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
         buildFile << testablePluginProject()
         buildFile << """
             dependencies {
-                compile 'com.google.guava:guava:19.0'
+                implementation 'com.google.guava:guava:19.0'
             }
         """
 

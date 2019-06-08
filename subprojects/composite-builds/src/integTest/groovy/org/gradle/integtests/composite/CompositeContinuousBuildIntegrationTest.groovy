@@ -91,7 +91,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
             group = 'com.example'
             mainClassName = 'com.example.Main'
             dependencies {
-                compile 'org.test:library:0.1'
+                implementation 'org.test:library:0.1'
             }
         """
         def mainSource = file("src/main/java/com/example/Main.java")
@@ -209,7 +209,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
                 group = 'com.example'
                 mainClassName = 'com.example.' + name + '.Main'
                 dependencies {
-                    compile 'org.test:library:0.1'
+                    implementation 'org.test:library:0.1'
                 }
             }
             project(":sub2") {

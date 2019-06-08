@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
 
 class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -29,5 +30,11 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     protected InstantExecutionBuildOperationsFixture newInstantExecutionFixture() {
         return new InstantExecutionBuildOperationsFixture(executer, temporaryFolder)
+    }
+
+    protected void assertTestsExecuted(String testClass, String... testNames) {
+        new DefaultTestExecutionResult(testDirectory)
+            .testClass(testClass)
+            .assertTestsExecuted(testNames)
     }
 }

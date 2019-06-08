@@ -35,7 +35,7 @@ apply plugin: 'java'
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
-    compile 'org:foo:1.3.3'
+    implementation 'org:foo:1.3.3'
 }
 
 configurations.all {
@@ -44,7 +44,7 @@ configurations.all {
 
 task checkDeps {
     doLast {
-        assert configurations.compile*.name == ['foo-1.4.4.jar']
+        assert configurations.compileClasspath*.name == ['foo-1.4.4.jar']
     }
 }
 """
@@ -64,7 +64,7 @@ apply plugin: 'java'
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
-    compile 'org:foo:1.3.3'
+    implementation 'org:foo:1.3.3'
 }
 
 configurations.all {
@@ -73,7 +73,7 @@ configurations.all {
 
 task checkDeps {
     doLast {
-        assert configurations.compile*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
+        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
     }
 }
 """
@@ -96,21 +96,21 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4.4')
+		implementation (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
+		implementation (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':tool') {
 
 	dependencies {
-		compile project(':api')
-		compile project(':impl')
+		implementation project(':api')
+		implementation project(':impl')
 	}
 }
 
@@ -147,25 +147,25 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4.4')
+		implementation (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
+		implementation (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':tool') {
 	dependencies {
-		compile project(':api')
-		compile project(':impl')
+		implementation project(':api')
+		implementation project(':impl')
 	}
     task checkDeps(dependsOn: configurations.compile) {
         doLast {
-            assert configurations.compile*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
-            def metadata = configurations.compile.resolvedConfiguration
+            assert configurations.runtimeClasspath*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
+            def metadata = configurations.runtimeClasspath.resolvedConfiguration
             def api = metadata.firstLevelModuleDependencies.find { it.moduleName == 'api' }
             assert api.children.size() == 1
             assert api.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
@@ -205,20 +205,20 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
+		implementation (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4.4')
+		implementation (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
 project(':tool') {
 	dependencies {
-		compile project(':api')
-		compile project(':impl')
+		implementation project(':api')
+		implementation project(':impl')
 	}
 	configurations.all {
 	    resolutionStrategy {
@@ -228,7 +228,7 @@ project(':tool') {
 	}
     task checkDeps(dependsOn: configurations.compile) {
         doLast {
-            assert configurations.compile*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
+            assert configurations.runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
         }
     }
 }
@@ -255,21 +255,21 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4.4')
+		implementation (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
+		implementation (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':tool') {
 	dependencies {
-		compile project(':api')
-		compile project(':impl')
-		compile('org:foo:1.5.5'){
+		implementation project(':api')
+		implementation project(':impl')
+		implementation('org:foo:1.5.5'){
 		    force = true
 		}
 	}
@@ -291,13 +291,13 @@ apply plugin: 'java'
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
-    compile 'org:foo:1.4.4'
-    compile ('org:foo:1.3.3') { force = true }
+    implementation 'org:foo:1.4.4'
+    implementation ('org:foo:1.3.3') { force = true }
 }
 
 task checkDeps {
     doLast {
-        assert configurations.compile*.name == ['foo-1.3.3.jar']
+        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar']
     }
 }
 """
@@ -315,7 +315,7 @@ apply plugin: 'java'
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
-    compile 'org:foo:1.3.3'
+    implementation 'org:foo:1.3.3'
 }
 
 configurations.all {
@@ -324,7 +324,7 @@ configurations.all {
 
 task checkDeps {
     doLast {
-        assert configurations.compile*.name == ['foo-1.3.3.jar']
+        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar']
     }
 }
 """
@@ -341,7 +341,7 @@ apply plugin: 'java'
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
-    compile 'org:foo:1.0'
+    implementation 'org:foo:1.0'
 }
 
 configurations.all {
@@ -354,7 +354,7 @@ configurations.all {
 
 task checkDeps {
     doLast {
-        assert configurations.compile*.name == ['foo-2.0.jar']
+        assert configurations.compileClasspath*.name == ['foo-2.0.jar']
     }
 }
 """

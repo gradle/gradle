@@ -63,11 +63,11 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
             }
             
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
             
             codenarcMain {
-                compilationClasspath = configurations.compile
+                compilationClasspath = configurations.compileClasspath
             }
         """
     }

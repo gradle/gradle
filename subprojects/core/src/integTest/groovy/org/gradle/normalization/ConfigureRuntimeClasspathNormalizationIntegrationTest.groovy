@@ -68,8 +68,10 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         tree          | ignoredResourceName          | notIgnoredResourceName          | useRuntimeApi
         'directories' | 'ignoredResourceInDirectory' | 'notIgnoredResourceInDirectory' | true
         'jars'        | 'ignoredResourceInJar'       | 'notIgnoredResourceInJar'       | true
+        'nested jars' | 'ignoredResourceInNestedJar' | 'notIgnoredResourceInNestedJar' | true
         'directories' | 'ignoredResourceInDirectory' | 'notIgnoredResourceInDirectory' | false
         'jars'        | 'ignoredResourceInJar'       | 'notIgnoredResourceInJar'       | false
+        'nested jars' | 'ignoredResourceInNestedJar' | 'notIgnoredResourceInNestedJar' | false
     }
 
     def "can configure ignore rules per project (using runtime API: #useRuntimeApi)"() {
@@ -125,9 +127,13 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         TestResource ignoredResourceInDirectory
         TestResource notIgnoredResourceInDirectory
         TestResource ignoredResourceInJar
+        TestResource ignoredResourceInNestedJar
         TestResource notIgnoredResourceInJar
+        TestResource notIgnoredResourceInNestedJar
         TestFile libraryJar
+        TestFile nestedJar
         private TestFile libraryJarContents
+        private TestFile nestedJarContents
         private final String projectName
         final TestFile buildFile
 
@@ -145,10 +151,14 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 ignoredResourceInDirectory = new TestResource(file("ignored.txt") << "This should be ignored")
                 notIgnoredResourceInDirectory = new TestResource(file("not-ignored.txt") << "This should not be ignored")
             }
-
+            nestedJarContents = root.file('libraryContents').create {
+                ignoredResourceInNestedJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
+                notIgnoredResourceInNestedJar = new TestResource(file('some/package/not-ignored.txt') << "This should not be ignored", this.&createJar)
+            }
             libraryJarContents = root.file('libraryContents').create {
                 ignoredResourceInJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
                 notIgnoredResourceInJar = new TestResource(file('some/package/not-ignored.txt') << "This should not be ignored", this.&createJar)
+                nestedJar = file('nested.jar')
             }
             libraryJar = root.file('library.jar')
             createJar()
@@ -187,6 +197,10 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         }
 
         void createJar() {
+            if (nestedJar.exists()) {
+                nestedJar.delete()
+            }
+            nestedJarContents.zipTo(nestedJar)
             if (libraryJar.exists()) {
                 libraryJar.delete()
             }

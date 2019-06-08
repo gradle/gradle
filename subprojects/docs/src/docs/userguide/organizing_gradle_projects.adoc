@@ -338,4 +338,9 @@ The following steps are typical for creating a custom Gradle distribution:
 4. Upload the Gradle distribution archive to a HTTP server.
 5. Change the Wrapper files of all projects to point to the URL of the custom Gradle distribution.
 
-You can find a sample project that covers steps one to three in the `samples` directory of the standard `-all` Gradle distribution.
+You can find a sample (`userguide/organizingGradleProjects/customGradleDistribution`) that covers steps one to three in the `samples` directory of the standard `-all` Gradle distribution.
+
+.Building a custom Gradle distribution
+====
+include::sample[dir="userguide/organizingGradleProjects/customGradleDistribution",files="build.gradle[]"]
+====

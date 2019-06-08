@@ -5,12 +5,12 @@ repositories {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
 
 configurations {
-    customTestCompile.extendsFrom testCompile
-    customTestRuntime.extendsFrom testRuntime
+    customTestImplementation.extendsFrom testImplementation
+    customTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 sourceSets {

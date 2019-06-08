@@ -27,7 +27,7 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:$version' }
+            dependencies { testImplementation 'org.testng:testng:$version' }
             test {
                 useTestNG { preserveOrder true }
                 onOutput { test, event -> print "\$event.message" }

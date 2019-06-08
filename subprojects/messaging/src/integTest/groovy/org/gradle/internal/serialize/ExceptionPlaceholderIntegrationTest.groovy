@@ -30,8 +30,8 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies {
-                testCompile 'junit:junit:4.12'
-                testCompile 'org.mockito:mockito-core:2.3.7'
+                testImplementation 'junit:junit:4.12'
+                testImplementation 'org.mockito:mockito-core:2.3.7'
             }
         """
 

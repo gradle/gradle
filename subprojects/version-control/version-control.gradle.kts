@@ -48,8 +48,8 @@ dependencies {
     testFixturesImplementation(library("commons_io"))
     testFixturesImplementation(library("commons_httpclient"))
     testFixturesImplementation(library("jsch"))
-    
-    integTestImplementation(project(":launcherStartup"))
+
+    integTestImplementation(project(":launcher"))
 }
 
 gradlebuildJava {

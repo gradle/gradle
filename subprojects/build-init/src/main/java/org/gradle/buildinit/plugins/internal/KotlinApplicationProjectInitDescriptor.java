@@ -59,14 +59,11 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
     public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
         super.generate(settings, buildScriptBuilder, templateFactory);
 
-        String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
+        new KotlinProjectInitDescriptor(libraryVersionProvider).generate(buildScriptBuilder);
+
         buildScriptBuilder
             .fileComment("This generated file contains a sample Kotlin application project to get you started.")
-            .plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.", "org.jetbrains.kotlin.jvm", kotlinVersion)
             .plugin("Apply the application plugin to add support for building a CLI application.", "application")
-            .implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-            .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
-            .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit")
             .block(null, "application", b -> {
                 b.propertyAssignment("Define the main class for the application", "mainClassName", withPackage(settings, "AppKt"));
             });

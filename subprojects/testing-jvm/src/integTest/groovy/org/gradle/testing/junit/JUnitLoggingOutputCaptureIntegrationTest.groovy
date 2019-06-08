@@ -33,7 +33,7 @@ class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrat
             apply plugin: "java"
             ${mavenCentralRepository()}
             dependencies {
-                testCompile '$dependencyNotation'
+                testImplementation '$dependencyNotation'
             }
             test {
                 reports.junitXml.outputPerTestCase = true
@@ -164,7 +164,7 @@ after class err
 
     def "captures output from logging frameworks"() {
         buildFile << """
-dependencies { testCompile "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api:1.7.10" }
+dependencies { testImplementation "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api:1.7.10" }
 """
         file("src/test/java/FooTest.java") << """
 

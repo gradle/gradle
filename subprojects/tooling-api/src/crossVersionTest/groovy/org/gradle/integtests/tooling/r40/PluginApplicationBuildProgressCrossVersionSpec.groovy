@@ -538,8 +538,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
                 apply plugin: 'java'
             }
             dependencies {
-                compile project(':a')
-                compile project(':b')
+                implementation project(':a')
+                implementation project(':b')
             }
         """
     }

@@ -42,8 +42,8 @@ dists {
 
 subprojects {
     configurations {
-        compile
-        testCompile
+        implementation
+        testImplementation
     }
     repositories {
         mavenCentral()
@@ -64,15 +64,15 @@ project(':api') {
 description = 'The shared API for the application'
 // end::project-description[]
     dependencies {
-        compile "org.codehaus.groovy:groovy-all:2.4.15"
-        testCompile "junit:junit:4.12"
+        implementation "org.codehaus.groovy:groovy-all:2.4.15"
+        testImplementation "junit:junit:4.12"
     }
 }
 
 project(':webapp') {
     description = 'The Web application implementation'
     dependencies {
-        compile project(path: ':api', configuration: 'compile'), "commons-io:commons-io:1.2"
+        implementation project(path: ':api', configuration: 'implementation'), "commons-io:commons-io:1.2"
     }
     libs {
         dependsOn ':api:libs'

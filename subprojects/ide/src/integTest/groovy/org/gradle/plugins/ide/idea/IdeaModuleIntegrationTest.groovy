@@ -51,7 +51,7 @@ apply plugin: "idea"
 
 configurations {
   provided
-  provided.extendsFrom(compile)
+  compileClasspath.extendsFrom(provided)
 }
 
 idea {
@@ -69,7 +69,7 @@ idea {
         generatedSourceDirs += file('additionalCustomGeneratedResources')
         excludeDirs += file('excludeMePlease')
 
-        scopes.PROVIDED.plus += [ configurations.compile ]
+        scopes.PROVIDED.plus += [ configurations.compileClasspath ]
         downloadJavadoc = true
         downloadSources = false
 
@@ -336,7 +336,7 @@ repositories {
 }
 
 dependencies {
-    compile 'coolGroup:niceArtifact:1.0'
+    implementation 'coolGroup:niceArtifact:1.0'
 }
 
 idea.module {
@@ -368,8 +368,8 @@ repositories {
 }
 
 dependencies {
-    compile 'org.gradle:artifact1:1.0'
-    compile 'org.gradle:artifact2:1.0'
+    implementation 'org.gradle:artifact1:1.0'
+    implementation 'org.gradle:artifact2:1.0'
 }
 """
         def content = getFile([:], 'root.iml').text
@@ -393,8 +393,8 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 dependencies {
-    compile files('artifact1.jar')
-    compile files('artifact2.jar')
+    implementation files('artifact1.jar')
+    implementation files('artifact2.jar')
 }
 """
         def content = getFile([:], 'root.iml').text
@@ -421,7 +421,7 @@ repositories {
 }
 
 dependencies {
-    compile ':hibernate-core:'
+    implementation ':hibernate-core:'
 }
 """
         def content = getFile([:], 'root.iml').text
@@ -452,10 +452,10 @@ project(':impl') {
     }
 
     dependencies {
-        compile 'groupOne:artifactTwo:1.0'
-        compile project(':someApiProject')
-        compile 'i.dont:Exist:1.0'
-        compile files('someDependency.jar')
+        implementation 'groupOne:artifactTwo:1.0'
+        implementation project(':someApiProject')
+        implementation 'i.dont:Exist:1.0'
+        implementation files('someDependency.jar')
     }
 }
 """
@@ -486,9 +486,9 @@ repositories {
 }
 
 dependencies {
-    compile 'org.gradle:api-artifact:1.0'
-    testCompile 'org.gradle:impl-artifact:1.0'
-    runtime 'org.gradle:impl-artifact:1.0'
+    implementation 'org.gradle:api-artifact:1.0'
+    testImplementation 'org.gradle:impl-artifact:1.0'
+    runtimeOnly 'org.gradle:impl-artifact:1.0'
 }
 """
         //then
@@ -558,7 +558,7 @@ configurations {
 
 dependencies {
     myCustom 'foo:bar:1.0'
-    compile 'org.gradle:api-artifact:1.0'
+    implementation 'org.gradle:api-artifact:1.0'
 }
 
 idea {
@@ -628,8 +628,8 @@ dependencies {
     myPlusConfig group: 'myGroup', name: 'missing-extra-artifact', version: '1.0'
     myPlusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
     myMinusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
-    runtime  group: 'myGroup', name: 'missing-artifact', version: '1.0'
-    compile  group: 'myGroup', name: 'existing-artifact', version: '1.0'
+    runtimeOnly group: 'myGroup', name: 'missing-artifact', version: '1.0'
+    implementation group: 'myGroup', name: 'existing-artifact', version: '1.0'
 
     idea {
         module {
@@ -663,7 +663,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.gradle.test:compile:1.0'
+    implementation 'org.gradle.test:compile:1.0'
     compileOnly 'org.gradle.test:compileOnly:1.0'
     testCompileOnly 'org.gradle.test:testCompileOnly:1.0'
 }
@@ -695,7 +695,7 @@ dependencies {
             }
 
             dependencies {
-                testCompile 'org.gradle.test:compile:1.0'
+                testImplementation 'org.gradle.test:compile:1.0'
                 testCompileOnly 'org.gradle.test:compileOnly:1.0'
             }
         """.stripIndent()
@@ -724,7 +724,7 @@ dependencies {
             }
 
             dependencies {
-                compile 'org.gradle.test:bothCompileAndCompileOnly:1.0'
+                implementation 'org.gradle.test:bothCompileAndCompileOnly:1.0'
                 compileOnly 'org.gradle.test:bothCompileAndCompileOnly:2.0'
             }
         """.stripIndent()
@@ -754,7 +754,7 @@ dependencies {
 
             dependencies {
                 compileOnly 'org.gradle.test:bothCompileAndCompileOnly:2.0'
-                runtime 'org.gradle.test:bothCompileAndCompileOnly:1.0'
+                runtimeOnly 'org.gradle.test:bothCompileAndCompileOnly:1.0'
             }
         """.stripIndent()
 
@@ -782,7 +782,7 @@ dependencies {
             }
 
             dependencies {
-                testCompile 'org.gradle.test:bothCompileAndCompileOnly:1.0'
+                testImplementation 'org.gradle.test:bothCompileAndCompileOnly:1.0'
                 testCompileOnly 'org.gradle.test:bothCompileAndCompileOnly:2.0'
             }
         """.stripIndent()

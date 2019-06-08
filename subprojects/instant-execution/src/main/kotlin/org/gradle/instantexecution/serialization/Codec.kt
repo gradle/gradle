@@ -19,6 +19,8 @@ package org.gradle.instantexecution.serialization
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
+import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -38,6 +40,8 @@ interface WriteContext : IsolateContext, Encoder {
 
     override val isolate: WriteIsolate
 
+    fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter
+
     fun writeActionFor(value: Any?): Encoding?
 
     fun write(value: Any?) {
@@ -54,6 +58,8 @@ interface ReadContext : IsolateContext, Decoder {
     override val isolate: ReadIsolate
 
     val classLoader: ClassLoader
+
+    fun beanPropertyReaderFor(beanType: Class<*>): BeanPropertyReader
 
     fun getProject(path: String): ProjectInternal
 

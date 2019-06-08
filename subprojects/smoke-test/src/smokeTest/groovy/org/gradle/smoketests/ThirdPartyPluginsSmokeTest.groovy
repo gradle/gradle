@@ -166,12 +166,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             dependencies {
-                compile 'org.springframework:spring-core'
+                implementation 'org.springframework:spring-core'
             }
             """.stripIndent()
 
         when:
-        def result = runner("dependencies", "--configuration", "compile").build()
+        def result = runner("dependencies", "--configuration", "compileClasspath").build()
 
         then:
         result.output.contains('org.springframework:spring-core -> 4.0.3.RELEASE')

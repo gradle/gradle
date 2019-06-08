@@ -127,7 +127,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             
             dependencies {
-                compile 'org.scala-lang:scala-library:2.11.12'
+                implementation 'org.scala-lang:scala-library:2.11.12'
             }
         """
     }

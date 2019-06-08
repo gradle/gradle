@@ -18,7 +18,6 @@ package org.gradle.testfixtures.internal;
 import org.gradle.api.Transformer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
@@ -29,6 +28,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * A simple in-memory cache, used by the testing fixtures.
@@ -59,13 +59,13 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
 
     @Override
     public V get(final K key, final Transformer<? extends V, ? super K> producer) {
-        return producerGuard.guardByKey(key, new Factory<V>() {
+        return producerGuard.guardByKey(key, new Supplier<V>() {
             @Override
-            public V create() {
+            public V get() {
                 if (!entries.containsKey(key)) {
                     put(key, producer.transform(key));
                 }
-                return get(key);
+                return InMemoryIndexedCache.this.get(key);
             }
         });
     }

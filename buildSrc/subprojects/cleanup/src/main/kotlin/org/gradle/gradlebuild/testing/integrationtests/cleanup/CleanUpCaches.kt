@@ -30,13 +30,6 @@ open class CleanUpCaches : DefaultTask() {
     @TaskAction
     fun cleanUpCaches(): Unit = project.run {
 
-        val executingVersion = GradleVersion.version(gradle.gradleVersion)
-
-        // Expire .gradle cache where major version is older than executing version
-        val expireTaskCache = Spec<GradleVersion> { candidateVersion ->
-            candidateVersion.baseVersion < executingVersion.baseVersion
-        }
-
         // Expire intTestImage cache snapshots that are older than the tested version
         // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
         val expireIntegTestCache = Spec<GradleVersion> { candidateVersion ->
@@ -45,8 +38,6 @@ open class CleanUpCaches : DefaultTask() {
         }
 
         // Remove state for old versions of Gradle that we're unlikely to ever require again
-        removeOldVersionsFromDir(file("buildSrc/.gradle"), expireTaskCache)
-        removeOldVersionsFromDir(file(".gradle"), expireTaskCache)
         removeOldVersionsFromDir(file("intTestHomeDir/worker-1/caches"), expireIntegTestCache)
 
         /*

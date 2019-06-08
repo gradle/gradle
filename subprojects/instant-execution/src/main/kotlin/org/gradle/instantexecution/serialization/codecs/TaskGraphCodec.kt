@@ -21,7 +21,6 @@ import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
@@ -47,11 +46,8 @@ import org.gradle.instantexecution.serialization.writeStrings
 
 
 internal
-class TaskGraphCodec(
-    private val filePropertyFactory: FilePropertyFactory
-) {
+class TaskGraphCodec {
 
-    internal
     fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
         writeCollection(tasks) { task ->
             try {
@@ -62,7 +58,6 @@ class TaskGraphCodec(
         }
     }
 
-    internal
     fun MutableReadContext.readTaskGraph(): List<Task> {
         val tasksWithDependencies = readTasksWithDependencies()
         wireTaskDependencies(tasksWithDependencies)
@@ -94,7 +89,7 @@ class TaskGraphCodec(
         writeStrings(dependencies.map { it.path })
 
         withIsolate(task) {
-            BeanPropertyWriter(taskType).run {
+            beanPropertyWriterFor(taskType).run {
                 writeFieldsOf(task)
                 writeRegisteredPropertiesOf(task, this)
             }
@@ -111,7 +106,7 @@ class TaskGraphCodec(
         val task = createTask(projectPath, taskName, taskType)
 
         withIsolate(task) {
-            BeanPropertyReader(taskType, filePropertyFactory).run {
+            beanPropertyReaderFor(taskType).run {
                 readFieldsOf(task)
                 readRegisteredPropertiesOf(task, this)
             }
@@ -129,7 +124,7 @@ fun WriteContext.writeRegisteredPropertiesOf(
 ) = propertyWriter.run {
 
     fun writeProperty(propertyName: String, propertyValue: PropertyValue, kind: PropertyKind): Boolean {
-        val value = propertyValue.call() ?: return false
+        val value = unpack(propertyValue.call()) ?: return false
         return writeNextProperty(propertyName, value, kind)
     }
 

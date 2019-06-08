@@ -225,13 +225,13 @@ allprojects {
 }
 
 project(":project1") {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "maven-publish"
 
     version = "1.0"
 
     dependencies {
-        compile project(":project2")
+        api project(":project2")
     }
 
     publishing {
@@ -294,7 +294,7 @@ project(":project2") {
                 if (name.startsWith("consumer")) {
                     dependencies {
                         (0..${parallelProjectCount}).each {
-                            testCompile project(":producer" + it)
+                            testImplementation project(":producer" + it)
                         }
                     }
                 }
@@ -323,7 +323,7 @@ include "project1", "project2"
 
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
 
     group = "org.gradle.test"
@@ -335,8 +335,8 @@ project(":project1") {
     version = "1.0"
 
     dependencies {
-        compile "commons-collections:commons-collections:3.2.2"
-        compile "commons-io:commons-io:1.4"
+        api "commons-collections:commons-collections:3.2.2"
+        api "commons-io:commons-io:1.4"
     }
 }
 
@@ -344,7 +344,7 @@ project(":project2") {
     version = "2.0"
 
     dependencies {
-        compile project(":project1"), {
+        api project(":project1"), {
             exclude module: "commons-collections"
             exclude group: "commons-io"
         }
@@ -495,7 +495,7 @@ include "project1", "project2", "project3"
 
         buildFile << """
 subprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "maven-publish"
 
     publishing {
@@ -518,14 +518,14 @@ allprojects {
 project(":project1") {
     version = "1.0"
     dependencies {
-        compile project(":project2")
-        compile project(":project3")
+        api project(":project2")
+        api project(":project3")
     }
 }
 project(":project2") {
     version = "2.0"
     dependencies {
-        compile project(":project3")
+        api project(":project3")
     }
 }
 

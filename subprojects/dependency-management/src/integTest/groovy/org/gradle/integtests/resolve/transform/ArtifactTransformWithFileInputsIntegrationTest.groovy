@@ -166,11 +166,17 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
 
             allprojects {
                 def attr = Attribute.of('color', String)
-                configurations.create("tools") {
+                def tools = configurations.create("tools") {
                     canBeConsumed = false
+                    canBeResolved = false
+                }
+                configurations.create("toolsPath") {
+                    extendsFrom(tools)
+                    canBeConsumed = false
+                    canBeResolved = true
                     attributes.attribute(attr, 'blue')
                 }
-                ext.inputFiles = configurations.tools.incoming.artifactView {
+                ext.inputFiles = configurations.toolsPath.incoming.artifactView {
                     attributes.attribute(attr, 'red')
                 }.files
                 dependencies {

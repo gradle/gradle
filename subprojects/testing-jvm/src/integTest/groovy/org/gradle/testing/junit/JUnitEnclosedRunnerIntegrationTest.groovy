@@ -30,7 +30,7 @@ class JUnitEnclosedRunnerIntegrationTest extends JUnitMultiVersionIntegrationSpe
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile '${dependencyNotation}' }
+            dependencies { testImplementation '${dependencyNotation}' }
 """
     }
 

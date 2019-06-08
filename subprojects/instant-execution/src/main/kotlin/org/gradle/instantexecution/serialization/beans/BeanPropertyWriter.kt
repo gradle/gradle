@@ -28,18 +28,23 @@ import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logProperty
 import org.gradle.instantexecution.serialization.logPropertyWarning
+import java.util.concurrent.Callable
 import java.util.function.Supplier
 
 
 class BeanPropertyWriter(
     private val beanType: Class<*>
 ) {
+
+    private
+    val relevantFields = relevantStateOf(beanType)
+
     /**
      * Serializes a bean by serializing the value of each of its fields.
      */
     fun WriteContext.writeFieldsOf(bean: Any) {
         writingProperties {
-            for (field in relevantStateOf(beanType)) {
+            for (field in relevantFields) {
                 val fieldName = field.name
                 val fieldValue = unpack(field.get(bean)) ?: unpack(conventionalValueOf(bean, fieldName))
                 writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
@@ -81,15 +86,15 @@ class BeanPropertyWriter(
         conventionMapping.getConventionValue<Any?>(null, fieldName, false)
     }
 
-    private
-    fun unpack(fieldValue: Any?) = when (fieldValue) {
+    fun unpack(fieldValue: Any?): Any? = when (fieldValue) {
         is DirectoryProperty -> fieldValue.asFile.orNull
         is RegularFileProperty -> fieldValue.asFile.orNull
         is Property<*> -> fieldValue.orNull
         is Provider<*> -> fieldValue.orNull
+        is Callable<*> -> fieldValue.call()
         is Supplier<*> -> fieldValue.get()
         is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
-        is Lazy<*> -> fieldValue.value
+        is Lazy<*> -> unpack(fieldValue.value)
         else -> fieldValue
     }
 }

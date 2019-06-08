@@ -49,12 +49,13 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     }
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
+    def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider)
     }
 
     @Unroll

@@ -48,7 +48,7 @@ class TestTaskRelocationIntegrationTest extends AbstractProjectRelocationIntegra
             ${mavenCentralRepository()}
 
             dependencies {
-                testCompile "junit:junit:4.12"
+                testImplementation "junit:junit:4.12"
             }
 
             sourceSets.test.java.outputDir = file("build/classes/test")

@@ -32,9 +32,9 @@ apply plugin: 'scala'
 ${mavenCentralRepository()}
 
 dependencies {
-    compile "org.scala-lang:scala-library:2.11.12"
-    testCompile "org.scalatest:scalatest_2.11:2.1.5"
-    testCompile "junit:junit:4.12"
+    implementation "org.scala-lang:scala-library:2.11.12"
+    testImplementation "org.scalatest:scalatest_2.11:2.1.5"
+    testImplementation "junit:junit:4.12"
 }
         """
 

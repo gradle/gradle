@@ -35,24 +35,24 @@ dependencies {
     api(project(":kotlinCompilerEmbeddable"))
     api(futureKotlin("stdlib-jdk8"))
 
-    compileOnly(project(":baseServices"))
-    compileOnly(project(":native"))
-    compileOnly(project(":logging"))
-    compileOnly(project(":processServices"))
-    compileOnly(project(":persistentCache"))
-    compileOnly(project(":coreApi"))
-    compileOnly(project(":modelCore"))
-    compileOnly(project(":core"))
-    compileOnly(project(":baseServicesGroovy")) // for 'Specs'
-    compileOnly(project(":files"))
-    compileOnly(project(":resources"))
-    compileOnly(project(":buildCache"))
-    compileOnly(project(":toolingApi"))
+    implementation(project(":baseServices"))
+    implementation(project(":native"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":persistentCache"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":baseServicesGroovy")) // for 'Specs'
+    implementation(project(":files"))
+    implementation(project(":resources"))
+    implementation(project(":buildCache"))
+    implementation(project(":toolingApi"))
 
-    compileOnly(library("groovy"))
-    compileOnly(library("slf4j_api"))
-    compileOnly(library("guava"))
-    compileOnly(library("inject"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("inject"))
 
     implementation(futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
@@ -65,14 +65,6 @@ dependencies {
     }
 
     testImplementation(project(":kotlinDslTestFixtures"))
-    testImplementation(project(":baseServices"))
-    testImplementation(project(":processServices"))
-    testImplementation(project(":coreApi"))
-    testImplementation(project(":modelCore"))
-    testImplementation(project(":core"))
-    testImplementation(project(":baseServicesGroovy"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":buildCache"))
     testImplementation(project(":buildCacheHttp"))
     testImplementation(project(":buildInit"))
     testImplementation(project(":jacoco"))
@@ -90,10 +82,6 @@ dependencies {
 
     testRuntimeOnly(project(":runtimeApiInfo"))
 
-    integTestImplementation(project(":baseServices"))
-    integTestImplementation(project(":coreApi"))
-    integTestImplementation(project(":modelCore"))
-    integTestImplementation(project(":core"))
     integTestImplementation(project(":languageGroovy"))
     integTestImplementation(project(":internalTesting"))
     integTestImplementation(testLibrary("mockito_kotlin"))

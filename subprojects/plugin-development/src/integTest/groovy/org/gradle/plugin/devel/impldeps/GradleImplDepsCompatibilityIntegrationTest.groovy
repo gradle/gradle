@@ -156,9 +156,9 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         succeeds 'build'
 
         where:
-        dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.gradleApi()'),
-                                   new GradleDependency('TestKit', 'testCompile', 'dependencies.gradleTestKit()'),
-                                   new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
+        dependencyPermutations << [new GradleDependency('Gradle API', 'implementation', 'dependencies.gradleApi()'),
+                                   new GradleDependency('TestKit', 'testImplementation', 'dependencies.gradleTestKit()'),
+                                   new GradleDependency('Tooling API', 'implementation', "project.files('${normaliseFileSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
     }
 
     static void writeClassesInZipFileToTextFile(File zipFile, File txtFile) {

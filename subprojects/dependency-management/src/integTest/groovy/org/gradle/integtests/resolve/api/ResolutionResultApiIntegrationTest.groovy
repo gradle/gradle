@@ -351,7 +351,7 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
-    void "expired cache entry doesn't break reading reasons from cache"() {
+    void "expired cache entry doesn't break reading from cache"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "bar", "1.0").publish()
@@ -365,12 +365,27 @@ baz:1.0 requested
             configurations {
                 conf
             }
+            
+            def attr = Attribute.of("myAttribute", String)
+            
             dependencies {
                 conf("org:foo:1.0") {
                     because 'first reason' // must have custom reasons to show the problem
                 }
-                conf("org:bar:1.0") {
+                conf("org:bar") {
                     because 'second reason'
+                    
+                    attributes {
+                        attribute(attr, 'val') // make sure attributes are properly serialized and read back
+                    }
+                }
+                constraints {
+                    conf("org:bar") {
+                        version {
+                            require "[0.1, 2.0["
+                            prefer "1.0"
+                        }
+                    }
                 }
             }
             

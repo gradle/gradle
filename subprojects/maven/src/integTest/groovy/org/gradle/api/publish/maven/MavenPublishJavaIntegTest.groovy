@@ -113,20 +113,20 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "commons-collections:commons-collections:3.2.2"
+                api "commons-collections:commons-collections:3.2.2"
                 compileOnly "javax.servlet:servlet-api:2.5"
-                runtime "commons-io:commons-io:1.4"
-                testCompile "junit:junit:4.12"
-                compile ("org.springframework:spring-core:2.5.6") {
+                runtimeOnly "commons-io:commons-io:1.4"
+                testImplementation "junit:junit:4.12"
+                api ("org.springframework:spring-core:2.5.6") {
                     exclude group: 'commons-logging', module: 'commons-logging'
                 }
-                compile ("commons-beanutils:commons-beanutils:1.8.3") {
+                api ("commons-beanutils:commons-beanutils:1.8.3") {
                    exclude group : 'commons-logging'
                 }
-                compile ("commons-dbcp:commons-dbcp:1.4") {
+                api ("commons-dbcp:commons-dbcp:1.4") {
                    transitive = false
                 }
-                compile ("org.apache.camel:camel-jackson:2.15.3") {
+                api ("org.apache.camel:camel-jackson:2.15.3") {
                    exclude module : 'camel-core'
                 }
             }
@@ -146,15 +146,17 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         javaLibrary.assertPublished()
 
-        javaLibrary.parsedPom.scopes.keySet() == ["compile"] as Set
-        javaLibrary.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2", "commons-io:commons-io:1.4", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
+        javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-io:commons-io:1.4")
         javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.springframework:spring-core:2.5.6", new MavenDependencyExclusion("commons-logging", "commons-logging"))
         javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("commons-beanutils:commons-beanutils:1.8.3", new MavenDependencyExclusion("commons-logging", "*"))
         javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("commons-dbcp:commons-dbcp:1.4", new MavenDependencyExclusion("*", "*"))
         javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.apache.camel:camel-jackson:2.15.3", new MavenDependencyExclusion("*", "camel-core"))
 
         and:
-        javaLibrary.assertApiDependencies("commons-collections:commons-collections:3.2.2", "commons-io:commons-io:1.4", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
+        javaLibrary.assertApiDependencies("commons-collections:commons-collections:3.2.2", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
+        javaLibrary.assertRuntimeDependencies("commons-io:commons-io:1.4")
         def apiVariant = javaLibrary.parsedModuleMetadata.variant("apiElements")
         apiVariant.dependencies.find { it.coords == 'org.springframework:spring-core:2.5.6' }.excludes == ['commons-logging:commons-logging']
         apiVariant.dependencies.find { it.coords == 'commons-beanutils:commons-beanutils:1.8.3' }.excludes == ['commons-logging:*']

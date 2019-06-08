@@ -26,7 +26,7 @@ class MavenProfileResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
     def setup() {
         settingsFile << "rootProject.name = 'test' "
-        resolve = new ResolveTestFixture(buildFile)
+        resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
         resolve.expectDefaultConfiguration('runtime')
         resolve.addDefaultVariantDerivationStrategy()

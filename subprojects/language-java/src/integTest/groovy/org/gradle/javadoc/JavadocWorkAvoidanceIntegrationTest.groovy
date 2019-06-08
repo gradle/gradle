@@ -35,7 +35,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
 
         file('a/build.gradle') << '''
             dependencies {
-                compile project(':b')
+                implementation project(':b')
             }
         '''
 
@@ -82,7 +82,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("a/build.gradle") << '''
             dependencies {
-                compile rootProject.files("build/libs/external.jar")
+                implementation rootProject.files("build/libs/external.jar")
             }
         '''
         buildFile << """
@@ -127,7 +127,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("a/build.gradle") << '''
             dependencies {
-                compile rootProject.files("build/libs/external.jar")
+                implementation rootProject.files("build/libs/external.jar")
             }
         '''
         buildFile << """
@@ -172,7 +172,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("a/build.gradle") << '''
             dependencies {
-                compile rootProject.files("build/libs/external.jar")
+                implementation rootProject.files("build/libs/external.jar")
             }
         '''
         buildFile << """

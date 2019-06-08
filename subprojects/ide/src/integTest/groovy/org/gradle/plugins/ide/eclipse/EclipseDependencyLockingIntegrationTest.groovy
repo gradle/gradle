@@ -46,7 +46,7 @@ configurations {
 }
 
 dependencies {
-    compile 'groupOne:artifactTwo:[2.0,3.0)'
+    implementation 'groupOne:artifactTwo:[2.0,3.0)'
 }
 """
 
@@ -82,8 +82,8 @@ configurations {
 }
 
 dependencies {
-    compile 'groupOne:artifactOne:[1.0,2.0)'
-    compile 'groupOne:artifactTwo:[2.0,3.0)'
+    implementation 'groupOne:artifactOne:[1.0,2.0)'
+    implementation 'groupOne:artifactTwo:[2.0,3.0)'
 }
 """
 

@@ -55,7 +55,7 @@ subprojects {
 
 project("client") {
     dependencies {
-        compile project(":api")
+        implementation project(":api")
     }
 }
         """

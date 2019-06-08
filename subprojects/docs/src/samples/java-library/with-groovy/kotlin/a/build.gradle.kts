@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    compile(localGroovy())
+    implementation(localGroovy())
 }
 
 // tag::configure-groovy[]

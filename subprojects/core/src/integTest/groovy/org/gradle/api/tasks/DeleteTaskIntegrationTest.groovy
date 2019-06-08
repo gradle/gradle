@@ -90,11 +90,11 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
         buildFile << """
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    api project(':a')
                 }
             }
         """
