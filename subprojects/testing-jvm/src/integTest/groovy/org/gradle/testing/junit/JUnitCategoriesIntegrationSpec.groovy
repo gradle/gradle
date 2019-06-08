@@ -63,7 +63,7 @@ class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
         succeeds("test")
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         def testClass = result.testClass("Not a real class name")
         testClass.assertTestCount(1, 0, 0)

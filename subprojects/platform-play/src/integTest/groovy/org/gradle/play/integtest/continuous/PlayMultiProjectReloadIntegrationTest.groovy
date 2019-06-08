@@ -174,7 +174,7 @@ var message = "Hello JS";
 
         then:
         fails()
-        !executedTasks.contains(':primary:runPlayBinary')
+        notExecuted(':primary:runPlayBinary')
         errorPageHasTaskFailure(":submodule:compilePlayBinaryScala")
         serverStartCount == 1
 

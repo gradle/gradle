@@ -35,7 +35,7 @@ class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest {
         when:
         run "test"
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
         and:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("RunCukesTest", "Scenario: Say hello /two/three")

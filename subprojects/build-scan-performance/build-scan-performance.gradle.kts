@@ -18,7 +18,7 @@ import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
  * limitations under the License.
  */
 plugins {
-    java
+    `java-library`
     gradlebuild.classycle
 }
 

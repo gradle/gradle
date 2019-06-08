@@ -22,6 +22,10 @@ plugins {
 }
 
 dependencies {
+    compileOnly(project(":launcherStartup"))
+    integTestCompileOnly(project(":launcherStartup"))
+    runtimeOnly(project(":launcher"))
+
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -29,7 +33,6 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
-    implementation(project(":launcher"))
     implementation(project(":pluginUse"))
 
     implementation(library("slf4j_api"))

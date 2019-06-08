@@ -100,7 +100,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         run "installMainExecutable"
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     @IgnoreIf({!TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled})

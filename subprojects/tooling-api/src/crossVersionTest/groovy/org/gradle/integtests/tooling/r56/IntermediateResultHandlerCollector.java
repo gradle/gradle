@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.integtests.tooling.r56;
 
-import java.io.Closeable;
+import org.gradle.tooling.IntermediateResultHandler;
 
-public interface ZipInput extends Iterable<ZipEntry>, Closeable {
+public class IntermediateResultHandlerCollector<T> implements IntermediateResultHandler<T> {
+    private T result = null;
 
+    @Override
+    public void onComplete(T result) {
+        this.result = result;
+    }
+
+    public T getResult() {
+        return result;
+    }
 }

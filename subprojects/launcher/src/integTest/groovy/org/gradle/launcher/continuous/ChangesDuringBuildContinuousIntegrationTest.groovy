@@ -119,7 +119,7 @@ jar.dependsOn postCompile
         sendEOT()
         results.size() == 2
         results.each {
-            assert it.executedTasks == [':a', ':b', ':c', ':d']
+            assert it.assertTasksExecuted(':a', ':b', ':c', ':d')
         }
 
         where:
@@ -166,7 +166,7 @@ jar.dependsOn postCompile
         sendEOT()
         results.size() == 2
         results.each {
-            assert it.executedTasks == [':a', ':b', ':c', ':d']
+            assert it.assertTasksExecuted(':a', ':b', ':c', ':d')
         }
 
         where:

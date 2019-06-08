@@ -25,6 +25,8 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.ZipEntry;
 
 /**
  * Hashes contents of resources files and {@link ZipEntry}s) in runtime classpath entries.
@@ -40,9 +42,9 @@ public class RuntimeClasspathResourceHasher implements ResourceHasher {
     }
 
     @Override
-    public HashCode hash(ZipEntry zipEntry) throws IOException {
+    public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
         HashingOutputStream hasher = Hashing.primitiveStreamHasher();
-        ByteStreams.copy(zipEntry.getInputStream(), hasher);
+        ByteStreams.copy(zipInput, hasher);
         return hasher.hash();
     }
 

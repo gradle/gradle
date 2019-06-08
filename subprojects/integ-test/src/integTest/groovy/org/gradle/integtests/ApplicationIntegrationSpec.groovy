@@ -413,7 +413,7 @@ class Main {
         succeeds "installDist"
 
         and:
-        ":createDocs" in nonSkippedTasks
+        executedAndNotSkipped(":createDocs")
 
         and:
         def distBase = file("build/install/application")

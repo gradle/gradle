@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.composite.CompositeBuildContext
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaBasePlugin
@@ -331,6 +332,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         }
         serviceRegistry.add(LocalComponentRegistry, Stub(LocalComponentRegistry))
         serviceRegistry.add(CompositeBuildContext, Stub(CompositeBuildContext))
+        serviceRegistry.add(ProjectStateRegistry, Stub(ProjectStateRegistry))
         new EclipseModelBuilder(gradleProjectBuilder, serviceRegistry, uniqueProjectNameProvider)
     }
 }

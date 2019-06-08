@@ -36,8 +36,8 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
 
         then:
         succeeds("build")
-        ":compileJava" in skippedTasks
-        ":build" in executedTasks
+        skipped(":compileJava")
+        executed(":build")
     }
 
     def "can build when source dir is removed"() {
@@ -61,8 +61,8 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
 
         then:
         succeeds()
-        ":compileJava" in nonSkippedTasks
-        ":build" in executedTasks
+        executedAndNotSkipped(":compileJava")
+        executed(":build")
     }
 
     def "build is not triggered when a new directory is created in the source inputs"() {
@@ -255,8 +255,8 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
     def "creation of initial source file triggers build"() {
         expect:
         succeeds("build")
-        ":compileJava" in skippedTasks
-        ":build" in executedTasks
+        skipped(":compileJava")
+        executed(":build")
 
         when:
         file("src/main/java/Thing.java") << "class Thing {}"

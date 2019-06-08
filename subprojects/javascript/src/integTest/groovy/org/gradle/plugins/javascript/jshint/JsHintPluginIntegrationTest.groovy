@@ -92,7 +92,7 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jsHint"
 
         and:
-        ":jsHint" in nonSkippedTasks
+        executedAndNotSkipped(":jsHint")
 
         and:
         File jsonReport = file("build/reports/jsHint/report.json")
@@ -106,7 +106,7 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         run "jsHint"
 
         then:
-        ":jsHint" in skippedTasks
+        skipped(":jsHint")
     }
 
 }

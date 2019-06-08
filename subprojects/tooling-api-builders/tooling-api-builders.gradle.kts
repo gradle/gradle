@@ -7,6 +7,10 @@ plugins {
 }
 
 dependencies {
+    compileOnly(project(":launcherStartup"))
+    testCompileOnly(project(":launcherStartup"))
+    runtimeOnly(project(":launcher"))
+
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -17,7 +21,6 @@ dependencies {
     implementation(project(":baseServicesGroovy")) // for 'Specs'
     implementation(project(":testingBase"))
     implementation(project(":testingJvm"))
-    implementation(project(":launcher"))
     implementation(project(":dependencyManagement"))
     implementation(project(":reporting"))
     implementation(project(":workers"))

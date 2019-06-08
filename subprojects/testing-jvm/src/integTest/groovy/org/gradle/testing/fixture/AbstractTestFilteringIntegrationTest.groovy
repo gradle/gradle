@@ -28,7 +28,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     abstract String getFramework()
     abstract String getDependencies()
 
-    void setup() {
+    def setup() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -216,13 +216,13 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         then: new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass")
 
         when: run("test", "--tests", "FooTest.pass")
-        then: result.skippedTasks.contains(":test") //up-to-date
+        then: skipped(":test") //up-to-date
 
         when:
         run("test", "--tests", "FooTest.pass*")
 
         then:
-        !result.skippedTasks.contains(":test")
+        executedAndNotSkipped(":test")
         new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass", "pass2")
     }
 

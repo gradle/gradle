@@ -40,13 +40,13 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
         succeeds "runHelloWorld"
         then:
-        nonSkippedTasks.contains ":runHelloWorld"
+        executedAndNotSkipped ":runHelloWorld"
 
         when:
         executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
         succeeds "runHelloWorld"
         then:
-        skippedTasks.contains ":runHelloWorld"
+        skipped ":runHelloWorld"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
@@ -58,13 +58,13 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
         succeeds "runHelloWorld"
         then:
-        nonSkippedTasks.contains ":runHelloWorld"
+        executedAndNotSkipped ":runHelloWorld"
 
         when:
         executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_9).javaHome
         succeeds "runHelloWorld", "--info"
         then:
-        nonSkippedTasks.contains ":runHelloWorld"
+        executedAndNotSkipped ":runHelloWorld"
         output.contains "Value of input property 'javaVersion' has changed for task ':runHelloWorld'"
     }
 
@@ -77,13 +77,13 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.withJavaHome AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[0].javaHome
         succeeds "runHelloWorld"
         then:
-        nonSkippedTasks.contains ":runHelloWorld"
+        executedAndNotSkipped ":runHelloWorld"
 
         when:
         executer.withJavaHome AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[1].javaHome
         succeeds "runHelloWorld"
         then:
-        skippedTasks.contains ":runHelloWorld"
+        skipped ":runHelloWorld"
     }
 
     private void setupRunHelloWorldTask() {

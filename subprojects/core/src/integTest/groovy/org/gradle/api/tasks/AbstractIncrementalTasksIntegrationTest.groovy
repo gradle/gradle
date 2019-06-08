@@ -136,7 +136,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         run "incremental"
 
         then:
-        ":incremental" in skippedTasks
+        skipped(":incremental")
     }
 
     def "incremental task is informed of 'out-of-date' files when input file modified"() {

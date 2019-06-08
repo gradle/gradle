@@ -155,12 +155,12 @@ Joe!""")
         when:
         run "javadoc"
         then:
-        nonSkippedTasks == [":javadoc"]
+        executedAndNotSkipped( ":javadoc")
 
         when:
         run "javadoc"
         then:
-        skippedTasks as List == [":javadoc"]
+        skipped(":javadoc")
 
         when:
         buildFile.text = """
@@ -175,7 +175,7 @@ Joe!""")
         run "javadoc"
 
         then:
-        nonSkippedTasks == [":javadoc"]
+        executedAndNotSkipped(":javadoc")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1456")

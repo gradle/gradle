@@ -52,6 +52,12 @@ Note that it is still possible to to pass `dependsOn()` a `Provider` that return
 
 The repository and publication names are used to construct task names when publishing. Previously is was possible to supply a name that resulted in an invalid task name. These names are now restricted to `[A-Za-z0-9_\\-.]+`.
 
+==== Default PMD version upgraded to 6.15.0
+
+<<pmd_plugin#pmd_plugin, The PMD plugin>> has been upgraded to use link:https://pmd.github.io/pmd-6.15.0/pmd_release_notes.html[PMD version 6.15.0] instead of 6.8.0 by default.
+
+Contributed by link:https://github.com/wreulicke[wreulicke]
+
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
 

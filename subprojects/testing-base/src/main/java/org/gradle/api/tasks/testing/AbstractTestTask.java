@@ -61,6 +61,7 @@ import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProc
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Internal;
@@ -214,7 +215,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @return the test result directory, containing the test results in binary format.
      */
-    @OutputDirectory
+    @ReplacedBy("binaryResultsDirectory")
     @Incubating
     public File getBinResultsDir() {
         return binaryResultsDirectory.getAsFile().getOrNull();
@@ -235,7 +236,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @since 4.4
      */
-    @Internal
+    @OutputDirectory
     @Incubating
     public DirectoryProperty getBinaryResultsDirectory() {
         return binaryResultsDirectory;

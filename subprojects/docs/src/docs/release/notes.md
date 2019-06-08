@@ -7,7 +7,11 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
-[Andrew K.](https://github.com/miokowpak)
+[Andrew K.](https://github.com/miokowpak),
+[Semyon Levin](https://github.com/remal),
+[wreulicke](https://github.com/wreulicke),
+[John Rodriguez](https://github.com/jrodbx),
+and [Ivo Anjo](https://github.com/ivoanjo).
 
 <!-- 
 ## 1
@@ -20,6 +24,13 @@ details of 2
 
 ## n
 -->
+
+## Substitute closed Eclipse projects in Buildship
+
+Closed gradle projects in an eclipse workspace can now be substituted for their respective jar files. In addition to this 
+those jars can now be built during Buildship eclipse model synchronization.
+
+The upcoming version of Buildship is required to take advantage of this behavior.
 
 ## Upgrade Instructions
 
@@ -53,18 +64,15 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-## Improved handling of ZIP archives on classpaths
-
-Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
-It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of cache hits for tasks
-that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
-
-The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
-This improves performance for projects with a large amount of resource files.
-
 <!--
 ### Example promoted
 -->
+
+## Incubating support for Groovy compilation avoidance
+
+Gradle now supports experimental compilation avoidance for Groovy. 
+This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
+See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
 
 ## Fixed issues
 

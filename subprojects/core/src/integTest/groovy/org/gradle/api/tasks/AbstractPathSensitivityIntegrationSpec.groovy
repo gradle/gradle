@@ -39,7 +39,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         when:
         execute "test"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":test")
 
         when:
         assert file("sources/input.txt").renameTo(file("sources/input-renamed.txt"))
@@ -48,14 +48,14 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         execute "test"
         then:
-        skippedTasks.empty == !expectSkipped
+        result.groupedOutput.task(":test").outcome == expectedOutcome
 
         where:
-        pathSensitive | expectSkipped
-        ABSOLUTE      | false
-        RELATIVE      | false
-        NAME_ONLY     | false
-        NONE          | true
+        pathSensitive | expectedOutcome
+        ABSOLUTE      | null
+        RELATIVE      | null
+        NAME_ONLY     | null
+        NONE          | statusForReusedOutput
     }
 
     def "single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectSkipped"() {
@@ -75,7 +75,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         when:
         execute "test"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":test")
 
         when:
         assert file("src/data1/input.txt").renameTo(file("src/data2/input.txt"))
@@ -83,14 +83,14 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         execute "test"
         then:
-        skippedTasks.empty == !expectSkipped
+        result.groupedOutput.task(":test").outcome == expectedOutcome
 
         where:
-        pathSensitive | expectSkipped
-        ABSOLUTE      | false
-        RELATIVE      | false
-        NAME_ONLY     | true
-        NONE          | true
+        pathSensitive | expectedOutcome
+        ABSOLUTE      | null
+        RELATIVE      | null
+        NAME_ONLY     | statusForReusedOutput
+        NONE          | statusForReusedOutput
     }
 
     def "source file hierarchy moved with #pathSensitive as input is loaded from cache: #expectSkipped"() {
@@ -108,7 +108,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         when:
         execute "test"
         then:
-        skippedTasks.empty
+        result.assertTaskNotSkipped(":test")
 
         when:
         assert file("src").renameTo(file("source"))
@@ -122,19 +122,21 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         execute "test"
         then:
-        skippedTasks.empty == !expectSkipped
+        result.groupedOutput.task(":test").outcome == expectSkipped
 
         where:
         pathSensitive | expectSkipped
-        ABSOLUTE      | false
-        RELATIVE      | true
-        NAME_ONLY     | true
-        NONE          | true
+        ABSOLUTE      | null
+        RELATIVE      | statusForReusedOutput
+        NAME_ONLY     | statusForReusedOutput
+        NONE          | statusForReusedOutput
     }
 
     abstract void execute(String... tasks)
 
     abstract void cleanWorkspace()
+
+    abstract String getStatusForReusedOutput()
 
     private void declareTestTaskWithPathSensitivity(PathSensitivity pathSensitivity) {
         file("buildSrc/src/main/groovy/TestTask.groovy") << """
@@ -178,7 +180,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         execute "copy"
         then:
-        skippedTasks.empty
+        executedAndNotSkipped ":copy"
 
         assert file("src").renameTo(file("source"))
 
@@ -195,7 +197,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         execute "copy"
         then:
-        skippedTasks as List == [":copy"]
+        skipped ":copy"
     }
 
     def "copy task is not up-to-date when files end up copied to a different destination"() {
@@ -212,7 +214,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         execute "copy"
         then:
-        skippedTasks.empty
+        executedAndNotSkipped ":copy"
 
         assert file("src/data/input.txt").renameTo(file("src/data/input-renamed.txt"))
 
@@ -220,6 +222,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         cleanWorkspace()
         execute "copy"
         then:
-        skippedTasks.empty
+        executedAndNotSkipped ":copy"
     }
 }

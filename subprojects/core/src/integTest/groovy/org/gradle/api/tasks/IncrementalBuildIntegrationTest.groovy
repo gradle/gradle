@@ -1091,12 +1091,12 @@ task generate(type: TransformerTask) {
         when:
         succeeds "customTask"
         then:
-        skippedTasks.empty
+        noneSkipped()
 
         when:
         succeeds "customTask", "--info"
         then:
-        skippedTasks.empty
+        noneSkipped()
         output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
@@ -1138,12 +1138,12 @@ task generate(type: TransformerTask) {
         when:
         succeeds "customTask"
         then:
-        skippedTasks.empty
+        noneSkipped()
 
         when:
         succeeds "customTask", "--info"
         then:
-        skippedTasks.empty
+        noneSkipped()
         output.contains "Additional action for task ':customTask': was loaded with an unknown classloader (class 'CustomTaskAction')."
     }
 
@@ -1211,13 +1211,13 @@ task generate(type: TransformerTask) {
         succeeds 'myTask'
 
         then:
-        nonSkippedTasks.contains(':myTask')
+        executedAndNotSkipped(':myTask')
 
         when:
         succeeds('myTask')
 
         then:
-        skippedTasks.contains(':myTask')
+        skipped(':myTask')
     }
 
     def "task with no actions is skipped even if it has inputs"() {

@@ -125,7 +125,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         withBuildCache().run ':clean', ':compileJava'
 
         then:
-        skippedTasks.contains(':compileJava')
+        skipped(':compileJava')
 
         when:
         // This line is crucial to expose the bug
@@ -136,7 +136,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         withBuildCache().run ':compileGroovy'
 
         then:
-        skippedTasks.containsAll([':compileJava', ':compileGroovy'])
+        skipped(':compileJava', ':compileGroovy')
 
         when:
         file('src/main/java/RequiredByGroovy.java').text = """

@@ -30,7 +30,7 @@ import org.gradle.gradlebuild.docs.RenderMarkdownTask
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    id 'base'
+    id 'java-library'
     id 'gradlebuild.jsoup'
     id 'javascript-base'
     id 'org.asciidoctor.convert'
@@ -296,7 +296,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciido
 
 def javaApiUrl = "https://docs.oracle.com/javase/8/docs/api"
 def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
-def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
+def mavenApiUrl = "https://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
 def javadocAll = tasks.register("javadocAll", Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")

@@ -13,39 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-package org.gradle.api.internal.changedetection.state;
 
-import java.io.InputStream;
-import java.util.function.Supplier;
+import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
 
-class JdkZipEntry implements ZipEntry {
+import java.io.File;
+import java.io.Serializable;
 
-    private final java.util.zip.ZipEntry entry;
-    private final Supplier<InputStream> inputStreamSupplier;
+public class DefaultEclipseWorkspaceProject implements EclipseWorkspaceProject, Serializable {
 
-    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier) {
-        this.entry = entry;
-        this.inputStreamSupplier = inputStreamSupplier;
-    }
+    private final String name;
+    private final File location;
+    private final boolean isOpen;
 
-    @Override
-    public boolean isDirectory() {
-        return entry.isDirectory();
+    public DefaultEclipseWorkspaceProject(String name, File location, boolean isOpen) {
+        this.name = name;
+        this.location = location;
+        this.isOpen = isOpen;
     }
 
     @Override
     public String getName() {
-        return entry.getName();
+        return name;
     }
 
     @Override
-    public InputStream getInputStream() {
-        return inputStreamSupplier.get();
+    public File getLocation() {
+        return location;
     }
 
     @Override
-    public int size() {
-        return (int) entry.getSize();
+    public boolean isOpen() {
+        return isOpen;
     }
 }

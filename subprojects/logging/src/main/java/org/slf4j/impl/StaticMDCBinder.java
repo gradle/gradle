@@ -14,17 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.slf4j.impl;
 
-import java.io.InputStream;
+import org.slf4j.helpers.NOPMDCAdapter;
+import org.slf4j.spi.MDCAdapter;
 
-public interface ZipEntry {
+@SuppressWarnings("UnusedDeclaration")
+public class StaticMDCBinder {
 
-    boolean isDirectory();
+    private static final StaticMDCBinder SINGLETON = new StaticMDCBinder();
 
-    String getName();
+    private StaticMDCBinder() {
+    }
 
-    InputStream getInputStream();
+    public static StaticMDCBinder getSingleton() {
+        return SINGLETON;
+    }
 
-    int size();
+    public MDCAdapter getMDCA() {
+        return new NOPMDCAdapter();
+    }
+
+    public String getMDCAdapterClassStr() {
+        return NOPMDCAdapter.class.getName();
+    }
+
 }

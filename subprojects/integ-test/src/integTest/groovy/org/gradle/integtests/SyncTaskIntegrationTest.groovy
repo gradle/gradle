@@ -19,6 +19,8 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -155,21 +157,21 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('dest').allDescendants() == ['not-preserved.txt', 'preserved.txt'] as Set
-        skippedTasks.empty
+        noneSkipped()
 
         when:
         file('dest/preserved.txt').text = 'Changed!'
         run 'sync'
 
         then:
-        skippedTasks == [':sync'] as Set
+        skipped ':sync'
 
         when:
         file('dest/not-preserved.txt').text = 'Changed!'
         run 'sync'
 
         then:
-        skippedTasks.empty
+        executedAndNotSkipped ':sync'
     }
 
     @NotYetImplemented
@@ -189,14 +191,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'sync'
 
         then:
-        skippedTasks.empty
+        noneSkipped()
 
         when:
         file('dest/new-file.txt').text = 'Created!'
         run 'sync'
 
         then:
-        skippedTasks.empty
+        noneSkipped()
     }
 
     @NotYetImplemented
@@ -221,7 +223,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'sync'
 
         then:
-        skippedTasks.empty
+        noneSkipped()
         file('dest/preserved').exists()
 
         when:
@@ -234,7 +236,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'sync'
 
         then:
-        skippedTasks.empty
+        noneSkipped()
         !file('dest/preserved').exists()
     }
 
@@ -390,6 +392,38 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails 'syncIt'
         ins.close()
+    }
+
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/9586")
+    @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
+    def "change in case of input file still syncs properly"() {
+        given:
+        buildFile << """
+            task writeFile {
+                def outputFile = new File(buildDir, project.hasProperty("capitalize") ? "OUTPUT" : "output")
+                outputs.file outputFile
+                doLast {
+                    outputFile.text = "hello"
+                }
+            }
+            task sync(type: Sync) {
+                from writeFile
+                into new File(buildDir, "sync")
+            }
+        """
+        when:
+        succeeds("sync")
+        then:
+        file("build/output").assertExists()
+        file("build/sync/output").assertExists()
+
+        when:
+        succeeds("sync", "-Pcapitalize")
+        then:
+        file("build/OUTPUT").assertExists()
+        // TODO: This should exist
+        file("build/sync/OUTPUT").assertDoesNotExist()
     }
 
     def "sync from file tree"() {

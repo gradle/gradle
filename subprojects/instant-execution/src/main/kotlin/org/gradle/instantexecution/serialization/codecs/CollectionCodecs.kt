@@ -18,11 +18,15 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.codec
+import org.gradle.instantexecution.serialization.readClass
+import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readList
-import org.gradle.instantexecution.serialization.readMap
-import org.gradle.instantexecution.serialization.readSet
+import org.gradle.instantexecution.serialization.readMapInto
+import org.gradle.instantexecution.serialization.writeClass
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeMap
+import java.util.TreeMap
+import java.util.TreeSet
 
 
 internal
@@ -33,14 +37,64 @@ val listCodec: Codec<List<*>> = codec(
 
 
 internal
-val setCodec: Codec<Set<*>> = codec(
+val hashSetCodec: Codec<HashSet<Any?>> = setCodec { HashSet<Any?>(it) }
+
+
+internal
+val linkedHashSetCodec: Codec<LinkedHashSet<Any?>> = setCodec { LinkedHashSet<Any?>(it) }
+
+
+internal
+val treeSetCodec: Codec<TreeSet<Any?>> = codec(
+    {
+        write(it.comparator())
+        writeCollection(it)
+    },
+    {
+        val comparator = read() as Comparator<Any?>?
+        readCollectionInto { TreeSet(comparator) }
+    })
+
+
+internal
+fun <T : MutableSet<Any?>> setCodec(factory: (Int) -> T) = codec(
     { writeCollection(it) },
-    { readSet() }
+    { readCollectionInto(factory) }
 )
 
 
 internal
-val mapCodec: Codec<Map<*, *>> = codec(
+val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { HashMap<Any?, Any?>(it) }
+
+
+internal
+val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
+
+
+internal
+val treeMapCodec: Codec<TreeMap<Any?, Any?>> = mapCodec { TreeMap<Any?, Any?>() }
+
+
+internal
+fun <T : MutableMap<Any?, Any?>> mapCodec(factory: (Int) -> T): Codec<T> = codec(
     { writeMap(it) },
-    { readMap() }
+    { readMapInto(factory) }
 )
+
+
+internal
+val arrayCodec: Codec<Array<*>> = codec({
+    writeClass(it.javaClass.componentType)
+    writeSmallInt(it.size)
+    for (element in it) {
+        write(element)
+    }
+}, {
+    val componentType = readClass()
+    val size = readSmallInt()
+    val array = java.lang.reflect.Array.newInstance(componentType, size) as Array<Any?>
+    for (i in 0 until size) {
+        array[i] = read()
+    }
+    array
+})

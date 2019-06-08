@@ -16,6 +16,7 @@ dependencies {
     integTestImplementation(project(":resources"))
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(project(":dependencyManagement"))
+    integTestImplementation(project(":launcherBootstrap"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(library("groovy"))
     integTestImplementation(library("slf4j_api"))

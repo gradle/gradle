@@ -27,21 +27,72 @@ import static org.gradle.performance.generator.CompositeConfiguration.composite
 @CompileStatic
 enum JavaTestProject {
 
-    LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", GROOVY, 50000, 0, '1536m', '4g', false, [assemble: productionFile('largeMonolithicJavaProject', -1), test: productionFile('largeMonolithicJavaProject', -1)]),
-    LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", GROOVY, 100, 500, '1536m', '256m', false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
-    LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL("largeJavaMultiProjectKotlinDsl", KOTLIN, 100, 500, '1536m', '256m', false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
+    LARGE_MONOLITHIC_JAVA_PROJECT(
+        "largeMonolithicJavaProject", GROOVY, 50000, 0, '1536m', '4g',
+        [assemble: productionFile('largeMonolithicJavaProject', -1), test: productionFile('largeMonolithicJavaProject', -1)]
+    ),
+    LARGE_JAVA_MULTI_PROJECT(
+        "largeJavaMultiProject", GROOVY, 100, 500, '1536m', '256m',
+        [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]
+    ),
+    LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL(
+        "largeJavaMultiProjectKotlinDsl", KOTLIN, 100, 500, '1536m', '256m',
+        [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]
+    ),
+    LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC(
+        "largeJavaMultiProjectNoBuildSrc", GROOVY, 100, 500, '1536m', '256m',
+        null, false, false,
+        [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]
+    ),
 
-    MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", GROOVY, 10000, 0, '512m', '1g', false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
-    MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", GROOVY, 100, 100, '512m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", GROOVY, composite(false), 100, 100, '768m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD("mediumJavaPredefinedCompositeBuild", GROOVY, composite(true), 100, 100, '768m',  '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", GROOVY, 100, 100, '512m', '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]),
+    MEDIUM_MONOLITHIC_JAVA_PROJECT(
+        "mediumMonolithicJavaProject", GROOVY, 10000, 0, '512m', '1g',
+        [assemble: productionFile('mediumMonolithicJavaProject', -1)]
+    ),
+    MEDIUM_JAVA_MULTI_PROJECT(
+        "mediumJavaMultiProject", GROOVY, 100, 100, '512m', '256m',
+        [assemble: productionFile('mediumJavaMultiProject')]
+    ),
+    MEDIUM_JAVA_COMPOSITE_BUILD(
+        "mediumJavaCompositeBuild", GROOVY, 100, 100, '768m', '256m',
+        composite(false), true, false,
+        [assemble: productionFile('mediumJavaMultiProject')]
+    ),
+    MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD(
+        "mediumJavaPredefinedCompositeBuild", GROOVY, 100, 100, '768m', '256m',
+        composite(true), true, false,
+        [assemble: productionFile('mediumJavaMultiProject')]
+    ),
+    MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG(
+        "mediumJavaMultiProjectWithTestNG", GROOVY, 100, 100, '512m', '256m',
+        null, false, true,
+        [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]
+    ),
 
-    SMALL_JAVA_MULTI_PROJECT("smallJavaMultiProject", GROOVY, 50, 10, '256m', '64m', false, [assemble: productionFile('smallJavaMultiProject')]),
+    SMALL_JAVA_MULTI_PROJECT(
+        "smallJavaMultiProject", GROOVY, 50, 10, '256m', '64m',
+        [assemble: productionFile('smallJavaMultiProject')]
+    ),
+    SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC(
+        "smallJavaMultiProjectNoBuildSrc", GROOVY, 50, 10, '256m', '64m',
+        null, false, false,
+        [assemble: productionFile('smallJavaMultiProject')]
+    ),
 
     private TestProjectGeneratorConfiguration config
 
-    JavaTestProject(String projectName, GradleDsl dsl, CompositeConfiguration compositeConfiguration = null, int sourceFiles, int subProjects, String daemonMemory, String compilerMemory, boolean useTestNG, Map<String, String> filesToUpdate) {
+    JavaTestProject(
+        String projectName,
+        GradleDsl dsl,
+        int sourceFiles,
+        int subProjects,
+        String daemonMemory,
+        String compilerMemory,
+        CompositeConfiguration compositeConfiguration = null,
+        boolean buildSrc = true,
+        boolean useTestNG = false,
+        Map<String, String> filesToUpdate
+    ) {
         this.config = new TestProjectGeneratorConfiguration()
         config.projectName = projectName
 
@@ -53,6 +104,7 @@ enum JavaTestProject {
                                           'commons-codec:commons-codec:1.2', 'org.slf4j:jcl-over-slf4j:1.7.10']
         config.externalImplementationDependencies = ['com.googlecode:reflectasm:1.01']
 
+        config.buildSrc = buildSrc
         config.subProjects = subProjects
         config.sourceFiles = sourceFiles
         config.minLinesOfCodePerSourceFile = 100

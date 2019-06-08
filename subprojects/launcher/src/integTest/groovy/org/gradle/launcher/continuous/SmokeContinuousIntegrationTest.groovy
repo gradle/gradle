@@ -149,18 +149,18 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         then:
         succeeds("a")
-        ":a" in executedTasks
+        executed(":a")
 
         when:
         aFile << "original"
 
         then:
         succeeds()
-        ":a" in executedTasks
+        executed(":a")
 
         and:
         succeeds("b")
-        ":b" in executedTasks
+        executed(":b")
 
         when:
         waitBeforeModification(aFile)
