@@ -13,6 +13,7 @@ Include only their name, impactful features should be called out separately belo
 [John Rodriguez](https://github.com/jrodbx),
 [mig4](https://github.com/mig4),
 [Evgeny Mandrikov](https://github.com/Godin),
+[Simon Legner](https://github.com/simon04),
 and [Ivo Anjo](https://github.com/ivoanjo).
 
 <!-- 
