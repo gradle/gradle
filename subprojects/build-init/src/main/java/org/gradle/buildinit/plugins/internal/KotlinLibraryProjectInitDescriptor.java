@@ -61,7 +61,9 @@ public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor
 
         new KotlinProjectInitDescriptor(libraryVersionProvider).generate(buildScriptBuilder);
 
-        buildScriptBuilder.fileComment("This generated file contains a sample Kotlin library project to get you started.");
+        buildScriptBuilder
+            .fileComment("This generated file contains a sample Kotlin library project to get you started.")
+            .plugin("Apply the java-library plugin for API and implementation separation.", "java-library");
 
         TemplateOperation kotlinSourceTemplate = templateFactory.fromSourceTemplate("kotlinlibrary/Library.kt.template", "main");
         TemplateOperation kotlinTestTemplate = templateFactory.fromSourceTemplate("kotlinlibrary/LibraryTest.kt.template", "test");
