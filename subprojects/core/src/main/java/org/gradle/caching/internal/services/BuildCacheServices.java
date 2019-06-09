@@ -23,14 +23,13 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.controller.BuildCacheControllerFactory;
-import org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode;
-import org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.GZipBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarBuildCacheEntryPacker;
+import org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCacheMode;
+import org.gradle.caching.internal.services.BuildCacheControllerFactory.RemoteAccessMode;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.hash.StreamHasher;
@@ -47,10 +46,10 @@ import org.gradle.util.Path;
 
 import java.io.File;
 
-import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.DISABLED;
-import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.ENABLED;
-import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode.OFFLINE;
-import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode.ONLINE;
+import static org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCacheMode.DISABLED;
+import static org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCacheMode.ENABLED;
+import static org.gradle.caching.internal.services.BuildCacheControllerFactory.RemoteAccessMode.OFFLINE;
+import static org.gradle.caching.internal.services.BuildCacheControllerFactory.RemoteAccessMode.ONLINE;
 
 public class BuildCacheServices {
 
