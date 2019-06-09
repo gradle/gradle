@@ -107,7 +107,7 @@ public class OriginMetadataFactory {
                 if (!properties.stringPropertyNames().containsAll(METADATA_KEYS)) {
                     throw new IllegalStateException("Cached result format error, corrupted origin metadata.");
                 }
-                LOGGER.info("Origin for {}: {}", entry, properties);
+                LOGGER.debug("Origin for {}: {}", entry.getDisplayName(), properties);
 
                 UniqueId originBuildInvocationId = UniqueId.from(properties.getProperty(BUILD_INVOCATION_ID_KEY));
                 long originalExecutionTime = Long.parseLong(properties.getProperty(EXECUTION_TIME_KEY));
