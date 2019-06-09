@@ -17,7 +17,6 @@
 package org.gradle.caching.http.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpStatus;
@@ -71,7 +70,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url) {
         if (!url.getPath().endsWith("/")) {
-            throw new IncompleteArgumentException("HTTP cache root URI must end with '/'");
+            throw new IllegalArgumentException("HTTP cache root URI must end with '/'");
         }
         this.root = url;
         this.httpClientHelper = httpClientHelper;
