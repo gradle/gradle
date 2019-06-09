@@ -17,7 +17,7 @@
 package org.gradle.caching.internal.command;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
@@ -52,9 +52,9 @@ public class BuildCacheCommandFactory {
     private final BuildCacheEntryPacker packer;
     private final OriginMetadataFactory originMetadataFactory;
     private final FileSystemMirror fileSystemMirror;
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
 
-    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
+    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, FileSystemMirror fileSystemMirror, Interner<String> stringInterner) {
         this.packer = packer;
         this.originMetadataFactory = originMetadataFactory;
         this.fileSystemMirror = fileSystemMirror;

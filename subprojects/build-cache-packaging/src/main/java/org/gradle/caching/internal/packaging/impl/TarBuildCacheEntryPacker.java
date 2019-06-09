@@ -18,6 +18,7 @@ package org.gradle.caching.internal.packaging.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Interner;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -26,7 +27,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
@@ -92,9 +92,9 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private final FileSystem fileSystem;
     private final StreamHasher streamHasher;
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
 
-    public TarBuildCacheEntryPacker(FileSystem fileSystem, StreamHasher streamHasher, StringInterner stringInterner) {
+    public TarBuildCacheEntryPacker(FileSystem fileSystem, StreamHasher streamHasher, Interner<String> stringInterner) {
         this.fileSystem = fileSystem;
         this.streamHasher = streamHasher;
         this.stringInterner = stringInterner;
