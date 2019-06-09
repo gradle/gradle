@@ -46,6 +46,13 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
             options.forkOptions.memoryMaximumSize = compilerMemory
             options.forkOptions.jvmArgs.addAll(javaCompileJvmArgs)
         }
+
+        tasks.withType(GroovyCompile) {
+            compileOptions.fork = true
+            compileOptions.forkOptions.memoryInitialSize = compilerMemory
+            compileOptions.forkOptions.memoryMaximumSize = compilerMemory
+            compileOptions.forkOptions.jvmArgs.addAll(javaCompileJvmArgs)
+        }
         
         tasks.withType(Test) {
             ${config.useTestNG ? 'useTestNG()' : ''}
