@@ -55,6 +55,7 @@ import static org.gradle.caching.internal.controller.BuildCacheControllerFactory
 public class BuildCacheServices {
 
     private static final Path ROOT_BUILD_SRC_PATH = Path.path(":" + BuildSourceBuilder.BUILD_SRC);
+    private static final String GRADLE_VERSION_KEY = "gradleVersion";
 
     BuildCacheEntryPacker createResultPacker(FileSystem fileSystem, StreamHasher fileHasher, StringInterner stringInterner) {
         return new GZipBuildCacheEntryPacker(new TarBuildCacheEntryPacker(fileSystem, fileHasher, stringInterner));
@@ -66,7 +67,16 @@ public class BuildCacheServices {
         BuildInvocationScopeId buildInvocationScopeId
     ) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
-        return new OriginMetadataFactory(inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId.getId().asString());
+        return new OriginMetadataFactory(
+            inetAddressFactory,
+            rootDir,
+            SystemProperties.getInstance().getUserName(),
+            OperatingSystem.current().getName(),
+            buildInvocationScopeId.getId().asString(),
+            properties -> {
+                properties.setProperty(GRADLE_VERSION_KEY, GradleVersion.current().getVersion());
+            }
+        );
     }
 
     BuildCacheCommandFactory createBuildCacheCommandFactory(

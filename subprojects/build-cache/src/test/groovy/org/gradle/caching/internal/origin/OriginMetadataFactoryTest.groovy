@@ -18,7 +18,6 @@ package org.gradle.caching.internal.origin
 
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
-import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class OriginMetadataFactoryTest extends Specification {
@@ -26,7 +25,7 @@ class OriginMetadataFactoryTest extends Specification {
     def inetAddressFactory = Mock(InetAddressFactory)
     def rootDir = Mock(File)
     def buildInvocationId = UUID.randomUUID().toString()
-    def factory = new OriginMetadataFactory(inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"), buildInvocationId)
+    def factory = new OriginMetadataFactory(inetAddressFactory, rootDir, "user", "os", buildInvocationId, { it.gradleVersion = "3.0" })
 
     def "converts to origin metadata"() {
         inetAddressFactory.hostname >> "host"
