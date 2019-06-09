@@ -19,7 +19,6 @@ package org.gradle.caching.internal.origin;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.GradleVersion;
@@ -54,10 +53,10 @@ public class OriginMetadataFactory {
     private final String operatingSystem;
     private final Clock clock;
     private final GradleVersion gradleVersion;
-    private final UniqueId currentBuildInvocationId;
+    private final String currentBuildInvocationId;
     private final File rootDir;
 
-    public OriginMetadataFactory(Clock clock, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion, UniqueId currentBuildInvocationId) {
+    public OriginMetadataFactory(Clock clock, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion, String currentBuildInvocationId) {
         this.inetAddressFactory = inetAddressFactory;
         this.rootDir = rootDir;
         this.userName = userName;
@@ -73,7 +72,7 @@ public class OriginMetadataFactory {
             public void execute(OutputStream outputStream) {
                 // TODO: Replace this with something better
                 Properties properties = new Properties();
-                properties.setProperty(BUILD_INVOCATION_ID_KEY, currentBuildInvocationId.asString());
+                properties.setProperty(BUILD_INVOCATION_ID_KEY, currentBuildInvocationId);
                 properties.setProperty(TYPE_KEY, entry.getClass().getCanonicalName());
                 properties.setProperty(IDENTITY_KEY, entry.getIdentity());
                 properties.setProperty(GRADLE_VERSION_KEY, gradleVersion.getVersion());
@@ -109,7 +108,7 @@ public class OriginMetadataFactory {
                 }
                 LOGGER.debug("Origin for {}: {}", entry.getDisplayName(), properties);
 
-                UniqueId originBuildInvocationId = UniqueId.from(properties.getProperty(BUILD_INVOCATION_ID_KEY));
+                String originBuildInvocationId = properties.getProperty(BUILD_INVOCATION_ID_KEY);
                 long originalExecutionTime = Long.parseLong(properties.getProperty(EXECUTION_TIME_KEY));
                 return new OriginMetadata(originBuildInvocationId, originalExecutionTime);
             }

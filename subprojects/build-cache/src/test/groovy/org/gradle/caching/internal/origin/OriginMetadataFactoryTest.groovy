@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.origin
 
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.internal.id.UniqueId
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.time.Clock
 import org.gradle.util.GradleVersion
@@ -28,7 +27,7 @@ class OriginMetadataFactoryTest extends Specification {
     def timeProvider = Mock(Clock)
     def inetAddressFactory = Mock(InetAddressFactory)
     def rootDir = Mock(File)
-    def buildInvocationId = UniqueId.generate()
+    def buildInvocationId = UUID.randomUUID().toString()
     def factory = new OriginMetadataFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"), buildInvocationId)
 
     def "converts to origin metadata"() {
@@ -56,6 +55,6 @@ class OriginMetadataFactoryTest extends Specification {
         origin.operatingSystem == "os"
         origin.hostName == "host"
         origin.userName == "user"
-        origin.buildInvocationId == buildInvocationId.asString()
+        origin.buildInvocationId == buildInvocationId
     }
 }

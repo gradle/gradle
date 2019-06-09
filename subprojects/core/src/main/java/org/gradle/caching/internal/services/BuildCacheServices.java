@@ -68,7 +68,7 @@ public class BuildCacheServices {
         BuildInvocationScopeId buildInvocationScopeId
     ) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
-        return new OriginMetadataFactory(clock, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId.getId());
+        return new OriginMetadataFactory(clock, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId.getId().asString());
     }
 
     BuildCacheCommandFactory createBuildCacheCommandFactory(

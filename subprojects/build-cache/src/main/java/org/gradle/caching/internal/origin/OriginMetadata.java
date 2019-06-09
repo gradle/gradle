@@ -17,19 +17,18 @@
 package org.gradle.caching.internal.origin;
 
 import com.google.common.base.Preconditions;
-import org.gradle.internal.id.UniqueId;
 
 public class OriginMetadata {
 
-    private final UniqueId buildInvocationId;
+    private final String buildInvocationId;
     private final long executionTime;
 
-    public OriginMetadata(UniqueId buildInvocationId, long executionTime) {
+    public OriginMetadata(String buildInvocationId, long executionTime) {
         this.buildInvocationId = Preconditions.checkNotNull(buildInvocationId, "buildInvocationId");
         this.executionTime = executionTime;
     }
 
-    public UniqueId getBuildInvocationId() {
+    public String getBuildInvocationId() {
         return buildInvocationId;
     }
 
