@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
-import org.gradle.internal.time.Clock;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,17 +50,15 @@ public class OriginMetadataFactory {
     private final InetAddressFactory inetAddressFactory;
     private final String userName;
     private final String operatingSystem;
-    private final Clock clock;
     private final GradleVersion gradleVersion;
     private final String currentBuildInvocationId;
     private final File rootDir;
 
-    public OriginMetadataFactory(Clock clock, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion, String currentBuildInvocationId) {
+    public OriginMetadataFactory(InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion, String currentBuildInvocationId) {
         this.inetAddressFactory = inetAddressFactory;
         this.rootDir = rootDir;
         this.userName = userName;
         this.operatingSystem = operatingSystem;
-        this.clock = clock;
         this.gradleVersion = gradleVersion;
         this.currentBuildInvocationId = currentBuildInvocationId;
     }
@@ -76,7 +73,7 @@ public class OriginMetadataFactory {
                 properties.setProperty(TYPE_KEY, entry.getClass().getCanonicalName());
                 properties.setProperty(IDENTITY_KEY, entry.getIdentity());
                 properties.setProperty(GRADLE_VERSION_KEY, gradleVersion.getVersion());
-                properties.setProperty(CREATION_TIME_KEY, Long.toString(clock.getCurrentTime()));
+                properties.setProperty(CREATION_TIME_KEY, Long.toString(System.currentTimeMillis()));
                 properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime));
                 properties.setProperty(ROOT_PATH_KEY, rootDir.getAbsolutePath());
                 properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
