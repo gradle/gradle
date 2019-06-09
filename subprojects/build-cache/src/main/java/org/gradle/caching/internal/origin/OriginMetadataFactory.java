@@ -18,7 +18,6 @@ package org.gradle.caching.internal.origin;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -66,8 +65,7 @@ public class OriginMetadataFactory {
     public OriginWriter createWriter(CacheableEntity entry, long elapsedTime) {
         return new OriginWriter() {
             @Override
-            public void execute(OutputStream outputStream) {
-                // TODO: Replace this with something better
+            public void execute(OutputStream outputStream) throws IOException {
                 Properties properties = new Properties();
                 properties.setProperty(BUILD_INVOCATION_ID_KEY, currentBuildInvocationId);
                 properties.setProperty(TYPE_KEY, entry.getClass().getCanonicalName());
@@ -79,12 +77,7 @@ public class OriginMetadataFactory {
                 properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
                 properties.setProperty(HOST_NAME_KEY, inetAddressFactory.getHostname());
                 properties.setProperty(USER_NAME_KEY, userName);
-                try {
-                    properties.store(outputStream, "Generated origin information");
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-                assert METADATA_KEYS.containsAll(properties.stringPropertyNames()) : "Update expected metadata property list";
+                properties.store(outputStream, "Generated origin information");
             }
         };
     }
@@ -92,14 +85,9 @@ public class OriginMetadataFactory {
     public OriginReader createReader(CacheableEntity entry) {
         return new OriginReader() {
             @Override
-            public OriginMetadata execute(InputStream inputStream) {
-                // TODO: Replace this with something better
+            public OriginMetadata execute(InputStream inputStream) throws IOException {
                 Properties properties = new Properties();
-                try {
-                    properties.load(inputStream);
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                properties.load(inputStream);
                 if (!properties.stringPropertyNames().containsAll(METADATA_KEYS)) {
                     throw new IllegalStateException("Cached result format error, corrupted origin metadata.");
                 }
