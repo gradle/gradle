@@ -20,6 +20,7 @@ import com.google.common.collect.Lists
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import spock.lang.Unroll
@@ -29,6 +30,16 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_LIBRARY_CLASS = "Hello.swift"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "HelloTests.swift"
     public static final String LINUX_MAIN_DOT_SWIFT = "LinuxMain.swift"
+
+    private final InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
+
+    def setup() {
+        swiftcToolChain.initialiseEnvironment()
+    }
+
+    def cleanup() {
+        swiftcToolChain.resetEnvironment()
+    }
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {

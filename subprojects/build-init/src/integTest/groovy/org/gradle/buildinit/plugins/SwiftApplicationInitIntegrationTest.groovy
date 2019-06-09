@@ -30,6 +30,16 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_APPLICATION_TEST_CLASS = "GreeterTests.swift"
     public static final String LINUX_MAIN_DOT_SWIFT = "LinuxMain.swift"
 
+    private final AvailableToolChains.InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
+
+    def setup() {
+        swiftcToolChain.initialiseEnvironment()
+    }
+
+    def cleanup() {
+        swiftcToolChain.resetEnvironment()
+    }
+
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
