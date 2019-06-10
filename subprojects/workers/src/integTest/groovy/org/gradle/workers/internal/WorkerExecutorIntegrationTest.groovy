@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Unroll
+import spock.lang.Ignore
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
@@ -472,6 +473,24 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         and:
         outputContains("Guava version: 23.1.0.jre")
+    }
+
+    @Ignore
+    def "null parameters can be provided"() {
+        fixture.withRunnableClassInBuildScript()
+
+        buildFile << """
+            task runInWorkerWithNullParameter(type: WorkerTask) {
+                foo = null
+                isolationMode = IsolationMode.NONE
+            } 
+        """
+
+        when:
+        succeeds "runInWorkerWithNullParameter"
+
+        then:
+        assertRunnableExecuted("runInWorkerWithNullParameter")
     }
 
     void withParameterClassReferencingClassInAnotherPackage() {
