@@ -43,8 +43,8 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
         services.add(InstantiatorFactory.class, this);
         this.defaultServices = services;
-        ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.of());
-        ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.of());
+        ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.of(), cacheFactory);
+        ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.of(), cacheFactory);
         ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.newClassCache());
         ConstructorSelector decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.newClassCache());
         ConstructorSelector injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.newClassCache());
@@ -79,7 +79,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         for (Class<? extends Annotation> annotation : injectAnnotations) {
             assertKnownAnnotation(annotation);
         }
-        ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.copyOf(injectAnnotations));
+        ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.copyOf(injectAnnotations), cacheFactory);
         Jsr330ConstructorSelector constructorSelector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.newClassCache());
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builderWithExpectedSize(injectAnnotations.size() + 1);
         builder.addAll(injectAnnotations);

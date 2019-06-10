@@ -91,7 +91,7 @@ public class NamedObjectInstantiator implements Managed.Factory {
     private LoadingCache<Class<?>, LoadingCache<String, Object>> getCacheScope(Class<?> type) {
         ClassLoader classLoader = type.getClassLoader();
         if (classLoader instanceof VisitableURLClassLoader) {
-            return ((VisitableURLClassLoader) classLoader).getUserData(VisitableURLClassLoader.UserData.NAMED_OBJECT_INSTANTIATOR, cacheFactory);
+            return ((VisitableURLClassLoader) classLoader).getUserData(this, cacheFactory);
         }
         return leakyValues;
     }
