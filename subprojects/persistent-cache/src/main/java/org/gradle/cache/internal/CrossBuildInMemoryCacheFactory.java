@@ -24,23 +24,38 @@ import javax.annotation.concurrent.ThreadSafe;
  * Note that this implementation should only be used to create global scoped services.
  * Note that this implementation currently retains strong references to keys and values during the whole lifetime of a build session.
  *
- * Uses a simple algorithm to collect unused values, by retaining strong references to all keys and values used during the current build session, and the previous build session. All other values are referenced only by weak or soft references.
- *
- * NOTE: this is an abstract class rather than an interface because it is consumed by Kotlin DSL as a class.
+ * Uses a simple algorithm to collect unused values, by retaining strong references to all keys and values used during the current build session, and the previous build session.
+ * All other values are referenced only by weak or soft references, allowing them to be collected.
  */
 @ThreadSafe
-public abstract class CrossBuildInMemoryCacheFactory {
+public interface CrossBuildInMemoryCacheFactory {
     /**
      * Creates a new cache instance. Keys are always referenced using strong references, values by strong or soft references depending on their usage.
      *
-     * Note: this should be used to create _only_ global scoped instances.
+     * <p>Clients should assume that entries may be removed at any time, based on current memory pressure and the likelihood that the entry will be required again soon.
+     * The current implementation does not remove an entry during a build session that the entry has been used in, but this is not part of the contract.
+     *
+     * <p>Note: this should be used to create _only_ global scoped instances.
      */
-    public abstract <K, V> CrossBuildInMemoryCache<K, V> newCache();
+    <K, V> CrossBuildInMemoryCache<K, V> newCache();
 
     /**
      * Creates a new cache instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or soft references depending on their usage.
+     * This allows the classes to be collected.
      *
-     * Note: this should be used to create _only_ global scoped instances.
+     * <p>Clients should assume that entries may be removed at any time, based on current memory pressure and the likelihood that the entry will be required again soon.
+     * The current implementation does not remove an entry during a build session that the entry has been used in, but this is not part of the contract.
+     *
+     * <p>Note: this should be used to create _only_ global scoped instances.
      */
-    public abstract <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache();
+    <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache();
+
+    /**
+     * Creates a new map instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or other references depending on their usage.
+     * This allows the classes to be collected. A map differs from a cache in that entries are not discarded based on memory pressure, but are discarded only when the key is collected.
+     * You should prefer using a cache instead of a map where possible, and use a map only when generating other classes based on the key.
+     *
+     * <p>Note: this should be used to create _only_ global scoped instances.
+     */
+    <V> CrossBuildInMemoryCache<Class<?>, V> newClassMap();
 }
