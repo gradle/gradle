@@ -38,7 +38,13 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
         val testRunnerMemory: String by project
         val testForkEvery: String by project
 
-        tasks.withType<AbstractCompile> {
+        tasks.withType<JavaCompile> {
+            options.isFork = true
+            options.isIncremental = true
+            options.forkOptions.memoryInitialSize = compilerMemory
+            options.forkOptions.memoryMaximumSize = compilerMemory
+        }
+        tasks.withType<GroovyCompile> {
             options.isFork = true
             options.isIncremental = true
             options.forkOptions.memoryInitialSize = compilerMemory
