@@ -30,8 +30,8 @@ class RebaselinePerformanceTests extends SourceTask {
 
     @TaskAction
     void rebaseline() {
-        getSource().each { file ->
-            file.text = rebaseline(file.text, baseline)
+        for (file in getSource()) {
+            file.text = rebaselineContent(file.text, baseline)
         }
     }
 
@@ -40,7 +40,7 @@ class RebaselinePerformanceTests extends SourceTask {
         this.baseline = baseline
     }
 
-    static String rebaseline(String fileContent, String baseline) {
+    static String rebaselineContent(String fileContent, String baseline) {
         fileContent.replaceAll('targetVersions = \\[".*"]', "targetVersions = [\"$baseline\"]")
     }
 }
