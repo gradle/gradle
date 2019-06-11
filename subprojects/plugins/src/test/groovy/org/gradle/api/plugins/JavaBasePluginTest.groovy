@@ -448,60 +448,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         where:
         consumer                     | producer                     | compatible
         Usage.JAVA_API               | Usage.JAVA_API               | true
-//        Usage.JAVA_API               | Usage.JAVA_API_CLASSES       | true
-//        Usage.JAVA_API               | Usage.JAVA_API_JARS          | true
         Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
-//        Usage.JAVA_API               | Usage.JAVA_RUNTIME_CLASSES   | true
-//        Usage.JAVA_API               | Usage.JAVA_RUNTIME_RESOURCES | false
-//        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
-
-//        Usage.JAVA_API_CLASSES       | Usage.JAVA_API               | true
-//        Usage.JAVA_API_CLASSES       | Usage.JAVA_API_CLASSES       | true
-//        Usage.JAVA_API_CLASSES       | Usage.JAVA_API_JARS          | true
-//        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME           | true
-//        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_CLASSES   | true
-//        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_RESOURCES | false
-//        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_JARS      | true
-
-//        Usage.JAVA_API_JARS          | Usage.JAVA_API               | true
-//        Usage.JAVA_API_JARS          | Usage.JAVA_API_CLASSES       | false
-//        Usage.JAVA_API_JARS          | Usage.JAVA_API_JARS          | true
-//        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME           | true
-//        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME_CLASSES   | false
-//        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME_RESOURCES | false
-//        Usage.JAVA_API_JARS          | Usage.JAVA_RUNTIME_JARS      | true
 
         Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
-//        Usage.JAVA_RUNTIME           | Usage.JAVA_API_CLASSES       | false
-//        Usage.JAVA_RUNTIME           | Usage.JAVA_API_JARS          | false
         Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
-//        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_CLASSES   | false
-//        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_RESOURCES | false
-//        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
-
-//        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API               | false
-//        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API_CLASSES       | false
-//        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API_JARS          | false
-//        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME           | true
-//        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_CLASSES   | true
-//        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_RESOURCES | false
-//        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_JARS      | true
-
-//        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API               | false
-//        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API_CLASSES       | false
-//        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API_JARS          | false
-//        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME           | true
-//        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_CLASSES   | false
-//        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_RESOURCES | true
-//        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_JARS      | true
-
-//        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API               | false
-//        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API_CLASSES       | false
-//        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API_JARS          | false
-//        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME           | true
-//        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_CLASSES   | false
-//        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_RESOURCES | false
-//        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_JARS      | true
     }
 
     @Issue("gradle/gradle#8700")
@@ -522,15 +472,11 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         1 * details.getCandidateValues() >> candidates.collect { usage(it) }
         1 * details.closestMatch(usage(preferred))
 
-        where: // not exhaustive, tests pathological cases
+        where:
         consumer                | candidates                                            | preferred
         Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]         | Usage.JAVA_API
-//        Usage.JAVA_API          | [Usage.JAVA_RUNTIME_CLASSES, Usage.JAVA_API_CLASSES]  | Usage.JAVA_API_CLASSES
-//        Usage.JAVA_API          | [Usage.JAVA_RUNTIME_CLASSES, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_RUNTIME_CLASSES
-//        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS]        | Usage.JAVA_API_JARS
 
         Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]         | Usage.JAVA_RUNTIME
-//        Usage.JAVA_RUNTIME_JARS | [Usage.JAVA_RUNTIME, Usage.JAVA_RUNTIME_JARS]         | Usage.JAVA_RUNTIME_JARS
 
     }
 
