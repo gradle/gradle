@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.capabilities.Capability;
@@ -44,6 +45,21 @@ public class ProjectDerivedCapability implements Capability {
         return notNull("version", project.getVersion());
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Capability)) {
+            return false;
+        }
+
+        Capability that = (Capability) o;
+        return Objects.equal(getGroup(), that.getGroup())
+            && Objects.equal(getName(), that.getName())
+            && Objects.equal(getVersion(), that.getVersion());
+
+    }
 
     private static String notNull(String id, Object o) {
         if (o == null) {

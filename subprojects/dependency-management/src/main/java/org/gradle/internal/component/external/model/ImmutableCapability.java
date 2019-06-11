@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
+import org.gradle.api.capabilities.Capability;
 
 public class ImmutableCapability implements CapabilityInternal {
 
@@ -77,13 +78,13 @@ public class ImmutableCapability implements CapabilityInternal {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof Capability)) {
             return false;
         }
-        ImmutableCapability that = (ImmutableCapability) o;
-        return Objects.equal(group, that.group)
-            && Objects.equal(name, that.name)
-            && Objects.equal(version, that.version);
+        Capability that = (Capability) o;
+        return Objects.equal(group, that.getGroup())
+            && Objects.equal(name, that.getName())
+            && Objects.equal(version, that.getVersion());
     }
 
     @Override
