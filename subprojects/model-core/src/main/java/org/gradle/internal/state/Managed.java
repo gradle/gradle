@@ -16,8 +16,6 @@
 
 package org.gradle.internal.state;
 
-import javax.annotation.Nullable;
-
 /**
  * Implemented by types whose state is fully managed by Gradle. Mixed into generated classes whose state is fully managed.
  */
@@ -43,15 +41,5 @@ public interface Managed {
     /**
      * Returns the factory that can be used to create new instances of this type.
      */
-    Factory managedFactory();
-
-    interface Factory {
-        /**
-         * Creates an instance of the given type from the given state, if possible.
-         *
-         * @return null when the given type is not supported.
-         */
-        @Nullable
-        <T> T fromState(Class<T> type, Object state);
-    }
+    ManagedFactory managedFactory();
 }

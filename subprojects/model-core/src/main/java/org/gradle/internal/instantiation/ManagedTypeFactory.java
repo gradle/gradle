@@ -17,12 +17,12 @@
 package org.gradle.internal.instantiation;
 
 import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ManagedFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public class ManagedTypeFactory implements Managed.Factory {
+public class ManagedTypeFactory implements ManagedFactory {
     private final Constructor<?> constructor;
 
     // Used by generated code

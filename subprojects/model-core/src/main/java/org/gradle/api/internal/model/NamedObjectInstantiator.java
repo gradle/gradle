@@ -30,6 +30,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ManagedFactory;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
@@ -51,7 +52,7 @@ import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.V1_5;
 
-public class NamedObjectInstantiator implements Managed.Factory {
+public class NamedObjectInstantiator implements ManagedFactory {
     private static final Type OBJECT = Type.getType(Object.class);
     private static final Type STRING = Type.getType(String.class);
     private static final Type NAMED_OBJECT_INSTANTIATOR = Type.getType(NamedObjectInstantiator.class);
@@ -63,7 +64,7 @@ public class NamedObjectInstantiator implements Managed.Factory {
     private static final String RETURN_CLASS = Type.getMethodDescriptor(Type.getType(Class.class));
     private static final String RETURN_BOOLEAN = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
     private static final String RETURN_OBJECT = Type.getMethodDescriptor(OBJECT);
-    private static final String RETURN_MANAGED_FACTORY = Type.getMethodDescriptor(Type.getType(Managed.Factory.class));
+    private static final String RETURN_MANAGED_FACTORY = Type.getMethodDescriptor(Type.getType(ManagedFactory.class));
     private static final String RETURN_VOID_FROM_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, STRING);
     private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT, STRING);
     private static final String NAME_FIELD = "_gr_name_";

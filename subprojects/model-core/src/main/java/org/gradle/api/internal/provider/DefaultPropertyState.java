@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
 
@@ -40,8 +41,8 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
+    public ManagedFactory managedFactory() {
+        return new ManagedFactory() {
             @Nullable
             @Override
             public <S> S fromState(Class<S> type, Object state) {

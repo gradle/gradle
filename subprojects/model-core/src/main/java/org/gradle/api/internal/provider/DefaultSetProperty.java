@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -40,8 +41,8 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
+    public ManagedFactory managedFactory() {
+        return new ManagedFactory() {
             @Nullable
             @Override
             public <S> S fromState(Class<S> type, Object state) {

@@ -32,6 +32,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -73,8 +74,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public Factory managedFactory() {
-            return new Factory() {
+        public ManagedFactory managedFactory() {
+            return new ManagedFactory() {
                 @Override
                 public <T> T fromState(Class<T> type, Object state) {
                     if (!type.isAssignableFrom(Directory.class)) {
@@ -162,8 +163,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public Factory managedFactory() {
-            return new Factory() {
+        public ManagedFactory managedFactory() {
+            return new ManagedFactory() {
                 @Override
                 public <T> T fromState(Class<T> type, Object state) {
                     if (!type.isAssignableFrom(RegularFile.class)) {
@@ -268,8 +269,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public Factory managedFactory() {
-            return new Factory() {
+        public ManagedFactory managedFactory() {
+            return new ManagedFactory() {
                 @Override
                 public <T> T fromState(Class<T> type, Object state) {
                     if (!type.isAssignableFrom(RegularFileProperty.class)) {
@@ -348,8 +349,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public Factory managedFactory() {
-            return new Factory() {
+        public ManagedFactory managedFactory() {
+            return new ManagedFactory() {
                 @Override
                 public <T> T fromState(Class<T> type, Object state) {
                     if (!type.isAssignableFrom(DirectoryProperty.class)) {

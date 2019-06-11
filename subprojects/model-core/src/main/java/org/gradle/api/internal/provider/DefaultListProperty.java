@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -35,8 +36,8 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
+    public ManagedFactory managedFactory() {
+        return new ManagedFactory() {
             @Nullable
             @Override
             public <S> S fromState(Class<S> type, Object state) {

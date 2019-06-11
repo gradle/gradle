@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -78,8 +79,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
+    public ManagedFactory managedFactory() {
+        return new ManagedFactory() {
             @Nullable
             @Override
             public <S> S fromState(Class<S> type, Object state) {

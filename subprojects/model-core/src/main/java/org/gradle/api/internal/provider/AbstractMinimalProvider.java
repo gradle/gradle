@@ -20,12 +20,13 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ManagedFactory;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
-    private static final Factory FACTORY = new Factory() {
+    private static final ManagedFactory FACTORY = new ManagedFactory() {
         @Nullable
         @Override
         public <T> T fromState(Class<T> type, Object state) {
@@ -101,7 +102,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public Factory managedFactory() {
+    public ManagedFactory managedFactory() {
         return FACTORY;
     }
 
