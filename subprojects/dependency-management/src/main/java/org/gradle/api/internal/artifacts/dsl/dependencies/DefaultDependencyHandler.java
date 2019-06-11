@@ -60,6 +60,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final VariantTransformRegistry transforms;
     private final Factory<ArtifactTypeContainer> artifactTypeContainer;
     private final NamedObjectInstantiator namedObjectInstantiator;
+    private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
@@ -72,7 +73,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                                     AttributesSchema attributesSchema,
                                     VariantTransformRegistry transforms,
                                     Factory<ArtifactTypeContainer> artifactTypeContainer,
-                                    NamedObjectInstantiator namedObjectInstantiator) {
+                                    NamedObjectInstantiator namedObjectInstantiator,
+                                    PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
@@ -84,6 +86,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         this.transforms = transforms;
         this.artifactTypeContainer = artifactTypeContainer;
         this.namedObjectInstantiator = namedObjectInstantiator;
+        this.platformSupport = platformSupport;
         configureSchema();
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
     }
@@ -233,7 +236,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     public Dependency platform(Object notation) {
         Dependency dependency = create(notation);
         if (dependency instanceof HasConfigurableAttributes) {
-            PlatformSupport.addPlatformAttribute((HasConfigurableAttributes<Object>) dependency, toCategory(Category.REGULAR_PLATFORM));
+            platformSupport.addPlatformAttribute((HasConfigurableAttributes<Object>) dependency, toCategory(Category.REGULAR_PLATFORM));
         }
         return dependency;
     }
@@ -251,9 +254,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         if (platformDependency instanceof ExternalModuleDependency) {
             ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
             externalModuleDependency.setForce(true);
-            PlatformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
+            platformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
         } else if (platformDependency instanceof HasConfigurableAttributes) {
-            PlatformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));
+            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));
         }
         return platformDependency;
     }

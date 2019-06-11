@@ -130,8 +130,8 @@ class DependencyManagementGlobalScopeServices {
         return new PreferJavaRuntimeVariant(instantiator);
     }
 
-    PlatformSupport createPlatformSupport() {
-        return new PlatformSupport();
+    PlatformSupport createPlatformSupport(NamedObjectInstantiator instantiator) {
+        return new PlatformSupport(instantiator);
     }
 
     ArtifactTransformParameterScheme createArtifactTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {

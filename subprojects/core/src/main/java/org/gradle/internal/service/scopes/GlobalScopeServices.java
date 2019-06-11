@@ -267,7 +267,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     NamedObjectInstantiator createNamedObjectInstantiator() {
-        return NamedObjectInstantiator.instance();
+        return new NamedObjectInstantiator();
     }
 
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
