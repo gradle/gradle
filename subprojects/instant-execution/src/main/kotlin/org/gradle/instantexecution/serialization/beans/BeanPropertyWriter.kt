@@ -25,15 +25,17 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.PropertyKind
+import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logProperty
 import org.gradle.instantexecution.serialization.logPropertyWarning
+import org.gradle.instantexecution.serialization.withPropertyTrace
 import java.util.concurrent.Callable
 import java.util.function.Supplier
 
 
 class BeanPropertyWriter(
-    private val beanType: Class<*>
+    beanType: Class<*>
 ) {
 
     private
@@ -52,35 +54,6 @@ class BeanPropertyWriter(
         }
     }
 
-    /**
-     * Ensures a sequence of [writeNextProperty] calls is properly terminated
-     * by the end marker (empty String) so that it can be read by [BeanPropertyReader.readNextProperty].
-     */
-    inline fun WriteContext.writingProperties(block: BeanPropertyWriter.() -> Unit) {
-        block()
-        writeString("")
-    }
-
-    /**
-     * Returns whether the given property could be written. A property can only be written when there's
-     * a suitable [Codec] for its [value].
-     */
-    fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
-        val writeValue = writeActionFor(value)
-        if (writeValue == null) {
-            logPropertyWarning("serialize", kind, beanType, name, "there's no serializer for type '${GeneratedSubclasses.unpackType(value!!).name}'")
-            return false
-        }
-        writeString(name)
-        try {
-            writeValue(value)
-        } catch (e: Throwable) {
-            throw GradleException("Could not save the value of $kind '${beanType.name}.$name' with type ${value?.javaClass?.name}.", e)
-        }
-        logProperty("serialize", kind, beanType, name, value)
-        return true
-    }
-
     private
     fun conventionalValueOf(bean: Any, fieldName: String): Any? = (bean as? IConventionAware)?.run {
         conventionMapping.getConventionValue<Any?>(null, fieldName, false)
@@ -97,4 +70,37 @@ class BeanPropertyWriter(
         is Lazy<*> -> unpack(fieldValue.value)
         else -> fieldValue
     }
+}
+
+
+/**
+ * Returns whether the given property could be written. A property can only be written when there's
+ * a suitable [Codec] for its [value].
+ */
+fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
+    withPropertyTrace(PropertyTrace.Property(kind, name, trace)) {
+        val writeValue = writeActionFor(value)
+        if (writeValue == null) {
+            logPropertyWarning("serialize", "there's no serializer for type '${GeneratedSubclasses.unpackType(value!!).name}'")
+            return false
+        }
+        writeString(name)
+        try {
+            writeValue(value)
+        } catch (e: Throwable) {
+            throw GradleException("Could not save the value of $trace with type ${value?.javaClass?.name}.", e)
+        }
+        logProperty("serialize", value)
+        return true
+    }
+}
+
+
+/**
+ * Ensures a sequence of [writeNextProperty] calls is properly terminated
+ * by the end marker (empty String) so that it can be read by [readEachProperty].
+ */
+inline fun WriteContext.writingProperties(block: () -> Unit) {
+    block()
+    writeString("")
 }

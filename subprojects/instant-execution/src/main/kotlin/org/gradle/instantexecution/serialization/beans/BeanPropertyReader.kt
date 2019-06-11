@@ -28,9 +28,11 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.PropertyKind
+import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.logProperty
 import org.gradle.instantexecution.serialization.logPropertyWarning
+import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.reflect.JavaReflectionUtil
 import sun.reflect.ReflectionFactory
 import java.io.File
@@ -74,33 +76,10 @@ class BeanPropertyReader(
         constructorForSerialization.newInstance()
 
     fun ReadContext.readFieldsOf(bean: Any) {
-        while (true) {
-            val (fieldName, fieldValue) = readNextProperty(PropertyKind.Field) ?: break
+        readEachProperty(PropertyKind.Field) { fieldName, fieldValue ->
             val setter = setterByFieldName.getValue(fieldName)
             setter(bean, fieldValue)
         }
-    }
-
-    /**
-     * Returns `null` when there are no more properties to be read.
-     */
-    fun ReadContext.readNextProperty(kind: PropertyKind): Pair<String, Any?>? {
-
-        val name = readString()
-        if (name.isEmpty()) {
-            return null
-        }
-
-        val value =
-            try {
-                read().also {
-                    logProperty("deserialize", kind, beanType, name, it)
-                }
-            } catch (e: Throwable) {
-                throw GradleException("Could not load the value of $kind '${beanType.name}.$name'.", e)
-            }
-
-        return name to value
     }
 
     @Suppress("unchecked_cast")
@@ -150,7 +129,7 @@ class BeanPropertyReader(
                 if (isAssignableTo(type, value)) {
                     field.set(bean, value)
                 } else if (value != null) {
-                    logPropertyWarning("deserialize", PropertyKind.Field, beanType, field.name, "value $value is not assignable to $type")
+                    logPropertyWarning("deserialize", "value $value is not assignable to $type")
                 } // else null value -> ignore
             }
         }
@@ -164,4 +143,30 @@ class BeanPropertyReader(
     private
     fun newConstructorForSerialization(beanType: Class<*>, constructor: Constructor<*>): Constructor<out Any> =
         ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, constructor)
+}
+
+
+/**
+ * Reads a sequence of properties written with [writingProperties].
+ */
+fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> Unit) {
+    while (true) {
+
+        val name = readString()
+        if (name.isEmpty()) {
+            break
+        }
+
+        withPropertyTrace(PropertyTrace.Property(kind, name, trace)) {
+            val value =
+                try {
+                    read().also {
+                        logProperty("deserialize", it)
+                    }
+                } catch (e: Throwable) {
+                    throw GradleException("Could not load the value of $trace.", e)
+                }
+            action(name, value)
+        }
+    }
 }
