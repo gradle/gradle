@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -127,6 +128,10 @@ class DependencyManagementGlobalScopeServices {
 
     PreferJavaRuntimeVariant createPreferJavaRuntimeVariant(NamedObjectInstantiator instantiator) {
         return new PreferJavaRuntimeVariant(instantiator);
+    }
+
+    PlatformSupport createPlatformSupport() {
+        return new PlatformSupport();
     }
 
     ArtifactTransformParameterScheme createArtifactTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {

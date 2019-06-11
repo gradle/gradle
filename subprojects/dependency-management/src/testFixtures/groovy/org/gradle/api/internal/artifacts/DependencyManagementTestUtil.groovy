@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts
 
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant
@@ -33,5 +34,9 @@ class DependencyManagementTestUtil {
 
     static PreferJavaRuntimeVariant defaultSchema() {
         return new PreferJavaRuntimeVariant(TestUtil.objectInstantiator())
+    }
+
+    static PlatformSupport platformSupport() {
+        return new PlatformSupport()
     }
 }
