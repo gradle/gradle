@@ -46,6 +46,11 @@ public class ProjectDerivedCapability implements Capability {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hashCode(getGroup(), getName(), getVersion());
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
