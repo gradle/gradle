@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
@@ -374,7 +375,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
-        boolean hasTaskListener = listenerManager.hasListeners(TaskActionListener.class);
+        boolean hasTaskListener = listenerManager.hasListeners(TaskActionListener.class) || listenerManager.hasListeners(TaskExecutionListener.class);
         Iterator<InputChangesAwareTaskAction> actions = new ArrayList<>(task.getTaskActions()).iterator();
         while (actions.hasNext()) {
             InputChangesAwareTaskAction action = actions.next();

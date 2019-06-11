@@ -15,23 +15,23 @@
  */
 package org.gradle.api.internal.tasks.execution.statistics;
 
-import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.execution.taskgraph.TaskListenerInternal;
 
-public class TaskExecutionStatisticsEventAdapter implements TaskExecutionListener {
+public class TaskExecutionStatisticsEventAdapter implements TaskListenerInternal {
     private int executedTasksCount;
     private int fromCacheTaskCount;
     private int upToDateTaskCount;
 
     @Override
-    public void beforeExecute(Task task) {
+    public void beforeExecute(TaskIdentity taskIdentity) {
         // do nothing
     }
 
     @Override
-    public void afterExecute(Task task, TaskState state) {
+    public void afterExecute(TaskIdentity taskIdentity, TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
         if (stateInternal.isActionable()) {
             switch (stateInternal.getOutcome()) {
