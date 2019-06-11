@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -53,9 +52,7 @@ import java.util.List;
 import java.util.Set;
 
 public class EclipseDependenciesCreator {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
-    public static final Usage RUNTIME_JARS_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME_JARS);
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
     private final ProjectComponentIdentifier currentProjectId;
@@ -107,7 +104,7 @@ public class EclipseDependenciesCreator {
                 return;
             }
             Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
-            if (!RUNTIME_JARS_USAGE.equals(usage)) {
+            if (usage == null || !usage.getName().equals(Usage.JAVA_RUNTIME_JARS)) {
                 return;
             }
             ComponentArtifactMetadata artifactId = (ComponentArtifactMetadata) artifact.getId();

@@ -80,7 +80,7 @@ class TestUtil {
     }
 
     private static ObjectFactory objFactory(FileResolver fileResolver) {
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory(), domainObjectCollectionFactory())
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory(), domainObjectCollectionFactory())
     }
 
     private static ServiceRegistry services() {
@@ -93,7 +93,7 @@ class TestUtil {
     }
 
     static NamedObjectInstantiator objectInstantiator() {
-        return NamedObjectInstantiator.INSTANCE
+        return NamedObjectInstantiator.instance()
     }
 
     static FeaturePreviews featurePreviews(boolean gradleMetadataEnabled = false) {

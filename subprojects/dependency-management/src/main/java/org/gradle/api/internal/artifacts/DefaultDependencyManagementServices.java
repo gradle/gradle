@@ -429,7 +429,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                                           IsolatableFactory isolatableFactory,
                                                           ObjectFactory objectFactory,
-                                                          CollectionCallbackActionDecorator callbackDecorator) {
+                                                          CollectionCallbackActionDecorator callbackDecorator,
+                                                          NamedObjectInstantiator instantiator) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
@@ -438,7 +439,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactIdentifierFileStore,
                 externalResourceFileStore,
                 new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, fileResourceRepository, metadataFactory),
-                new GradleModuleMetadataParser(attributesFactory, moduleIdentifierFactory, NamedObjectInstantiator.INSTANCE),
+                new GradleModuleMetadataParser(attributesFactory, moduleIdentifierFactory, instantiator),
                 authenticationSchemeRegistry,
                 ivyContextManager,
                 moduleIdentifierFactory,
@@ -508,7 +509,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
-                                                  ProjectFinder projectFinder, DependencyConstraintHandler dependencyConstraintHandler, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema, VariantTransformRegistry artifactTransformRegistrations, ArtifactTypeRegistry artifactTypeRegistry) {
+                                                  ProjectFinder projectFinder, DependencyConstraintHandler dependencyConstraintHandler, ComponentMetadataHandler componentMetadataHandler,
+                                                  ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory,
+                                                  AttributesSchema attributesSchema, VariantTransformRegistry artifactTransformRegistrations, ArtifactTypeRegistry artifactTypeRegistry,
+                                                  NamedObjectInstantiator namedObjectInstantiator) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                 configurationContainer,
                 dependencyFactory,
@@ -520,7 +524,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 attributesSchema,
                 artifactTransformRegistrations,
                 artifactTypeRegistry,
-                NamedObjectInstantiator.INSTANCE);
+                namedObjectInstantiator);
         }
 
         DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer) {
@@ -531,8 +535,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules());
         }
 
-        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, ComponentMetadataHandler componentMetadataHandler) {
-            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyFactory, NamedObjectInstantiator.INSTANCE);
+        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, NamedObjectInstantiator namedObjectInstantiator) {
+            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyFactory, namedObjectInstantiator);
         }
 
         DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, SimpleMapInterner interner, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor componentMetadataRuleExecutor) {

@@ -266,10 +266,14 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultFilePropertyFactory(fileResolver);
     }
 
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    NamedObjectInstantiator createNamedObjectInstantiator() {
+        return NamedObjectInstantiator.instance();
+    }
+
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
         return new DefaultObjectFactory(
             instantiatorFactory.injectAndDecorate(services),
-            NamedObjectInstantiator.INSTANCE,
+            instantiator,
             fileResolver,
             directoryFileTreeFactory,
             new DefaultFilePropertyFactory(fileResolver),

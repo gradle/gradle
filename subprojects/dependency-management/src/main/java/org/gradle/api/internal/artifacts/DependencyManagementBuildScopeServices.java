@@ -175,16 +175,17 @@ class DependencyManagementBuildScopeServices {
 
     MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                         ImmutableAttributesFactory attributesFactory,
-                                                                        FeaturePreviews featurePreviews) {
-        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, NamedObjectInstantiator.INSTANCE, featurePreviews);
+                                                                        FeaturePreviews featurePreviews,
+                                                                        NamedObjectInstantiator instantiator) {
+        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, instantiator, featurePreviews);
     }
 
     IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
         return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory);
     }
 
-    AttributeContainerSerializer createAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory) {
-        return new DesugaredAttributeContainerSerializer(attributesFactory, NamedObjectInstantiator.INSTANCE);
+    AttributeContainerSerializer createAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
+        return new DesugaredAttributeContainerSerializer(attributesFactory, instantiator);
     }
 
     ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -370,8 +371,8 @@ class DependencyManagementBuildScopeServices {
         return SimpleMapInterner.threadSafe();
     }
 
-    ModuleComponentResolveMetadataSerializer createModuleComponentResolveMetadataSerializer(ImmutableAttributesFactory attributesFactory, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        DesugaringAttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, NamedObjectInstantiator.INSTANCE);
+    ModuleComponentResolveMetadataSerializer createModuleComponentResolveMetadataSerializer(ImmutableAttributesFactory attributesFactory, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator) {
+        DesugaringAttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, instantiator);
         return new ModuleComponentResolveMetadataSerializer(new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), attributeContainerSerializer, moduleIdentifierFactory);
     }
 

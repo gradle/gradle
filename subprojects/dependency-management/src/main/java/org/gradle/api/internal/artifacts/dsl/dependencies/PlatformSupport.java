@@ -34,8 +34,8 @@ import java.util.Set;
 
 public abstract class PlatformSupport {
 
-    public static final Category REGULAR_PLATFORM = NamedObjectInstantiator.INSTANCE.named(Category.class, Category.REGULAR_PLATFORM);
-    public static final Category ENFORCED_PLATFORM = NamedObjectInstantiator.INSTANCE.named(Category.class, Category.ENFORCED_PLATFORM);
+    public static final Category REGULAR_PLATFORM = NamedObjectInstantiator.instance().named(Category.class, Category.REGULAR_PLATFORM);
+    public static final Category ENFORCED_PLATFORM = NamedObjectInstantiator.instance().named(Category.class, Category.ENFORCED_PLATFORM);
 
     public static boolean isTargettingPlatform(HasConfigurableAttributes<?> target) {
         Category category = target.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
