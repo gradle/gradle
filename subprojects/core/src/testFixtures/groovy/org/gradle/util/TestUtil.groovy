@@ -88,12 +88,13 @@ class TestUtil {
             services = new DefaultServiceRegistry()
             services.add(ProviderFactory, new DefaultProviderFactory())
             services.add(InstantiatorFactory, instantiatorFactory())
+            services.add(NamedObjectInstantiator, new NamedObjectInstantiator())
         }
         return services
     }
 
     static NamedObjectInstantiator objectInstantiator() {
-        return NamedObjectInstantiator.instance()
+        return services().get(NamedObjectInstantiator)
     }
 
     static FeaturePreviews featurePreviews(boolean gradleMetadataEnabled = false) {

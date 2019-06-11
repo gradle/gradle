@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
 import org.gradle.api.plugins.ExtensionContainer
@@ -53,7 +54,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
     private DefaultDependencyHandler dependencyHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyHandler,
         configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
-        Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory), TestUtil.objectInstantiator())
+        Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory), TestUtil.objectInstantiator(), DependencyManagementTestUtil.platformSupport())
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

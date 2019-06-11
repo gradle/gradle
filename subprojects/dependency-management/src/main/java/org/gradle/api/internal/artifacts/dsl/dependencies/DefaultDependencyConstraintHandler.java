@@ -36,16 +36,19 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     private final DependencyFactory dependencyFactory;
     private final DynamicAddDependencyMethods dynamicMethods;
     private final NamedObjectInstantiator namedObjectInstantiator;
+    private final PlatformSupport platformSupport;
     private final Category platform;
     private final Category enforcedPlatform;
 
     public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
                                               DependencyFactory dependencyFactory,
-                                              NamedObjectInstantiator namedObjectInstantiator) {
+                                              NamedObjectInstantiator namedObjectInstantiator,
+                                              PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DependencyConstraintAdder());
         this.namedObjectInstantiator = namedObjectInstantiator;
+        this.platformSupport = platformSupport;
         platform = toCategory(Category.REGULAR_PLATFORM);
         enforcedPlatform = toCategory(Category.ENFORCED_PLATFORM);
     }
@@ -73,7 +76,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     @Override
     public DependencyConstraint platform(Object notation) {
         DependencyConstraint dependencyConstraint = create(notation);
-        PlatformSupport.addPlatformAttribute(dependencyConstraint, platform);
+        platformSupport.addPlatformAttribute(dependencyConstraint, platform);
         return dependencyConstraint;
     }
 
@@ -88,7 +91,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     public DependencyConstraint enforcedPlatform(Object notation) {
         DependencyConstraintInternal platformDependency = (DependencyConstraintInternal) create(notation);
         platformDependency.setForce(true);
-        PlatformSupport.addPlatformAttribute(platformDependency, enforcedPlatform);
+        platformSupport.addPlatformAttribute(platformDependency, enforcedPlatform);
         return platformDependency;
     }
 

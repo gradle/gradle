@@ -72,7 +72,7 @@ public class NamedObjectInstantiator implements Managed.Factory {
     private static final String FACTORY_FIELD = "FACTORY";
 
     private static final Set<String> SUFFIXES = new CopyOnWriteArraySet<>();
-    private static final NamedObjectInstantiator DEPRECATED_INSTANCE = new NamedObjectInstantiator();
+
     private final String implSuffix;
     private final String factorySuffix;
 
@@ -93,13 +93,6 @@ public class NamedObjectInstantiator implements Managed.Factory {
             }
             i++;
         }
-    }
-
-    /**
-     * @deprecated This is available as an injected service. Use the injected service instead of this method.
-     */
-    public static NamedObjectInstantiator instance() {
-        return DEPRECATED_INSTANCE;
     }
 
     private final Factory<LoadingCache<Class<?>, LoadingCache<String, Object>>> cacheFactory = new Factory<LoadingCache<Class<?>, LoadingCache<String, Object>>>() {

@@ -37,6 +37,6 @@ class DependencyManagementTestUtil {
     }
 
     static PlatformSupport platformSupport() {
-        return new PlatformSupport()
+        return new PlatformSupport(TestUtil.objectInstantiator())
     }
 }
