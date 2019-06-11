@@ -59,7 +59,7 @@ class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest
         def javaLibraryResults = results.buildResult(javaLibraryRuns)
         def speedStats = javaResults.getSpeedStatsAgainst(javaLibraryResults.name, javaLibraryResults)
         println(speedStats)
-        if (javaResults.significantlySlowerThan(javaLibraryResults)) {
+        if (javaResults.significantlyFasterThan(javaLibraryResults, 0.95)) {
             throw new AssertionError(speedStats)
         }
 
