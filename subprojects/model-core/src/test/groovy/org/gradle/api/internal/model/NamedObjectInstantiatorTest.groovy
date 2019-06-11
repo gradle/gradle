@@ -27,7 +27,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CyclicBarrier
 
 class NamedObjectInstantiatorTest extends ConcurrentSpec {
-    static factory = NamedObjectInstantiator.INSTANCE
+    static factory = new NamedObjectInstantiator()
 
     def "creates instance of Named"() {
         expect:

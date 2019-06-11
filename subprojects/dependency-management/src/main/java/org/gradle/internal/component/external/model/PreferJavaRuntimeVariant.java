@@ -37,8 +37,8 @@ import java.util.Set;
  * declaring no preference for a particular variant.
  */
 public class PreferJavaRuntimeVariant extends EmptySchema {
-    private static final Usage RUNTIME_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME);
-    private static final Usage RUNTIME_JARS_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME_JARS);
+    private static final Usage RUNTIME_USAGE = NamedObjectInstantiator.instance().named(Usage.class, Usage.JAVA_RUNTIME);
+    private static final Usage RUNTIME_JARS_USAGE = NamedObjectInstantiator.instance().named(Usage.class, Usage.JAVA_RUNTIME_JARS);
     private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Collections.<Attribute<?>>singleton(Usage.USAGE_ATTRIBUTE);
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = new PreferJavaRuntimeVariant();
 

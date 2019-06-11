@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenImmutableAttributesFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.MavenScope
@@ -148,7 +147,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
         def componentTypeAttribute = Attribute.of(Category.CATEGORY_ATTRIBUTE.getName(), String.class)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], new DefaultMavenImmutableAttributesFactory(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE), TestUtil.objectInstantiator())
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], new DefaultMavenImmutableAttributesFactory(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()), TestUtil.objectInstantiator())
         metadata.packaging = packaging
         metadata.variantMetadataRules.variantDerivationStrategy = new JavaEcosystemVariantDerivationStrategy()
 

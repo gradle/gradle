@@ -40,16 +40,18 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.V1_5;
 
 public class NamedObjectInstantiator implements Managed.Factory {
-    public static final NamedObjectInstantiator INSTANCE = new NamedObjectInstantiator();
     private static final Type OBJECT = Type.getType(Object.class);
     private static final Type STRING = Type.getType(String.class);
     private static final Type NAMED_OBJECT_INSTANTIATOR = Type.getType(NamedObjectInstantiator.class);
@@ -67,6 +69,38 @@ public class NamedObjectInstantiator implements Managed.Factory {
     private static final String NAME_FIELD = "_gr_name_";
     private static final String[] EMPTY_STRINGS = new String[0];
     private static final String CONSTRUCTOR_NAME = "<init>";
+    private static final String FACTORY_FIELD = "FACTORY";
+
+    private static final Set<String> SUFFIXES = new CopyOnWriteArraySet<>();
+    private static final NamedObjectInstantiator DEPRECATED_INSTANCE = new NamedObjectInstantiator();
+    private final String implSuffix;
+    private final String factorySuffix;
+
+    public NamedObjectInstantiator() {
+        implSuffix = unique("$Impl");
+        factorySuffix = unique("$Factory");
+    }
+
+    private static String unique(String suffix) {
+        if (SUFFIXES.add(suffix)) {
+            return suffix;
+        }
+        int i = 1;
+        while (true) {
+            String indexed = suffix + i;
+            if (SUFFIXES.add(indexed)) {
+                return indexed;
+            }
+            i++;
+        }
+    }
+
+    /**
+     * @deprecated This is available as an injected service. Use the injected service instead of this method.
+     */
+    public static NamedObjectInstantiator instance() {
+        return DEPRECATED_INSTANCE;
+    }
 
     private final Factory<LoadingCache<Class<?>, LoadingCache<String, Object>>> cacheFactory = new Factory<LoadingCache<Class<?>, LoadingCache<String, Object>>>() {
         @Override
@@ -123,7 +157,7 @@ public class NamedObjectInstantiator implements Managed.Factory {
             throw new GradleException(problemCollector.format());
         }
 
-        AsmClassGenerator generator = new AsmClassGenerator(publicClass, "$Impl");
+        AsmClassGenerator generator = new AsmClassGenerator(publicClass, implSuffix);
         Type implementationType = generator.getGeneratedType();
         ClassWriter visitor = generator.getVisitor();
         Type publicType = Type.getType(publicClass);
@@ -141,10 +175,16 @@ public class NamedObjectInstantiator implements Managed.Factory {
         visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, implementationType.getInternalName(), null, superClass.getInternalName(), interfaces);
 
         //
-        // Add name field
+        // Add `name` field
         //
 
         visitor.visitField(ACC_PRIVATE, NAME_FIELD, STRING.getDescriptor(), null, null);
+
+        //
+        // Add static `factory` field to hold the owning factory for the type (this factory)
+        //
+
+        visitor.visitField(ACC_PRIVATE | ACC_STATIC, FACTORY_FIELD, NAMED_OBJECT_INSTANTIATOR.getDescriptor(), null, null);
 
         //
         // Add constructor
@@ -228,18 +268,19 @@ public class NamedObjectInstantiator implements Managed.Factory {
         //
 
         methodVisitor = visitor.visitMethod(ACC_PUBLIC, "managedFactory", RETURN_MANAGED_FACTORY, null, EMPTY_STRINGS);
-        methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, NAMED_OBJECT_INSTANTIATOR.getInternalName(), "INSTANCE", NAMED_OBJECT_INSTANTIATOR.getDescriptor());
+        methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, generator.getGeneratedType().getInternalName(), FACTORY_FIELD, NAMED_OBJECT_INSTANTIATOR.getDescriptor());
         methodVisitor.visitInsn(Opcodes.ARETURN);
         methodVisitor.visitMaxs(0, 0);
         methodVisitor.visitEnd();
 
-        generator.define();
+        Class<?> implClass = generator.define();
+        attachFactoryToImplType(implClass);
 
         //
         // Generate factory class
         //
 
-        generator = new AsmClassGenerator(publicClass, "$Factory");
+        generator = new AsmClassGenerator(publicClass, factorySuffix);
         visitor = generator.getVisitor();
         visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generator.getGeneratedType().getInternalName(), null, CLASS_GENERATING_LOADER.getInternalName(), EMPTY_STRINGS);
 
@@ -276,6 +317,16 @@ public class NamedObjectInstantiator implements Managed.Factory {
         Class<Object> factoryClass = generator.define();
         try {
             return (ClassGeneratingLoader) factoryClass.getConstructor().newInstance();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private void attachFactoryToImplType(Class<?> implClass) {
+        try {
+            Field factoryField = implClass.getDeclaredField(FACTORY_FIELD);
+            factoryField.setAccessible(true);
+            factoryField.set(null, this);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

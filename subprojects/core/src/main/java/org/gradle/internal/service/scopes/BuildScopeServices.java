@@ -44,6 +44,7 @@ import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -76,12 +77,12 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.caching.internal.BuildCacheServices;
-import org.gradle.configuration.ProjectsPreparer;
-import org.gradle.configuration.DefaultProjectsPreparer;
+import org.gradle.configuration.BuildOperatingFiringProjectsPreparer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
+import org.gradle.configuration.DefaultProjectsPreparer;
 import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ImportsReader;
-import org.gradle.configuration.BuildOperatingFiringProjectsPreparer;
+import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -104,6 +105,7 @@ import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
+import org.gradle.initialization.BuildOperatingFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -118,7 +120,6 @@ import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.NotifyingBuildLoader;
-import org.gradle.initialization.BuildOperatingFiringSettingsPreparer;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
@@ -390,13 +391,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultScriptClassPathResolver(initializers);
     }
 
-    protected ScriptHandlerFactory createScriptHandlerFactory() {
+    protected ScriptHandlerFactory createScriptHandlerFactory(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver classPathResolver, NamedObjectInstantiator instantiator) {
         return new DefaultScriptHandlerFactory(
-            get(DependencyManagementServices.class),
-            get(FileResolver.class),
-            get(DependencyMetaDataProvider.class),
-            get(ScriptClassPathResolver.class)
-        );
+            dependencyManagementServices,
+            fileResolver,
+            dependencyMetaDataProvider,
+            classPathResolver,
+            instantiator);
     }
 
     protected ProjectConfigurer createProjectConfigurer(BuildCancellationToken cancellationToken) {
