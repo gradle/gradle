@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.project.ProjectInternal
@@ -34,7 +35,7 @@ import org.gradle.util.AttributeTestUtil
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DefaultIvyModuleResolveMetadataTest extends AbstractLazyModuleComponentResolveMetadataTest {
-    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory())
+    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), DependencyManagementTestUtil.defaultSchema())
 
     @Override
     ModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List dependencies) {

@@ -98,6 +98,7 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -175,13 +176,13 @@ class DependencyManagementBuildScopeServices {
 
     MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                         ImmutableAttributesFactory attributesFactory,
-                                                                        FeaturePreviews featurePreviews,
-                                                                        NamedObjectInstantiator instantiator) {
-        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, instantiator, featurePreviews);
+                                                                        NamedObjectInstantiator instantiator,
+                                                                        PreferJavaRuntimeVariant schema) {
+        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, instantiator, schema);
     }
 
-    IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
-        return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory);
+    IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, PreferJavaRuntimeVariant schema) {
+        return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, schema);
     }
 
     AttributeContainerSerializer createAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {

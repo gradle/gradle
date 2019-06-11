@@ -22,9 +22,8 @@ import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.MetadataResolutionContext
-import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
@@ -78,8 +77,8 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def stringInterner = SimpleMapInterner.notThreadSafe()
-    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
-    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory())
+    def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
+    def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     def dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl, stringInterner)
     def dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl, stringInterner)
     def moduleIdentifierNotationParser = NotationParserBuilder.toType(ModuleIdentifier).converter(new ModuleIdentifierNotationConverter(new DefaultImmutableModuleIdentifierFactory())).toComposite();
