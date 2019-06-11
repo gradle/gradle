@@ -21,8 +21,10 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.file.FilePropertyFactory
+import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultPropertyState
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.PropertyKind
@@ -114,6 +116,11 @@ class BeanPropertyReader(
             RegularFileProperty::class.java -> { bean, value ->
                 field.set(bean, filePropertyFactory.newFileProperty().apply {
                     set(value as File?)
+                })
+            }
+            ListProperty::class.java -> { bean, value ->
+                field.set(bean, DefaultListProperty(Any::class.java).apply {
+                    set(value as List<Any?>)
                 })
             }
             Property::class.java -> { bean, value ->
