@@ -48,8 +48,8 @@ enum JavaTestProject {
     LARGE_MONOLITHIC_GROOVY_PROJECT(new TestProjectGeneratorConfigurationBuilder("largeMonolithicGroovyProject", Language.GROOVY)
         .withSourceFiles(50000)
         .withSubProjects(0)
-        .withDaemonMemory('2g')
-        .withCompilerMemory('4g')
+        .withDaemonMemory('3g')
+        .withCompilerMemory('6g')
         .assembleChangeFile(-1)
         .testChangeFile(-1).create()),
     LARGE_GROOVY_MULTI_PROJECT(new TestProjectGeneratorConfigurationBuilder("largeGroovyMultiProject", Language.GROOVY)
