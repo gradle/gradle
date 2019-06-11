@@ -100,6 +100,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         workTaskDoesNotCompleteFirst()
     }
 
+    @NotYetImplemented
     def "worker-based task with task execution listener does not complete while another task is executing in parallel"() {
         when:
         buildFile << """
@@ -116,7 +117,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         """
 
         then:
-        workTaskCompletesFirst()
+        workTaskDoesNotCompleteFirst()
     }
 
     private void workTaskCompletesFirst() {
