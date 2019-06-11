@@ -262,7 +262,7 @@ org.gradle.api.internal.tasks.CompileServices"""
             assert jar.getJarEntry('org/apache/xerces/parsers/SAXParser.class')
             assert jar.getJarEntry('org/w3c/dom/Document.class')
             assert jar.getJarEntry('org/xml/sax/XMLReader.class')
-            assert jar.getJarEntry('org/gradle/internal/impldep/org/apache/commons/lang/StringUtils.class')
+            assert jar.getJarEntry('org/gradle/internal/impldep/org/apache/commons/lang3/StringUtils.class')
             assert jar.getJarEntry('org/gradle/internal/impldep/com/google/common/collect/Lists.class')
         }
     }

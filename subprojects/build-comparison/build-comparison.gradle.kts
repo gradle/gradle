@@ -47,6 +47,7 @@ dependencies {
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
+    implementation(library("commons_text"))
     implementation(library("inject"))
 
     testImplementation(project(":native"))

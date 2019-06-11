@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.buildcomparison.render.internal.html
 
 import groovy.xml.MarkupBuilder
-import org.apache.commons.lang3.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 import org.gradle.api.Transformer
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
@@ -233,7 +233,7 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
             div(id: "host-details") {
                 h2 "Comparison host details"
                 def lines = hostAttributes.collect {
-                    "<strong>${StringEscapeUtils.escapeHtml(it.key)}</strong>: ${StringEscapeUtils.escapeHtml(it.value) }"
+                    "<strong>${StringEscapeUtils.escapeHtml4(it.key)}</strong>: ${StringEscapeUtils.escapeHtml4(it.value) }"
                 }
                 p {
                     mkp.yieldUnescaped lines.join("<br />")
