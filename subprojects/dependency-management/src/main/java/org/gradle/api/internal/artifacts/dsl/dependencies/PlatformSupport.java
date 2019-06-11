@@ -32,12 +32,12 @@ import org.gradle.internal.component.external.model.ComponentVariant;
 
 import java.util.Set;
 
-public abstract class PlatformSupport {
+public class PlatformSupport {
 
     public static final Category REGULAR_PLATFORM = NamedObjectInstantiator.instance().named(Category.class, Category.REGULAR_PLATFORM);
     public static final Category ENFORCED_PLATFORM = NamedObjectInstantiator.instance().named(Category.class, Category.ENFORCED_PLATFORM);
 
-    public static boolean isTargettingPlatform(HasConfigurableAttributes<?> target) {
+    public boolean isTargettingPlatform(HasConfigurableAttributes<?> target) {
         Category category = target.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
         return REGULAR_PLATFORM.equals(category) || ENFORCED_PLATFORM.equals(category);
     }
