@@ -24,12 +24,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.MetadataResolutionContext
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
-import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.specs.Specs
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
@@ -67,8 +66,8 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     RuleActionAdapter adapter = Mock(RuleActionAdapter)
     def mockedHandler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), adapter, moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.valueSnapshotter(), executor)
     def ruleAction = Stub(RuleAction)
-    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
-    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory())
+    def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
+    def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     MetadataResolutionContext context = Mock()
 
     def 'setup'() {

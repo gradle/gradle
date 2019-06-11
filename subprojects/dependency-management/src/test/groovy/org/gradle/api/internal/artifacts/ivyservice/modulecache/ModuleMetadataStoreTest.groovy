@@ -17,14 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import org.junit.Rule
 import spock.lang.Specification
@@ -42,7 +40,7 @@ class ModuleMetadataStoreTest extends Specification {
     def moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "testArtifact"), "1.0")
     def serializer = Mock(ModuleMetadataSerializer)
     @Subject ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe())
-    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
         when:
