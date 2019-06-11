@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.serialize.HashCodeSerializer
@@ -49,11 +50,12 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def fileHasher = new TestFileHasher()
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, stringInterner, fileSystem, fileSystemMirror)
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileHasher, stringInterner, fileSystemSnapshotter)
     InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
     def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
-        fileSystemSnapshotter,
+        fileCollectionSnapshotter,
         ResourceFilter.FILTER_NOTHING,
         stringInterner)
 

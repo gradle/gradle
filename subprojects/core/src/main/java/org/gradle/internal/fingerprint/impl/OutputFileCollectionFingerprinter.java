@@ -17,13 +17,13 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.OutputNormalizer;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 public class OutputFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public OutputFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-        super(AbsolutePathFingerprintingStrategy.IGNORE_MISSING, fileSystemSnapshotter);
+    public OutputFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        super(AbsolutePathFingerprintingStrategy.IGNORE_MISSING, fileCollectionSnapshotter);
     }
 
     @Override

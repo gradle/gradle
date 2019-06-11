@@ -18,14 +18,13 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 import java.util.List;
 
@@ -34,18 +33,17 @@ import java.util.List;
  */
 @NonNullApi
 public abstract class AbstractFileCollectionFingerprinter implements FileCollectionFingerprinter {
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileCollectionSnapshotter fileCollectionSnapshotter;
     private final FingerprintingStrategy fingerprintingStrategy;
 
-    public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, FileSystemSnapshotter fileSystemSnapshotter) {
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
+    public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, FileCollectionSnapshotter fileCollectionSnapshotter) {
+        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
         this.fingerprintingStrategy = fingerprintingStrategy;
     }
 
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
-        FileCollectionInternal fileCollection = (FileCollectionInternal) files;
-        List<FileSystemSnapshot> roots = fileSystemSnapshotter.snapshot(fileCollection);
+        List<FileSystemSnapshot> roots = fileCollectionSnapshotter.snapshot(files);
         return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
     }
 

@@ -49,6 +49,7 @@ import org.gradle.internal.execution.steps.StoreSnapshotsStep
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
@@ -62,8 +63,8 @@ import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Specification
 import org.junit.Rule
+import spock.lang.Specification
 
 import javax.annotation.Nullable
 import java.time.Duration
@@ -79,7 +80,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
+    def fsSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileHasher, new StringInterner(), fsSnapshotter)
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()

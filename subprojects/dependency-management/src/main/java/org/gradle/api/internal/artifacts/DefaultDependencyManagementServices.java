@@ -146,6 +146,7 @@ import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -212,8 +213,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             };
         }
 
-        OutputFileCollectionFingerprinter createOutputFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-            return new OutputFileCollectionFingerprinter(fileSystemSnapshotter);
+        OutputFileCollectionFingerprinter createOutputFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+            return new OutputFileCollectionFingerprinter(fileCollectionSnapshotter);
         }
 
         TransformationNodeRegistry createTransformationNodeRegistry() {

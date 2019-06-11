@@ -35,6 +35,7 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -60,7 +61,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, target)
     final stringInterner = new StringInterner()
     final fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
-    final fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileSystemSnapshotter)
+    final fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(TestFiles.fileHasher(), stringInterner, fileSystemSnapshotter)
+    final fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
 
     def 'skips task when sourceFiles are empty and previous output is empty'() {
         def afterPreviousExecution = Mock(AfterPreviousExecutionState)

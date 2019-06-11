@@ -17,13 +17,13 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public NameOnlyFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-        super(NameOnlyFingerprintingStrategy.INSTANCE, fileSystemSnapshotter);
+    public NameOnlyFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        super(NameOnlyFingerprintingStrategy.INSTANCE, fileCollectionSnapshotter);
     }
 
     @Override
