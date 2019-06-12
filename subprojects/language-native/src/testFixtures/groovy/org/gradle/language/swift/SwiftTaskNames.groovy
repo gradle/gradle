@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,29 @@
 
 package org.gradle.language.swift
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.LanguageTaskNames
 
 trait SwiftTaskNames extends LanguageTaskNames {
     @Override
     String getLanguageTaskSuffix() {
         return 'Swift'
+    }
+
+    String[] renameLinuxMainTasks(String project = '') {
+        if (OperatingSystem.current().linux) {
+            return ["${project}:renameLinuxMain"]
+        } else {
+            return []
+        }
+    }
+
+    @Override
+    String[] getAdditionalTestTaskNames() {
+        if (OperatingSystem.current().linux) {
+            return ["renameLinuxMain"]
+        } else {
+            return []
+        }
     }
 }

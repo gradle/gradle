@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
@@ -24,7 +25,7 @@ import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
 import org.junit.Assume
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTestIntegrationTest implements XCTestExecutionResult {
+abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTestIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
     def setup() {
         // TODO: Temporarily disable XCTests with Swift3 on macOS
         Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
@@ -50,7 +51,7 @@ abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTest
 
     @Override
     String[] getTasksToBuildAndRunUnitTest() {
-        return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
+        return tasks.test.allToInstall + [":xcTest"]
     }
 
     @Override
@@ -75,13 +76,13 @@ abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTest
 
     @Override
     protected String[] getTasksToRelocate() {
-        return getTasksToRelocate(null)
+        return getTasksToRelocate(null) + renameLinuxMainTasks()
     }
 
     protected abstract XCTestSourceElement getPassingTestFixture()
 
     @Override
     String getLanguageTaskSuffix() {
-        return "swift"
+        return "Swift"
     }
 }

@@ -29,6 +29,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -179,6 +180,10 @@ public class XCTestConventionPlugin implements Plugin<Project> {
     }
 
     private void configureTestSuiteBuildingTasks(final Project project, final DefaultSwiftXCTestBinary binary) {
+        // Overwrite the source to exclude `LinuxMain.swift`
+        SwiftCompile compile = binary.getCompileTask().get();
+        compile.getSource().setFrom(binary.getSwiftSource().getAsFileTree().matching(patterns -> patterns.include("**/*").exclude("**/LinuxMain.swift")));
+
         if (binary instanceof SwiftXCTestBundle) {
             TaskContainer tasks = project.getTasks();
             final Names names = binary.getNames();
@@ -193,7 +198,6 @@ public class XCTestConventionPlugin implements Plugin<Project> {
             // Platform specific arguments
             // TODO: Need to lazily configure compile task
             // TODO: Ultimately, this should be some kind of 3rd party dependency that's visible to dependency management.
-            SwiftCompile compile = binary.getCompileTask().get();
             compile.getCompilerArgs().addAll(project.provider(() -> {
                 File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
                 return Arrays.asList("-parse-as-library", "-F" + frameworkDir.getAbsolutePath());
@@ -231,6 +235,17 @@ public class XCTestConventionPlugin implements Plugin<Project> {
         } else {
             DefaultSwiftXCTestExecutable executable = (DefaultSwiftXCTestExecutable) binary;
             executable.getRunScriptFile().set(executable.getInstallTask().flatMap(task -> task.getRunScriptFile()));
+
+            // Rename `LinuxMain.swift` to `main.swift` so the entry point is correctly detected by swiftc
+            if (binary.getTargetMachine().getOperatingSystemFamily().isLinux()) {
+                TaskProvider<Sync> renameLinuxMainTask = project.getTasks().register("renameLinuxMain", Sync.class, task -> {
+                    task.from(binary.getSwiftSource());
+                    task.into(project.provider(() -> task.getTemporaryDir()));
+                    task.include("LinuxMain.swift");
+                    task.rename(it -> "main.swift");
+                });
+                compile.getSource().from(project.files(renameLinuxMainTask).getAsFileTree().matching(patterns -> patterns.include("**/*.swift")));
+            }
         }
     }
 
