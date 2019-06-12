@@ -266,8 +266,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultFilePropertyFactory(fileResolver);
     }
 
-    NamedObjectInstantiator createNamedObjectInstantiator() {
-        return new NamedObjectInstantiator();
+    NamedObjectInstantiator createNamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new NamedObjectInstantiator(cacheFactory);
     }
 
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {

@@ -94,6 +94,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private final ImmutableSet<Class<? extends Annotation>> disabledAnnotations;
     private final ImmutableSet<Class<? extends Annotation>> enabledAnnotations;
     private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
+    private final Transformer<GeneratedClassImpl, Class<?>> generator = new Transformer<GeneratedClassImpl, Class<?>>() {
+        @Override
+        public GeneratedClassImpl transform(Class<?> type) {
+            return generateUnderLock(type);
+        }
+    };
 
     public AbstractClassGenerator(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCacheFactory cacheFactory) {
         this.generatedClasses = cacheFactory.newClassMap();
@@ -128,12 +134,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
         GeneratedClassImpl generatedClass = generatedClasses.get(type);
         if (generatedClass == null) {
-            generatedClass = generatedClasses.get(type, new Transformer<GeneratedClassImpl, Class<?>>() {
-                @Override
-                public GeneratedClassImpl transform(Class<?> type) {
-                    return generateUnderLock(type);
-                }
-            });
+            // It is possible that multiple threads will execute this branch concurrently, when the type is missing. However, the contract for `get()` below will ensure that
+            // only one thread will actually generate the implementation class
+            generatedClass = generatedClasses.get(type, generator);
             // Also use the generated class for itself
             generatedClasses.put(generatedClass.generatedClass, generatedClass);
         }

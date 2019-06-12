@@ -23,11 +23,12 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import groovy.lang.GroovyObject;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
+import org.gradle.api.Transformer;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.state.Managed;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
@@ -73,12 +74,20 @@ public class NamedObjectInstantiator implements Managed.Factory {
 
     private static final Set<String> SUFFIXES = new CopyOnWriteArraySet<>();
 
+    private final CrossBuildInMemoryCache<Class<?>, LoadingCache<String, Object>> generatedTypes;
     private final String implSuffix;
     private final String factorySuffix;
+    private final Transformer<LoadingCache<String, Object>, Class<?>> cacheFactory = new Transformer<LoadingCache<String, Object>, Class<?>>() {
+        @Override
+        public LoadingCache<String, Object> transform(Class<?> type) {
+            return CacheBuilder.newBuilder().build(loaderFor(type));
+        }
+    };
 
-    public NamedObjectInstantiator() {
+    public NamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
         implSuffix = unique("$Impl");
         factorySuffix = unique("$Factory");
+        generatedTypes = cacheFactory.newClassMap();
     }
 
     private static String unique(String suffix) {
@@ -95,39 +104,13 @@ public class NamedObjectInstantiator implements Managed.Factory {
         }
     }
 
-    private final Factory<LoadingCache<Class<?>, LoadingCache<String, Object>>> cacheFactory = new Factory<LoadingCache<Class<?>, LoadingCache<String, Object>>>() {
-        @Override
-        public LoadingCache<Class<?>, LoadingCache<String, Object>> create() {
-            return newValuesCache();
-        }
-    };
-
-    // Currently retains strong references to types
-    private final LoadingCache<Class<?>, LoadingCache<String, Object>> leakyValues = newValuesCache();
-
-    private LoadingCache<Class<?>, LoadingCache<String, Object>> newValuesCache() {
-        return CacheBuilder.newBuilder()
-                .build(new CacheLoader<Class<?>, LoadingCache<String, Object>>() {
-                    @Override
-                    public LoadingCache<String, Object> load(Class<?> type) {
-                        return CacheBuilder.newBuilder().build(loaderFor(type));
-                    }
-                });
-    }
-
-    private LoadingCache<Class<?>, LoadingCache<String, Object>> getCacheScope(Class<?> type) {
-        ClassLoader classLoader = type.getClassLoader();
-        if (classLoader instanceof VisitableURLClassLoader) {
-            return ((VisitableURLClassLoader) classLoader).getUserData(this, cacheFactory);
-        }
-        return leakyValues;
-    }
-
     public <T extends Named> T named(final Class<T> type, final String name) throws ObjectInstantiationException {
         try {
-            return type.cast(getCacheScope(type).getUnchecked(type).getUnchecked(name));
+            return type.cast(generatedTypes.get(type, cacheFactory).getUnchecked(name));
         } catch (UncheckedExecutionException e) {
             throw new ObjectInstantiationException(type, e.getCause());
+        } catch (Exception e) {
+            throw new ObjectInstantiationException(type, e);
         }
     }
 
