@@ -18,17 +18,17 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.state.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.isolation.IsolationException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.snapshot.ValueSnapshottingException;
+import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -50,12 +50,12 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
     }
 
     @Override
-    public ValueSnapshot snapshot(@Nullable Object value) throws UncheckedIOException {
+    public ValueSnapshot snapshot(@Nullable Object value) throws ValueSnapshottingException {
         return processValue(value, valueSnapshotValueVisitor);
     }
 
     @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshot candidate) {
+    public ValueSnapshot snapshot(Object value, ValueSnapshot candidate) throws ValueSnapshottingException {
         return candidate.snapshot(value, this);
     }
 
@@ -167,7 +167,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
             objectStr.writeObject(value);
             objectStr.flush();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new ValueSnapshottingException(String.format("Could not serialize value '%s'", value), e);
         }
 
         return visitor.serialized(value, outputStream.toByteArray());
