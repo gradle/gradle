@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -29,10 +30,10 @@ import java.io.File;
 public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshotter {
 
     private final DefaultClasspathEntrySnapshotter snapshotter;
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
     private final ClasspathEntrySnapshotCache cache;
 
-    public CachingClasspathEntrySnapshotter(FileHasher fileHasher, StreamHasher streamHasher, FileSystemSnapshotter fileSystemSnapshotter, ClassDependenciesAnalyzer analyzer, ClasspathEntrySnapshotCache cache, FileOperations fileOperations) {
+    public CachingClasspathEntrySnapshotter(FileHasher fileHasher, StreamHasher streamHasher, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, ClassDependenciesAnalyzer analyzer, ClasspathEntrySnapshotCache cache, FileOperations fileOperations) {
         this.snapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, analyzer, fileOperations);
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.cache = cache;

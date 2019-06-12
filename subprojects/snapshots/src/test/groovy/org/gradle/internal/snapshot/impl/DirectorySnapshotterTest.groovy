@@ -21,6 +21,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.MutableBoolean
+import org.gradle.internal.fingerprint.impl.PatternSetFilterStrategy
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -38,7 +39,8 @@ class DirectorySnapshotterTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def fileHasher = new TestFileHasher()
-    def directorySnapshotter = new DirectorySnapshotter(fileHasher, TestFiles.fileSystem(), new StringInterner())
+    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner())
+    def patternSetFilterStrategy = new PatternSetFilterStrategy(TestFiles.fileSystem())
 
     def "should snapshot without filters"() {
         given:
@@ -94,7 +96,7 @@ class DirectorySnapshotterTest extends Specification {
         def actuallyFiltered = new MutableBoolean(false)
 
         when:
-        def snapshot = directorySnapshotter.snapshot(fileSystemRoot, patterns, actuallyFiltered)
+        def snapshot = directorySnapshotter.snapshot(fileSystemRoot, patternSetFilterStrategy.getAsDirectoryWalkerPredicate(patterns) , actuallyFiltered)
 
         then:
         snapshot.absolutePath == fileSystemRoot
@@ -121,7 +123,7 @@ class DirectorySnapshotterTest extends Specification {
 
         def actuallyFiltered = new MutableBoolean(false)
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, patterns, actuallyFiltered)
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, patternSetFilterStrategy.getAsDirectoryWalkerPredicate(patterns), actuallyFiltered)
         snapshot.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {

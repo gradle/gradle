@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -40,13 +41,13 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultFileContentCacheFactory implements FileContentCacheFactory, Closeable {
     private final ListenerManager listenerManager;
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
     private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<String, DefaultFileContentCache<?>>();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, @Nullable Object scope) {
+    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, @Nullable Object scope) {
         this.listenerManager = listenerManager;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
@@ -91,11 +92,11 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private static class DefaultFileContentCache<V> implements FileContentCache<V>, OutputChangeListener {
         private final Map<File, V> cache = new ConcurrentHashMap<File, V>();
         private final String name;
-        private final FileSystemSnapshotter fileSystemSnapshotter;
+        private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
         private final PersistentIndexedCache<HashCode, V> contentCache;
         private final Calculator<? extends V> calculator;
 
-        DefaultFileContentCache(String name, FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
+        DefaultFileContentCache(String name, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
             this.name = name;
             this.fileSystemSnapshotter = fileSystemSnapshotter;
             this.contentCache = contentCache;

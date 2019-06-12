@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
@@ -43,14 +44,14 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBuilder {
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
     private final CSourceParser sourceParser;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final TaskFileVarFactory fileVarFactory;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultIncrementalCompilerBuilder(FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultIncrementalCompilerBuilder(FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.sourceParser = sourceParser;
@@ -66,7 +67,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
 
     private static class StateCollectingIncrementalCompiler implements IncrementalCompiler, MinimalFileSet, LifecycleAwareValue {
         private final Map<String, String> macros;
-        private final FileSystemSnapshotter fileSystemSnapshotter;
+        private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
         private final CompilationStateCacheFactory compilationStateCacheFactory;
         private final CSourceParser sourceParser;
         private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -80,7 +81,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private PersistentStateCache<CompilationState> compileStateCache;
         private IncrementalCompilation incrementalCompilation;
 
-        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, Map<String, String> macros, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor, Provider<Boolean> importAware) {
+        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, Map<String, String> macros, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor, Provider<Boolean> importAware) {
             this.taskOutputs = task.getOutputs();
             this.taskPath = task.getPath();
             this.includeDirs = includeDirs;

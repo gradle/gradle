@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntr
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotDataSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClasspathEntrySnapshotCache;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -38,7 +39,7 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
     private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
     private final PersistentCache cache;
 
-    public DefaultUserHomeScopedCompileCaches(FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+    public DefaultUserHomeScopedCompileCaches(FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
         cache = cacheRepository
             .cache("javaCompile")
             .withDisplayName("Java compile cache")

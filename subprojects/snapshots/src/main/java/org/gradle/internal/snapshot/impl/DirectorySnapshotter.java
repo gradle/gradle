@@ -21,31 +21,21 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.PatternFilterStrategy;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.FileSystemLoopException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -59,24 +49,21 @@ import java.util.Optional;
 
 public class DirectorySnapshotter {
     private final FileHasher hasher;
-    private final FileSystem fileSystem;
     private final StringInterner stringInterner;
     private final DefaultExcludes defaultExcludes;
 
-    public DirectorySnapshotter(FileHasher hasher, FileSystem fileSystem, StringInterner stringInterner, String... defaultExcludes) {
+    public DirectorySnapshotter(FileHasher hasher, StringInterner stringInterner, String... defaultExcludes) {
         this.hasher = hasher;
-        this.fileSystem = fileSystem;
         this.stringInterner = stringInterner;
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
     }
 
-    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
+    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternFilterStrategy.DirectoryWalkerPredicate predicate, final MutableBoolean hasBeenFiltered) {
         Path rootPath = Paths.get(absolutePath);
-        final Spec<FileTreeElement> spec = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsSpec();
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
 
         try {
-            Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new PathVisitor(builder, spec, hasBeenFiltered));
+            Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new PathVisitor(builder, predicate, hasBeenFiltered));
         } catch (IOException e) {
             throw new GradleException(String.format("Could not list contents of directory '%s'.", rootPath), e);
         }
@@ -152,102 +139,14 @@ public class DirectorySnapshotter {
         }
     }
 
-    private static class PathBackedFileTreeElement implements FileTreeElement {
-        private final Path path;
-        private final String name;
-        private final boolean isDirectory;
-        private final BasicFileAttributes attrs;
-        private final Iterable<String> relativePath;
-        private final Stat stat;
-
-        public PathBackedFileTreeElement(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath, Stat stat) {
-            this.path = path;
-            this.name = name;
-            this.isDirectory = isDirectory;
-            this.attrs = attrs;
-            this.relativePath = relativePath;
-            this.stat = stat;
-        }
-
-        @Override
-        public File getFile() {
-            return path.toFile();
-        }
-
-        @Override
-        public boolean isDirectory() {
-            return isDirectory;
-        }
-
-        @Override
-        public long getLastModified() {
-            return getAttributes().lastModifiedTime().toMillis();
-        }
-
-        @Override
-        public long getSize() {
-            return getAttributes().size();
-        }
-
-        private BasicFileAttributes getAttributes() {
-            return Preconditions.checkNotNull(attrs, "Cannot read file attributes of %s", path);
-        }
-
-        @Override
-        public InputStream open() {
-            try {
-                return Files.newInputStream(path);
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        @Override
-        public void copyTo(OutputStream output) {
-            throw new UnsupportedOperationException("Copy to not supported for filters");
-        }
-
-        @Override
-        public boolean copyTo(File target) {
-            throw new UnsupportedOperationException("Copy to not supported for filters");
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public String getPath() {
-            return getRelativePath().getPathString();
-        }
-
-        @Override
-        public RelativePath getRelativePath() {
-            String[] segments = new String[Iterables.size(relativePath) + 1];
-            int i = 0;
-            for (String segment : relativePath) {
-                segments[i] = segment;
-                i++;
-            }
-            segments[i] = name;
-            return new RelativePath(!isDirectory, segments);
-        }
-
-        @Override
-        public int getMode() {
-            return stat.getUnixMode(path.toFile());
-        }
-    }
-
     private class PathVisitor implements java.nio.file.FileVisitor<Path> {
         private final MerkleDirectorySnapshotBuilder builder;
-        private final Spec<FileTreeElement> spec;
+        private final PatternFilterStrategy.DirectoryWalkerPredicate predicate;
         private final MutableBoolean hasBeenFiltered;
 
-        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable Spec<FileTreeElement> spec, MutableBoolean hasBeenFiltered) {
+        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable PatternFilterStrategy.DirectoryWalkerPredicate predicate, MutableBoolean hasBeenFiltered) {
             this.builder = builder;
-            this.spec = spec;
+            this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;
         }
 
@@ -332,10 +231,10 @@ public class DirectorySnapshotter {
             } else if (defaultExcludes.excludeFile(name)) {
                 return false;
             }
-            if (spec == null) {
+            if (predicate == null) {
                 return true;
             }
-            boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, fileSystem));
+            boolean allowed = predicate.test(path, name, isDirectory, attrs, relativePath);
             if (!allowed) {
                 hasBeenFiltered.set(true);
             }

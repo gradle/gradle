@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
@@ -42,11 +43,11 @@ import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
     private final Map<File, DirectoryContents> includeRoots = new HashMap<File, DirectoryContents>();
     private final FixedIncludePath includePath;
 
-    public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemSnapshotter fileSystemSnapshotter) {
+    public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         List<DirectoryContents> includeDirs = new ArrayList<DirectoryContents>(includePaths.size());
         for (File includeDir : includePaths) {

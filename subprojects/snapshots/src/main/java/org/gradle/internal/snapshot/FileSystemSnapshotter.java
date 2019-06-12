@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -32,7 +31,7 @@ import java.io.File;
  * Note: use this interface only for those files that are not expected to be changing, for example task inputs.
  */
 @ThreadSafe
-public interface FileSystemSnapshotter {
+public interface FileSystemSnapshotter<PATTERN> {
 
     /**
      * Returns the hash of the content of the file if the file is a regular file and {@code null} otherwise.
@@ -59,7 +58,7 @@ public interface FileSystemSnapshotter {
      * If it turns out that a filtered tree has actually not been filtered (i.e. the condition always returned true),
      * then we cache the result as unfiltered tree.
      */
-    FileSystemSnapshot snapshotDirectoryTree(File root, PatternSet patterns);
+    FileSystemSnapshot snapshotDirectoryTree(File root, PATTERN patterns);
 
     /**
      * Create a {@link FileSystemSnapshotBuilder} for creating custom {@link FileSystemSnapshot}s.

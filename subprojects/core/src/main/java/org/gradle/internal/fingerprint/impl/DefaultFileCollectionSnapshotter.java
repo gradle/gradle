@@ -35,9 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
 
-    public DefaultFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter) {
+    public DefaultFileCollectionSnapshotter(FileSystemSnapshotter<PatternSet> fileSystemSnapshotter) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
     }
 

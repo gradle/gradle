@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.internal.Factory;
@@ -25,10 +26,10 @@ import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import java.io.File;
 
 public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapshotCache {
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
     private final MinimalPersistentCache<HashCode, ClasspathEntrySnapshotData> cache;
 
-    public DefaultClasspathEntrySnapshotCache(FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, ClasspathEntrySnapshotData> persistentCache) {
+    public DefaultClasspathEntrySnapshotCache(FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, PersistentIndexedCache<HashCode, ClasspathEntrySnapshotData> persistentCache) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         cache = new MinimalPersistentCache<HashCode, ClasspathEntrySnapshotData>(persistentCache);
     }

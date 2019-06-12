@@ -40,6 +40,7 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpe
 import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceToNameConverter;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -53,10 +54,10 @@ public class IncrementalCompilerFactory {
     private final GeneralCompileCaches generalCompileCaches;
     private final BuildOperationExecutor buildOperationExecutor;
     private final StringInterner interner;
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
     private final FileHasher fileHasher;
 
-    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches generalCompileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemSnapshotter fileSystemSnapshotter, FileHasher fileHasher) {
+    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches generalCompileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, FileHasher fileHasher) {
         this.fileOperations = fileOperations;
         this.streamHasher = streamHasher;
         this.generalCompileCaches = generalCompileCaches;

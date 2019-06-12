@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCom
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultUserHomeScopedCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.UserHomeScopedCompileCaches;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.initialization.JdkToolsInitializer;
@@ -52,13 +53,13 @@ public class CompileServices extends AbstractPluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        DefaultGeneralCompileCaches createGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, UserHomeScopedCompileCaches userHomeScopedCompileCaches, WellKnownFileLocations wellKnownFileLocations, FileSystemSnapshotter fileSystemSnapshotter, StringInterner interner) {
+        DefaultGeneralCompileCaches createGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, UserHomeScopedCompileCaches userHomeScopedCompileCaches, WellKnownFileLocations wellKnownFileLocations, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, StringInterner interner) {
             return new DefaultGeneralCompileCaches(fileSystemSnapshotter, userHomeScopedCompileCaches, cacheRepository, gradle, inMemoryCacheDecoratorFactory, wellKnownFileLocations, interner);
         }
     }
 
     private class UserHomeScopeServices {
-        DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner interner) {
+        DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, StringInterner interner) {
             return new DefaultUserHomeScopedCompileCaches(fileSystemSnapshotter, cacheRepository, inMemoryCacheDecoratorFactory, interner);
         }
     }
