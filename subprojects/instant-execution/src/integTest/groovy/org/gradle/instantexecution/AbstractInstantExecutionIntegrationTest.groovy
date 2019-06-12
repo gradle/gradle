@@ -26,6 +26,10 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         run(INSTANT_EXECUTION_PROPERTY, *args)
     }
 
+    void instantFails(String... args) {
+        fails(INSTANT_EXECUTION_PROPERTY, *args)
+    }
+
     static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution"
 
     protected InstantExecutionBuildOperationsFixture newInstantExecutionFixture() {

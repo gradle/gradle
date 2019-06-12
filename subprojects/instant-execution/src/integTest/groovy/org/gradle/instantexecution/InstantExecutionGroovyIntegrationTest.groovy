@@ -98,4 +98,43 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         and:
         assertTestsExecuted("ThingTest", "ok")
     }
+
+    def "compileGroovy without sources nor groovy dependency is executed but skipped"() {
+        given:
+        buildFile << """
+            plugins { id 'groovy' }
+        """
+
+        when:
+        instantRun "assemble"
+        instantRun "assemble"
+
+        then:
+        result.assertTaskExecuted(":compileGroovy")
+        result.assertTaskSkipped(":compileGroovy")
+    }
+
+    def "compileGroovy with sources but no groovy dependency is executed and fails with a reasonable error message"() {
+        given:
+        buildFile << """
+            plugins { id 'groovy' }
+        """
+        file("src/main/groovy/Thing.groovy") << """
+            class Thing {}
+        """
+
+        when:
+        instantFails "assemble"
+
+        then:
+        result.assertTaskExecuted(":compileGroovy")
+        failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
+
+        when:
+        instantFails "assemble"
+
+        then:
+        result.assertTaskExecuted(":compileGroovy")
+        failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
+    }
 }
