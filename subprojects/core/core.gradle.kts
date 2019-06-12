@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import java.util.concurrent.Callable
 
 plugins {
     `java-library`
@@ -42,8 +43,6 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":persistentCache"))
     implementation(project(":buildCache"))
-    implementation(library("commons_httpclient"))
-    implementation(project(":buildCacheHttp"))
     implementation(project(":buildCachePackaging"))
     implementation(project(":coreApi"))
     implementation(project(":files"))
