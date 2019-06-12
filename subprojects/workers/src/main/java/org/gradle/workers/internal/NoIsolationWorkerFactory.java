@@ -53,9 +53,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         DefaultWorkResult result;
                         try {
-                            // TODO This should use the isolation framework to isolate the parameters instead of wrapping/unwrapping the parameters
-                            ActionExecutionSpec effectiveSpec = ((SerializedParametersActionExecutionSpec)spec).deserialize(spec.getImplementationClass().getClassLoader());
-                            result = workerServer.execute(effectiveSpec);
+                            result = workerServer.execute(spec);
                         } finally {
                             //TODO the async work tracker should wait for children of an operation to finish first.
                             //It should not be necessary to call it here.

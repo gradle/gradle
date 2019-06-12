@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
+    implementation(project(":snapshots"))
 
     implementation(library("slf4j_api"))
     implementation(library("guava"))
