@@ -27,8 +27,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.snapshot.impl.FileSystemSnapshotBuilder;
 
 import java.io.File;
 import java.util.ArrayList;

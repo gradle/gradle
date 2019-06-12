@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot.impl
+package org.gradle.internal.snapshot
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.snapshot.RelativePathSegmentsTracker
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -123,7 +118,8 @@ class FileSystemSnapshotBuilderTest extends Specification {
         def result = builder.build()
 
         then:
-        result == snapshot
+        result instanceof RegularFileSnapshot
+        result.hash == hasher.hash(new File(basePath), snapshot)
     }
 
     def "can add nothing"() {
