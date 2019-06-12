@@ -15,7 +15,6 @@
  */
 package org.gradle.util
 
-
 import org.gradle.api.Task
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
@@ -31,7 +30,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.DefaultInstantiatorFactory
 import org.gradle.internal.instantiation.InjectAnnotationHandler
@@ -86,9 +84,12 @@ class TestUtil {
     private static ServiceRegistry services() {
         if (services == null) {
             services = new DefaultServiceRegistry()
-            services.add(ProviderFactory, new DefaultProviderFactory())
-            services.add(InstantiatorFactory, instantiatorFactory())
-            services.add(NamedObjectInstantiator, new NamedObjectInstantiator())
+            services.register {
+                it.add(DefaultProviderFactory)
+                it.add(InstantiatorFactory, instantiatorFactory())
+                it.add(TestCrossBuildInMemoryCacheFactory)
+                it.add(NamedObjectInstantiator)
+            }
         }
         return services
     }
