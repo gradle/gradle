@@ -40,7 +40,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.warmUpRuns = 5
         runner.runs = 10
 
-        if (parallelWorkers) {
+        if (parallelWorkers > 0) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }
 
