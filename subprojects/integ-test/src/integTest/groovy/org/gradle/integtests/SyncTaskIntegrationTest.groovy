@@ -394,84 +394,83 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
-    def "change in case of input files and folders will still syncs properly"() {
+    def "change in case of input file will still sync properly"() {
         given:
+        def lowercaseFile = file('file.txt').createFile()
+        def uppercaseFile = new File(lowercaseFile.parentFile, 'FILE.TXT') // make sure case is kept
         buildFile << '''
             task syncIt(type: Sync) {
-                from project.hasProperty("capitalizeFile") ? "FILE.TXT" : "file.txt"
-                from project.hasProperty("capitalizeDir") ? "DIR" : "dir"
+                from project.hasProperty("capitalize") ? "FILE.TXT" : "file.txt"
                 into buildDir
             }
         '''
-
-        def lowercaseFile = file('file.txt')
-        lowercaseFile.text = 'file'
-
-        file('dir').create {
-            file('file2.txt') << 'file2'
-            file('file3.txt') << 'file3'
-            file('file4.txt') << 'file4'
-            nestedDir {
-                file('nestedDirFile.txt') << 'nestedDirFile'
-            }
-        }
         and:
         run 'syncIt'
-        file('build').assertHasDescendants(
-            'file.txt',
-            'file2.txt',
-            'file3.txt',
-            'file4.txt',
-            'nestedDir/nestedDirFile.txt'
-        )
+        file('build/file.txt').assertExists()
 
         and:
-        def uppercaseFile = new File(lowercaseFile.parentFile, 'FILE.TXT') // make sure case is kept
         lowercaseFile.renameTo(uppercaseFile)
-        uppercaseFile.text = 'FILE'
         assert uppercaseFile.canonicalFile.name == 'FILE.TXT'
-        and:
-        file('dir/file3.txt').delete()
-
-        file('dir/file4.txt').delete()
-        file('dir/File4.txt') << 'File4'
 
         when:
-        succeeds('syncIt', '-PcapitalizeFile')
+        succeeds('syncIt', '-Pcapitalize')
         then:
         executedAndNotSkipped ':syncIt'
         file('build/FILE.TXT').with {
             assert it.parentFile.list() != [].toArray()
             assert it.assertExists()
-            assert it.text == 'FILE'
             assert it.canonicalFile.name == 'FILE.TXT'
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9586")
+    def "change in case of input folder will still sync properly"() {
+        given:
+        file('dir').create {
+            file('file2.txt').createFile()
+            file('file3.txt').createFile()
+            file('file4.txt').createFile()
+            nestedDir {
+                file('nestedDirFile.txt').createFile()
+            }
+        }
+        buildFile << '''
+            task syncIt(type: Sync) {
+                from project.hasProperty("capitalize") ? "DIR" : "dir"
+                into buildDir
+            }
+        '''
         and:
-        file('build/file2.txt').assertExists()
-        file('build/file3.txt').assertDoesNotExist()
-        file('build/File4.txt').with {
-            it.assertExists()
-            it.canonicalFile.name == 'File4.txt'
+        run 'syncIt'
+        file('build').assertHasDescendants(
+            'file2.txt',
+            'file3.txt',
+            'file4.txt',
+            'nestedDir/nestedDirFile.txt'
+        )
+        and:
+        file('dir').deleteDir()
+        file('DIR').create {
+            file('File4.txt')
+            NESTEDDIR {
+                file('NESTEDDIRFILE.TXT')
+            }
         }
 
         when:
-        file('dir').deleteDir()
-        file('DIR').create {
-            file('file4.txt') << 'file4'
-            NESTEDDIR {
-                file('NESTEDDIRFILE.TXT') << 'NESTEDDIRFILE'
-            }
-        }
-        and:
-        succeeds('sync', '-PcapitalizeDir')
+        succeeds('syncIt', '-Pcapitalize')
         then:
         executedAndNotSkipped ':syncIt'
-        file('build/file4.txt').canonicalFile.name == 'file4.txt'
+        file('build/file2.txt').assertDoesNotExist()
+        file('build/file3.txt').assertDoesNotExist()
+        file('build/File4.txt').with {
+            assert it.exists()
+            assert it.canonicalFile.name == 'File4.txt': it.parentFile.list()
+        }
         file('build/NESTEDDIR/NESTEDDIRFILE.TXT').with {
-            assert it.exists(): it.parentFile.list()
+            assert it.exists()
             assert it.parentFile.canonicalFile.name == 'NESTEDDIR'
             assert it.canonicalFile.name == 'NESTEDDIRFILE.TXT'
-            assert it.text == 'NESTEDDIRFILE'
         }
     }
 
