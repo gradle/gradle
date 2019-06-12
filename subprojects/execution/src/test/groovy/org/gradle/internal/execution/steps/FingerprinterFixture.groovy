@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.WellKnownFileLocations
@@ -35,24 +36,19 @@ abstract trait FingerprinterFixture {
     private stringInterner = new StringInterner()
     private fileSystem = TestFiles.fileSystem()
     private fileSystemMirror = new DefaultFileSystemMirror(new NoWellKnownFileLocations())
-
-    final inputFingerprinter = new AbsolutePathFileCollectionFingerprinter(
-        new DefaultFileSystemSnapshotter(
-            fileHasher,
-            stringInterner,
-            fileSystem,
-            fileSystemMirror
-        )
+    private fsSnapshotter = new DefaultFileSystemSnapshotter(
+        fileHasher,
+        stringInterner,
+        fileSystem,
+        fileSystemMirror
+    )
+    private snapshotter = new DefaultFileCollectionSnapshotter(
+        fsSnapshotter
     )
 
-    final OutputFileCollectionFingerprinter outputFingerprinter = new OutputFileCollectionFingerprinter(
-        new DefaultFileSystemSnapshotter(
-            fileHasher,
-            stringInterner,
-            fileSystem,
-            fileSystemMirror
-        )
-    )
+    final inputFingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
+
+    final OutputFileCollectionFingerprinter outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintsOf(Map<String, Object> properties) {
         def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()

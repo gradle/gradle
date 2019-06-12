@@ -17,17 +17,17 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.OutputNormalizer;
 
-public class AbsolutePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
+public class OutputFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public AbsolutePathFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-        super(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING, fileSystemSnapshotter);
+    public OutputFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        super(AbsolutePathFingerprintingStrategy.IGNORE_MISSING, fileCollectionSnapshotter);
     }
 
     @Override
     public Class<? extends FileNormalizer> getRegisteredType() {
-        return AbsolutePathInputNormalizer.class;
+        return OutputNormalizer.class;
     }
 }

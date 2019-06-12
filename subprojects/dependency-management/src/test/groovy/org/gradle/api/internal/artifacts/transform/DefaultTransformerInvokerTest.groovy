@@ -38,6 +38,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -61,13 +62,14 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     def fileSystemMirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([]))
     def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemMirror)
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemSnapshotter)
 
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
-    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileSystemSnapshotter)
-    def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(fileSystemSnapshotter)
+    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
+    def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(fileCollectionSnapshotter)
     def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter, outputFilesFingerprinter])
 
     def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {

@@ -16,11 +16,12 @@
 
 package org.gradle.internal.snapshot.impl
 
-import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshotBuilder
 import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -44,7 +45,12 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
+    FileSystemSnapshot snapshotDirectoryTree(File root, PatternSet patterns) {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    FileSystemSnapshotBuilder newFileSystemSnapshotBuilder() {
         throw new UnsupportedOperationException()
     }
 }

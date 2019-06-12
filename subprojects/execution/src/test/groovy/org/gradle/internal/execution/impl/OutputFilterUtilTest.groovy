@@ -20,6 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.WellKnownFileLocations
@@ -38,7 +39,8 @@ class OutputFilterUtilTest extends Specification {
 
     def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
+    def fsSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fsSnapshotter)
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
 
     def "pre-existing directories are filtered"() {

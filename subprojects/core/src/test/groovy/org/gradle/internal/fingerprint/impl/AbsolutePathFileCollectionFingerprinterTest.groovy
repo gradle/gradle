@@ -23,7 +23,6 @@ import org.gradle.internal.change.ChangeTypeInternal
 import org.gradle.internal.change.CollectingChangeVisitor
 import org.gradle.internal.change.DefaultFileChange
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
@@ -36,7 +35,9 @@ import spock.lang.Specification
 class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), fileSystemMirror))
+    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), fileSystemMirror)
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemSnapshotter)
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def listener = Mock(ChangeListener)
 
     @Rule

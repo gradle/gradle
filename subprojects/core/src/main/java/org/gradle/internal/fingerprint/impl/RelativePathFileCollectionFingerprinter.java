@@ -16,18 +16,19 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 
-public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
+public class RelativePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public NameOnlyFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-        super(NameOnlyFingerprintingStrategy.INSTANCE, fileSystemSnapshotter);
+    public RelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
+        super(new RelativePathFingerprintingStrategy(stringInterner), fileCollectionSnapshotter);
     }
 
     @Override
     public Class<? extends FileNormalizer> getRegisteredType() {
-        return NameOnlyInputNormalizer.class;
+        return RelativePathInputNormalizer.class;
     }
 }
