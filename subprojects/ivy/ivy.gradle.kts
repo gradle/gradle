@@ -44,6 +44,7 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":processServices"))
+    testImplementation(project(":snapshots"))
 
     integTestImplementation(project(":ear"))
     integTestImplementation(testLibrary("jetty"))

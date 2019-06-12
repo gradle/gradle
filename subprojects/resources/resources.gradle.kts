@@ -20,6 +20,7 @@ dependencies {
     testImplementation(project(":processServices"))
     testImplementation(project(":coreApi"))
     testImplementation(project(":files"))
+    testImplementation(project(":snapshots"))
 
     integTestImplementation(project(":internalIntegTesting"))
 }

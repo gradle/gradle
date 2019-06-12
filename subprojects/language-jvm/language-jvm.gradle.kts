@@ -26,6 +26,7 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
     testRuntimeOnly(project(":languageJava"))
 
     testFixturesImplementation(library("commons_lang"))

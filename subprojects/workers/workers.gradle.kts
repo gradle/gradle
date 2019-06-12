@@ -23,6 +23,7 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":files"))
     testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":internalIntegTesting"))
