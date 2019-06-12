@@ -16,9 +16,9 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import com.google.common.util.concurrent.Striped;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -36,6 +36,7 @@ import org.gradle.internal.snapshot.SnapshottingFilter;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
 /**
@@ -55,7 +56,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final StringInterner stringInterner;
     private final Stat stat;
     private final FileSystemMirror fileSystemMirror;
-    private final ProducerGuard<String> producingSnapshots = ProducerGuard.striped();
+    private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
     private final DirectorySnapshotter directorySnapshotter;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, String... defaultExcludes) {
@@ -211,4 +212,19 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             return string;
         }
     }
+
+    private static class StripedProducerGuard<T> {
+        private final Striped<Lock> locks = Striped.lock(Runtime.getRuntime().availableProcessors() * 4);
+
+        public <V> V guardByKey(T key, Supplier<V> supplier) {
+            Lock lock = locks.get(key);
+            try {
+                lock.lock();
+                return supplier.get();
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
 }
