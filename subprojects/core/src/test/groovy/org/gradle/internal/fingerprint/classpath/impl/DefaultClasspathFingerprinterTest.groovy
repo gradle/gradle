@@ -50,7 +50,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def fileHasher = new TestFileHasher()
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, stringInterner, fileSystem, fileSystemMirror)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileHasher, stringInterner, fileSystemSnapshotter)
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemSnapshotter)
     InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
     def fingerprinter = new DefaultClasspathFingerprinter(

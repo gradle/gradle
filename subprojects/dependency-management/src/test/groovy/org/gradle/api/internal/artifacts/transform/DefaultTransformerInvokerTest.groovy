@@ -62,7 +62,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     def fileSystemMirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([]))
     def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemMirror)
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(TestFiles.fileHasher(), new StringInterner(), fileSystemSnapshotter)
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemSnapshotter)
 
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 

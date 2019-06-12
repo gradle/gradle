@@ -19,16 +19,15 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotBuilder;
 
 import java.io.File;
@@ -36,13 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
-    private final FileHasher hasher;
-    private final StringInterner stringInterner;
     private final FileSystemSnapshotter fileSystemSnapshotter;
 
-    public DefaultFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        this.hasher = hasher;
-        this.stringInterner = stringInterner;
+    public DefaultFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
     }
 
@@ -80,7 +75,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     private FileSystemSnapshot snapshotFileTree(final FileTreeInternal tree) {
-        final FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner);
+        final FileSystemSnapshotBuilder builder = fileSystemSnapshotter.newFileSystemSnapshotBuilder();
         tree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
@@ -89,11 +84,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                builder.addFile(fileDetails.getFile(), fileDetails.getRelativePath().getSegments(), regularFileSnapshot(fileDetails));
-            }
-
-            private RegularFileSnapshot regularFileSnapshot(FileVisitDetails fileDetails) {
-                return new RegularFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), hasher.hash(fileDetails), fileDetails.getLastModified());
+                builder.addFile(fileDetails.getFile(), fileDetails.getRelativePath().getSegments(), fileDetails.getName(), new DefaultFileMetadata(FileType.RegularFile, fileDetails.getLastModified(), fileDetails.getSize()));
             }
         });
         return builder.build();

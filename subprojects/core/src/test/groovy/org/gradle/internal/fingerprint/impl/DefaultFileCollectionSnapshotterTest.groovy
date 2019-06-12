@@ -52,7 +52,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def fsSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileHasher, new StringInterner(), fsSnapshotter)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fsSnapshotter)
 
 
     def "snapshots a singletonFileTree as RegularFileSnapshot"() {

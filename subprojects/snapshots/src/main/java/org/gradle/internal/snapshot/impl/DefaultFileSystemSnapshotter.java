@@ -176,6 +176,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         });
     }
 
+    @Override
+    public FileSystemSnapshotBuilder newFileSystemSnapshotBuilder() {
+        return new FileSystemSnapshotBuilder(stringInterner, hasher);
+    }
+
     private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, PatternSet patterns) {
         if (snapshot.getType() == FileType.Missing) {
             return FileSystemSnapshot.EMPTY;

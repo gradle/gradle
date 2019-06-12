@@ -17,12 +17,14 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.internal.file.FileType
+import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -32,17 +34,22 @@ class FileSystemSnapshotBuilderTest extends Specification {
     def stringInterner = Stub(StringInterner) {
             intern(_) >> { String string -> string }
     }
+    def hasher = Stub(FileHasher) {
+        hash(_, _) >> {
+            HashCode.fromInt(1234)
+        }
+    }
 
     String basePath = new File("some/path").absolutePath
 
     def "can rebuild tree from relative paths"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
         def expectedRelativePaths = ['one', 'one/two', 'one/two/some.txt', 'three', 'three/four.txt']
 
         when:
-        builder.addFile(new File(basePath, "one/two/some.txt"), ["one", "two", "some.txt"] as String[], fileSnapshot('one/two', 'some.txt'))
+        builder.addFile(new File(basePath, "one/two/some.txt"), ["one", "two", "some.txt"] as String[], "some.txt", fileMetadata())
         builder.addDir(new File(basePath, "three"), ["three"] as String[])
-        builder.addFile(new File(basePath, "three/four.txt"), ["three", "four.txt"] as String[], fileSnapshot("three", "four.txt"))
+        builder.addFile(new File(basePath, "three/four.txt"), ["three", "four.txt"] as String[], "four.txt", fileMetadata())
         Set<String> files = [] as Set
         Set<String> relativePaths = [] as Set
         def result = builder.build()
@@ -84,9 +91,9 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
 
     def "cannot replace a file with a directory"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
         def relativePath = ["some", "file.txt"] as String[]
-        builder.addFile(new File(basePath, "some/file.txt"), relativePath, fileSnapshot("some/file.txt", "file.txt"))
+        builder.addFile(new File(basePath, "some/file.txt"), relativePath, "file.txt", fileMetadata())
 
         when:
         builder.addDir(new File(basePath, "some/file.txt"), relativePath)
@@ -96,23 +103,23 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
 
     def "cannot replace a directory with a file"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
         def relativePath = ["some", "file.txt"] as String[]
         builder.addDir(new File(basePath, "some/file.txt"), relativePath)
 
         when:
-        builder.addFile(new File(basePath, "some/file.txt"), relativePath, fileSnapshot("some", "file.txt"))
+        builder.addFile(new File(basePath, "some/file.txt"), relativePath, "file.txt", fileMetadata())
 
         then:
         thrown IllegalStateException
     }
 
     def "can add root file"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner)
-        def snapshot = fileSnapshot("", "path")
+        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def snapshot = fileMetadata()
 
         when:
-        builder.addFile(new File(basePath), [] as String[], snapshot)
+        builder.addFile(new File(basePath), [] as String[], "path", snapshot)
         def result = builder.build()
 
         then:
@@ -120,13 +127,13 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
 
     def "can add nothing"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
 
         expect:
         builder.build() == FileSystemSnapshot.EMPTY
     }
 
-    private RegularFileSnapshot fileSnapshot(String relativePath, String name) {
-        new RegularFileSnapshot("${basePath}/${relativePath.empty ? "" : (relativePath + '/')}${name}", name, HashCode.fromInt(1234), 1234)
+    private static DefaultFileMetadata fileMetadata() {
+        new DefaultFileMetadata(FileType.RegularFile, 0, 5)
     }
 }

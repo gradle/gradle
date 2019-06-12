@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.impl.FileSystemSnapshotBuilder;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -60,4 +61,11 @@ public interface FileSystemSnapshotter {
      * then we cache the result as unfiltered tree.
      */
     FileSystemSnapshot snapshotDirectoryTree(File root, PatternSet patterns);
+
+    /**
+     * Create a {@link FileSystemSnapshotBuilder} for creating custom {@link FileSystemSnapshot}s.
+     *
+     * The builder uses the same hashing infrastructure as the snapshotter.
+     */
+    FileSystemSnapshotBuilder newFileSystemSnapshotBuilder();
 }

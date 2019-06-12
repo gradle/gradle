@@ -36,7 +36,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), fileSystemMirror)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(TestFiles.fileHasher(), stringInterner, fileSystemSnapshotter)
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemSnapshotter)
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def listener = Mock(ChangeListener)
 

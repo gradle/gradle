@@ -179,8 +179,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
-    FileCollectionSnapshotter createFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new DefaultFileCollectionSnapshotter(hasher, stringInterner, fileSystemSnapshotter);
+    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter) {
+        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter);
     }
 
     AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {

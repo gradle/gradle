@@ -47,4 +47,9 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     FileSystemSnapshot snapshotDirectoryTree(File root, PatternSet patterns) {
         throw new UnsupportedOperationException()
     }
+
+    @Override
+    FileSystemSnapshotBuilder newFileSystemSnapshotBuilder() {
+        throw new UnsupportedOperationException()
+    }
 }

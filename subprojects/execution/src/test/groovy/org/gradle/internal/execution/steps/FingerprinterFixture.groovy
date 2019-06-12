@@ -43,8 +43,6 @@ abstract trait FingerprinterFixture {
         fileSystemMirror
     )
     private snapshotter = new DefaultFileCollectionSnapshotter(
-        fileHasher,
-        stringInterner,
         fsSnapshotter
     )
 

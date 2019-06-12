@@ -40,7 +40,7 @@ class OutputFilterUtilTest extends Specification {
     def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def fsSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileHasher, new StringInterner(), fsSnapshotter)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fsSnapshotter)
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
 
     def "pre-existing directories are filtered"() {
