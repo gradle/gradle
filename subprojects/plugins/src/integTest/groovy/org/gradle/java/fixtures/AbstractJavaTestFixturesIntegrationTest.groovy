@@ -182,6 +182,35 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         )
     }
 
+    def "changing coordinates of subproject doesn't break consumption of fixtures"() {
+        settingsFile << """
+            include 'sub'
+        """
+        file("sub/build.gradle") << """
+            apply plugin: 'java-test-fixtures'
+            
+            group = 'other' // this is applied _after_ the dependency is created
+        """
+        buildFile << """
+            dependencies {
+                testImplementation(testFixtures(project(":sub")))
+            }           
+        """
+        addPersonDomainClass("sub")
+        addPersonTestFixture("sub")
+        // the test will live in the current project, instead of "sub"
+        // which demonstrates that the test fixtures are exposed
+        addPersonTestUsingTestFixtures()
+
+        when:
+        succeeds ':compileTestJava'
+
+        then:
+        executedAndNotSkipped(
+            ":sub:compileTestFixturesJava"
+        )
+    }
+
     def "can publish test fixtures"() {
         FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
@@ -240,6 +269,40 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
             noMoreDependencies()
         }
     }
+
+    def "can consume test fixtures of subproject written in Groovy"() {
+        settingsFile << """
+            include 'sub'
+        """
+        file("sub/build.gradle") << """
+            apply plugin: 'java-test-fixtures'
+            apply plugin: 'groovy'
+            
+            dependencies {
+               api(localGroovy())
+               testFixturesApi(localGroovy())
+            }
+        """
+        buildFile << """
+            dependencies {
+                testImplementation(testFixtures(project(":sub")))
+            }           
+        """
+        addPersonDomainClass("sub", "groovy")
+        addPersonTestFixture("sub", "groovy")
+        // the test will live in the current project, instead of "sub"
+        // which demonstrates that the test fixtures are exposed
+        addPersonTestUsingTestFixtures()
+
+        when:
+        succeeds ':compileTestJava'
+
+        then:
+        executedAndNotSkipped(
+            ":sub:compileTestFixturesGroovy"
+        )
+    }
+
 
     def "can consume test fixtures of an external module"() {
         mavenRepo.module("com.acme", "external-module", "1.3")
@@ -341,8 +404,8 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         """
     }
 
-    private TestFile addPersonDomainClass(String subproject = "") {
-        file("${subproject ? "${subproject}/" : ""}src/main/java/org/Person.java") << """
+    private TestFile addPersonDomainClass(String subproject = "", String lang = 'java') {
+        file("${subproject ? "${subproject}/" : ""}src/main/$lang/org/Person.$lang") << """
             package org;
             
             public class Person {
@@ -365,8 +428,8 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         """
     }
 
-    private TestFile addPersonTestFixture(String subproject = "") {
-        file("${subproject ? "${subproject}/" : ""}src/testFixtures/java/org/PersonFixture.java") << """
+    private TestFile addPersonTestFixture(String subproject = "", String lang="java") {
+        file("${subproject ? "${subproject}/" : ""}src/testFixtures/$lang/org/PersonFixture.$lang") << """
             package org;
             
             public class PersonFixture {
