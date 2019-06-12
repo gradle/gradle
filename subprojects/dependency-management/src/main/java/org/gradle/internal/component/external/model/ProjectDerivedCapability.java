@@ -47,7 +47,7 @@ public class ProjectDerivedCapability implements Capability {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getGroup(), getName(), getVersion());
+        return 31 * project.hashCode() + featureName.hashCode();
     }
 
     @Override
