@@ -103,24 +103,24 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
 """
     }
 
-    private static String getBuildFileBase() {
+    private static getBuildFileBase() {
         """
-    ext {
-        incrementalExecution = true
-        added = []
-        modified = []
-        removed = []
-    }
-
-    task incrementalCheck(dependsOn: "incremental") {
-        doLast {
-            assert incremental.incrementalExecution == project.ext.incrementalExecution
-            assert incremental.addedFiles.collect({ it.name }).sort() == project.ext.added
-            assert incremental.modifiedFiles.collect({ it.name }).sort() == project.ext.modified
-            assert incremental.removedFiles.collect({ it.name }).sort() == project.ext.removed
+        @groovy.transform.ToString(includeNames = true) @groovy.transform.EqualsAndHashCode
+        class Changes { Boolean incrementalExecution; List<String> added, modified, removed }
+        def changes = new Changes(incrementalExecution: true, added: [], modified: [], removed: [])
+    
+        task incrementalCheck(dependsOn: "incremental") {
+            doLast {
+                def actual = new Changes(
+                    incrementalExecution: incremental.incrementalExecution,
+                    added: incremental.addedFiles*.name.sort(),
+                    modified: incremental.modifiedFiles*.name.sort(),
+                    removed: incremental.removedFiles*.name.sort()
+                )
+                assert actual == changes
+            }
         }
-    }
-"""
+        """
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when run for the first time"() {
@@ -137,6 +137,20 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
 
         then:
         skipped(":incremental")
+    }
+
+    def "todo"() {
+        given:
+        previousExecution()
+
+        when:
+        def file1 = file('inputs/file1.txt')
+        def renamedFile1 = new File(file1.parentFile, "File1.txt")
+        file1.renameTo(renamedFile1)
+
+        then:
+        executesIncrementally(modified: ['File1.txt'])
+        file1.canonicalFile.name == renamedFile1.name
     }
 
     def "incremental task is informed of 'out-of-date' files when input file modified"() {
@@ -385,10 +399,10 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         List<String> removed = options.removed ?: []
 
         buildFile << """
-            ext.added = ${added.collect { "'${it}'"}}
-            ext.modified = ${modified.collect { "'${it}'"}}
-            ext.removed = ${removed.collect { "'${it}'"}}
-            ext.incrementalExecution = ${incremental}
+            changes.added = ${added.collect { "'${it}'" }}
+            changes.modified = ${modified.collect { "'${it}'" }}
+            changes.removed = ${removed.collect { "'${it}'" }}
+            changes.incrementalExecution = ${incremental}
         """
         succeeds("incrementalCheck")
     }

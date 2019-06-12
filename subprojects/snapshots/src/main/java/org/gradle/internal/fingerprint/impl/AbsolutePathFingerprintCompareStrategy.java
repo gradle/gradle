@@ -16,6 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -23,7 +24,9 @@ import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
+import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,18 +41,22 @@ public class AbsolutePathFingerprintCompareStrategy extends AbstractFingerprintC
     private AbsolutePathFingerprintCompareStrategy() {
     }
 
-    @Override
     protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
-        Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<String>(previous.keySet());
+        HashMap<String, FileSystemLocationFingerprint> canonicalizedPrevious = new HashMap<String, FileSystemLocationFingerprint>(previous.size());
+        for (Map.Entry<String, FileSystemLocationFingerprint> entry : previous.entrySet()) {
+            canonicalizedPrevious.put(canonicalizedPath(entry.getKey()), entry.getValue());
+        }
+
+        Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<String>(canonicalizedPrevious.keySet());
 
         for (Map.Entry<String, FileSystemLocationFingerprint> currentEntry : current.entrySet()) {
             String currentAbsolutePath = currentEntry.getKey();
             FileSystemLocationFingerprint currentFingerprint = currentEntry.getValue();
-            HashCode currentContentHash = currentFingerprint.getNormalizedContentHash();
             if (unaccountedForPreviousFingerprints.remove(currentAbsolutePath)) {
-                FileSystemLocationFingerprint previousFingerprint = previous.get(currentAbsolutePath);
+                FileSystemLocationFingerprint previousFingerprint = canonicalizedPrevious.get(currentAbsolutePath);
+                HashCode currentContentHash = currentFingerprint.getNormalizedContentHash();
                 HashCode previousContentHash = previousFingerprint.getNormalizedContentHash();
-                if (!currentContentHash.equals(previousContentHash)) {
+                if (!currentContentHash.equals(previousContentHash) || !previous.containsKey(currentAbsolutePath)) {
                     DefaultFileChange modified = DefaultFileChange.modified(currentAbsolutePath, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType(), currentAbsolutePath);
                     if (!visitor.visitChange(modified)) {
                         return false;
@@ -71,6 +78,10 @@ public class AbsolutePathFingerprintCompareStrategy extends AbstractFingerprintC
             }
         }
         return true;
+    }
+
+    private String canonicalizedPath(String currentAbsolutePath) {
+        return FileUtils.canonicalize(new File(currentAbsolutePath)).getAbsolutePath();
     }
 
     @Override
