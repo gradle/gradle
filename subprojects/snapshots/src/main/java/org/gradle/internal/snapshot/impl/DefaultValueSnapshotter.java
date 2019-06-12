@@ -166,7 +166,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
             objectStr.writeObject(value);
             objectStr.flush();
         } catch (IOException e) {
-            throw new ValueSnapshottingException(String.format("Could not serialize value '%s'", value), e);
+            throw new ValueSnapshottingException(String.format("Could not serialize value of type '%s'", value.getClass().getName()), e);
         }
 
         return visitor.serialized(value, outputStream.toByteArray());
