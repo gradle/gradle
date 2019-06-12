@@ -39,8 +39,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
 
     def setup() {
-        httpBuildCacheServer.start()
-        settingsFile << useHttpBuildCache(httpBuildCacheServer.uri)
+        settingsFile << withHttpBuildCacheServer()
 
         buildFile << """
             apply plugin: "java"
