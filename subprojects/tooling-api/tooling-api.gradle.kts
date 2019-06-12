@@ -29,7 +29,7 @@ plugins {
 
 val testPublishRuntime by configurations.creating
 
-val buildReceipt: Provider<RegularFile> = rootProject.tasks.withType<BuildReceipt>().named("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
+val buildReceipt: Provider<RegularFile> = rootProject.tasks.named<BuildReceipt>("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
 
 shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
