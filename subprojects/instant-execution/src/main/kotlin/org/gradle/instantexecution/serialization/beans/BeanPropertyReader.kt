@@ -27,6 +27,7 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
@@ -157,7 +158,7 @@ fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> U
             break
         }
 
-        withPropertyTrace(PropertyTrace.Property(kind, name, trace)) {
+        withPropertyTrace(kind, name) {
             val value =
                 try {
                     read().also {
@@ -170,3 +171,10 @@ fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> U
         }
     }
 }
+
+
+internal
+inline fun <T : IsolateContext, R> T.withPropertyTrace(kind: PropertyKind, name: String, action: () -> R): R =
+    withPropertyTrace(PropertyTrace.Property(kind, name, trace)) {
+        action()
+    }

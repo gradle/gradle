@@ -25,11 +25,9 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.PropertyKind
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logProperty
 import org.gradle.instantexecution.serialization.logPropertyWarning
-import org.gradle.instantexecution.serialization.withPropertyTrace
 import java.util.concurrent.Callable
 import java.util.function.Supplier
 
@@ -78,7 +76,7 @@ class BeanPropertyWriter(
  * a suitable [Codec] for its [value].
  */
 fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
-    withPropertyTrace(PropertyTrace.Property(kind, name, trace)) {
+    withPropertyTrace(kind, name) {
         val writeValue = writeActionFor(value)
         if (writeValue == null) {
             logPropertyWarning("serialize", "there's no serializer for type '${GeneratedSubclasses.unpackType(value!!).name}'")

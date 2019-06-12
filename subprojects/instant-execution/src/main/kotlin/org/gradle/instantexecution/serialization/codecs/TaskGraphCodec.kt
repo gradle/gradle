@@ -27,6 +27,8 @@ import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.instantexecution.ClassicModeBuild
+import org.gradle.instantexecution.serialization.IsolateContext
+import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
 import org.gradle.instantexecution.serialization.beans.writingProperties
 import org.gradle.instantexecution.serialization.MutableReadContext
@@ -92,12 +94,10 @@ class TaskGraphCodec {
         writeString(task.name)
         writeStrings(dependencies.map { it.path })
 
-        withIsolate(task) {
-            withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
-                beanPropertyWriterFor(taskType).run {
-                    writeFieldsOf(task)
-                    writeRegisteredPropertiesOf(task, this)
-                }
+        withTaskOf(taskType, task) {
+            beanPropertyWriterFor(taskType).run {
+                writeFieldsOf(task)
+                writeRegisteredPropertiesOf(task, this)
             }
         }
     }
@@ -111,16 +111,28 @@ class TaskGraphCodec {
 
         val task = createTask(projectPath, taskName, taskType)
 
-        withIsolate(task) {
-            withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
-                beanPropertyReaderFor(taskType).run {
-                    readFieldsOf(task)
-                    readRegisteredPropertiesOf(task)
-                }
+        withTaskOf(taskType, task) {
+            beanPropertyReaderFor(taskType).run {
+                readFieldsOf(task)
+                readRegisteredPropertiesOf(task)
             }
         }
 
         return task to taskDependencies
+    }
+}
+
+
+private
+inline fun <T> T.withTaskOf(
+    taskType: Class<*>,
+    task: Task,
+    action: () -> Unit
+) where T : IsolateContext, T : MutableIsolateContext {
+    withIsolate(task) {
+        withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
+            action()
+        }
     }
 }
 

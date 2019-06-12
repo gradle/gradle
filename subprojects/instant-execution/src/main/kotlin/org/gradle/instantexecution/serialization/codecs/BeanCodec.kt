@@ -18,6 +18,7 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -37,7 +38,7 @@ class BeanCodec : Codec<Any> {
             writeSmallInt(isolate.identities.putInstance(value))
             val beanType = GeneratedSubclasses.unpackType(value)
             writeClass(beanType)
-            withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
+            withBeanTrace(beanType) {
                 beanPropertyWriterFor(beanType).run {
                     writeFieldsOf(value)
                 }
@@ -52,8 +53,8 @@ class BeanCodec : Codec<Any> {
             return previousValue
         }
         val beanType = readClass()
-        withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
-            return beanPropertyReaderFor(beanType).run {
+        return withBeanTrace(beanType) {
+            beanPropertyReaderFor(beanType).run {
                 val bean = newBean()
                 isolate.identities.putInstance(id, bean)
                 readFieldsOf(bean)
@@ -61,4 +62,10 @@ class BeanCodec : Codec<Any> {
             }
         }
     }
+
+    private
+    inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
+        withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
+            action()
+        }
 }
