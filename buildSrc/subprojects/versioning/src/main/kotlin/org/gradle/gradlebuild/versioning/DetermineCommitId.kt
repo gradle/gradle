@@ -69,14 +69,18 @@ open class DetermineCommitId @Inject constructor(
         // Builds of Gradle happening on the CI server
         { System.getenv("BUILD_VCS_NUMBER") },
         // For the discovery builds, this points to the Gradle revision
-        { System.getenv().filterKeys { it.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }.values.firstOrNull() },
+        { firstSystemEnvStartsWithOrNull("BUILD_VCS_NUMBER_Gradle_Master") },
         // For the discovery release builds, this points to the Gradle revision
-        { System.getenv().filterKeys { it.startsWith("BUILD_VCS_NUMBER_Gradle_release_branch") }.values.firstOrNull() },
+        { firstSystemEnvStartsWithOrNull("BUILD_VCS_NUMBER_Gradle_release_branch") },
         // If it's a checkout, ask Git for it
         { gitCommitId() },
         // It's a source distribution, we don't know.
         { "<unknown>" }
     )
+
+    private
+    fun firstSystemEnvStartsWithOrNull(prefix: String) =
+        System.getenv().asSequence().firstOrNull { it.key.startsWith(prefix) }?.value
 
     private
     fun gitCommitId(): String? {
