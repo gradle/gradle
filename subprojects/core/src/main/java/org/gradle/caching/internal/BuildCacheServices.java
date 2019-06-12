@@ -20,6 +20,9 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
+import org.gradle.caching.http.HttpBuildCache;
+import org.gradle.caching.http.internal.DefaultHttpBuildCacheServiceFactory;
+import org.gradle.caching.http.internal.HttpBuildCacheRequestCustomizer;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
@@ -29,6 +32,7 @@ import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.List;
@@ -69,6 +73,14 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
 
             BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
                 return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
+            }
+
+            BuildCacheServiceRegistration createHttpBuildCacheServiceRegistration() {
+                return new DefaultBuildCacheServiceRegistration(HttpBuildCache.class, DefaultHttpBuildCacheServiceFactory.class);
+            }
+
+            HttpBuildCacheRequestCustomizer createHttpBuildCacheRequestCustomizer() {
+                return request -> request.addHeader("X-Gradle-Version", GradleVersion.current().getVersion());
             }
 
         });
