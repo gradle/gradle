@@ -29,6 +29,8 @@ dependencies {
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
     implementation(project(":baseServicesGroovy"))
+    implementation(project(":messaging"))
+    implementation(project(":snapshots"))
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     implementation(library("inject"))

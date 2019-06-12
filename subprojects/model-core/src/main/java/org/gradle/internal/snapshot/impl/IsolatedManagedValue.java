@@ -16,9 +16,9 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.state.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
 
