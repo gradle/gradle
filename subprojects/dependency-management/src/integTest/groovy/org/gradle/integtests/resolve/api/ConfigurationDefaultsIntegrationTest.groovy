@@ -308,4 +308,24 @@ task check {
         expect:
         succeeds ":check"
     }
+
+    def "copied configuration have unique names"() {
+        buildFile << """
+            configurations {
+              conf
+            }
+
+            task check {
+                doLast {
+                    assert configurations.conf.copyRecursive().name == 'confCopy'
+                    assert configurations.conf.copyRecursive().name == 'confCopy2'
+                    assert configurations.conf.copyRecursive().name == 'confCopy3'
+                    assert configurations.conf.copy().name == 'confCopy4'
+                    assert configurations.conf.copy().name == 'confCopy5'
+                }
+            }
+            """
+        expect:
+        succeeds ":check"
+    }
 }
