@@ -42,11 +42,6 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
     }
 
     @Override
-    public boolean isImmutable() {
-        return delegate.isImmutable();
-    }
-
-    @Override
     public Set<Attribute<?>> keySet() {
         return delegate.keySet();
     }

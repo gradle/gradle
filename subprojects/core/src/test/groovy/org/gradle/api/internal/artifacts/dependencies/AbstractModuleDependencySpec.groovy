@@ -219,7 +219,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.attributes == dependency.attributes
         assert copiedDependency.requestedCapabilities == dependency.requestedCapabilities
 
-        assert copiedDependency.attributes.immutable || !copiedDependency.attributes.is(dependency.attributes)
+        assert copiedDependency.attributes.is(ImmutableAttributes.EMPTY) || !copiedDependency.attributes.is(dependency.attributes)
         assert !copiedDependency.artifacts.is(dependency.artifacts)
         assert !copiedDependency.excludeRules.is(dependency.excludeRules)
     }

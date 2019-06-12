@@ -135,7 +135,10 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         target.setArtifacts(new HashSet<DependencyArtifact>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
-        target.setAttributes(getAttributes());
+        if (attributes != null) {
+            // We can only have attributes if we have the factory, then need to copy
+            target.setAttributes(attributesFactory.mutable(attributes.asImmutable()));
+        }
         target.setAttributesFactory(attributesFactory);
         target.setCapabilityNotationParser(capabilityNotationParser);
         if (moduleDependencyCapabilities != null) {
@@ -184,7 +187,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     @Override
-    public AttributeContainerInternal getAttributes() {
+    public AttributeContainer getAttributes() {
         return attributes == null ? ImmutableAttributes.EMPTY : attributes.asImmutable();
     }
 
@@ -197,10 +200,6 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         }
         if (attributes == null) {
             attributes = attributesFactory.mutable();
-        } else if (attributes.isImmutable()) {
-            // We might have been given an immutable attributes via {@link #copyTo}, in which case
-            // we need to copy-on-write and make it mutable.
-            attributes = attributesFactory.mutable(attributes);
         }
         configureAction.execute(attributes);
         return this;

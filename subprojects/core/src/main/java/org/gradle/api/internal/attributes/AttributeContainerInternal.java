@@ -27,9 +27,4 @@ public interface AttributeContainerInternal extends AttributeContainer {
      * @return an immutable view of this container.
      */
     ImmutableAttributes asImmutable();
-
-    /**
-     * Returns whether this attribute container is already immutable.
-     */
-    boolean isImmutable();
 }
