@@ -41,7 +41,7 @@ open class DetermineCommitId @Inject constructor(
         .convention(layout.buildDirectory.file("determined-commit-id.txt"))
 
     @get:Internal
-    val commitId: Provider<String>
+    val determinedCommitId: Provider<String>
         get() = commitIdFile.map { it.asFile.readText() }
 
     init {

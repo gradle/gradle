@@ -48,7 +48,7 @@ tasks.register("createBuildReceipt", BuildReceipt) {
     baseVersion.set(provider { rootProject.baseVersion })
     snapshot.set(provider { rootProject.isSnapshot })
     buildTimestampFrom(provider { rootProject.buildTimestamp })
-    commitId.set(determineCommitId.flatMap { it.commitId })
+    commitId.set(determineCommitId.flatMap { it.determinedCommitId })
     destinationDir = file("${rootProject.buildDir}")
 }
 

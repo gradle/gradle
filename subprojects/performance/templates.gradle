@@ -19,7 +19,7 @@ import org.gradle.testing.performance.generator.tasks.*
 // === Gradle Build ===
 tasks.register("gradleBuildCurrent", RemoteProject) {
     remoteUri = rootDir.absolutePath
-    ref = rootProject.tasks.named("determineCommitId").flatMap { it.commitId }
+    ref = rootProject.tasks.named("determineCommitId").flatMap { it.determinedCommitId }
 }
 
 tasks.register("gradleBuildBaseline", RemoteProject) {
