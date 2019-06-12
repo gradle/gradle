@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+
 import spock.lang.Timeout
 import spock.lang.Unroll
 
@@ -74,7 +75,78 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         result.assertHasErrorOutput("jul error")
 
         and:
-        result.assertNotOutput("debug")
+        result.assertNotOutput("debug message")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+    @Unroll
+    def "stdout, stderr and logging output of worker is redirected in #isolationMode when Gradle logging is --info"() {
+        buildFile << """
+            ${runnableWithLogging}
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+            }
+        """.stripIndent()
+
+        when:
+        succeeds("runInWorker", "--info")
+
+        then:
+        output.contains("stdout message")
+        output.contains("warn message")
+        output.contains("slf4j warn")
+        output.contains("jul warn")
+
+        output.contains("info message")
+        output.contains("slf4j info")
+        output.contains("jul info")
+
+        and:
+        result.assertHasErrorOutput("stderr message")
+        result.assertHasErrorOutput("error message")
+        result.assertHasErrorOutput("slf4j error")
+        result.assertHasErrorOutput("jul error")
+
+        and:
+        result.assertNotOutput("debug message")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+    @Unroll
+    def "stdout, stderr and logging output of worker is redirected in #isolationMode when Gradle logging is --debug"() {
+        buildFile << """
+            ${runnableWithLogging}
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+            }
+        """.stripIndent()
+
+        when:
+        succeeds("runInWorker", "--debug")
+
+        then:
+        output.contains("stdout message")
+        output.contains("warn message")
+        output.contains("slf4j warn")
+        output.contains("jul warn")
+
+        output.contains("info message")
+        output.contains("slf4j info")
+        output.contains("jul info")
+
+        output.contains("debug message")
+        output.contains("slf4j debug")
+        output.contains("jul debug")
+
+        and:
+        result.assertHasErrorOutput("stderr message")
+        result.assertHasErrorOutput("error message")
+        result.assertHasErrorOutput("slf4j error")
+        result.assertHasErrorOutput("jul error")
 
         where:
         isolationMode << ISOLATION_MODES
@@ -97,14 +169,20 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
 
                 public void run() {
                     Logging.getLogger(getClass()).warn("warn message");
+                    Logging.getLogger(getClass()).info("info message");
                     Logging.getLogger(getClass()).debug("debug message");
                     Logging.getLogger(getClass()).error("error message");
+                    
                     LoggerFactory.getLogger(getClass()).warn("slf4j warn");
-                    LoggerFactory.getLogger(getClass()).debug("slf4j debug");
+                    LoggerFactory.getLogger(getClass()).info("slf4j info");
+                    LoggerFactory.getLogger(getClass()).debug("slf4j debug message");
                     LoggerFactory.getLogger(getClass()).error("slf4j error");
+                    
                     java.util.logging.Logger.getLogger("worker").warning("jul warn");
-                    java.util.logging.Logger.getLogger("worker").fine("jul debug");
+                    java.util.logging.Logger.getLogger("worker").warning("jul info");
+                    java.util.logging.Logger.getLogger("worker").fine("jul debug message");
                     java.util.logging.Logger.getLogger("worker").severe("jul error");
+                    
                     System.out.println("stdout message");
                     System.err.println("stderr message");
                 }
