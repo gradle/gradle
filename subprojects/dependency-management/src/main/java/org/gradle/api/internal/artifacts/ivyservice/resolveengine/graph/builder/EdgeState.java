@@ -216,6 +216,11 @@ class EdgeState implements DependencyGraphEdge {
                     for (EdgeState otherEdge : unattachedDependencies) {
                         if (otherEdge != this && !otherEdge.isConstraint()) {
                             otherEdge.attachToTargetConfigurations();
+                            if (otherEdge.targetNodeSelectionFailure != null) {
+                                // Copy selection failure
+                                this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
+                                return;
+                            }
                             break;
                         }
                     }
