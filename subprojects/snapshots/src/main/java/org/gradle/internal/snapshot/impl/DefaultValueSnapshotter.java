@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.Isolatable;
@@ -59,10 +58,11 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         return candidate.snapshot(value, this);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Isolatable<T> isolate(@Nullable T value) {
         try {
-            return Cast.uncheckedCast(processValue(value, isolatableValueVisitor));
+            return (Isolatable<T>) processValue(value, isolatableValueVisitor);
         } catch (Throwable t) {
             throw new IsolationException(value, t);
         }
