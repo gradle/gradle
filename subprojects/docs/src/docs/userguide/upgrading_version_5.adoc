@@ -58,6 +58,10 @@ The repository and publication names are used to construct task names when publi
 
 Contributed by link:https://github.com/wreulicke[wreulicke]
 
+==== Configuration copies have unique names
+
+Previously, all copies of a configuration always had the name `<OriginConfigurationName>Copy`. Now when creating multiple copies will have a unique name by adding an index starting from the second copy. (e.g. `CompileOnlyCopy2`)
+
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
 
