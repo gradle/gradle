@@ -26,7 +26,7 @@ import java.lang.reflect.Type
 
 
 class DefaultInstantiationSchemeTest extends Specification {
-    def scheme = new DefaultInstantiationScheme(new Jsr330ConstructorSelector(new IdentityClassGenerator(), new TestCrossBuildInMemoryCacheFactory.TestCache<Class<?>, Jsr330ConstructorSelector.CachedConstructor>()), new DefaultServiceRegistry(), [] as Set)
+    def scheme = new DefaultInstantiationScheme(new Jsr330ConstructorSelector(new IdentityClassGenerator(), new TestCrossBuildInMemoryCacheFactory.TestCache<Class<?>, Jsr330ConstructorSelector.CachedConstructor>()), new DefaultServiceRegistry(), [] as Set, new TestCrossBuildInMemoryCacheFactory())
 
     def "can specify a set of services to inject"() {
         def services = Mock(ServiceLookup)
