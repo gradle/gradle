@@ -51,6 +51,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
+import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import kotlin.reflect.KClass
 
@@ -116,6 +117,7 @@ class Codecs(
         bind(ownerProjectService<FileOperations>())
         bind(ownerProjectService<BuildOperationExecutor>())
         bind(ownerProjectService<ToolingModelBuilderRegistry>())
+        bind(ownerProjectService<ExecActionFactory>())
 
         bind(BeanCodec())
     }
