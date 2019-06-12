@@ -27,7 +27,6 @@ import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
-import spock.lang.Ignore
 
 abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwiftComponentIntegrationTest implements SwiftTaskNames {
 
