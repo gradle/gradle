@@ -23,12 +23,12 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.state.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.isolation.IsolationException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;

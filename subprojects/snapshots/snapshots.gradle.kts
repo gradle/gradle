@@ -28,7 +28,6 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":coreApi"))
     implementation(project(":persistentCache"))
-    implementation(project(":modelCore"))
     
     implementation(library("guava"))
     implementation(library("jsr305"))

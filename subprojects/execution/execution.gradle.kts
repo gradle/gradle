@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":coreApi"))
     implementation(project(":snapshots"))
+    implementation(project(":modelCore"))
     implementation(project(":persistentCache"))
     implementation(project(":buildCache"))
     implementation(project(":buildCachePackaging"))
