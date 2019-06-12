@@ -70,7 +70,6 @@ class PathNormalizationStrategyTest extends Specification {
         ]
     }
 
-
     def "sensitivity NONE"() {
         def fingerprints = collectFingerprints(IgnoredPathFingerprintingStrategy.INSTANCE)
         expect:
@@ -146,6 +145,5 @@ class PathNormalizationStrategyTest extends Specification {
             fingerprints.put(new File(path), normalizedPath)
         }
         return fingerprints
-
     }
 }

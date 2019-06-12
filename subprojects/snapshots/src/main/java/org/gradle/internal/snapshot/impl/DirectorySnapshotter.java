@@ -18,8 +18,6 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
@@ -46,6 +44,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class DirectorySnapshotter {
     private final FileHasher hasher;
@@ -92,15 +91,15 @@ public class DirectorySnapshotter {
                     if (firstStar == -1) {
                         excludeFiles.add(defaultExclude);
                     } else {
-                        Predicate<String> start = firstStar == 0 ? Predicates.<String>alwaysTrue() : new StartMatcher(defaultExclude.substring(0, firstStar));
-                        Predicate<String> end = firstStar == length - 1 ? Predicates.<String>alwaysTrue() : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
-                        excludeFileSpecs.add(Predicates.and(start, end));
+                        Predicate<String> start = firstStar == 0 ? it -> true : new StartMatcher(defaultExclude.substring(0, firstStar));
+                        Predicate<String> end = firstStar == length - 1 ? it -> true : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
+                        excludeFileSpecs.add(start.and(end));
                     }
                 }
             }
 
             this.excludeFileNames = ImmutableSet.copyOf(excludeFiles);
-            this.excludedFileNameSpec = Predicates.or(excludeFileSpecs);
+            this.excludedFileNameSpec = excludeFileSpecs.stream().reduce(it -> false, Predicate::or);
             this.excludedDirNames = ImmutableSet.copyOf(excludeDirs);
         }
 
@@ -109,7 +108,7 @@ public class DirectorySnapshotter {
         }
 
         public boolean excludeFile(String name) {
-            return excludeFileNames.contains(name) || excludedFileNameSpec.apply(name);
+            return excludeFileNames.contains(name) || excludedFileNameSpec.test(name);
         }
 
         private static class EndMatcher implements Predicate<String> {
@@ -120,7 +119,7 @@ public class DirectorySnapshotter {
             }
 
             @Override
-            public boolean apply(String element) {
+            public boolean test(String element) {
                 return element.endsWith(end);
             }
         }
@@ -133,7 +132,7 @@ public class DirectorySnapshotter {
             }
 
             @Override
-            public boolean apply(String element) {
+            public boolean test(String element) {
                 return element.startsWith(start);
             }
         }
