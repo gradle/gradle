@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -120,9 +119,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
         if (value instanceof Map) {
             Map<?, ?> map = (Map<?, ?>) value;
-            ImmutableList.Builder<Pair<T, T>> builder = ImmutableList.builderWithExpectedSize(map.size());
+            ImmutableList.Builder<MapEntrySnapshot<T>> builder = ImmutableList.builderWithExpectedSize(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                builder.add(Pair.of(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
+                builder.add(new MapEntrySnapshot<T>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
             }
             return visitor.map(builder.build());
         }
@@ -210,7 +209,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         T set(ImmutableSet<T> elements);
 
-        T map(ImmutableList<Pair<T, T>> elements);
+        T map(ImmutableList<MapEntrySnapshot<T>> elements);
 
         T serialized(Object value, byte[] serializedValue);
     }
@@ -318,7 +317,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public ValueSnapshot map(ImmutableList<Pair<ValueSnapshot, ValueSnapshot>> elements) {
+        public ValueSnapshot map(ImmutableList<MapEntrySnapshot<ValueSnapshot>> elements) {
             return new MapValueSnapshot(elements);
         }
     }
@@ -426,7 +425,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public Isolatable<?> map(ImmutableList<Pair<Isolatable<?>, Isolatable<?>>> elements) {
+        public Isolatable<?> map(ImmutableList<MapEntrySnapshot<Isolatable<?>>> elements) {
             return new IsolatedMap(elements);
         }
     }

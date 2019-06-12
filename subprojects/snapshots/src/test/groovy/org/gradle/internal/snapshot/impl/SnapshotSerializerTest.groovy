@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
-import org.gradle.internal.Pair
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
@@ -153,9 +152,9 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes map properties"() {
-        def builder = ImmutableList.builder()
-        builder.add(Pair.of(string("123"), integer(123)))
-        builder.add(Pair.of(string("456"), list(integer(-12), integer(12))))
+        def builder = ImmutableList.<MapEntrySnapshot<ValueSnapshot>>builder()
+        builder.add(new MapEntrySnapshot<ValueSnapshot>(string("123"), integer(123)))
+        builder.add(new MapEntrySnapshot<ValueSnapshot>(string("456"), list(integer(-12), integer(12))))
         def original = new MapValueSnapshot(builder.build())
         write(original)
 

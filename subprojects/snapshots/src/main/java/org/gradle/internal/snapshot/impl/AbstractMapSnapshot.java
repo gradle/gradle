@@ -17,18 +17,17 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hasher;
 
 class AbstractMapSnapshot<T extends Hashable> implements Hashable {
-    protected final ImmutableList<Pair<T, T>> entries;
+    protected final ImmutableList<MapEntrySnapshot<T>> entries;
 
-    public AbstractMapSnapshot(ImmutableList<Pair<T, T>> entries) {
+    public AbstractMapSnapshot(ImmutableList<MapEntrySnapshot<T>> entries) {
         this.entries = entries;
     }
 
-    public ImmutableList<Pair<T, T>> getEntries() {
+    public ImmutableList<MapEntrySnapshot<T>> getEntries() {
         return entries;
     }
 
@@ -36,9 +35,9 @@ class AbstractMapSnapshot<T extends Hashable> implements Hashable {
     public void appendToHasher(Hasher hasher) {
         hasher.putString("Map");
         hasher.putInt(entries.size());
-        for (Pair<T, T> entry : entries) {
-            entry.getLeft().appendToHasher(hasher);
-            entry.getRight().appendToHasher(hasher);
+        for (MapEntrySnapshot<T> entry : entries) {
+            entry.getKey().appendToHasher(hasher);
+            entry.getValue().appendToHasher(hasher);
         }
     }
 
