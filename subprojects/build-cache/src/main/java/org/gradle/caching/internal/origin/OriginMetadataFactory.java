@@ -84,7 +84,9 @@ public class OriginMetadataFactory {
             public OriginMetadata execute(InputStream inputStream) throws IOException {
                 Properties properties = new Properties();
                 properties.load(inputStream);
-                LOGGER.debug("Origin for {}: {}", entry.getDisplayName(), properties);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Origin for {}: {}", entry.getDisplayName(), properties);
+                }
 
                 String originBuildInvocationId = properties.getProperty(BUILD_INVOCATION_ID_KEY);
                 String executionTimeAsString = properties.getProperty(EXECUTION_TIME_KEY);

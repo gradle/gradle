@@ -93,7 +93,7 @@ public class BuildCacheCommandFactory {
         public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) throws IOException {
             BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
-            LOGGER.debug("Unpacked trees for {} from cache.", entity.getDisplayName());
+            LOGGER.info("Unpacked trees for {} from cache.", entity.getDisplayName());
             return new Result<LoadMetadata>() {
                 @Override
                 public long getArtifactEntryCount() {
@@ -175,7 +175,7 @@ public class BuildCacheCommandFactory {
 
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
-            LOGGER.debug("Packing {}", entity.getDisplayName());
+            LOGGER.info("Packing {}", entity.getDisplayName());
             final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, fingerprints, output, originMetadataFactory.createWriter(entity, executionTime));
             return new BuildCacheStoreCommand.Result() {
                 @Override
