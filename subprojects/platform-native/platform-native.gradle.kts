@@ -50,6 +50,7 @@ dependencies {
 
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":snapshots"))
 }
 
 gradlebuildJava {

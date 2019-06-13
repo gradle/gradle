@@ -16,24 +16,20 @@
 
 package org.gradle.kotlin.dsl.cache
 
-import org.gradle.internal.id.UniqueId
-
 import org.gradle.kotlin.dsl.support.normalisedPathRelativeTo
 import org.gradle.kotlin.dsl.support.useToRun
-
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
 
 internal
 data class PackMetadata(
-    val buildInvocationId: UniqueId,
+    val buildInvocationId: String,
     val executionTimeMillis: Long
 )
 
@@ -69,14 +65,14 @@ fun unpack(inputStream: InputStream, outputDir: File): Pair<PackMetadata, Long> 
 
 private
 fun DataOutputStream.packMetadata(metadata: PackMetadata) {
-    writeUTF(metadata.buildInvocationId.asString())
+    writeUTF(metadata.buildInvocationId)
     writeLong(metadata.executionTimeMillis)
 }
 
 
 private
 fun DataInputStream.unpackMetadata(): PackMetadata {
-    val buildInvocationId = UniqueId.from(readUTF())
+    val buildInvocationId = readUTF()
     val executionTimeMillis = readLong()
     return PackMetadata(buildInvocationId, executionTimeMillis)
 }

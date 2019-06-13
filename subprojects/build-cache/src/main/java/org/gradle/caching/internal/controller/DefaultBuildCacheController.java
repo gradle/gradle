@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.controller;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.io.Closer;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
@@ -41,7 +42,6 @@ import org.gradle.caching.local.internal.BuildCacheTempFileStore;
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -259,10 +259,14 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         if (!closed) {
             closed = true;
-            CompositeStoppable.stoppable(legacyLocal, local, remote).stop();
+            Closer closer = Closer.create();
+            closer.register(legacyLocal);
+            closer.register(local);
+            closer.register(remote);
+            closer.close();
         }
     }
 

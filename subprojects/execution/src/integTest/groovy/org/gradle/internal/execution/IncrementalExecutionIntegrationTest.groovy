@@ -52,13 +52,11 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
@@ -78,10 +76,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
-    def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def fsSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fsSnapshotter)
+    def fsSnapshotter = TestFiles.fileSystemSnapshotter(fileSystemMirror, new StringInterner())
+    def snapshotter = new DefaultFileCollectionSnapshotter(fsSnapshotter, TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()
@@ -193,9 +190,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         result.finalOutputs.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
         result.finalOutputs["dir"].rootHashes.size() == 1
-        result.originMetadata.buildInvocationId == buildInvocationScopeId.id
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
-        afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id
+        afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         afterExecution.outputFileProperties.values()*.rootHashes == result.finalOutputs.values()*.rootHashes
     }
 
@@ -220,7 +217,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         result.outcome.get() == UP_TO_DATE
         result.reused
         result.originMetadata.buildInvocationId == origin
-        result.originMetadata.buildInvocationId != buildInvocationScopeId.id
+        result.originMetadata.buildInvocationId != buildInvocationScopeId.id.asString()
         result.finalOutputs.values()*.rootHashes == finalOutputs.values()*.rootHashes
     }
 
@@ -242,7 +239,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
         !result.reused
-        result.originMetadata.buildInvocationId == buildInvocationScopeId.id
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         result.originMetadata.buildInvocationId != origin
     }
 
@@ -265,7 +262,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
         !result.reused
-        result.originMetadata.buildInvocationId == buildInvocationScopeId.id
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         result.originMetadata.buildInvocationId != origin
     }
 

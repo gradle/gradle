@@ -18,8 +18,6 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
@@ -27,10 +25,16 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import javax.annotation.Nullable
+import java.nio.file.Path
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.function.Predicate
 
 class DefaultFileSystemSnapshotterTest extends Specification {
     @Rule
@@ -108,16 +112,15 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createFile("f1")
         d.createFile("d1/f2")
         d.createDir("d2")
-        def tree = dirTree(d)
 
         expect:
-        def snapshot = snapshotter.snapshotDirectoryTree(tree.getDir(), tree.getPatterns())
+        def snapshot = snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
         getSnapshotInfo(snapshot) == [d.path, 5]
 
-        def snapshot2 = snapshotter.snapshotDirectoryTree(tree.getDir(), tree.getPatterns())
+        def snapshot2 = snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
         snapshot2.is(snapshot)
 
-        def snapshot3 = snapshotter.snapshotDirectoryTree(tree.getDir(), tree.getPatterns())
+        def snapshot3 = snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
         snapshot3.is(snapshot)
     }
 
@@ -129,9 +132,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createDir("d2")
         d.createFile("d2/f1")
         d.createFile("d2/f2")
-        def patterns = TestFiles.patternSetFactory.create()
-        patterns.include "**/*1"
-        def emptyPatterns = new PatternSet()
+        def patterns = new FileNameFilter({ it.endsWith('1') })
 
         expect:
         def snapshot = snapshotter.snapshotDirectoryTree(d, patterns)
@@ -140,11 +141,11 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot2 = snapshotter.snapshotDirectoryTree(d, patterns)
         !snapshot2.is(snapshot)
 
-        def snapshot3 = snapshotter.snapshotDirectoryTree(d, emptyPatterns)
+        def snapshot3 = snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
         !snapshot3.is(snapshot)
         getSnapshotInfo(snapshot3) == [d.path, 8]
 
-        def snapshot4 = snapshotter.snapshotDirectoryTree(d, emptyPatterns)
+        def snapshot4 = snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
         !snapshot4.is(snapshot)
         snapshot4.is(snapshot3)
     }
@@ -155,11 +156,10 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createFile("f1")
         d.createFile("d1/f2")
         d.createFile("d1/f1")
-        snapshotter.snapshotDirectoryTree(d, new PatternSet())
+        snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
 
         and: "A filtered tree over the same directory"
-        def patterns = TestFiles.patternSetFactory.create()
-        patterns.include "**/*1"
+        def patterns = new FileNameFilter({ it.endsWith('1') })
 
         when:
         def snapshot = snapshotter.snapshotDirectoryTree(d, patterns)
@@ -205,7 +205,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def d = tmpDir.file("dir")
 
         when:
-        def snapshot = snapshotter.snapshotDirectoryTree(d, new PatternSet())
+        def snapshot = snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
 
         then:
         getSnapshotInfo(snapshot) == [null, 0]
@@ -216,7 +216,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def d = tmpDir.createFile("fileAsTree")
 
         when:
-        def snapshot = snapshotter.snapshotDirectoryTree(d, new PatternSet())
+        def snapshot = snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
 
         then:
         getSnapshotInfo(snapshot) == [null, 1]
@@ -237,10 +237,6 @@ class DefaultFileSystemSnapshotterTest extends Specification {
                 throw new UnsupportedOperationException()
             }
         })
-    }
-
-    private static DirectoryFileTree dirTree(File dir) {
-        TestFiles.directoryFileTreeFactory().create(dir)
     }
 
     void assertSingleFileSnapshot(snapshots) {
@@ -271,5 +267,38 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
         })
         return [rootPath, count]
+    }
+
+    private static class FileNameFilter implements SnapshottingFilter {
+        private final Predicate<String> predicate
+
+        FileNameFilter(Predicate<String> predicate) {
+            this.predicate = predicate
+        }
+
+        @Override
+        boolean isEmpty() {
+            return false
+        }
+
+        @Override
+        FileSystemSnapshotPredicate getAsSnapshotPredicate() {
+            return new FileSystemSnapshotPredicate() {
+                @Override
+                boolean test(FileSystemLocationSnapshot fileSystemLocationSnapshot, Iterable<String> relativePath) {
+                    return fileSystemLocationSnapshot.getType() == FileType.Directory || predicate.test(fileSystemLocationSnapshot.name)
+                }
+            }
+        }
+
+        @Override
+        DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
+            return new DirectoryWalkerPredicate() {
+                @Override
+                boolean test(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
+                    return isDirectory || predicate.test(name)
+                }
+            }
+        }
     }
 }

@@ -39,6 +39,7 @@ dependencies {
     implementation(library("jsch"))
 
     testImplementation(project(":native"))
+    testImplementation(project(":snapshots"))
     testImplementation(project(":processServices"))
     
     testFixturesImplementation(project(":internalTesting"))

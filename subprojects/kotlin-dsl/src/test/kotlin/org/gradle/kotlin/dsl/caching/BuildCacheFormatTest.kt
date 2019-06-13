@@ -16,23 +16,19 @@
 
 package org.gradle.kotlin.dsl.caching
 
-import org.gradle.internal.id.UniqueId
-
 import org.gradle.kotlin.dsl.cache.PackMetadata
 import org.gradle.kotlin.dsl.cache.pack
 import org.gradle.kotlin.dsl.cache.unpack
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.withFolders
 import org.gradle.kotlin.dsl.support.normalisedPathRelativeTo
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
-
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.UUID
 
 
 class BuildCacheFormatTest : TestWithTempFiles() {
@@ -55,7 +51,7 @@ class BuildCacheFormatTest : TestWithTempFiles() {
         }
 
         // when:
-        val metadata = PackMetadata(UniqueId.generate(), 42L)
+        val metadata = PackMetadata(UUID.randomUUID().toString(), 42L)
         val inputDir = file("input")
         val (packedEntryCount, bytes) = packToByteArray(inputDir, metadata)
         assertThat(
