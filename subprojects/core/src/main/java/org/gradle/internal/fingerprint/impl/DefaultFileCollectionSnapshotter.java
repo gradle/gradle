@@ -26,6 +26,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
@@ -35,10 +36,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
-    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileSystem fileSystem;
 
-    public DefaultFileCollectionSnapshotter(FileSystemSnapshotter<PatternSet> fileSystemSnapshotter) {
+    public DefaultFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, FileSystem fileSystem) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.fileSystem = fileSystem;
     }
 
     @Override
@@ -66,7 +69,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
         @Override
         public void visitFileTree(File root, PatternSet patterns) {
-            roots.add(fileSystemSnapshotter.snapshotDirectoryTree(root, patterns));
+            roots.add(fileSystemSnapshotter.snapshotDirectoryTree(root, new PatternSetSnapshottingFilter(patterns, fileSystem)));
         }
 
         public List<FileSystemSnapshot> getRoots() {

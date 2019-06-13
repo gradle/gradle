@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.api.tasks.util.PatternSet
+
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeDirectivesSerializer
@@ -36,7 +36,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
     def header = includeDir.createFile("hello.h")
     def sourceDir = tmpDir.createDir("src")
     def sourceFile = sourceDir.createFile("src.cpp")
-    def fileSystemSnapshotter = new TestFileSnapshotter<PatternSet>()
+    def fileSystemSnapshotter = new TestFileSnapshotter()
     def resolver = new DefaultSourceIncludesResolver([includeDir], fileSystemSnapshotter)
     def parser = new RegexBackedCSourceParser()
     def serializer = IncludeDirectivesSerializer.INSTANCE

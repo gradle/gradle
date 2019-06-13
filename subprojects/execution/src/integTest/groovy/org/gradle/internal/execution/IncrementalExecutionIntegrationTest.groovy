@@ -78,7 +78,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def fsSnapshotter = TestFiles.fileSystemSnapshotter(fileSystemMirror, new StringInterner())
-    def snapshotter = new DefaultFileCollectionSnapshotter(fsSnapshotter)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fsSnapshotter, TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()

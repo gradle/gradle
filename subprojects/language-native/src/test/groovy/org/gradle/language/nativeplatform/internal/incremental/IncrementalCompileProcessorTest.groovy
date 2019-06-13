@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.api.tasks.util.PatternSet
+
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -38,7 +38,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyResolver = new DummyResolver()
-    def fileSystemSnapshotter = new TestFileSnapshotter<PatternSet>()
+    def fileSystemSnapshotter = new TestFileSnapshotter()
     def stateCache = new DummyPersistentStateCache()
     def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(IncludeDirectives.EMPTY, includesParser, dependencyResolver, fileSystemSnapshotter), new TestBuildOperationExecutor())
 

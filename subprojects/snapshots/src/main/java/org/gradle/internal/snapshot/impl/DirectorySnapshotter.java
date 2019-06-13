@@ -28,8 +28,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.PatternFilterStrategy;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -43,8 +43,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 
 public class DirectorySnapshotter {
     private final FileHasher hasher;
@@ -57,7 +57,7 @@ public class DirectorySnapshotter {
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
     }
 
-    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternFilterStrategy.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
+    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
         Path rootPath = Paths.get(absolutePath);
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
 
@@ -140,10 +140,10 @@ public class DirectorySnapshotter {
 
     private class PathVisitor implements java.nio.file.FileVisitor<Path> {
         private final MerkleDirectorySnapshotBuilder builder;
-        private final PatternFilterStrategy.DirectoryWalkerPredicate predicate;
+        private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
 
-        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable PatternFilterStrategy.DirectoryWalkerPredicate predicate, AtomicBoolean hasBeenFiltered) {
+        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, AtomicBoolean hasBeenFiltered) {
             this.builder = builder;
             this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;

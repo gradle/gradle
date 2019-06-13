@@ -27,16 +27,16 @@ import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
-import org.gradle.internal.fingerprint.impl.PatternSetFilterStrategy
+import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.SnapshottingFilter
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectorySnapshotter> {
-    def patternSetFilterStrategy = new PatternSetFilterStrategy(TestFiles.fileSystem())
 
     def "directory snapshotter returns the same details as directory walker"() {
         given:
@@ -62,7 +62,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         }
 
         when:
-        directorySnapshotter().snapshot(rootDir.absolutePath, patternSetFilterStrategy.getAsDirectoryWalkerPredicate(patternSet), new AtomicBoolean())
+        directorySnapshotter().snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), new AtomicBoolean())
         then:
         1 * patternSet.getAsSpec() >> assertingSpec
 
@@ -91,7 +91,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
 
     @Override
     protected List<String> walkDirForPaths(DirectorySnapshotter walker, File rootDir, PatternSet patternSet) {
-        def snapshot = walker.snapshot(rootDir.absolutePath, patternSetFilterStrategy.getAsDirectoryWalkerPredicate(patternSet), new AtomicBoolean())
+        def snapshot = walker.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), new AtomicBoolean())
         def visited = []
         snapshot.accept(new FileSystemSnapshotVisitor() {
             private boolean root = true
@@ -115,5 +115,9 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
             }
         })
         return visited
+    }
+
+    private static SnapshottingFilter.DirectoryWalkerPredicate directoryWalkerPredicate(PatternSet patternSet) {
+        return new PatternSetSnapshottingFilter(patternSet, TestFiles.fileSystem()).asDirectoryWalkerPredicate
     }
 }

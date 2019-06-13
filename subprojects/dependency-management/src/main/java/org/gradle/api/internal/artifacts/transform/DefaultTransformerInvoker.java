@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -84,7 +83,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String INPUT_FILE_PATH_PREFIX = "i/";
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
-    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
@@ -94,7 +93,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultTransformerInvoker(WorkExecutor<IncrementalContext, CachingResult> workExecutor,
-                                     FileSystemSnapshotter<PatternSet> fileSystemSnapshotter,
+                                     FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
                                      FileCollectionFactory fileCollectionFactory,

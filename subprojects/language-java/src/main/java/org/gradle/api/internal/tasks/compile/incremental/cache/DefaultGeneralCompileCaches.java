@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationStore;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -51,7 +50,7 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
     private final PersistentCache cache;
     private final PersistentIndexedCache<String, PreviousCompilationData> previousCompilationCache;
 
-    public DefaultGeneralCompileCaches(FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, UserHomeScopedCompileCaches userHomeScopedCompileCaches, CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, WellKnownFileLocations fileLocations, StringInterner interner) {
+    public DefaultGeneralCompileCaches(FileSystemSnapshotter fileSystemSnapshotter, UserHomeScopedCompileCaches userHomeScopedCompileCaches, CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, WellKnownFileLocations fileLocations, StringInterner interner) {
         cache = cacheRepository
             .cache(gradle, "javaCompile")
             .withDisplayName("Java compile cache")

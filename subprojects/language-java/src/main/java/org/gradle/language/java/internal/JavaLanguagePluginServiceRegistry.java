@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultPostProcessor;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.hash.FileHasher;
@@ -92,7 +91,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class JavaProjectScopeServices {
-        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter, FileHasher fileHasher) {
+        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemSnapshotter fileSystemSnapshotter, FileHasher fileHasher) {
             return new IncrementalCompilerFactory(fileOperations, streamHasher, compileCaches, buildOperationExecutor, interner, fileSystemSnapshotter, fileHasher);
         }
     }

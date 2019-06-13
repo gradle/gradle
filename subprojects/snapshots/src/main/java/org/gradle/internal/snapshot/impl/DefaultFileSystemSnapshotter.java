@@ -30,8 +30,8 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.PatternFilterStrategy;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -50,21 +50,19 @@ import java.util.function.Supplier;
  * The implementations are currently intentionally very, very simple, and so there are a number of ways in which they can be made much more efficient. This can happen over time.
  */
 @NonNullApi
-public class DefaultFileSystemSnapshotter<PATTERN> implements FileSystemSnapshotter<PATTERN> {
+public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
     private final FileSystemMirror fileSystemMirror;
     private final ProducerGuard<String> producingSnapshots = ProducerGuard.striped();
     private final DirectorySnapshotter directorySnapshotter;
-    private final PatternFilterStrategy<PATTERN> patternFilterStrategy;
 
-    public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror, PatternFilterStrategy<PATTERN> patternFilterStrategy, String... defaultExcludes) {
+    public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror, String... defaultExcludes) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.fileSystemMirror = fileSystemMirror;
-        this.patternFilterStrategy = patternFilterStrategy;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
     }
 
@@ -111,10 +109,10 @@ public class DefaultFileSystemSnapshotter<PATTERN> implements FileSystemSnapshot
         return result;
     }
 
-    private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable PATTERN patternSet) {
+    private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable SnapshottingFilter snapshottingFilter) {
         InternableString absolutePath = new InternableString(file.getAbsolutePath());
         FileMetadataSnapshot metadata = statAndCache(absolutePath, file);
-        return snapshotAndCache(absolutePath, file, metadata, patternSet);
+        return snapshotAndCache(absolutePath, file, metadata, snapshottingFilter);
     }
 
     private FileMetadataSnapshot statAndCache(InternableString absolutePath, File file) {
@@ -126,11 +124,11 @@ public class DefaultFileSystemSnapshotter<PATTERN> implements FileSystemSnapshot
         return metadata;
     }
 
-    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable PATTERN patternSet) {
+    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable SnapshottingFilter snapshottingFilter) {
         FileSystemLocationSnapshot fileSystemLocationSnapshot = fileSystemMirror.getSnapshot(absolutePath.asNonInterned());
         if (fileSystemLocationSnapshot == null) {
             AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
-            fileSystemLocationSnapshot = snapshot(absolutePath.asInterned(), patternSet, file, metadata, hasBeenFiltered);
+            fileSystemLocationSnapshot = snapshot(absolutePath.asInterned(), snapshottingFilter, file, metadata, hasBeenFiltered);
             if (!hasBeenFiltered.get()) {
                 fileSystemMirror.putSnapshot(fileSystemLocationSnapshot);
             }
@@ -138,7 +136,7 @@ public class DefaultFileSystemSnapshotter<PATTERN> implements FileSystemSnapshot
         return fileSystemLocationSnapshot;
     }
 
-    private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PATTERN patternSet, File file, FileMetadataSnapshot metadata, AtomicBoolean hasBeenFiltered) {
+    private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter snapshottingFilter, File file, FileMetadataSnapshot metadata, AtomicBoolean hasBeenFiltered) {
         String name = stringInterner.intern(file.getName());
         switch (metadata.getType()) {
             case Missing:
@@ -146,9 +144,9 @@ public class DefaultFileSystemSnapshotter<PATTERN> implements FileSystemSnapshot
             case RegularFile:
                 return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata), metadata.getLastModified());
             case Directory:
-                PatternFilterStrategy.DirectoryWalkerPredicate predicate = patternSet == null || patternFilterStrategy.isEmpty(patternSet)
+                SnapshottingFilter.DirectoryWalkerPredicate predicate = snapshottingFilter == null || snapshottingFilter.isEmpty()
                     ? null
-                    : patternFilterStrategy.getAsDirectoryWalkerPredicate(patternSet);
+                    : snapshottingFilter.getAsDirectoryWalkerPredicate();
                 return directorySnapshotter.snapshot(absolutePath, predicate, hasBeenFiltered);
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + metadata.getType());
@@ -156,23 +154,23 @@ public class DefaultFileSystemSnapshotter<PATTERN> implements FileSystemSnapshot
     }
 
     @Override
-    public FileSystemSnapshot snapshotDirectoryTree(File root, PATTERN patterns) {
+    public FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter snapshottingFilter) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         String path = root.getAbsolutePath();
 
         FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
         if (snapshot != null) {
-            return filterSnapshot(snapshot, patterns);
+            return filterSnapshot(snapshot, snapshottingFilter);
         }
         return producingSnapshots.guardByKey(path, new Supplier<FileSystemSnapshot>() {
             @Override
             public FileSystemSnapshot get() {
                 FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
                 if (snapshot == null) {
-                    snapshot = snapshotAndCache(root, patterns);
-                    return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, patterns) : filterSnapshot(snapshot, patternFilterStrategy.empty());
+                    snapshot = snapshotAndCache(root, snapshottingFilter);
+                    return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, snapshottingFilter) : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
                 } else {
-                    return filterSnapshot(snapshot, patterns);
+                    return filterSnapshot(snapshot, snapshottingFilter);
                 }
             }
         });
@@ -183,14 +181,14 @@ public class DefaultFileSystemSnapshotter<PATTERN> implements FileSystemSnapshot
         return new FileSystemSnapshotBuilder(stringInterner, hasher);
     }
 
-    private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, PATTERN patterns) {
+    private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, SnapshottingFilter snapshottingFilter) {
         if (snapshot.getType() == FileType.Missing) {
             return FileSystemSnapshot.EMPTY;
         }
-        if (patternFilterStrategy.isEmpty(patterns)) {
+        if (snapshottingFilter.isEmpty()) {
             return snapshot;
         }
-        return FileSystemSnapshotFilter.filterSnapshot(patternFilterStrategy.getAsSnapshotPredicate(patterns), snapshot);
+        return FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter.getAsSnapshotPredicate(), snapshot);
     }
 
     private class InternableString {

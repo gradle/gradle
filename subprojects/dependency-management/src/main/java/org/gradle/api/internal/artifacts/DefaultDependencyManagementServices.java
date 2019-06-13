@@ -104,7 +104,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
@@ -366,7 +365,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformerInvoker createTransformerInvoker(WorkExecutor<IncrementalContext, CachingResult> workExecutor,
-                                                    FileSystemSnapshotter<PatternSet> fileSystemSnapshotter,
+                                                    FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,
                                                     FileCollectionFactory fileCollectionFactory,

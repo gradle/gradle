@@ -17,7 +17,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.language.nativeplatform.internal.Include;
@@ -46,10 +45,10 @@ public class IncrementalCompileFilesFactory {
     private final IncludeDirectives initialIncludeDirectives;
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
-    private final FileSystemSnapshotter<PatternSet> fileSystemSnapshotter;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final boolean ignoreUnresolvedHeadersInDependencies;
 
-    public IncrementalCompileFilesFactory(IncludeDirectives initialIncludeDirectives, SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter<PatternSet> fileSystemSnapshotter) {
+    public IncrementalCompileFilesFactory(IncludeDirectives initialIncludeDirectives, SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter fileSystemSnapshotter) {
         this.initialIncludeDirectives = initialIncludeDirectives;
         this.sourceIncludesParser = sourceIncludesParser;
         this.sourceIncludesResolver = sourceIncludesResolver;

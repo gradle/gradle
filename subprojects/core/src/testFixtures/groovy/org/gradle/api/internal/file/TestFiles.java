@@ -24,7 +24,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
-import org.gradle.internal.fingerprint.impl.PatternSetFilterStrategy;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -117,20 +116,19 @@ public class TestFiles {
     }
 
     public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
-        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter());
+        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter(), fileSystem());
     }
 
-    public static DefaultFileSystemSnapshotter<PatternSet> fileSystemSnapshotter() {
+    public static DefaultFileSystemSnapshotter fileSystemSnapshotter() {
         return fileSystemSnapshotter(new DefaultFileSystemMirror(file -> false), new StringInterner());
     }
 
-    public static DefaultFileSystemSnapshotter<PatternSet> fileSystemSnapshotter(FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
-        return new DefaultFileSystemSnapshotter<PatternSet>(
+    public static DefaultFileSystemSnapshotter fileSystemSnapshotter(FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
+        return new DefaultFileSystemSnapshotter(
             fileHasher(),
             stringInterner,
             fileSystem(),
-            fileSystemMirror,
-            new PatternSetFilterStrategy(fileSystem())
+            fileSystemMirror
         );
     }
 

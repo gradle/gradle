@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.fingerprint.impl.PatternSetFilterStrategy
+import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.snapshot.DirectorySnapshot
@@ -28,6 +28,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -38,9 +39,8 @@ class FileSystemSnapshotFilterTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
-    FileSystemSnapshotter<PatternSet> snapshotter = TestFiles.fileSystemSnapshotter()
+    FileSystemSnapshotter snapshotter = TestFiles.fileSystemSnapshotter()
     FileSystem fileSystem = TestFiles.fileSystem()
-    PatternSetFilterStrategy filterStrategy = new PatternSetFilterStrategy(fileSystem)
 
     def "filters correctly"() {
         given:
@@ -53,7 +53,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         def subdir = dir1.createDir("subdir")
         def subdirFile1 = subdir.createFile("subdirFile1")
 
-        def unfiltered = snapshotter.snapshotDirectoryTree(root, new PatternSet())
+        def unfiltered = snapshotter.snapshotDirectoryTree(root, snapshottingFilter(new PatternSet()))
 
         expect:
         filteredPaths(unfiltered, include("**/*2")) == [root, dir1, dirFile2, subdir, rootFile2] as Set
@@ -64,7 +64,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "filters empty tree"() {
         expect:
-        FileSystemSnapshotFilter.filterSnapshot(filterStrategy.getAsSnapshotPredicate(include("**/*")), FileSystemSnapshot.EMPTY) == FileSystemSnapshot.EMPTY
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*")).asSnapshotPredicate, FileSystemSnapshot.EMPTY) == FileSystemSnapshot.EMPTY
     }
 
     def "root directory is always matched"() {
@@ -90,15 +90,15 @@ class FileSystemSnapshotFilterTest extends Specification {
         dir1.createFile("dirFile1")
         dir1.createFile("dirFile2")
 
-        def unfiltered = snapshotter.snapshotDirectoryTree(root, new PatternSet())
+        def unfiltered = snapshotter.snapshotDirectoryTree(root, snapshottingFilter(new PatternSet()))
 
         expect:
-        FileSystemSnapshotFilter.filterSnapshot(filterStrategy.getAsSnapshotPredicate(include("**/*File*")), unfiltered).is(unfiltered)
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).asSnapshotPredicate, unfiltered).is(unfiltered)
     }
 
     private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        FileSystemSnapshotFilter.filterSnapshot(filterStrategy.getAsSnapshotPredicate(patterns), unfiltered).accept(new FileSystemSnapshotVisitor() {
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered).accept(new FileSystemSnapshotVisitor() {
             @Override
             boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 result << new File(directorySnapshot.absolutePath)
@@ -119,5 +119,9 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     private static PatternSet include(String pattern) {
         new PatternSet().include(pattern)
+    }
+
+    private SnapshottingFilter snapshottingFilter(PatternSet patternSet) {
+        return new PatternSetSnapshottingFilter(patternSet, fileSystem)
     }
 }

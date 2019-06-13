@@ -28,7 +28,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.PatternFilterStrategy;
+import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -41,33 +41,28 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.BiPredicate;
 
-public class PatternSetFilterStrategy implements PatternFilterStrategy<PatternSet> {
-    private static final PatternSet EMPTY_PATTERNSET = new PatternSet();
-
+public class PatternSetSnapshottingFilter implements SnapshottingFilter {
+    private final PatternSet patternSet;
     private final FileSystem fileSystem;
 
-    public PatternSetFilterStrategy(FileSystem fileSystem) {
+    public PatternSetSnapshottingFilter(PatternSet patternSet, FileSystem fileSystem) {
         this.fileSystem = fileSystem;
+        this.patternSet = patternSet;
     }
 
     @Override
-    public PatternSet empty() {
-        return EMPTY_PATTERNSET;
-    }
-
-    @Override
-    public boolean isEmpty(PatternSet patternSet) {
+    public boolean isEmpty() {
         return patternSet.isEmpty();
     }
 
     @Override
-    public BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate(PatternSet patternSet) {
+    public BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate() {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         return (snapshot, relativePath) -> spec.isSatisfiedBy(new LogicalFileTreeElement(snapshot, relativePath, fileSystem));
     }
 
     @Override
-    public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate(PatternSet patternSet) {
+    public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         return (Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) ->
             spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, fileSystem));

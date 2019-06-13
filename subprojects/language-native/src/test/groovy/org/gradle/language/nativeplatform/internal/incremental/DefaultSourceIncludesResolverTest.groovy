@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.api.tasks.util.PatternSet
+
 import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 class DefaultSourceIncludesResolverTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    def fileSystemSnapshotter = new TestFileSnapshotter<PatternSet>()
+    def fileSystemSnapshotter = new TestFileSnapshotter()
     def testDirectory = temporaryFolder.testDirectory
     def sourceDirectory = testDirectory.createDir("sources")
     def systemIncludeDir = testDirectory.createDir("headers")

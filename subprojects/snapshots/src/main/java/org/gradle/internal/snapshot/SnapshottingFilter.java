@@ -21,11 +21,27 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.BiPredicate;
 
-public interface PatternFilterStrategy<PATTERN> {
-    PATTERN empty();
-    boolean isEmpty(PATTERN pattern);
-    BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate(PATTERN pattern);
-    DirectoryWalkerPredicate getAsDirectoryWalkerPredicate(PATTERN pattern);
+public interface SnapshottingFilter {
+    SnapshottingFilter EMPTY = new SnapshottingFilter() {
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate() {
+            return (location, relativePath) -> true;
+        }
+
+        @Override
+        public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
+            return (path, name, isDirectory, attrs, relativePath) -> true;
+        }
+    };
+
+    boolean isEmpty();
+    BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate();
+    DirectoryWalkerPredicate getAsDirectoryWalkerPredicate();
 
     interface DirectoryWalkerPredicate {
         boolean test(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath);
