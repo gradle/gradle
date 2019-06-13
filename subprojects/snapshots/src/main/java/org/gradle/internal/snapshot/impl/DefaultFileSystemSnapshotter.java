@@ -23,7 +23,7 @@ import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -53,15 +53,15 @@ import java.util.function.Supplier;
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileHasher hasher;
     private final StringInterner stringInterner;
-    private final FileSystem fileSystem;
+    private final Stat stat;
     private final FileSystemMirror fileSystemMirror;
     private final ProducerGuard<String> producingSnapshots = ProducerGuard.striped();
     private final DirectorySnapshotter directorySnapshotter;
 
-    public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror, String... defaultExcludes) {
+    public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, String... defaultExcludes) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
-        this.fileSystem = fileSystem;
+        this.stat = stat;
         this.fileSystemMirror = fileSystemMirror;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
     }
@@ -118,7 +118,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private FileMetadataSnapshot statAndCache(InternableString absolutePath, File file) {
         FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath.asNonInterned());
         if (metadata == null) {
-            metadata = fileSystem.stat(file);
+            metadata = stat.stat(file);
             fileSystemMirror.putMetadata(absolutePath.asInterned(), metadata);
         }
         return metadata;

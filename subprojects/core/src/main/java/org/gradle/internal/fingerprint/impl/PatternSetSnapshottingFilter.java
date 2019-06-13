@@ -18,14 +18,13 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Describable;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
@@ -43,10 +42,10 @@ import java.util.function.BiPredicate;
 
 public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     private final PatternSet patternSet;
-    private final FileSystem fileSystem;
+    private final Stat stat;
 
-    public PatternSetSnapshottingFilter(PatternSet patternSet, FileSystem fileSystem) {
-        this.fileSystem = fileSystem;
+    public PatternSetSnapshottingFilter(PatternSet patternSet, Stat stat) {
+        this.stat = stat;
         this.patternSet = patternSet;
     }
 
@@ -58,32 +57,31 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     @Override
     public BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate() {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
-        return (snapshot, relativePath) -> spec.isSatisfiedBy(new LogicalFileTreeElement(snapshot, relativePath, fileSystem));
+        return (snapshot, relativePath) -> spec.isSatisfiedBy(new LogicalFileTreeElement(snapshot, relativePath, stat));
     }
 
     @Override
     public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         return (Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) ->
-            spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, fileSystem));
+            spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, stat));
     }
 
     /**
      * Adapts a {@link FileSystemLocationSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
      * passing it to a {@link org.gradle.api.tasks.util.PatternSet} for filtering.
      */
-    private static class LogicalFileTreeElement extends AbstractFileTreeElement {
+    private static class LogicalFileTreeElement implements FileTreeElement, Describable {
         private final Iterable<String> relativePathIterable;
-        private final FileSystem fileSystem;
+        private final Stat stat;
         private final FileSystemLocationSnapshot snapshot;
         private RelativePath relativePath;
         private File file;
 
-        public LogicalFileTreeElement(FileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, FileSystem fileSystem) {
-            super(fileSystem);
+        public LogicalFileTreeElement(FileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, Stat stat) {
             this.snapshot = snapshot;
             this.relativePathIterable = relativePathIterable;
-            this.fileSystem = fileSystem;
+            this.stat = stat;
         }
 
         @Override
@@ -120,6 +118,26 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         }
 
         @Override
+        public void copyTo(OutputStream output) {
+            throw new UnsupportedOperationException("Copy to not supported for filters");
+        }
+
+        @Override
+        public boolean copyTo(File target) {
+            throw new UnsupportedOperationException("Copy to not supported for filters");
+        }
+
+        @Override
+        public String getName() {
+            return getRelativePath().getLastName();
+        }
+
+        @Override
+        public String getPath() {
+            return getRelativePath().getPathString();
+        }
+
+        @Override
         public RelativePath getRelativePath() {
             if (relativePath == null) {
                 relativePath = new RelativePath(!isDirectory(), Iterables.toArray(relativePathIterable, String.class));
@@ -129,7 +147,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return fileSystem.getUnixMode(getFile());
+            return stat.getUnixMode(getFile());
         }
     }
 
