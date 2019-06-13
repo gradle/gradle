@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-
 import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives

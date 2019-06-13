@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
-
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeDirectivesSerializer
