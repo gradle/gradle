@@ -30,6 +30,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -158,5 +159,14 @@ public class ClasspathUtil {
                 throw UncheckedException.throwAsUncheckedException(e1);
             }
         }
+    }
+
+    public static void getClasspath(ClassLoader classLoader, final Set<URL> classpath, ClassLoader stopAt) {
+        new ClassLoaderVisitor(stopAt) {
+            @Override
+            public void visitClassPath(URL[] classPath) {
+                classpath.addAll(Arrays.asList(classPath));
+            }
+        }.visit(classLoader);
     }
 }

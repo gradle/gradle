@@ -16,9 +16,18 @@
 
 package org.gradle.initialization;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
+
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Set;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader apiOnlyClassLoader;
@@ -92,5 +101,24 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     @Override
     public MixInLegacyTypesClassLoader.Spec getGradleWorkerExtensionSpec() {
         return workerExtensionSpec;
+    }
+
+    @Override
+    public VisitableURLClassLoader.Spec getUserSpec(String name, Iterable<File> additionalClasspath, Class<?>... classes) {
+        Set<URL> classpath = Sets.newLinkedHashSet();
+        classpath.addAll(DefaultClassPath.of(additionalClasspath).getAsURLs());
+
+        Set<ClassLoader> uniqueClassloaders = Sets.newHashSet();
+        for (Class clazz : classes) {
+            ClassLoader classLoader = clazz.getClassLoader();
+            // System types come from the system classloader and their classloader is null.
+            if (classLoader != null) {
+                uniqueClassloaders.add(classLoader);
+            }
+        }
+        for (ClassLoader classLoader : uniqueClassloaders) {
+            ClasspathUtil.getClasspath(classLoader, classpath, getGradleApiClassLoader());
+        }
+        return new VisitableURLClassLoader.Spec(name, new ArrayList<>(classpath));
     }
 }

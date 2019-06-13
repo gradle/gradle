@@ -16,6 +16,9 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+
+import java.io.File;
 
 public interface ClassLoaderRegistry {
     /**
@@ -49,4 +52,9 @@ public interface ClassLoaderRegistry {
      * the build process and provide it to the worker.
      */
     MixInLegacyTypesClassLoader.Spec getGradleWorkerExtensionSpec();
+
+    /**
+     * Returns a spec representing the combined "user" classloader for the given classes and additional classpath.  The user classloader assumes it is used as a child of a classloader with the Gradle API.
+     */
+    VisitableURLClassLoader.Spec getUserSpec(String name, Iterable<File> additionalClasspath, Class<?>... classes);
 }
