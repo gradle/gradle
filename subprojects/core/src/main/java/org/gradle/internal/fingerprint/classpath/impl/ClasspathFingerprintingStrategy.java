@@ -231,7 +231,6 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         }
     }
 
-
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.KEEP_ORDER;

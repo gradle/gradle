@@ -158,5 +158,4 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
             return current != null || previous != null;
         }
     }
-
 }
