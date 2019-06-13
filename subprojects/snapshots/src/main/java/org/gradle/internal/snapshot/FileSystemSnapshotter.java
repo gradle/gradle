@@ -58,7 +58,7 @@ public interface FileSystemSnapshotter {
      * If it turns out that a filtered tree has actually not been filtered (i.e. the condition always returned true),
      * then we cache the result as unfiltered tree.
      */
-    FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter snapshottingFilter);
+    FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter filter);
 
     /**
      * Create a {@link FileSystemSnapshotBuilder} for creating custom {@link FileSystemSnapshot}s.

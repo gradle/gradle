@@ -109,10 +109,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return result;
     }
 
-    private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable SnapshottingFilter snapshottingFilter) {
+    private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable SnapshottingFilter filter) {
         InternableString absolutePath = new InternableString(file.getAbsolutePath());
         FileMetadataSnapshot metadata = statAndCache(absolutePath, file);
-        return snapshotAndCache(absolutePath, file, metadata, snapshottingFilter);
+        return snapshotAndCache(absolutePath, file, metadata, filter);
     }
 
     private FileMetadataSnapshot statAndCache(InternableString absolutePath, File file) {
@@ -124,11 +124,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return metadata;
     }
 
-    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable SnapshottingFilter snapshottingFilter) {
+    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable SnapshottingFilter filter) {
         FileSystemLocationSnapshot fileSystemLocationSnapshot = fileSystemMirror.getSnapshot(absolutePath.asNonInterned());
         if (fileSystemLocationSnapshot == null) {
             AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
-            fileSystemLocationSnapshot = snapshot(absolutePath.asInterned(), snapshottingFilter, file, metadata, hasBeenFiltered);
+            fileSystemLocationSnapshot = snapshot(absolutePath.asInterned(), filter, file, metadata, hasBeenFiltered);
             if (!hasBeenFiltered.get()) {
                 fileSystemMirror.putSnapshot(fileSystemLocationSnapshot);
             }
@@ -136,7 +136,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return fileSystemLocationSnapshot;
     }
 
-    private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter snapshottingFilter, File file, FileMetadataSnapshot metadata, AtomicBoolean hasBeenFiltered) {
+    private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter filter, File file, FileMetadataSnapshot metadata, AtomicBoolean hasBeenFiltered) {
         String name = stringInterner.intern(file.getName());
         switch (metadata.getType()) {
             case Missing:
@@ -144,9 +144,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             case RegularFile:
                 return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata), metadata.getLastModified());
             case Directory:
-                SnapshottingFilter.DirectoryWalkerPredicate predicate = snapshottingFilter == null || snapshottingFilter.isEmpty()
+                SnapshottingFilter.DirectoryWalkerPredicate predicate = filter == null || filter.isEmpty()
                     ? null
-                    : snapshottingFilter.getAsDirectoryWalkerPredicate();
+                    : filter.getAsDirectoryWalkerPredicate();
                 return directorySnapshotter.snapshot(absolutePath, predicate, hasBeenFiltered);
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + metadata.getType());
@@ -154,23 +154,23 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter snapshottingFilter) {
+    public FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter filter) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         String path = root.getAbsolutePath();
 
         FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
         if (snapshot != null) {
-            return filterSnapshot(snapshot, snapshottingFilter);
+            return filterSnapshot(snapshot, filter);
         }
         return producingSnapshots.guardByKey(path, new Supplier<FileSystemSnapshot>() {
             @Override
             public FileSystemSnapshot get() {
                 FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
                 if (snapshot == null) {
-                    snapshot = snapshotAndCache(root, snapshottingFilter);
-                    return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, snapshottingFilter) : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
+                    snapshot = snapshotAndCache(root, filter);
+                    return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, filter) : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
                 } else {
-                    return filterSnapshot(snapshot, snapshottingFilter);
+                    return filterSnapshot(snapshot, filter);
                 }
             }
         });
@@ -181,14 +181,14 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return new FileSystemSnapshotBuilder(stringInterner, hasher);
     }
 
-    private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, SnapshottingFilter snapshottingFilter) {
+    private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, SnapshottingFilter filter) {
         if (snapshot.getType() == FileType.Missing) {
             return FileSystemSnapshot.EMPTY;
         }
-        if (snapshottingFilter.isEmpty()) {
+        if (filter.isEmpty()) {
             return snapshot;
         }
-        return FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter.getAsSnapshotPredicate(), snapshot);
+        return FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot);
     }
 
     private class InternableString {

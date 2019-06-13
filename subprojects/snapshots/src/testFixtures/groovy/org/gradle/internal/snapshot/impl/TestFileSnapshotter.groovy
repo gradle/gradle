@@ -45,7 +45,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter snapshottingFilter) {
+    FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter filter) {
         throw new UnsupportedOperationException()
     }
 
