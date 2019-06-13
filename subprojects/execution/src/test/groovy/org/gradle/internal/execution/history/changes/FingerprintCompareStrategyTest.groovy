@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl
+package org.gradle.internal.execution.history.changes
 
 import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.Iterables
-import org.gradle.internal.execution.history.changes.AbsolutePathFingerprintCompareStrategy
-import org.gradle.internal.execution.history.changes.CollectingChangeVisitor
-import org.gradle.internal.execution.history.changes.DefaultFileChange
-import org.gradle.internal.execution.history.changes.FingerprintCompareStrategy
-import org.gradle.internal.execution.history.changes.IgnoredPathCompareStrategy
-import org.gradle.internal.execution.history.changes.NormalizedPathFingerprintCompareStrategy
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint
 import org.gradle.internal.file.FileType
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -316,10 +313,59 @@ class FingerprintCompareStrategyTest extends Specification {
         ["one": fingerprint("one"), "two": fingerprint("two")] | ["one": fingerprint("one")]
     }
 
+    def "comparing regular snapshot to empty snapshot shows entries removed (strategy: #strategy, include added: #includeAdded)"() {
+        def fingerprint = Mock(FileCollectionFingerprint) {
+            getFingerprints() >> [
+                "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
+                "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
+            ]
+            getRootHashes() >> ImmutableMultimap.of('/dir', HashCode.fromInt(456))
+        }
+        def emptyFingerprint = new EmptyCurrentFileCollectionFingerprint("test")
+        expect:
+        changes(strategy, includeAdded, emptyFingerprint, fingerprint).toList() == [
+            DefaultFileChange.removed("file1.txt", "test", FileType.RegularFile, "file1.txt"),
+            DefaultFileChange.removed("file2.txt", "test", FileType.RegularFile, "file2.txt")
+        ]
+        changes(strategy, includeAdded, fingerprint, emptyFingerprint).toList() == (includeAdded
+            ? [
+                DefaultFileChange.added("file1.txt", "test", FileType.RegularFile, "file1.txt"),
+                DefaultFileChange.added("file2.txt", "test", FileType.RegularFile, "file2.txt")
+            ]
+            : [])
+
+        where:
+        strategy     | includeAdded
+        NORMALIZED   | true
+        NORMALIZED   | false
+        IGNORED_PATH | true
+        IGNORED_PATH | false
+        ABSOLUTE     | true
+        ABSOLUTE     | false
+    }
+
+    def "comparing empty fingerprints produces empty (strategy: #strategy, include added: #includeAdded)"() {
+        expect:
+        changes(strategy, includeAdded, new EmptyCurrentFileCollectionFingerprint("test"), new EmptyCurrentFileCollectionFingerprint("test"),).empty
+
+        where:
+        strategy     | includeAdded
+        NORMALIZED   | true
+        NORMALIZED   | false
+        IGNORED_PATH | true
+        IGNORED_PATH | false
+        ABSOLUTE     | true
+        ABSOLUTE     | false
+    }
+
     def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
-        def visitor = new CollectingChangeVisitor()
         def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)))
         def previousFingerprint = new SerializableFileCollectionFingerprint(previous,  ImmutableMultimap.of("some", HashCode.fromInt(4321)))
+        changes(strategy, includeAdded, currentFingerprint, previousFingerprint)
+    }
+
+    def changes(FingerprintCompareStrategy strategy, boolean includeAdded, FileCollectionFingerprint currentFingerprint, FileCollectionFingerprint previousFingerprint) {
+        def visitor = new CollectingChangeVisitor()
         strategy.visitChangesSince(currentFingerprint, previousFingerprint, "test", includeAdded, visitor)
         visitor.getChanges().toList()
     }
