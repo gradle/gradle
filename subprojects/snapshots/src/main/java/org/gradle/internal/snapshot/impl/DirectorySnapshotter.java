@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -45,6 +44,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DirectorySnapshotter {
     private final FileHasher hasher;
@@ -57,7 +57,7 @@ public class DirectorySnapshotter {
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
     }
 
-    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternFilterStrategy.DirectoryWalkerPredicate predicate, final MutableBoolean hasBeenFiltered) {
+    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternFilterStrategy.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
         Path rootPath = Paths.get(absolutePath);
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
 
@@ -141,9 +141,9 @@ public class DirectorySnapshotter {
     private class PathVisitor implements java.nio.file.FileVisitor<Path> {
         private final MerkleDirectorySnapshotBuilder builder;
         private final PatternFilterStrategy.DirectoryWalkerPredicate predicate;
-        private final MutableBoolean hasBeenFiltered;
+        private final AtomicBoolean hasBeenFiltered;
 
-        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable PatternFilterStrategy.DirectoryWalkerPredicate predicate, MutableBoolean hasBeenFiltered) {
+        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable PatternFilterStrategy.DirectoryWalkerPredicate predicate, AtomicBoolean hasBeenFiltered) {
             this.builder = builder;
             this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;

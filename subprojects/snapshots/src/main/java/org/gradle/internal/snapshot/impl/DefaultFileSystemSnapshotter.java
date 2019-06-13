@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -36,6 +35,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
@@ -129,7 +129,7 @@ public class DefaultFileSystemSnapshotter<PATTERN> implements FileSystemSnapshot
     private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable PATTERN patternSet) {
         FileSystemLocationSnapshot fileSystemLocationSnapshot = fileSystemMirror.getSnapshot(absolutePath.asNonInterned());
         if (fileSystemLocationSnapshot == null) {
-            MutableBoolean hasBeenFiltered = new MutableBoolean(false);
+            AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
             fileSystemLocationSnapshot = snapshot(absolutePath.asInterned(), patternSet, file, metadata, hasBeenFiltered);
             if (!hasBeenFiltered.get()) {
                 fileSystemMirror.putSnapshot(fileSystemLocationSnapshot);
@@ -138,7 +138,7 @@ public class DefaultFileSystemSnapshotter<PATTERN> implements FileSystemSnapshot
         return fileSystemLocationSnapshot;
     }
 
-    private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PATTERN patternSet, File file, FileMetadataSnapshot metadata, MutableBoolean hasBeenFiltered) {
+    private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PATTERN patternSet, File file, FileMetadataSnapshot metadata, AtomicBoolean hasBeenFiltered) {
         String name = stringInterner.intern(file.getName());
         switch (metadata.getType()) {
             case Missing:

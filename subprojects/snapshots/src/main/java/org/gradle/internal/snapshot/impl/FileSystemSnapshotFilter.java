@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -25,6 +24,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiPredicate;
 
 public class FileSystemSnapshotFilter {
@@ -34,7 +34,7 @@ public class FileSystemSnapshotFilter {
 
     public static FileSystemSnapshot filterSnapshot(final BiPredicate<FileSystemLocationSnapshot, Iterable<String>> predicate, FileSystemSnapshot unfiltered) {
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
-        final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
+        final AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
         unfiltered.accept(new FileSystemSnapshotVisitor() {
             private final RelativePathSegmentsTracker relativePathTracker = new RelativePathSegmentsTracker();
 

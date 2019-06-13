@@ -37,12 +37,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
-
-    private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
-    private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
-        return ((AttributeContainerInternal) metadata.getAttributes()).asImmutable();
-    }
-
     private final ImmutableAttributesFactory attributesFactory;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleComponentIdentifier componentIdentifier;
@@ -55,6 +49,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final HashValue originalContentHash;
     private final ImmutableAttributes attributes;
     private final ImmutableList<? extends ComponentIdentifier> platformOwners;
+    private final AttributesSchemaInternal schema;
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
@@ -64,6 +59,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
         attributesFactory = metadata.getAttributesFactory();
+        schema = metadata.getAttributesSchema();
         originalContentHash = metadata.getContentHash();
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
@@ -78,6 +74,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
         attributesFactory = metadata.getAttributesFactory();
+        schema = metadata.getAttributesSchema();
         originalContentHash = metadata.getOriginalContentHash();
         attributes = metadata.getAttributes();
         this.variants = variants;
@@ -92,6 +89,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.statusScheme;
         moduleSource = metadata.moduleSource;
         attributesFactory = metadata.attributesFactory;
+        schema = metadata.schema;
         originalContentHash = metadata.originalContentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
@@ -105,11 +103,16 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         missing = metadata.missing;
         statusScheme = metadata.statusScheme;
         attributesFactory = metadata.attributesFactory;
+        schema = metadata.schema;
         originalContentHash = metadata.originalContentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
         platformOwners = metadata.platformOwners;
         moduleSource = source;
+    }
+
+    private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
+        return ((AttributeContainerInternal) metadata.getAttributes()).asImmutable();
     }
 
     @Override
@@ -155,7 +158,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Nullable
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
-        return SCHEMA_DEFAULT_JAVA_VARIANTS;
+        return schema;
     }
 
     @Override

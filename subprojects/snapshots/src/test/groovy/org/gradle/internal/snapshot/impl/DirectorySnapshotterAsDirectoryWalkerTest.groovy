@@ -27,12 +27,12 @@ import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
-import org.gradle.internal.MutableBoolean
 import org.gradle.internal.fingerprint.impl.PatternSetFilterStrategy
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectorySnapshotter> {
@@ -62,7 +62,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         }
 
         when:
-        directorySnapshotter().snapshot(rootDir.absolutePath, patternSetFilterStrategy.getAsDirectoryWalkerPredicate(patternSet), new MutableBoolean())
+        directorySnapshotter().snapshot(rootDir.absolutePath, patternSetFilterStrategy.getAsDirectoryWalkerPredicate(patternSet), new AtomicBoolean())
         then:
         1 * patternSet.getAsSpec() >> assertingSpec
 
@@ -91,7 +91,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
 
     @Override
     protected List<String> walkDirForPaths(DirectorySnapshotter walker, File rootDir, PatternSet patternSet) {
-        def snapshot = walker.snapshot(rootDir.absolutePath, patternSetFilterStrategy.getAsDirectoryWalkerPredicate(patternSet), new MutableBoolean())
+        def snapshot = walker.snapshot(rootDir.absolutePath, patternSetFilterStrategy.getAsDirectoryWalkerPredicate(patternSet), new AtomicBoolean())
         def visited = []
         snapshot.accept(new FileSystemSnapshotVisitor() {
             private boolean root = true

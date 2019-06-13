@@ -16,10 +16,8 @@
 
 package org.gradle.language.swift
 
-
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
@@ -35,7 +33,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     @Override
-    protected SourceElement getComponentUnderTest() {
+    protected SwiftApp getComponentUnderTest() {
         return new SwiftApp()
     }
 
@@ -49,6 +47,13 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     @Override
     String getDevelopmentBinaryCompileTask() {
         return ':compileDebugSwift'
+    }
+
+    @Override
+    void assertComponentUnderTestWasBuilt() {
+        executable("build/exe/main/debug/${componentUnderTest.moduleName}").assertExists()
+        file("build/modules/main/debug/${componentUnderTest.moduleName}.swiftmodule").assertIsFile()
+        installation("build/install/main/debug").exec().out == componentUnderTest.expectedOutput
     }
 
     @Override
@@ -127,26 +132,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         result.assertTasksNotSkipped(":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
-    }
-
-    def "sources are compiled and linked with Swift tools"() {
-        given:
-        def app = new SwiftApp()
-        settingsFile << "rootProject.name = '${app.projectName}'"
-        app.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            apply plugin: 'swift-application'
-         """
-
-        expect:
-        succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-
-        executable("build/exe/main/debug/App").assertExists()
-        file("build/modules/main/debug/App.swiftmodule").assertIsFile()
-        installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
     def "can build debug and release variant of the executable"() {

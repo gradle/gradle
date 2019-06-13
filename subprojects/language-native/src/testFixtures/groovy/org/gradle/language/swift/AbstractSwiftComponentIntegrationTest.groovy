@@ -25,6 +25,18 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
+    def "sources are built with Swift tools"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+        settingsFile << "rootProject.name = '${componentUnderTest.projectName}'"
+
+        expect:
+        succeeds taskNameToAssembleDevelopmentBinary
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        assertComponentUnderTestWasBuilt()
+    }
+
     def "binaries have the right Swift version"() {
         given:
         makeSingleProject()
@@ -387,4 +399,6 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     abstract List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
 
     abstract String getComponentName()
+
+    abstract void assertComponentUnderTestWasBuilt()
 }

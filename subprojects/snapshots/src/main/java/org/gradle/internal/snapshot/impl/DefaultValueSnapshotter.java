@@ -18,17 +18,15 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.Cast;
-import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.state.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.isolation.IsolationException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.snapshot.ValueSnapshottingException;
+import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -50,19 +48,20 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
     }
 
     @Override
-    public ValueSnapshot snapshot(@Nullable Object value) throws UncheckedIOException {
+    public ValueSnapshot snapshot(@Nullable Object value) throws ValueSnapshottingException {
         return processValue(value, valueSnapshotValueVisitor);
     }
 
     @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshot candidate) {
+    public ValueSnapshot snapshot(Object value, ValueSnapshot candidate) throws ValueSnapshottingException {
         return candidate.snapshot(value, this);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Isolatable<T> isolate(@Nullable T value) {
         try {
-            return Cast.uncheckedCast(processValue(value, isolatableValueVisitor));
+            return (Isolatable<T>) processValue(value, isolatableValueVisitor);
         } catch (Throwable t) {
             throw new IsolationException(value, t);
         }
@@ -120,9 +119,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
         if (value instanceof Map) {
             Map<?, ?> map = (Map<?, ?>) value;
-            ImmutableList.Builder<Pair<T, T>> builder = ImmutableList.builderWithExpectedSize(map.size());
+            ImmutableList.Builder<MapEntrySnapshot<T>> builder = ImmutableList.builderWithExpectedSize(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                builder.add(Pair.of(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
+                builder.add(new MapEntrySnapshot<T>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
             }
             return visitor.map(builder.build());
         }
@@ -167,7 +166,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
             objectStr.writeObject(value);
             objectStr.flush();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new ValueSnapshottingException(String.format("Could not serialize value of type '%s'", value.getClass().getName()), e);
         }
 
         return visitor.serialized(value, outputStream.toByteArray());
@@ -210,7 +209,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         T set(ImmutableSet<T> elements);
 
-        T map(ImmutableList<Pair<T, T>> elements);
+        T map(ImmutableList<MapEntrySnapshot<T>> elements);
 
         T serialized(Object value, byte[] serializedValue);
     }
@@ -318,7 +317,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public ValueSnapshot map(ImmutableList<Pair<ValueSnapshot, ValueSnapshot>> elements) {
+        public ValueSnapshot map(ImmutableList<MapEntrySnapshot<ValueSnapshot>> elements) {
             return new MapValueSnapshot(elements);
         }
     }
@@ -426,7 +425,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public Isolatable<?> map(ImmutableList<Pair<Isolatable<?>, Isolatable<?>>> elements) {
+        public Isolatable<?> map(ImmutableList<MapEntrySnapshot<Isolatable<?>>> elements) {
             return new IsolatedMap(elements);
         }
     }

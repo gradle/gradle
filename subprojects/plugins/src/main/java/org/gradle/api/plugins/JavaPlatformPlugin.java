@@ -87,10 +87,12 @@ public class JavaPlatformPlugin implements Plugin<Project> {
             "Found dependencies in the '%s' configuration.";
 
     private final SoftwareComponentFactory softwareComponentFactory;
+    private final PlatformSupport platformSupport;
 
     @Inject
-    public JavaPlatformPlugin(SoftwareComponentFactory softwareComponentFactory) {
+    public JavaPlatformPlugin(SoftwareComponentFactory softwareComponentFactory, PlatformSupport platformSupport) {
         this.softwareComponentFactory = softwareComponentFactory;
+        this.platformSupport = platformSupport;
     }
 
     @Override
@@ -105,16 +107,10 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         configureExtension(project);
         addPlatformDisambiguationRule(project);
         JavaEcosystemSupport.configureSchema(project.getDependencies().getAttributesSchema(), project.getObjects());
-
-
     }
 
     private void addPlatformDisambiguationRule(Project project) {
-        project.getDependencies()
-                .getAttributesSchema()
-                .getMatchingStrategy(Category.CATEGORY_ATTRIBUTE)
-                .getDisambiguationRules()
-                .add(PlatformSupport.PreferRegularPlatform.class);
+        platformSupport.addDisambiguationRule(project.getDependencies().getAttributesSchema());
     }
 
     private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {

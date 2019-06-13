@@ -19,35 +19,19 @@ package org.gradle.instantexecution.serialization
 import kotlin.reflect.KClass
 
 
-enum class PropertyKind {
-    Field {
-        override fun toString() = "field"
-    },
-    InputProperty {
-        override fun toString() = "input property"
-    },
-    OutputProperty {
-        override fun toString() = "output property"
-    }
+fun IsolateContext.logPropertyWarning(action: String, message: String) {
+    logger.warn("instant-execution > failed to {} {} because {}", action, trace, message)
 }
 
 
-fun IsolateContext.logPropertyWarning(action: String, kind: PropertyKind, type: Class<*>, fieldName: String, message: String) {
-    logger.warn(
-        "instant-execution > task '{}' {} '{}.{}' cannot be {}d because {}.",
-        isolate.owner.path, kind, type.name, fieldName, action, message
-    )
-}
-
-
-fun IsolateContext.logProperty(action: String, kind: PropertyKind, type: Class<*>, name: String, value: Any?) {
-    logger.info(
-        "instant-execution > task '{}' {} '{}.{}' {}d value {}",
-        isolate.owner.path, kind, type.name, name, action, value
-    )
+fun IsolateContext.logProperty(action: String, value: Any?) {
+    logger.info("instant-execution > {}d {} with value {}", action, trace, value)
 }
 
 
 fun IsolateContext.logUnsupported(type: KClass<*>) {
-    logger.warn("instant-execution > Cannot serialize object of type ${type.java.name} as these are not supported with instant execution.")
+    logger.warn(
+        "instant-execution > cannot serialize object of type {} as these are not supported with instant execution.",
+        type.qualifiedName
+    )
 }

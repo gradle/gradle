@@ -27,18 +27,24 @@ import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.instantexecution.ClassicModeBuild
+import org.gradle.instantexecution.serialization.IsolateContext
+import org.gradle.instantexecution.serialization.MutableIsolateContext
+import org.gradle.instantexecution.serialization.beans.writeNextProperty
+import org.gradle.instantexecution.serialization.beans.writingProperties
 import org.gradle.instantexecution.serialization.MutableReadContext
 import org.gradle.instantexecution.serialization.MutableWriteContext
 import org.gradle.instantexecution.serialization.PropertyKind
+import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
+import org.gradle.instantexecution.serialization.beans.readEachProperty
 import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readStrings
 import org.gradle.instantexecution.serialization.withIsolate
+import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeClass
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeEnum
@@ -88,7 +94,7 @@ class TaskGraphCodec {
         writeString(task.name)
         writeStrings(dependencies.map { it.path })
 
-        withIsolate(task) {
+        withTaskOf(taskType, task) {
             beanPropertyWriterFor(taskType).run {
                 writeFieldsOf(task)
                 writeRegisteredPropertiesOf(task, this)
@@ -105,14 +111,28 @@ class TaskGraphCodec {
 
         val task = createTask(projectPath, taskName, taskType)
 
-        withIsolate(task) {
+        withTaskOf(taskType, task) {
             beanPropertyReaderFor(taskType).run {
                 readFieldsOf(task)
-                readRegisteredPropertiesOf(task, this)
+                readRegisteredPropertiesOf(task)
             }
         }
 
         return task to taskDependencies
+    }
+}
+
+
+private
+inline fun <T> T.withTaskOf(
+    taskType: Class<*>,
+    task: Task,
+    action: () -> Unit
+) where T : IsolateContext, T : MutableIsolateContext {
+    withIsolate(task) {
+        withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
+            action()
+        }
     }
 }
 
@@ -191,16 +211,15 @@ fun WriteContext.writeRegisteredPropertiesOf(
 
 
 private
-fun ReadContext.readRegisteredPropertiesOf(task: Task, propertyReader: BeanPropertyReader) {
-    readInputPropertiesOf(task, propertyReader)
-    readOutputPropertiesOf(task, propertyReader)
+fun ReadContext.readRegisteredPropertiesOf(task: Task) {
+    readInputPropertiesOf(task)
+    readOutputPropertiesOf(task)
 }
 
 
 private
-fun ReadContext.readInputPropertiesOf(task: Task, propertyReader: BeanPropertyReader) = propertyReader.run {
-    while (true) {
-        val (propertyName, propertyValue) = readNextProperty(PropertyKind.InputProperty) ?: break
+fun ReadContext.readInputPropertiesOf(task: Task) =
+    readEachProperty(PropertyKind.InputProperty) { propertyName, propertyValue ->
         val optional = readBoolean()
         val isFileInputProperty = readBoolean()
         require(propertyValue != null)
@@ -230,13 +249,11 @@ fun ReadContext.readInputPropertiesOf(task: Task, propertyReader: BeanPropertyRe
             }
         }
     }
-}
 
 
 private
-fun ReadContext.readOutputPropertiesOf(task: Task, propertyReader: BeanPropertyReader) = propertyReader.run {
-    while (true) {
-        val (propertyName, propertyValue) = readNextProperty(PropertyKind.OutputProperty) ?: break
+fun ReadContext.readOutputPropertiesOf(task: Task) =
+    readEachProperty(PropertyKind.OutputProperty) { propertyName, propertyValue ->
         val optional = readBoolean()
         val filePropertyType = readEnum<OutputFilePropertyType>()
         require(propertyValue != null)
@@ -252,7 +269,6 @@ fun ReadContext.readOutputPropertiesOf(task: Task, propertyReader: BeanPropertyR
             optional(optional)
         }
     }
-}
 
 
 private

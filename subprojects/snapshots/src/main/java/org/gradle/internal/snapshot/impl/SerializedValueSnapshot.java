@@ -17,12 +17,12 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.base.Objects;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.snapshot.ValueSnapshottingException;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
@@ -105,7 +105,7 @@ public class SerializedValueSnapshot implements ValueSnapshot {
         try {
             populated = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), originalClass.getClassLoader()).readObject();
         } catch (Exception e) {
-            throw new UncheckedIOException(e);
+            throw new ValueSnapshottingException("Couldn't populate class " + originalClass.getName(), e);
         }
         return populated;
     }

@@ -72,6 +72,50 @@ interface IsolateContext {
     val logger: Logger
 
     val isolate: Isolate
+
+    var trace: PropertyTrace
+}
+
+
+sealed class PropertyTrace {
+
+    object Unknown : PropertyTrace()
+
+    class Task(
+        val type: Class<*>,
+        val path: String
+    ) : PropertyTrace()
+
+    class Bean(
+        val type: Class<*>,
+        val trace: PropertyTrace
+    ) : PropertyTrace()
+
+    class Property(
+        val kind: PropertyKind,
+        val name: String,
+        val trace: PropertyTrace
+    ) : PropertyTrace()
+
+    override fun toString(): String = when (this) {
+        is Property -> "$kind `$name` of $trace"
+        is Bean -> "`${type.name}` bean found in $trace"
+        is Task -> "task `$path` of type `${type.name}`"
+        is Unknown -> "unknown property"
+    }
+}
+
+
+enum class PropertyKind {
+    Field {
+        override fun toString() = "field"
+    },
+    InputProperty {
+        override fun toString() = "input property"
+    },
+    OutputProperty {
+        override fun toString() = "output property"
+    }
 }
 
 
@@ -109,6 +153,18 @@ inline fun <T : MutableIsolateContext> T.withIsolate(owner: Task, block: T.() ->
         block()
     } finally {
         leaveIsolate()
+    }
+}
+
+
+internal
+inline fun <T : IsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, block: T.() -> R): R {
+    val previousTrace = this.trace
+    this.trace = trace
+    try {
+        return block()
+    } finally {
+        this.trace = previousTrace
     }
 }
 

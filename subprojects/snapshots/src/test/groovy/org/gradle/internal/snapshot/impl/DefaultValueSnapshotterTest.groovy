@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Named
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultPropertyState
@@ -580,7 +579,7 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "creates snapshot for named managed type"() {
-        def instantiator = NamedObjectInstantiator.INSTANCE
+        def instantiator = TestUtil.objectInstantiator()
         def value = instantiator.named(Thing, "value1")
         def value1 = instantiator.named(Thing, "value1")
         def value2 = instantiator.named(Thing, "value2")
@@ -596,7 +595,7 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "creates isolated named managed type"() {
-        def instantiator = NamedObjectInstantiator.INSTANCE
+        def instantiator = TestUtil.objectInstantiator()
         def value = instantiator.named(Thing, "value1")
 
         expect:
@@ -606,7 +605,7 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "can coerce named managed type"() {
-        def instantiator = NamedObjectInstantiator.INSTANCE
+        def instantiator = TestUtil.objectInstantiator()
         def value = instantiator.named(Thing, "value1")
 
         def spec = new FilteringClassLoader.Spec()
@@ -633,7 +632,7 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "creates snapshot for isolated named managed type"() {
-        def instantiator = NamedObjectInstantiator.INSTANCE
+        def instantiator = TestUtil.objectInstantiator()
         def value = instantiator.named(Thing, "value1")
         def other = instantiator.named(Thing, "other")
 
@@ -1015,7 +1014,7 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "creates snapshot for named managed type from candidate"() {
-        def instantiator = NamedObjectInstantiator.INSTANCE
+        def instantiator = TestUtil.objectInstantiator()
         def value = instantiator.named(Thing, "value")
         def value1 = instantiator.named(Thing, "value")
         def value2 = instantiator.named(Thing, "value2")

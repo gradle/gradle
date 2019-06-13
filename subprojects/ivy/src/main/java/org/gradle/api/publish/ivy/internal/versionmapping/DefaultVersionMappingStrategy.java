@@ -33,6 +33,7 @@ import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrat
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 
+import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     private final Map<ImmutableAttributes, String> defaultConfigurations = Maps.newHashMap();
     private final Multimap<ImmutableAttributes, Action<? super VariantVersionMappingStrategy>> attributeBasedMappings = ArrayListMultimap.create();
 
+    @Inject
     public DefaultVersionMappingStrategy(ObjectFactory objectFactory,
                                          ConfigurationContainer configurations,
                                          AttributesSchemaInternal schema,

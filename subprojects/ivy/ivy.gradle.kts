@@ -67,6 +67,7 @@ testFixtures {
     from(":core")
     from(":modelCore")
     from(":platformBase")
+    from(":dependencyManagement")
 }
 
 testFilesCleanup {

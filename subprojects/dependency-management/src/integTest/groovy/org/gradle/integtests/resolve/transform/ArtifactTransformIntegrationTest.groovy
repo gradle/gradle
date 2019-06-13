@@ -1921,7 +1921,7 @@ Found the following transforms:
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("Cannot register artifact transform Custom with parameters [<custom>]")
-        failure.assertHasCause("java.io.NotSerializableException: CustomType")
+        failure.assertHasCause("Could not serialize value of type 'CustomType'")
     }
 
     @Unroll
@@ -1992,7 +1992,7 @@ Found the following transforms:
             failure.assertHasDescription("Execution failed for task ':resolve'.")
             failure.assertThatCause(matchesCannotIsolate)
         }
-        failure.assertHasCause("java.io.NotSerializableException: CustomType")
+        failure.assertHasCause("Could not serialize value of type 'CustomType'")
 
         where:
         scheduled | dependency

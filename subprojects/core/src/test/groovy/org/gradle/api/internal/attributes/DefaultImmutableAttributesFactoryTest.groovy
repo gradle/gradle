@@ -17,8 +17,8 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.util.SnapshotTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultImmutableAttributesFactoryTest extends Specification {
@@ -28,7 +28,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     private static final Attribute<String> BAZ = Attribute.of("baz", String)
 
     def snapshotter = SnapshotTestUtil.valueSnapshotter()
-    def instantiator = NamedObjectInstantiator.INSTANCE
+    def instantiator = TestUtil.objectInstantiator()
 
     def factory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
 

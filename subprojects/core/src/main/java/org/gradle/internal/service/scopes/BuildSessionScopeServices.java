@@ -219,8 +219,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
     }
 
-    DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
-        return new DefaultImmutableAttributesFactory(isolatableFactory, NamedObjectInstantiator.INSTANCE);
+    DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
+        return new DefaultImmutableAttributesFactory(isolatableFactory, instantiator);
     }
 
     AsyncWorkTracker createAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry) {

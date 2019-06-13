@@ -88,6 +88,7 @@ import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
@@ -142,6 +143,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
+    private final PlatformSupport platformSupport;
     private MavenArtifact pomArtifact;
     private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
@@ -152,16 +154,19 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
 
+    @Inject
     public DefaultMavenPublication(
             String name, MutableMavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
             ObjectFactory objectFactory, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
             FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory,
-            CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy) {
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy,
+            PlatformSupport platformSupport) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = projectIdentity;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
+        this.platformSupport = platformSupport;
         this.mainArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
@@ -282,7 +287,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext);
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 if (seenDependencies.add(dependency.getGroup() + ":" + dependency.getName())) {
-                    if (PlatformSupport.isTargettingPlatform(dependency)) {
+                    if (platformSupport.isTargettingPlatform(dependency)) {
                         if (dependency instanceof ProjectDependency) {
                             addImportDependencyConstraint((ProjectDependency) dependency);
                         } else {

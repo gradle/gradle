@@ -73,6 +73,7 @@ gradlebuildJava {
 testFixtures {
     from(":core")
     from(":modelCore")
+    from(":dependencyManagement")
 }
 
 testFilesCleanup {

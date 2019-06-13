@@ -55,5 +55,26 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
    Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(compileClasspath)]""")
     }
 
+    def 'fails to resolve undeclared test fixture'() {
+        buildFile << """
+            apply plugin: 'java-library'
+            
+            dependencies {
+                implementation(testFixtures(project(':')))
+            }
+            
+            task resolve {
+                doLast {
+                    println configurations.compileClasspath.incoming.files.files
+                }
+            }
+"""
+
+        when:
+        succeeds 'dependencyInsight', '--configuration', 'compileClasspath', '--dependency', ':'
+
+        then:
+        outputContains("Could not resolve project :.")
+    }
 }
 

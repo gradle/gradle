@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * The possible component selection causes. There are a limited number of causes, but each of them
@@ -23,6 +24,7 @@ import org.gradle.api.Incubating;
  *
  * @since 4.6
  */
+@UsedByScanPlugin
 @Incubating
 public enum ComponentSelectionCause {
     /**

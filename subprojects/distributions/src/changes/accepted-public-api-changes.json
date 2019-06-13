@@ -49,6 +49,12 @@
             "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getDuplicatePublicationTracker()",
             "acceptation": "Injected service",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaLibraryPlugin",
+            "member": "Constructor org.gradle.api.plugins.JavaLibraryPlugin()",
+            "acceptation": "Removed old injecting constructor",
+            "changes": []
         }
     ]
 }

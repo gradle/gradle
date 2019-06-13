@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.MutableComponentVariant
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
@@ -29,6 +28,7 @@ import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -117,7 +117,7 @@ class GradleModuleMetadataParserTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def parser = new GradleModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
+    def parser = new GradleModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory, TestUtil.objectInstantiator())
 
     VersionConstraint emptyConstraint() {
         DefaultImmutableVersionConstraint.of()

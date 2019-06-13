@@ -22,6 +22,8 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.resources.ResourceLock;
@@ -57,8 +59,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final AsyncWorkTracker asyncWorkTracker;
     private final WorkerDirectoryProvider workerDirectoryProvider;
     private final ClassLoaderStructureProvider classLoaderStructureProvider;
+    private final IsolatableFactory isolatableFactory;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider, IsolatableFactory isolatableFactory) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -69,6 +72,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.asyncWorkTracker = asyncWorkTracker;
         this.workerDirectoryProvider = workerDirectoryProvider;
         this.classLoaderStructureProvider = classLoaderStructureProvider;
+        this.isolatableFactory = isolatableFactory;
     }
 
     @Override
@@ -87,7 +91,12 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         ActionExecutionSpec spec;
         DaemonForkOptions forkOptions = getDaemonForkOptions(actionClass, configuration);
         try {
-            spec = new SerializedParametersActionExecutionSpec(actionClass, description, configuration.getParams(), forkOptions.getClassLoaderStructure());
+            // TODO: Use the isolation framework for all isolation modes
+            if (configuration.getIsolationMode() == IsolationMode.NONE) {
+                spec = new IsolatedParametersActionExecutionSpec(actionClass, description, getIsolatedParams(configuration.getParams()));
+            } else {
+                spec = new SerializedParametersActionExecutionSpec(actionClass, description, configuration.getParams(), forkOptions.getClassLoaderStructure());
+            }
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
@@ -112,6 +121,14 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         });
         executionQueue.submit(execution);
         asyncWorkTracker.registerWork(currentBuildOperation, execution);
+    }
+
+    private Isolatable<?>[] getIsolatedParams(Object[] params) {
+        Isolatable<?>[] isolatedParams = new Isolatable<?>[params.length];
+        for (int i=0; i<params.length; i++) {
+            isolatedParams[i] = isolatableFactory.isolate(params[i]);
+        }
+        return isolatedParams;
     }
 
     private WorkerLease getCurrentWorkerLease() {
@@ -165,13 +182,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     DaemonForkOptions getDaemonForkOptions(Class<?> actionClass, WorkerConfiguration configuration) {
         validateWorkerConfiguration(configuration);
-        Iterable<Class<?>> paramTypes = CollectionUtils.collect(configuration.getParams(), new Transformer<Class<?>, Object>() {
-            @Override
-            public Class<?> transform(Object o) {
-                return o.getClass();
-            }
-        });
-        return toDaemonOptions(actionClass, paramTypes, configuration.getForkOptions(), configuration.getClasspath(), configuration.getIsolationMode());
+        return toDaemonOptions(actionClass, configuration.getParams(), configuration.getForkOptions(), configuration.getClasspath(), configuration.getIsolationMode());
     }
 
     private void validateWorkerConfiguration(WorkerConfiguration configuration) {
@@ -208,7 +219,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
-    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> classpath, IsolationMode isolationMode) {
+    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Object[] params, JavaForkOptions userForkOptions, Iterable<File> classpath, IsolationMode isolationMode) {
         JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         userForkOptions.copyTo(forkOptions);
         forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
@@ -226,7 +237,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
             addVisibilityFor(actionClass, classpathBuilder);
 
-            for (Class<?> paramClass : paramClasses) {
+            for (Class<?> paramClass : getParamClasses(params)) {
                 addVisibilityFor(paramClass, classpathBuilder);
             }
 
@@ -240,7 +251,16 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
 
         return builder.build();
-}
+    }
+
+    private Iterable<Class<?>> getParamClasses(Object[] params) {
+        return CollectionUtils.collect(params, new Transformer<Class<?>, Object>() {
+            @Override
+            public Class<?> transform(Object o) {
+                return o.getClass();
+            }
+        });
+    }
 
     private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder) {
         if (visibleClass.getClassLoader() != null) {
