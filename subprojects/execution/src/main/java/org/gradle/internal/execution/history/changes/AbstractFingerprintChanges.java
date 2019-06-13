@@ -58,7 +58,7 @@ public abstract class AbstractFingerprintChanges implements ChangeContainer {
             public boolean updated(String property, FileCollectionFingerprint previousFingerprint, CurrentFileCollectionFingerprint currentFingerprint) {
                 String propertyTitle = title + " property '" + property + "'";
                 FingerprintCompareStrategy compareStrategy = determineCompareStrategy(currentFingerprint);
-                return compareStrategy.visitChangesSince(visitor, currentFingerprint, previousFingerprint, propertyTitle, includeAdded);
+                return compareStrategy.visitChangesSince(currentFingerprint, previousFingerprint, propertyTitle, includeAdded, visitor);
             }
         });
     }

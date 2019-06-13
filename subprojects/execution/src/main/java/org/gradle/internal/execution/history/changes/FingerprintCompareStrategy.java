@@ -32,12 +32,12 @@ public interface FingerprintCompareStrategy {
      *
      * @return Whether the {@link ChangeVisitor} is looking for further changes. See {@link ChangeVisitor#visitChange(Change)}.
      */
-    boolean visitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
+    boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor);
 
     /**
      * Visits the changes to file contents since the given fingerprint, subject to the given filters.
      *
      * @return Whether the {@link ChangeVisitor} is looking for further changes. See {@link ChangeVisitor#visitChange(Change)}.
      */
-    boolean visitChangesSince(ChangeVisitor visitor, FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, boolean includeAdded);
+    boolean visitChangesSince(FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor);
 }

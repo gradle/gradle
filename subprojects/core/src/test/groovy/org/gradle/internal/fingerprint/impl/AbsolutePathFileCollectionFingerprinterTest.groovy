@@ -113,7 +113,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         file2.createFile()
         def target = fingerprinter.fingerprint(files(file1, file2, file3, file4))
         def visitor = new CollectingChangeVisitor()
-        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(visitor, target, fingerprint, "TYPE", false)
+        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(target, fingerprint, "TYPE", false, visitor)
         visitor.changes.empty
 
         then:
@@ -284,7 +284,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     }
 
     private static void changes(FileCollectionFingerprint newFingerprint, FileCollectionFingerprint oldFingerprint, ChangeListener<String> listener) {
-        newFingerprint.visitChangesSince(oldFingerprint, "TYPE", true) { DefaultFileChange change ->
+        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(newFingerprint, oldFingerprint, "TYPE", true) { DefaultFileChange change ->
             switch (change.type) {
                 case ChangeTypeInternal.ADDED:
                     listener.added(change.path)

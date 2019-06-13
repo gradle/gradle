@@ -234,7 +234,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
     def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingChangeVisitor()
-        strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
+        strategy.visitChangesSince(current, previous, "test", includeAdded, visitor)
         visitor.getChanges().toList()
     }
 

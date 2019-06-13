@@ -61,7 +61,7 @@ class EmptyCurrentFileCollectionFingerprintTest extends Specification {
 
     private static Collection<Change> getChanges(FileCollectionFingerprint previous, CurrentFileCollectionFingerprint current, boolean includeAdded) {
         def visitor = new CollectingChangeVisitor()
-        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(visitor, current, previous, "test", includeAdded)
+        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(current, previous, "test", includeAdded, visitor)
         visitor.changes
     }
 }

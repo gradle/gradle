@@ -38,6 +38,6 @@ public class DefaultInputFileChanges extends AbstractFingerprintChanges implemen
         CurrentFileCollectionFingerprint currentFileCollectionFingerprint = current.get(propertyName);
         FileCollectionFingerprint previousFileCollectionFingerprint = previous.get(propertyName);
         FingerprintCompareStrategy compareStrategy = determineCompareStrategy(currentFileCollectionFingerprint);
-        return compareStrategy.visitChangesSince(visitor, currentFileCollectionFingerprint, previousFileCollectionFingerprint, TITLE, true);
+        return compareStrategy.visitChangesSince(currentFileCollectionFingerprint, previousFileCollectionFingerprint, TITLE, true, visitor);
     }
 }

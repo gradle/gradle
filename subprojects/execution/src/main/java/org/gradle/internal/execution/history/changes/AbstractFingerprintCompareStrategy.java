@@ -28,11 +28,11 @@ import java.util.Map;
 public abstract class AbstractFingerprintCompareStrategy implements FingerprintCompareStrategy {
 
     @Override
-    public boolean visitChangesSince(ChangeVisitor visitor, FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, boolean includeAdded) {
+    public boolean visitChangesSince(FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor) {
         if (hasSameRootHashes(current, previous)) {
             return true;
         }
-        return visitChangesSince(visitor, current.getFingerprints(), previous.getFingerprints(), propertyTitle, includeAdded);
+        return visitChangesSince(current.getFingerprints(), previous.getFingerprints(), propertyTitle, includeAdded, visitor);
     }
 
     private boolean hasSameRootHashes(FileCollectionFingerprint current, FileCollectionFingerprint previous) {
@@ -40,7 +40,7 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
     }
 
     @Override
-    public boolean visitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    public boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
         Boolean trivialResult = compareTrivialFingerprints(visitor, current, previous, propertyTitle, includeAdded);
         if (trivialResult != null) {
