@@ -270,40 +270,6 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         }
     }
 
-    def "can consume test fixtures of subproject written in Groovy"() {
-        settingsFile << """
-            include 'sub'
-        """
-        file("sub/build.gradle") << """
-            apply plugin: 'java-test-fixtures'
-            apply plugin: 'groovy'
-            
-            dependencies {
-               api(localGroovy())
-               testFixturesApi(localGroovy())
-            }
-        """
-        buildFile << """
-            dependencies {
-                testImplementation(testFixtures(project(":sub")))
-            }           
-        """
-        addPersonDomainClass("sub", "groovy")
-        addPersonTestFixture("sub", "groovy")
-        // the test will live in the current project, instead of "sub"
-        // which demonstrates that the test fixtures are exposed
-        addPersonTestUsingTestFixtures()
-
-        when:
-        succeeds ':compileTestJava'
-
-        then:
-        executedAndNotSkipped(
-            ":sub:compileTestFixturesGroovy"
-        )
-    }
-
-
     def "can consume test fixtures of an external module"() {
         mavenRepo.module("com.acme", "external-module", "1.3")
             .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api-jars']) {
