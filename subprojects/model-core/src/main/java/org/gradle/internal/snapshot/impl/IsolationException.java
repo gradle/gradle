@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.isolation;
+package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.exceptions.Contextual;
 

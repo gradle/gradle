@@ -44,6 +44,8 @@ dependencies {
 
     testImplementation(project(":processServices"))
     testImplementation(project(":files"))
+    testImplementation(project(":native"))
+    testImplementation(project(":resources"))
 
     integTestImplementation(project(":platformBase"))
     
