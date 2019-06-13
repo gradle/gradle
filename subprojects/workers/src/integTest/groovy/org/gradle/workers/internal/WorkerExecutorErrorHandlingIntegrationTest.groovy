@@ -167,7 +167,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         then:
         failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
         failureHasCause("Could not isolate value")
-        failureHasCause("java.io.IOException: Broken")
+        failureHasCause("Could not serialize value of type 'org.gradle.other.FooWithUnserializableBar'")
 
         and:
         executedAndNotSkipped(":runAgainInWorker")
