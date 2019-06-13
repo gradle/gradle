@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class FlatClassLoaderWorker extends AbstractClassLoaderWorker {
@@ -29,11 +28,6 @@ public class FlatClassLoaderWorker extends AbstractClassLoaderWorker {
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
-        try {
-            return executeInClassLoader(spec, workerClassLoader);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return executeInClassLoader(spec, workerClassLoader);
     }
-
 }

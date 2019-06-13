@@ -20,7 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
@@ -36,7 +39,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DisabledOsMemoryInfo;
@@ -97,12 +99,9 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         // Read server address and start connecting
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
         NativeServices.initialize(gradleUserHomeDir, false);
-        MessagingServices messagingServices = new MessagingServices();
-        ServiceRegistry basicWorkerServices = ServiceRegistryBuilder.builder()
-                .parent(NativeServices.getInstance())
-                .parent(loggingServiceRegistry)
-                .parent(messagingServices)
-                .build();
+        DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry(NativeServices.getInstance(), loggingServiceRegistry);
+        basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
+        basicWorkerServices.addProvider(new MessagingServices());
         final WorkerServices workerServices = new WorkerServices(basicWorkerServices, gradleUserHomeDir);
 
         ObjectConnection connection = null;
@@ -121,7 +120,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
 
-            connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+            connection = basicWorkerServices.get(MessagingClient.class).getConnection(serverAddress);
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
             workerLogEventListener = configureLogging(loggingManager, connection);
             // start logging now that the logging manager is connected
@@ -151,18 +150,14 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             if (workerLogEventListener != null) {
                 loggingManager.removeOutputEventListener(workerLogEventListener);
             }
-            if (connection != null) {
-                connection.stop();
-            }
-            unrecoverableErrorHandler.close();
-            messagingServices.close();
+            CompositeStoppable.stoppable(connection, unrecoverableErrorHandler, basicWorkerServices).stop();
             loggingManager.stop();
         }
 
         return null;
     }
 
-    private class PrintUnrecoverableErrorToFileHandler implements Action<Throwable> {
+    private class PrintUnrecoverableErrorToFileHandler implements Action<Throwable>, Stoppable {
         private final File workerDirectory;
         private PrintStream ps;
 
@@ -186,7 +181,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             }
         }
 
-        private void close() {
+        @Override
+        public void stop() {
             if (ps != null) {
                 ps.close();
             }
@@ -252,10 +248,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
-        }
-
-        WorkerServices createWorkerServices() {
-            return this;
         }
     }
 }
