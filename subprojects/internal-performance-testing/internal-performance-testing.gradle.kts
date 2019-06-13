@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import accessors.java
+import accessors.javaScript
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import accessors.*
 
 plugins {
     `java-library`
@@ -42,6 +43,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":buildOption"))
     implementation(project(":files"))
+    implementation(project(":snapshots"))
     implementation(project(":resources"))
     implementation(project(":persistentCache"))
     implementation(project(":jvmServices"))

@@ -27,7 +27,6 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":messaging"))
     implementation(project(":coreApi"))
-    implementation(project(":files"))
     implementation(project(":persistentCache"))
     implementation(project(":modelCore"))
     

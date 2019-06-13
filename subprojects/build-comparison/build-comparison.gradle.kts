@@ -52,6 +52,7 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":processServices"))
     testImplementation(project(":files"))
+    testImplementation(project(":snapshots"))
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":dependencyManagement"))
     testImplementation(testLibrary("jsoup"))

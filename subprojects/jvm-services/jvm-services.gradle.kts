@@ -15,6 +15,7 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":coreApi"))
     testImplementation(project(":files"))
+    testImplementation(project(":snapshots"))
     testImplementation(project(":resources"))
     testImplementation(library("slf4j_api"))
 }

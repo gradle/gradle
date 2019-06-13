@@ -33,6 +33,7 @@ dependencies {
 
     testImplementation(project(":modelCore"))
     testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
     testImplementation(project(":baseServicesGroovy")) // for 'Specs'
 
     integTestRuntimeOnly(project(":languageNative")) // for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'

@@ -40,6 +40,7 @@ dependencies {
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
     
     testFixturesImplementation(project(":internalTesting"))
 }
