@@ -42,7 +42,13 @@ class RelevantMethodsBuilder {
     }
 
     void add(Iterator<Method> iterator, List<Method> builder, Method method) {
-        if (seen.add(method.getName())) {
+        StringBuilder signature = new StringBuilder();
+        signature.append(method.getName());
+        for (Class<?> parameterType : method.getParameterTypes()) {
+            signature.append(",");
+            signature.append(parameterType.getName());
+        }
+        if (seen.add(signature.toString())) {
             builder.add(method);
         }
         iterator.remove();
