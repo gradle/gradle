@@ -20,7 +20,6 @@ import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.MixInLegacyTypesClassLoader;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -53,8 +52,6 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
 
         try {
             return executeInClassLoader(spec, workerClassLoader);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             workerClasspathGroovy.shutdown();
             // TODO: we should just cache these classloaders and eject/stop them when they are no longer in use
