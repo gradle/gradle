@@ -22,7 +22,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -45,14 +44,7 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
  * Shared services for a tooling API provider connection.
  */
 public class ConnectionScopeServices {
-    private final LoggingServiceRegistry loggingServices;
-
-    public ConnectionScopeServices(LoggingServiceRegistry loggingServices) {
-        this.loggingServices = loggingServices;
-    }
-
     void configure(ServiceRegistration serviceRegistration) {
-        serviceRegistration.add(LoggingServiceRegistry.class, loggingServices);
         serviceRegistration.addProvider(new GlobalScopeServices(true));
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
@@ -76,7 +68,6 @@ public class ConnectionScopeServices {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
                 serviceRegistry,
-                loggingServices,
                 buildLayoutFactory,
                 daemonClientFactory,
                 buildActionExecuter,
