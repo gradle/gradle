@@ -34,6 +34,21 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+<a name="test-fixtures"/>
+
+## Test fixtures for Java projects
+
+Gradle 5.6 introduces a new [Java test fixtures plugin](userguide/java_testing.html#sec:java_test_fixtures), which, when applied in combination with the `java` or `java-library` plugin, will create a conventional `testFixtures` source set.
+Gradle will automatically perform the wiring so that the `test` compilation depends on test fixtures, but more importantly, it allows other projects to depend on the test fixtures of a library.
+For example:
+
+```groovy
+dependencies {
+   // this will add the test fixtures of "my-lib" on the compile classpath of the tests of _this_ project
+   testImplementation(testFixtures(project(":my-lib")))
+}
+```
+
 ## Improvements for plugin authors
 
 ### Task dependencies are honored for `@Input` properties of type `Property`
