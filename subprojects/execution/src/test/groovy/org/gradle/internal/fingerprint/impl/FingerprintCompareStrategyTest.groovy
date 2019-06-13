@@ -16,6 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl
 
+import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.Iterables
 import org.gradle.internal.execution.history.changes.AbsolutePathFingerprintCompareStrategy
 import org.gradle.internal.execution.history.changes.CollectingChangeVisitor
@@ -23,6 +24,7 @@ import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.execution.history.changes.FingerprintCompareStrategy
 import org.gradle.internal.execution.history.changes.IgnoredPathCompareStrategy
 import org.gradle.internal.execution.history.changes.NormalizedPathFingerprintCompareStrategy
+import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
@@ -316,7 +318,9 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingChangeVisitor()
-        strategy.visitChangesSince(current, previous, "test", includeAdded, visitor)
+        def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)))
+        def previousFingerprint = new SerializableFileCollectionFingerprint(previous,  ImmutableMultimap.of("some", HashCode.fromInt(4321)))
+        strategy.visitChangesSince(currentFingerprint, previousFingerprint, "test", includeAdded, visitor)
         visitor.getChanges().toList()
     }
 

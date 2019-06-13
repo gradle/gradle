@@ -86,6 +86,6 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
 
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
-        return FingerprintHashingStrategy.SORTED;
+        return FingerprintHashingStrategy.SORT;
     }
 }

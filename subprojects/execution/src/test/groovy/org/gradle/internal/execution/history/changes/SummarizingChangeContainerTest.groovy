@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ class SummarizingChangeContainerTest extends Specification {
     def state1 = Mock(ChangeContainer)
     def state2 = Mock(ChangeContainer)
     def state = new SummarizingChangeContainer(state1, state2)
-    def change = Mock(Change)
     def visitor = new CollectingChangeVisitor()
 
     def "looks for changes in all delegate change sets"() {

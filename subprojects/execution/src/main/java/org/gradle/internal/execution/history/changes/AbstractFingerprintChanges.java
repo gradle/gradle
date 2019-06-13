@@ -19,17 +19,22 @@ package org.gradle.internal.execution.history.changes;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.RelativePathFingerprintingStrategy;
 
 import java.util.SortedMap;
 
 public abstract class AbstractFingerprintChanges implements ChangeContainer {
     private static final ImmutableMap<String, FingerprintCompareStrategy> COMPARE_STRATEGY_MAPPING = ImmutableMap.<String, FingerprintCompareStrategy>builder()
-        .put("ABSOLUTE_PATH", AbsolutePathFingerprintCompareStrategy.INSTANCE)
-        .put("NAME_ONLY", NormalizedPathFingerprintCompareStrategy.INSTANCE)
-        .put("RELATIVE", NormalizedPathFingerprintCompareStrategy.INSTANCE)
-        .put("IGNORED_PATH", IgnoredPathCompareStrategy.INSTANCE)
-        .put("CLASSPATH", ClasspathCompareStrategy.INSTANCE)
-        .put("COMPILE_CLASSPATH", ClasspathCompareStrategy.INSTANCE)
+        .put(AbsolutePathFingerprintingStrategy.IGNORE_MISSING.getIdentifier(), AbsolutePathFingerprintCompareStrategy.INSTANCE)
+        .put(NameOnlyFingerprintingStrategy.INSTANCE.getIdentifier(), NormalizedPathFingerprintCompareStrategy.INSTANCE)
+        .put(RelativePathFingerprintingStrategy.IDENTIFIER, NormalizedPathFingerprintCompareStrategy.INSTANCE)
+        .put(IgnoredPathFingerprintingStrategy.INSTANCE.getIdentifier(), IgnoredPathCompareStrategy.INSTANCE)
+        .put(FingerprintingStrategy.CLASSPATH_IDENTIFIER, ClasspathCompareStrategy.INSTANCE)
+        .put(FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER, ClasspathCompareStrategy.INSTANCE)
         .build();
 
     protected final SortedMap<String, FileCollectionFingerprint> previous;

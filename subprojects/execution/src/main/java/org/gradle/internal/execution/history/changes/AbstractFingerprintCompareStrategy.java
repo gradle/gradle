@@ -39,8 +39,7 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
         return Iterables.elementsEqual(current.getRootHashes().entries(), previous.getRootHashes().entries());
     }
 
-    @Override
-    public boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor) {
+    private boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
         Boolean trivialResult = compareTrivialFingerprints(visitor, current, previous, propertyTitle, includeAdded);
         if (trivialResult != null) {

@@ -36,10 +36,12 @@ import java.util.Map;
  * File names for root directories are ignored. For root files, the file name is used as normalized path.
  */
 public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
+    public static final String IDENTIFIER = "RELATIVE_PATH";
+
     private final StringInterner stringInterner;
 
     public RelativePathFingerprintingStrategy(StringInterner stringInterner) {
-        super("RELATIVE_PATH");
+        super(IDENTIFIER);
         this.stringInterner = stringInterner;
     }
 
@@ -99,6 +101,6 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
 
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
-        return FingerprintHashingStrategy.SORTED;
+        return FingerprintHashingStrategy.SORT;
     }
 }

@@ -17,9 +17,6 @@
 package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-
-import java.util.Map;
 
 /**
  * Strategy to compare two {@link FileCollectionFingerprint}s.
@@ -27,13 +24,6 @@ import java.util.Map;
  * The strategy first tries to do a trivial comparison and delegates the more complex cases to a separate implementation.
  */
 public interface FingerprintCompareStrategy {
-    /**
-     * Visits the changes to file contents since the given fingerprint, subject to the given filters.
-     *
-     * @return Whether the {@link ChangeVisitor} is looking for further changes. See {@link ChangeVisitor#visitChange(Change)}.
-     */
-    boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor);
-
     /**
      * Visits the changes to file contents since the given fingerprint, subject to the given filters.
      *

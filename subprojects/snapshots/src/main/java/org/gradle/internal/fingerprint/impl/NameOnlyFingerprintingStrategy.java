@@ -88,6 +88,6 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
 
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
-        return FingerprintHashingStrategy.SORTED;
+        return FingerprintHashingStrategy.SORT;
     }
 }

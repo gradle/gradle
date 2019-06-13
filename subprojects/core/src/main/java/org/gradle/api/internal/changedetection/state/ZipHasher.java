@@ -82,7 +82,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
                 return null;
             }
             Hasher hasher = Hashing.newHasher();
-            FingerprintHashingStrategy.SORTED.appendToHasher(hasher, fingerprints);
+            FingerprintHashingStrategy.SORT.appendToHasher(hasher, fingerprints);
             return hasher.hash();
         } catch (Exception e) {
             return hashMalformedZip(zipFileSnapshot, e);

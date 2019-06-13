@@ -76,6 +76,6 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
 
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
-        return FingerprintHashingStrategy.SORTED;
+        return FingerprintHashingStrategy.SORT;
     }
 }
