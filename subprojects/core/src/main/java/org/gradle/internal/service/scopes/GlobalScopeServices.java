@@ -88,8 +88,6 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.remote.MessagingServer;
-import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.CachingServiceLocator;
@@ -183,10 +181,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     JdkToolsInitializer createJdkToolsInitializer() {
         return new DefaultJdkToolsInitializer(new DefaultClassLoaderFactory());
-    }
-
-    MessagingServer createMessagingServer(MessagingServices messagingServices) {
-        return messagingServices.get(MessagingServer.class);
     }
 
     Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {

@@ -119,7 +119,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
             .displayName("Connection services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
-            .provider(new ConnectionScopeServices(loggingServices)).build();
+            .provider(new ConnectionScopeServices()).build();
         adapter = services.get(ProtocolToModelAdapter.class);
         connection = services.get(ProviderConnection.class);
     }
