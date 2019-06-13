@@ -20,6 +20,8 @@ import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.PropertyWarning
 
+import org.gradle.internal.logging.ConsoleRenderer
+
 import java.io.BufferedWriter
 import java.io.File
 
@@ -47,7 +49,7 @@ class InstantExecutionReport(
                 append(": ")
                 appendln(message)
             }
-            appendln("See the complete report at $reportFile")
+            appendln("See the complete report at ${clickableUrlFor(reportFile)}")
         }.toString()
 
     fun writeReportFile() {
@@ -92,7 +94,7 @@ class InstantExecutionReport(
     }
 
     private
-    fun tag(name: String): (BufferedWriter.(() -> Unit) -> Unit) {
+    fun tag(name: String): (Appendable.(() -> Unit) -> Unit) {
         val open = "<$name>"
         val close = "</$name>"
         return { body ->
@@ -129,3 +131,7 @@ class InstantExecutionReport(
             }
         }.first()
 }
+
+
+private
+fun clickableUrlFor(file: File) = ConsoleRenderer().asClickableFileUrl(file)

@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.GradleVersion
 
 class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -64,7 +65,11 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
               - field 'SomeBean.gradle': there's no serializer for type 'org.gradle.invocation.DefaultGradle'
               - field 'NestedBean.gradle': there's no serializer for type 'org.gradle.invocation.DefaultGradle'
               - field 'NestedBean.project': there's no serializer for type 'org.gradle.api.internal.project.DefaultProject'
-            See the complete report at ${reportFile}
+            See the complete report at ${clickableUrlFor(reportFile)}
         """.stripIndent()
+    }
+
+    private String clickableUrlFor(File file) {
+        new ConsoleRenderer().asClickableFileUrl(file)
     }
 }
