@@ -31,7 +31,7 @@ package org.gradle.plugin.use;
  * </p>
  * <h3>Strict Syntax</h3>
  * <p>
- * The <code>plugins {}</code> block only allows a strict subset of the full build script programming language.
+ * When used in a build script, the <code>plugins {}</code> block only allows a strict subset of the full build script programming language.
  * Only the API of this type can be used, and values must be literal (e.g. constant strings, not variables).
  * Moreover, the <code>plugins {}</code> block must be the first code of a build script.
  * There is one exception to this, in that the {@code buildscript {}} block (used for declaring script dependencies) must precede it.
@@ -79,6 +79,16 @@ package org.gradle.plugin.use;
  * </p>
  * <p>
  * To use a community plugin, the fully qualified id must be specified along with a version.
+ * </p>
+ * <h3>Settings Script Usage</h3>
+ * <p>
+ * When used in a settings script, this API sets the default version of a plugin, allowing build scripts to
+ * reference a plugin id without an associated version.
+ * </p>
+ * <p>
+ * Within a settings script, the "Strict Syntax" rules outlined above do not apply. The `plugins` block may contain
+ * arbitrary code, and version Strings may contain property replacements. It is an error to call the `apply` method
+ * with a value other than `false` (the default).
  * </p>
  */
 public interface PluginDependenciesSpec {
