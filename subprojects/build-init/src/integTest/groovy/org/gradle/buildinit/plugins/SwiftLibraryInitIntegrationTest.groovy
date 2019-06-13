@@ -136,7 +136,7 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/main/swift/${SAMPLE_LIBRARY_CLASS}").assertDoesNotExist()
         targetDir.file("src/test/swift/${SAMPLE_LIBRARY_TEST_CLASS}").assertDoesNotExist()
         if (OperatingSystem.current().linux) {
-            targetDir.file("src/main/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
+            targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
         }
 
         when:

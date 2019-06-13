@@ -134,7 +134,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/main/swift/${SAMPLE_APPLICATION_CLASS}").text.contains("hola()")
         targetDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").assertDoesNotExist()
         if (OperatingSystem.current().linux) {
-            targetDir.file("src/main/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
+            targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
         }
 
         when:

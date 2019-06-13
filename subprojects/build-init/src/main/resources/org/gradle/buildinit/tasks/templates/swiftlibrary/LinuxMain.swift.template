@@ -4,4 +4,4 @@
 
 import XCTest
 
-XCTMain([testCase(GreeterTests.allTests)])
+XCTMain([testCase(HelloTests.allTests)])
