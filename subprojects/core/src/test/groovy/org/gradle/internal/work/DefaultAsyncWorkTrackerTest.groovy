@@ -276,7 +276,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         e.message == "Another thread is currently waiting on the completion of work for the provided operation"
     }
 
-    def "releases a project lock while waiting on async work"() {
+    def "can temporarily release a project lock while waiting on async work"() {
         def projectLockService = Mock(ProjectLeaseRegistry)
         def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
         def operation1 = Mock(BuildOperationRef)
@@ -303,7 +303,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         1 * projectLockService.withoutProjectLock(_)
     }
 
-    def "releases a project lock before waiting on async work"() {
+    def "can release a project lock before waiting on async work"() {
         def projectLockService = Mock(ProjectLeaseRegistry)
         def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
         def operation1 = Mock(BuildOperationRef)
@@ -357,19 +357,34 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         0 * projectLockService.withoutProjectLock(_)
     }
 
-    def "does not release a project lock before waiting on async work when no work is registered"() {
+    def "does not temporarily release a project lock before waiting on async work when no work is registered"() {
         def projectLockService = Mock(ProjectLeaseRegistry)
         def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
         def operation1 = Mock(BuildOperationRef)
 
         when:
-        asyncWorkTracker.waitForCompletion(operation1, RELEASE_PROJECT_LOCKS)
+        asyncWorkTracker.waitForCompletion(operation1, RELEASE_AND_REACQUIRE_PROJECT_LOCKS)
 
         then:
         0 * projectLockService.withoutProjectLock(_)
     }
 
-    def "does not release a project lock when all async work is already completed"() {
+    def "does not temporarily release a project lock when all async work is already completed"() {
+        def projectLockService = Mock(ProjectLeaseRegistry)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def operation1 = Mock(BuildOperationRef)
+
+        when:
+        asyncWorkTracker.registerWork(operation1, completedWorkCompletion())
+        asyncWorkTracker.registerWork(operation1, completedWorkCompletion())
+        asyncWorkTracker.registerWork(operation1, completedWorkCompletion())
+        asyncWorkTracker.waitForCompletion(operation1, RELEASE_AND_REACQUIRE_PROJECT_LOCKS)
+
+        then:
+        0 * projectLockService.withoutProjectLock(_)
+    }
+
+    def "can release a project lock when all async work is already completed"() {
         def projectLockService = Mock(ProjectLeaseRegistry)
         def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
         def operation1 = Mock(BuildOperationRef)
@@ -381,7 +396,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         asyncWorkTracker.waitForCompletion(operation1, RELEASE_PROJECT_LOCKS)
 
         then:
-        0 * projectLockService.withoutProjectLock(_)
+        1 * projectLockService.releaseCurrentProjectLocks()
     }
 
     AsyncWorkCompletion blockingWorkCompletion(String instant) {

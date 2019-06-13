@@ -76,30 +76,28 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     }
 
     private void waitForItemsAndGatherFailures(List<AsyncWorkCompletion> workItems, AsyncWorkTracker.ProjectLockRetention lockRetention) {
-        boolean workInProgress = hasWorkInProgress(workItems);
-
-        if (!workInProgress) {
-            // All items are complete. Do not release project lock and simply collect failures.
-            waitForItemsAndGatherFailures(workItems);
-        } else {
-            switch (lockRetention) {
-                case RETAIN_PROJECT_LOCKS:
+        switch (lockRetention) {
+            case RETAIN_PROJECT_LOCKS:
+                waitForItemsAndGatherFailures(workItems);
+                return;
+            case RELEASE_PROJECT_LOCKS:
+                projectLeaseRegistry.releaseCurrentProjectLocks();
+                waitForItemsAndGatherFailures(workItems);
+                return;
+            case RELEASE_AND_REACQUIRE_PROJECT_LOCKS:
+                if (!hasWorkInProgress(workItems)) {
+                    // All items are complete. Do not release project lock and simply collect failures.
                     waitForItemsAndGatherFailures(workItems);
-                    break;
-                case RELEASE_PROJECT_LOCKS:
-                    projectLeaseRegistry.releaseCurrentProjectLocks();
-                    waitForItemsAndGatherFailures(workItems);
-                    break;
-                case RELEASE_AND_REACQUIRE_PROJECT_LOCKS:
-                    projectLeaseRegistry.withoutProjectLock(
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    waitForItemsAndGatherFailures(workItems);
-                                }
+                    return;
+                }
+                projectLeaseRegistry.withoutProjectLock(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                waitForItemsAndGatherFailures(workItems);
                             }
-                    );
-            }
+                        }
+                );
         }
     }
 
