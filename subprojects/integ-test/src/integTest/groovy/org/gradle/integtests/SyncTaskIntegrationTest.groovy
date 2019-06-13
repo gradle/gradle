@@ -394,10 +394,10 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
-    def "change in case of input file will still sync properly"() {
+    def "change in case of input file will sync properly"() {
         given:
+        def uppercaseFile = file('FILE.TXT')
         def lowercaseFile = file('file.txt').createFile()
-        def uppercaseFile = new File(lowercaseFile.parentFile, 'FILE.TXT') // make sure case is kept
         buildFile << '''
             task syncIt(type: Sync) {
                 from project.hasProperty("capitalize") ? "FILE.TXT" : "file.txt"
@@ -424,14 +424,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
-    def "change in case of input folder will still sync properly"() {
+    def "change in case of input folder will sync properly"() {
         given:
-        file('dir').create {
-            file('file2.txt').createFile()
-            file('file3.txt').createFile()
-            file('file4.txt').createFile()
+        def uppercaseDir = file('DIR')
+        def lowercaseDir = file('dir').create {
+            file('file.txt').createFile()
             nestedDir {
-                file('nestedDirFile.txt').createFile()
+                file('nestedDirFile1.txt').createFile()
+                file('nestedDirFile2.txt').createFile()
             }
         }
         buildFile << '''
@@ -443,35 +443,26 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         and:
         run 'syncIt'
         file('build').assertHasDescendants(
-            'file2.txt',
-            'file3.txt',
-            'file4.txt',
-            'nestedDir/nestedDirFile.txt'
+            'file.txt',
+            'nestedDir/nestedDirFile1.txt',
+            'nestedDir/nestedDirFile2.txt'
         )
         and:
-        file('dir').deleteDir()
-        file('DIR').create {
-            file('File4.txt')
-            NESTEDDIR {
-                file('NESTEDDIRFILE.TXT')
-            }
-        }
+        lowercaseDir.renameTo(uppercaseDir)
+
+        def uppercaseNestedDir = new File(uppercaseDir, 'NESTEDDIR')
+        new File(uppercaseDir, 'nestedDir').renameTo(uppercaseNestedDir)
+        new File(uppercaseNestedDir, 'nestedDirFile2.txt').renameTo(new File(uppercaseNestedDir, 'NESTEDDIRFILE2.TXT'))
 
         when:
         succeeds('syncIt', '-Pcapitalize')
         then:
         executedAndNotSkipped ':syncIt'
-        file('build/file2.txt').assertDoesNotExist()
-        file('build/file3.txt').assertDoesNotExist()
-        file('build/File4.txt').with {
-            assert it.exists()
-            assert it.canonicalFile.name == 'File4.txt': it.parentFile.list()
-        }
-        file('build/NESTEDDIR/NESTEDDIRFILE.TXT').with {
-            assert it.exists()
-            assert it.parentFile.canonicalFile.name == 'NESTEDDIR'
-            assert it.canonicalFile.name == 'NESTEDDIRFILE.TXT'
-        }
+        file('build').assertHasDescendants(
+            'file.txt',
+            'NESTEDDIR/nestedDirFile1.txt',
+            'NESTEDDIR/NESTEDDIRFILE2.TXT'
+        )
     }
 
     def "sync from file tree"() {
