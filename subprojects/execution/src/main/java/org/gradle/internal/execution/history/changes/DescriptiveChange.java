@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.change;
+package org.gradle.internal.execution.history.changes;
 
-public interface Change {
-    String getMessage();
+public class DescriptiveChange implements Change {
+    private final String message;
+
+    public DescriptiveChange(String message, Object... params) {
+        this.message = String.format(message, params);
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
 }

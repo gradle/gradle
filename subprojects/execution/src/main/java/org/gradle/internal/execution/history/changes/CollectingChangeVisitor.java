@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.change;
+package org.gradle.internal.execution.history.changes;
 
-public class LimitingChangeVisitor implements ChangeVisitor {
-    private final int maxReportedChanges;
-    private final ChangeVisitor delegate;
-    private int visited;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-    public LimitingChangeVisitor(int maxReportedChanges, ChangeVisitor delegate) {
-        this.maxReportedChanges = maxReportedChanges;
-        this.delegate = delegate;
-    }
+public class CollectingChangeVisitor implements ChangeVisitor {
+    private List<Change> changes = new ArrayList<Change>();
 
     @Override
     public boolean visitChange(Change change) {
-        boolean delegateResult = delegate.visitChange(change);
-        visited++;
-        return delegateResult && visited < maxReportedChanges;
+        changes.add(change);
+        return true;
+    }
+
+    public Collection<Change> getChanges() {
+        return changes;
     }
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 

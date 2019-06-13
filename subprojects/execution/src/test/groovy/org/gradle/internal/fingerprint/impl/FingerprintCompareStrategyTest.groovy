@@ -17,9 +17,9 @@
 package org.gradle.internal.fingerprint.impl
 
 import com.google.common.collect.Iterables
-import org.gradle.internal.change.CollectingChangeVisitor
-import org.gradle.internal.change.DefaultFileChange
 import org.gradle.internal.execution.history.changes.AbsolutePathFingerprintCompareStrategy
+import org.gradle.internal.execution.history.changes.CollectingChangeVisitor
+import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.execution.history.changes.FingerprintCompareStrategy
 import org.gradle.internal.execution.history.changes.IgnoredPathCompareStrategy
 import org.gradle.internal.execution.history.changes.NormalizedPathFingerprintCompareStrategy

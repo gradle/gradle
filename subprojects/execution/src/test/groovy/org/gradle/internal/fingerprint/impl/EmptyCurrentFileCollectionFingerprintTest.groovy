@@ -17,10 +17,10 @@
 package org.gradle.internal.fingerprint.impl
 
 import com.google.common.collect.ImmutableMultimap
-import org.gradle.internal.change.Change
-import org.gradle.internal.change.CollectingChangeVisitor
-import org.gradle.internal.change.DefaultFileChange
 import org.gradle.internal.execution.history.changes.AbsolutePathFingerprintCompareStrategy
+import org.gradle.internal.execution.history.changes.Change
+import org.gradle.internal.execution.history.changes.CollectingChangeVisitor
+import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint

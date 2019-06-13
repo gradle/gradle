@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.file.FileType;
 
 /**

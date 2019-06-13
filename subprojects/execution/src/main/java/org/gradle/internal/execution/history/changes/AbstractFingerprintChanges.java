@@ -17,8 +17,6 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.change.ChangeContainer;
-import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 

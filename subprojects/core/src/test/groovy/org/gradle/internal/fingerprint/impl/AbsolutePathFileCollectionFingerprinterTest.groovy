@@ -19,10 +19,10 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.internal.change.ChangeTypeInternal
-import org.gradle.internal.change.CollectingChangeVisitor
-import org.gradle.internal.change.DefaultFileChange
 import org.gradle.internal.execution.history.changes.AbsolutePathFingerprintCompareStrategy
+import org.gradle.internal.execution.history.changes.ChangeTypeInternal
+import org.gradle.internal.execution.history.changes.CollectingChangeVisitor
+import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
