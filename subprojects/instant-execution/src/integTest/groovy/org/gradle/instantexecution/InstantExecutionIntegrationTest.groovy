@@ -491,7 +491,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "broken"
 
         then:
-        outputContains("instant-execution > Cannot serialize object of type ${type} as these are not supported with instant execution.")
+        outputContains("instant-execution > cannot serialize object of type ${type} as these are not supported with instant execution.")
 
         when:
         instantRun "broken"

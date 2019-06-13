@@ -130,6 +130,8 @@ abstract class AbstractIsolateContext<T> : MutableIsolateContext {
     private
     var currentIsolate: T? = null
 
+    var trace: PropertyTrace = PropertyTrace.Unknown
+
     protected
     abstract fun newIsolate(owner: Task): T
 
