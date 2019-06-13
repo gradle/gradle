@@ -193,9 +193,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         result.finalOutputs.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
         result.finalOutputs["dir"].rootHashes.size() == 1
-        result.originMetadata.buildInvocationId == buildInvocationScopeId.id
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
-        afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id
+        afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         afterExecution.outputFileProperties.values()*.rootHashes == result.finalOutputs.values()*.rootHashes
     }
 
@@ -220,7 +220,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         result.outcome.get() == UP_TO_DATE
         result.reused
         result.originMetadata.buildInvocationId == origin
-        result.originMetadata.buildInvocationId != buildInvocationScopeId.id
+        result.originMetadata.buildInvocationId != buildInvocationScopeId.id.asString()
         result.finalOutputs.values()*.rootHashes == finalOutputs.values()*.rootHashes
     }
 
@@ -242,7 +242,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
         !result.reused
-        result.originMetadata.buildInvocationId == buildInvocationScopeId.id
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         result.originMetadata.buildInvocationId != origin
     }
 
@@ -265,7 +265,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
         !result.reused
-        result.originMetadata.buildInvocationId == buildInvocationScopeId.id
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         result.originMetadata.buildInvocationId != origin
     }
 

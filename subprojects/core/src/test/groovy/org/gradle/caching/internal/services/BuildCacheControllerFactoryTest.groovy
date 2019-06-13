@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller
+package org.gradle.caching.internal.services
 
 import org.gradle.api.Action
 import org.gradle.caching.BuildCacheEntryReader
@@ -27,16 +27,19 @@ import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
+import org.gradle.caching.internal.controller.BuildCacheController
+import org.gradle.caching.internal.controller.DefaultBuildCacheController
+import org.gradle.caching.internal.controller.NoOpBuildCacheController
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import spock.lang.Specification
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
+import spock.lang.Specification
 
-import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.DISABLED
-import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.ENABLED
-import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode.ONLINE
+import static org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCacheMode.DISABLED
+import static org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCacheMode.ENABLED
+import static org.gradle.caching.internal.services.BuildCacheControllerFactory.RemoteAccessMode.ONLINE
 
 class BuildCacheControllerFactoryTest extends Specification {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller;
+package org.gradle.caching.internal.services;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -26,6 +26,9 @@ import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType;
+import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.controller.DefaultBuildCacheController;
+import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
 import org.gradle.internal.Cast;
