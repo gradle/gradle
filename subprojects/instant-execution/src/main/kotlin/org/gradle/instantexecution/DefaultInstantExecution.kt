@@ -28,6 +28,7 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.PropertyTrace
+import org.gradle.instantexecution.serialization.PropertyWarning
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
@@ -107,30 +108,34 @@ class DefaultInstantExecution(
         }
 
         buildOperationExecutor.withStoreOperation {
-            try {
-                KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                    writeContextFor(encoder).run {
+            report(
+                try {
+                    KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
+                        writeContextFor(encoder).run {
 
-                        val build = host.currentBuild
-                        writeString(build.rootProject.name)
+                            val build = host.currentBuild
+                            writeString(build.rootProject.name)
 
-                        writeClassPath(collectClassPath())
+                            writeClassPath(collectClassPath())
 
-                        writeGradleState(build.rootProject.gradle)
+                            writeGradleState(build.rootProject.gradle)
 
-                        val scheduledTasks = build.scheduledTasks
-                        writeRelevantProjectsFor(scheduledTasks)
+                            val scheduledTasks = build.scheduledTasks
+                            writeRelevantProjectsFor(scheduledTasks)
 
-                        TaskGraphCodec(service()).run {
-                            writeTaskGraphOf(build, scheduledTasks)
+                            TaskGraphCodec(service()).run {
+                                writeTaskGraphOf(build, scheduledTasks)
+                            }
+
+                            warnings
                         }
                     }
+                } catch (e: Throwable) {
+                    // Discard the state file on failure
+                    instantExecutionStateFile.delete()
+                    throw e
                 }
-            } catch (e: Throwable) {
-                // Discard the state file on failure
-                instantExecutionStateFile.delete()
-                throw e
-            }
+            )
         }
     }
 
@@ -164,6 +169,18 @@ class DefaultInstantExecution(
                     build.scheduleTasks(scheduledTasks)
                 }
             }
+        }
+    }
+
+    private
+    fun report(warnings: List<PropertyWarning>) {
+        if (warnings.isEmpty()) {
+            return
+        }
+
+        InstantExecutionReport(warnings, reportFile).run {
+            logger.lifecycle(summary)
+            writeReportFile()
         }
     }
 
@@ -284,6 +301,13 @@ class DefaultInstantExecution(
         val baseName = HashUtil.createCompactMD5(host.requestedTaskNames.joinToString("/"))
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
+    }
+
+    private
+    val reportFile by lazy {
+        instantExecutionStateFile.run {
+            File(parentFile, "$nameWithoutExtension.html")
+        }
     }
 }
 
