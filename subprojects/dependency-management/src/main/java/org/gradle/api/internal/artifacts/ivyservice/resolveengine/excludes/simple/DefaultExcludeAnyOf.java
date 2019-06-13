@@ -30,6 +30,8 @@ final class DefaultExcludeAnyOf extends DefaultCompositeExclude implements Exclu
         super(components);
     }
 
+    private Boolean mayExcludeArtifacts;
+
     @Override
     protected String getDisplayName() {
         return "any of";
@@ -47,6 +49,10 @@ final class DefaultExcludeAnyOf extends DefaultCompositeExclude implements Exclu
 
     @Override
     public boolean mayExcludeArtifacts() {
-        return components().anyMatch(ExcludeSpec::mayExcludeArtifacts);
+        if (mayExcludeArtifacts != null) {
+            return mayExcludeArtifacts;
+        }
+        mayExcludeArtifacts = components().anyMatch(ExcludeSpec::mayExcludeArtifacts);
+        return mayExcludeArtifacts;
     }
 }
