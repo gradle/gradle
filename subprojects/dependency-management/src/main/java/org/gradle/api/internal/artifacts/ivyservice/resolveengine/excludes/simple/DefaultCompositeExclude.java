@@ -77,14 +77,18 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
         // in which case we can perform a faster check for sets, as if they were lists
         Iterator<ExcludeSpec> fastCheckIterator = other.iterator();
         boolean[] alreadyFound = new boolean[other.size()];
-        int outerCount = 0;
+        int fastCheckCount = 0;
         for (ExcludeSpec component : components) {
             boolean found = false;
-            if (fastCheckIterator != null && fastCheckIterator.next().equalsIgnoreArtifact(component)) {
-                alreadyFound[outerCount++] = true;
-                continue;
+            if (fastCheckIterator != null) {
+                if (fastCheckIterator.next().equalsIgnoreArtifact(component)) {
+                    alreadyFound[fastCheckCount++] = true;
+                    continue;
+                } else if (!fastCheckIterator.hasNext()) {
+                    // this was the last element, so we already know there's no possible match
+                    return false;
+                }
             }
-            outerCount++;
             // we're unlucky, sets are either different, or in a different order
             fastCheckIterator = null;
             int innerCount = 0;
