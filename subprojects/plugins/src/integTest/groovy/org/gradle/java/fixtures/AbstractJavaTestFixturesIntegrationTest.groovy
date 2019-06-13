@@ -352,7 +352,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         }
     }
 
-    private TestFile addPersonTestUsingTestFixtures(String subproject = "") {
+    protected TestFile addPersonTestUsingTestFixtures(String subproject = "") {
         file("${subproject ? "${subproject}/" : ""}src/test/java/org/PersonTest.java") << """
             import org.PersonFixture;
             import org.Person;
@@ -370,7 +370,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         """
     }
 
-    private TestFile addPersonDomainClass(String subproject = "", String lang = 'java') {
+    protected TestFile addPersonDomainClass(String subproject = "", String lang = 'java') {
         file("${subproject ? "${subproject}/" : ""}src/main/$lang/org/Person.$lang") << """
             package org;
             
@@ -394,7 +394,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         """
     }
 
-    private TestFile addPersonTestFixture(String subproject = "", String lang="java") {
+    protected TestFile addPersonTestFixture(String subproject = "", String lang="java") {
         file("${subproject ? "${subproject}/" : ""}src/testFixtures/$lang/org/PersonFixture.$lang") << """
             package org;
             
@@ -406,7 +406,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         """
     }
 
-    private TestFile addPersonTestFixtureUsingApacheCommons(String subproject = "") {
+    protected TestFile addPersonTestFixtureUsingApacheCommons(String subproject = "") {
         file("${subproject ? "${subproject}/" : ""}src/testFixtures/java/org/PersonFixture.java") << """
             package org;
             import org.apache.commons.lang3.StringUtils;
