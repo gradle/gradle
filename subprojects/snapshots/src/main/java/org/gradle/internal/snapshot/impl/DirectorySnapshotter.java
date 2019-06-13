@@ -29,7 +29,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -56,6 +55,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DirectorySnapshotter {
     private final FileHasher hasher;
@@ -70,7 +70,7 @@ public class DirectorySnapshotter {
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
     }
 
-    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
+    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternSet patterns, final AtomicBoolean hasBeenFiltered) {
         Path rootPath = Paths.get(absolutePath);
         final Spec<FileTreeElement> spec = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsSpec();
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
@@ -243,9 +243,9 @@ public class DirectorySnapshotter {
     private class PathVisitor implements java.nio.file.FileVisitor<Path> {
         private final MerkleDirectorySnapshotBuilder builder;
         private final Spec<FileTreeElement> spec;
-        private final MutableBoolean hasBeenFiltered;
+        private final AtomicBoolean hasBeenFiltered;
 
-        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable Spec<FileTreeElement> spec, MutableBoolean hasBeenFiltered) {
+        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable Spec<FileTreeElement> spec, AtomicBoolean hasBeenFiltered) {
             this.builder = builder;
             this.spec = spec;
             this.hasBeenFiltered = hasBeenFiltered;

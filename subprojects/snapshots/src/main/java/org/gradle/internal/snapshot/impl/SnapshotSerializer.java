@@ -17,7 +17,6 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -94,9 +93,9 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 return new SetValueSnapshot(setBuilder.build());
             case MAP_SNAPSHOT:
                 size = decoder.readSmallInt();
-                ImmutableList.Builder<Pair<ValueSnapshot, ValueSnapshot>> mapBuilder = ImmutableList.builderWithExpectedSize(size);
+                ImmutableList.Builder<MapEntrySnapshot<ValueSnapshot>> mapBuilder = ImmutableList.builderWithExpectedSize(size);
                 for (int i = 0; i < size; i++) {
-                    mapBuilder.add(Pair.of(read(decoder), read(decoder)));
+                    mapBuilder.add(new MapEntrySnapshot<ValueSnapshot>(read(decoder), read(decoder)));
                 }
                 return new MapValueSnapshot(mapBuilder.build());
             case MANAGED_SNAPSHOT:
@@ -193,9 +192,9 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             MapValueSnapshot mapSnapshot = (MapValueSnapshot) snapshot;
             encoder.writeSmallInt(MAP_SNAPSHOT);
             encoder.writeSmallInt(mapSnapshot.getEntries().size());
-            for (Pair<ValueSnapshot, ValueSnapshot> entry : mapSnapshot.getEntries()) {
-                write(encoder, entry.left);
-                write(encoder, entry.right);
+            for (MapEntrySnapshot<ValueSnapshot> entry : mapSnapshot.getEntries()) {
+                write(encoder, entry.getKey());
+                write(encoder, entry.getValue());
             }
         } else if (snapshot instanceof ArrayValueSnapshot) {
             ArrayValueSnapshot arraySnapshot = (ArrayValueSnapshot) snapshot;

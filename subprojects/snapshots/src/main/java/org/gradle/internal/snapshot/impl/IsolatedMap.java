@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Pair;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -26,15 +25,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 class IsolatedMap extends AbstractMapSnapshot<Isolatable<?>> implements Isolatable<Map<Object, Object>> {
-    public IsolatedMap(ImmutableList<Pair<Isolatable<?>, Isolatable<?>>> entries) {
+    public IsolatedMap(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {
         super(entries);
     }
 
     @Override
     public ValueSnapshot asSnapshot() {
-        ImmutableList.Builder<Pair<ValueSnapshot, ValueSnapshot>> builder = ImmutableList.builderWithExpectedSize(entries.size());
-        for (Pair<Isolatable<?>, Isolatable<?>> entry : entries) {
-            builder.add(Pair.of(entry.left.asSnapshot(), entry.right.asSnapshot()));
+        ImmutableList.Builder<MapEntrySnapshot<ValueSnapshot>> builder = ImmutableList.builderWithExpectedSize(entries.size());
+        for (MapEntrySnapshot<Isolatable<?>> entry : entries) {
+            builder.add(new MapEntrySnapshot<ValueSnapshot>(entry.getKey().asSnapshot(), entry.getValue().asSnapshot()));
         }
         return new MapValueSnapshot(builder.build());
     }
@@ -42,8 +41,8 @@ class IsolatedMap extends AbstractMapSnapshot<Isolatable<?>> implements Isolatab
     @Override
     public Map<Object, Object> isolate() {
         Map<Object, Object> map = new LinkedHashMap<>(getEntries().size());
-        for (Pair<Isolatable<?>, Isolatable<?>> entry : getEntries()) {
-            map.put(entry.left.isolate(), entry.right.isolate());
+        for (MapEntrySnapshot<Isolatable<?>> entry : getEntries()) {
+            map.put(entry.getKey().isolate(), entry.getValue().isolate());
         }
         return map;
     }

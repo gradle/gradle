@@ -41,7 +41,7 @@ class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("Could not isolate value: [")
-        failure.assertHasCause("java.io.NotSerializableException")
+        failure.assertHasCause("Could not serialize value of type '")
 
         where:
         type      | value
