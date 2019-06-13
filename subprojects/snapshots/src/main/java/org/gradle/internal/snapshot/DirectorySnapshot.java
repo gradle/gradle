@@ -55,7 +55,9 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
             return;
         }
         for (FileSystemLocationSnapshot child : children) {
-            child.accept(visitor);
+            if (child.getType() != FileType.Missing) {
+                child.accept(visitor);
+            }
         }
         visitor.postVisitDirectory(this);
     }

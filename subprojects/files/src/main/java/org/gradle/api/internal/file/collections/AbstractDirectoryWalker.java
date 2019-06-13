@@ -24,6 +24,8 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractDirectoryWalker implements DirectoryWalker {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDirectoryWalker.class);
+
     private final FileSystem fileSystem;
 
     public AbstractDirectoryWalker(FileSystem fileSystem) {
@@ -43,13 +47,16 @@ public abstract class AbstractDirectoryWalker implements DirectoryWalker {
         if (children == null) {
             if (file.isDirectory() && !file.canRead()) {
                 throw new GradleException(String.format("Could not list contents of directory '%s' as it is not readable.", file));
+            } else {
+                throw new GradleException(String.format("Could not list contents of '%s'.", file));
             }
-            // else, might be a link which points to nothing, or has been removed while we're visiting, or ...
-            throw new GradleException(String.format("Could not list contents of '%s'.", file));
         }
         List<FileVisitDetails> dirs = new ArrayList<FileVisitDetails>();
         for (int i = 0; !stopFlag.get() && i < children.length; i++) {
             File child = children[i];
+            if (fileSystem.isSymlink(child)) {
+                continue;
+            }
             boolean isFile = child.isFile();
             RelativePath childPath = path.append(isFile, child.getName());
             FileVisitDetails details = new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, !isFile);

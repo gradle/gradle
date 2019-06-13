@@ -29,6 +29,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -36,8 +37,10 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
+import org.gradle.internal.snapshot.AbstractFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
@@ -76,7 +79,9 @@ public class DirectorySnapshotter {
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
 
         try {
-            Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new PathVisitor(builder, spec, hasBeenFiltered));
+            EnumSet<FileVisitOption> visitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            PathVisitor pathVisitor = new PathVisitor(builder, spec, hasBeenFiltered, visitOptions);
+            Files.walkFileTree(rootPath, visitOptions, Integer.MAX_VALUE, pathVisitor);
         } catch (IOException e) {
             throw new GradleException(String.format("Could not list contents of directory '%s'.", rootPath), e);
         }
@@ -244,11 +249,13 @@ public class DirectorySnapshotter {
         private final MerkleDirectorySnapshotBuilder builder;
         private final Spec<FileTreeElement> spec;
         private final AtomicBoolean hasBeenFiltered;
+        private final EnumSet<FileVisitOption> visitOptions;
 
-        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable Spec<FileTreeElement> spec, AtomicBoolean hasBeenFiltered) {
+        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable Spec<FileTreeElement> spec, AtomicBoolean hasBeenFiltered, EnumSet<FileVisitOption> visitOptions) {
             this.builder = builder;
             this.spec = spec;
             this.hasBeenFiltered = hasBeenFiltered;
+            this.visitOptions = visitOptions;
         }
 
         @Override
@@ -256,7 +263,7 @@ public class DirectorySnapshotter {
             String fileName = getFilename(dir);
             String name = stringInterner.intern(fileName);
             if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePath())) {
-                builder.preVisitDirectory(internedAbsolutePath(dir), name);
+                builder.preVisitDirectory(stringInterner.intern(dir.toString()), name);
                 return FileVisitResult.CONTINUE;
             } else {
                 return FileVisitResult.SKIP_SUBTREE;
@@ -276,13 +283,25 @@ public class DirectorySnapshotter {
                 if (attrs == null) {
                     throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
                 }
-                if (attrs.isSymbolicLink()) {
-                    // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                    throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
-                }
-                addFileSnapshot(file, name, attrs);
+
+                FileType fileType = getFileType(attrs);
+                addFileSnapshot(file, name, attrs, fileType);
             }
             return FileVisitResult.CONTINUE;
+        }
+
+        private FileType getFileType(BasicFileAttributes attrs) {
+            if (!isBrokenSymbolicLink(attrs)) {
+                return FileType.RegularFile;
+            } else {
+                return FileType.Missing;
+            }
+        }
+
+        // when FileVisitOption.FOLLOW_LINKS is set, we shouldn't get symbolic links during visit
+        private boolean isBrokenSymbolicLink(BasicFileAttributes attrs) {
+            return attrs.isSymbolicLink()
+                && visitOptions.contains(FileVisitOption.FOLLOW_LINKS);
         }
 
         @Override
@@ -312,16 +331,33 @@ public class DirectorySnapshotter {
             return e != null && !(e instanceof FileSystemLoopException);
         }
 
-        private void addFileSnapshot(Path file, String name, BasicFileAttributes attrs) {
+        private void addFileSnapshot(Path file, String name, BasicFileAttributes attrs, FileType fileType) {
             Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
-            DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
-            HashCode hash = hasher.hash(file.toFile(), metadata);
-            RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(internedAbsolutePath(file), name, hash, metadata.getLastModified());
+            DefaultFileMetadata metadata = new DefaultFileMetadata(fileType, attrs.lastModifiedTime().toMillis(), attrs.size());
+
+            AbstractFileSystemLocationSnapshot fileSnapshot = getSnapshot(fileType, name, file, metadata);
             builder.visit(fileSnapshot);
         }
 
-        private String internedAbsolutePath(Path file) {
-            return stringInterner.intern(file.toString());
+        private AbstractFileSystemLocationSnapshot getSnapshot(FileType fileType, String name, Path path, DefaultFileMetadata metadata) {
+            if (fileType == FileType.RegularFile) {
+                File file = resolveSymbolicLink(path);
+                String absolutePath = stringInterner.intern(file.toString());
+                HashCode hash = hasher.hash(file, metadata);
+                return new RegularFileSnapshot(absolutePath, name, hash, metadata.getLastModified());
+            } else {
+                String absolutePath = stringInterner.intern(path.toString());
+                return new MissingFileSnapshot(absolutePath, name);
+            }
+        }
+
+        private File resolveSymbolicLink(Path path) {
+            File file = path.toFile();
+            if (Files.isSymbolicLink(path)) {
+                return FileUtils.canonicalize(file);
+            } else {
+                return file;
+            }
         }
 
         private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
