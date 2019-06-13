@@ -36,7 +36,11 @@ import java.util.concurrent.atomic.AtomicInteger
 class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
     @Override
     protected List<DirectoryWalker> getWalkers() {
-        return [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
+        [
+            new DefaultDirectoryWalker(TestFiles.fileSystem()),
+            new Jdk7DirectoryWalker(TestFiles.fileSystem()),
+            new ReproducibleDirectoryWalker(TestFiles.fileSystem())
+        ]
     }
 
     // java.nio2 cannot access files with unicode characters when using single-byte non-unicode platform encoding
@@ -54,9 +58,9 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         where:
         fileEncoding | expectedClassName
         "UTF-8"      | "Jdk7DirectoryWalker"
-        "UTF-16be" | "Jdk7DirectoryWalker"
-        "UTF-16le" | "Jdk7DirectoryWalker"
-        "UTF-16"   | "Jdk7DirectoryWalker"
+        "UTF-16be"   | "Jdk7DirectoryWalker"
+        "UTF-16le"   | "Jdk7DirectoryWalker"
+        "UTF-16"     | "Jdk7DirectoryWalker"
         "ISO-8859-1" | "DefaultDirectoryWalker"
     }
 
@@ -66,8 +70,8 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
 
         when:
-        def visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker())
-        def visitedWithDefaultWalker = walkFiles(rootDir, new DefaultDirectoryWalker())
+        def visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker(TestFiles.fileSystem()))
+        def visitedWithDefaultWalker = walkFiles(rootDir, new DefaultDirectoryWalker(TestFiles.fileSystem()))
 
         then:
         visitedWithDefaultWalker.size() == 340
@@ -114,14 +118,14 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
     def "file walker sees a snapshot of file metadata even if files are deleted after walking has started"() {
         given:
         def rootDir = tmpDir.createDir("root")
-        long minimumTimestamp = (System.currentTimeMillis()/1000 * 1000) - 2000
+        long minimumTimestamp = (System.currentTimeMillis() / 1000 * 1000) - 2000
         def file1 = rootDir.createFile("a/b/1.txt")
         file1 << '12345'
         def file2 = rootDir.createFile("a/b/2.txt")
         file2 << '12345'
         def file3 = rootDir.createFile("a/b/3.txt")
         file3 << '12345'
-        def walkerInstance = new Jdk7DirectoryWalker()
+        def walkerInstance = new Jdk7DirectoryWalker(TestFiles.fileSystem())
         def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visitedFiles = []
         def visitedDirectories = []
@@ -145,7 +149,7 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
     @Override
     protected List<String> walkDirForPaths(DirectoryWalker walkerInstance, File rootDir, PatternSet patternSet) {
         def visited = []
-        def visitClosure = { visited << it.file.absolutePath }
+        def visitClosure = { visited << it.file.canonicalPath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
         def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         fileTree.visit(fileVisitor)

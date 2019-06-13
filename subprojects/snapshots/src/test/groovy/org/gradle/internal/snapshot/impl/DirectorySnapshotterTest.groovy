@@ -24,6 +24,9 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -176,44 +179,47 @@ class DirectorySnapshotterTest extends Specification {
     def "should snapshot with broken symlinks"() {
         given:
         def rootDir = tmpDir.createDir("root")
-        def rootFile = rootDir.file("a.content").createFile()
-        def rootFileLink = rootDir.file("a_link.txt")
-        rootFileLink.createLink(rootFile)
-        def patterns = new PatternSet()
-        patterns.include("**/*.txt")
+        def targetFile = rootDir.file("file.target").createFile()
+        def linkFile = rootDir.file("file.link")
+        linkFile.createLink(targetFile)
 
-        def relativePaths1 = []
-        def actuallyFiltered1 = new AtomicBoolean(false)
-
-        def relativePaths2 = []
-        def actuallyFiltered2 = new AtomicBoolean(false)
-
-        when:
-        // get the snapshot with a valid link
-        def snapshot1 = directorySnapshotter.snapshot(rootDir.absolutePath, patterns, actuallyFiltered1)
-        snapshot1.accept(new RelativePathTrackingVisitor() {
-            @Override
-            void visit(String absolutePath, Deque<String> relativePath) {
-                relativePaths1 << relativePath.join("/")
-            }
-        })
-        // break the link, and get another snapshot
-        rootFile.delete()
-        def snapshot2 = directorySnapshotter.snapshot(rootDir.absolutePath, patterns, actuallyFiltered2) // TODO Couldn't follow symbolic link
-        snapshot2.accept(new RelativePathTrackingVisitor() {
-            @Override
-            void visit(String absolutePath, Deque<String> relativePath) {
-                relativePaths2 << relativePath.join("/")
-            }
-        })
+        when: // get the snapshot with a valid link
+        def hasBeenFiltered = new AtomicBoolean(false)
+        def snapshot = getRootLinkSnapshot(rootDir, hasBeenFiltered)
+        def relativePaths = visitPaths(snapshot)
         then:
-        actuallyFiltered1.get()  // filtered rootTextFile
-        ! actuallyFiltered2.get()  // rootTextFile was already removed
-        relativePaths1 as Set == (['root'] + [
-            'a_link.txt'
-        ].collect { 'root/' + it }) as Set
-        relativePaths2 == relativePaths1  //
-        snapshot2.hash != snapshot1.hash
+        snapshot.children*.class == [RegularFileSnapshot]
+        hasBeenFiltered.get()  // filtered rootTextFile
+        relativePaths == ['root', 'root/file.link']
+
+        when: // break the link, and request another snapshot
+        targetFile.delete()
+        def hasBeenFilteredBrokenLink = new AtomicBoolean(false)
+        def snapshotBrokenLink = getRootLinkSnapshot(rootDir, hasBeenFilteredBrokenLink)
+        def relativePathsBrokenLink = visitPaths(snapshot)
+        then:
+        snapshotBrokenLink.children*.class == [MissingFileSnapshot]
+        !hasBeenFilteredBrokenLink.get()  // rootTextFile was already removed
+        relativePathsBrokenLink == relativePaths
+
+        and:
+        snapshot.hash != snapshotBrokenLink.hash
+    }
+
+    private DirectorySnapshot getRootLinkSnapshot(TestFile rootDir, AtomicBoolean hasBeenFiltered) {
+        def linkPattern = new PatternSet().include("*.link")
+        directorySnapshotter.snapshot(rootDir.absolutePath, linkPattern, hasBeenFiltered)
+    }
+
+    private static List<String> visitPaths(FileSystemLocationSnapshot snapshot) {
+        def relativePaths = []
+        snapshot.accept(new RelativePathTrackingVisitor() {
+            @Override
+            void visit(String absolutePath, Deque<String> relativePath) {
+                relativePaths << relativePath.join("/")
+            }
+        })
+        relativePaths
     }
 }
 

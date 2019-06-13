@@ -28,7 +28,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NO_JNA({
         UNKNOWN_OS.fulfilled
     }),
-    SYMLINKS({
+    SYMLINKS({ // TODO Windows 10?
         MAC_OS_X.fulfilled || LINUX.fulfilled
     }),
     NO_SYMLINKS({

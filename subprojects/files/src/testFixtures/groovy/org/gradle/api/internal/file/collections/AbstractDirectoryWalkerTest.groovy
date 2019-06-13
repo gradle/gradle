@@ -17,12 +17,12 @@
 package org.gradle.api.internal.file.collections
 
 import com.google.common.annotations.VisibleForTesting
-import org.gradle.api.GradleException
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.nativeintegration.services.FileSystems
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
@@ -152,25 +152,30 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         walkerInstance << walkers
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
     @Unroll
-    def "missing symbolic link causes an exception - walker: #walkerInstance.class.simpleName"() {
+    @Requires(TestPrecondition.SYMLINKS)
+    def "broken symbolic link is marked as missing - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")
-        def dir = rootDir.createDir("a/b")
-        def link = rootDir.file("a/d")
-        link.createLink(dir)
+
+        def normalFile = rootDir.createFile("file")
+
+        def normalFileTarget = rootDir.createFile("normal.target")
+        rootDir.file("normal.link").createLink(normalFileTarget)
+
+        def targetFile = rootDir.createFile("file.target")
+        rootDir.file("file.link").createLink(targetFile)
+
+        def targetDir = rootDir.createDir("dirTarget")
+        rootDir.file("dirLink").createLink(targetDir)
 
         when:
-        dir.deleteDir()
-        walkDirForPaths(walkerInstance, rootDir, new PatternSet())
+        targetFile.delete()
+        targetDir.deleteDir()
+        def paths = walkDirForPaths(walkerInstance, rootDir, new PatternSet())
 
         then:
-        GradleException e = thrown()
-        e.message.contains("Could not list contents of '${link.absolutePath}'.")
-
-        cleanup:
-        link.delete()
+        paths.sort() == [normalFile, normalFileTarget, normalFileTarget]*.toString().sort()
 
         where:
         walkerInstance << walkers
@@ -216,7 +221,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         file2 << '12345'
         def file3 = rootDir.createFile("a/b/3.txt")
         file3 << '12345'
-        def walkerInstance = new Jdk7DirectoryWalker()
+        def walkerInstance = new Jdk7DirectoryWalker(FileSystems.getDefault())
         def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, NativeServicesTestFixture.getInstance().get(FileSystem), false)
         def visitedFiles = []
         def visitedDirectories = []

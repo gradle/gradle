@@ -22,11 +22,11 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
+import spock.lang.Specification
 
 import java.nio.file.AccessDeniedException
 
@@ -38,7 +38,7 @@ class Jdk7UnauthorizedDirectoryWalkerTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def rootDir
-    def walkerInstance = new Jdk7DirectoryWalker()
+    def walkerInstance = new Jdk7DirectoryWalker(TestFiles.fileSystem())
 
     def setup() {
         rootDir = tmpDir.createDir('root')
