@@ -36,6 +36,7 @@ import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.ProjectBuilder
@@ -60,7 +61,8 @@ class TestUtil {
         if (instantiatorFactory == null) {
             NativeServicesTestFixture.initialize()
             def annotationHandlers = ProjectBuilderImpl.getGlobalServices().getAll(InjectAnnotationHandler.class)
-            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers)
+            def managedFactoryRegistry = ProjectBuilderImpl.getGlobalServices().get(ManagedFactoryRegistry.class)
+            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers, managedFactoryRegistry)
         }
         return instantiatorFactory
     }

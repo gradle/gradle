@@ -93,6 +93,7 @@ import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -150,8 +151,8 @@ public class GradleUserHomeScopeServices {
         return new CrossBuildInMemoryCachingScriptClassCache(cacheFactory);
     }
 
-    DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        return new DefaultValueSnapshotter(classLoaderHierarchyHasher);
+    DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+        return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {

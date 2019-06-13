@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -76,22 +75,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     public Class<?> publicType() {
         return MapProperty.class;
-    }
-
-    @Override
-    public ManagedFactory managedFactory() {
-        return new ManagedFactory() {
-            @Nullable
-            @Override
-            public <S> S fromState(Class<S> type, Object state) {
-                if (!type.isAssignableFrom(MapProperty.class)) {
-                    return null;
-                }
-                DefaultMapProperty<K, V> property = new DefaultMapProperty<>(DefaultMapProperty.this.keyType, DefaultMapProperty.this.valueType);
-                property.set((Map<K, V>) state);
-                return type.cast(property);
-            }
-        };
     }
 
     @Override

@@ -18,16 +18,21 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Named
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultPropertyState
 import org.gradle.api.internal.provider.DefaultSetProperty
+import org.gradle.api.internal.provider.ManagedFactories
 import org.gradle.api.internal.provider.Providers
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.instantiation.ManagedTypeFactory
 import org.gradle.internal.snapshot.ValueSnapshot
+import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -36,7 +41,8 @@ class DefaultValueSnapshotterTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> HashCode.fromInt(123)
     }
-    def snapshotter = new DefaultValueSnapshotter(classLoaderHasher)
+    def managedFactoryRegistry = Mock(ManagedFactoryRegistry)
+    def snapshotter = new DefaultValueSnapshotter(classLoaderHasher, managedFactoryRegistry)
 
     def "creates snapshot for string"() {
         expect:
@@ -515,6 +521,9 @@ class DefaultValueSnapshotterTest extends Specification {
         def originalValue = "123"
         def original = Providers.of(originalValue)
 
+        given:
+        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.ProviderManagedFactory()
+
         expect:
         def isolated = snapshotter.isolate(original)
         isolated instanceof IsolatedManagedValue
@@ -528,6 +537,9 @@ class DefaultValueSnapshotterTest extends Specification {
         def original = new DefaultPropertyState(String)
         original.set(originalValue)
 
+        given:
+        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.PropertyManagedFactory()
+
         expect:
         def isolated = snapshotter.isolate(original)
         isolated instanceof IsolatedManagedValue
@@ -540,6 +552,9 @@ class DefaultValueSnapshotterTest extends Specification {
         def originalValue = ["123"]
         def original = new DefaultListProperty(String)
         original.set(originalValue)
+
+        given:
+        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.ListPropertyManagedFactory()
 
         expect:
         def isolated = snapshotter.isolate(original)
@@ -555,6 +570,9 @@ class DefaultValueSnapshotterTest extends Specification {
         def original = new DefaultSetProperty(String)
         original.set(originalValue)
 
+        given:
+        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.SetPropertyManagedFactory()
+
         expect:
         def isolated = snapshotter.isolate(original)
         isolated instanceof IsolatedManagedValue
@@ -568,6 +586,9 @@ class DefaultValueSnapshotterTest extends Specification {
         def originalMap = [a: 1, b: 2]
         def original = new DefaultMapProperty(String, Number)
         original.set(originalMap)
+
+        given:
+        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.MapPropertyManagedFactory()
 
         expect:
         def isolated = snapshotter.isolate(original)
@@ -619,6 +640,9 @@ class DefaultValueSnapshotterTest extends Specification {
         assert cl != Thing
         assert Named.isAssignableFrom(cl)
         assert cl.name == Thing.name
+
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> new NamedObjectInstantiator(new TestCrossBuildInMemoryCacheFactory())
 
         expect:
         def isolated = snapshotter.isolate(value)
@@ -673,6 +697,9 @@ class DefaultValueSnapshotterTest extends Specification {
         def original = instantiator.newInstance(BeanInterface)
         original.prop1 = "a"
 
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> new ManagedTypeFactory(original.getClass())
+
         expect:
         def isolated = snapshotter.isolate(original)
         isolated instanceof IsolatedManagedValue
@@ -706,6 +733,9 @@ class DefaultValueSnapshotterTest extends Specification {
         def original = instantiator.newInstance(AbstractBean)
         original.prop1 = "a"
 
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> new ManagedTypeFactory(original.getClass())
+
         expect:
         def isolated = snapshotter.isolate(original)
         isolated instanceof IsolatedManagedValue
@@ -718,6 +748,9 @@ class DefaultValueSnapshotterTest extends Specification {
         def empty = TestFiles.fileCollectionFactory().configurableFiles()
         def files1 = TestFiles.fileCollectionFactory().configurableFiles()
         files1.from(new File("a").absoluteFile)
+
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> new org.gradle.api.internal.file.collections.ManagedFactories.ConfigurableFileCollectionManagedFactory(TestFiles.resolver())
 
         expect:
         def isolatedEmpty = snapshotter.isolate(empty)

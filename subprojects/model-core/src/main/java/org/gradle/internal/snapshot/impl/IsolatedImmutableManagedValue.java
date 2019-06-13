@@ -19,12 +19,17 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ManagedFactory;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 
 import javax.annotation.Nullable;
 
 public class IsolatedImmutableManagedValue extends AbstractIsolatableScalarValue<Managed> {
-    public IsolatedImmutableManagedValue(Managed managed) {
+    private final ManagedFactoryRegistry managedFactoryRegistry;
+
+    public IsolatedImmutableManagedValue(Managed managed, ManagedFactoryRegistry managedFactoryRegistry) {
         super(managed);
+        this.managedFactoryRegistry = managedFactoryRegistry;
     }
 
     @Override
@@ -43,6 +48,11 @@ public class IsolatedImmutableManagedValue extends AbstractIsolatableScalarValue
         if (type.isInstance(getValue())) {
             return type.cast(getValue());
         }
-        return type.cast(getValue().managedFactory().fromState(type, getValue().unpackState()));
+        ManagedFactory factory = managedFactoryRegistry.lookup(getValue().getClass());
+        if (factory == null) {
+            return null;
+        } else {
+            return type.cast(factory.fromState(type, getValue().unpackState()));
+        }
     }
 }

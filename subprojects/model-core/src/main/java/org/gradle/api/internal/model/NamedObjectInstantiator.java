@@ -64,7 +64,6 @@ public class NamedObjectInstantiator implements ManagedFactory {
     private static final String RETURN_CLASS = Type.getMethodDescriptor(Type.getType(Class.class));
     private static final String RETURN_BOOLEAN = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
     private static final String RETURN_OBJECT = Type.getMethodDescriptor(OBJECT);
-    private static final String RETURN_MANAGED_FACTORY = Type.getMethodDescriptor(Type.getType(ManagedFactory.class));
     private static final String RETURN_VOID_FROM_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, STRING);
     private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT, STRING);
     private static final String NAME_FIELD = "_gr_name_";
@@ -100,10 +99,15 @@ public class NamedObjectInstantiator implements ManagedFactory {
 
     @Override
     public <T> T fromState(Class<T> type, Object state) {
-        if (!Named.class.isAssignableFrom(type)) {
+        if (!canCreate(type)) {
             return null;
         }
         return named(Cast.uncheckedCast(type), (String) state);
+    }
+
+    @Override
+    public boolean canCreate(Class<?> type) {
+        return Named.class.isAssignableFrom(type);
     }
 
     private ClassGeneratingLoader loaderFor(Class<?> publicClass) {
@@ -220,16 +224,6 @@ public class NamedObjectInstantiator implements ManagedFactory {
         methodVisitor = visitor.visitMethod(ACC_PUBLIC, "immutable", RETURN_BOOLEAN, null, EMPTY_STRINGS);
         methodVisitor.visitLdcInsn(true);
         methodVisitor.visitInsn(IRETURN);
-        methodVisitor.visitMaxs(0, 0);
-        methodVisitor.visitEnd();
-
-        //
-        // Add `managedFactory()`
-        //
-
-        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "managedFactory", RETURN_MANAGED_FACTORY, null, EMPTY_STRINGS);
-        methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, generator.getGeneratedType().getInternalName(), FACTORY_FIELD, NAMED_OBJECT_INSTANTIATOR.getDescriptor());
-        methodVisitor.visitInsn(Opcodes.ARETURN);
         methodVisitor.visitMaxs(0, 0);
         methodVisitor.visitEnd();
 

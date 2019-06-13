@@ -19,13 +19,14 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import javax.inject.Inject
 
 class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Specification {
-    final ClassGenerator classGenerator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory())
+    final ClassGenerator classGenerator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
     final CrossBuildInMemoryCache cache = new TestCrossBuildInMemoryCacheFactory().newCache()
     final ServiceLookup services = new DefaultServiceRegistry()
     final DependencyInjectingInstantiator instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), services)

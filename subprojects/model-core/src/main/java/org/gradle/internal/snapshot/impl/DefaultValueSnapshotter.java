@@ -26,6 +26,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
 import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -41,9 +42,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
     private final ValueVisitor<ValueSnapshot> valueSnapshotValueVisitor;
     private final ValueVisitor<Isolatable<?>> isolatableValueVisitor;
 
-    public DefaultValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher) {
+    public DefaultValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         valueSnapshotValueVisitor = new ValueSnapshotVisitor(classLoaderHasher);
-        isolatableValueVisitor = new IsolatableVisitor(classLoaderHasher);
+        isolatableValueVisitor = new IsolatableVisitor(classLoaderHasher, managedFactoryRegistry);
     }
 
     @Override
@@ -323,9 +324,11 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
     private static class IsolatableVisitor implements ValueVisitor<Isolatable<?>> {
         private final ClassLoaderHierarchyHasher classLoaderHasher;
+        private final ManagedFactoryRegistry managedFactoryRegistry;
 
-        IsolatableVisitor(ClassLoaderHierarchyHasher classLoaderHasher) {
+        IsolatableVisitor(ClassLoaderHierarchyHasher classLoaderHasher, ManagedFactoryRegistry managedFactoryRegistry) {
             this.classLoaderHasher = classLoaderHasher;
+            this.managedFactoryRegistry = managedFactoryRegistry;
         }
 
         @Override
@@ -380,12 +383,12 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         @Override
         public Isolatable<?> managedImmutableValue(Managed managed) {
-            return new IsolatedImmutableManagedValue(managed);
+            return new IsolatedImmutableManagedValue(managed, managedFactoryRegistry);
         }
 
         @Override
         public Isolatable<?> managedValue(Managed value, Isolatable<?> state) {
-            return new IsolatedManagedValue(value.publicType(), value.managedFactory(), state);
+            return new IsolatedManagedValue(value.publicType(), managedFactoryRegistry.lookup(value.publicType()), state);
         }
 
         @Override

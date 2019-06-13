@@ -16,17 +16,14 @@
 
 package org.gradle.internal.state;
 
-import javax.annotation.Nullable;
-
-public interface ManagedFactory {
+public interface ManagedFactoryRegistry {
     /**
-     * Creates an instance of a managed object from the given state, if possible.
+     * Looks up a {@link ManagedFactory} that can provide the given type.
      */
-    @Nullable
-    <T> T fromState(Class<T> type, Object state);
+    <T> ManagedFactory lookup(Class<T> type);
 
     /**
-     * Whether or not this factory can create a managed object of the given type.
+     * Registers a new factory for the given type
      */
-    boolean canCreate(Class<?> type);
+    void register(Class<?> type, ManagedFactory factory);
 }

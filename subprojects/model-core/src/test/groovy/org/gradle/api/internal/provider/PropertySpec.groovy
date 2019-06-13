@@ -863,7 +863,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property instanceof Managed
         !property.immutable()
         def state = property.unpackState()
-        def copy = property.managedFactory().fromState(property.publicType(), state)
+        def copy = managedFactory().fromState(property.publicType(), state)
         !copy.is(property)
         !copy.present
         copy.getOrNull() == null
@@ -872,7 +872,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         copy.getOrNull() == null
 
         def state2 = property.unpackState()
-        def copy2 = property.managedFactory().fromState(property.publicType(), state2)
+        def copy2 = managedFactory().fromState(property.publicType(), state2)
         !copy2.is(property)
         copy2.get() == someValue()
 

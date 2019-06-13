@@ -74,19 +74,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public ManagedFactory managedFactory() {
-            return new ManagedFactory() {
-                @Override
-                public <T> T fromState(Class<T> type, Object state) {
-                    if (!type.isAssignableFrom(Directory.class)) {
-                        return null;
-                    }
-                    return type.cast(new FixedDirectory((File) state, fileResolver));
-                }
-            };
-        }
-
-        @Override
         public Object unpackState() {
             return value;
         }
@@ -160,19 +147,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public Class<?> publicType() {
             return RegularFile.class;
-        }
-
-        @Override
-        public ManagedFactory managedFactory() {
-            return new ManagedFactory() {
-                @Override
-                public <T> T fromState(Class<T> type, Object state) {
-                    if (!type.isAssignableFrom(RegularFile.class)) {
-                        return null;
-                    }
-                    return type.cast(new FixedFile((File) state));
-                }
-            };
         }
 
         @Override
@@ -269,19 +243,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public ManagedFactory managedFactory() {
-            return new ManagedFactory() {
-                @Override
-                public <T> T fromState(Class<T> type, Object state) {
-                    if (!type.isAssignableFrom(RegularFileProperty.class)) {
-                        return null;
-                    }
-                    return type.cast(new DefaultRegularFileVar(fileResolver).value((RegularFile) state));
-                }
-            };
-        }
-
-        @Override
         public Provider<File> getAsFile() {
             return new ToFileProvider(this);
         }
@@ -346,19 +307,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public Class<?> publicType() {
             return DirectoryProperty.class;
-        }
-
-        @Override
-        public ManagedFactory managedFactory() {
-            return new ManagedFactory() {
-                @Override
-                public <T> T fromState(Class<T> type, Object state) {
-                    if (!type.isAssignableFrom(DirectoryProperty.class)) {
-                        return null;
-                    }
-                    return type.cast(new DefaultDirectoryVar(resolver).value((Directory) state));
-                }
-            };
         }
 
         @Override

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -31,8 +33,14 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.services.ProgressLoggingBridge;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
+import org.gradle.internal.state.DefaultManagedFactoryRegistry;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
+
+import static org.gradle.api.internal.provider.ManagedFactories.*;
+import static org.gradle.api.internal.file.ManagedFactories.*;
+import static org.gradle.api.internal.file.collections.ManagedFactories.*;
 
 public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
@@ -58,5 +66,28 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
         return new DefaultCrossBuildInMemoryCacheFactory(listenerManager);
+    }
+
+    NamedObjectInstantiator createNamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new NamedObjectInstantiator(cacheFactory);
+    }
+    
+    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver) {
+        return new DefaultManagedFactoryRegistry(
+                // Note that order is important - the first factory in the list that can create
+                // a given type will be selected, so the order should be from most specific type to
+                // least specific type
+                new ConfigurableFileCollectionManagedFactory(fileResolver),
+                new RegularFileManagedFactory(),
+                new RegularFilePropertyManagedFactory(fileResolver),
+                new DirectoryManagedFactory(fileResolver),
+                new DirectoryPropertyManagedFactory(fileResolver),
+                new SetPropertyManagedFactory(),
+                new ListPropertyManagedFactory(),
+                new MapPropertyManagedFactory(),
+                new PropertyManagedFactory(),
+                new ProviderManagedFactory(),
+                namedObjectInstantiator
+        );
     }
 }

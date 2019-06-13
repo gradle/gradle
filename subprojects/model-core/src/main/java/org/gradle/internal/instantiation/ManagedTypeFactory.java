@@ -17,6 +17,8 @@
 package org.gradle.internal.instantiation;
 
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 
 import java.lang.reflect.Constructor;
@@ -25,14 +27,17 @@ import java.lang.reflect.InvocationTargetException;
 public class ManagedTypeFactory implements ManagedFactory {
     private final Constructor<?> constructor;
 
-    // Used by generated code
-    public ManagedTypeFactory(Class<?> type) throws NoSuchMethodException {
-        constructor = type.getConstructor(Object[].class);
+    public ManagedTypeFactory(Class<?> type) {
+        try {
+            constructor = type.getConstructor(Object[].class);
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     @Override
     public <T> T fromState(Class<T> type, Object state) {
-        if (!type.isAssignableFrom(constructor.getDeclaringClass())) {
+        if (!canCreate(type)) {
             return null;
         }
         try {
@@ -42,5 +47,20 @@ public class ManagedTypeFactory implements ManagedFactory {
         } catch (Exception e) {
             throw new ObjectInstantiationException(type, e);
         }
+    }
+
+    @Override
+    public boolean canCreate(Class<?> type) {
+        return type.isAssignableFrom(constructor.getDeclaringClass());
+    }
+
+    public static boolean isGeneratedType(Class<?> type) {
+        try {
+            type.getConstructor(Object[].class);
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
+
+        return Managed.class.isAssignableFrom(type);
     }
 }

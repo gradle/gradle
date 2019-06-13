@@ -28,6 +28,9 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.state.DefaultManagedFactoryRegistry;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
@@ -53,10 +56,11 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     public void execute(WorkerProcessContext workerProcessContext) {
         completed = new CountDownLatch(1);
         try {
+            ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.emptyList());
+                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.emptyList(), new DefaultManagedFactoryRegistry());
             }
-            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", workerProcessContext.getServiceRegistry());
+            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", parentServices);
             // Make the argument serializers available so work implementations can register their own serializers
             RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
             serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
