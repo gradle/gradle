@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -24,6 +25,15 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import java.util.SortedMap;
 
 public abstract class AbstractFingerprintChanges implements ChangeContainer {
+    private static final ImmutableMap<String, FingerprintCompareStrategy> COMPARE_STRATEGY_MAPPING = ImmutableMap.<String, FingerprintCompareStrategy>builder()
+        .put("ABSOLUTE_PATH", AbsolutePathFingerprintCompareStrategy.INSTANCE)
+        .put("NAME_ONLY", NormalizedPathFingerprintCompareStrategy.INSTANCE)
+        .put("RELATIVE", NormalizedPathFingerprintCompareStrategy.INSTANCE)
+        .put("IGNORED_PATH", IgnoredPathCompareStrategy.INSTANCE)
+        .put("CLASSPATH", ClasspathCompareStrategy.INSTANCE)
+        .put("COMPILE_CLASSPATH", ClasspathCompareStrategy.INSTANCE)
+        .build();
+
     protected final SortedMap<String, FileCollectionFingerprint> previous;
     protected final SortedMap<String, CurrentFileCollectionFingerprint> current;
     private final String title;
@@ -49,8 +59,13 @@ public abstract class AbstractFingerprintChanges implements ChangeContainer {
             @Override
             public boolean updated(String property, FileCollectionFingerprint previousFingerprint, CurrentFileCollectionFingerprint currentFingerprint) {
                 String propertyTitle = title + " property '" + property + "'";
-                return currentFingerprint.visitChangesSince(previousFingerprint, propertyTitle, includeAdded, visitor);
+                FingerprintCompareStrategy compareStrategy = determineCompareStrategy(currentFingerprint);
+                return compareStrategy.visitChangesSince(visitor, currentFingerprint, previousFingerprint, propertyTitle, includeAdded);
             }
         });
+    }
+
+    protected FingerprintCompareStrategy determineCompareStrategy(CurrentFileCollectionFingerprint currentFingerprint) {
+        return COMPARE_STRATEGY_MAPPING.get(currentFingerprint.getStrategyIdentifier());
     }
 }

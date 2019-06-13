@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -73,8 +70,4 @@ public class AbsolutePathFingerprintCompareStrategy extends AbstractFingerprintC
         return true;
     }
 
-    @Override
-    public void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
-        NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
-    }
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -36,7 +37,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
 
     private NameOnlyFingerprintingStrategy() {
-        super("NAME_ONLY", NormalizedPathFingerprintCompareStrategy.INSTANCE);
+        super("NAME_ONLY");
     }
 
     @Override
@@ -83,5 +84,10 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
             });
         }
         return builder.build();
+    }
+
+    @Override
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.SORTED;
     }
 }

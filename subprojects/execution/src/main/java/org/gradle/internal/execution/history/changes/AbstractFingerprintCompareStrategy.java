@@ -14,20 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.execution.history.changes;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DefaultFileChange;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
 public abstract class AbstractFingerprintCompareStrategy implements FingerprintCompareStrategy {
+
+    @Override
+    public boolean visitChangesSince(ChangeVisitor visitor, FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, boolean includeAdded) {
+        if (hasSameRootHashes(current, previous)) {
+            return true;
+        }
+        return visitChangesSince(visitor, current.getFingerprints(), previous.getFingerprints(), propertyTitle, includeAdded);
+    }
+
+    private boolean hasSameRootHashes(FileCollectionFingerprint current, FileCollectionFingerprint previous) {
+        return Iterables.elementsEqual(current.getRootHashes().entries(), previous.getRootHashes().entries());
+    }
 
     @Override
     public boolean visitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {

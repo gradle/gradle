@@ -19,9 +19,10 @@ package org.gradle.internal.fingerprint.classpath.impl
 import com.google.common.collect.Iterables
 import org.gradle.internal.change.CollectingChangeVisitor
 import org.gradle.internal.change.DefaultFileChange
+import org.gradle.internal.execution.history.changes.ClasspathCompareStrategy
+import org.gradle.internal.execution.history.changes.FingerprintCompareStrategy
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
-import org.gradle.internal.fingerprint.FingerprintCompareStrategy
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMultimap
 import org.gradle.internal.change.Change
 import org.gradle.internal.change.CollectingChangeVisitor
 import org.gradle.internal.change.DefaultFileChange
+import org.gradle.internal.execution.history.changes.AbsolutePathFingerprintCompareStrategy
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
@@ -60,7 +61,7 @@ class EmptyCurrentFileCollectionFingerprintTest extends Specification {
 
     private static Collection<Change> getChanges(FileCollectionFingerprint previous, CurrentFileCollectionFingerprint current, boolean includeAdded) {
         def visitor = new CollectingChangeVisitor()
-        current.visitChangesSince(previous, "test", includeAdded, visitor)
+        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.changes
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.change.ChangeTypeInternal
 import org.gradle.internal.change.CollectingChangeVisitor
 import org.gradle.internal.change.DefaultFileChange
+import org.gradle.internal.execution.history.changes.AbsolutePathFingerprintCompareStrategy
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
@@ -112,7 +113,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         file2.createFile()
         def target = fingerprinter.fingerprint(files(file1, file2, file3, file4))
         def visitor = new CollectingChangeVisitor()
-        target.visitChangesSince(fingerprint, "TYPE", false, visitor)
+        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(visitor, target, fingerprint, "TYPE", false)
         visitor.changes.empty
 
         then:

@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.execution.history.changes;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
-import org.gradle.internal.hash.Hasher;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -204,18 +199,5 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         FileType fileType = addedFile.getFileType();
         String normalizedPath = addedFilesByNormalizedPathEntries.getKey();
         return DefaultFileChange.added(absolutePath, propertyTitle, fileType, normalizedPath);
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
-        appendSortedToHasher(hasher, fingerprints);
-    }
-
-    public static void appendSortedToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
-        List<FileSystemLocationFingerprint> sortedFingerprints = Lists.newArrayList(fingerprints);
-        Collections.sort(sortedFingerprints);
-        for (FileSystemLocationFingerprint normalizedSnapshot : sortedFingerprints) {
-            normalizedSnapshot.appendToHasher(hasher);
-        }
     }
 }

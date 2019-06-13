@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.file.FileType;
