@@ -34,7 +34,6 @@ import spock.lang.Specification
 import javax.annotation.Nullable
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.function.BiPredicate
 import java.util.function.Predicate
 
 class DefaultFileSystemSnapshotterTest extends Specification {
@@ -283,8 +282,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         }
 
         @Override
-        BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate() {
-            return new BiPredicate<FileSystemLocationSnapshot, Iterable<String>>() {
+        FileSystemSnapshotPredicate getAsSnapshotPredicate() {
+            return new FileSystemSnapshotPredicate() {
                 @Override
                 boolean test(FileSystemLocationSnapshot fileSystemLocationSnapshot, Iterable<String> relativePath) {
                     return fileSystemLocationSnapshot.getType() == FileType.Directory || predicate.test(fileSystemLocationSnapshot.name)

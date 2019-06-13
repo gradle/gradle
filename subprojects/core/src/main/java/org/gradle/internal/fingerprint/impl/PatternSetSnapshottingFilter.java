@@ -38,7 +38,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.function.BiPredicate;
 
 public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     private final PatternSet patternSet;
@@ -55,7 +54,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     }
 
     @Override
-    public BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate() {
+    public FileSystemSnapshotPredicate getAsSnapshotPredicate() {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         return (snapshot, relativePath) -> spec.isSatisfiedBy(new LogicalFileTreeElement(snapshot, relativePath, stat));
     }

@@ -91,8 +91,12 @@ public class DirectorySnapshotter {
                     if (firstStar == -1) {
                         excludeFiles.add(defaultExclude);
                     } else {
-                        Predicate<String> start = firstStar == 0 ? it -> true : new StartMatcher(defaultExclude.substring(0, firstStar));
-                        Predicate<String> end = firstStar == length - 1 ? it -> true : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
+                        Predicate<String> start = firstStar == 0
+                            ? it -> true
+                            : new StartMatcher(defaultExclude.substring(0, firstStar));
+                        Predicate<String> end = firstStar == length - 1
+                            ? it -> true
+                            : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
                         excludeFileSpecs.add(start.and(end));
                     }
                 }

@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot;
 import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.function.BiPredicate;
 
 public interface SnapshottingFilter {
     SnapshottingFilter EMPTY = new SnapshottingFilter() {
@@ -29,7 +28,7 @@ public interface SnapshottingFilter {
         }
 
         @Override
-        public BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate() {
+        public FileSystemSnapshotPredicate getAsSnapshotPredicate() {
             return (location, relativePath) -> true;
         }
 
@@ -40,10 +39,14 @@ public interface SnapshottingFilter {
     };
 
     boolean isEmpty();
-    BiPredicate<FileSystemLocationSnapshot, Iterable<String>> getAsSnapshotPredicate();
+    FileSystemSnapshotPredicate getAsSnapshotPredicate();
     DirectoryWalkerPredicate getAsDirectoryWalkerPredicate();
 
     interface DirectoryWalkerPredicate {
         boolean test(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath);
+    }
+
+    interface FileSystemSnapshotPredicate {
+        boolean test(FileSystemLocationSnapshot fileSystemLocation, Iterable<String> relativePath);
     }
 }

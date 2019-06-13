@@ -23,16 +23,16 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
+import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiPredicate;
 
 public class FileSystemSnapshotFilter {
 
     private FileSystemSnapshotFilter() {
     }
 
-    public static FileSystemSnapshot filterSnapshot(final BiPredicate<FileSystemLocationSnapshot, Iterable<String>> predicate, FileSystemSnapshot unfiltered) {
+    public static FileSystemSnapshot filterSnapshot(final SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshot unfiltered) {
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         final AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
         unfiltered.accept(new FileSystemSnapshotVisitor() {
