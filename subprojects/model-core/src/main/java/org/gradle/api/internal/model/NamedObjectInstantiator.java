@@ -31,6 +31,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.state.Managed;
 import org.gradle.model.internal.asm.AsmClassGenerator;
+import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
@@ -41,8 +42,6 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -72,8 +71,6 @@ public class NamedObjectInstantiator implements Managed.Factory {
     private static final String CONSTRUCTOR_NAME = "<init>";
     private static final String FACTORY_FIELD = "FACTORY";
 
-    private static final Set<String> SUFFIXES = new CopyOnWriteArraySet<>();
-
     private final CrossBuildInMemoryCache<Class<?>, LoadingCache<String, Object>> generatedTypes;
     private final String implSuffix;
     private final String factorySuffix;
@@ -85,23 +82,9 @@ public class NamedObjectInstantiator implements Managed.Factory {
     };
 
     public NamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
-        implSuffix = unique("$Impl");
-        factorySuffix = unique("$Factory");
+        implSuffix = ClassGeneratorSuffixRegistry.assign("$Impl");
+        factorySuffix = ClassGeneratorSuffixRegistry.assign(implSuffix + "Factory");
         generatedTypes = cacheFactory.newClassMap();
-    }
-
-    private static String unique(String suffix) {
-        if (SUFFIXES.add(suffix)) {
-            return suffix;
-        }
-        int i = 1;
-        while (true) {
-            String indexed = suffix + i;
-            if (SUFFIXES.add(indexed)) {
-                return indexed;
-            }
-            i++;
-        }
     }
 
     public <T extends Named> T named(final Class<T> type, final String name) throws ObjectInstantiationException {
