@@ -16,14 +16,11 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 public class SwiftLibraryProjectInitDescriptor extends SwiftProjectInitDescriptor {
-    public SwiftLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
-        super(templateOperationFactory, documentationRegistry);
+    public SwiftLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory) {
+        super(templateOperationFactory);
     }
 
     @Override

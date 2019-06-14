@@ -89,8 +89,8 @@ public class ProjectLayoutSetupRegistryFactory {
         registry.add(of(new JavaGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new GroovyGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new KotlinGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new SwiftApplicationProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators));
-        registry.add(of(new SwiftLibraryProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators));
+        registry.add(of(new SwiftApplicationProjectInitDescriptor(templateOperationBuilder), commonGenerators));
+        registry.add(of(new SwiftLibraryProjectInitDescriptor(templateOperationBuilder), commonGenerators));
         return registry;
     }
 
