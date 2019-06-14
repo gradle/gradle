@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.util.concurrent.Striped;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
@@ -51,7 +50,6 @@ import java.util.function.Supplier;
  *
  * The implementations are currently intentionally very, very simple, and so there are a number of ways in which they can be made much more efficient. This can happen over time.
  */
-@NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileHasher hasher;
     private final StringInterner stringInterner;
@@ -144,7 +142,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             case Missing:
                 return new MissingFileSnapshot(absolutePath, name);
             case RegularFile:
-                return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata), FileMetadata.from(metadata));
+                return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata.getLength(), metadata.getLastModified()), FileMetadata.from(metadata));
             case Directory:
                 SnapshottingFilter.DirectoryWalkerPredicate predicate = filter == null || filter.isEmpty()
                     ? null

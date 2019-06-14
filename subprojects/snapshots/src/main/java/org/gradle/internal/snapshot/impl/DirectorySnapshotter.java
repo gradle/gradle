@@ -218,7 +218,7 @@ public class DirectorySnapshotter {
         private void addFileSnapshot(Path file, String name, BasicFileAttributes attrs) {
             Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
             DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
-            HashCode hash = hasher.hash(file.toFile(), metadata);
+            HashCode hash = hasher.hash(file.toFile(), metadata.getLength(), metadata.getLastModified());
             RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(internedAbsolutePath(file), name, hash, FileMetadata.from(attrs));
             builder.visit(fileSnapshot);
         }

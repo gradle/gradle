@@ -30,7 +30,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             intern(_) >> { String string -> string }
     }
     def hasher = Stub(FileHasher) {
-        hash(_, _) >> {
+        hash(_, _, _) >> {
             HashCode.fromInt(1234)
         }
     }
@@ -119,7 +119,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
 
         then:
         result instanceof RegularFileSnapshot
-        result.hash == hasher.hash(new File(basePath), snapshot)
+        result.hash == hasher.hash(new File(basePath), snapshot.length, snapshot.lastModified)
     }
 
     def "can add nothing"() {
