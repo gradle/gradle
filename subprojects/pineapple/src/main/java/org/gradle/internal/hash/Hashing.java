@@ -19,9 +19,9 @@ package org.gradle.internal.hash;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
-import org.gradle.internal.io.BufferCaster;
 
 import java.io.OutputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
@@ -230,7 +230,16 @@ public class Hashing {
 
         private void update(int length) {
             getDigest().update(buffer.array(), 0, length);
-            BufferCaster.cast(buffer).clear();
+            castBuffer(buffer).clear();
+        }
+
+        /**
+         * Without this cast, when the code compiled by Java 9+ is executed on Java 8, it will throw
+         * java.lang.NoSuchMethodError: Method flip()Ljava/nio/ByteBuffer; does not exist in class java.nio.ByteBuffer
+         */
+        @SuppressWarnings("RedundantCast")
+        private static <T extends Buffer> Buffer castBuffer(T byteBuffer) {
+            return (Buffer) byteBuffer;
         }
 
         @Override
