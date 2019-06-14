@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.change;
+package org.gradle.internal.execution.history.changes;
 
-public interface ChangeVisitor {
-    /**
-     * Visits a new change.
-     *
-     * @return Whether to continue looking for changes.
-     */
-    boolean visitChange(Change change);
+public class LimitingChangeVisitor implements ChangeVisitor {
+    private final int maxReportedChanges;
+    private final ChangeVisitor delegate;
+    private int visited;
+
+    public LimitingChangeVisitor(int maxReportedChanges, ChangeVisitor delegate) {
+        this.maxReportedChanges = maxReportedChanges;
+        this.delegate = delegate;
+    }
+
+    @Override
+    public boolean visitChange(Change change) {
+        boolean delegateResult = delegate.visitChange(change);
+        visited++;
+        return delegateResult && visited < maxReportedChanges;
+    }
 }

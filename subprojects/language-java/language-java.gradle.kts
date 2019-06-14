@@ -1,5 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":workers"))
     implementation(project(":snapshots"))
+    implementation(project(":execution"))
     implementation(project(":dependencyManagement"))
     implementation(project(":platformBase"))
     implementation(project(":platformJvm"))

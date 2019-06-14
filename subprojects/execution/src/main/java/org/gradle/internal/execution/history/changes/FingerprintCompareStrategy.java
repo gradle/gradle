@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.hash.Hasher;
-
-import java.util.Collection;
-import java.util.Map;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 /**
  * Strategy to compare two {@link FileCollectionFingerprint}s.
@@ -29,9 +25,9 @@ import java.util.Map;
  */
 public interface FingerprintCompareStrategy {
     /**
-     * @see FileCollectionFingerprint#visitChangesSince(FileCollectionFingerprint, String, boolean, ChangeVisitor)
+     * Visits the changes to file contents since the given fingerprint, subject to the given filters.
+     *
+     * @return Whether the {@link ChangeVisitor} is looking for further changes. See {@link ChangeVisitor#visitChange(Change)}.
      */
-    boolean visitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
-
-    void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints);
+    boolean visitChangesSince(FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor);
 }

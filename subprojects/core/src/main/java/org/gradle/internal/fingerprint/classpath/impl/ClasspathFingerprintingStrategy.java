@@ -19,14 +19,15 @@ package org.gradle.internal.fingerprint.classpath.impl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
+import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint;
@@ -71,7 +72,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     private final HashCode zipHasherConfigurationHash;
 
     private ClasspathFingerprintingStrategy(String identifier, NonJarFingerprintingStrategy nonZipFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(identifier, ClasspathCompareStrategy.INSTANCE);
+        super(identifier);
         this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
         this.classpathResourceFilter = classpathResourceFilter;
         this.classpathResourceHasher = classpathResourceHasher;
@@ -228,5 +229,10 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         public void postVisitDirectory() {
             relativePathStringTracker.leave();
         }
+    }
+
+    @Override
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.KEEP_ORDER;
     }
 }

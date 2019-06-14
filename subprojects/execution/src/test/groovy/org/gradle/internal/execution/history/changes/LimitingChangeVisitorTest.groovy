@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.change;
+package org.gradle.internal.execution.history.changes
 
-public class LimitingChangeVisitor implements ChangeVisitor {
-    private final int maxReportedChanges;
-    private final ChangeVisitor delegate;
-    private int visited;
 
-    public LimitingChangeVisitor(int maxReportedChanges, ChangeVisitor delegate) {
-        this.maxReportedChanges = maxReportedChanges;
-        this.delegate = delegate;
+import spock.lang.Specification
+
+class LimitingChangeVisitorTest extends Specification {
+
+    def collectingVisitor = new CollectingChangeVisitor()
+    def visitor = new LimitingChangeVisitor(2, collectingVisitor)
+
+    def "will not accept more changes than specified"() {
+        def change1 = Mock(Change)
+        def change2 = Mock(Change)
+
+        expect:
+        visitor.visitChange(change1)
+        !visitor.visitChange(change2)
+        collectingVisitor.changes == [change1, change2]
     }
 
-    @Override
-    public boolean visitChange(Change change) {
-        boolean delegateResult = delegate.visitChange(change);
-        visited++;
-        return delegateResult && visited < maxReportedChanges;
-    }
 }

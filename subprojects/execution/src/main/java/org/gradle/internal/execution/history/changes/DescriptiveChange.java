@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.change;
+package org.gradle.internal.execution.history.changes;
 
-public interface ChangeContainer {
-    /**
-     * Propagate changes to the visitor.
-     *
-     * @return Whether the visitor still wants to obtain more changes.
-     */
-    boolean accept(ChangeVisitor visitor);
+public class DescriptiveChange implements Change {
+    private final String message;
+
+    public DescriptiveChange(String message, Object... params) {
+        this.message = String.format(message, params);
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
 }

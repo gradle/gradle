@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.change.ChangeTypeInternal
+import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 
 abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 

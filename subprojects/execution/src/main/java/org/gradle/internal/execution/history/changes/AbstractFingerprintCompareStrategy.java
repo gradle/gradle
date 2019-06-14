@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.execution.history.changes;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.DefaultFileChange;
+import com.google.common.collect.Iterables;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -30,7 +28,18 @@ import java.util.Map;
 public abstract class AbstractFingerprintCompareStrategy implements FingerprintCompareStrategy {
 
     @Override
-    public boolean visitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    public boolean visitChangesSince(FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor) {
+        if (hasSameRootHashes(current, previous)) {
+            return true;
+        }
+        return visitChangesSince(current.getFingerprints(), previous.getFingerprints(), propertyTitle, includeAdded, visitor);
+    }
+
+    private boolean hasSameRootHashes(FileCollectionFingerprint current, FileCollectionFingerprint previous) {
+        return Iterables.elementsEqual(current.getRootHashes().entries(), previous.getRootHashes().entries());
+    }
+
+    private boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
         Boolean trivialResult = compareTrivialFingerprints(visitor, current, previous, propertyTitle, includeAdded);
         if (trivialResult != null) {

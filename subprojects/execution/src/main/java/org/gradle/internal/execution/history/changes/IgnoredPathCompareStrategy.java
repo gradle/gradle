@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -96,8 +92,4 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
         return true;
     }
 
-    @Override
-    public void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
-        NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
-    }
 }

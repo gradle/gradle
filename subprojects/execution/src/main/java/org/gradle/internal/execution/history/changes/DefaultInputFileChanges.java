@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
@@ -38,6 +37,7 @@ public class DefaultInputFileChanges extends AbstractFingerprintChanges implemen
     public boolean accept(String propertyName, ChangeVisitor visitor) {
         CurrentFileCollectionFingerprint currentFileCollectionFingerprint = current.get(propertyName);
         FileCollectionFingerprint previousFileCollectionFingerprint = previous.get(propertyName);
-        return currentFileCollectionFingerprint.visitChangesSince(previousFileCollectionFingerprint, TITLE, true, visitor);
+        FingerprintCompareStrategy compareStrategy = determineCompareStrategy(currentFileCollectionFingerprint);
+        return compareStrategy.visitChangesSince(currentFileCollectionFingerprint, previousFileCollectionFingerprint, TITLE, true, visitor);
     }
 }

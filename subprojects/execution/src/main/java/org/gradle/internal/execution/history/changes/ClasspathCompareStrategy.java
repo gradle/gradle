@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.classpath.impl;
+package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
-import org.gradle.internal.fingerprint.impl.AbstractFingerprintCompareStrategy;
-import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -163,13 +156,6 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
 
         public boolean hasMoreToProcess() {
             return current != null || previous != null;
-        }
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
-        for (FileSystemLocationFingerprint fingerprint : fingerprints) {
-            fingerprint.appendToHasher(hasher);
         }
     }
 }

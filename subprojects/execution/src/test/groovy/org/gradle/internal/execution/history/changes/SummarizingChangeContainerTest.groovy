@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.change
+package org.gradle.internal.execution.history.changes
+
 
 import spock.lang.Specification
 
@@ -23,7 +24,6 @@ class SummarizingChangeContainerTest extends Specification {
     def state1 = Mock(ChangeContainer)
     def state2 = Mock(ChangeContainer)
     def state = new SummarizingChangeContainer(state1, state2)
-    def change = Mock(Change)
     def visitor = new CollectingChangeVisitor()
 
     def "looks for changes in all delegate change sets"() {
