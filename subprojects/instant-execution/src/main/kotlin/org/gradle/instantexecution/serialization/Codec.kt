@@ -17,7 +17,9 @@
 package org.gradle.instantexecution.serialization
 
 import org.gradle.api.Task
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
@@ -81,6 +83,8 @@ sealed class PropertyTrace {
 
     object Unknown : PropertyTrace()
 
+    object Gradle : PropertyTrace()
+
     class Task(
         val type: Class<*>,
         val path: String
@@ -98,6 +102,7 @@ sealed class PropertyTrace {
     ) : PropertyTrace()
 
     override fun toString(): String = when (this) {
+        is Gradle -> "Gradle state"
         is Property -> "$kind `$name` of $trace"
         is Bean -> "`${type.name}` bean found in $trace"
         is Task -> "task `$path` of type `${type.name}`"
@@ -119,9 +124,30 @@ enum class PropertyKind {
 }
 
 
+sealed class IsolateOwner {
+
+    abstract val delegate: Any
+
+    fun <T> service(type: Class<T>): T =
+        when (this) {
+            is OwnerTask -> (delegate.project as ProjectInternal).services.get(type)
+            is OwnerGradle -> (delegate as GradleInternal).services.get(type)
+        }
+
+    class OwnerTask(override val delegate: Task) : IsolateOwner()
+    class OwnerGradle(override val delegate: Gradle) : IsolateOwner()
+}
+
+
+internal
+inline
+fun <reified T> IsolateOwner.service() =
+    service(T::class.java)
+
+
 interface Isolate {
 
-    val owner: Task
+    val owner: IsolateOwner
 }
 
 
@@ -140,14 +166,14 @@ interface ReadIsolate : Isolate {
 internal
 interface MutableIsolateContext {
 
-    fun enterIsolate(owner: Task)
+    fun enterIsolate(owner: IsolateOwner)
 
     fun leaveIsolate()
 }
 
 
 internal
-inline fun <T : MutableIsolateContext> T.withIsolate(owner: Task, block: T.() -> Unit) {
+inline fun <T : MutableIsolateContext> T.withIsolate(owner: IsolateOwner, block: T.() -> Unit) {
     enterIsolate(owner)
     try {
         block()

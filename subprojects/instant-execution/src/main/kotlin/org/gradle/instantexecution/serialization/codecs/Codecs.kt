@@ -36,7 +36,7 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logUnsupported
-import org.gradle.instantexecution.serialization.ownerProjectService
+import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
@@ -111,15 +111,15 @@ class Codecs(
 
         bind(TaskReferenceCodec)
 
-        bind(ownerProjectService<ObjectFactory>())
-        bind(ownerProjectService<PatternSpecFactory>())
-        bind(ownerProjectService<FileResolver>())
-        bind(ownerProjectService<Instantiator>())
-        bind(ownerProjectService<FileCollectionFactory>())
-        bind(ownerProjectService<FileOperations>())
-        bind(ownerProjectService<BuildOperationExecutor>())
-        bind(ownerProjectService<ToolingModelBuilderRegistry>())
-        bind(ownerProjectService<ExecActionFactory>())
+        bind(ownerService<ObjectFactory>())
+        bind(ownerService<PatternSpecFactory>())
+        bind(ownerService<FileResolver>())
+        bind(ownerService<Instantiator>())
+        bind(ownerService<FileCollectionFactory>())
+        bind(ownerService<FileOperations>())
+        bind(ownerService<BuildOperationExecutor>())
+        bind(ownerService<ToolingModelBuilderRegistry>())
+        bind(ownerService<ExecActionFactory>())
 
         bind(BeanCodec())
     }

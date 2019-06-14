@@ -117,7 +117,7 @@ class InstantExecutionHost internal constructor(
     ) : InstantExecutionBuild {
 
         init {
-            gradle.run {
+            this@InstantExecutionHost.gradle.run {
                 settings = createSettings()
 
                 // Fire build operation required by build scan to determine startup duration and settings evaluated duration
@@ -135,6 +135,8 @@ class InstantExecutionHost internal constructor(
                 defaultProject = rootProject
             }
         }
+
+        override val gradle: GradleInternal = this@InstantExecutionHost.gradle
 
         override fun createProject(path: String): ProjectInternal {
             val projectPath = Path.path(path)
