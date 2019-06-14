@@ -140,7 +140,7 @@ data class CIBuildModel (
             GradleSubproject("native"),
             GradleSubproject("osgi"),
             GradleSubproject("persistentCache"),
-            GradleSubproject("pineapple", unitTests = false, functionalTests = false),
+            GradleSubproject("pineapple", functionalTests = false),
             GradleSubproject("platformBase"),
             GradleSubproject("platformJvm"),
             GradleSubproject("platformNative"),
