@@ -198,11 +198,11 @@ subprojects {
 
     if (project in javaProjects) {
         apply(plugin = "gradlebuild.java-projects")
-        apply(plugin = "gradlebuild.publish-public-libraries")
     }
 
     if (project in publicJavaProjects) {
         apply(plugin = "gradlebuild.public-java-projects")
+        apply(plugin = "gradlebuild.publish-public-libraries")
     }
 
     apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
