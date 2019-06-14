@@ -16,8 +16,8 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -52,13 +52,13 @@ import java.util.function.Supplier;
  */
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileHasher hasher;
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
     private final Stat stat;
     private final FileSystemMirror fileSystemMirror;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
     private final DirectorySnapshotter directorySnapshotter;
 
-    public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, String... defaultExcludes) {
+    public DefaultFileSystemSnapshotter(FileHasher hasher, Interner<String> stringInterner, Stat stat, FileSystemMirror fileSystemMirror, String... defaultExcludes) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.stat = stat;

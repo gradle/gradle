@@ -19,8 +19,8 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileMetadata;
@@ -48,10 +48,10 @@ import java.util.function.Predicate;
 
 public class DirectorySnapshotter {
     private final FileHasher hasher;
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
     private final DefaultExcludes defaultExcludes;
 
-    public DirectorySnapshotter(FileHasher hasher, StringInterner stringInterner, String... defaultExcludes) {
+    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, String... defaultExcludes) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);

@@ -17,7 +17,7 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -28,14 +28,14 @@ import java.util.Map;
 
 public class FileSystemSnapshotBuilder {
 
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
     private DirectoryBuilder rootDirectoryBuilder;
     private String rootPath;
     private String rootName;
     private RegularFileSnapshot rootFileSnapshot;
     private FileHasher fileHasher;
 
-    public FileSystemSnapshotBuilder(StringInterner stringInterner, FileHasher fileHasher) {
+    public FileSystemSnapshotBuilder(Interner<String> stringInterner, FileHasher fileHasher) {
         this.stringInterner = stringInterner;
         this.fileHasher = fileHasher;
     }
