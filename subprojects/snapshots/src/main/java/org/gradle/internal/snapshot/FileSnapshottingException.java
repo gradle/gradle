@@ -16,14 +16,12 @@
 
 package org.gradle.internal.snapshot;
 
-import javax.annotation.Nullable;
-
-public class ValueSnapshottingException extends RuntimeException {
-    public ValueSnapshottingException(String message) {
+public class FileSnapshottingException extends RuntimeException {
+    public FileSnapshottingException(String message) {
         super(message);
     }
 
-    public ValueSnapshottingException(String message, @Nullable Throwable cause) {
+    public FileSnapshottingException(String message, Throwable cause) {
         super(message, cause);
     }
 }
