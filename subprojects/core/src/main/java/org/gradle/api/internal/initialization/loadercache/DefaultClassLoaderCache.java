@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
@@ -35,10 +36,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, SessionLifecycleListener {
+public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppable, SessionLifecycleListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClassLoaderCache.class);
 
     private final Object lock = new Object();
@@ -161,6 +163,17 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
             usedInThisBuild.clear();
         }
         assertInternalIntegrity();
+    }
+
+    @Override
+    public List<ClassLoader> usedInThisBuild() {
+        ImmutableList.Builder<ClassLoader> loaders = ImmutableList.builder();
+        synchronized (lock) {
+            for (ClassLoaderId id : usedInThisBuild) {
+                loaders.add(byId.get(id).classLoader);
+            }
+        }
+        return loaders.build();
     }
 
     private static abstract class ClassLoaderSpec {
