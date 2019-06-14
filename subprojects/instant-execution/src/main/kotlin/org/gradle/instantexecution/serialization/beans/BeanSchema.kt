@@ -70,7 +70,7 @@ val Class<*>.relevantFields: Sequence<Field>
         .filterNot { field ->
             Modifier.isStatic(field.modifiers)
                 // Ignore the `metaClass` field that Groovy generates
-                || (field.isSynthetic && field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
+                || (field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
                 // Ignore the `__meta_class__` field that Gradle generates
                 || (field.name == "__meta_class__" && MetaClass::class.java.isAssignableFrom(field.type))
         }
