@@ -94,7 +94,9 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
         DefaultNativePlatform host = DefaultNativePlatform.host();
         String definition = "machines.";
 
-        if (host.getOperatingSystem().isMacOsX()) {
+        if (host.getOperatingSystem().isWindows()) {
+            definition += "windows";
+        } else if (host.getOperatingSystem().isMacOsX()) {
             definition += "macOS";
         } else if (host.getOperatingSystem().isLinux()) {
             definition += "linux";
