@@ -50,6 +50,20 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         then:
         assertRunnableExecuted("runInWorker")
 
+        when:
+        buildFile << """
+            class AnotherFoo extends org.gradle.other.Foo {
+            }
+            
+            runInWorker {
+                foo = new AnotherFoo()
+            }
+        """
+        succeeds("runInWorker")
+
+        then:
+        assertRunnableExecuted("runInWorker")
+
         where:
         isolationMode << ISOLATION_MODES
     }
@@ -64,6 +78,20 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         """
 
         when:
+        succeeds("runInWorker")
+
+        then:
+        assertRunnableExecuted("runInWorker")
+
+        when:
+        buildFile << """
+            class AnotherFoo extends org.gradle.other.Foo {
+            }
+            
+            runInWorker {
+                foo = new AnotherFoo()
+            }
+        """
         succeeds("runInWorker")
 
         then:
@@ -90,6 +118,20 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         """
 
         when:
+        succeeds("runInWorker")
+
+        then:
+        assertRunnableExecuted("runInWorker")
+
+        when:
+        buildFile << """
+            class AnotherFoo extends org.gradle.other.Foo {
+            }
+            
+            runInWorker {
+                foo = new AnotherFoo()
+            }
+        """
         succeeds("runInWorker")
 
         then:
