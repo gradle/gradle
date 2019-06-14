@@ -92,7 +92,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
         ZipInput input = null;
         try {
-            input = FileZipInput.create(new File(zipFile));
+            input = new FileZipInput(new File(zipFile));
             List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
             fingerprintZipEntries("", fingerprints, input);
             return fingerprints;
