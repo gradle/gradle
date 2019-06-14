@@ -47,7 +47,7 @@ public class FileSystemSnapshotBuilder {
 
     public void addFile(File file, String[] segments, String fileName, FileMetadataSnapshot metadataSnapshot) {
         checkNoRootFileSnapshot("another root file", file);
-        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, fileHasher.hash(file, metadataSnapshot), metadataSnapshot.getLastModified());
+        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, fileHasher.hash(file, metadataSnapshot), FileMetadata.from(metadataSnapshot));
         if (segments.length == 0) {
             rootFileSnapshot = fileSnapshot;
         } else {

@@ -24,6 +24,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
+import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -143,7 +144,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             case Missing:
                 return new MissingFileSnapshot(absolutePath, name);
             case RegularFile:
-                return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata), metadata.getLastModified());
+                return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata), FileMetadata.from(metadata));
             case Directory:
                 SnapshottingFilter.DirectoryWalkerPredicate predicate = filter == null || filter.isEmpty()
                     ? null
