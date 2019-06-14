@@ -35,10 +35,11 @@ import java.util.Map;
 public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
     public static final IgnoredPathFingerprintingStrategy INSTANCE = new IgnoredPathFingerprintingStrategy();
+    public static final String IDENTIFIER = "IGNORED_PATH";
     public static final String IGNORED_PATH = "";
 
     private IgnoredPathFingerprintingStrategy() {
-        super("IGNORED_PATH");
+        super(IDENTIFIER);
     }
 
     @Override

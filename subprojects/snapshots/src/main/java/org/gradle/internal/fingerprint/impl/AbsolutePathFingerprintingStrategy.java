@@ -35,11 +35,12 @@ import java.util.Map;
 public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
     public static final FingerprintingStrategy INCLUDE_MISSING = new AbsolutePathFingerprintingStrategy(true);
     public static final FingerprintingStrategy IGNORE_MISSING = new AbsolutePathFingerprintingStrategy(false);
+    public static final String IDENTIFIER = "ABSOLUTE_PATH";
 
     private final boolean includeMissing;
 
     private AbsolutePathFingerprintingStrategy(boolean includeMissing) {
-        super("ABSOLUTE_PATH");
+        super(IDENTIFIER);
         this.includeMissing = includeMissing;
     }
 

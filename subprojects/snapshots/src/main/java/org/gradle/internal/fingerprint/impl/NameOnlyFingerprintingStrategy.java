@@ -35,9 +35,10 @@ import java.util.Map;
 public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
     public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
+    public static final String IDENTIFIER = "NAME_ONLY";
 
     private NameOnlyFingerprintingStrategy() {
-        super("NAME_ONLY");
+        super(IDENTIFIER);
     }
 
     @Override

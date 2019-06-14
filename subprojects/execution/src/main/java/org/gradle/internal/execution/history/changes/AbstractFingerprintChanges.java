@@ -29,10 +29,10 @@ import java.util.SortedMap;
 
 public abstract class AbstractFingerprintChanges implements ChangeContainer {
     private static final ImmutableMap<String, FingerprintCompareStrategy> COMPARE_STRATEGY_MAPPING = ImmutableMap.<String, FingerprintCompareStrategy>builder()
-        .put(AbsolutePathFingerprintingStrategy.IGNORE_MISSING.getIdentifier(), AbsolutePathFingerprintCompareStrategy.INSTANCE)
-        .put(NameOnlyFingerprintingStrategy.INSTANCE.getIdentifier(), NormalizedPathFingerprintCompareStrategy.INSTANCE)
+        .put(AbsolutePathFingerprintingStrategy.IDENTIFIER, AbsolutePathFingerprintCompareStrategy.INSTANCE)
+        .put(NameOnlyFingerprintingStrategy.IDENTIFIER, NormalizedPathFingerprintCompareStrategy.INSTANCE)
         .put(RelativePathFingerprintingStrategy.IDENTIFIER, NormalizedPathFingerprintCompareStrategy.INSTANCE)
-        .put(IgnoredPathFingerprintingStrategy.INSTANCE.getIdentifier(), IgnoredPathCompareStrategy.INSTANCE)
+        .put(IgnoredPathFingerprintingStrategy.IDENTIFIER, IgnoredPathCompareStrategy.INSTANCE)
         .put(FingerprintingStrategy.CLASSPATH_IDENTIFIER, ClasspathCompareStrategy.INSTANCE)
         .put(FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER, ClasspathCompareStrategy.INSTANCE)
         .build();
