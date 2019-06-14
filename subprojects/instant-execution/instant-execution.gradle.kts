@@ -26,9 +26,12 @@ dependencies {
     integTestImplementation(library("ant"))
     integTestImplementation(library("inject"))
 
+    integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 
     testRuntimeOnly(kotlin("reflect"))
 }
