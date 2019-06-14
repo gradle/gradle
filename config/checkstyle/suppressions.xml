@@ -39,6 +39,8 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]base-services[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]pineapple[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]base-services-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]base-services-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]specs[/\\][^/\\]+"/>
