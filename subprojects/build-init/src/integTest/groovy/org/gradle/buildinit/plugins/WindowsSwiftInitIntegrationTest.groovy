@@ -54,8 +54,8 @@ class WindowsSwiftInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        result.assertOutputContains("'main' component in project ':' does not target this operating system.")
-        result.assertOutputContains("'test' component in project ':' does not target this operating system.")
+        result.outputContains("'main' component in project ':' does not target this operating system.")
+        result.outputContains("'test' component in project ':' does not target this operating system.")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -85,8 +85,8 @@ class WindowsSwiftInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        result.assertOutputContains("'main' component in project ':' does not target this operating system.")
-        result.assertOutputContains("'test' component in project ':' does not target this operating system.")
+        result.outputContains("'main' component in project ':' does not target this operating system.")
+        result.outputContains("'test' component in project ':' does not target this operating system.")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
