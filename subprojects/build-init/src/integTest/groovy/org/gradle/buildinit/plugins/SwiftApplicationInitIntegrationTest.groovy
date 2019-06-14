@@ -16,9 +16,8 @@
 
 package org.gradle.buildinit.plugins
 
-import com.google.common.collect.Lists
+
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -49,7 +48,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         targetDir.file("src/main/swift").assertHasDescendants(SAMPLE_APPLICATION_CLASS)
-        targetDir.file("src/test/swift").assertHasDescendants(expectedDescendants(SAMPLE_APPLICATION_TEST_CLASS))
+        targetDir.file("src/test/swift").assertHasDescendants(SAMPLE_APPLICATION_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
 
         and:
         targetDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").text.contains("@testable import SomeThing")
@@ -74,7 +73,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         targetDir.file("src/main/swift").assertHasDescendants(SAMPLE_APPLICATION_CLASS)
-        targetDir.file("src/test/swift").assertHasDescendants(expectedDescendants(SAMPLE_APPLICATION_TEST_CLASS))
+        targetDir.file("src/test/swift").assertHasDescendants(SAMPLE_APPLICATION_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
 
         and:
         targetDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").text.contains("@testable import App")
@@ -116,28 +115,24 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
                 }
             }
         """
-        if (OperatingSystem.current().linux) {
-            targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}") << """
-                import XCTest
+        targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}") << """
+            import XCTest
 
-                XCTMain([testCase(HolaTests.allTests)])
-            """
-        }
+            XCTMain([testCase(HolaTests.allTests)])
+        """
 
         when:
         run('init', '--type', 'swift-application', '--project-name', 'app', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/swift").assertHasDescendants("main.swift")
-        targetDir.file("src/test/swift").assertHasDescendants(expectedDescendants("HolaTests.swift"))
+        targetDir.file("src/test/swift").assertHasDescendants("HolaTests.swift", LINUX_MAIN_DOT_SWIFT)
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         and:
         targetDir.file("src/main/swift/${SAMPLE_APPLICATION_CLASS}").text.contains("hola()")
         targetDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").assertDoesNotExist()
-        if (OperatingSystem.current().linux) {
-            targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
-        }
+        targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
 
         when:
         run("build")
@@ -154,13 +149,5 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     ExecutableFixture executable(String path) {
         AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC).executable(targetDir.file(path))
-    }
-
-    private static List<String> expectedDescendants(String... descendants) {
-        def result = Lists.newArrayList(descendants)
-        if (OperatingSystem.current().linux) {
-            result.add(LINUX_MAIN_DOT_SWIFT)
-        }
-        return result
     }
 }

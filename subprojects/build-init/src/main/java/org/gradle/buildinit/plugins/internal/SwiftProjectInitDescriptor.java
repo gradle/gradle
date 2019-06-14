@@ -47,13 +47,8 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
 
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
         TemplateOperation testSourceTemplate = testTemplateOperation(settings);
-
-        if (OperatingSystem.current().isLinux() || OperatingSystem.current().isWindows()) {
-            TemplateOperation testEntryPointTemplate = testEntryPointTemplateOperation(settings);
-            templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate, testEntryPointTemplate).generate();
-        } else {
-            templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
-        }
+        TemplateOperation testEntryPointTemplate = testEntryPointTemplateOperation(settings);
+        templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate, testEntryPointTemplate).generate();
     }
 
     @Override
@@ -82,9 +77,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
 
     protected String getHostTargetMachineDefinition() {
         DefaultNativePlatform host = DefaultNativePlatform.host();
-        if (host.getOperatingSystem().isWindows()) {
-            return "// Swift is not supported on Windows";
-        }
+        assert !host.getOperatingSystem().isWindows();
 
         String definition = "machines.";
 
