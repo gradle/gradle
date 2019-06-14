@@ -20,7 +20,6 @@ import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
-import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 
@@ -205,10 +204,7 @@ subprojects {
         apply(plugin = "gradlebuild.public-java-projects")
     }
 
-    if (project in publishedProjects) {
-        apply(plugin = "gradlebuild.publish-public-libraries")
-    }
-
+    apply(plugin = "gradlebuild.publish-public-libraries")
     apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
     apply(plugin = "gradlebuild.task-properties-validation")
     apply(plugin = "gradlebuild.test-files-cleanup")

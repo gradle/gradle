@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.tasks.compile.incremental.classpath
 
 import org.gradle.api.file.ConfigurableFileTree
