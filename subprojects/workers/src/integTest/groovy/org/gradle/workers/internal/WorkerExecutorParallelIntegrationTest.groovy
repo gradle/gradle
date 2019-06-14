@@ -542,34 +542,34 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             include ':childProject'
         """
         buildFile << """
-            task firstTask(type: MultipleWorkItemTask) {
+            task workTask(type: MultipleWorkItemTask) {
                 doLast { 
-                    submitWorkItem("firstTask")
+                    submitWorkItem("workTask")
                 }
             }
             
-            task otherTask {
+            task slowTask {
                 doLast { 
-                    ${blockingHttpServer.callFromBuild("otherTask1")} 
-                    ${blockingHttpServer.callFromBuild("otherTask2")} 
+                    ${blockingHttpServer.callFromBuild("slowTask1")} 
+                    ${blockingHttpServer.callFromBuild("slowTask2")} 
                 }
             }
             
             project(':childProject') {
-                task secondTask(type: MultipleWorkItemTask) {
-                    doLast { submitWorkItem("secondTask") }
+                task dependsOnWorkTask(type: MultipleWorkItemTask) {
+                    doLast { submitWorkItem("dependsOnWorkTask") }
                     
-                    dependsOn project(':').firstTask
+                    dependsOn project(':').workTask
                 }
             }
         """
 
-        blockingHttpServer.expectConcurrent("firstTask", "otherTask1")
-        blockingHttpServer.expectConcurrent("secondTask", "otherTask2")
+        blockingHttpServer.expectConcurrent("workTask", "slowTask1")
+        blockingHttpServer.expectConcurrent("dependsOnWorkTask", "slowTask2")
 
         expect:
         args("--max-workers=3", "--parallel")
-        succeeds(":firstTask", ":otherTask", ":childProject:secondTask")
+        succeeds("dependsOnWorkTask", "slowTask")
     }
 
     def "can start a non-dependent task when the current task submits async work"() {
