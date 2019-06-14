@@ -18,8 +18,8 @@ package org.gradle.internal.hash;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.io.ByteStreams;
 import org.gradle.internal.io.BufferCaster;
-import org.gradle.internal.io.NullOutputStream;
 
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -89,7 +89,7 @@ public class Hashing {
      * Creates a {@link HashingOutputStream} with the default hash function.
      */
     public static HashingOutputStream primitiveStreamHasher() {
-        return primitiveStreamHasher(NullOutputStream.INSTANCE);
+        return primitiveStreamHasher(ByteStreams.nullOutputStream());
     }
 
     /**
