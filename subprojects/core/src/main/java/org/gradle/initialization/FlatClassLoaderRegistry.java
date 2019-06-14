@@ -17,9 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.VisitableURLClassLoader;
-
-import java.io.File;
 
 public class FlatClassLoaderRegistry implements ClassLoaderRegistry {
 
@@ -56,11 +53,6 @@ public class FlatClassLoaderRegistry implements ClassLoaderRegistry {
 
     @Override
     public MixInLegacyTypesClassLoader.Spec getGradleWorkerExtensionSpec() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public VisitableURLClassLoader.Spec getUserSpec(String name, Iterable<File> additionalClasspath, Class<?>... classes) {
         throw new UnsupportedOperationException();
     }
 }

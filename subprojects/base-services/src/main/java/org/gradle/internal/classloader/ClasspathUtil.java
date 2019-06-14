@@ -161,12 +161,17 @@ public class ClasspathUtil {
         }
     }
 
-    public static void getClasspath(ClassLoader classLoader, final Set<URL> classpath, ClassLoader stopAt) {
+    /**
+     * Collects all URLs from {@code startingClassloader} (inclusive) until {@code stopAt} (exclusive) into {@code classpath}.
+     *
+     * If {@code stopAt} is not a parent of {@code startingClassloader}, this effectively collects all URLs from the classloader hierarchy.
+     */
+    public static void collectClasspathUntil(ClassLoader startingClassloader, ClassLoader stopAt, final Set<URL> classpath) {
         new ClassLoaderVisitor(stopAt) {
             @Override
             public void visitClassPath(URL[] classPath) {
                 classpath.addAll(Arrays.asList(classPath));
             }
-        }.visit(classLoader);
+        }.visit(startingClassloader);
     }
 }
