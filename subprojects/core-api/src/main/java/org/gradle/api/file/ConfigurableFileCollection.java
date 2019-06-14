@@ -15,15 +15,17 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.HasConfigurableValue;
+
 import java.util.Set;
 
 /**
  * <p>A {@code ConfigurableFileCollection} is a mutable {@code FileCollection}.</p>
  *
- * <p>You can obtain an instance of {@code ConfigurableFileCollection} by calling {@link
- * org.gradle.api.Project#files(Object...)}</p>
+ * <p>You can obtain an instance of {@code ConfigurableFileCollection} by calling {@link org.gradle.api.Project#files(Object...)} or {@link ObjectFactory#fileCollection()}.</p>
  */
-public interface ConfigurableFileCollection extends FileCollection {
+public interface ConfigurableFileCollection extends FileCollection, HasConfigurableValue {
     /**
      * Returns the set of source paths for this collection. The paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
@@ -75,4 +77,12 @@ public interface ConfigurableFileCollection extends FileCollection {
      * @return this
      */
     ConfigurableFileCollection builtBy(Object... tasks);
+
+    /**
+     * Disallows further changes to this collection.
+     *
+     * @since 5.6
+     */
+    @Override
+    void finalizeValue();
 }

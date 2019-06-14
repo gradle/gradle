@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
  * @since 4.3
  */
 @Incubating
-public interface Property<T> extends Provider<T> {
+public interface Property<T> extends Provider<T>, HasConfigurableValue {
     /**
      * Sets the value of the property the given value, replacing whatever value the property already had.
      *
@@ -90,7 +90,7 @@ public interface Property<T> extends Provider<T> {
      *
      * <p>When this property has a value provided by a {@link Provider}, the value of the provider is queried when this method is called and the value of this property set to the result. The value of the provider will no longer be tracked.</p>
      *
-     * <p>Note that although the value of the property will not change, the value may refer to a mutable object. Calling this method does not guarantee that the value will become immutable.</p>
+     * <p>Note that although the value of the property will not change, the value itself may be a mutable object. Calling this method does not guarantee that the value will become immutable.</p>
      *
      * @since 5.0
      */

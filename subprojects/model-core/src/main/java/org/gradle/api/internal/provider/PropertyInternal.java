@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
-import org.gradle.api.provider.Property;
 
 public interface PropertyInternal<T> extends ProviderInternal<T> {
     /**
@@ -31,12 +30,13 @@ public interface PropertyInternal<T> extends ProviderInternal<T> {
     void attachProducer(Task producer);
 
     /**
-     * Same semantics as {@link Property#finalizeValue()}. Finalizes the value of this property eagerly.
+     * Same semantics as {@link org.gradle.api.provider.HasConfigurableValue#finalizeValue()}. Finalizes the value of this property eagerly.
      */
     void finalizeValue();
 
     /**
-     * Same semantics as {@link Property#finalizeValue()}, but finalizes the value of this property lazily and ignores changes to this property instead of failing. Generates a deprecation warning on changes.
+     * Same semantics as {@link org.gradle.api.provider.HasConfigurableValue#finalizeValue()}, but finalizes the value of this property lazily and ignores changes to this property instead of failing.
+     * Generates a deprecation warning on changes.
      */
     void finalizeValueOnReadAndWarnAboutChanges();
 }

@@ -40,6 +40,10 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 TBD - honors dependencies on `@Input` properties.
 
+### Finalize the value of a `ConfigurableFileCollection`
+
+TBD - added `ConfigurableFileCollection.finalizeValue()`
+
 ### Property methods
 
 TBD - added `getLocationOnly()`. 
