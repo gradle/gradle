@@ -82,4 +82,9 @@ final class DefaultModuleArtifactExclude implements ArtifactExclude {
     public int hashCode() {
         return hashCode;
     }
+
+    @Override
+    public String toString() {
+        return "{artifact " + artifactName + " of module=" + moduleId + "}";
+    }
 }
