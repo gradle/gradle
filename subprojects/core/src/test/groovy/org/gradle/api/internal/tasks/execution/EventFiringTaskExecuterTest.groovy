@@ -17,12 +17,15 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.execution.TaskExecutionListener
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.execution.taskgraph.TaskListenerInternal
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
@@ -32,12 +35,14 @@ class EventFiringTaskExecuterTest extends Specification {
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def taskExecutionListener = Mock(TaskExecutionListener)
+    def taskListener = Mock(TaskListenerInternal)
     def delegate = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
+    def taskIdentity = new TaskIdentity(AbstractTask, "foo", null, null, null, 0)
     def state = new TaskStateInternal()
     def executionContext = Mock(TaskExecutionContext)
 
-    def executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, delegate)
+    def executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, taskListener, delegate)
 
     def "notifies task listeners"() {
         when:
@@ -45,6 +50,9 @@ class EventFiringTaskExecuterTest extends Specification {
 
         then:
         _ * task.getIdentityPath() >> Path.path(":a")
+
+        1 * task.getTaskIdentity() >> taskIdentity
+        1 * taskListener.beforeExecute(taskIdentity)
         1 * taskExecutionListener.beforeExecute(task)
 
         then:
@@ -52,7 +60,10 @@ class EventFiringTaskExecuterTest extends Specification {
 
         then:
         1 * taskExecutionListener.afterExecute(task, state)
+        1 * task.getTaskIdentity() >> taskIdentity
+        1 * taskListener.afterExecute(taskIdentity, state)
         0 * taskExecutionListener._
+        0 * taskListener._
 
         and:
         buildOperationExecutor.operations[0].name == ":a"
@@ -69,9 +80,12 @@ class EventFiringTaskExecuterTest extends Specification {
 
         then:
         _ * task.getIdentityPath() >> Path.path(":a")
+        1 * task.getTaskIdentity() >> taskIdentity
+        1 * taskListener.beforeExecute(taskIdentity)
         1 * taskExecutionListener.beforeExecute(task) >> { throw failure }
         0 * delegate._
         0 * taskExecutionListener._
+        0 * taskListener._
 
         and:
         state.failure instanceof TaskExecutionException
@@ -90,6 +104,8 @@ class EventFiringTaskExecuterTest extends Specification {
 
         then:
         _ * task.getIdentityPath() >> Path.path(":a")
+        1 * task.getTaskIdentity() >> taskIdentity
+        1 * taskListener.beforeExecute(taskIdentity)
         1 * taskExecutionListener.beforeExecute(task)
 
         then:
@@ -100,7 +116,10 @@ class EventFiringTaskExecuterTest extends Specification {
 
         then:
         1 * taskExecutionListener.afterExecute(task, state)
+        1 * task.getTaskIdentity() >> taskIdentity
+        1 * taskListener.afterExecute(taskIdentity, state)
         0 * taskExecutionListener._
+        0 * taskListener._
 
         and:
         state.failure == failure

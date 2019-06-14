@@ -69,6 +69,7 @@ import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.BuildOperatingFiringTaskExecutionPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
@@ -220,6 +221,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     TaskExecutionListener createTaskExecutionListener(ListenerBroadcast<TaskExecutionListener> broadcast) {
         return broadcast.getSource();
+    }
+
+    TaskListenerInternal createTaskListenerInternal(ListenerManager listenerManager) {
+        return listenerManager.getBroadcaster(TaskListenerInternal.class);
     }
 
     ListenerBroadcast<TaskExecutionGraphListener> createTaskExecutionGraphListenerBroadcast(ListenerManager listenerManager) {

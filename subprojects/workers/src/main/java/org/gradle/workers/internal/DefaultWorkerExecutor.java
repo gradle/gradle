@@ -48,6 +48,8 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS;
+
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ConditionalExecutionQueue<DefaultWorkResult> executionQueue;
     private final WorkerFactory daemonWorkerFactory;
@@ -166,7 +168,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             if (asyncWorkTracker.hasUncompletedWork(currentOperation)) {
                 executionQueue.expand();
             }
-            asyncWorkTracker.waitForCompletion(currentOperation, false);
+            asyncWorkTracker.waitForCompletion(currentOperation, RETAIN_PROJECT_LOCKS);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());
         }
