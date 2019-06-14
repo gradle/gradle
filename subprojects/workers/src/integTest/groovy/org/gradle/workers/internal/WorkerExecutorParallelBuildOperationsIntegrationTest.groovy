@@ -45,6 +45,10 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
 """
     }
 
+    // There's a potential race condition here, because we are relying on the "slowTask" finishing after the "workTask"
+    // based solely on the `sleep 10` in it's action. If this proves flaky, we could possibly remove this test since the
+    // key functionality is tested in:
+    // WorkerExecutorParallelIntegrationTest#starts dependent task in another project as soon as submitted work for current task is complete (with --parallel)
     def "worker-based task completes as soon as work items are finished (while another task is executing in parallel)"() {
         when:
         buildFile << """
