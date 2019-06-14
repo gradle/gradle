@@ -28,5 +28,5 @@ dependencies {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.WORKER
+    moduleType = ModuleType.CORE
 }
