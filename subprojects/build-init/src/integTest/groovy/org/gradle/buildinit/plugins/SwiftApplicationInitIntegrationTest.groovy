@@ -21,10 +21,11 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import org.junit.Assume
 import spock.lang.Unroll
 
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APPLICATION_CLASS = "main.swift"
@@ -34,7 +35,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     private final AvailableToolChains.InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
 
     def setup() {
-        Assume.assumeNotNull(swiftcToolChain)
         swiftcToolChain.initialiseEnvironment()
     }
 

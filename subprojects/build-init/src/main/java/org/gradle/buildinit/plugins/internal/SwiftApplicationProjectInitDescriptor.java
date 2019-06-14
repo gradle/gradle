@@ -57,8 +57,6 @@ public class SwiftApplicationProjectInitDescriptor extends SwiftProjectInitDescr
                 "swift-application")
             .plugin("Apply the xctest plugin to add support for building and running Swift test executables (Linux) or bundles (macOS)",
                 "xctest")
-            .block("Set the target operating system and architecture for this application", "application", b -> {
-                b.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
-            });
+            .block("Set the target operating system and architecture for this application", "application", b -> configureTargetMachineDefinition(b));
     }
 }

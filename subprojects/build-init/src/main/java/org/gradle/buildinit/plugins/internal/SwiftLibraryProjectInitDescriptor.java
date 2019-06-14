@@ -18,6 +18,8 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 public class SwiftLibraryProjectInitDescriptor extends SwiftProjectInitDescriptor {
     public SwiftLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
@@ -57,8 +59,6 @@ public class SwiftLibraryProjectInitDescriptor extends SwiftProjectInitDescripto
                 "swift-library")
             .plugin("Apply the xctest plugin to add support for building and running Swift test executables (Linux) or bundles (macOS)",
                 "xctest")
-            .block("Set the target operating system and architecture for this library", "library", b -> {
-                b.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
-            });
+            .block("Set the target operating system and architecture for this library", "library", b -> configureTargetMachineDefinition(b));
     }
 }

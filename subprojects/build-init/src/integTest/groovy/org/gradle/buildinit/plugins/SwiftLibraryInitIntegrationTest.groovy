@@ -21,11 +21,12 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import org.junit.Assume
 import spock.lang.Unroll
 
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "Hello.swift"
@@ -35,7 +36,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     private final InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
 
     def setup() {
-        Assume.assumeNotNull(swiftcToolChain)
         swiftcToolChain.initialiseEnvironment()
     }
 

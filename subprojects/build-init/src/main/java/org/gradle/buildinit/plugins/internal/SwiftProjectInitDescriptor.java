@@ -53,7 +53,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
         TemplateOperation testSourceTemplate = testTemplateOperation(settings);
 
-        if (OperatingSystem.current().isLinux()) {
+        if (OperatingSystem.current().isLinux() || OperatingSystem.current().isWindows()) {
             TemplateOperation testEntryPointTemplate = testEntryPointTemplateOperation(settings);
             templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate, testEntryPointTemplate).generate();
         } else {
@@ -92,11 +92,13 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
 
     protected String getHostTargetMachineDefinition() {
         DefaultNativePlatform host = DefaultNativePlatform.host();
+        if (host.getOperatingSystem().isWindows()) {
+            return "// Swift is not supported on Windows";
+        }
+
         String definition = "machines.";
 
-        if (host.getOperatingSystem().isWindows()) {
-            definition += "windows";
-        } else if (host.getOperatingSystem().isMacOsX()) {
+        if (host.getOperatingSystem().isMacOsX()) {
             definition += "macOS";
         } else if (host.getOperatingSystem().isLinux()) {
             definition += "linux";
@@ -104,17 +106,18 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
             definition += "os('" + host.getOperatingSystem().toFamilyName() + "')";
         }
 
-        definition += ".";
-
-        if (host.getArchitecture().isI386()) {
-            definition += "x86";
-        } else if (host.getArchitecture().isAmd64()) {
-            definition += "x86_64";
-        } else {
-            definition += "architecture('" + host.getArchitecture().getName() + "')";
-        }
+        definition += ".x86_64";
 
         return definition;
+    }
+
+    protected void configureTargetMachineDefinition(ScriptBlockBuilder buildScriptBuilder) {
+        if (OperatingSystem.current().isWindows()) {
+            buildScriptBuilder.methodInvocation("Swift tool chain does not support Windows. The following targets macOS and Linux:", "targetMachines.add", buildScriptBuilder.propertyExpression("machines.macOS.x86_64"));
+            buildScriptBuilder.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression("machines.linux.x86_64"));
+        } else {
+            buildScriptBuilder.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
+        }
     }
 
     TemplateOperation fromSwiftTemplate(String template, InitSettings settings, String sourceSetName, String sourceDir) {
