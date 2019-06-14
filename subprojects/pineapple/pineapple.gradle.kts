@@ -28,5 +28,6 @@ dependencies {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.CORE
+    // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
+    moduleType = ModuleType.WORKER
 }
