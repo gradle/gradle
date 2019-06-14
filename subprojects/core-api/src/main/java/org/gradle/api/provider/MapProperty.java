@@ -36,7 +36,7 @@ import java.util.Set;
  * @since 5.1
  */
 @Incubating
-public interface MapProperty<K, V> extends Provider<Map<K, V>> {
+public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue {
 
     /**
      * Sets the value of this property to an empty map, and replaces any existing value.
@@ -156,9 +156,9 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>> {
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Map)} or {@link #put(Object, Object)} will fail.
      *
-     * <p>When this property has elements provided by a {@link Provider}, the value of the provider is queried when this method is called  and the value of the provider will no longer be tracked.</p>
+     * <p>When this property has elements provided by a {@link Provider}, the value of the provider is queried when this method is called and the value of the provider will no longer be tracked.</p>
      *
-     * <p>Note that although the value of the property will not change, the resulting collection may contain mutable objects. Calling this method does not guarantee that the value will become immutable.</p>
+     * <p>Note that although the value of the property will not change, the resulting map may contain mutable objects. Calling this method does not guarantee that the value will become immutable.</p>
      */
     void finalizeValue();
 }

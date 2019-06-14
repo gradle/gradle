@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
+import groovy.util.ObservableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -23,12 +24,12 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
-import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -36,10 +37,16 @@ import java.util.Set;
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed {
+    private enum State {
+        Mutable, Finalized
+    }
+
     private final Set<Object> files;
+    private final ObservableSet<Object> filesWrapper;
     private final String displayName;
     private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
+    private State state = State.Mutable;
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
         this("file collection", fileResolver, taskResolver, null);
@@ -64,6 +71,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         if (files != null) {
             this.files.addAll(files);
         }
+        this.filesWrapper = new ObservableSet<Object>(this.files);
+        this.filesWrapper.addPropertyChangeListener(evt -> {
+            assertMutable();
+        });
         buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
@@ -97,31 +108,50 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
+    public void finalizeValue() {
+        if (state == State.Mutable) {
+            Set<File> contents = getFiles();
+            files.clear();
+            files.addAll(contents);
+            state = State.Finalized;
+        }
+    }
+
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
     @Override
     public Set<Object> getFrom() {
-        return files;
+        return filesWrapper;
     }
 
     @Override
     public void setFrom(Iterable<?> path) {
+        assertMutable();
         files.clear();
         files.add(path);
     }
 
     @Override
     public void setFrom(Object... paths) {
+        assertMutable();
         files.clear();
-        GUtil.addToCollection(files, Arrays.asList(paths));
+        Collections.addAll(files, paths);
     }
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
-        GUtil.addToCollection(files, Arrays.asList(paths));
+        assertMutable();
+        Collections.addAll(files, paths);
         return this;
+    }
+
+    private void assertMutable() {
+        if (state == State.Finalized) {
+            throw new IllegalStateException("The value for " + displayName + " is final and cannot be changed.");
+        }
     }
 
     @Override
