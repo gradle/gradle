@@ -22,10 +22,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
@@ -217,8 +215,7 @@ public class DirectorySnapshotter {
 
         private void addFileSnapshot(Path file, String name, BasicFileAttributes attrs) {
             Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
-            DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
-            HashCode hash = hasher.hash(file.toFile(), metadata.getLength(), metadata.getLastModified());
+            HashCode hash = hasher.hash(file.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
             RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(internedAbsolutePath(file), name, hash, FileMetadata.from(attrs));
             builder.visit(fileSnapshot);
         }
