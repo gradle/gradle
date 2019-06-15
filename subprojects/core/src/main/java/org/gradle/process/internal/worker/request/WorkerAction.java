@@ -30,7 +30,6 @@ import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
-import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;

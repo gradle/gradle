@@ -99,15 +99,19 @@ public class NamedObjectInstantiator implements ManagedFactory {
 
     @Override
     public <T> T fromState(Class<T> type, Object state) {
-        if (!canCreate(type)) {
+        if (!publicType().isAssignableFrom(type)) {
             return null;
         }
         return named(Cast.uncheckedCast(type), (String) state);
     }
 
+    private Class<?> publicType() {
+        return Named.class;
+    }
+
     @Override
     public boolean canCreate(Class<?> type) {
-        return Named.class.isAssignableFrom(type);
+        return publicType().isAssignableFrom(type);
     }
 
     private ClassGeneratingLoader loaderFor(Class<?> publicClass) {

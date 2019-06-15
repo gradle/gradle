@@ -27,81 +27,68 @@ import java.io.File;
 
 public class ManagedFactories {
 
-    public static class RegularFileManagedFactory implements ManagedFactory {
+    public static class RegularFileManagedFactory extends ManagedFactory.TypedManagedFactory {
+        public RegularFileManagedFactory() {
+            super(RegularFile.class);
+        }
+
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!canCreate(type)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             return type.cast(new DefaultFilePropertyFactory.FixedFile((File) state));
         }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type.isAssignableFrom(RegularFile.class);
-        }
     }
 
-    public static class RegularFilePropertyManagedFactory implements ManagedFactory {
+    public static class RegularFilePropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
         private final FileResolver fileResolver;
 
         public RegularFilePropertyManagedFactory(FileResolver fileResolver) {
+            super(RegularFileProperty.class);
             this.fileResolver = fileResolver;
         }
 
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!canCreate(type)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             return type.cast(new DefaultFilePropertyFactory.DefaultRegularFileVar(fileResolver).value((RegularFile) state));
         }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type.isAssignableFrom(RegularFileProperty.class);
-        }
     }
 
-    public static class DirectoryManagedFactory implements ManagedFactory {
+    public static class DirectoryManagedFactory extends ManagedFactory.TypedManagedFactory {
         private final FileResolver fileResolver;
 
         public DirectoryManagedFactory(FileResolver fileResolver) {
+            super(Directory.class);
             this.fileResolver = fileResolver;
         }
 
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!canCreate(type)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             return type.cast(new FixedDirectory((File) state, fileResolver));
         }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type.isAssignableFrom(Directory.class);
-        }
     }
 
-    public static class DirectoryPropertyManagedFactory implements ManagedFactory {
+    public static class DirectoryPropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
         private final FileResolver fileResolver;
 
         public DirectoryPropertyManagedFactory(FileResolver fileResolver) {
+            super(DirectoryProperty.class);
             this.fileResolver = fileResolver;
         }
 
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!canCreate(type)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             return type.cast(new DefaultFilePropertyFactory.DefaultDirectoryVar(fileResolver).value((Directory) state));
-        }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type.isAssignableFrom(DirectoryProperty.class);
         }
     }
 }

@@ -26,11 +26,15 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 public class ManagedFactories {
-    public static class ProviderManagedFactory implements ManagedFactory {
+    public static class ProviderManagedFactory extends ManagedFactory.TypedManagedFactory {
+        public ProviderManagedFactory() {
+            super(Provider.class);
+        }
+
         @Nullable
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!canCreate(type)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             if (state == null) {
@@ -39,80 +43,71 @@ public class ManagedFactories {
                 return type.cast(Providers.of(state));
             }
         }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type.isAssignableFrom(Provider.class);
-        }
     }
 
-    public static class PropertyManagedFactory implements ManagedFactory {
+    public static class PropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
+        public PropertyManagedFactory() {
+            super(Property.class);
+        }
+
         @Nullable
         @Override
         public <S> S fromState(Class<S> type, Object state) {
-            if (!canCreate(type)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             return type.cast(new DefaultPropertyState<>(Object.class).value(state));
         }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type.isAssignableFrom(Property.class);
-        }
     }
 
-    public static class ListPropertyManagedFactory implements ManagedFactory {
+    public static class ListPropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
+        public ListPropertyManagedFactory() {
+            super(ListProperty.class);
+        }
+
         @Nullable
         @Override
         public <S> S fromState(Class<S> type, Object state) {
-            if (!canCreate(type)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             DefaultListProperty<?> property = new DefaultListProperty<>(Object.class);
             property.set((Iterable) state);
             return type.cast(property);
         }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type.isAssignableFrom(ListProperty.class);
-        }
     }
 
-    public static class SetPropertyManagedFactory implements ManagedFactory {
+    public static class SetPropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
+        public SetPropertyManagedFactory() {
+            super(SetProperty.class);
+        }
+
         @Nullable
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(SetProperty.class)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             DefaultSetProperty<?> property = new DefaultSetProperty<>(Object.class);
             property.set((Iterable) state);
             return type.cast(property);
         }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return false;
-        }
     }
 
-    public static class MapPropertyManagedFactory implements ManagedFactory {
+    public static class MapPropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
+        public MapPropertyManagedFactory() {
+            super(MapProperty.class);
+        }
+
         @Nullable
         @Override
         public <S> S fromState(Class<S> type, Object state) {
-            if (!canCreate(type)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             DefaultMapProperty<?, ?> property = new DefaultMapProperty<>(Object.class, Object.class);
             property.set((Map) state);
             return type.cast(property);
-        }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type.isAssignableFrom(MapProperty.class);
         }
     }
 }

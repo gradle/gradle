@@ -32,7 +32,6 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
-import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;

@@ -25,25 +25,21 @@ import java.io.File;
 import java.util.Set;
 
 public class ManagedFactories {
-    public static class ConfigurableFileCollectionManagedFactory implements ManagedFactory {
+    public static class ConfigurableFileCollectionManagedFactory extends ManagedFactory.TypedManagedFactory {
         private final FileResolver resolver;
 
         public ConfigurableFileCollectionManagedFactory(FileResolver resolver) {
+            super(ConfigurableFileCollection.class);
             this.resolver = resolver;
         }
 
         @Nullable
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!canCreate(type)) {
+            if (!type.isAssignableFrom(publicType)) {
                 return null;
             }
             return type.cast(new DefaultConfigurableFileCollection(resolver, null, (Set<File>) state));
-        }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type.isAssignableFrom(ConfigurableFileCollection.class);
         }
     }
 }

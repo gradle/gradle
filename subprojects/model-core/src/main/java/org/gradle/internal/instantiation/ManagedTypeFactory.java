@@ -18,7 +18,6 @@ package org.gradle.internal.instantiation;
 
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 
 import java.lang.reflect.Constructor;
@@ -37,7 +36,7 @@ public class ManagedTypeFactory implements ManagedFactory {
 
     @Override
     public <T> T fromState(Class<T> type, Object state) {
-        if (!canCreate(type)) {
+        if (!type.isAssignableFrom(constructor.getDeclaringClass())) {
             return null;
         }
         try {
@@ -51,16 +50,6 @@ public class ManagedTypeFactory implements ManagedFactory {
 
     @Override
     public boolean canCreate(Class<?> type) {
-        return type.isAssignableFrom(constructor.getDeclaringClass());
-    }
-
-    public static boolean isGeneratedType(Class<?> type) {
-        try {
-            type.getConstructor(Object[].class);
-        } catch (NoSuchMethodException e) {
-            return false;
-        }
-
-        return Managed.class.isAssignableFrom(type);
+        return type == constructor.getDeclaringClass();
     }
 }

@@ -48,7 +48,7 @@ public class IsolatedImmutableManagedValue extends AbstractIsolatableScalarValue
         if (type.isInstance(getValue())) {
             return type.cast(getValue());
         }
-        ManagedFactory factory = managedFactoryRegistry.lookup(getValue().getClass());
+        ManagedFactory factory = managedFactoryRegistry.lookup(getValue().publicType());
         if (factory == null) {
             return null;
         } else {

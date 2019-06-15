@@ -19,7 +19,6 @@ package org.gradle.workers.internal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
-import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.inject.Inject;

@@ -29,4 +29,17 @@ public interface ManagedFactory {
      * Whether or not this factory can create a managed object of the given type.
      */
     boolean canCreate(Class<?> type);
+
+    abstract class TypedManagedFactory implements ManagedFactory {
+        protected final Class<?> publicType;
+
+        public TypedManagedFactory(Class<?> publicType) {
+            this.publicType = publicType;
+        }
+
+        @Override
+        public boolean canCreate(Class<?> type) {
+            return type == publicType;
+        }
+    }
 }

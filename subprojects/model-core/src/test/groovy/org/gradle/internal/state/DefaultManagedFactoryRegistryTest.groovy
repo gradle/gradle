@@ -28,46 +28,30 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         registry.lookup(Foo) == fooFactory
     }
 
-    def "returns a factory for a subtype"() {
-        def fooFactory = factory(Foo)
-        def registry = new DefaultManagedFactoryRegistry(fooFactory)
-
-        expect:
-        registry.lookup(Bar) == fooFactory
-    }
-
-    def "returns a factory for an implementing type"() {
-        def fooFactory = factory(Foo)
-        def registry = new DefaultManagedFactoryRegistry(fooFactory)
-
-        expect:
-        registry.lookup(Baz) == fooFactory
-    }
-
     def "selects correct factory among multiple factories"() {
         def fooFactory = factory(Foo)
         def buzzFactory = factory(Buzz)
         def registry = new DefaultManagedFactoryRegistry(buzzFactory, fooFactory)
 
         expect:
-        registry.lookup(Baz) == fooFactory
+        registry.lookup(Foo) == fooFactory
     }
 
     def "selects first matching factory"() {
-        def fooFactory = factory(Foo)
+        def fooFactory = generatingFactory(Foo)
         def barFactory = factory(Bar)
 
         when:
         def registry = new DefaultManagedFactoryRegistry(barFactory, fooFactory)
 
         then:
-        registry.lookup(Baz) == barFactory
+        registry.lookup(Bar) == barFactory
 
         when:
         registry = new DefaultManagedFactoryRegistry(fooFactory, barFactory)
 
         then:
-        registry.lookup(Baz) == fooFactory
+        registry.lookup(Bar) == fooFactory
     }
 
     def "returns a registered factory for a managed type"() {
@@ -78,23 +62,6 @@ class DefaultManagedFactoryRegistryTest extends Specification {
 
         then:
         registry.lookup(Bar) == null
-
-        when:
-        def barFactory = factory(Bar)
-        registry.register(Bar, barFactory)
-
-        then:
-        registry.lookup(Bar) == barFactory
-    }
-
-    def "prefers a registered factory over a known factory for a managed type"() {
-        def fooFactory = factory(Foo)
-
-        when:
-        def registry = new DefaultManagedFactoryRegistry(fooFactory)
-
-        then:
-        registry.lookup(Bar) == fooFactory
 
         when:
         def barFactory = factory(Bar)
@@ -145,6 +112,12 @@ class DefaultManagedFactoryRegistryTest extends Specification {
     }
 
     ManagedFactory factory(Class<?> type) {
+        return Stub(ManagedFactory) {
+            _ * canCreate(_) >> { args -> args[0] == type }
+        }
+    }
+
+    ManagedFactory generatingFactory(Class<?> type) {
         return Stub(ManagedFactory) {
             _ * canCreate(_) >> { args -> type.isAssignableFrom(args[0]) }
         }
