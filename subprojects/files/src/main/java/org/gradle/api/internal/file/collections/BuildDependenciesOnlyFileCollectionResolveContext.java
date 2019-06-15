@@ -16,17 +16,10 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.internal.file.PathToFileResolver;
-
-import java.nio.file.Path;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.GUtil.uncheckedCall;
 
 /**
  * <p>A {@link FileCollectionResolveContext} which is used to determine the builder dependencies of a file collection hierarchy.
@@ -39,11 +32,6 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
     }
 
     @Override
-    public FileCollectionResolveContext push(PathToFileResolver fileResolver) {
-        return this;
-    }
-
-    @Override
     public ResolvableFileCollectionResolveContext newContext() {
         // Currently not required
         throw new UnsupportedOperationException();
@@ -51,40 +39,37 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
 
     @Override
     public FileCollectionResolveContext add(Object element) {
-        // TODO - need to sync with DefaultFileCollectionResolveContext
+        maybeAdd(element);
+        return this;
+    }
+
+    @Override
+    public boolean maybeAdd(Object element) {
         if (element instanceof ProviderInternal) {
+            ProviderInternal provider = (ProviderInternal) element;
             // When a provider is an element of a file collection and its producing tasks are not known, unpack its value if the value is declared as Buildable
-            ProviderInternal<?> provider = (ProviderInternal<?>) element;
             if (!provider.maybeVisitBuildDependencies(taskContext) && provider.getType() != null && Buildable.class.isAssignableFrom(provider.getType())) {
                 taskContext.add(provider.get());
             }
-        } else if (element instanceof TaskDependencyContainer) {
+        } else if (element instanceof TaskDependencyContainer || element instanceof Buildable) {
             taskContext.add(element);
-        } else if (element instanceof Buildable) {
-            taskContext.add(element);
-        } else if (element instanceof Task) {
-            taskContext.add(element);
-        } else if (element instanceof TaskOutputs) {
-            TaskOutputs outputs = (TaskOutputs) element;
-            taskContext.add(outputs.getFiles());
-        } else if (element instanceof Callable) {
-            Object deferredResult = uncheckedCall((Callable) element);
-            if (deferredResult != null) {
-                add(deferredResult);
-            }
-        } else if (element instanceof Iterable && !(element instanceof Path)) {
-            // Ignore Path (which is-a Iterable)
-            Iterable<?> iterable = (Iterable) element;
-            for (Object value : iterable) {
-                add(value);
-            }
-        } else if (element instanceof Object[]) {
-            Object[] array = (Object[]) element;
-            for (Object value : array) {
-                add(value);
-            }
+        } else if (!(element instanceof MinimalFileCollection)) {
+            throw new IllegalArgumentException("Don't know how to determine the build dependencies of " + element);
+        } // else ignore
+        return true;
+    }
+
+    @Override
+    public FileCollectionResolveContext addAll(Iterable<?> elements) {
+        for (Object element : elements) {
+            add(element);
         }
-        // Everything else assume has no dependencies
+        return this;
+    }
+
+    @Override
+    public FileCollectionResolveContext add(Object element, PathToFileResolver resolver) {
+        // Assume individual files have no dependencies
         return this;
     }
 }

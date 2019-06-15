@@ -49,6 +49,6 @@ public class UnionFileCollection extends CompositeFileCollection {
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        context.add(source);
+        context.addAll(source);
     }
 }
