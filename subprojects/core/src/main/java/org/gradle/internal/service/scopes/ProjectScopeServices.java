@@ -44,6 +44,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.ManagedFactories;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -89,6 +90,8 @@ import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.state.DefaultManagedFactoryRegistry;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -325,6 +328,19 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator, CrossProjectConfigurator projectConfigurator) {
         ServiceRegistry services = ProjectScopeServices.this;
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator));
+    }
+
+    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver) {
+        return new DefaultManagedFactoryRegistry(
+            parent,
+            // Note that order is important - the first factory in the list that can create
+            // a given type will be selected, so the order should be from most specific type to
+            // least specific type
+            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver),
+            new org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory(fileResolver),
+            new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileResolver),
+            new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(fileResolver)
+        );
     }
 
 }

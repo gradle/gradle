@@ -104,13 +104,44 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         registry.lookup(Bar) == barFactory
     }
 
-    def "returns null for unmanaged type"() {
+    def "returns null for unknown type"() {
         def fooFactory = factory(Foo)
         def barFactory = factory(Bar)
         def registry = new DefaultManagedFactoryRegistry(barFactory, fooFactory)
 
         expect:
-        registry.lookup(Fuzz) == null
+        registry.lookup(Buzz) == null
+    }
+
+    def "can lookup factory in parent registry"() {
+        def fooFactory = factory(Foo)
+        def barFactory = factory(Bar)
+        def parent = new DefaultManagedFactoryRegistry(fooFactory)
+        def registry = new DefaultManagedFactoryRegistry(parent, barFactory)
+
+        expect:
+        registry.lookup(Foo) == fooFactory
+    }
+
+    def "prefers factory in child registry"() {
+        def fooFactory1 = factory(Foo)
+        def fooFactory2 = factory(Foo)
+
+        def parent = new DefaultManagedFactoryRegistry(fooFactory1)
+        def registry = new DefaultManagedFactoryRegistry(parent, fooFactory2)
+
+        expect:
+        registry.lookup(Foo) == fooFactory2
+    }
+
+    def "returns null for unknown type in all registries"() {
+        def fooFactory = factory(Foo)
+        def barFactory = factory(Bar)
+        def parent = new DefaultManagedFactoryRegistry(fooFactory)
+        def registry = new DefaultManagedFactoryRegistry(parent, barFactory)
+
+        expect:
+        registry.lookup(Buzz) == null
     }
 
     ManagedFactory factory(Class<?> type) {
@@ -126,6 +157,4 @@ class DefaultManagedFactoryRegistryTest extends Specification {
     static class Baz implements Bar { }
 
     static interface Buzz { }
-
-    static interface Fuzz { }
 }

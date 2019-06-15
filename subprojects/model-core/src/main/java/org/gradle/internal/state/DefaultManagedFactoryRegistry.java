@@ -27,18 +27,25 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
+    private final ManagedFactoryRegistry parent;
     private final List<ManagedFactory> factories = Lists.newArrayList();
     private final Cache<Class<?>, Optional<ManagedFactory>> managedFactoryCache = CacheBuilder.newBuilder().weakKeys().build();
 
-    public DefaultManagedFactoryRegistry(ManagedFactory... factories) {
+    public DefaultManagedFactoryRegistry(ManagedFactoryRegistry parent, ManagedFactory... factories) {
+        this.parent = parent;
         this.factories.addAll(Arrays.asList(factories));
+    }
+
+    public DefaultManagedFactoryRegistry(ManagedFactory... factories) {
+        this(null, factories);
     }
 
     @Override
     @Nullable
-    public <T> ManagedFactory lookup(Class<T> type) {
+    public <T> ManagedFactory lookup(final Class<T> type) {
         try {
             return managedFactoryCache.get(type, new Callable<Optional<ManagedFactory>>() {
                 @Override
@@ -51,7 +58,15 @@ public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
 
                     return Optional.empty();
                 }
-            }).orElse(null);
+            }).orElseGet(new Supplier<ManagedFactory>() {
+                @Override
+                public ManagedFactory get() {
+                    if (parent != null) {
+                        return parent.lookup(type);
+                    }
+                    return null;
+                }
+            });
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
