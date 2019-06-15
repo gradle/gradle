@@ -51,13 +51,13 @@ public class DeferredUtil {
             || isNestableDeferred(value);
     }
 
-    private static boolean isNestableDeferred(@Nullable Object value) {
+    public static boolean isNestableDeferred(@Nullable Object value) {
         return value instanceof Callable
             || isKotlinFunction0Deferrable(value);
     }
 
     @Nullable
-    private static Object unpackNestableDeferred(Object deferred) {
+    public static Object unpackNestableDeferred(Object deferred) {
         Object current = deferred;
         while (isNestableDeferred(current)) {
             if (current instanceof Callable) {

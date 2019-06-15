@@ -58,7 +58,7 @@ public class FileCollectionMatchers {
                 }
                 if (expected instanceof CompositeFileCollection) {
                     CompositeFileCollection collection = (CompositeFileCollection) expected;
-                    DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(TestFiles.resolver());
+                    DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(TestFiles.getPatternSetFactory());
                     collection.visitContents(context);
                     return context.resolveAsFileCollections();
                 }

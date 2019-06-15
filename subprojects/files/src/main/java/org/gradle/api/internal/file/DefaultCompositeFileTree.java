@@ -29,7 +29,7 @@ public class DefaultCompositeFileTree extends CompositeFileTree {
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        context.add(fileTrees);
+        context.addAll(fileTrees);
     }
 
     @Override

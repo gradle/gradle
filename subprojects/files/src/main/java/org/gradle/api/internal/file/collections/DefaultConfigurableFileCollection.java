@@ -173,7 +173,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        FileCollectionResolveContext nested = context.push(resolver);
+        UnpackingVisitor nested = new UnpackingVisitor(context, resolver);
         nested.add(files);
     }
 

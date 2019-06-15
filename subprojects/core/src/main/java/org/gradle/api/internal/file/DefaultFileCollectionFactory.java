@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.file.collections.UnpackingVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
@@ -205,7 +206,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
         @Override
         public void visitContents(FileCollectionResolveContext context) {
-            FileCollectionResolveContext nested = context.push(resolver);
+            UnpackingVisitor nested = new UnpackingVisitor(context, resolver);
             nested.add(paths);
         }
     }

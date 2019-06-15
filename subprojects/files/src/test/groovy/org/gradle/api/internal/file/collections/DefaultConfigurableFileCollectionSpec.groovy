@@ -21,12 +21,10 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
-@UsesNativeServices
 class DefaultConfigurableFileCollectionSpec extends Specification {
 
     def fileResolver = Mock(FileResolver)
@@ -264,17 +262,18 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
     def resolveAddsEachSourceObjectAndBuildDependencies() {
         given:
         def resolveContext = Mock(FileCollectionResolveContext)
-        def nestedContext = Mock(FileCollectionResolveContext)
         def fileCollectionMock = Mock(FileCollection)
 
-        when:
         collection.from("file")
         collection.from(fileCollectionMock)
+
+        when:
         collection.visitContents(resolveContext)
 
         then:
-        1 * resolveContext.push(fileResolver) >> nestedContext
-        1 * nestedContext.add(collection.from)
+        1 * resolveContext.add("file", fileResolver)
+        1 * resolveContext.add(fileCollectionMock)
+        0 * resolveContext._
     }
 
     def canGetAndSetTaskDependencies() {

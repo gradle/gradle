@@ -168,7 +168,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             public void visitContents(FileCollectionResolveContext context) {
                 ResolvableFileCollectionResolveContext nested = context.newContext();
                 nested.add(AbstractFileCollection.this);
-                context.add(nested.resolveAsFileTrees());
+                context.addAll(nested.resolveAsFileTrees());
             }
 
             @Override
