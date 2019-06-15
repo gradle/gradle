@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 import org.gradle.api.internal.file.TestFiles
@@ -145,39 +144,13 @@ class CachingFileHasherTest extends Specification {
         0 * _._
     }
 
-    def hashesFileDetails() {
-        long lastModified = 123l
-        long length = 321l
-        def fileDetails = Mock(FileTreeElement)
-
-        when:
-        def result = hasher.hash(fileDetails)
-
-        then:
-        result == hash
-
-        and:
-        _ * fileDetails.file >> file
-        _ * fileDetails.lastModified >> lastModified
-        _ * fileDetails.size >> length
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, lastModified) >> true
-        1 * cache.get(file.absolutePath) >> null
-        1 * target.hash(file) >> hash
-        1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
-            assert fileInfo.hash == hash
-            assert fileInfo.length == length
-            assert fileInfo.timestamp == lastModified
-        }
-        0 * _._
-    }
-
-    def hashesGivenFileMetadataSnapshot() {
+    def hashesGivenFileLengthAndLastModified() {
         long lastModified = 123l
         long length = 321l
         def fileDetails = DefaultFileMetadata.file(lastModified, length)
 
         when:
-        def result = hasher.hash(file, fileDetails)
+        def result = hasher.hash(file, fileDetails.length, fileDetails.lastModified)
 
         then:
         result == hash

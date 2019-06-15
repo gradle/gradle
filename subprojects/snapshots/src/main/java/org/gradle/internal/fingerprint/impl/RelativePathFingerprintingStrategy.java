@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
@@ -38,9 +38,9 @@ import java.util.Map;
 public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
     public static final String IDENTIFIER = "RELATIVE_PATH";
 
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
 
-    public RelativePathFingerprintingStrategy(StringInterner stringInterner) {
+    public RelativePathFingerprintingStrategy(Interner<String> stringInterner) {
         super(IDENTIFIER);
         this.stringInterner = stringInterner;
     }

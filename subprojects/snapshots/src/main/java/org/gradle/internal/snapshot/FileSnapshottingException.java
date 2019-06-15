@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-@NonNullInternalApi
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.snapshot;
 
-import org.gradle.internal.NonNullInternalApi;
+public class FileSnapshottingException extends RuntimeException {
+    public FileSnapshottingException(String message) {
+        super(message);
+    }
+
+    public FileSnapshottingException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}

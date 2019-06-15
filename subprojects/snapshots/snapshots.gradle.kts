@@ -23,18 +23,13 @@ plugins {
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
 dependencies {
-    implementation(project(":baseServices"))
-    implementation(project(":native"))
-    implementation(project(":messaging"))
-    implementation(project(":coreApi"))
-    implementation(project(":persistentCache"))
-    
     implementation(library("guava"))
     implementation(library("jsr305"))
-    implementation(library("inject"))
+    implementation(project(":pineapple"))
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
+    testImplementation(project(":native"))
     testImplementation(library("ant"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))

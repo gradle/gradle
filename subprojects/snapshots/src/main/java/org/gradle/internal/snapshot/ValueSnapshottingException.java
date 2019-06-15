@@ -16,11 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.api.GradleException;
-
 import javax.annotation.Nullable;
 
-public class ValueSnapshottingException extends GradleException {
+public class ValueSnapshottingException extends RuntimeException {
     public ValueSnapshottingException(String message) {
         super(message);
     }

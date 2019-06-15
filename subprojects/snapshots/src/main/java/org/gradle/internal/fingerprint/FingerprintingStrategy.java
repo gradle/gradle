@@ -16,7 +16,6 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
@@ -41,7 +40,10 @@ public interface FingerprintingStrategy {
      */
     FingerprintHashingStrategy getHashingStrategy();
 
-    @UsedByScanPlugin("not linked directly - name are expected as part of org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType.Result.VisitState.getPropertyNormalizationStrategyName")
+    /**
+     * UsedByScansPlugin
+     * Names are expected as part of org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType.Result.VisitState.getPropertyNormalizationStrategyName().
+     */
     String getIdentifier();
 
     CurrentFileCollectionFingerprint getEmptyFingerprint();

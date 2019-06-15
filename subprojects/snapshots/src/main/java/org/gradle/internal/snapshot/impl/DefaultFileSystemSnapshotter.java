@@ -16,14 +16,14 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
-import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
+import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -50,16 +50,15 @@ import java.util.function.Supplier;
  *
  * The implementations are currently intentionally very, very simple, and so there are a number of ways in which they can be made much more efficient. This can happen over time.
  */
-@NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileHasher hasher;
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
     private final Stat stat;
     private final FileSystemMirror fileSystemMirror;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
     private final DirectorySnapshotter directorySnapshotter;
 
-    public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, String... defaultExcludes) {
+    public DefaultFileSystemSnapshotter(FileHasher hasher, Interner<String> stringInterner, Stat stat, FileSystemMirror fileSystemMirror, String... defaultExcludes) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.stat = stat;
@@ -143,7 +142,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             case Missing:
                 return new MissingFileSnapshot(absolutePath, name);
             case RegularFile:
-                return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata), metadata.getLastModified());
+                return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata.getLength(), metadata.getLastModified()), FileMetadata.from(metadata));
             case Directory:
                 SnapshottingFilter.DirectoryWalkerPredicate predicate = filter == null || filter.isEmpty()
                     ? null

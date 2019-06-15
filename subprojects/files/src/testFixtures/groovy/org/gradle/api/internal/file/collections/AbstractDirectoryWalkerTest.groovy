@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.collections
 
 import com.google.common.annotations.VisibleForTesting
-import org.gradle.api.GradleException
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
 import org.gradle.api.tasks.util.PatternSet
@@ -166,7 +165,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         walkDirForPaths(walkerInstance, rootDir, new PatternSet())
 
         then:
-        GradleException e = thrown()
+        def e = thrown Exception
         e.message.contains("Could not list contents of '${link.absolutePath}'.")
 
         cleanup:
