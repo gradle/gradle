@@ -77,10 +77,9 @@ that take such nested zips as an input, e.g. when testing applications packaged 
 The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
 This improves performance for projects with a large amount of resource files.
 
-## File case changes are handled for `copy` and `sync` tasks
+## File case changes when copying files on case-insensitive file systems are now handled correctly
 
-On case insensitive file systems (e.g. `Windows` and `Mac`), a file/folder rename (where only the case is changed) will now be detected properly in `copy` and related tasks (e.g. `sync`).
-The task's subsequent run will not be up-to-date and won't truncate the output anymore.
+On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename where only the case is changed is now handled properly by Gradle's file copying operations. For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
 
 <!--
 ### Example promoted
