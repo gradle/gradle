@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections;
 import groovy.util.ObservableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -31,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -110,9 +112,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void finalizeValue() {
         if (state == State.Mutable) {
-            Set<File> contents = getFiles();
+            List<? extends FileCollectionInternal> resolved = getSourceCollections();
             files.clear();
-            files.addAll(contents);
+            files.addAll(resolved);
             state = State.Finalized;
         }
     }
