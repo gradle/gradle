@@ -360,10 +360,10 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
         def files = collection.files
 
         then:
-        // TODO - remove this
-        1 * fileResolver.resolve(file) >> file
-        0 * fileResolver._
         files as List == [file]
+
+        and:
+        0 * fileResolver._
     }
 
     def resolvesClosureToFilesWhenFinalized() {
@@ -386,12 +386,11 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
         def files = collection.files
 
         then:
-        0 * closure._
-        // TODO - remove these resolves
-        1 * fileResolver.resolve(file1) >> file1
-        1 * fileResolver.resolve(file2) >> file2
-        0 * fileResolver._
         files as List == [file1, file2]
+
+        and:
+        0 * closure._
+        0 * fileResolver._
     }
 
     def resolvesCollectionToFilesWhenFinalized() {
@@ -414,13 +413,11 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
         def files = this.collection.files
 
         then:
-        0 * collection._
-        // TODO - remove this
-        // TODO - remove these resolves
-        1 * fileResolver.resolve(file1) >> file1
-        1 * fileResolver.resolve(file2) >> file2
-        0 * fileResolver._
         files as List == [file1, file2]
+
+        and:
+        0 * collection._
+        0 * fileResolver._
     }
 
     def canFinalizeWhenAlreadyFinalized() {

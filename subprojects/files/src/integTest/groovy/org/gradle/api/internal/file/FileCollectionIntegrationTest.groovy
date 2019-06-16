@@ -17,24 +17,108 @@
 package org.gradle.api.internal.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
-    def "can finalize file collection using API"() {
+    @Unroll
+    def "can use 'as' operator with #type"() {
+        buildFile << """
+            def fileCollection = files("input.txt")
+            def castValue = fileCollection as $type
+            println "Cast value: \$castValue (\${castValue.getClass().name})"
+            assert castValue instanceof $type
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        type << ["Object", "Object[]", "Set", "LinkedHashSet", "List", "LinkedList", "Collection", "FileCollection"]
+    }
+
+    def "finalized file collection resolves locations and ignores later changes to source paths"() {
         buildFile << """
             def files = objects.fileCollection()
             def name = 'a'
-            files.from({ name })
+            files.from { name }
+            
+            def names = ['b', 'c']
+            files.from(names)
+
+            files.finalizeValue()
+            name = 'ignore-me'
+            names.clear()
+            
+            assert files.files as List == [file('a'), file('b'), file('c')]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "finalized file collection ignores later changes to nested file collections"() {
+        buildFile << """
+            def nested = objects.fileCollection()
+            def name = 'a'
+            nested.from { name }
+            
+            def names = ['b', 'c']
+            nested.from(names)
+
+            def files = objects.fileCollection()
+            files.from(nested)
+            files.finalizeValue()
+            name = 'ignore-me'
+            names.clear()
+            nested.from('ignore-me')
+            
+            assert files.files as List == [file('a'), file('b'), file('c')]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "finalized file collection still reflects changes to file system but not changes to locations"() {
+        buildFile << """
+            def files = objects.fileCollection()
+            def name = 'a'
+            files.from { 
+                fileTree({ name }) {
+                    include '**/*.txt'
+                }
+            }
 
             files.finalizeValue()
             name = 'b'
             
-            assert files.files as List == [file('a')]
+            assert files.files.empty
             
-            files.from('b')
+            file('a').mkdirs()
+            def f1 = file('a/thing.txt')
+            f1.text = 'thing'
+            
+            assert files.files as List == [f1]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "cannot mutate finalized file collection"() {
+        buildFile << """
+            def files = objects.fileCollection()
+            files.finalizeValue()
+            
+            task broken {
+                doLast {
+                    files.from('bad')
+                }
+            }
         """
 
         when:
-        fails()
+        fails('broken')
 
         then:
         failure.assertHasCause("The value for file collection is final and cannot be changed.")
