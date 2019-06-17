@@ -78,6 +78,10 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
             )
             .map(successfulLoad -> successfulLoad
                 .map(cacheHit -> {
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("Loaded cache entry for {} with cache key {}",
+                            work.getDisplayName(), cacheKey.getHashCode());
+                    }
                     cleanLocalState(work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
                     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = cacheHit.getResultingSnapshots();
@@ -190,8 +194,11 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     private void store(UnitOfWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {
         try {
-            // TODO This could send in the whole origin metadata
             buildCache.store(commandFactory.createStore(cacheKey, work, result.getFinalOutputs(), result.getOriginMetadata().getExecutionTime()));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Stored cache entry for {} with cache key {}",
+                    work.getDisplayName(), cacheKey.getHashCode());
+            }
         } catch (Exception e) {
             LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
         }
