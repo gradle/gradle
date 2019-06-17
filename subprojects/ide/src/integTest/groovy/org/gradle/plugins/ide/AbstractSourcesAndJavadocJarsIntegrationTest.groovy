@@ -54,7 +54,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
 
         buildFile << """
 dependencies {
-    compile 'some:module:1.0:api'
+    implementation 'some:module:1.0:api'
 }
 """
 
@@ -169,8 +169,8 @@ dependencies {
         useIvyRepo(repo)
         buildFile << """
 dependencies {
-    compile 'some:module:1.0:api'
-    testCompile 'some:module:1.0:tests'
+    implementation 'some:module:1.0:api'
+    testImplementation 'some:module:1.0:tests'
 }"""
 
         succeeds ideTask
@@ -318,7 +318,7 @@ apply plugin: "idea"
 apply plugin: "eclipse"
 
 dependencies {
-    compile("some:module:1.0")
+    implementation("some:module:1.0")
 }
 
 idea {
@@ -335,7 +335,7 @@ eclipse {
 
 task resolve {
     doLast {
-        configurations.compile.each { println it }
+        configurations.runtimeClasspath.each { println it }
     }
 }
 """

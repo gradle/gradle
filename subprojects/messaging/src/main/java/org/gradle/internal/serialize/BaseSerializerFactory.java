@@ -28,6 +28,7 @@ public class BaseSerializerFactory {
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     public static final Serializer<Boolean> BOOLEAN_SERIALIZER = new BooleanSerializer();
     public static final Serializer<Byte> BYTE_SERIALIZER = new ByteSerializer();
+    public static final Serializer<Character> CHAR_SERIALIZER = new CharSerializer();
     public static final Serializer<Short> SHORT_SERIALIZER = new ShortSerializer();
     public static final Serializer<Integer> INTEGER_SERIALIZER = new IntegerSerializer();
     public static final Serializer<Long> LONG_SERIALIZER = new LongSerializer();
@@ -201,6 +202,18 @@ public class BaseSerializerFactory {
 
         @Override
         public void write(Encoder encoder, Short value) throws Exception {
+            encoder.writeInt(value);
+        }
+    }
+
+    private static class CharSerializer extends AbstractSerializer<Character> {
+        @Override
+        public Character read(Decoder decoder) throws Exception {
+            return (char) decoder.readInt();
+        }
+
+        @Override
+        public void write(Encoder encoder, Character value) throws Exception {
             encoder.writeInt(value);
         }
     }

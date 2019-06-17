@@ -149,7 +149,7 @@ repositories {
 }
 
 dependencies {
-    compile "myGroup:myArtifact1:1.0"
+    implementation "myGroup:myArtifact1:1.0"
 }
         """
 
@@ -278,11 +278,11 @@ repositories {
 }
 
 configurations {
-    compile.exclude module: 'myArtifact2'
+    implementation.exclude module: 'myArtifact2'
 }
 
 dependencies {
-    compile "myGroup:myArtifact1:1.0"
+    implementation "myGroup:myArtifact1:1.0"
 }
         """
 
@@ -303,7 +303,7 @@ repositories {
 }
 
 dependencies {
-    compile("myGroup:myArtifact1:1.0") {
+    implementation("myGroup:myArtifact1:1.0") {
         exclude module: "myArtifact2"
     }
 }
@@ -459,7 +459,7 @@ repositories {
 }
 
 dependencies {
-	compile "some:lib:1.0"
+	implementation "some:lib:1.0"
 }
         """
     }
@@ -478,7 +478,7 @@ repositories {
 }
 
 dependencies {
-	compile "some:lib:1.0"
+	implementation "some:lib:1.0"
 }
         """
     }

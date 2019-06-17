@@ -22,6 +22,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":launcher"))
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -29,11 +30,13 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
-    implementation(project(":launcher"))
     implementation(project(":pluginUse"))
 
     implementation(library("slf4j_api"))
     implementation(library("guava"))
+
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":launcher")))
 
     integTestImplementation(project(":buildOption"))
 
@@ -41,15 +44,12 @@ dependencies {
     integTestRuntimeOnly(project(":ide"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
     integTestRuntimeOnly(project(":testKit"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":dependencyManagement")
-    from(":launcher")
 }
 
 testFilesCleanup {

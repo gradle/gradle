@@ -19,7 +19,7 @@ package org.gradle.api.publication.maven.internal.action
 import org.apache.http.conn.HttpHostConnectException
 import org.apache.maven.artifact.ant.RemoteRepository
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.sonatype.aether.deployment.DeploymentException
 import spock.lang.Unroll
 

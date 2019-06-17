@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -38,6 +39,7 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterSch
 import org.gradle.api.internal.artifacts.transform.CacheableTransformTypeAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.InputArtifactAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnnotationHandler;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
@@ -53,6 +55,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
@@ -121,6 +124,14 @@ class DependencyManagementGlobalScopeServices {
 
     InputArtifactDependenciesAnnotationHandler createInputArtifactDependenciesAnnotationHandler() {
         return new InputArtifactDependenciesAnnotationHandler();
+    }
+
+    PreferJavaRuntimeVariant createPreferJavaRuntimeVariant(NamedObjectInstantiator instantiator) {
+        return new PreferJavaRuntimeVariant(instantiator);
+    }
+
+    PlatformSupport createPlatformSupport(NamedObjectInstantiator instantiator) {
+        return new PlatformSupport(instantiator);
     }
 
     ArtifactTransformParameterScheme createArtifactTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {

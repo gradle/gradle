@@ -18,7 +18,7 @@ package org.gradle.internal.scan.config
 
 import org.gradle.StartParameter
 import org.gradle.internal.event.ListenerManager
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import spock.util.environment.RestoreSystemProperties
 
 class BuildScanConfigManagerTest extends Specification {

@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.internal.change.ChangeTypeInternal
+import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import spock.lang.Issue
 import spock.lang.Unroll
 

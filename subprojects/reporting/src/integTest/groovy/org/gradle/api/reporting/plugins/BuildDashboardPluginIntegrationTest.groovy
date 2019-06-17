@@ -38,7 +38,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
                 apply plugin: 'groovy'
 
                 dependencies {
-                    compile localGroovy()
+                    implementation localGroovy()
                 }
             }
         """
@@ -48,7 +48,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             allprojects {
                 dependencies{
-                    testCompile "junit:junit:4.12"
+                    testImplementation "junit:junit:4.12"
                 }
             }
 """
@@ -246,14 +246,18 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         goodCode()
 
         expect:
-        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
-        run('buildDashboard') && ':buildDashboard' in skippedTasks
+        run('buildDashboard')
+        executedAndNotSkipped(':buildDashboard')
+
+        run('buildDashboard')
+        skipped(':buildDashboard')
 
         when:
         buildDashboardFile.delete()
 
         then:
-        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
+        run('buildDashboard')
+        executedAndNotSkipped(':buildDashboard')
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -263,7 +267,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         withCodenarc()
 
         when:
-        run('check') && ':buildDashboard' in nonSkippedTasks
+        run('check')
+        executedAndNotSkipped(':buildDashboard')
 
         then:
         reports.size() == 2
@@ -278,7 +283,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         and:
-        run('check') && ':buildDashboard' in nonSkippedTasks
+        run('check')
+        executedAndNotSkipped(':buildDashboard')
 
         then:
         reports.size() == 3
@@ -294,7 +300,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         goodTests()
 
         when:
-        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
+        run('buildDashboard')
+        executedAndNotSkipped(':buildDashboard')
 
         then:
         reports.size() == 1
@@ -304,7 +311,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasUnavailableReport(':test', 'junitXml')
 
         when:
-        run('test') && ':buildDashboard' in nonSkippedTasks
+        run('test')
+        executedAndNotSkipped(':buildDashboard')
 
         then:
         reports.size() == 3

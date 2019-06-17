@@ -73,6 +73,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         this.status = status;
         this.attributesSchema = attributesSchema;
     }
+
     @Override
     public ComponentIdentifier getId() {
         return componentId;

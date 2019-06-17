@@ -25,17 +25,21 @@ dependencies {
     runtimeOnly(library("log4j_to_slf4j"))
     runtimeOnly(library("jcl_to_slf4j"))
 
+    testImplementation(testFixtures(project(":core")))
+    
     integTestImplementation(library("ansi_control_sequence_util"))
 
     integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(library("slf4j_api"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.WORKER
-}
-
-testFixtures {
-    from(":core")
 }
 
 classycle {

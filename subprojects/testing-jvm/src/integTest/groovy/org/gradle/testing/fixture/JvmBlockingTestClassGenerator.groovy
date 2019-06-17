@@ -46,7 +46,7 @@ class JvmBlockingTestClassGenerator {
             ${RepoScriptBlockUtil.jcenterRepository()}
 
             dependencies {
-                testCompile '$testDependency'
+                testImplementation '$testDependency'
             }
 
             tasks.withType(Test) {

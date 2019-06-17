@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.UsesNativeServices
 
 import java.util.concurrent.Callable

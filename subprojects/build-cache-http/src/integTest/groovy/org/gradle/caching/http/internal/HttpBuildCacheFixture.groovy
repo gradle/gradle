@@ -36,6 +36,11 @@ trait HttpBuildCacheFixture {
         httpBuildCacheServer = new HttpBuildCacheServer(temporaryFolder)
     }
 
+    String withHttpBuildCacheServer() {
+        httpBuildCacheServer.start()
+        return useHttpBuildCache(httpBuildCacheServer.uri)
+    }
+
     String useHttpBuildCache(URI uri) {
         """
             buildCache {  

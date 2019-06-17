@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
 
 class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration('runtime')
+    def resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration('runtime')
     MavenModule bom
     MavenModule moduleA
 

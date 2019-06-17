@@ -171,7 +171,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "recompiles library and relinks executable after single library source file change"() {
@@ -210,7 +210,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "recompiles binary and does not relink when public header file changes in a way that does not affect the object files"() {
@@ -246,7 +246,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "recompiles binary when implementation header file changes"() {
@@ -282,7 +282,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "recompiles only those source files affected by a header file change"() {
@@ -329,7 +329,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         and:
         libObjects.noneRecompiled()
@@ -356,7 +356,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         unused.delete()
@@ -365,7 +365,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         libraryHeaderFile << """
@@ -411,7 +411,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == "Hi world"
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         headerFile << "void another_thing();"
@@ -438,7 +438,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == "Hi world"
 
         and:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     @Unroll
@@ -504,7 +504,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.snapshot()
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         headerFile.replace('one', 'two')
@@ -526,7 +526,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         where:
         macro << [
@@ -589,7 +589,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.snapshot()
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         headerFile.replace('one', 'two')
@@ -611,7 +611,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         where:
         macro << [
@@ -691,7 +691,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         file("app/src/main/headers/some-dir").mkdirs()
@@ -699,7 +699,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         file("app/src/main/headers/some-dir").deleteDir()
@@ -707,7 +707,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         disableTransitiveUnresolvedHeaderDetection()
@@ -824,7 +824,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         and:
-        nonSkippedTasks.empty
+        allSkipped()
 
         and:
         appObjects.noneRecompiled()
@@ -875,7 +875,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         appObjects.snapshot()
@@ -896,7 +896,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "can reference a missing header file"() {
@@ -929,7 +929,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         header << """// some extra stuff"""
@@ -951,7 +951,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "source file can reference multiple header files using the same macro"() {
@@ -1008,7 +1008,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         header2 << """// some extra stuff"""
@@ -1030,7 +1030,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         header3 << """// some extra stuff"""
@@ -1052,7 +1052,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         header1 << """// some extra stuff"""
@@ -1075,7 +1075,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "changes to the included header graph are reflected in the inputs"() {
@@ -1114,7 +1114,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         header.replace('"hello1.h"', '"hello2.h"')
@@ -1140,7 +1140,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "shared header can reference project specific header"() {
@@ -1172,7 +1172,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         libDefsHeader.replace('PREFIX "LOG: "', 'PREFIX "* "')
@@ -1254,7 +1254,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         libDefsHeader1.replace('PREFIX "LOG: "', 'PREFIX "* "')
@@ -1329,7 +1329,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         and:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         appHeaderInSrcDir.replace('"everyone"', '"world"')
@@ -1395,7 +1395,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         appHeaderInSrcDir.text = appHeaderInHeaderDir.text
@@ -1448,7 +1448,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == "hello world"
 
         and:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         appHeaderInHeaderDir << """
@@ -1460,7 +1460,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == "hello world"
 
         and:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         appHeaderInOtherDir.replace('"world"', '"universe"')
@@ -1535,7 +1535,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == "hello world"
 
         and:
-        nonSkippedTasks.empty
+        allSkipped()
 
         when:
         systemHeaderInOtherDir.replace('"world"', '"universe"')
@@ -1563,7 +1563,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == "hello universe"
 
         and:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     private boolean unresolvedHeadersDetected(String taskPath) {

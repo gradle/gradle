@@ -57,7 +57,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             }
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
 """
@@ -90,18 +90,18 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         when:
         run "compile"
         then:
-        nonSkippedTasks.contains ":compile"
+        executedAndNotSkipped ":compile"
 
         when:
         run "compile"
         then:
-        skippedTasks.contains ":compile"
+        skipped ":compile"
 
         when:
         buildFile.text = buildScriptWithClasspath("lib2.jar", "lib1.jar")
         run "compile"
         then:
-        nonSkippedTasks.contains ":compile"
+        executedAndNotSkipped ":compile"
     }
 
     def "stays up-to-date after file renamed on classpath"() {
@@ -114,12 +114,12 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         when:
         run "compile"
         then:
-        nonSkippedTasks.contains ":compile"
+        executedAndNotSkipped ":compile"
 
         when:
         run "compile"
         then:
-        skippedTasks.contains ":compile"
+        skipped ":compile"
 
         when:
         file("lib1.jar").renameTo(file("lib1-renamed.jar"))
@@ -127,7 +127,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         run "compile"
         then:
-        skippedTasks.contains ":compile"
+        skipped ":compile"
     }
 
     def buildScriptWithClasspath(String... dependencies) {
@@ -175,7 +175,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         when:
         succeeds "test"
         then:
-        nonSkippedTasks.contains ":test"
+        executedAndNotSkipped ":test"
         javaClassFile("com/example/Foo.class").assertIsFile()
 
         when:
@@ -201,7 +201,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         succeeds "test"
         then:
-        nonSkippedTasks.contains ":test"
+        executedAndNotSkipped ":test"
         javaClassFile("com/example/Foo.class").assertIsFile()
     }
 
@@ -258,7 +258,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
-                testCompile 'junit:junit:4.12' // not using testImplementation intentionally, that's not what we want to test
+                testImplementation 'junit:junit:4.12'
             }
         """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
@@ -443,7 +443,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
                 ${mavenCentralRepository()}
 
                 dependencies {
-                    ${dependencies.collect { "compile ${it}"}.join('\n') }
+                    ${dependencies.collect { "implementation ${it}"}.join('\n') }
                 }
             """
         }
@@ -516,7 +516,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
             
             dependencies {
-               compile files('foo.jar')
+               implementation files('foo.jar')
             }
         '''
         file('foo.jar') << 'this is clearly not a well formed jar file'
@@ -532,22 +532,27 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1581")
-    def "classpath snapshotting should accept non-utf8 characters in filenames"() {
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "compile classpath snapshotting on Java 8 and earlier should warn when jar on classpath has non-utf8 characters in filenames"() {
         buildFile << '''
             apply plugin: 'java'
             
             dependencies {
-               compile files('broken-utf8.jar')
+               implementation files('broken-utf8.jar')
             }
         '''
+        // This file has a file name which is not UTF-8.
+        // See https://bugs.openjdk.java.net/browse/JDK-7062777?focusedCommentId=12254124&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12254124.
         resources.findResource('broken-utf8.is-a-jar').copyTo(file('broken-utf8.jar'))
         file('src/main/java/Hello.java') << 'public class Hello {}'
+        executer.withStackTraceChecksDisabled()
 
         when:
         run 'compileJava', '--debug'
 
         then:
         executedAndNotSkipped ':compileJava'
+        outputContains "Malformed archive 'broken-utf8.jar'"
     }
 
     @Issue("gradle/gradle#1358")
@@ -561,7 +566,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             }
             
             dependencies {
-               compile files(fooJar.archivePath)
+               implementation files(fooJar.archivePath)
             }
             
             compileJava.dependsOn(fooJar)
@@ -586,7 +591,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
             
             dependencies {
-               compile files('classes')
+               implementation files('classes')
             }
             
         '''
@@ -614,7 +619,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
             
             dependencies {
-               compile project(':b')
+               implementation project(':b')
             }
         '''
         file('src/main/java/Lambda.java') << 'public class Lambda extends λ {}'

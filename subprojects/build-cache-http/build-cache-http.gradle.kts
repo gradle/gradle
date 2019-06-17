@@ -35,14 +35,15 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("inject"))
 
+    testImplementation(testFixtures(project(":core")))
+
     integTestImplementation(project(":logging"))
     integTestImplementation(testLibrary("jetty"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

@@ -44,7 +44,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
             project("pmd-rule") {
                 dependencies {
-                    compile "${calculateDefaultDependencyNotation()}"
+                    implementation "${calculateDefaultDependencyNotation()}"
                 }
             }
 
@@ -52,7 +52,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
                 apply plugin: 'pmd'
 
                 dependencies {
-                    compile "junit:junit:3.8.1"
+                    implementation "junit:junit:3.8.1"
 
                     pmd project(":pmd-rule")
                 }

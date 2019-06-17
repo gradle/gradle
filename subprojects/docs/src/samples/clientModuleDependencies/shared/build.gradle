@@ -2,7 +2,7 @@ import org.junit.Assert
 
 version = '1.0'
 dependencies {
-    runtime module("commons-lang:commons-lang:2.4") {
+    runtimeOnly module("commons-lang:commons-lang:2.4") {
         dependency("commons-io:commons-io:1.2")
     }
 }
@@ -10,6 +10,6 @@ dependencies {
 task testDeps {
     doLast {
         Assert.assertEquals(['commons-lang-2.4.jar', 'commons-io-1.2.jar'] as Set,
-                configurations.runtime.collect { it.name } as Set)
+                configurations.runtimeClasspath.collect { it.name } as Set)
     }
 }

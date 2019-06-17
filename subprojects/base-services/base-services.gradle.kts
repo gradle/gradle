@@ -6,7 +6,6 @@
  */
 
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import java.util.concurrent.Callable
 
 plugins {
     `java-library`
@@ -18,6 +17,7 @@ gradlebuildJava {
 }
 
 dependencies {
+    api(project(":pineapple"))
     api(library("jsr305"))
 
     implementation(library("slf4j_api"))
@@ -26,23 +26,23 @@ dependencies {
     implementation(library("commons_io"))
     implementation(library("asm"))
 
-    jmh(library("bouncycastle_provider")) {
+    jmhImplementation(library("bouncycastle_provider")) {
         version {
             prefer(libraryVersion("bouncycastle_provider"))
         }
     }
 
     integTestImplementation(project(":logging"))
-}
-
-testFixtures {
-    from(":core")
+    
+    testFixturesImplementation(library("guava"))
+    testImplementation(testFixtures(project(":core")))
+    testRuntimeOnly(library("xerces"))
+    
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 jmh {
-    withGroovyBuilder {
-        setProperty("include", listOf("HashingAlgorithmsBenchmark"))
-    }
+    include = listOf("HashingAlgorithmsBenchmark")
 }
 
 val buildReceiptPackage: String by rootProject.extra

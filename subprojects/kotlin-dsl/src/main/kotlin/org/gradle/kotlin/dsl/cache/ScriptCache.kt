@@ -94,7 +94,7 @@ class ScriptCache(
 
         if (cacheController != null) {
             val buildCacheKey = ScriptBuildCacheKey(displayName, cacheKey)
-            val buildInvocationId = buildInvocationIdOf(scriptTarget)
+            val buildInvocationId = buildInvocationIdOf(scriptTarget).asString()
             val existing = cacheController.load(LoadDirectory(cacheDir, buildCacheKey, buildInvocationId))
             if (!existing.isPresent) {
 

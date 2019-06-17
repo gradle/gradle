@@ -26,22 +26,32 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":files"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":launcher")))
+    testImplementation(testFixtures(project(":plugins")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(library("commons_lang"))
     integTestImplementation(library("ant"))
 
     // keep in sync with ScalaLanguagePlugin code
-    compileOnly("com.typesafe.zinc:zinc:0.3.15")
+    compileOnly("com.typesafe.zinc:zinc:0.3.15") {
+        because("this dependency is downloaded by the antlr plugin; version should be in sync with ScalaLanguagePlugin code")
+    }
+
+
+    testFixturesApi(testFixtures(project(":languageJvm")))
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":modelCore"))
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":platformBase"))
+    testFixturesImplementation(testFixtures(project(":languageJvm")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":languageJvm", "testFixtures")
-    from(":platformBase")
-    from(":launcher")
-    from(":plugins")
-}

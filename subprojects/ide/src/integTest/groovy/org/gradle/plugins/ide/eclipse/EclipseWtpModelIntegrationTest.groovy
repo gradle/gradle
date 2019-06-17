@@ -122,7 +122,7 @@ repositories {
 }
 
 dependencies {
-  compile 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
+  implementation 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
 }
 
 configurations.all {
@@ -290,7 +290,7 @@ project(':impl') {
   apply plugin: 'war'
   apply plugin: 'eclipse-wtp'
 
-  dependencies { compile project(':contrib') }
+  dependencies { implementation project(':contrib') }
 
   eclipse.project.name = 'cool-impl'
 }
@@ -329,7 +329,7 @@ project(':impl') {
   apply plugin: 'war'
   apply plugin: 'eclipse-wtp'
 
-  dependencies { compile project(':contrib') }
+  dependencies { implementation project(':contrib') }
 
   eclipse.project.name = 'cool-impl'
 }
@@ -447,8 +447,8 @@ project(':contrib') {
             ${mavenCentralRepository()}
 
             dependencies {
-              compile 'commons-io:commons-io:1.4'
-              compile project(':someCoolLib')
+              implementation 'commons-io:commons-io:1.4'
+              implementation project(':someCoolLib')
             }
         """
 
@@ -486,7 +486,7 @@ project(':contrib') {
             ${mavenCentralRepository()}
 
             dependencies {
-              compile 'commons-io:commons-io:1.4'
+              implementation 'commons-io:commons-io:1.4'
             }
 
             import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
@@ -524,8 +524,8 @@ project(':contrib') {
            ${mavenCentralRepository()}
 
            dependencies {
-               runtime 'commons-io:commons-io:1.4'
-               runtime files('libs/myFoo.jar')
+               runtimeOnly 'commons-io:commons-io:1.4'
+               runtimeOnly files('libs/myFoo.jar')
            }
 
            eclipse.pathVariables MY_LIBS: file('libs')
@@ -555,8 +555,8 @@ project(':contrib') {
            ${mavenCentralRepository()}
 
            dependencies {
-               runtime 'commons-io:commons-io:1.4'
-               runtime files('libs/myFoo.jar')
+               runtimeOnly 'commons-io:commons-io:1.4'
+               runtimeOnly files('libs/myFoo.jar')
            }
 
            eclipse.pathVariables MY_LIBS: file('libs')

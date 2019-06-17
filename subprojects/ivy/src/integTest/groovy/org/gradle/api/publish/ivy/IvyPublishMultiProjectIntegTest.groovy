@@ -198,11 +198,11 @@ allprojects {
 }
 
 project(":project1") {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "ivy-publish"
 
     dependencies {
-        compile project(":project2")
+        api project(":project2")
     }
 
     publishing {
@@ -248,7 +248,7 @@ project(':project1') {
     ${jcenterRepository()}
 
     dependencies {
-        compile 'commons-logging:commons-logging:1.2'
+        implementation 'commons-logging:commons-logging:1.2'
     }
 }
 
@@ -259,7 +259,7 @@ project(':project2') {
     version = '2.0'
 
     dependencies {
-        compile project(":project1"), {
+        implementation project(":project1"), {
             exclude group: 'commons-logging', module: 'commons-logging'
         }
     }
@@ -300,7 +300,7 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "ivy-publish"
 
     publishing {
@@ -318,14 +318,14 @@ subprojects {
 project(":project1") {
     version = "1.0"
     dependencies {
-        compile project(":project2")
-        compile project(":project3")
+        api project(":project2")
+        api project(":project3")
     }
 }
 project(":project2") {
     version = "2.0"
     dependencies {
-        compile project(":project3")
+        api project(":project3")
     }
 }
 

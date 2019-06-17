@@ -5,7 +5,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:$scalaVersion"
+    implementation "org.scala-lang:scala-library:$scalaVersion"
 }
 
 

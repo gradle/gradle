@@ -31,7 +31,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     GitHttpRepository repo = new GitHttpRepository(httpServer, 'dep', temporaryFolder.getTestDirectory())
 
     TestFile repoSettingsFile
-    def fixture = new ResolveTestFixture(buildFile)
+    def fixture = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
         httpServer.start()

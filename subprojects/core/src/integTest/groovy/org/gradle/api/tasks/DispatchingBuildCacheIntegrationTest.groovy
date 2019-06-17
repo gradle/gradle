@@ -80,7 +80,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         withBuildCache().run 'clean', cacheableTask
 
         then:
-        skippedTasks.contains(cacheableTask)
+        skipped(cacheableTask)
         populatedCache(localCache)
         remoteCache.empty
 
@@ -102,7 +102,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         withBuildCache().run 'clean', cacheableTask
 
         then:
-        skippedTasks.contains(cacheableTask)
+        skipped(cacheableTask)
         populatedCache(remoteCache)
         localCache.empty
 
@@ -177,7 +177,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void pulledFrom(TestBuildCache cache) {
-        assert skippedTasks.contains(cacheableTask)
+        skipped(cacheableTask)
         assert cache.listCacheFiles().size() == 1
     }
 

@@ -18,7 +18,7 @@ import java.util.*
  * limitations under the License.
  */
 plugins {
-    java
+    `java-library`
     gradlebuild.classycle
 }
 
@@ -46,7 +46,12 @@ dependencies {
 
     testImplementation(project(":cli"))
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformNative")))
+    
+    testFixturesImplementation(project(":baseServices"))
 
+    integTestImplementation(project(":native"))
     integTestImplementation(testLibrary("jetty"))
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra
@@ -55,16 +60,14 @@ dependencies {
     }
     
     testFixturesImplementation(project(":internalTesting"))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":platformNative")
-}
 
 tasks {
     register("updateInitPluginTemplateVersionFile") {
@@ -87,7 +90,7 @@ tasks {
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
 
             val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-            versionProperties["spock"] = "1.2-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+            versionProperties["spock"] = "1.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
 
             findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
             findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)

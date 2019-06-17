@@ -16,7 +16,7 @@
 
 package org.gradle.internal.featurelifecycle
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import spock.lang.Unroll
 
 class DeprecatedFeatureUsageTest extends Specification {

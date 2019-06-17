@@ -185,7 +185,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
     }
 
     dependencies {
-        compile "org.test:b1:1.0"
+        implementation "org.test:b1:1.0"
     }
 """
 

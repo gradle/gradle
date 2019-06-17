@@ -55,14 +55,7 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
         super.generate(settings, buildScriptBuilder, templateFactory);
 
-        String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
-        buildScriptBuilder.plugin("Apply the Kotlin JVM plugin to add support for Kotlin.", "org.jetbrains.kotlin.jvm", kotlinVersion);
-        buildScriptBuilder.
-            implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
-
-        buildScriptBuilder
-            .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
-            .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
+        new KotlinProjectInitDescriptor(libraryVersionProvider).generate(buildScriptBuilder);
     }
 
     @Override

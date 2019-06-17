@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import accessors.java
+import accessors.javaScript
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import accessors.*
 
 plugins {
     `java-library`
@@ -42,6 +43,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":buildOption"))
     implementation(project(":files"))
+    implementation(project(":snapshots"))
     implementation(project(":resources"))
     implementation(project(":persistentCache"))
     implementation(project(":jvmServices"))
@@ -63,6 +65,8 @@ dependencies {
     implementation("org.gradle.ci.health:tagging:0.63")
     implementation(testLibrary("mina"))
     implementation(testLibrary("jetty"))
+    implementation(testFixtures(project(":core")))
+    implementation(testFixtures(project(":toolingApi")))
 
     runtimeOnly("com.h2database:h2:1.4.192")
 }
@@ -85,7 +89,3 @@ tasks.jar {
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
 
-testFixtures {
-    from(":core", "main")
-    from(":toolingApi", "main")
-}

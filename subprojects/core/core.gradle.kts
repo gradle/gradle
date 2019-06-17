@@ -28,7 +28,7 @@ configurations {
 }
 
 tasks.classpathManifest {
-    optionalProjects = listOf("gradle-kotlin-dsl")
+    optionalProjects.add(":kotlinDsl")
 }
 
 dependencies {
@@ -80,8 +80,39 @@ dependencies {
     testRuntimeOnly(project(":diagnostics"))
     testRuntimeOnly(project(":compositeBuilds"))
 
+    testFixturesApi(project(":baseServices")) {
+        because("test fixtures expose Action")
+    }
+    testFixturesApi(project(":baseServicesGroovy")) {
+        because("test fixtures expose AndSpec")
+    }
+    testFixturesApi(project(":coreApi")) {
+        because("test fixtures expose Task")
+    }
+    testFixturesApi(project(":logging")) {
+        because("test fixtures expose Logger")
+    }
+    testFixturesApi(project(":modelCore")) {
+        because("test fixtures expose IConventionAware")
+    }
+    testFixturesApi(project(":buildCache")) {
+        because("test fixtures expose BuildCacheController")
+    }
+    testFixturesApi(project(":execution")) {
+        because("test fixtures expose OutputChangeListener")
+    }
+    testFixturesImplementation(project(":files"))
+    testFixturesImplementation(project(":native"))
+    testFixturesImplementation(project(":resources"))
+    testFixturesImplementation(project(":processServices"))
     testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":messaging"))
+    testFixturesImplementation(project(":persistentCache"))
+    testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(library("ivy"))
+    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(library("ant"))
 
     testFixturesRuntimeOnly(project(":runtimeApiInfo"))
     val allCoreRuntimeExtensions: DependencySet by rootProject.extra
@@ -92,30 +123,40 @@ dependencies {
 
     testImplementation(project(":dependencyManagement"))
 
+    testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":modelCore")))
+    testImplementation(testFixtures(project(":logging")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":diagnostics")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":kotlinDsl"))
+    testRuntimeOnly(project(":kotlinDslProviderPlugins"))
+
     integTestImplementation(project(":workers"))
     integTestImplementation(project(":dependencyManagement"))
-    integTestImplementation(project(":launcherStartup"))
+    integTestImplementation(project(":launcher"))
     integTestImplementation(project(":plugins"))
     integTestImplementation(library("jansi"))
     integTestImplementation(library("jetbrains_annotations"))
     integTestImplementation(testLibrary("jetty"))
     integTestImplementation(testLibrary("littleproxy"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 
     integTestRuntimeOnly(project(":maven"))
     integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
+
+    crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
+
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":coreApi")
-    from(":messaging")
-    from(":modelCore")
-    from(":logging")
-    from(":baseServices")
-    from(":diagnostics")
 }
 
 tasks.test {
@@ -152,4 +193,10 @@ sourceSets.main {
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
+}
+
+tasks {
+    compileTestFixturesGroovy {
+//        groovyOptions.forkOptions.jvmArgs!!.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
+    }
 }

@@ -151,7 +151,7 @@ trait HttpServerFixture {
         return false
     }
 
-    private static class LoggingHandler extends AbstractHandler {
+    static class LoggingHandler extends AbstractHandler {
         private final Set<String> authenticationAttempts
         private final Set<Map<String, String>> allHeaders
         private final boolean logRequests

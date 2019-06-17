@@ -41,7 +41,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
             version = '2.0'
             
             dependencies {
-                compile "org.test:dep:latest.integration"
+                implementation "org.test:dep:latest.integration"
             }
         """
         file("src/main/java/Main.java") << """

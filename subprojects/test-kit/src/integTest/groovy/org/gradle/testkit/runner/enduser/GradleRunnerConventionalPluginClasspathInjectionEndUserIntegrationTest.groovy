@@ -30,7 +30,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             }
             ${jcenterRepository()}
             dependencies {
-                testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+                testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
                     exclude module: 'groovy-all'
                 }
             }
@@ -97,7 +97,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             }
 
             configurations {
-                functionalTestCompile.extendsFrom testCompile
+                functionalTestCompile.extendsFrom testImplementation
                 functionalTestRuntime.extendsFrom testRuntime
             }
 

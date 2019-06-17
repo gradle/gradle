@@ -1,6 +1,6 @@
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.gradlebuild.versioning.DetermineCommitId
 
 if (buildTypes.promotionBuild.active) {
     logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
@@ -9,7 +9,7 @@ if (buildTypes.promotionBuild.active) {
 ext.milestoneNumber = project.hasProperty("milestoneNumber") ? project.milestoneNumber.toInteger() : null
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
-ext.versionQualifier = project.hasProperty("versionQualifier") ? project.versionQualifier: null
+ext.versionQualifier = project.hasProperty("versionQualifier") ? project.versionQualifier : null
 if ((milestoneNumber != null && rcNumber != null) ||
     (rcNumber != null && finalRelease) ||
     (milestoneNumber != null && finalRelease)) {
@@ -30,7 +30,7 @@ if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuild
     if (project.hasProperty("buildTimestamp")) {
         buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        if (BuildEnvironment.isCiServer || ['install', 'installAll'].collectMany { [':' + it, it]}.any { gradle.startParameter.taskNames.contains(it) }) {
+        if (BuildEnvironment.isCiServer || ['install', 'installAll'].collectMany { [':' + it, it] }.any { gradle.startParameter.taskNames.contains(it) }) {
             buildTime = new Date()
         } else {
             def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
@@ -41,89 +41,14 @@ if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuild
     ext.buildTimestamp = timestampFormat.format(buildTime)
 }
 
-def determineCommitId = tasks.register("determineCommitId") {
-    ext.commitId = null
+def determineCommitId = tasks.register("determineCommitId", DetermineCommitId)
 
-    doLast {
-        def strategies = []
-
-        def env = System.getenv()
-
-        // For promotion builds use the commitId passed in as a project property
-        strategies << {
-            project.hasProperty('promotionCommitId') ? project.property('promotionCommitId') : null
-        }
-
-        // Builds of Gradle happening on the CI server
-        strategies << {
-            env["BUILD_VCS_NUMBER"]
-        }
-
-        // For the discovery builds, this points to the Gradle revision
-        strategies << {
-            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }?.value
-        }
-
-        // For the discovery release builds, this points to the Gradle revision
-        strategies << {
-            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_release_branch") }?.value
-        }
-
-        // If it's a checkout, ask Git for it
-        strategies << {
-            def gitDir = file("${rootDir}/.git")
-            if (gitDir.exists()) {
-                def baos = new ByteArrayOutputStream()
-                def execResult = exec {
-                    workingDir = rootDir
-                    ignoreExitValue = true
-                    commandLine = ["git", "log", "-1", "--format=%H"]
-                    if (OperatingSystem.current().windows) {
-                        commandLine = ["cmd", "/c"] + commandLine
-                    }
-
-                    standardOutput = baos
-                }
-                if (execResult.exitValue == 0) {
-                    new String(baos.toByteArray(), "utf8").trim()
-                } else if (file("${gitDir}/HEAD").exists()) {
-                    // Read commit id directly from filesystem
-                    def headRef = file("${gitDir}/HEAD").text
-                    headRef = headRef.replaceAll('ref: ', '').trim()
-                    file("${gitDir}/$headRef").text.trim()
-                }
-            } else {
-                null
-            }
-        }
-
-        // It's a source distribution, we don't know.
-        strategies << {
-            "<unknown>"
-        }
-
-        for (strategy in strategies) {
-            commitId = strategy()
-            if (commitId) {
-                break
-            }
-        }
-    }
-}
-
-def configureBuildReceipt = tasks.register("configureBuildReceipt") {
-    dependsOn determineCommitId
-    doLast {
-        createBuildReceipt.versionNumber = rootProject.version
-        createBuildReceipt.baseVersion = rootProject.baseVersion
-        createBuildReceipt.snapshot = rootProject.isSnapshot
-        createBuildReceipt.buildTimestamp = rootProject.buildTimestamp
-        createBuildReceipt.commitId = determineCommitId.get().commitId
-    }
-}
-
-tasks.register("createBuildReceipt", org.gradle.build.BuildReceipt) {
-    dependsOn configureBuildReceipt
+tasks.register("createBuildReceipt", BuildReceipt) {
+    versionNumber.set(provider { rootProject.version })
+    baseVersion.set(provider { rootProject.baseVersion })
+    snapshot.set(provider { rootProject.isSnapshot })
+    buildTimestampFrom(provider { rootProject.buildTimestamp })
+    commitId.set(determineCommitId.flatMap { it.determinedCommitId })
     destinationDir = file("${rootProject.buildDir}")
 }
 
@@ -138,7 +63,7 @@ if (finalRelease) {
     version += "-rc-$rcNumber"
 } else if (milestoneNumber != null) {
     version += "-milestone-$milestoneNumber"
-} else if (versionQualifier != null ) {
+} else if (versionQualifier != null) {
     isSnapshot = true
     version += "-$versionQualifier-$buildTimestamp"
 } else {

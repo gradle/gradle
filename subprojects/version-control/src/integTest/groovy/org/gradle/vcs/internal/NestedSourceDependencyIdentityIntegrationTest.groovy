@@ -144,7 +144,7 @@ Required by:
             include 'a'
         """
         repoC.file("build.gradle") << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
             dependencies { implementation project(':a') }
         """
         repoC.commit("initial version")

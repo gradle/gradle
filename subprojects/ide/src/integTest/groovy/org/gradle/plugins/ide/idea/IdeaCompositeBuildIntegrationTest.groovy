@@ -40,14 +40,14 @@ class IdeaCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
             project(':api') {
                 dependencies {
-                    compile project(':shared:api')
-                    testCompile project(':shared:model')
+                    implementation project(':shared:api')
+                    testImplementation project(':shared:model')
                 }
             }
 
             project(':shared:model') {
                 dependencies {
-                    testCompile "test:util:1.3"
+                    testImplementation "test:util:1.3"
                 }
             }
         """

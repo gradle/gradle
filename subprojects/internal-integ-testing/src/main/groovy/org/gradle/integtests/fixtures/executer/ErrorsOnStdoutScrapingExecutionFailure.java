@@ -27,6 +27,11 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     }
 
     @Override
+    public ExecutionFailure getIgnoreBuildSrc() {
+        return new ErrorsOnStdoutScrapingExecutionFailure(delegate.getIgnoreBuildSrc());
+    }
+
+    @Override
     public ExecutionFailure assertHasLineNumber(int lineNumber) {
         delegate.assertHasLineNumber(lineNumber);
         return this;

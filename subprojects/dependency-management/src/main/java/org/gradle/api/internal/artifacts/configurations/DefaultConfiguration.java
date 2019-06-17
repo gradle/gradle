@@ -128,6 +128,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
@@ -219,6 +220,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DisplayName displayName;
     private UserCodeApplicationContext userCodeApplicationContext;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+
+    private AtomicInteger copyCount = new AtomicInteger(0);
 
     private Action<? super ConfigurationInternal> beforeLocking;
 
@@ -964,7 +967,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
-        String newName = name + "Copy";
+
+        String newName = getNameWithCopySuffix();
+
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
@@ -1009,6 +1014,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             copiedDependencyConstraints.add(((DefaultDependencyConstraint) dependencyConstraint).copy());
         }
         return copiedConfiguration;
+    }
+
+    private String getNameWithCopySuffix() {
+        int count = copyCount.incrementAndGet();
+        String copyName = name + "Copy";
+        return count == 1
+            ? copyName
+            : copyName + count;
     }
 
     @Override

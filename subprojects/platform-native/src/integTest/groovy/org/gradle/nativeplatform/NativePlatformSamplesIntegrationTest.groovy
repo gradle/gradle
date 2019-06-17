@@ -177,7 +177,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         run "installMainExecutable"
 
         then:
-        ":exe:mainExecutable" in executedTasks
+        executed(":exe:mainExecutable")
 
         and:
         sharedLibrary(multiProject.dir.file("lib/build/libs/main/shared/main")).assertExists()

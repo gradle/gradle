@@ -32,7 +32,7 @@ class JUnitCategoriesCoverageIntegrationSpec extends JUnitMultiVersionIntegratio
 
     def setup() {
         executer.noExtraLogging()
-        buildFile << "dependencies { testCompile '$dependencyNotation' }"
+        buildFile << "dependencies { testImplementation '$dependencyNotation' }"
     }
 
     def canSpecifyIncludeAndExcludeCategories() {

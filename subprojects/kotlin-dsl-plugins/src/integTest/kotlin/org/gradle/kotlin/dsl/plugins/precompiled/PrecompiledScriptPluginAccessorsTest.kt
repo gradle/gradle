@@ -399,7 +399,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         withKotlinDslPlugin().appendText("""
             dependencies {
-                compile("com.github.jruby-gradle:jruby-gradle-plugin:1.4.0")
+                implementation("com.github.jruby-gradle:jruby-gradle-plugin:1.4.0")
             }
         """)
 
@@ -522,7 +522,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 withFile("build.gradle.kts", """
                     dependencies {
                         subprojects.forEach {
-                            runtime(project(it.path))
+                            runtimeOnly(project(it.path))
                         }
                     }
                 """)

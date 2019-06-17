@@ -131,15 +131,47 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         then:
         failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
-        failureHasCause("Could not serialize parameters")
-        failureHasCause("Broken")
+        failureHasCause("Could not serialize unit of work")
+        failureHasCause("java.io.IOException: Broken")
 
         and:
         executedAndNotSkipped(":runAgainInWorker")
         assertRunnableExecuted("runAgainInWorker")
 
         where:
-        isolationMode << ISOLATION_MODES
+        isolationMode << (ISOLATION_MODES - "IsolationMode.NONE")
+    }
+
+    def "produces a sensible error when a parameter can't be serialized to the worker in IsolationMode.NONE"() {
+        fixture.withRunnableClassInBuildSrc()
+        withParameterMemberThatFailsSerialization()
+
+        buildFile << """
+            ${fixture.alternateRunnable}
+
+            task runAgainInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.NONE
+                runnableClass = AlternateRunnable.class
+            }
+            
+            task runInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.NONE
+                foo = new FooWithUnserializableBar()
+                finalizedBy runAgainInWorker
+            }
+        """.stripIndent()
+
+        when:
+        fails("runInWorker")
+
+        then:
+        failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
+        failureHasCause("Could not isolate value")
+        failureHasCause("Could not serialize value of type 'org.gradle.other.FooWithUnserializableBar'")
+
+        and:
+        executedAndNotSkipped(":runAgainInWorker")
+        assertRunnableExecuted("runAgainInWorker")
     }
 
     @Unroll
@@ -169,7 +201,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         then:
         failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
-        failureHasCause("Could not deserialize parameters")
+        failureHasCause("Could not deserialize unit of work")
         failureHasCause("Broken")
 
         and:

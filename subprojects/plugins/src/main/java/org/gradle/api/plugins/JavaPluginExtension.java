@@ -72,4 +72,5 @@ public interface JavaPluginExtension {
      */
     @Incubating
     void disableAutoTargetJvm();
+
 }

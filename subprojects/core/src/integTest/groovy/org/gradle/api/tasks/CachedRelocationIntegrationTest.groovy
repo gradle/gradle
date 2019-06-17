@@ -50,7 +50,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         withBuildCache().run "jar", "customTask"
 
         then:
-        nonSkippedTasks.containsAll ":compileJava", ":jar", ":customTask"
+        executedAndNotSkipped ":compileJava", ":jar", ":customTask"
 
         when:
         executer.usingProjectDirectory(originalLocation)
@@ -58,8 +58,8 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         withBuildCache().run "jar", "customTask"
 
         then:
-        skippedTasks.containsAll ":compileJava"
-        nonSkippedTasks.contains ":customTask"
+        skipped ":compileJava"
+        executedAndNotSkipped ":customTask"
 
         when:
         executer.usingProjectDirectory(originalLocation)
@@ -71,7 +71,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         withBuildCache().run "jar", "customTask"
 
         then:
-        skippedTasks.containsAll ":compileJava", ":customTask"
+        skipped ":compileJava", ":customTask"
 
         when:
         executer.usingProjectDirectory(originalLocation)
@@ -81,7 +81,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         withBuildCache().run "jar", "customTask"
 
         then:
-        skippedTasks.containsAll ":compileJava", ":customTask"
+        skipped ":compileJava", ":customTask"
 
         when:
         def movedLocation = temporaryFolder.file("moved-location")
@@ -94,9 +94,9 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
 
         then:
         // Built-in tasks are loaded from cache
-        skippedTasks.containsAll ":compileJava"
+        skipped ":compileJava"
         // Custom tasks are also loaded from cache
-        skippedTasks.contains ":customTask"
+        skipped ":customTask"
     }
 
     static String externalTaskDef(String suffix = "") {

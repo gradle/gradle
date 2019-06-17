@@ -137,6 +137,6 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executed ":upper", ":build", ":proj:upper"
-        skippedTasks == [":proj:upper"] as Set
+        skipped ":proj:upper"
     }
 }

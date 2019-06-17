@@ -84,6 +84,7 @@ import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
@@ -124,6 +125,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final PublicationArtifactSet<IvyArtifact> publishableArtifacts;
     private final DefaultIvyDependencySet ivyDependencies;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final PlatformSupport platformSupport;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private final FeaturePreviews featurePreviews;
@@ -137,14 +139,16 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
 
+    @Inject
     public DefaultIvyPublication(
         String name, Instantiator instantiator, ObjectFactory objectFactory, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy) {
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
+        this.platformSupport = platformSupport;
         this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
@@ -284,7 +288,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                         addProjectDependency((ProjectDependency) dependency, confMapping);
                     } else {
                         ExternalDependency externalDependency = (ExternalDependency) dependency;
-                        if (PlatformSupport.isTargettingPlatform(dependency)) {
+                        if (platformSupport.isTargettingPlatform(dependency)) {
                             publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                         }
                         if (!versionMappingInUse && externalDependency.getVersion() == null) {

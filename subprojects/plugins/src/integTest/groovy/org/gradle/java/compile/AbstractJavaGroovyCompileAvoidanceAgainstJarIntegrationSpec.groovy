@@ -26,7 +26,7 @@ trait AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
         """
@@ -64,7 +64,7 @@ trait AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
         buildFile << """
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
             project(':a') {

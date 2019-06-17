@@ -16,9 +16,7 @@
 package org.gradle.internal.hash;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.file.FileMetadataSnapshot;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,12 +45,7 @@ public class DefaultFileHasher implements FileHasher {
     }
 
     @Override
-    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
+    public HashCode hash(File file, long length, long lastModified) {
         return hash(file);
-    }
-
-    @Override
-    public HashCode hash(FileTreeElement fileDetails) {
-        return hash(fileDetails.getFile());
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.util
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 
 abstract class AbstractTestForPatternSet extends Specification {
     static final String TEST_PATTERN_1 = 'pattern1'

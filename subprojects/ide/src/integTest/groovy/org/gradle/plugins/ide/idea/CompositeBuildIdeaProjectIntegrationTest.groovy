@@ -45,7 +45,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     apply plugin: 'idea'
                     repositories {
                         maven { url "${mavenRepo.uri}" }
@@ -108,14 +108,14 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.test", "transitive2").dependsOn(transitive1).publish()
 
         dependency "org.test:buildB:1.0"
-        dependency(buildB, "org.test:transitive2:1.0")
+        apiDependency(buildB, "org.test:transitive2:1.0")
 
         when:
         idea()
 
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
-        imlHasDependencies(["buildB"], ["transitive1-1.0.jar", "transitive2-1.0.jar"])
+        imlHasDependencies(["buildB"], ["transitive1-1.0.jar", "transitive2-1.0.jar", ])
     }
 
     def "builds IDEA metadata with substituted subproject dependency that has transitive project dependency"() {
@@ -123,7 +123,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         dependency "org.test:buildB:1.0"
         buildB.buildFile << """
             dependencies {
-                compile project(':b1')
+                api project(':b1')
             }
 """
 
@@ -138,7 +138,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
     def "builds IDEA metadata with transitive substitutions"() {
         given:
         dependency "org.test:buildB:1.0"
-        dependency buildB, "org.test:buildC:1.0"
+        apiDependency buildB, "org.test:buildC:1.0"
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
@@ -175,18 +175,18 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
 
         buildB.buildFile << """
             dependencies {
-                compile "org.test:b1:1.0"
+                api "org.test:b1:1.0"
             }
             project(':b1') {
                 apply plugin: 'java'
                 dependencies {
-                    compile "org.test:b2:1.0"
+                    api "org.test:b2:1.0"
                 }
             }
             project(':b2') {
                 apply plugin: 'java'
                 dependencies {
-                    compile "org.test:b1:1.0"
+                    api "org.test:b1:1.0"
                 }
             }
 """
@@ -382,9 +382,9 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildA.buildFile << """
             dependencies {
-                compile 'org.buildC:buildA:1.0'
-                compile project(':b1')
-                compile 'org.test:b1:1.0'
+                implementation 'org.buildC:buildA:1.0'
+                implementation project(':b1')
+                implementation 'org.test:b1:1.0'
             }
 """
 
@@ -483,7 +483,15 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
     def dependency(BuildTestFile sourceBuild = buildA, String notation) {
         sourceBuild.buildFile << """
             dependencies {
-                compile '${notation}'
+                implementation '${notation}'
+            }
+"""
+    }
+
+    def apiDependency(BuildTestFile sourceBuild, String notation) {
+        sourceBuild.buildFile << """
+            dependencies {
+                api '${notation}'
             }
 """
     }

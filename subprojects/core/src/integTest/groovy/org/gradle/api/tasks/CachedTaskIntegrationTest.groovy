@@ -73,12 +73,12 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         when:
         withBuildCache().run "foo"
         then:
-        executedTasks == [":foo"]
+        result.assertTasksExecuted(":foo")
 
         when:
         withBuildCache().run "foo"
         then:
-        skippedTasks as List == [":foo"]
+        skipped ":foo"
     }
 
     def "task is loaded from cache when returning to already cached state after failure"() {
@@ -107,7 +107,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         when:
         withBuildCache().run "foo"
         then:
-        skippedTasks as List == [":foo"]
+        skipped ":foo"
     }
 
     def defineCacheableTask() {

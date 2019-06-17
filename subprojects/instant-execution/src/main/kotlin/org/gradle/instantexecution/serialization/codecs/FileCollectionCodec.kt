@@ -17,7 +17,10 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -31,9 +34,39 @@ class FileCollectionCodec(
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<FileCollection> {
 
-    override fun WriteContext.encode(value: FileCollection) =
-        fileSetSerializer.write(this, value.files)
+    override fun WriteContext.encode(value: FileCollection) {
+
+        val (files, ex) = try {
+            value.files to null
+        } catch (ex: Exception) {
+            null to ex
+        }
+        require((files == null) != (ex == null))
+
+        if (files != null) {
+            writeBoolean(true)
+            fileSetSerializer.write(this, files)
+        } else {
+            writeBoolean(false)
+            writeString(ex!!.message)
+        }
+    }
 
     override fun ReadContext.decode(): FileCollection? =
-        fileCollectionFactory.fixed(fileSetSerializer.read(this))
+        if (readBoolean()) fileCollectionFactory.fixed(fileSetSerializer.read(this))
+        else ErrorFileCollection(readString())
+}
+
+
+private
+class ErrorFileCollection(private val error: String) : AbstractFileCollection() {
+
+    override fun getDisplayName() =
+        "error-file-collection"
+
+    override fun getFiles() =
+        throw Exception(error)
+
+    override fun getBuildDependencies(): TaskDependency =
+        TaskDependencyInternal.EMPTY
 }

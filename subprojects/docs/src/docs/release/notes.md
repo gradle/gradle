@@ -10,7 +10,12 @@ Include only their name, impactful features should be called out separately belo
 [Andrew K.](https://github.com/miokowpak),
 [Semyon Levin](https://github.com/remal),
 [wreulicke](https://github.com/wreulicke),
-and [John Rodriguez](https://github.com/jrodbx).
+[John Rodriguez](https://github.com/jrodbx),
+[mig4](https://github.com/mig4),
+[Evgeny Mandrikov](https://github.com/Godin),
+[Simon Legner](https://github.com/simon04),
+[Sebastian Schuberth](https://github.com/sschuberth),
+and [Ivo Anjo](https://github.com/ivoanjo).
 
 <!-- 
 ## 1
@@ -72,6 +77,10 @@ that take such nested zips as an input, e.g. when testing applications packaged 
 The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
 This improves performance for projects with a large amount of resource files.
 
+## File case changes when copying files on case-insensitive file systems are now handled correctly
+
+On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename where only the case is changed is now handled properly by Gradle's file copying operations. For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
+
 <!--
 ### Example promoted
 -->
@@ -80,7 +89,7 @@ This improves performance for projects with a large amount of resource files.
 
 Gradle now supports experimental compilation avoidance for Groovy. 
 This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
-See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compile_avoidance) for more details.
+See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
 
 ## Fixed issues
 

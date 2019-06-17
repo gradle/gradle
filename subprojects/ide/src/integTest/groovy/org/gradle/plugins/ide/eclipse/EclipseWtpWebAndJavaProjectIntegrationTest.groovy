@@ -37,9 +37,9 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
 
                dependencies {
                    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
-                   compile 'org.apache.commons:commons-lang3:3.0'
-                   compile project(':java')
-                   testCompile "junit:junit:4.12"
+                   implementation 'org.apache.commons:commons-lang3:3.0'
+                   implementation project(':java')
+                   testImplementation "junit:junit:4.12"
                }
            }
             project(':java') {
@@ -48,9 +48,9 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
                 sourceCompatibility = 1.6
 
                 dependencies {
-                    compile 'com.google.guava:guava:18.0'
-                    compile 'javax.servlet:javax.servlet-api:3.1.0'
-                    testCompile "junit:junit:4.12"
+                    implementation 'com.google.guava:guava:18.0'
+                    implementation 'javax.servlet:javax.servlet-api:3.1.0'
+                    testImplementation "junit:junit:4.12"
                 }
             }
             """

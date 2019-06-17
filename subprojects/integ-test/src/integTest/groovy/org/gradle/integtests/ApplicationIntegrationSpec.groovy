@@ -413,7 +413,7 @@ class Main {
         succeeds "installDist"
 
         and:
-        ":createDocs" in nonSkippedTasks
+        executedAndNotSkipped(":createDocs")
 
         and:
         def distBase = file("build/install/application")
@@ -471,8 +471,8 @@ class Main {
         testResources.zipTo(file("libs/foo.jar"))
         buildFile << """
             dependencies {
-                compile files("libs/bar.jar")
-                compile files("libs/foo.jar")
+                implementation files("libs/bar.jar")
+                implementation files("libs/foo.jar")
             }
         """
 

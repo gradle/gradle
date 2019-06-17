@@ -40,7 +40,7 @@ class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest
                 testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
 """
         } else {
-            "testCompile 'junit:junit:${dependencyVersion}'"
+            "testImplementation 'junit:junit:${dependencyVersion}'"
         }
     }
 

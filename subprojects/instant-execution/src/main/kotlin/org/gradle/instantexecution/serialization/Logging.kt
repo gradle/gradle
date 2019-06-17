@@ -19,22 +19,19 @@ package org.gradle.instantexecution.serialization
 import kotlin.reflect.KClass
 
 
-fun IsolateContext.logFieldWarning(action: String, type: Class<*>, fieldName: String, message: String) {
-    logger.warn(
-        "instant-execution > task '{}' field '{}.{}' cannot be {}d because {}.",
-        isolate.owner.path, type.name, fieldName, action, message
-    )
+fun IsolateContext.logPropertyWarning(action: String, message: String) {
+    logger.warn("instant-execution > failed to {} {} because {}", action, trace, message)
 }
 
 
-fun IsolateContext.logFieldSerialization(action: String, type: Class<*>, fieldName: String, value: Any?) {
-    logger.info(
-        "instant-execution > task '{}' field '{}.{}' {}d value {}",
-        isolate.owner.path, type.name, fieldName, action, value
-    )
+fun IsolateContext.logProperty(action: String, value: Any?) {
+    logger.info("instant-execution > {}d {} with value {}", action, trace, value)
 }
 
 
 fun IsolateContext.logUnsupported(type: KClass<*>) {
-    logger.warn("instant-execution > Cannot serialize object of type ${type.java.name} as these are not supported with instant execution.")
+    logger.warn(
+        "instant-execution > cannot serialize object of type {} as these are not supported with instant execution.",
+        type.qualifiedName
+    )
 }

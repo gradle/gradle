@@ -38,7 +38,6 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":jvmServices"))
     implementation(project(":launcher"))
-    implementation(project(":launcherStartup"))
     implementation(project(":internalTesting"))
 
     implementation(library("groovy"))
@@ -73,14 +72,14 @@ dependencies {
         exclude(module = "groovy-all")
         exclude(module = "slf4j-simple")
     }
+    implementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":workers"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
-}
-
-testFixtures {
-    from(":core", "main")
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir

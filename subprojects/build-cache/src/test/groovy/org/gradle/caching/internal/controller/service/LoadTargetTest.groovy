@@ -17,7 +17,7 @@
 package org.gradle.caching.internal.controller.service
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.junit.Rule
 
 class LoadTargetTest extends Specification {

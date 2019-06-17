@@ -154,7 +154,9 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public void removeFromTargetConfigurations() {
-        if (!targetNodes.isEmpty()) {
+        if (targetNodes.isEmpty()) {
+            selector.getTargetModule().removeUnattachedDependency(this);
+        } else {
             for (NodeState targetConfiguration : targetNodes) {
                 targetConfiguration.removeIncomingEdge(this);
             }
@@ -215,6 +217,11 @@ class EdgeState implements DependencyGraphEdge {
                     for (EdgeState otherEdge : unattachedDependencies) {
                         if (otherEdge != this && !otherEdge.isConstraint()) {
                             otherEdge.attachToTargetConfigurations();
+                            if (otherEdge.targetNodeSelectionFailure != null) {
+                                // Copy selection failure
+                                this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
+                                return;
+                            }
                             break;
                         }
                     }

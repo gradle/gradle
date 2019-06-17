@@ -37,7 +37,7 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
@@ -253,39 +253,39 @@ class AbstractIntegrationSpec extends Specification {
         result = failure
     }
 
-    protected List<String> getExecutedTasks() {
-        assertHasResult()
-        result.executedTasks
-    }
-
-    protected Set<String> getSkippedTasks() {
-        assertHasResult()
-        result.skippedTasks
-    }
-
-    protected List<String> getNonSkippedTasks() {
-        executedTasks - skippedTasks
-    }
-
     protected void executedAndNotSkipped(String... tasks) {
+        assertHasResult()
         tasks.each {
             result.assertTaskNotSkipped(it)
         }
     }
 
+    protected void noneSkipped() {
+        assertHasResult()
+        result.assertTasksSkipped()
+    }
+
+    protected void allSkipped() {
+        assertHasResult()
+        result.assertTasksNotSkipped()
+    }
+
     protected void skipped(String... tasks) {
+        assertHasResult()
         tasks.each {
             result.assertTaskSkipped(it)
         }
     }
 
     protected void notExecuted(String... tasks) {
+        assertHasResult()
         tasks.each {
             result.assertTaskNotExecuted(it)
         }
     }
 
     protected void executed(String... tasks) {
+        assertHasResult()
         tasks.each {
             result.assertTaskExecuted(it)
         }

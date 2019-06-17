@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -34,11 +35,12 @@ import java.util.Map;
 public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
     public static final FingerprintingStrategy INCLUDE_MISSING = new AbsolutePathFingerprintingStrategy(true);
     public static final FingerprintingStrategy IGNORE_MISSING = new AbsolutePathFingerprintingStrategy(false);
+    public static final String IDENTIFIER = "ABSOLUTE_PATH";
 
     private final boolean includeMissing;
 
     private AbsolutePathFingerprintingStrategy(boolean includeMissing) {
-        super("ABSOLUTE_PATH", AbsolutePathFingerprintCompareStrategy.INSTANCE);
+        super(IDENTIFIER);
         this.includeMissing = includeMissing;
     }
 
@@ -81,5 +83,10 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
             });
         }
         return builder.build();
+    }
+
+    @Override
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.SORT;
     }
 }

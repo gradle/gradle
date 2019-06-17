@@ -95,10 +95,10 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     def "follows java project dependencies"() {
         settingsFile << "include 'api', 'impl', 'util'"
-        buildFile << "allprojects { apply plugin: 'java' } "
+        buildFile << "allprojects { apply plugin: 'java-library' } "
 
-        file("impl/build.gradle") << "dependencies { compile project(':api') } "
-        file("util/build.gradle") << "dependencies { compile project(':impl') } "
+        file("impl/build.gradle") << "dependencies { api project(':api') } "
+        file("util/build.gradle") << "dependencies { implementation project(':impl') } "
         //util -> impl -> api
 
         file("api/src/main/java/Person.java") << """public interface Person {
@@ -142,13 +142,13 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     def "can have cycles in project dependencies"() {
         settingsFile << "include 'api', 'impl', 'util'"
         buildFile << """
-allprojects { apply plugin: 'java' }
+allprojects { apply plugin: 'java-library' }
 project(':impl') {
-    dependencies { compile project(path: ':api', configuration: 'archives') }
+    dependencies { implementation project(path: ':api', configuration: 'archives') }
 }
 project(':api') {
-    dependencies { runtime project(':impl') }
-    task run(dependsOn: configurations.runtime)
+    dependencies { runtimeOnly project(':impl') }
+    task run(dependsOn: configurations.runtimeClasspath)
 }
 """
 
@@ -258,8 +258,8 @@ project(':api') {
     def "respects buildProjectDependencies setting"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("impl/build.gradle") << """
-            apply plugin: 'java'
-            dependencies { compile project(":api") }
+            apply plugin: 'java-library'
+            dependencies { implementation project(":api") }
         """
         file("api/build.gradle") << "apply plugin: 'java'"
         // Provide a source file so that the compile task doesn't skip resolving inputs
@@ -278,7 +278,7 @@ project(':api') {
         then:
         executed ":impl:jar"
         notExecuted ":api:jar"
-        // :api is configured to resolve impl.compile configuration
+        // :api is configured to resolve impl.compileClasspath configuration
         fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 

@@ -168,7 +168,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
 
         buildFile << """
             dependencies {
-                compile "org.test:child:1.0"
+                implementation "org.test:child:1.0"
             }
         """
         settingsFile << """

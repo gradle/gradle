@@ -16,11 +16,14 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -61,8 +64,8 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
         }
 
-        IsolatedClassloaderWorkerFactory createIsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry serviceRegistry) {
-            return new IsolatedClassloaderWorkerFactory(buildOperationExecutor, serviceRegistry);
+        IsolatedClassloaderWorkerFactory createIsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry serviceRegistry, ClassLoaderRegistry classLoaderRegistry) {
+            return new IsolatedClassloaderWorkerFactory(buildOperationExecutor, serviceRegistry, classLoaderRegistry);
         }
 
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
@@ -83,15 +86,31 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                                                     LoggingManagerInternal loggingManager,
                                                                     ListenerManager listenerManager,
                                                                     MemoryManager memoryManager,
-                                                                    OsMemoryInfo memoryInfo) {
-            return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager), listenerManager, loggingManager, memoryManager, memoryInfo);
+                                                                    OsMemoryInfo memoryInfo,
+                                                                    ClassPathRegistry classPathRegistry) {
+            return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager, classPathRegistry), listenerManager, loggingManager, memoryManager, memoryInfo);
+        }
+
+        ClassLoaderStructureProvider createClassLoaderStructureProvider(ClassLoaderRegistry classLoaderRegistry) {
+            return new ClassLoaderStructureProvider(classLoaderRegistry);
         }
     }
 
     private static class ProjectScopeServices {
-        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory, WorkerDaemonFactory daemonWorkerFactory, IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ServiceRegistry serviceRegistry) {
-            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, asyncWorkTracker, serviceRegistry);
-            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory);
+        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
+                                            WorkerDaemonFactory daemonWorkerFactory,
+                                            IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
+                                            JavaForkOptionsFactory forkOptionsFactory,
+                                            WorkerLeaseRegistry workerLeaseRegistry,
+                                            BuildOperationExecutor buildOperationExecutor,
+                                            AsyncWorkTracker asyncWorkTracker,
+                                            WorkerDirectoryProvider workerDirectoryProvider,
+                                            ClassLoaderStructureProvider classLoaderStructureProvider,
+                                            WorkerExecutionQueueFactory workerExecutionQueueFactory,
+                                            ServiceRegistry serviceRegistry,
+                                            IsolatableFactory isolatableFactory) {
+            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, serviceRegistry);
+            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory, classLoaderStructureProvider, isolatableFactory);
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }

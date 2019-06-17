@@ -543,4 +543,23 @@ public interface DependencyHandler extends ExtensionAware {
      */
     @Incubating
     Dependency enforcedPlatform(Object notation, Action<? super Dependency> configureAction);
+
+    /**
+     * Declares a dependency on the test fixtures of a component.
+     * @param notation the coordinates of the component to use test fixtures for
+     *
+     * @since 5.6
+     */
+    @Incubating
+    Dependency testFixtures(Object notation);
+
+    /**
+     * Declares a dependency on the test fixtures of a component and allows configuring
+     * the resulting dependency.
+     * @param notation the coordinates of the component to use test fixtures for
+     *
+     * @since 5.6
+     */
+    @Incubating
+    Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
 }

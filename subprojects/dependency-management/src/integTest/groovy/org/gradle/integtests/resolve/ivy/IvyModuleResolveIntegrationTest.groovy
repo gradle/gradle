@@ -322,7 +322,7 @@ task retrieve(type: Sync) {
         given:
         settingsFile << "rootProject.name = 'test'"
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile, "compile")
         buildFile << """
     group 'org.test'
     version '1.0'

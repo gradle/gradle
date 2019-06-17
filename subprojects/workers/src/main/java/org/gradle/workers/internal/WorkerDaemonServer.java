@@ -16,57 +16,54 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
-import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
+import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
-public class WorkerDaemonServer extends DefaultWorkerServer {
+public class WorkerDaemonServer implements WorkerProtocol {
+    private final ServiceRegistry serviceRegistry;
+    private Worker isolatedClassloaderWorker;
+
     @Inject
-    public WorkerDaemonServer(ServiceRegistry serviceRegistry) {
-        super(createWorkerDaemonServices(serviceRegistry));
+    public WorkerDaemonServer(ServiceRegistry parent, RequestArgumentSerializers argumentSerializers) {
+        this.serviceRegistry = createWorkerDaemonServices(parent);
+        argumentSerializers.add(WorkerDaemonMessageSerializer.create());
     }
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
-        ServiceRegistry workerSharedGlobalServices = ServiceRegistryBuilder.builder()
+        return ServiceRegistryBuilder.builder()
                 .parent(parent)
                 .provider(new WorkerSharedGlobalScopeServices())
                 .build();
-        return new WorkerDaemonServices(workerSharedGlobalServices);
     }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            return super.execute(spec);
+            SerializedActionExecutionSpec classloaderActionExecutionSpec = (SerializedActionExecutionSpec) spec;
+            Worker worker = getIsolatedClassloaderWorker(classloaderActionExecutionSpec.getClassLoaderStructure());
+            return worker.execute(classloaderActionExecutionSpec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
     }
 
+    private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure) {
+        if (isolatedClassloaderWorker == null) {
+            if (classLoaderStructure instanceof FlatClassLoaderStructure) {
+                isolatedClassloaderWorker = new FlatClassLoaderWorker(this.getClass().getClassLoader(), serviceRegistry);
+            } else {
+                isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, this.getClass().getClassLoader(), serviceRegistry, true);
+            }
+        }
+        return isolatedClassloaderWorker;
+    }
+
     @Override
     public String toString() {
         return "WorkerDaemonServer{}";
-    }
-
-    private static class WorkerDaemonServices extends DefaultServiceRegistry {
-        public WorkerDaemonServices(ServiceRegistry... parents) {
-            super("WorkerDaemonServices", parents);
-        }
-
-        InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory) {
-            return new DefaultInstantiatorFactory(cacheFactory, Collections.<InjectAnnotationHandler>emptyList());
-        }
-
-        WorkerDaemonServices createWorkerDaemonServices() {
-            return this;
-        }
     }
 }

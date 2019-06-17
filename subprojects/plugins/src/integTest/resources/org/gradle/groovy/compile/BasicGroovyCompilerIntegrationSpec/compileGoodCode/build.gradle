@@ -5,5 +5,5 @@ repositories {
 }
 
 dependencies {
-    compile "com.google.guava:guava:11.0.2"
+    implementation "com.google.guava:guava:11.0.2"
 }

@@ -21,7 +21,6 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
-import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.work.FileChange;
 
 public class IncrementalInputChanges implements InputChangesInternal {

@@ -26,11 +26,11 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
     def remoteCache = new TestBuildCache(file("remote-cache"))
 
     void cached() {
-        assert ":t" in skippedTasks
+        skipped(":t")
     }
 
     void executed() {
-        assert ":t" in executedTasks
+        executed(":t")
     }
 
     def setup() {

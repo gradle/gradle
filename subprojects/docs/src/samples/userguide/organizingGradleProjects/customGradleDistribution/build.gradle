@@ -1,6 +1,10 @@
+plugins {
+    id 'base'
+}
+
+// This is defined in buildSrc
 import org.gradle.distribution.DownloadGradle
 
-apply plugin: 'base'
 version = '0.1'
 
 task downloadGradle(type: DownloadGradle) {
@@ -10,10 +14,16 @@ task downloadGradle(type: DownloadGradle) {
 
 task createCustomGradleDistribution(type: Zip) {
     description = 'Builds custom Gradle distribution and bundles initialization scripts.'
+
     dependsOn downloadGradle
-    archiveFileName = "mycompany-gradle-$downloadGradle.gradleVersion-bin.zip"
+
+    archiveFileName = downloadGradle.gradleVersion.map { gradleVersion ->
+        "mycompany-gradle-${gradleVersion}-${project.version}-bin.zip"
+    }
+
     from zipTree(downloadGradle.destinationFile)
+
     from('src/init.d') {
-        into "$downloadGradle.distributionNameBase/init.d"
+        into "${downloadGradle.distributionNameBase.get()}/init.d"
     }
 }

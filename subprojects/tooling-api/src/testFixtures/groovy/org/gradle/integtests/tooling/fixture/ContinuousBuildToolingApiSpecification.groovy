@@ -191,31 +191,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         }
     }
 
-    protected List<String> getExecutedTasks() {
-        assertHasResult()
-        result.executedTasks
-    }
-
-    private assertHasResult() {
-        assert result != null: "result is null, you haven't run succeeds()"
-    }
-
-    protected Set<String> getSkippedTasks() {
-        assertHasResult()
-        result.skippedTasks
-    }
-
-    protected List<String> getNonSkippedTasks() {
-        executedTasks - skippedTasks
-    }
-
-    protected void executedAndNotSkipped(String... tasks) {
-        tasks.each {
-            assert it in executedTasks
-            assert !skippedTasks.contains(it)
-        }
-    }
-
     boolean cancel() {
         cancellationTokenSource.cancel()
         waitUntilOutputContains anyOf(containsString(BUILD_CANCELLED), containsString(BUILD_CANCELLED_AND_STOPPED))

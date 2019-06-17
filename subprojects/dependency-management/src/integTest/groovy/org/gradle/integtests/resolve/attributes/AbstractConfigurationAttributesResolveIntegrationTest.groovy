@@ -1544,23 +1544,39 @@ All of them match the consumer attributes:
 
             project(':a') {
                 configurations {
-                    compileFreeDebug.attributes { $freeDebug }
-                    compileFreeRelease.attributes { $freeRelease }
-                    compileFreeDebug.canBeConsumed = false
-                    compileFreeRelease.canBeConsumed = false
+                    compileFreeDebug {
+                        canBeConsumed = false
+                        canBeResolved = false
+                    }
+                    compileFreeRelease {
+                        canBeConsumed = false
+                        canBeResolved = false
+                    }
+                    compileFreeDebugPath {
+                        extendsFrom(compileFreeDebug)
+                        attributes { $freeDebug }
+                        canBeConsumed = false
+                        canBeResolved = true
+                    }
+                    compileFreeReleasePath {
+                        extendsFrom(compileFreeRelease)
+                        attributes { $freeRelease }
+                        canBeConsumed = false
+                        canBeResolved = true
+                    }
                 }
                 dependencies {
                     compileFreeDebug project(':b')
                     compileFreeRelease project(':b')
                 }
-                task checkDebug(dependsOn: configurations.compileFreeDebug) {
+                task checkDebug(dependsOn: configurations.compileFreeDebugPath) {
                     doLast {
-                       assert configurations.compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                       assert configurations.compileFreeDebugPath.collect { it.name } == ['b-foo.jar']
                     }
                 }
-                task checkRelease(dependsOn: configurations.compileFreeRelease) {
+                task checkRelease(dependsOn: configurations.compileFreeReleasePath) {
                     doLast {
-                       assert configurations.compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                       assert configurations.compileFreeReleasePath.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }

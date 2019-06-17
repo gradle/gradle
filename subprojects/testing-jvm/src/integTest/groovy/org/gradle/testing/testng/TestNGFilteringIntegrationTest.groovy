@@ -30,14 +30,14 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
 
     String imports = "org.testng.annotations.*"
     String framework = "TestNG"
-    String dependencies = "testCompile 'org.testng:testng:${dependencyVersion}'"
+    String dependencies = "testImplementation 'org.testng:testng:${dependencyVersion}'"
 
     void theUsualFiles() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile 'org.testng:testng:$version'
+                testImplementation 'org.testng:testng:$version'
             }
             test {
               useTestNG {

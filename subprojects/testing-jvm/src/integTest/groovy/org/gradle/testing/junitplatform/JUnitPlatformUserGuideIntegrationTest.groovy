@@ -326,7 +326,7 @@ public class Test implements TestInterfaceDynamicTestsDemo {
         given:
         buildFile << """
 dependencies {
-    testCompile 'org.junit.jupiter:junit-jupiter-params:${LATEST_JUPITER_VERSION}'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:${LATEST_JUPITER_VERSION}'
 }
 """
         file('src/test/java/org/gradle/Test.java') << '''

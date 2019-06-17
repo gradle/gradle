@@ -65,7 +65,7 @@ model {
         run "mainExecutable"
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     def "compiles and links when resource source changes"() {

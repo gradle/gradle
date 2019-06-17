@@ -40,7 +40,7 @@ abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends Ab
         file("$PROJECT_B_NAME/build.gradle") <<
             """
                 dependencies {
-                    compile 'org.gradle:projectA:1.0'
+                    implementation 'org.gradle:projectA:1.0'
                 }
 
                 task byeWorld {

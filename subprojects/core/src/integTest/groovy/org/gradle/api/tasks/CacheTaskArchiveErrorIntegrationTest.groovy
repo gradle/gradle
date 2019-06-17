@@ -75,7 +75,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds("clean", "customTask")
-        ":customTask" in executedTasks
+        executed(":customTask")
     }
 
     def "archive is not pushed to remote when packing fails"() {
@@ -147,7 +147,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds("clean", "customTask")
-        ":customTask" in executedTasks
+        executed(":customTask")
     }
 
     def "corrupt archive loaded from local cache is purged"() {
@@ -186,7 +186,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         succeeds("clean", "customTask")
-        ":customTask" in executedTasks
+        executed(":customTask")
     }
 
     def "corrupted cache provides useful error message"() {

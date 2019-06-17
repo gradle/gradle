@@ -413,12 +413,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 return new File(convention.getTestReportDir(), test.getName());
             }
         });
-        test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
+        test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(new Callable<String>() {
             @Override
-            public Object call() {
-                return new File(convention.getTestResultsDir(), test.getName() + "/binary");
+            public String call() {
+                return new File(convention.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath();
             }
-        });
+        })));
         test.workingDir(project.getProjectDir());
     }
 }

@@ -56,8 +56,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     final cachePolicy = new DefaultExternalResourceCachePolicy()
     final ProducerGuard<URI> producerGuard = Stub() {
         guardByKey(_, _) >> { args ->
-            def (key, factory) = args
-            factory.create()
+            def (key, supplier) = args
+            supplier.get()
         }
     }
     final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard, fileRepository)

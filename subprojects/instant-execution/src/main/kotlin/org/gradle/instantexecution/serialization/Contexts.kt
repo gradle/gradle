@@ -19,6 +19,8 @@ package org.gradle.instantexecution.serialization
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
+import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -35,6 +37,12 @@ class DefaultWriteContext(
     override val logger: Logger
 
 ) : AbstractIsolateContext<WriteIsolate>(), MutableWriteContext, Encoder by encoder {
+
+    private
+    val beanPropertyWriters = hashMapOf<Class<*>, BeanPropertyWriter>()
+
+    override fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter =
+        beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
 
     override val isolate: WriteIsolate
         get() = getIsolate()
@@ -67,9 +75,15 @@ class DefaultReadContext(
     private
     val decoder: Decoder,
 
-    override val logger: Logger
+    override val logger: Logger,
+
+    private
+    val beanPropertyReaderFactory: (Class<*>) -> BeanPropertyReader
 
 ) : AbstractIsolateContext<ReadIsolate>(), MutableReadContext, Decoder by decoder {
+
+    private
+    val beanPropertyReaders = hashMapOf<Class<*>, BeanPropertyReader>()
 
     private
     lateinit var projectProvider: ProjectProvider
@@ -88,6 +102,9 @@ class DefaultReadContext(
 
     override val isolate: ReadIsolate
         get() = getIsolate()
+
+    override fun beanPropertyReaderFor(beanType: Class<*>): BeanPropertyReader =
+        beanPropertyReaders.computeIfAbsent(beanType, beanPropertyReaderFactory)
 
     override fun getProject(path: String): ProjectInternal =
         projectProvider(path)
@@ -112,6 +129,8 @@ abstract class AbstractIsolateContext<T> : MutableIsolateContext {
 
     private
     var currentIsolate: T? = null
+
+    var trace: PropertyTrace = PropertyTrace.Unknown
 
     protected
     abstract fun newIsolate(owner: Task): T

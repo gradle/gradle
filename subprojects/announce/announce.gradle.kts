@@ -15,6 +15,11 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+plugins {
+    `java-library`
+}
+
 dependencies {
     implementation(project(":modelCore"))
     implementation(project(":baseServices"))
@@ -28,13 +33,10 @@ dependencies {
     implementation(library("commons_io"))
 
     testRuntimeOnly(project(":plugins"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testImplementation(testFixtures(project(":core")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-
-testFixtures {
-    from(":core")
 }

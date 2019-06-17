@@ -174,8 +174,8 @@ allprojects {
             dependencies {
                 // If this test fails due to a missing tooling API jar 
                 // re-run `gradle prepareVersionsInfo toolingApi:intTestImage publishLocalArchives` 
-                compile "org.gradle:gradle-tooling-api:${distribution.version.version}"
-                runtime 'org.slf4j:slf4j-simple:1.7.10'
+                implementation "org.gradle:gradle-tooling-api:${distribution.version.version}"
+                runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
             }
 
             mainClassName = 'Main'

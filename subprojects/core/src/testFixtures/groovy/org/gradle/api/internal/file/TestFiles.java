@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -22,6 +23,7 @@ import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -29,6 +31,9 @@ import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
+import org.gradle.internal.snapshot.FileSystemMirror;
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.time.Time;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
@@ -108,6 +113,23 @@ public class TestFiles {
 
     public static DefaultFileHasher fileHasher() {
         return new DefaultFileHasher(streamHasher());
+    }
+
+    public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
+        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter(), fileSystem());
+    }
+
+    public static DefaultFileSystemSnapshotter fileSystemSnapshotter() {
+        return fileSystemSnapshotter(new DefaultFileSystemMirror(file -> false), new StringInterner());
+    }
+
+    public static DefaultFileSystemSnapshotter fileSystemSnapshotter(FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
+        return new DefaultFileSystemSnapshotter(
+            fileHasher(),
+            stringInterner,
+            fileSystem(),
+            fileSystemMirror
+        );
     }
 
     public static FileCollectionFactory fileCollectionFactory() {

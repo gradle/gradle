@@ -80,15 +80,11 @@ fun WriteContext.writeClass(value: Class<*>) {
 
 internal
 fun ReadContext.readClass(): Class<*> =
-    classLoader.loadClass(readString())
+    Class.forName(readString(), false, classLoader)
 
 
 internal
 fun ReadContext.readList() = readCollectionInto { size -> ArrayList<Any?>(size) }
-
-
-internal
-fun ReadContext.readSet() = readCollectionInto { size -> LinkedHashSet<Any?>(size) }
 
 
 internal
@@ -113,9 +109,9 @@ fun WriteContext.writeMap(value: Map<*, *>) {
 
 
 internal
-fun ReadContext.readMap(): Map<Any?, Any?> {
+fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) -> T): T {
     val size = readSmallInt()
-    val items = LinkedHashMap<Any?, Any?>()
+    val items = factory(size)
     for (i in 0 until size) {
         val key = read()
         val value = read()
@@ -198,3 +194,12 @@ inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
     }
     return container
 }
+
+
+fun <E : Enum<E>> WriteContext.writeEnum(value: E) {
+    writeSmallInt(value.ordinal)
+}
+
+
+inline fun <reified E : Enum<E>> ReadContext.readEnum(): E =
+    readSmallInt().let { ordinal -> enumValues<E>().first { it.ordinal == ordinal } }

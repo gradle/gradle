@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -46,7 +45,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     @Override
     public AfterPreviousExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = new OriginMetadata(
-            UniqueId.from(decoder.readString()),
+            decoder.readString(),
             decoder.readLong()
         );
 
@@ -81,7 +80,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     @Override
     public void write(Encoder encoder, AfterPreviousExecutionState execution) throws Exception {
         OriginMetadata originMetadata = execution.getOriginMetadata();
-        encoder.writeString(originMetadata.getBuildInvocationId().asString());
+        encoder.writeString(originMetadata.getBuildInvocationId());
         encoder.writeLong(originMetadata.getExecutionTime());
 
         implementationSnapshotSerializer.write(encoder, execution.getImplementation());

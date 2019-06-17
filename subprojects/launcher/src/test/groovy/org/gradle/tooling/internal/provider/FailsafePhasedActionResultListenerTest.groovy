@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.event.ListenerNotificationException
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.tooling.internal.protocol.PhasedActionResult
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener
 

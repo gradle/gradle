@@ -16,24 +16,19 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import groovy.lang.GroovyObjectSupport
 import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.IsolateContext
+import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.beans.BeanFieldDeserializer
-import org.gradle.instantexecution.serialization.beans.BeanFieldSerializer
 import org.gradle.instantexecution.serialization.readClass
+import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeClass
-import sun.reflect.ReflectionFactory
-import java.lang.reflect.Constructor
 
 
 internal
-class BeanCodec(
-    private val filePropertyFactory: FilePropertyFactory
-) : Codec<Any> {
+class BeanCodec : Codec<Any> {
 
     override fun WriteContext.encode(value: Any) {
         val id = isolate.identities.getId(value)
@@ -43,8 +38,10 @@ class BeanCodec(
             writeSmallInt(isolate.identities.putInstance(value))
             val beanType = GeneratedSubclasses.unpackType(value)
             writeClass(beanType)
-            BeanFieldSerializer(beanType).run {
-                serialize(value)
+            withBeanTrace(beanType) {
+                beanPropertyWriterFor(beanType).run {
+                    writeFieldsOf(value)
+                }
             }
         }
     }
@@ -56,22 +53,19 @@ class BeanCodec(
             return previousValue
         }
         val beanType = readClass()
-        val constructor = if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
-            // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
-            newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
-        } else {
-            newConstructorForSerialization(beanType, Object::class.java.getConstructor())
+        return withBeanTrace(beanType) {
+            beanPropertyReaderFor(beanType).run {
+                val bean = newBean()
+                isolate.identities.putInstance(id, bean)
+                readFieldsOf(bean)
+                bean
+            }
         }
-        val bean = constructor.newInstance()
-        isolate.identities.putInstance(id, bean)
-        BeanFieldDeserializer(bean.javaClass, filePropertyFactory).run {
-            deserialize(bean)
-        }
-        return bean
     }
 
-    // TODO: What about the runtime decorations a serialized bean might have had at configuration time?
     private
-    fun newConstructorForSerialization(beanType: Class<*>, constructor: Constructor<*>): Constructor<out Any> =
-        ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, constructor)
+    inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
+        withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
+            action()
+        }
 }

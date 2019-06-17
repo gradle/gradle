@@ -31,7 +31,7 @@ import spock.lang.Unroll
 class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
-    public Resources resources = new Resources();
+    public Resources resources = new Resources()
 
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider, 'maven/pomGeneration')

@@ -654,6 +654,40 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
     }
 
+    @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/9673")
+    def "can extract #archiveFile with exclusions"() {
+        given:
+        "$archive"(archiveFile) {
+            lib {
+                file("exclude").text = "exclude"
+                file("include").text = "include"
+            }
+        }
+        and:
+        buildFile << """
+        task extract(type: Copy) {
+            from $unarchive ("$archiveFile")
+
+            exclude { details ->
+                details.isDirectory() ||
+                details.file.text.contains('exclude')
+            }
+            destinationDir = new File(buildDir, "output")
+        }
+        """
+        when:
+        succeeds 'extract'
+        then:
+        file("build/output/lib/exclude").assertDoesNotExist()
+        file("build/output/lib/include").assertExists()
+
+        where:
+        archiveFile | unarchive | archive
+        "test.zip"  | "zipTree" | "createZip"
+        "test.tar"  | "tarTree" | "createTar"
+    }
+
 
     def ensureDuplicatesIncludedInTarByDefault() {
         given:
@@ -728,7 +762,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "shouldRun"
         then:
-        ":tar" in executedTasks
+        executed(":tar")
     }
 
     @Issue("https://github.com/gradle/gradle#1108")

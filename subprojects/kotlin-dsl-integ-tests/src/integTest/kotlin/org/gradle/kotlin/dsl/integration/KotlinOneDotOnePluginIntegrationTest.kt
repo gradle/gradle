@@ -80,7 +80,7 @@ class KotlinOneDotOnePluginIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             dependencies {
-                compile(gradleApi())
+                implementation(gradleApi())
             }
 
             repositories {

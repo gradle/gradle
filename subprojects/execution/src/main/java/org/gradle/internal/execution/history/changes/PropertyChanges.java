@@ -18,9 +18,6 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
-import org.gradle.internal.change.ChangeContainer;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.DescriptiveChange;
 
 public class PropertyChanges implements ChangeContainer {
 

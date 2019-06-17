@@ -27,7 +27,7 @@ apply plugin: "war"
 apply plugin: "eclipse"
 
 dependencies {
-    compile fileTree(dir: "libs", includes: ["*.jar"])
+    implementation fileTree(dir: "libs", includes: ["*.jar"])
 }
         """
 
@@ -84,8 +84,8 @@ dependencies {
            }
 
            dependencies {
-               compile 'gradle:foo:1.0'
-               compile project(':sub')
+               implementation 'gradle:foo:1.0'
+               implementation project(':sub')
            }
 
            configurations.all {
@@ -130,9 +130,9 @@ repositories {
 }
 
 dependencies {
-    compile project(":java1")
-    compile project(":groovy")
-    runtime "mygroup:myartifact:$myArtifactVersion"
+    implementation project(":java1")
+    implementation project(":groovy")
+    runtimeOnly "mygroup:myartifact:$myArtifactVersion"
 }
         """
 
@@ -148,8 +148,8 @@ repositories {
 }
 
 dependencies {
-    compile project(":java2")
-    runtime "mygroup:myartifact:$myArtifactVersion"
+    implementation project(":java2")
+    runtimeOnly "mygroup:myartifact:$myArtifactVersion"
 }
         """
 
@@ -165,7 +165,7 @@ repositories {
 }
 
 dependencies {
-    runtime "mygroup:myartifact:$myArtifactVersion"
+    runtimeOnly "mygroup:myartifact:$myArtifactVersion"
 }
         """
 

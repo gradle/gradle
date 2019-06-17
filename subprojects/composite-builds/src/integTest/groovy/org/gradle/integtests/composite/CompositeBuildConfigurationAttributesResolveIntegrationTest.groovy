@@ -777,8 +777,8 @@ All of them match the consumer attributes:
                 version = '$version'
 
                 dependencies {
-                    compile localGroovy()
-                    compile gradleApi()
+                    implementation localGroovy()
+                    implementation gradleApi()
                 }
 
                 uploadArchives {

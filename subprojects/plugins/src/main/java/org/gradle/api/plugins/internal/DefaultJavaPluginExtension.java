@@ -29,12 +29,13 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.util.TextUtil;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
 import java.util.regex.Pattern;
 
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final static Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
+
     private final JavaPluginConvention convention;
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
@@ -76,7 +77,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
-        Capability defaultCapability = new LazyDefaultFeatureCapability(project, name);
+        Capability defaultCapability = new ProjectDerivedCapability(project, name);
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
                 validateFeatureName(name),
                 defaultCapability, convention,
@@ -101,35 +102,5 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return name;
     }
 
-    private static String notNull(String id, Object o) {
-        if (o == null) {
-            throw new InvalidUserDataException(id + " must not be null");
-        }
-        return o.toString();
-    }
 
-    private static class LazyDefaultFeatureCapability implements Capability {
-        private final Project project;
-        private final String featureName;
-
-        private LazyDefaultFeatureCapability(Project project, String featureName) {
-            this.project = project;
-            this.featureName = featureName;
-        }
-
-        @Override
-        public String getGroup() {
-            return notNull("group", project.getGroup());
-        }
-
-        @Override
-        public String getName() {
-            return notNull("name", project.getName()) + "-" + TextUtil.camelToKebabCase(featureName);
-        }
-
-        @Override
-        public String getVersion() {
-            return notNull("version", project.getVersion());
-        }
-    }
 }

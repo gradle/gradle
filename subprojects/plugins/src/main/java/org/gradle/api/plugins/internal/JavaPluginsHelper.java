@@ -15,7 +15,9 @@
  */
 package org.gradle.api.plugins.internal;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -23,7 +25,9 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.compile.JavaCompile;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -45,6 +49,26 @@ public class JavaPluginsHelper {
                 return compileTask.get().getDestinationDir();
             }
         });
+    }
+
+    public static void addApiToSourceSet(Project project, SourceSet sourceSet, ConfigurationContainer configurations) {
+        Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
+        apiConfiguration.setVisible(false);
+        apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
+        apiConfiguration.setCanBeResolved(false);
+        apiConfiguration.setCanBeConsumed(false);
+
+        Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
+        apiElementsConfiguration.extendsFrom(apiConfiguration);
+
+        final Provider<JavaCompile> javaCompile = project.getTasks().named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
+        registerClassesDirVariant(javaCompile, project.getObjects(), apiElementsConfiguration);
+
+        Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
+        implementationConfiguration.extendsFrom(apiConfiguration);
+
+        Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
+        apiConfiguration.extendsFrom(compileConfiguration);
     }
 
     /**

@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.util
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.process.ProcessForkOptions
 import org.gradle.process.internal.DefaultProcessForkOptions
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 
 class DefaultProcessForkOptionsTest extends Specification {
     def baseDir = new File("base-dir")

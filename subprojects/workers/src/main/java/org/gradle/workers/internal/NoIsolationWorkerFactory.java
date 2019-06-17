@@ -20,32 +20,30 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final AsyncWorkTracker workTracker;
     private final ServiceRegistry parent;
-    private DefaultServiceRegistry serviceRegistry;
     private WorkerExecutor workerExecutor;
+    private WorkerProtocol workerServer;
 
-    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker workTracker, ServiceRegistry parent) {
+    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry parent) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.workTracker = workTracker;
         this.parent = parent;
     }
 
     // Attaches the owning WorkerExecutor to this factory
     public void setWorkerExecutor(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;
-        this.serviceRegistry = new DefaultServiceRegistry(parent);
+        DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(parent);
         serviceRegistry.add(WorkerExecutor.class, workerExecutor);
+        this.workerServer = new DefaultWorkerServer(serviceRegistry);
     }
 
     @Override
-    public Worker getWorker(final DaemonForkOptions forkOptions) {
+    public BuildOperationAwareWorker getWorker(final DaemonForkOptions forkOptions) {
         final WorkerExecutor workerExecutor = this.workerExecutor;
         return new AbstractWorker(buildOperationExecutor) {
             @Override
@@ -55,7 +53,6 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         DefaultWorkResult result;
                         try {
-                            WorkerProtocol workerServer = new DefaultWorkerServer(serviceRegistry);
                             result = workerServer.execute(spec);
                         } finally {
                             //TODO the async work tracker should wait for children of an operation to finish first.

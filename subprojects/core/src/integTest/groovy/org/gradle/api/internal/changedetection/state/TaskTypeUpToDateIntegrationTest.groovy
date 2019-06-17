@@ -31,12 +31,12 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: succeeds "copy"
-        then: skippedTasks.empty
+        then: executedAndNotSkipped(":copy")
 
         file('build/input.txt').makeOlder()
 
         when: succeeds "copy"
-        then: skippedTasks == ([":copy"] as Set)
+        then: skipped ":copy"
 
         buildFile << """
             task other {}
@@ -45,7 +45,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "copy"
         then:
-        skippedTasks == ([":copy"] as Set)
+        skipped":copy"
     }
 
     def "task with type declared in build script is not up-to-date after build script change"() {
@@ -54,12 +54,12 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         buildFile << declareSimpleCopyTask(false)
 
         when: succeeds "copy"
-        then: skippedTasks.empty
+        then: executedAndNotSkipped(":copy")
 
         file("output.txt").makeOlder()
 
         when: succeeds "copy"
-        then: skippedTasks == ([":copy"] as Set)
+        then: skipped":copy"
 
         when:
         buildFile.text = declareSimpleCopyTask(true)
@@ -67,12 +67,12 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         succeeds "copy"
 
         then:
-        skippedTasks.empty
+        executedAndNotSkipped":copy"
 
         when:
         succeeds "copy"
 
-        then: skippedTasks == ([":copy"] as Set)
+        then: skipped":copy"
     }
 
     def "task with action declared in build script is not up-to-date after build script change"() {
@@ -88,12 +88,12 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: succeeds "copy"
-        then: skippedTasks.empty
+        then: executedAndNotSkipped":copy"
 
         file('build/input.txt').makeOlder()
 
         when: succeeds "copy"
-        then: skippedTasks == ([":copy"] as Set)
+        then: skipped":copy"
 
         when:
         buildFile << """
@@ -101,10 +101,10 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
         succeeds "copy"
         then:
-        skippedTasks.empty
+        executedAndNotSkipped(":copy")
 
         when: succeeds "copy"
-        then: skippedTasks == ([":copy"] as Set)
+        then: skipped":copy"
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2936")
@@ -120,25 +120,24 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: succeeds "copy"
-        then: skippedTasks.empty
+        then: executedAndNotSkipped":copy"
 
         file("output.txt").makeOlder()
 
         when: succeeds "copy"
-        then: skippedTasks == ([":copy"] as Set)
+        then: skipped":copy"
 
         when:
         file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").text = declareSimpleCopyTaskType(true)
 
         succeeds "copy"
 
-        then:
-        skippedTasks.empty
+        then: executedAndNotSkipped":copy"
 
         when:
         succeeds "copy"
 
-        then: skippedTasks == ([":copy"] as Set)
+        then: skipped":copy"
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1910")
@@ -157,25 +156,24 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: succeeds "copy"
-        then: skippedTasks.empty
+        then: executedAndNotSkipped(":copy")
 
         file("output.txt").makeOlder()
 
         when: succeeds "copy"
-        then: skippedTasks == ([":copy"] as Set)
+        then: skipped(":copy")
 
         when:
         file("buildSrc/build.gradle").text = guavaDependency("19.0")
 
         succeeds "copy"
 
-        then:
-        skippedTasks.empty
+        then: executedAndNotSkipped(":copy")
 
         when:
         succeeds "copy"
 
-        then: skippedTasks == ([":copy"] as Set)
+        then: skipped(":copy")
     }
 
     private static String declareSimpleCopyTask(boolean modification = false) {
@@ -209,7 +207,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
             ${mavenCentralRepository()}
             dependencies {
-                compile "com.google.guava:guava:$version"
+                implementation "com.google.guava:guava:$version"
             }
         """
     }

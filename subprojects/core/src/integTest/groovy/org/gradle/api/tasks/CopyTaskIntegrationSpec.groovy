@@ -999,7 +999,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "copyTask"
 
         then:
-        ":copyTask" in nonSkippedTasks
+        executedAndNotSkipped(":copyTask")
         def destinationDir = file("out")
         destinationDir.assertHasDescendants("a.txt", "b.txt")
         destinationDir.listFiles().findAll { it.directory }*.name.toSet() == ["dirA"].toSet()
@@ -1032,7 +1032,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "copyTask"
 
         then:
-        ":copyTask" in nonSkippedTasks
+        executedAndNotSkipped(":copyTask")
 
         def destinationDir = file("out")
         destinationDir.assertHasDescendants("a.txt", "b.txt")
@@ -1148,7 +1148,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         when:
         run "copy"
         then:
-        skippedTasks.empty
+        noneSkipped()
     }
 
     @ToBeImplemented
@@ -1175,7 +1175,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         run "copy"
         then:
         // TODO Task should not be skipped
-        !!! skippedTasks.empty
+        !!! skipped(":copy")
     }
 
     @ToBeImplemented
@@ -1202,7 +1202,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         run "copy"
         then:
         // TODO Task should not be skipped
-        !!! skippedTasks.empty
+        !!! skipped(":copy")
     }
 
     @ToBeImplemented
@@ -1229,7 +1229,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         run "copy"
         then:
         // TODO Task should not be skipped
-        !!! skippedTasks.empty
+        !!! skipped(":copy")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3554")
@@ -1248,7 +1248,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         when:
         run 'copy'
         then:
-        executedTasks == [":compileJava", ":processResources", ":classes", ":copy"]
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":copy")
     }
 
     @Unroll
@@ -1277,7 +1277,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         when:
         run "copy", "--info"
         then:
-        skippedTasks.empty
+        noneSkipped()
         output.contains "Value of input property 'rootSpec\$1\$1.$property' has changed for task ':copy'"
 
         where:
@@ -1329,7 +1329,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         withBuildCache().run"copy"
 
         then:
-        skippedTasks.empty
+        noneSkipped()
 
         where:
         description                 | mutation

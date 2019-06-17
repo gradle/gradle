@@ -21,9 +21,11 @@ import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Unroll
@@ -92,6 +94,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateStored()
+        outputContains("Calculating task graph as no instant execution cache is available for tasks: a")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -102,6 +105,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
+        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -112,6 +116,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateStored()
+        outputContains("Calculating task graph as no instant execution cache is available for tasks: b")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -122,6 +127,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
+        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -175,7 +181,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         noExceptionThrown()
     }
 
-    def "instant execution for multi-level subproject"() {
+    def "instant execution for multi-level projects"() {
         given:
         settingsFile << """
             include 'a:b', 'a:c'
@@ -249,6 +255,10 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             class SomeBean {
                 ${type} value 
             }
+            
+            enum SomeEnum {
+                One, Two
+            }
 
             class SomeTask extends DefaultTask {
                 private final SomeBean bean = new SomeBean()
@@ -278,27 +288,39 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = ${output}")
 
         where:
-        type                   | reference                | output
-        String.name            | "'value'"                | "value"
-        String.name            | "null"                   | "null"
-        Boolean.name           | "true"                   | "true"
-        boolean.name           | "true"                   | "true"
-        Byte.name              | "12"                     | "12"
-        byte.name              | "12"                     | "12"
-        Short.name             | "12"                     | "12"
-        short.name             | "12"                     | "12"
-        Integer.name           | "12"                     | "12"
-        int.name               | "12"                     | "12"
-        Long.name              | "12"                     | "12"
-        long.name              | "12"                     | "12"
-        Float.name             | "12.1"                   | "12.1"
-        float.name             | "12.1"                   | "12.1"
-        Double.name            | "12.1"                   | "12.1"
-        double.name            | "12.1"                   | "12.1"
-        Class.name             | "SomeBean"               | "class SomeBean"
-        "List<String>"         | "['a', 'b', 'c']"        | "[a, b, c]"
-        "Set<String>"          | "['a', 'b', 'c'] as Set" | "[a, b, c]"
-        "Map<String, Integer>" | "[a: 1, b: 2]"           | "[a:1, b:2]"
+        type                             | reference                                                     | output
+        String.name                      | "'value'"                                                     | "value"
+        String.name                      | "null"                                                        | "null"
+        Boolean.name                     | "true"                                                        | "true"
+        boolean.name                     | "true"                                                        | "true"
+        Character.name                   | "'a'"                                                         | "a"
+        char.name                        | "'a'"                                                         | "a"
+        Byte.name                        | "12"                                                          | "12"
+        byte.name                        | "12"                                                          | "12"
+        Short.name                       | "12"                                                          | "12"
+        short.name                       | "12"                                                          | "12"
+        Integer.name                     | "12"                                                          | "12"
+        int.name                         | "12"                                                          | "12"
+        Long.name                        | "12"                                                          | "12"
+        long.name                        | "12"                                                          | "12"
+        Float.name                       | "12.1"                                                        | "12.1"
+        float.name                       | "12.1"                                                        | "12.1"
+        Double.name                      | "12.1"                                                        | "12.1"
+        double.name                      | "12.1"                                                        | "12.1"
+        Class.name                       | "SomeBean"                                                    | "class SomeBean"
+        "SomeEnum"                       | "SomeEnum.Two"                                                | "Two"
+        "SomeEnum[]"                     | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
+        "List<String>"                   | "['a', 'b', 'c']"                                             | "[a, b, c]"
+        "Set<String>"                    | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
+        "HashSet<String>"                | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
+        "LinkedHashSet<String>"          | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
+        "TreeSet<String>"                | "['a', 'b', 'c'] as TreeSet"                                  | "[a, b, c]"
+        "EnumSet<SomeEnum>"              | "EnumSet.of(SomeEnum.Two)"                                    | "[Two]"
+        "Map<String, Integer>"           | "[a: 1, b: 2]"                                                | "[a:1, b:2]"
+        "HashMap<String, Integer>"       | "new HashMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
+        "LinkedHashMap<String, Integer>" | "new LinkedHashMap([a: 1, b: 2])"                             | "[a:1, b:2]"
+        "TreeMap<String, Integer>"       | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
+        "EnumMap<SomeEnum, String>"      | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
     }
 
     @Unroll
@@ -333,9 +355,10 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         noExceptionThrown()
 
         where:
-        type               | reference | invocation
-        Logger.name        | "logger"  | "info('hi')"
-        ObjectFactory.name | "objects" | "newInstance(SomeBean)"
+        type                             | reference                                                   | invocation
+        Logger.name                      | "logger"                                                    | "info('hi')"
+        ObjectFactory.name               | "objects"                                                   | "newInstance(SomeBean)"
+        ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
     }
 
     @Unroll
@@ -426,13 +449,15 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = ${expected}")
 
         where:
-        type                  | factory                       | reference     | output
-        "Property<String>"    | "objects.property(String)"    | "'value'"     | "value"
-        "Property<String>"    | "objects.property(String)"    | "null"        | "null"
-        "DirectoryProperty"   | "objects.directoryProperty()" | "file('abc')" | new File('abc')
-        "DirectoryProperty"   | "objects.directoryProperty()" | "null"        | "null"
-        "RegularFileProperty" | "objects.fileProperty()"      | "file('abc')" | new File('abc')
-        "RegularFileProperty" | "objects.fileProperty()"      | "null"        | "null"
+        type                   | factory                        | reference     | output
+        "Property<String>"     | "objects.property(String)"     | "'value'"     | "value"
+        "Property<String>"     | "objects.property(String)"     | "null"        | "null"
+        "DirectoryProperty"    | "objects.directoryProperty()"  | "file('abc')" | new File('abc')
+        "DirectoryProperty"    | "objects.directoryProperty()"  | "null"        | "null"
+        "RegularFileProperty"  | "objects.fileProperty()"       | "file('abc')" | new File('abc')
+        "RegularFileProperty"  | "objects.fileProperty()"       | "null"        | "null"
+        "ListProperty<String>" | "objects.listProperty(String)" | "[]"          | "[]"
+        "ListProperty<String>" | "objects.listProperty(String)" | "['abc']"     | ['abc']
     }
 
     @Unroll
@@ -466,7 +491,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "broken"
 
         then:
-        outputContains("instant-execution > Cannot serialize object of type ${type} as these are not supported with instant execution.")
+        outputContains("instant-execution > cannot serialize object of type ${type} as these are not supported with instant execution.")
 
         when:
         instantRun "broken"
@@ -476,11 +501,12 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.reference = null")
 
         where:
-        type          | reference
-        Project.name  | "project"
-        Gradle.name   | "project.gradle"
-        Settings.name | "project.gradle.settings"
-        Task.name     | "project.tasks.other"
+        type               | reference
+        Project.name       | "project"
+        Gradle.name        | "project.gradle"
+        Settings.name      | "project.gradle.settings"
+        Task.name          | "project.tasks.other"
+        TaskContainer.name | "project.tasks"
     }
 
     def "task can reference itself"() {

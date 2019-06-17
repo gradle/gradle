@@ -88,7 +88,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         buildFile.text = """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
+            dependencies { testImplementation 'org.testng:testng:6.3.1' }
 
             test {
                 $testConfiguration

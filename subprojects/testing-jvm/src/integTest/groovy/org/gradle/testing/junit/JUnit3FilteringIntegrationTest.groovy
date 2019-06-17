@@ -30,7 +30,7 @@ class JUnit3FilteringIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile '${dependencyNotation}' }
+            dependencies { testImplementation '${dependencyNotation}' }
         """
 
         file("src/test/java/FooTest.java") << """

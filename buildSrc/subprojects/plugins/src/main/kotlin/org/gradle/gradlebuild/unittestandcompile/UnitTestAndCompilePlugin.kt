@@ -282,6 +282,9 @@ open class UnitTestAndCompileExtension(val project: Project) {
                 "testImplementation"(platform(project(platformProject)))
             } else {
                 "implementation"(platform(project(platformProject)))
+                pluginManager.withPlugin("java-test-fixtures") {
+                    "testFixturesImplementation"(platform(project(platformProject)))
+                }
             }
         }
     }

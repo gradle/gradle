@@ -63,9 +63,9 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
 
         then:
         output.contains("project project1 is INTERNAL to this build")
-        TextUtil.normaliseFileSeparators(output).contains("project1/build/libs/project1-1.0.jar")
+        TextUtil.normaliseFileSeparators(output).contains("/project1/build/classes/java/main")
         output.contains("project project2 is INTERNAL to this build")
-        TextUtil.normaliseFileSeparators(output).contains("project2/build/libs/project2-1.0.jar")
+        TextUtil.normaliseFileSeparators(output).contains("/project2/build/classes/java/main")
         output.contains("project project3 is external to this build")
         TextUtil.normaliseFileSeparators(output).contains("repo/org.example/project3/1.0/project3-1.0.jar")
 

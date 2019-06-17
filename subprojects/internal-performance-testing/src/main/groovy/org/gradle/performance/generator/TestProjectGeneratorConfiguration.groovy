@@ -28,6 +28,8 @@ class TestProjectGeneratorConfiguration {
     String[] externalApiDependencies
     String[] externalImplementationDependencies
 
+    boolean buildSrc
+
     int subProjects
     int sourceFiles
     int minLinesOfCodePerSourceFile

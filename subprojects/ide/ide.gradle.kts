@@ -46,23 +46,28 @@ dependencies {
     implementation(library("commons_io"))
     implementation(library("inject"))
 
+    testFixturesApi(project(":baseServices")) {
+        because("test fixtures export the Action class")
+    }
+    testFixturesApi(project(":logging")) {
+        because("test fixtures export the ConsoleOutput class")
+    }
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
     testImplementation(project(":dependencyManagement"))
     testImplementation(testLibrary("xmlunit"))
     testImplementation("nl.jqno.equalsverifier:equalsverifier:2.1.6")
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(testLibrary("jetty"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":dependencyManagement")
 }
 
 testFilesCleanup {

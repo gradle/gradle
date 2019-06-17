@@ -28,17 +28,13 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
-import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
-import org.gradle.internal.snapshot.WellKnownFileLocations
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.internal.file.TreeType.DIRECTORY
@@ -55,8 +51,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
     def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
     def packer = new TarBuildCacheEntryPacker(fileSystem, streamHasher, stringInterner)
-    def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), fileSystemMirror)
+    def snapshotter = TestFiles.fileSystemSnapshotter()
 
     @Unroll
     def "can pack single file with file mode #mode"() {

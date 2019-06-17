@@ -5,7 +5,7 @@ group 'org.gradle.sample'
 version '1.0'
 
 dependencies {
-    compile gradleApi()
+    implementation gradleApi()
 }
 
 publishing {

@@ -20,11 +20,11 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DecodingProvider
@@ -36,10 +36,12 @@ import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logUnsupported
 import org.gradle.instantexecution.serialization.ownerProjectService
-import org.gradle.instantexecution.serialization.singleton
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.CHAR_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.DOUBLE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FLOAT_SERIALIZER
@@ -49,17 +51,17 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
+import org.gradle.process.internal.ExecActionFactory
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import kotlin.reflect.KClass
 
 
 class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val fileResolver: FileResolver,
-    private val instantiator: Instantiator,
-    private val objectFactory: ObjectFactory,
-    private val patternSpecFactory: PatternSpecFactory,
-    private val filePropertyFactory: FilePropertyFactory
+    fileCollectionFactory: FileCollectionFactory,
+    fileResolver: FileResolver,
+    instantiator: Instantiator,
+    listenerManager: ListenerManager
 ) : EncodingProvider, DecodingProvider {
 
     private
@@ -71,6 +73,7 @@ class Codecs(
         bind(STRING_SERIALIZER)
         bind(BOOLEAN_SERIALIZER)
         bind(INTEGER_SERIALIZER)
+        bind(CHAR_SERIALIZER)
         bind(SHORT_SERIALIZER)
         bind(LONG_SERIALIZER)
         bind(BYTE_SERIALIZER)
@@ -81,30 +84,42 @@ class Codecs(
         bind(ClassCodec)
 
         bind(listCodec)
-        bind(setCodec)
+
+        // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
+        bind(linkedHashSetCodec)
+        bind(hashSetCodec)
+        bind(treeSetCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
-        bind(HashMap::class, mapCodec)
+        bind(linkedHashMapCodec)
+        bind(hashMapCodec)
+        bind(treeMapCodec)
 
+        bind(arrayCodec)
+
+        bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
+        bind(ConfigurableFileCollectionCodec(fileSetSerializer, fileCollectionFactory))
         bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory))
         bind(ArtifactCollectionCodec)
-
-        bind(singleton(objectFactory))
-        bind(singleton(patternSpecFactory))
-        bind(singleton(fileResolver))
-        bind(singleton(instantiator))
-        bind(singleton(fileCollectionFactory))
 
         bind(DefaultCopySpecCodec(fileResolver, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))
 
         bind(TaskReferenceCodec)
 
+        bind(ownerProjectService<ObjectFactory>())
+        bind(ownerProjectService<PatternSpecFactory>())
+        bind(ownerProjectService<FileResolver>())
+        bind(ownerProjectService<Instantiator>())
+        bind(ownerProjectService<FileCollectionFactory>())
         bind(ownerProjectService<FileOperations>())
+        bind(ownerProjectService<BuildOperationExecutor>())
+        bind(ownerProjectService<ToolingModelBuilderRegistry>())
+        bind(ownerProjectService<ExecActionFactory>())
 
-        bind(BeanCodec(filePropertyFactory))
+        bind(BeanCodec())
     }
 
     private
@@ -112,25 +127,31 @@ class Codecs(
         writeByte(NULL_VALUE)
     }
 
+    private
+    val encodings = HashMap<Class<*>, Encoding?>()
+
     override fun WriteContext.encodingFor(candidate: Any?): Encoding? = when (candidate) {
         null -> nullEncoding
         is Project -> unsupportedState(Project::class)
         is Gradle -> unsupportedState(Gradle::class)
         is Settings -> unsupportedState(Settings::class)
-        else -> candidate.javaClass.let { type ->
-            bindings.find { it.type.isAssignableFrom(type) }?.run {
-                encoding { value ->
-                    writeByte(tag)
-                    codec.run { encode(value!!) }
-                }
-            }
-        }
+        is TaskContainer -> unsupportedState(TaskContainer::class)
+        else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
     }
 
     override fun ReadContext.decode(): Any? = when (val tag = readByte()) {
         NULL_VALUE -> null
         else -> bindings[tag.toInt()].codec.run { decode() }
     }
+
+    private
+    fun computeEncoding(type: Class<*>): Encoding? =
+        bindings.find { it.type.isAssignableFrom(type) }?.run {
+            encoding { value ->
+                writeByte(tag)
+                codec.run { encode(value!!) }
+            }
+        }
 
     private
     fun IsolateContext.unsupportedState(type: KClass<*>): Encoding? {

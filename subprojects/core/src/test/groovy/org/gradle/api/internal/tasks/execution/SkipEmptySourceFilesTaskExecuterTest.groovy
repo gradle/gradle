@@ -19,8 +19,6 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
@@ -35,8 +33,6 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -58,9 +54,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final outputChangeListener = Mock(OutputChangeListener)
     final executionHistoryStore = Mock(ExecutionHistoryStore)
     final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, target)
-    final stringInterner = new StringInterner()
-    final fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
-    final fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileSystemSnapshotter)
+    final fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
+    final fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
 
     def 'skips task when sourceFiles are empty and previous output is empty'() {
         def afterPreviousExecution = Mock(AfterPreviousExecutionState)

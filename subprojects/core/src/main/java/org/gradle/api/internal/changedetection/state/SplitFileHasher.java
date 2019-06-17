@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
@@ -49,20 +47,11 @@ public class SplitFileHasher implements FileHasher {
     }
 
     @Override
-    public HashCode hash(FileTreeElement fileDetails) {
-        if (wellKnownFileLocations.isImmutable(fileDetails.getFile().getPath())) {
-            return globalHasher.hash(fileDetails);
-        } else {
-            return localHasher.hash(fileDetails);
-        }
-    }
-
-    @Override
-    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
+    public HashCode hash(File file, long length, long lastModified) {
         if (wellKnownFileLocations.isImmutable(file.getPath())) {
-            return globalHasher.hash(file, fileDetails);
+            return globalHasher.hash(file, length, lastModified);
         } else {
-            return localHasher.hash(file, fileDetails);
+            return localHasher.hash(file, length, lastModified);
         }
     }
 }

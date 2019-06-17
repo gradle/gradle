@@ -17,8 +17,6 @@
 package org.gradle.internal.execution.history.changes;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.change.ChangeContainer;
-import org.gradle.internal.change.ChangeVisitor;
 
 public interface InputFileChanges extends ChangeContainer {
     boolean accept(String propertyName, ChangeVisitor visitor);

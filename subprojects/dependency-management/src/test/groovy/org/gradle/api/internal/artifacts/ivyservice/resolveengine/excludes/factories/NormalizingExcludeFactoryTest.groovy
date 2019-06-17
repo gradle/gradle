@@ -47,16 +47,16 @@ class NormalizingExcludeFactoryTest extends Specification {
         factory.anyOf(right, left) == expected
 
         where:
-        left                               | right                | expected
-        everything()                       | nothing()            | everything()
-        everything()                       | everything()         | everything()
-        nothing()                          | nothing()            | nothing()
-        everything()                       | group("foo")         | everything()
-        nothing()                          | group("foo")         | group("foo")
+        left                               | right         | expected
+        everything()                       | nothing()     | everything()
+        everything()                       | everything()  | everything()
+        nothing()                          | nothing()     | nothing()
+        everything()                       | group("foo")  | everything()
+        nothing()                          | group("foo")  | group("foo")
         //group("foo")                       | group("bar")         | anyOf(group("foo"), group("bar"))
-        group("foo")                       | module("bar")        | anyOf(group("foo"), module("bar"))
+        group("foo")                       | module("bar") | anyOf(group("foo"), module("bar"))
         //anyOf(group("foo"), group("bar"))  | group("foo")         | anyOf(group("foo"), group("bar"))
-        anyOf(group("foo"), module("bar")) | module("bar")        | anyOf(module("bar"), group("foo"))
+        anyOf(group("foo"), module("bar")) | module("bar") | anyOf(module("bar"), group("foo"))
     }
 
     @Unroll("#one ∪ #two ∪ #three = #expected")
@@ -84,14 +84,15 @@ class NormalizingExcludeFactoryTest extends Specification {
         factory.allOf(right, left) == expected
 
         where:
-        left                                                 | right                                                                             | expected
-        everything()                                         | nothing()                                                                         | nothing()
-        everything()                                         | everything()                                                                      | everything()
-        nothing()                                            | nothing()                                                                         | nothing()
-        everything()                                         | group("foo")                                                                      | group("foo")
-        nothing()                                            | group("foo")                                                                      | nothing()
-        group("foo")                                         | group("foo")                                                                      | group("foo")
-        allOf(group("foo"), group("foo2"))                   | module("bar")                                                                     | allOf(group("foo2"), group("foo"), module("bar"))
+        left                               | right         | expected
+        everything()                       | nothing()     | nothing()
+        everything()                       | everything()  | everything()
+        nothing()                          | nothing()     | nothing()
+        everything()                       | group("foo")  | group("foo")
+        nothing()                          | group("foo")  | nothing()
+        group("foo")                       | group("foo")  | group("foo")
+        allOf(group("foo"), group("foo2")) | module("bar") | nothing()
+        allOf(group("foo"), module("bar")) | module("bar") | allOf(group("foo"), module("bar"))
     }
 
     private ExcludeSpec nothing() {

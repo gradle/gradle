@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
@@ -40,10 +41,12 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final PreferJavaRuntimeVariant schema;
 
-    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
+    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, PreferJavaRuntimeVariant schema) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesFactory = attributesFactory;
+        this.schema = schema;
     }
 
     @Override
@@ -73,7 +76,8 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
             dependencies,
             configurationDefinitions,
             artifactDefinitions,
-            excludes);
+            excludes,
+            schema);
     }
 
     private ImmutableList<? extends Artifact> createDefaultArtifact(ModuleComponentIdentifier from) {

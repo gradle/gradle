@@ -36,8 +36,8 @@ version = '1.9'
 ${mavenCentralRepository()}
 
 dependencies {
-    compile "commons-collections:commons-collections:3.2.2"
-    runtime "commons-io:commons-io:1.4"
+    implementation "commons-collections:commons-collections:3.2.2"
+    runtimeOnly "commons-io:commons-io:1.4"
 }
 
 publishing {

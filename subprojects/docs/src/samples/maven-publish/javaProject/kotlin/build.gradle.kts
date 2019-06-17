@@ -7,7 +7,7 @@ group = "org.gradle.sample"
 version = "1.0"
 
 dependencies {
-   compile("commons-collections:commons-collections:3.2.2")
+    implementation("commons-collections:commons-collections:3.2.2")
 }
 
 repositories {

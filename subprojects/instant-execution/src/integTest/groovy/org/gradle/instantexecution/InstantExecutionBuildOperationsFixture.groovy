@@ -18,6 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 import static org.hamcrest.CoreMatchers.notNullValue
@@ -27,9 +28,6 @@ import static org.junit.Assert.assertThat
 
 class InstantExecutionBuildOperationsFixture {
 
-    private static final String LOAD_NAME = "Load instant execution state"
-    private static final String STORE_NAME = "Store instant execution state"
-
     final BuildOperationsFixture operations
 
     InstantExecutionBuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
@@ -37,17 +35,25 @@ class InstantExecutionBuildOperationsFixture {
     }
 
     void assertStateLoaded() {
-        assertThat(operations.first(LOAD_NAME), notNullValue())
-        assertThat(operations.first(STORE_NAME), nullValue())
+        assertThat(loadOperation(), notNullValue())
+        assertThat(storeOperation(), nullValue())
     }
 
     void assertStateStored() {
-        assertThat(operations.first(LOAD_NAME), nullValue())
-        assertThat(operations.first(STORE_NAME), notNullValue())
+        assertThat(loadOperation(), nullValue())
+        assertThat(storeOperation(), notNullValue())
     }
 
     void assertNoInstantExecution() {
-        assertThat(operations.first(LOAD_NAME), nullValue())
-        assertThat(operations.first(STORE_NAME), nullValue())
+        assertThat(loadOperation(), nullValue())
+        assertThat(storeOperation(), nullValue())
+    }
+
+    private BuildOperationRecord loadOperation() {
+        operations.first("Load instant execution state")
+    }
+
+    private BuildOperationRecord storeOperation() {
+        operations.first("Store instant execution state")
     }
 }
