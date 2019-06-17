@@ -51,90 +51,111 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
     }
 
     @Override
-    public void walkDir(final File rootDir, final RelativePath rootPath, final FileVisitor visitor, final Spec<? super FileTreeElement> spec, final AtomicBoolean stopFlag, final boolean postfix) {
-        final Deque<FileVisitDetails> directoryDetailsHolder = new LinkedList<FileVisitDetails>();
+    public void walkDir(File rootDir, RelativePath rootPath, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
+        Deque<FileVisitDetails> directoryDetailsHolder = new LinkedList<FileVisitDetails>();
 
         try {
-            Files.walkFileTree(rootDir.toPath(), EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    FileVisitDetails details = getFileVisitDetails(dir, attrs, true);
-                    if (directoryDetailsHolder.size() == 0 || isAllowed(details, spec)) {
-                        directoryDetailsHolder.push(details);
-                        if (directoryDetailsHolder.size() > 1 && !postfix) {
-                            visitor.visitDir(details);
-                        }
-                        return checkStopFlag();
-                    } else {
-                        return FileVisitResult.SKIP_SUBTREE;
-                    }
-                }
-
-                private FileVisitResult checkStopFlag() {
-                    return stopFlag.get() ? FileVisitResult.TERMINATE : FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    FileVisitDetails details = getFileVisitDetails(file, attrs, false);
-                    if (isAllowed(details, spec)) {
-                        if (attrs.isSymbolicLink()) {
-                            // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                            throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
-                        }
-                        visitor.visitFile(details);
-                    }
-                    return checkStopFlag();
-                }
-
-                private FileVisitDetails getFileVisitDetails(Path file, BasicFileAttributes attrs, boolean isDirectory) {
-                    File child = file.toFile();
-                    FileVisitDetails dirDetails = directoryDetailsHolder.peek();
-                    RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, child.getName()) : rootPath;
-                    if (attrs == null) {
-                        return new UnauthorizedFileVisitDetails(child, childPath);
-                    } else {
-                        return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
-                    }
-                }
-
-                private FileVisitDetails getUnauthorizedFileVisitDetails(Path file) {
-                    return getFileVisitDetails(file, null, false);
-                }
-
-                @Override
-                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                    FileVisitDetails details = getUnauthorizedFileVisitDetails(file);
-                    if (isNotFileSystemLoopException(exc) && isAllowed(details, spec)) {
-                        throw new GradleException(String.format("Could not read path '%s'.", file), exc);
-                    }
-                    return checkStopFlag();
-                }
-
-                private boolean isNotFileSystemLoopException(IOException e) {
-                    return e != null && !(e instanceof FileSystemLoopException);
-                }
-
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    if (exc != null) {
-                        if (!(exc instanceof FileSystemLoopException)) {
-                            throw new GradleException(String.format("Could not read directory path '%s'.", dir), exc);
-                        }
-                    } else {
-                        if (postfix) {
-                            FileVisitDetails details = directoryDetailsHolder.peek();
-                            if (directoryDetailsHolder.size() > 1 && details != null) {
-                                visitor.visitDir(details);
-                            }
-                        }
-                    }
-                    directoryDetailsHolder.pop();
-                    return checkStopFlag();
-                }
-            });
+            PathVisitor pathVisitor = new PathVisitor(directoryDetailsHolder, spec, postfix, visitor, stopFlag, rootPath);
+            Files.walkFileTree(rootDir.toPath(), EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, pathVisitor);
         } catch (IOException e) {
             throw new GradleException(String.format("Could not list contents of directory '%s'.", rootDir), e);
+        }
+    }
+
+    private class PathVisitor implements java.nio.file.FileVisitor<Path> {
+        private final Deque<FileVisitDetails> directoryDetailsHolder;
+        private final Spec<? super FileTreeElement> spec;
+        private final boolean postfix;
+        private final FileVisitor visitor;
+        private final AtomicBoolean stopFlag;
+        private final RelativePath rootPath;
+
+        public PathVisitor(Deque<FileVisitDetails> directoryDetailsHolder, Spec<? super FileTreeElement> spec, boolean postfix, FileVisitor visitor, AtomicBoolean stopFlag, RelativePath rootPath) {
+            this.directoryDetailsHolder = directoryDetailsHolder;
+            this.spec = spec;
+            this.postfix = postfix;
+            this.visitor = visitor;
+            this.stopFlag = stopFlag;
+            this.rootPath = rootPath;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+            FileVisitDetails details = getFileVisitDetails(dir, attrs, true);
+            if (directoryDetailsHolder.size() == 0 || isAllowed(details, spec)) {
+                directoryDetailsHolder.push(details);
+                if (directoryDetailsHolder.size() > 1 && !postfix) {
+                    visitor.visitDir(details);
+                }
+                return checkStopFlag();
+            } else {
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+        }
+
+        private FileVisitResult checkStopFlag() {
+            return stopFlag.get()
+                ? FileVisitResult.TERMINATE
+                : FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            FileVisitDetails details = getFileVisitDetails(file, attrs, false);
+            if (isAllowed(details, spec)) {
+                if (attrs.isSymbolicLink()) {
+                    // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
+                    throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
+                }
+                visitor.visitFile(details);
+            }
+            return checkStopFlag();
+        }
+
+        private FileVisitDetails getFileVisitDetails(Path file, BasicFileAttributes attrs, boolean isDirectory) {
+            File child = file.toFile();
+            FileVisitDetails dirDetails = directoryDetailsHolder.peek();
+            RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, child.getName()) : rootPath;
+            if (attrs == null) {
+                return new UnauthorizedFileVisitDetails(child, childPath);
+            } else {
+                return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
+            }
+        }
+
+        private FileVisitDetails getUnauthorizedFileVisitDetails(Path file) {
+            return getFileVisitDetails(file, null, false);
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
+            FileVisitDetails details = getUnauthorizedFileVisitDetails(file);
+            if (isNotFileSystemLoopException(exc) && isAllowed(details, spec)) {
+                throw new GradleException(String.format("Could not read path '%s'.", file), exc);
+            }
+            return checkStopFlag();
+        }
+
+        private boolean isNotFileSystemLoopException(IOException e) {
+            return e != null && !(e instanceof FileSystemLoopException);
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+            if (exc != null) {
+                if (!(exc instanceof FileSystemLoopException)) {
+                    throw new GradleException(String.format("Could not read directory path '%s'.", dir), exc);
+                }
+            } else {
+                if (postfix) {
+                    FileVisitDetails details = directoryDetailsHolder.peek();
+                    if (directoryDetailsHolder.size() > 1 && details != null) {
+                        visitor.visitDir(details);
+                    }
+                }
+            }
+            directoryDetailsHolder.pop();
+            return checkStopFlag();
         }
     }
 }
