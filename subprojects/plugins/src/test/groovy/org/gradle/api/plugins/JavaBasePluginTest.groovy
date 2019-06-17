@@ -452,6 +452,11 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
         Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
+
+        // Temporary compatibility
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
+
     }
 
     @Issue("gradle/gradle#8700")
@@ -460,7 +465,9 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
                 usage(Usage.JAVA_API),
-                usage(Usage.JAVA_RUNTIME)
+                usage(Usage.JAVA_API_JARS),
+                usage(Usage.JAVA_RUNTIME),
+                usage(Usage.JAVA_RUNTIME_JARS)
         )
         MultipleCandidatesDetails details = Mock()
 
@@ -472,11 +479,14 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         1 * details.getCandidateValues() >> candidates.collect { usage(it) }
         1 * details.closestMatch(usage(preferred))
 
-        where:
-        consumer                | candidates                                            | preferred
-        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]         | Usage.JAVA_API
+        where: // not exhaustive, tests pathological cases
+        consumer                | candidates                                     | preferred
+        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]           | Usage.JAVA_API
+        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]           | Usage.JAVA_RUNTIME
 
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]         | Usage.JAVA_RUNTIME
+        //Temporary compatibility
+        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
+        Usage.JAVA_RUNTIME      | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]      | Usage.JAVA_RUNTIME_JARS
 
     }
 
