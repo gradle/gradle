@@ -875,7 +875,7 @@ To call a Kotlin extension function from Groovy, call it as a static function, p
 include::sample[dir="kotlinDsl/interoperability/static-extensions",files="build.gradle[tags=kotlin-from-groovy]"]
 ====
 
-Kotlin extension functions are package-level functions and you can learn how to locate the name of the type declaring a given Kotlin extension in see the link:{kotlin-reference}java-to-kotlin-interop.html#package-level-functions[Package-Level Functions] section of the Kotlin reference documentation.
+Kotlin extension functions are package-level functions and you can learn how to locate the name of the type declaring a given Kotlin extension in the link:{kotlin-reference}java-to-kotlin-interop.html#package-level-functions[Package-Level Functions] section of the Kotlin reference documentation.
 
 To call a Groovy extension method from Kotlin, the same approach applies: call it as a static function passing the receiver as the first parameter.
 Here's an example:
