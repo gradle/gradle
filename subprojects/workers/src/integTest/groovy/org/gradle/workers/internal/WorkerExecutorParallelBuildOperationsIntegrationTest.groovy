@@ -39,32 +39,47 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
             task slowTask {
                 doLast { 
                     ${blockingHttpServer.callFromBuild("slowTask")} 
-                    sleep 10
                 }
             }
 """
     }
 
-    // There's a potential race condition here, because we are relying on the "slowTask" finishing after the "workTask"
-    // based solely on the `sleep 10` in it's action. If this proves flaky, we could possibly remove this test since the
-    // key functionality is tested in:
-    // WorkerExecutorParallelIntegrationTest#starts dependent task in another project as soon as submitted work for current task is complete (with --parallel)
     def "worker-based task completes as soon as work items are finished (while another task is executing in parallel)"() {
         when:
+        settingsFile << """
+            include ':childProject'
+        """
         buildFile << """
             task workTask(type: MultipleWorkItemTask) {
-                doLast {
-                    println "pre-action"
-                }
                 doLast { 
                     submitWorkItem("workTask")
                 }
             }
+           
+            // Wait for dependent task, to ensure that work task finishes first
+            slowTask.doLast {
+                ${blockingHttpServer.callFromBuild("slowTask2")} 
+            }
             
+            project(':childProject') {
+                task dependsOnWorkTask(type: MultipleWorkItemTask) {
+                    doLast { 
+                        submitWorkItem("dependsOnWorkTask") 
+                    }
+                    
+                    dependsOn project(':').workTask
+                }
+            }
         """
 
         then:
-        workTaskCompletesFirst()
+        blockingHttpServer.expectConcurrent("workTask", "slowTask")
+        blockingHttpServer.expectConcurrent("dependsOnWorkTask", "slowTask2")
+
+        args("--max-workers=4", "--parallel")
+        succeeds("dependsOnWorkTask", "slowTask")
+
+        assert endTime(":workTask").isBefore(endTime(":slowTask"))
     }
 
     def "worker-based task with further actions does not complete when work items finish (while another task is executing in parallel)"() {
@@ -122,20 +137,11 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         workTaskDoesNotCompleteFirst()
     }
 
-    private void workTaskCompletesFirst() {
-        invokeBuild()
-        assert endTime(":workTask").isBefore(endTime(":slowTask"))
-    }
-
     private void workTaskDoesNotCompleteFirst() {
-        invokeBuild()
-        assert !endTime(":workTask").isBefore(endTime(":slowTask"))
-    }
-
-    private void invokeBuild() {
         blockingHttpServer.expectConcurrent("workTask", "slowTask")
         args("--max-workers=4")
         succeeds(":workTask", ":slowTask")
+        assert !endTime(":workTask").isBefore(endTime(":slowTask"))
     }
 
     def endTime(String taskPath) {
