@@ -39,7 +39,7 @@ class Jdk7UnauthorizedDirectoryWalkerTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def rootDir
-    def walkerInstance = new DefaultDirectoryWalker()
+    def walkerInstance = new DefaultDirectoryWalker(TestFiles.fileSystem())
 
     def setup() {
         rootDir = tmpDir.createDir('root')

@@ -35,8 +35,8 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
     @Override
     protected List<DirectoryWalker> getWalkers() {
         return [
-            new DefaultDirectoryWalker(),
-            new ReproducibleDirectoryWalker()
+            new DefaultDirectoryWalker(TestFiles.fileSystem()),
+            new ReproducibleDirectoryWalker(TestFiles.fileSystem())
         ]
     }
 
