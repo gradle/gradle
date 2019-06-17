@@ -51,6 +51,7 @@ dependencies {
     
     testFixturesImplementation(project(":baseServices"))
 
+    integTestImplementation(project(":native"))
     integTestImplementation(testLibrary("jetty"))
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra
