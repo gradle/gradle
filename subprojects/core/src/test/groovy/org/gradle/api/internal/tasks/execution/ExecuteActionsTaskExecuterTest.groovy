@@ -43,7 +43,6 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
-import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
@@ -95,11 +94,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
                     new BroadcastChangingOutputsStep<>(outputChangeListener,
                         new SnapshotOutputsStep<>(buildId,
                             new CatchExceptionStep<>(
-                                new CancelExecutionStep<>(cancellationToken,
-                                    new ResolveInputChangesStep<>(
-                                        new CleanupOutputsStep<>(
-                                            new ExecuteStep<InputChangesContext>()
-                                        )
+                                new ResolveInputChangesStep<>(
+                                    new CleanupOutputsStep<>(
+                                        new ExecuteStep<InputChangesContext>()
                                     )
                                 )
                             )

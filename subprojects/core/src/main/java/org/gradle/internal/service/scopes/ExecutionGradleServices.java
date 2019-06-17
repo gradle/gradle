@@ -49,7 +49,6 @@ import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CacheStep;
-import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
@@ -143,11 +142,9 @@ public class ExecutionGradleServices {
                                                 new CreateOutputsStep<IncrementalChangesContext, Result>(
                                                     new CatchExceptionStep<IncrementalChangesContext>(
                                                         new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
-                                                            new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                                new ResolveInputChangesStep<IncrementalChangesContext>(
-                                                                    new CleanupOutputsStep<InputChangesContext, Result>(
-                                                                        new ExecuteStep<InputChangesContext>()
-                                                                    )
+                                                            new ResolveInputChangesStep<IncrementalChangesContext>(
+                                                                new CleanupOutputsStep<InputChangesContext, Result>(
+                                                                    new ExecuteStep<InputChangesContext>()
                                                                 )
                                                             )
                                                         )
