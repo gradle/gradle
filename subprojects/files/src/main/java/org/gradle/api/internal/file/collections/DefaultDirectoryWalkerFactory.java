@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.file.collections;
 
-import com.google.common.base.Charsets;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-
-import java.nio.charset.Charset;
 
 public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     private final JavaVersion javaVersion;
@@ -50,20 +47,6 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     }
 
     private DirectoryWalker createInstance() {
-        if (javaVersion.isJava8Compatible() || (javaVersion.isJava7Compatible() && defaultEncodingContainsPlatformEncoding())) {
-            return new Jdk7DirectoryWalker(fileSystem);
-        } else {
-            return new DefaultDirectoryWalker(fileSystem);
-        }
-    }
-
-    private boolean defaultEncodingContainsPlatformEncoding() {
-        // sun.jnu.encoding is the platform encoding used to decode/encode file paths, command line arguments, etc.
-        // it's derived from LANG/LC_ALL/LC_CTYPE on Unixes and should not be set by the user
-        String platformEncoding = System.getProperty("sun.jnu.encoding");
-        Charset platformCharset = platformEncoding != null && Charset.isSupported(platformEncoding) ? Charset.forName(platformEncoding) : null;
-        // fallback to require UTF-8 when platformCharset cannot be resolved
-        Charset requiredCharset = platformCharset != null ? platformCharset : Charsets.UTF_8;
-        return Charset.defaultCharset().contains(requiredCharset);
+        return new Jdk7DirectoryWalker(fileSystem);
     }
 }
