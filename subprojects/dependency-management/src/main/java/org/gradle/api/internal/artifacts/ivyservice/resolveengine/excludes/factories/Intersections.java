@@ -73,23 +73,28 @@ class Intersections {
             Set<ExcludeSpec> rightComponents = ((ExcludeAnyOf) right).getComponents();
             common.retainAll(rightComponents);
             if (common.size() >= 1) {
-                Set<ExcludeSpec> toIntersect = Sets.newHashSet();
-                for (ExcludeSpec component : left.getComponents()) {
-                    if (!common.contains(component)) {
-                        toIntersect.add(component);
-                    }
+                Set<ExcludeSpec> remainderLeft = Sets.newHashSet(left.getComponents());
+                remainderLeft.removeAll(common);
+                ExcludeSpec alpha = asUnion(common);
+                if (remainderLeft.isEmpty()) {
+                    return alpha;
                 }
-                for (ExcludeSpec component : rightComponents) {
-                    if (!common.contains(component)) {
-                        toIntersect.add(component);
-                    }
+                Set<ExcludeSpec> remainderRight = Sets.newHashSet(rightComponents);
+                remainderRight.removeAll(common);
+                if (remainderRight.isEmpty()) {
+                    return alpha;
                 }
-                ExcludeSpec alpha = common.size() == 1 ? common.iterator().next() : factory.anyOf(common);
-                ExcludeSpec beta = toIntersect.size() == 1 ? toIntersect.iterator().next() : factory.allOf(toIntersect);
+                ExcludeSpec unionLeft = asUnion(remainderLeft);
+                ExcludeSpec unionRight = asUnion(remainderRight);
+                ExcludeSpec beta = factory.allOf(unionLeft, unionRight);
                 return factory.anyOf(alpha, beta);
             }
         }
         return null;
+    }
+
+    private ExcludeSpec asUnion(Set<ExcludeSpec> remainderLeft) {
+        return remainderLeft.size() == 1 ? remainderLeft.iterator().next() : factory.anyOf(remainderLeft);
     }
 
     private ExcludeSpec intersectModuleIdSet(ModuleIdSetExclude left, ExcludeSpec right) {
