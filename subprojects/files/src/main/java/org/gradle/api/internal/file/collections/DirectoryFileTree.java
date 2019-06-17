@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -24,7 +25,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree, DirectoryTree {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirectoryFileTree.class);
-    private static final DirectoryWalker DEFAULT_DIRECTORY_WALKER = new Jdk7DirectoryWalker(FileSystems.getDefault());
+    private static final DirectoryWalker DEFAULT_DIRECTORY_WALKER = new DefaultDirectoryWalker(FileSystems.getDefault());
     private static final DirectoryWalker REPRODUCIBLE_DIRECTORY_WALKER = new ReproducibleDirectoryWalker(FileSystems.getDefault());
 
     private final File dir;
@@ -61,7 +61,8 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         this(dir, patternSet, fileSystem, false);
     }
 
-    DirectoryFileTree(File dir, PatternSet patternSet, FileSystem fileSystem, boolean postfix) {
+    @VisibleForTesting
+    public DirectoryFileTree(File dir, PatternSet patternSet, FileSystem fileSystem, boolean postfix) {
         this.patternSet = patternSet;
         this.dir = dir;
         this.fileSystem = fileSystem;

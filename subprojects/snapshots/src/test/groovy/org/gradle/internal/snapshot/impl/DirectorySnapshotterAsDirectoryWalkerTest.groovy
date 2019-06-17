@@ -22,8 +22,8 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.AbstractDirectoryWalkerTest
+import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
@@ -43,7 +43,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         def rootDir = tmpDir.createDir("root")
         generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
         def patternSet = Mock(PatternSet)
-        List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker(TestFiles.fileSystem()))
+        List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir, new DefaultDirectoryWalker(TestFiles.fileSystem()))
         Spec<FileTreeElement> assertingSpec = new Spec<FileTreeElement>() {
             @Override
             boolean isSatisfiedBy(FileTreeElement element) {
