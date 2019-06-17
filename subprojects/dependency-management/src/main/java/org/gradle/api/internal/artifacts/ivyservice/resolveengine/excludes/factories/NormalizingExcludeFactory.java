@@ -292,7 +292,8 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
                 }
             }
             if (simplified) {
-                result = Arrays.stream(asArray).filter(Objects::nonNull).collect(toSet());
+                Set<ExcludeSpec> tmp = Arrays.stream(asArray).filter(Objects::nonNull).collect(toSet());
+                result = tmp;
             }
         }
         return Optimizations.optimizeCollection(this, result, delegate::allOf);
