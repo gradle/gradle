@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.collections.jdk7;
+package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
@@ -23,7 +23,6 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.UnauthorizedFileVisitDetails;
-import org.gradle.api.internal.file.collections.DirectoryWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
@@ -40,10 +39,10 @@ import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Jdk7DirectoryWalker implements DirectoryWalker {
+public class DefaultDirectoryWalker implements DirectoryWalker {
     private final FileSystem fileSystem;
 
-    public Jdk7DirectoryWalker(FileSystem fileSystem) {
+    public DefaultDirectoryWalker(FileSystem fileSystem) {
         this.fileSystem = fileSystem;
     }
 
