@@ -112,12 +112,12 @@ class DefaultInstantExecution(
                         val build = host.currentBuild
                         writeString(build.rootProject.name)
 
+                        writeClassPath(collectClassPath())
+
                         writeGradleState(build.rootProject.gradle)
 
                         val scheduledTasks = build.scheduledTasks
                         writeRelevantProjectsFor(scheduledTasks)
-
-                        writeClassPath(collectClassPath())
 
                         TaskGraphCodec().run {
                             writeTaskGraphOf(build, scheduledTasks)
@@ -143,6 +143,10 @@ class DefaultInstantExecution(
                     val rootProjectName = readString()
                     val build = host.createBuild(rootProjectName)
 
+                    val classPath = readClassPath()
+                    val classLoader = classLoaderFor(classPath)
+                    initClassLoader(classLoader)
+
                     readGradleState(build.gradle)
 
                     readRelevantProjects(build)
@@ -150,9 +154,7 @@ class DefaultInstantExecution(
                     build.autoApplyPlugins()
                     build.registerProjects()
 
-                    val classPath = readClassPath()
-                    val taskClassLoader = classLoaderFor(classPath)
-                    initialize(build::getProject, taskClassLoader)
+                    initProjectProvider(build::getProject)
 
                     val scheduledTasks = TaskGraphCodec().run {
                         readTaskGraph()

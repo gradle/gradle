@@ -90,9 +90,13 @@ class DefaultReadContext(
     override lateinit var classLoader: ClassLoader
 
     internal
-    fun initialize(projectProvider: ProjectProvider, classLoader: ClassLoader) {
-        this.projectProvider = projectProvider
+    fun initClassLoader(classLoader: ClassLoader) {
         this.classLoader = classLoader
+    }
+
+    internal
+    fun initProjectProvider(projectProvider: ProjectProvider) {
+        this.projectProvider = projectProvider
     }
 
     override fun read(): Any? = decoding.run {
