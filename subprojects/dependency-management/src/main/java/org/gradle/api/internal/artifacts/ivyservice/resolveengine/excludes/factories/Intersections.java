@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAnyOf;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
@@ -136,6 +137,15 @@ class Intersections {
         } else if (right instanceof ModuleIdSetExclude) {
             Set<ModuleIdentifier> moduleIds = ((ModuleIdSetExclude) right).getModuleIds().stream().filter(id -> id.getGroup().equals(group)).collect(toSet());
             return moduleIdSet(moduleIds);
+        } else if (right instanceof ModuleExclude) {
+            return factory.moduleId(DefaultModuleIdentifier.newId(left.getGroup(), ((ModuleExclude) right).getModule()));
+        } else if (right instanceof ModuleSetExclude) {
+            ModuleSetExclude moduleSet = (ModuleSetExclude) right;
+            return factory.moduleIdSet(moduleSet.getModules()
+                .stream()
+                .map(module -> DefaultModuleIdentifier.newId(left.getGroup(), module))
+                .collect(toSet())
+            );
         }
         return null;
     }
