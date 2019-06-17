@@ -71,11 +71,24 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             allowOverlappingOutputs);
 
         // Collect changes that would trigger a rebuild
-        ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, nonIncrementalInputFileChanges));
+        ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(
+            previousSuccessState,
+            implementationChanges,
+            inputPropertyChanges,
+            inputPropertyValueChanges,
+            outputFilePropertyChanges,
+            outputFileChanges,
+            inputFilePropertyChanges,
+            nonIncrementalInputFileChanges
+        ));
         ImmutableList<String> rebuildReasons = collectChanges(rebuildTriggeringChanges);
 
         if (!rebuildReasons.isEmpty()) {
-            return new NonIncrementalDetectedExecutionStateChanges(rebuildReasons, thisExecution.getInputFileProperties(), incrementalInputProperties);
+            return new NonIncrementalDetectedExecutionStateChanges(
+                rebuildReasons,
+                thisExecution.getInputFileProperties(),
+                incrementalInputProperties
+            );
         } else {
             // Collect incremental input changes
             InputFileChanges directIncrementalInputFileChanges = incrementalInputProperties.incrementalChanges(
@@ -83,8 +96,13 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
                 thisExecution.getInputFileProperties()
             );
             InputFileChanges incrementalInputFileChanges = errorHandling(executable, caching(directIncrementalInputFileChanges));
-            ImmutableList<String> allChangeMessages = collectChanges(incrementalInputFileChanges);
-            return new IncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties(), incrementalInputFileChanges, incrementalInputProperties);
+            ImmutableList<String> incrementalInputFileChangeMessages = collectChanges(incrementalInputFileChanges);
+            return new IncrementalDetectedExecutionStateChanges(
+                incrementalInputFileChangeMessages,
+                thisExecution.getInputFileProperties(),
+                incrementalInputFileChanges,
+                incrementalInputProperties
+            );
         }
     }
 
