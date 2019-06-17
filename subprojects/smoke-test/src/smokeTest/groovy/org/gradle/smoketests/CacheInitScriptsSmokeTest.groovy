@@ -22,12 +22,6 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
 
     def 'cache init script plain text output'() {
         given:
-        def expectedLines = """
-            Overlapping task outputs while executing 'build':
-
-              No tasks with overlapping outputs found
-        """.stripIndent().readLines().findAll()
-
         useSample("cache-init-scripts")
 
         // Prepare the cache
@@ -35,14 +29,11 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
         runner('clean').build()
 
         when:
-        def result = runner('-I', 'taskCacheInit.gradle', 'build').build()
-        println result.output
-        def actualLines = result.output.readLines()
+        def result = runner('-I', 'taskCacheInit.gradle', 'build')
+            .forwardOutput()
+            .build()
 
         then:
         result.task(':compileJava').outcome == FROM_CACHE
-        expectedLines.each { expectedLine ->
-            assert actualLines.contains(expectedLine)
-        }
     }
 }
