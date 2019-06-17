@@ -72,6 +72,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -273,7 +274,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String META_CLASS_FIELD = "_gr_mc_";
         private static final String SERVICES_FIELD = "_gr_svcs_";
         private static final String SERVICES_METHOD = "$gradleServices";
-        private static final String FACTORY_FIELD = "_gr_factory_";
+        private static final String FACTORY_ID_FIELD = "_gr_factory_";
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = Type.getDescriptor(ConventionMapping.class);
         private static final String META_CLASS_TYPE_DESCRIPTOR = Type.getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = Type.getType(MetaClass.class);
@@ -308,8 +309,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type OBJECT_ARRAY_TYPE = Type.getType(Object[].class);
         private static final Type ACTION_TYPE = Type.getType(Action.class);
         private static final Type PROPERTY_INTERNAL_TYPE = Type.getType(PropertyInternal.class);
-        private static final Type INSTANTIATOR_TYPE = Type.getType(Instantiator.class);
-        private static final Type INSTANTIATOR_FACTORY_TYPE = Type.getType(InstantiatorFactory.class);
         private static final Type OBJECT_FACTORY_TYPE = Type.getType(ObjectFactory.class);
         private static final Type CONFIGURABLE_FILE_COLLECTION_TYPE = Type.getType(ConfigurableFileCollection.class);
         private static final Type MANAGED_TYPE = Type.getType(Managed.class);
@@ -1077,6 +1076,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties) {
+            visitor.visitField(ACC_PRIVATE | ACC_STATIC, FACTORY_ID_FIELD, Type.INT_TYPE.getDescriptor(), null, null);
+
             // Generate: <init>(Object[] state) { }
             MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC | ACC_SYNTHETIC, "<init>", Type.getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE), null, EMPTY_STRINGS);
             methodVisitor.visitVarInsn(ALOAD, 0);
@@ -1144,6 +1145,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitInsn(Opcodes.AASTORE);
             }
             methodVisitor.visitInsn(ARETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+
+            // Generate: int getFactoryId() { return <factory-id-field> }
+            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "getFactoryId", Type.getMethodDescriptor(Type.INT_TYPE), null, EMPTY_STRINGS);
+            methodVisitor.visitFieldInsn(GETSTATIC, generatedType.getInternalName(), FACTORY_ID_FIELD, Type.INT_TYPE.getDescriptor());
+            methodVisitor.visitInsn(IRETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }
@@ -1465,6 +1473,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
         }
 
+        private void attachFactoryIdToImplType(Class<?> implClass, int id) {
+            try {
+                Field factoryField = implClass.getDeclaredField(FACTORY_ID_FIELD);
+                factoryField.setAccessible(true);
+                factoryField.set(null, id);
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
         @Override
         public Class<?> generate() {
             writeGenericReturnTypeFields();
@@ -1473,7 +1491,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Class<?> generatedClass = classGenerator.define();
 
             if (managed) {
-                managedFactoryRegistry.register(type, new ManagedTypeFactory(generatedClass));
+                ManagedTypeFactory factory = new ManagedTypeFactory(generatedClass);
+                managedFactoryRegistry.register(factory);
+                attachFactoryIdToImplType(generatedClass, factory.getId());
             }
 
             return generatedClass;

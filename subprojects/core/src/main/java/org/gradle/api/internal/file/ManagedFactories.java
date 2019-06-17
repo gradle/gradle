@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import com.google.common.base.Objects;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
@@ -27,68 +28,93 @@ import java.io.File;
 
 public class ManagedFactories {
 
-    public static class RegularFileManagedFactory extends ManagedFactory.TypedManagedFactory {
-        public RegularFileManagedFactory() {
-            super(RegularFile.class);
-        }
+    public static class RegularFileManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = RegularFile.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
 
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             return type.cast(new DefaultFilePropertyFactory.FixedFile((File) state));
         }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
+        }
     }
 
-    public static class RegularFilePropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
+    public static class RegularFilePropertyManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = RegularFileProperty.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+
         private final FileResolver fileResolver;
 
         public RegularFilePropertyManagedFactory(FileResolver fileResolver) {
-            super(RegularFileProperty.class);
             this.fileResolver = fileResolver;
         }
 
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             return type.cast(new DefaultFilePropertyFactory.DefaultRegularFileVar(fileResolver).value((RegularFile) state));
         }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
+        }
     }
 
-    public static class DirectoryManagedFactory extends ManagedFactory.TypedManagedFactory {
+    public static class DirectoryManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = Directory.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+
         private final FileResolver fileResolver;
 
         public DirectoryManagedFactory(FileResolver fileResolver) {
-            super(Directory.class);
             this.fileResolver = fileResolver;
         }
 
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             return type.cast(new FixedDirectory((File) state, fileResolver));
         }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
+        }
     }
 
-    public static class DirectoryPropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
+    public static class DirectoryPropertyManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = DirectoryProperty.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+
         private final FileResolver fileResolver;
 
         public DirectoryPropertyManagedFactory(FileResolver fileResolver) {
-            super(DirectoryProperty.class);
             this.fileResolver = fileResolver;
         }
 
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             return type.cast(new DefaultFilePropertyFactory.DefaultDirectoryVar(fileResolver).value((Directory) state));
+        }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.base.Objects;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.state.ManagedFactory;
@@ -25,21 +26,28 @@ import java.io.File;
 import java.util.Set;
 
 public class ManagedFactories {
-    public static class ConfigurableFileCollectionManagedFactory extends ManagedFactory.TypedManagedFactory {
+    public static class ConfigurableFileCollectionManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = ConfigurableFileCollection.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+
         private final FileResolver resolver;
 
         public ConfigurableFileCollectionManagedFactory(FileResolver resolver) {
-            super(ConfigurableFileCollection.class);
             this.resolver = resolver;
         }
 
         @Nullable
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             return type.cast(new DefaultConfigurableFileCollection(resolver, null, (Set<File>) state));
+        }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
         }
     }
 }

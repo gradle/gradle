@@ -39,6 +39,11 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     @Override
+    public int getFactoryId() {
+        return ManagedFactories.SetPropertyManagedFactory.FACTORY_ID;
+    }
+
+    @Override
     public SetProperty<T> empty() {
         super.empty();
         return this;

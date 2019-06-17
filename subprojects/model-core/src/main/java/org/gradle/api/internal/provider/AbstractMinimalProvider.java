@@ -90,6 +90,11 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return getOrNull();
     }
 
+    @Override
+    public int getFactoryId() {
+        return ManagedFactories.ProviderManagedFactory.FACTORY_ID;
+    }
+
     private static class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         private final Provider<? extends T> provider;
         private final Transformer<? extends Provider<? extends S>, ? super T> transformer;

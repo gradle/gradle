@@ -78,6 +78,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     @Override
+    public int getFactoryId() {
+        return ManagedFactories.MapPropertyManagedFactory.FACTORY_ID;
+    }
+
+    @Override
     public boolean isPresent() {
         beforeRead();
         if (!value.present()) {

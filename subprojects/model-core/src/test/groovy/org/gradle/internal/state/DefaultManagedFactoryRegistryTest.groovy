@@ -22,62 +22,38 @@ class DefaultManagedFactoryRegistryTest extends Specification {
 
     def "returns a factory for a given type"() {
         def fooFactory = factory(Foo)
-        def registry = new DefaultManagedFactoryRegistry(fooFactory)
-
-        expect:
-        registry.lookup(Foo) == fooFactory
-    }
-
-    def "selects correct factory among multiple factories"() {
-        def fooFactory = factory(Foo)
         def buzzFactory = factory(Buzz)
         def registry = new DefaultManagedFactoryRegistry(buzzFactory, fooFactory)
 
         expect:
-        registry.lookup(Foo) == fooFactory
-    }
-
-    def "selects first matching factory"() {
-        def fooFactory = generatingFactory(Foo)
-        def barFactory = factory(Bar)
-
-        when:
-        def registry = new DefaultManagedFactoryRegistry(barFactory, fooFactory)
-
-        then:
-        registry.lookup(Bar) == barFactory
-
-        when:
-        registry = new DefaultManagedFactoryRegistry(fooFactory, barFactory)
-
-        then:
-        registry.lookup(Bar) == fooFactory
+        registry.lookup(fooFactory.id) == fooFactory
     }
 
     def "returns a registered factory for a managed type"() {
         def buzzFactory = factory(Buzz)
+        def barFactory = factory(Bar)
 
         when:
         def registry = new DefaultManagedFactoryRegistry(buzzFactory)
 
         then:
-        registry.lookup(Bar) == null
+        registry.lookup(barFactory.id) == null
 
         when:
-        def barFactory = factory(Bar)
-        registry.register(Bar, barFactory)
+        registry.register(barFactory)
 
         then:
-        registry.lookup(Bar) == barFactory
+        registry.lookup(barFactory.id) == barFactory
     }
 
     def "returns null for unknown type"() {
         def fooFactory = factory(Foo)
         def barFactory = factory(Bar)
+        def buzzFactory = factory(Buzz)
         def registry = new DefaultManagedFactoryRegistry(barFactory, fooFactory)
 
         expect:
-        registry.lookup(Buzz) == null
+        registry.lookup(buzzFactory.id) == null
     }
 
     def "can lookup factory in parent registry"() {
@@ -87,7 +63,7 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         def registry = new DefaultManagedFactoryRegistry(parent, barFactory)
 
         expect:
-        registry.lookup(Foo) == fooFactory
+        registry.lookup(fooFactory.id) == fooFactory
     }
 
     def "prefers factory in child registry"() {
@@ -98,28 +74,23 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         def registry = new DefaultManagedFactoryRegistry(parent, fooFactory2)
 
         expect:
-        registry.lookup(Foo) == fooFactory2
+        registry.lookup(fooFactory1.id) == fooFactory2
     }
 
     def "returns null for unknown type in all registries"() {
         def fooFactory = factory(Foo)
         def barFactory = factory(Bar)
+        def buzzFactory = factory(Buzz)
         def parent = new DefaultManagedFactoryRegistry(fooFactory)
         def registry = new DefaultManagedFactoryRegistry(parent, barFactory)
 
         expect:
-        registry.lookup(Buzz) == null
+        registry.lookup(buzzFactory.id) == null
     }
 
     ManagedFactory factory(Class<?> type) {
         return Stub(ManagedFactory) {
-            _ * canCreate(_) >> { args -> args[0] == type }
-        }
-    }
-
-    ManagedFactory generatingFactory(Class<?> type) {
-        return Stub(ManagedFactory) {
-            _ * canCreate(_) >> { args -> type.isAssignableFrom(args[0]) }
+            _ * getId() >> Objects.hashCode(type)
         }
     }
 

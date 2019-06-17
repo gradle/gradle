@@ -18,25 +18,18 @@ package org.gradle.internal.state;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
-import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
     private final ManagedFactoryRegistry parent;
-    private final List<ManagedFactory> factories = Lists.newArrayList();
-    private final Cache<Class<?>, Optional<ManagedFactory>> managedFactoryCache = CacheBuilder.newBuilder().weakKeys().build();
+    private final Cache<Integer, ManagedFactory> managedFactoryCache = CacheBuilder.newBuilder().build();
 
     public DefaultManagedFactoryRegistry(ManagedFactoryRegistry parent, ManagedFactory... factories) {
         this.parent = parent;
-        this.factories.addAll(Arrays.asList(factories));
+        for (ManagedFactory factory : factories) {
+            managedFactoryCache.put(factory.getId(), factory);
+        }
     }
 
     public DefaultManagedFactoryRegistry(ManagedFactory... factories) {
@@ -45,35 +38,16 @@ public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
 
     @Override
     @Nullable
-    public <T> ManagedFactory lookup(final Class<T> type) {
-        try {
-            return managedFactoryCache.get(type, new Callable<Optional<ManagedFactory>>() {
-                @Override
-                public Optional<ManagedFactory> call() throws Exception {
-                    for (ManagedFactory factory : factories) {
-                        if (factory.canCreate(type)) {
-                            return Optional.of(factory);
-                        }
-                    }
-
-                    return Optional.empty();
-                }
-            }).orElseGet(new Supplier<ManagedFactory>() {
-                @Override
-                public ManagedFactory get() {
-                    if (parent != null) {
-                        return parent.lookup(type);
-                    }
-                    return null;
-                }
-            });
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+    public <T> ManagedFactory lookup(int id) {
+        ManagedFactory factory = managedFactoryCache.getIfPresent(id);
+        if (factory == null && parent != null) {
+            factory = parent.lookup(id);
         }
+        return factory;
     }
 
     @Override
-    public void register(Class<?> type, ManagedFactory factory) {
-        managedFactoryCache.put(type, Optional.of(factory));
+    public void register(ManagedFactory factory) {
+        managedFactoryCache.put(factory.getId(), factory);
     }
 }

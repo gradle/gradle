@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instantiation;
 
+import com.google.common.base.Objects;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.state.ManagedFactory;
@@ -49,7 +50,7 @@ public class ManagedTypeFactory implements ManagedFactory {
     }
 
     @Override
-    public boolean canCreate(Class<?> type) {
-        return type == constructor.getDeclaringClass();
+    public int getId() {
+        return Objects.hashCode(constructor.getDeclaringClass().getName());
     }
 }

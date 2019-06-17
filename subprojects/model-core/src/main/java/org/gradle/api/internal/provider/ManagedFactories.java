@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.provider;
+import com.google.common.base.Objects;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -26,15 +27,14 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 public class ManagedFactories {
-    public static class ProviderManagedFactory extends ManagedFactory.TypedManagedFactory {
-        public ProviderManagedFactory() {
-            super(Provider.class);
-        }
+    public static class ProviderManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = Provider.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
 
         @Nullable
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             if (state == null) {
@@ -43,71 +43,92 @@ public class ManagedFactories {
                 return type.cast(Providers.of(state));
             }
         }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
+        }
     }
 
-    public static class PropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
-        public PropertyManagedFactory() {
-            super(Property.class);
-        }
+    public static class PropertyManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = Property.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
 
         @Nullable
         @Override
         public <S> S fromState(Class<S> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             return type.cast(new DefaultPropertyState<>(Object.class).value(state));
         }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
+        }
     }
 
-    public static class ListPropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
-        public ListPropertyManagedFactory() {
-            super(ListProperty.class);
-        }
+    public static class ListPropertyManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = ListProperty.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
 
         @Nullable
         @Override
         public <S> S fromState(Class<S> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             DefaultListProperty<?> property = new DefaultListProperty<>(Object.class);
             property.set((Iterable) state);
             return type.cast(property);
         }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
+        }
     }
 
-    public static class SetPropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
-        public SetPropertyManagedFactory() {
-            super(SetProperty.class);
-        }
+    public static class SetPropertyManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = SetProperty.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
 
         @Nullable
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             DefaultSetProperty<?> property = new DefaultSetProperty<>(Object.class);
             property.set((Iterable) state);
             return type.cast(property);
         }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
+        }
     }
 
-    public static class MapPropertyManagedFactory extends ManagedFactory.TypedManagedFactory {
-        public MapPropertyManagedFactory() {
-            super(MapProperty.class);
-        }
+    public static class MapPropertyManagedFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = MapProperty.class;
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
 
         @Nullable
         @Override
         public <S> S fromState(Class<S> type, Object state) {
-            if (!type.isAssignableFrom(publicType)) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
             DefaultMapProperty<?, ?> property = new DefaultMapProperty<>(Object.class, Object.class);
             property.set((Map) state);
             return type.cast(property);
+        }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
         }
     }
 }

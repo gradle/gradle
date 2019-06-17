@@ -388,7 +388,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         @Override
         public Isolatable<?> managedValue(Managed value, Isolatable<?> state) {
-            return new IsolatedManagedValue(value.publicType(), managedFactoryRegistry.lookup(value.publicType()), state);
+            return new IsolatedManagedValue(value.publicType(), managedFactoryRegistry.lookup(value.getFactoryId()), state);
         }
 
         @Override

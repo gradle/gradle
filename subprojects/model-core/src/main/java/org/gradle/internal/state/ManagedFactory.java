@@ -26,20 +26,7 @@ public interface ManagedFactory {
     <T> T fromState(Class<T> type, Object state);
 
     /**
-     * Whether or not this factory can create a managed object of the given type.
+     * Returns an id for this factory that can be used to retrieve it from a {@link ManagedFactoryRegistry}.
      */
-    boolean canCreate(Class<?> type);
-
-    abstract class TypedManagedFactory implements ManagedFactory {
-        protected final Class<?> publicType;
-
-        public TypedManagedFactory(Class<?> publicType) {
-            this.publicType = publicType;
-        }
-
-        @Override
-        public boolean canCreate(Class<?> type) {
-            return type == publicType;
-        }
-    }
+    int getId();
 }

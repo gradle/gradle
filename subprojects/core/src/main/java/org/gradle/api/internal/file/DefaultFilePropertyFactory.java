@@ -78,6 +78,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
+        public int getFactoryId() {
+            return ManagedFactories.DirectoryManagedFactory.FACTORY_ID;
+        }
+
+        @Override
         public String toString() {
             return value.toString();
         }
@@ -151,6 +156,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public Object unpackState() {
             return file;
+        }
+
+        @Override
+        public int getFactoryId() {
+            return ManagedFactories.RegularFileManagedFactory.FACTORY_ID;
         }
 
         @Override
@@ -247,6 +257,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
+        public int getFactoryId() {
+            return ManagedFactories.RegularFilePropertyManagedFactory.FACTORY_ID;
+        }
+
+        @Override
         public void set(File file) {
             if (file == null) {
                 value(null);
@@ -306,6 +321,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public Class<?> publicType() {
             return DirectoryProperty.class;
+        }
+
+        @Override
+        public int getFactoryId() {
+            return ManagedFactories.DirectoryPropertyManagedFactory.FACTORY_ID;
         }
 
         @Override

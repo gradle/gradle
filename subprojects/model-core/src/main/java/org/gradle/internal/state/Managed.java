@@ -37,4 +37,9 @@ public interface Managed {
      * Returns the public type of this managed instance. Currently is used to identify the implementation.
      */
     Class<?> publicType();
+
+    /**
+     * Returns the id of a factory that can be used to create new instances of this type.
+     */
+    int getFactoryId();
 }

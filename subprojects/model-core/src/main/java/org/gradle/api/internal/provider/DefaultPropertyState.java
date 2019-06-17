@@ -38,6 +38,11 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
     }
 
     @Override
+    public int getFactoryId() {
+        return ManagedFactories.PropertyManagedFactory.FACTORY_ID;
+    }
+
+    @Override
     public Class<T> getType() {
         return type;
     }

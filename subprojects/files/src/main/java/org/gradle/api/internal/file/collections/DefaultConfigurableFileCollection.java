@@ -109,6 +109,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
     }
 
+    public int getFactoryId() {
+        return ManagedFactories.ConfigurableFileCollectionManagedFactory.FACTORY_ID;
+    }
+
     @Override
     public String getDisplayName() {
         return displayName;

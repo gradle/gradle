@@ -34,6 +34,11 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     }
 
     @Override
+    public int getFactoryId() {
+        return ManagedFactories.ListPropertyManagedFactory.FACTORY_ID;
+    }
+
+    @Override
     protected List<T> fromValue(Collection<T> values) {
         return ImmutableList.copyOf(values);
     }
