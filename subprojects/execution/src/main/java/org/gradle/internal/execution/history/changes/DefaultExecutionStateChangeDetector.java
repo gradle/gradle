@@ -58,11 +58,6 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties()
         );
-        InputFileChanges directIncrementalInputFileChanges = incrementalInputProperties.incrementalChanges(
-            lastExecution.getInputFileProperties(),
-            thisExecution.getInputFileProperties()
-        );
-        InputFileChanges incrementalInputFileChanges = errorHandling(executable, caching(directIncrementalInputFileChanges));
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
@@ -75,23 +70,29 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             thisExecution.getOutputFileProperties(),
             allowOverlappingOutputs);
 
+        // Collect changes that would trigger a rebuild
         ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, nonIncrementalInputFileChanges));
+        ImmutableList<String> rebuildReasons = collectChanges(rebuildTriggeringChanges);
 
+        if (!rebuildReasons.isEmpty()) {
+            return new NonIncrementalDetectedExecutionStateChanges(rebuildReasons, thisExecution.getInputFileProperties(), incrementalInputProperties);
+        } else {
+            // Collect incremental input changes
+            InputFileChanges directIncrementalInputFileChanges = incrementalInputProperties.incrementalChanges(
+                lastExecution.getInputFileProperties(),
+                thisExecution.getInputFileProperties()
+            );
+            InputFileChanges incrementalInputFileChanges = errorHandling(executable, caching(directIncrementalInputFileChanges));
+            ImmutableList<String> allChangeMessages = collectChanges(incrementalInputFileChanges);
+            return new IncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties(), incrementalInputFileChanges, incrementalInputProperties);
+        }
+    }
+
+    private static ImmutableList<String> collectChanges(ChangeContainer changes) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(builder, ExecutionStateChangeDetector.MAX_OUT_OF_DATE_MESSAGES);
-        rebuildTriggeringChanges.accept(visitor);
-        ImmutableList<String> rebuildReasons = builder.build();
-
-        boolean rebuildRequired = !rebuildReasons.isEmpty();
-
-        if (!rebuildRequired) {
-            incrementalInputFileChanges.accept(visitor);
-        }
-
-        ImmutableList<String> allChangeMessages = builder.build();
-        return rebuildRequired
-            ? new NonIncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties(), incrementalInputProperties)
-            : new IncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties(), incrementalInputFileChanges, incrementalInputProperties);
+        changes.accept(visitor);
+        return builder.build();
     }
 
     private static InputFileChanges caching(InputFileChanges wrapped) {
