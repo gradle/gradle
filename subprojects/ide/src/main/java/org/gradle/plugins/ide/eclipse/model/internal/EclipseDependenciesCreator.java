@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -105,23 +104,23 @@ public class EclipseDependenciesCreator {
         }
 
         @Override
-        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, Set<Configuration> configurations) {
+        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency) {
             File sourceFile = sources.isEmpty() ? null : sources.iterator().next().getFile();
             File javaDocFile = javaDoc.isEmpty() ? null : javaDoc.iterator().next().getFile();
             ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
             ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier.getModuleIdentifier(), componentIdentifier.getVersion());
-            modules.add(createLibraryEntry(artifact.getFile(), sourceFile, javaDocFile, classpath, moduleVersionIdentifier, configurations));
+            modules.add(createLibraryEntry(artifact.getFile(), sourceFile, javaDocFile, classpath, moduleVersionIdentifier, testDependency));
         }
 
         @Override
-        public void visitFileDependency(ResolvedArtifactResult artifact, Set<Configuration>  configurations) {
-            files.add(createLibraryEntry(artifact.getFile(), null, null, classpath, null, configurations));
+        public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
+            files.add(createLibraryEntry(artifact.getFile(), null, null, classpath, null, testDependency));
         }
 
         @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
             File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, project.getProjectDir());
-            files.add(createLibraryEntry(unresolvedFile, null, null, classpath, null, null));
+            files.add(createLibraryEntry(unresolvedFile, null, null, classpath, null, false));
             unresolvedIdeDependencyHandler.log(unresolvedDependency);
         }
 
@@ -139,7 +138,7 @@ public class EclipseDependenciesCreator {
             return dependencies;
         }
 
-        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Set<Configuration> configurations) {
+        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, boolean testDependency) {
             FileReferenceFactory referenceFactory = classpath.getFileReferenceFactory();
 
             FileReference binaryRef = referenceFactory.fromFile(binary);
@@ -154,20 +153,11 @@ public class EclipseDependenciesCreator {
             out.setModuleVersion(id);
 
             // Using the test sources feature introduced in Eclipse Photon
-            if (isTestConfiguration(configurations)) {
+            if (testDependency) {
                 out.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
             }
 
             return out;
-        }
-
-        private boolean isTestConfiguration(Set<Configuration> configurations) {
-            for (Configuration c : configurations) {
-                if (!c.getName().toLowerCase().contains("test")) {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 }

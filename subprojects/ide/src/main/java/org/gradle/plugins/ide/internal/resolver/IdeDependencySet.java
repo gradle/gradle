@@ -215,11 +215,20 @@ public class IdeDependencySet {
                     sources = sources != null ? sources : Collections.<ResolvedArtifactResult>emptySet();
                     Set<ResolvedArtifactResult> javaDoc = auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
                     javaDoc = javaDoc != null ? javaDoc : Collections.<ResolvedArtifactResult>emptySet();
-                    visitor.visitModuleDependency(artifact, sources, javaDoc, configurations.get(artifactIdentifier));
+                    visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else {
-                    visitor.visitFileDependency(artifact, configurations.get(artifactIdentifier));
+                    visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
                 }
             }
+        }
+
+        private boolean isTestConfiguration(Set<Configuration> configurations) {
+            for (Configuration c : configurations) {
+                if (!c.getName().toLowerCase().contains("test")) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private void visitUnresolvedDependencies(IdeDependencyVisitor visitor) {

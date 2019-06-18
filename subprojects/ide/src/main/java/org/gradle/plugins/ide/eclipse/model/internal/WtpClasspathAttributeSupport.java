@@ -139,12 +139,12 @@ public class WtpClasspathAttributeSupport {
         }
 
         @Override
-        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, Set<Configuration> configurations) {
+        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency) {
             files.add(artifact.getFile());
         }
 
         @Override
-        public void visitFileDependency(ResolvedArtifactResult artifact, Set<Configuration> configurations) {
+        public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
             files.add(artifact.getFile());
         }
 
