@@ -29,6 +29,7 @@ import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
 import org.gradle.instantexecution.serialization.readClassPath
@@ -42,6 +43,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -192,14 +194,21 @@ class DefaultInstantExecution(
     private
     fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
         withGradle(gradle) {
-            // TODO
+            BuildOperationListenersCodec().run {
+                writeBuildOperationListeners(service())
+            }
         }
     }
 
     private
     fun DefaultReadContext.readGradleState(gradle: Gradle) {
         withGradle(gradle) {
-            // TODO
+            val listeners = BuildOperationListenersCodec().run {
+                readBuildOperationListeners()
+            }
+            service<BuildOperationListenerManager>().let { manager ->
+                listeners.forEach { manager.addListener(it) }
+            }
         }
     }
 

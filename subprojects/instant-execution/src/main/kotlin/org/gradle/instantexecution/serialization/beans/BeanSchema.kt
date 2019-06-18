@@ -79,7 +79,7 @@ val Class<*>.relevantFields: Sequence<Field>
         }
 
 
-private
+internal
 fun Field.makeAccessible() {
     if (!isAccessible) isAccessible = true
 }
