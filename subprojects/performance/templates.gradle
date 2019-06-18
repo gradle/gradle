@@ -30,7 +30,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
 }
 
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectKotlinDsl', 'largeJavaMultiProjectNoBuildSrc',
+['largeMonolithicJavaProject', 'largeJavaMultiProject', 'hugeJavaMultiProject', 'largeJavaMultiProjectKotlinDsl', 'largeJavaMultiProjectNoBuildSrc',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject', 'smallJavaMultiProjectNoBuildSrc'].each { template ->
     tasks.register(template, JavaExecProjectGeneratorTask) {
@@ -40,7 +40,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
         inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
             return []
         }
-        classpath = sourceSets.performanceTest.runtimeClasspath
+        classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
         main = 'org.gradle.performance.generator.TestProjectGenerator'
         args name, buildDir.absolutePath
     }

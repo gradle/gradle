@@ -27,6 +27,11 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
+    protected String noJavaLibraryPluginFlag() {
+        "def noJavaLibraryPlugin = hasProperty('noJavaLibraryPlugin')"
+    }
+
+    @Override
     protected String tasksConfiguration() {
         """
         String compilerMemory = getProperty('compilerMemory')
@@ -87,6 +92,11 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
                 ${hasParent ? 'compile.extendsFrom api' : ''}
                 compile.extendsFrom implementation
                 testCompile.extendsFrom testImplementation
+            }
+        } else if (noJavaLibraryPlugin) {
+            configurations {
+                ${hasParent ? 'api' : ''}
+                ${hasParent ? 'compile.extendsFrom api' : ''}
             }
         }
         """
