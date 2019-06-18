@@ -68,7 +68,6 @@ public class EclipseDependenciesCreator {
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
         private final Project project;
 
-
         public EclipseDependenciesVisitor(Project project) {
             this.project = project;
         }

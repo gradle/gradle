@@ -165,6 +165,7 @@ public class SourceFoldersCreator {
     }
 
     private void addSourceSetAttribute(SourceFolder folder) {
+        // Using the test sources feature introduced in Eclipse Photon
         if (folder.getPath().toLowerCase().contains("test")) {
             folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
         }
