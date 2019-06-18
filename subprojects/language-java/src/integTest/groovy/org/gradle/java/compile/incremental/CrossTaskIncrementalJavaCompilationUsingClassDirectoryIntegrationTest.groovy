@@ -18,16 +18,6 @@
 package org.gradle.java.compile.incremental
 
 class CrossTaskIncrementalJavaCompilationUsingClassDirectoryIntegrationTest extends AbstractCrossTaskIncrementalJavaCompilationIntegrationTest {
-
-    @Override
-    protected String getProjectDependencyBlock() {
-        '''
-            project(':impl') {
-                dependencies { api project(':api') }
-            }
-        '''
-    }
-
     @Override
     protected void addDependency(String from, String to) {
         buildFile << """

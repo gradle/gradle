@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,34 @@
 
 package org.gradle.java.compile.incremental
 
-class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskIncrementalJavaCompilationIntegrationTest {
+import org.gradle.integtests.fixtures.CompiledLanguage
+
+class CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
+    CompiledLanguage language = CompiledLanguage.GROOVY
+
+    def setup() {
+        buildFile << """
+            allprojects {
+                apply plugin: 'groovy'
+            }
+        """
+        configureGroovyIncrementalCompilation()
+    }
+
+    @Override
+    protected String getProjectDependencyBlock() {
+        '''
+            project(':impl') {
+                dependencies { api project(':api') }
+            }
+        '''
+    }
+
     @Override
     protected void addDependency(String from, String to) {
         buildFile << """
             project(':$from') {
-                dependencies { implementation project(path:':$to', configuration: 'runtimeElements') } // 'runtimeElements' exposes the jar files rather than the class folders (apiElements)
+                dependencies { implementation project(':$to') }
             }
         """
     }

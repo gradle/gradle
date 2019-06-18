@@ -129,8 +129,8 @@ class AbstractIntegrationSpec extends Specification {
         buildTestFixture.singleProjectBuild(projectName, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        buildTestFixture.multiProjectBuild(projectName, subprojects, cl)
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}, CompiledLanguage language = CompiledLanguage.JAVA) {
+        buildTestFixture.multiProjectBuild(projectName, subprojects, cl, language)
     }
 
     protected TestNameTestDirectoryProvider getTestDirectoryProvider() {

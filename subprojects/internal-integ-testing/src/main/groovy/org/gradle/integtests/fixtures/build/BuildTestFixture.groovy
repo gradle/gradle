@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.build
 
+import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
@@ -69,7 +70,7 @@ class BuildTestFixture {
         return project
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}, CompiledLanguage language = CompiledLanguage.JAVA) {
         def rootMulti = populate(projectName) {
             subprojects.each {
                 settingsFile << "include '$it'\n"
@@ -83,9 +84,9 @@ class BuildTestFixture {
                 """
         }
         rootMulti.with(cl)
-        rootMulti.file('src/main/java/Dummy.java') << "public class Dummy {}"
+        rootMulti.file("src/main/${language.name}/Dummy.${language.name}") << "public class Dummy {}"
         subprojects.each {
-            rootMulti.file(it, 'src/main/java/Dummy.java') << "public class Dummy {}"
+            rootMulti.file(it, "src/main/${language.name}/Dummy.${language.name}") << "public class Dummy {}"
         }
         return rootMulti
     }

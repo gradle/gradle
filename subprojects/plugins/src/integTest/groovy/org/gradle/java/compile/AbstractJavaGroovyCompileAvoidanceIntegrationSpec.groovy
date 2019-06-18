@@ -17,27 +17,17 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.CompiledLanguage
 import spock.lang.Issue
 
 abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
-    enum Language {
-        JAVA,
-        GROOVY;
 
-        String getName() {
-            return name().toLowerCase()
-        }
-
-        String getCompileTaskName() {
-            return "compile${name.capitalize()}"
-        }
-    }
 
     abstract boolean isUseJar()
 
     abstract boolean isIncremental()
 
-    abstract Language getLanguage()
+    abstract CompiledLanguage getLanguage()
 
     boolean enableGroovyCompilationAvoidance = true
 
@@ -55,16 +45,12 @@ include 'a', 'b'
                     includeEmptyDirs = true
                 }
             }
+            
+            ${language.allProjectGroovyDependencies()}
         """
 
-        if (language == Language.GROOVY) {
-            buildFile << """
-            allprojects {
-                dependencies {
-                    implementation localGroovy()
-                }
-            }
-"""
+        if (language == CompiledLanguage.GROOVY) {
+            buildFile << language.allProjectGroovyDependencies()
             executer.beforeExecute {
                 executer.withArgument("-Dorg.gradle.groovy.compilation.avoidance=${enableGroovyCompilationAvoidance}")
             }
@@ -76,16 +62,10 @@ include 'a', 'b'
             useClassesDir(language)
         }
 
-        if (!isIncremental()) {
-            deactivateIncrementalCompile()
-        }
-    }
-
-    def deactivateIncrementalCompile() {
         buildFile << """
             allprojects {
-                tasks.withType(JavaCompile) {
-                    options.incremental = false
+                tasks.withType(AbstractCompile) {
+                    options.incremental = ${isIncremental()} 
                 }
             }
         """
@@ -101,7 +81,7 @@ include 'a', 'b'
 """
     }
 
-    def useClassesDir(Language language) {
+    def useClassesDir(CompiledLanguage language) {
         buildFile << """import static org.gradle.api.attributes.Usage.*;
             allprojects {
                 configurations.apiElements.outgoing.variants {
@@ -398,7 +378,7 @@ public class ToolImpl {
         // change to visibility
         sourceFile.text = """
             package org;
-            ${language == Language.GROOVY ? "@groovy.transform.PackageScope" : ""} interface ToolImpl { void m(); }
+            ${language == CompiledLanguage.GROOVY ? "@groovy.transform.PackageScope" : ""} interface ToolImpl { void m(); }
 """
 
         then:
