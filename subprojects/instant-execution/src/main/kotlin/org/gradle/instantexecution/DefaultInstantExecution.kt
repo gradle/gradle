@@ -204,7 +204,7 @@ class DefaultInstantExecution(
     private
     fun collectClassPath() = DefaultClassPath.of(
         linkedSetOf<File>().also { classPathFiles ->
-            (service<ClassLoaderCache>() as ClassLoaderCacheInternal).usedInThisBuild().forEach { loader ->
+            (service<ClassLoaderCache>() as ClassLoaderCacheInternal).visitClassLoadersUsedInThisBuild { loader ->
                 ClasspathUtil.collectClasspathOf(
                     loader,
                     classPathFiles

@@ -20,10 +20,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -166,13 +165,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppa
     }
 
     @Override
-    public List<ClassLoader> usedInThisBuild() {
+    public void visitClassLoadersUsedInThisBuild(Action<ClassLoader> action) {
         synchronized (lock) {
-            ImmutableList.Builder<ClassLoader> loaders = ImmutableList.builder();
             for (ClassLoaderId id : usedInThisBuild) {
-                loaders.add(byId.get(id).classLoader);
+                action.execute(byId.get(id).classLoader);
             }
-            return loaders.build();
         }
     }
 

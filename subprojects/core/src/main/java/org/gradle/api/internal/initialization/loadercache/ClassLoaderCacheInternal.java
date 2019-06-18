@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import java.util.List;
+import org.gradle.api.Action;
 
 
 public interface ClassLoaderCacheInternal extends ClassLoaderCache {
 
-    /**
-     * Returns a snapshot of cached class loaders used in this build so far.
-     */
-    List<ClassLoader> usedInThisBuild();
+    void visitClassLoadersUsedInThisBuild(Action<ClassLoader> action);
 }
