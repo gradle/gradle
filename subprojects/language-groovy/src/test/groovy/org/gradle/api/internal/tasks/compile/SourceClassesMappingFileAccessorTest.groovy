@@ -30,7 +30,7 @@ class SourceClassesMappingFileAccessorTest extends Specification {
         given:
         Multimap<File, String> mapping = MultimapBuilder.SetMultimapBuilder
             .hashKeys()
-            .arrayListValues()
+            .hashSetValues()
             .build()
 
         mapping.putAll(temporaryFolder.newFile(), ['org.gradle.test.MyClass'])

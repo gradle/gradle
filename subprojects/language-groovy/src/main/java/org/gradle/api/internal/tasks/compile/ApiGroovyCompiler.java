@@ -105,9 +105,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private static class TrackingClassGenerationCompilationCustomizer extends IncrementalCompilationCustomizer {
-        private final Multimap<File, String> sourceClassesMapping = MultimapBuilder.ListMultimapBuilder
+        private final Multimap<File, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
             .hashKeys()
-            .arrayListValues()
+            .hashSetValues()
             .build();
         private final File sourceClassesMappingFile;
 

@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -33,9 +31,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final IncrementalTaskInputs inputs;
@@ -97,19 +93,6 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
 
     private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
         return sourceTree.matching(sourceToCompile);
-    }
-
-    private void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
-        List<File> classpath = Lists.newArrayList(spec.getCompileClasspath());
-        File destinationDir = spec.getDestinationDir();
-        classpath.add(destinationDir);
-        spec.setCompileClasspath(classpath);
-    }
-
-    private void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
-        Set<String> classesToProcess = Sets.newHashSet(recompilationSpec.getClassesToProcess());
-        classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
-        spec.setClasses(classesToProcess);
     }
 
     private static Map<GeneratedResource.Location, PatternSet> prepareResourcePatterns(Collection<GeneratedResource> staleResources, Factory<PatternSet> patternSetFactory) {

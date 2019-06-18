@@ -43,7 +43,7 @@ public class SourceClassesMappingFileAccessor {
     public static Multimap<File, String> readSourceClassesMappingFile(File mappingFile) {
         Multimap<File, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
             .hashKeys()
-            .arrayListValues()
+            .hashSetValues()
             .build();
         if (!mappingFile.isFile()) {
             return sourceClassesMapping;

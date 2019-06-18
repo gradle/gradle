@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.tasks.util.PatternSet;
@@ -85,5 +88,18 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
                     break;
             }
         }
+    }
+
+    protected void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
+        Set<String> classesToProcess = Sets.newHashSet(recompilationSpec.getClassesToProcess());
+        classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
+        spec.setClasses(classesToProcess);
+    }
+
+    protected void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
+        List<File> classpath = Lists.newArrayList(spec.getCompileClasspath());
+        File destinationDir = spec.getDestinationDir();
+        classpath.add(destinationDir);
+        spec.setCompileClasspath(classpath);
     }
 }

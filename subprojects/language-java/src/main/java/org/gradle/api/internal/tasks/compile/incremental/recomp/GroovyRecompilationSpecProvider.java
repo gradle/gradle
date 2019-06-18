@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -98,12 +96,6 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
     }
 
-    private void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
-        Set<String> classesToProcess = Sets.newHashSet(recompilationSpec.getClassesToProcess());
-        classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
-        spec.setClasses(classesToProcess);
-    }
-
     private void prepareFilePatterns(JavaCompileSpec spec, Set<File> filesToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
         for (File file : filesToCompile) {
             filesToRecompilePatterns.include(relativize(file));
@@ -116,13 +108,6 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         }
     }
 
-    private void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
-        List<File> classpath = Lists.newArrayList(spec.getCompileClasspath());
-        File destinationDir = spec.getDestinationDir();
-        classpath.add(destinationDir);
-        spec.setCompileClasspath(classpath);
-    }
-
     private String relativize(File sourceFile) {
         List<File> dirs = sourceDirs.getSourceRoots();
         for (File sourceDir : dirs) {
@@ -132,25 +117,6 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         }
         throw new IllegalStateException("Not found " + sourceFile + " in source dirs: " + dirs);
     }
-
-//    @SuppressWarnings("fallthrough")
-//    private void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
-//        ClasspathEntryChangeProcessor classpathEntryChangeProcessor = new ClasspathEntryChangeProcessor(current.getClasspathSnapshot(), previous);
-//        Set<File> transformedClasspathEntryDetectionSet = Sets.newHashSet();
-//        for (FileChange fileChange : classpathChanges) {
-//            switch (fileChange.getChangeType()) {
-//                case ADDED:
-//                case REMOVED:
-//                    if (!transformedClasspathEntryDetectionSet.add(fileChange.getFile())) {
-//                        spec.setFullRebuildCause("Classpath has been changed", null);
-//                        return;
-//                    }
-//                case MODIFIED:
-//                    classpathEntryChangeProcessor.processChange((DefaultFileChange) fileChange, spec);
-//                    break;
-//            }
-//        }
-//    }
 
     private void processOtherChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
         if (spec.getFullRebuildCause() != null) {
