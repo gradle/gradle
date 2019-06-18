@@ -33,7 +33,7 @@ internal
 fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
     relevantTypeHierarchyOf(taskType)
         .flatMap(Class<*>::relevantFields)
-        .map(Field::accessible)
+        .onEach(Field::makeAccessible)
 
 
 private
@@ -80,6 +80,6 @@ val Class<*>.relevantFields: Sequence<Field>
 
 
 private
-fun Field.accessible() = apply {
+fun Field.makeAccessible() {
     if (!isAccessible) isAccessible = true
 }
