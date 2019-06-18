@@ -167,13 +167,13 @@ public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppa
 
     @Override
     public List<ClassLoader> usedInThisBuild() {
-        ImmutableList.Builder<ClassLoader> loaders = ImmutableList.builder();
         synchronized (lock) {
+            ImmutableList.Builder<ClassLoader> loaders = ImmutableList.builder();
             for (ClassLoaderId id : usedInThisBuild) {
                 loaders.add(byId.get(id).classLoader);
             }
+            return loaders.build();
         }
-        return loaders.build();
     }
 
     private static abstract class ClassLoaderSpec {

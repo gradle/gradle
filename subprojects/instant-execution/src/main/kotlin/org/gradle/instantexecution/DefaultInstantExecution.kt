@@ -17,7 +17,6 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.Task
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheInternal
 import org.gradle.api.logging.Logging
@@ -107,8 +106,7 @@ class DefaultInstantExecution(
                     val scheduledTasks = build.scheduledTasks
                     writeRelevantProjectsFor(scheduledTasks)
 
-                    val classPath = classPathFor(build.rootProject.gradle)
-                    writeClassPath(classPath)
+                    writeClassPath(collectClassPath())
 
                     TaskGraphCodec().run {
                         writeTaskGraphOf(build, scheduledTasks)
@@ -204,9 +202,9 @@ class DefaultInstantExecution(
         host.classLoaderFor(classPath)
 
     private
-    fun classPathFor(gradle: GradleInternal) = DefaultClassPath.of(
+    fun collectClassPath() = DefaultClassPath.of(
         linkedSetOf<File>().also { classPathFiles ->
-            gradle.cachedClassLoadersUsedInThisBuild().forEach { loader ->
+            (service<ClassLoaderCache>() as ClassLoaderCacheInternal).usedInThisBuild().forEach { loader ->
                 ClasspathUtil.collectClasspathOf(
                     loader,
                     classPathFiles
@@ -272,8 +270,3 @@ fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
 
 private
 val logger = Logging.getLogger(DefaultInstantExecution::class.java)
-
-
-private
-fun GradleInternal.cachedClassLoadersUsedInThisBuild(): List<ClassLoader> =
-    (services.get(ClassLoaderCache::class.java) as ClassLoaderCacheInternal).usedInThisBuild()
