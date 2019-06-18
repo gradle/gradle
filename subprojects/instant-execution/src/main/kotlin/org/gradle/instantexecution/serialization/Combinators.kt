@@ -84,7 +84,26 @@ fun ReadContext.readClass(): Class<*> =
 
 
 internal
-fun ReadContext.readList() = readCollectionInto { size -> ArrayList<Any?>(size) }
+fun WriteContext.writeClassArray(values: Array<Class<*>>) {
+    writeArray(values) { writeClass(it) }
+}
+
+
+internal
+fun ReadContext.readClassArray(): Array<Class<*>> =
+    readArray { readClass() }
+
+
+internal
+fun ReadContext.readList(): List<Any?> =
+    readList { read() }
+
+
+internal
+fun <T : Any?> ReadContext.readList(readElement: () -> T): List<T> =
+    readCollectionInto({ size -> ArrayList<T>(size) }) {
+        readElement()
+    }
 
 
 internal
@@ -193,6 +212,28 @@ inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
         container.add(readElement())
     }
     return container
+}
+
+
+internal
+fun <T : Any?> WriteContext.writeArray(array: Array<T>, writeElement: (T) -> Unit) {
+    writeClass(array.javaClass.componentType)
+    writeSmallInt(array.size)
+    for (element in array) {
+        writeElement(element)
+    }
+}
+
+
+internal
+fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
+    val componentType = readClass()
+    val size = readSmallInt()
+    val array = java.lang.reflect.Array.newInstance(componentType, size) as Array<T>
+    for (i in 0 until size) {
+        array[i] = readElement()
+    }
+    return array
 }
 
 

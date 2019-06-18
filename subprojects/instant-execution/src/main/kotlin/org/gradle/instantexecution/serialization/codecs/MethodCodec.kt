@@ -20,7 +20,9 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readClass
+import org.gradle.instantexecution.serialization.readClassArray
 import org.gradle.instantexecution.serialization.writeClass
+import org.gradle.instantexecution.serialization.writeClassArray
 import java.lang.reflect.Method
 
 
@@ -30,13 +32,13 @@ object MethodCodec : Codec<Method> {
     override fun WriteContext.encode(value: Method) {
         writeClass(value.declaringClass)
         writeString(value.name)
-        write(value.parameterTypes)
+        writeClassArray(value.parameterTypes)
     }
 
     override fun ReadContext.decode(): Method? {
         val declaringClass = readClass()
         val methodName = readString()
-        val parameterTypes = read() as Array<Class<*>>
+        val parameterTypes = readClassArray()
         return declaringClass.getDeclaredMethod(methodName, *parameterTypes)
     }
 }
