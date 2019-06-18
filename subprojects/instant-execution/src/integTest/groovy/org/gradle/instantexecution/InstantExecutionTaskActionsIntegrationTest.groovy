@@ -21,7 +21,6 @@ import spock.lang.Ignore
 
 class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-
     def "task can have doFirst/doLast groovy script closures"() {
 
         given:
