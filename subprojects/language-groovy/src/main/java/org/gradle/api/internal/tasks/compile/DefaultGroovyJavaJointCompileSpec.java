@@ -24,6 +24,7 @@ import java.util.List;
 public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec implements GroovyJavaJointCompileSpec {
     private GroovyCompileOptions compileOptions;
     private List<File> groovyClasspath;
+    private File compilationMappingFile;
 
     @Override
     public GroovyCompileOptions getGroovyCompileOptions() {
@@ -42,5 +43,15 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
     @Override
     public void setGroovyClasspath(List<File> groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
+    }
+
+    @Override
+    public File getCompilationMappingFile() {
+        return compilationMappingFile;
+    }
+
+    @Override
+    public void setCompilationMappingFile(File compilationMappingFile) {
+        this.compilationMappingFile = compilationMappingFile;
     }
 }

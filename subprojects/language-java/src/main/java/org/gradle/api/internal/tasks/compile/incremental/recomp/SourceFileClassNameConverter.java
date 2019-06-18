@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
-
-import org.gradle.api.tasks.compile.GroovyCompileOptions;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
+import java.util.Optional;
 
-public interface GroovyCompileSpec extends JvmLanguageCompileSpec {
-    GroovyCompileOptions getGroovyCompileOptions();
+public interface SourceFileClassNameConverter {
+    Collection<String> getClassNames(File sourceClassFile);
 
-    List<File> getGroovyClasspath();
-
-    void setGroovyClasspath(List<File> classpath);
-
-    File getCompilationMappingFile();
-
-    void setCompilationMappingFile(File compilationMappingFile);
+    Optional<File> getFile(String fqcn);
 }

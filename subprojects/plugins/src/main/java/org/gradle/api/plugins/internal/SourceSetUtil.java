@@ -32,7 +32,8 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 public class SourceSetUtil {
-    private SourceSetUtil() {}
+    private SourceSetUtil() {
+    }
 
     public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
         configureForSourceSet(sourceSet, sourceDirectorySet, compile, target);
@@ -47,7 +48,7 @@ public class SourceSetUtil {
             public Object call() {
                 return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
             }
-        });
+        }).cache();
         compile.setDestinationDir(target.provider(new Callable<File>() {
             @Override
             public File call() {

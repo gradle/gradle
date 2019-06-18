@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingCompiler;
@@ -28,6 +30,7 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
@@ -116,14 +119,14 @@ public class JavaCompile extends AbstractCompile {
         Compiler<JavaCompileSpec> incrementalCompiler = getIncrementalCompilerFactory().makeIncremental(
             createCompiler(spec),
             getPath(),
-            inputs,
-            getSource()
+            getSource(),
+            new JavaRecompilationSpecProvider(((ProjectInternal) getProject()).getFileOperations(), (FileTreeInternal) getSource(), inputs)
         );
         performCompilation(spec, incrementalCompiler);
     }
 
     @Inject
-    protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
+    protected IncrementalCompilerFactory<JavaCompileSpec> getIncrementalCompilerFactory() {
         throw new UnsupportedOperationException();
     }
 
