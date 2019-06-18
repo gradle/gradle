@@ -15,7 +15,8 @@ Include only their name, impactful features should be called out separately belo
 [Evgeny Mandrikov](https://github.com/Godin),
 [Simon Legner](https://github.com/simon04),
 [Sebastian Schuberth](https://github.com/sschuberth),
-[Ivo Anjo](https://github.com/ivoanjo).
+[Ivo Anjo](https://github.com/ivoanjo),
+[Stefan M.](https://github.com/StefMa),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 <!-- 
