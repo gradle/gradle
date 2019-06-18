@@ -16,9 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -70,17 +67,6 @@ public class EclipseDependenciesCreator {
         private final List<AbstractClasspathEntry> modules = Lists.newArrayList();
         private final List<AbstractClasspathEntry> files = Lists.newArrayList();
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
-        private final LoadingCache<Set<Configuration>, Boolean> testConfigurations = CacheBuilder.newBuilder().build(new CacheLoader<Set<Configuration>, Boolean>() {
-            @Override
-            public Boolean load(Set<Configuration> configurations) {
-                for (Configuration c : configurations) {
-                    if (!c.getName().toLowerCase().contains("test")) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        });
         private final Project project;
 
 
@@ -176,8 +162,12 @@ public class EclipseDependenciesCreator {
         }
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {
-            return configurations == null ? false : testConfigurations.getUnchecked(configurations);
+            for (Configuration c : configurations) {
+                if (!c.getName().toLowerCase().contains("test")) {
+                    return false;
+                }
+            }
+            return true;
         }
-
     }
 }
