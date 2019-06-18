@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.nio.file.Files
@@ -33,6 +34,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC
 
 
+@Ignore("temporarily")
 @Category(PerformanceRegressionTest)
 class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
