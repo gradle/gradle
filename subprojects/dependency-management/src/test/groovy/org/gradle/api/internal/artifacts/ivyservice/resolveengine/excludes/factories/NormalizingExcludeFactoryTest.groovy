@@ -92,7 +92,7 @@ class NormalizingExcludeFactoryTest extends Specification {
         nothing()                          | group("foo")  | nothing()
         group("foo")                       | group("foo")  | group("foo")
         allOf(group("foo"), group("foo2")) | module("bar") | nothing()
-        allOf(group("foo"), module("bar")) | module("bar") | allOf(group("foo"), module("bar"))
+        allOf(group("foo"), module("bar")) | module("bar") | module("foo", "bar")
     }
 
     private ExcludeSpec nothing() {

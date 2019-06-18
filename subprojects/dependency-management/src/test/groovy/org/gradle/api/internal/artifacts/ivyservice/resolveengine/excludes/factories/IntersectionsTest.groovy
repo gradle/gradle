@@ -69,6 +69,7 @@ class IntersectionsTest extends Specification {
         group("org")                                            | moduleSet("mod", "mod2")                                                                                 | moduleIdSet(["org", "mod"], ["org", "mod2"])
         module("foo")                                           | module("bar")                                                                                            | factory.nothing()
         module("foo")                                           | moduleSet("foo", "bar")                                                                                  | module("foo")
+        module("foo")                                           | moduleSet("bar", "baz")                                                                                  | factory.nothing()
         module("foo")                                           | moduleId("org", "foo")                                                                                   | moduleId("org", "foo")
         module("foo")                                           | moduleId("org", "bar")                                                                                   | factory.nothing()
         module("foo")                                           | moduleIdSet(["org", "foo"], ["org", "bar"])                                                              | moduleId("org", "foo")

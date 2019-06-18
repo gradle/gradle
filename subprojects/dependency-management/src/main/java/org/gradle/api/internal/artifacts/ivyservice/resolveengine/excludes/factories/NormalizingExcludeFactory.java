@@ -283,6 +283,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
                                 if (merged instanceof ExcludeNothing) {
                                     return merged;
                                 }
+                                left = merged;
                                 asArray[i] = merged;
                                 asArray[j] = null;
                                 simplified = true;
