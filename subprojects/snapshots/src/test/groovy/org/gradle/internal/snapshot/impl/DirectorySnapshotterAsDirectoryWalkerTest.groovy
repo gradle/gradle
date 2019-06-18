@@ -22,11 +22,9 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.AbstractDirectoryWalkerTest
-import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.Factory
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -43,7 +41,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         def rootDir = tmpDir.createDir("root")
         generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
         def patternSet = Mock(PatternSet)
-        List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir, new DefaultDirectoryWalker(TestFiles.fileSystem()))
+        List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir)
         Spec<FileTreeElement> assertingSpec = new Spec<FileTreeElement>() {
             @Override
             boolean isSatisfiedBy(FileTreeElement element) {
@@ -80,8 +78,8 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner())
     }
 
-    private static List<FileVisitDetails> walkFiles(rootDir, walkerInstance) {
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
+    private static List<FileVisitDetails> walkFiles(rootDir) {
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), TestFiles.fileSystem(), false)
         def visited = []
         def visitClosure = { visited << it }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor

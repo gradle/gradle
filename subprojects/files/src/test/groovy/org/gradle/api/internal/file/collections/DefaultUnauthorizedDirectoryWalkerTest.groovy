@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.collections.jdk7
+package org.gradle.api.internal.file.collections
 
 import com.google.common.base.Throwables
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
-import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -33,13 +30,12 @@ import java.nio.file.AccessDeniedException
 
 @Requires(TestPrecondition.FILE_PERMISSIONS)
 @Issue('https://github.com/gradle/gradle/issues/2639')
-class Jdk7UnauthorizedDirectoryWalkerTest extends Specification {
+class DefaultUnauthorizedDirectoryWalkerTest extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def rootDir
-    def walkerInstance = new DefaultDirectoryWalker(TestFiles.fileSystem())
 
     def setup() {
         rootDir = tmpDir.createDir('root')
@@ -54,7 +50,7 @@ class Jdk7UnauthorizedDirectoryWalkerTest extends Specification {
 
     def "excluded files' permissions should be ignored"() {
         when:
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet().exclude('unauthorized'), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet().exclude('unauthorized'), TestFiles.fileSystem(), false)
         def visitedDirectories = []
         def fileVisitor = [visitDir: { visitedDirectories << it }] as FileVisitor
 
@@ -67,7 +63,7 @@ class Jdk7UnauthorizedDirectoryWalkerTest extends Specification {
 
     def "throw exception when unauthorized"() {
         when:
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), TestFiles.fileSystem(), false)
         def fileVisitor = Mock(FileVisitor)
 
         fileTree.visit(fileVisitor)
