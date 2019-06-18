@@ -19,11 +19,12 @@ package org.gradle.internal.state
 import spock.lang.Specification
 
 class DefaultManagedFactoryRegistryTest extends Specification {
+    def registry = new DefaultManagedFactoryRegistry()
 
     def "returns a factory for a given type"() {
         def fooFactory = factory(Foo)
         def buzzFactory = factory(Buzz)
-        def registry = new DefaultManagedFactoryRegistry(buzzFactory, fooFactory)
+        registry.withFactories(buzzFactory, fooFactory)
 
         expect:
         registry.lookup(fooFactory.id) == fooFactory
@@ -34,7 +35,7 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         def barFactory = factory(Bar)
 
         when:
-        def registry = new DefaultManagedFactoryRegistry(buzzFactory)
+        registry.withFactories(buzzFactory)
 
         then:
         registry.lookup(barFactory.id) == null
@@ -50,7 +51,7 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         def fooFactory = factory(Foo)
         def barFactory = factory(Bar)
         def buzzFactory = factory(Buzz)
-        def registry = new DefaultManagedFactoryRegistry(barFactory, fooFactory)
+        registry.withFactories(barFactory, fooFactory)
 
         expect:
         registry.lookup(buzzFactory.id) == null
@@ -59,8 +60,8 @@ class DefaultManagedFactoryRegistryTest extends Specification {
     def "can lookup factory in parent registry"() {
         def fooFactory = factory(Foo)
         def barFactory = factory(Bar)
-        def parent = new DefaultManagedFactoryRegistry(fooFactory)
-        def registry = new DefaultManagedFactoryRegistry(parent, barFactory)
+        def parent = new DefaultManagedFactoryRegistry().withFactories(fooFactory)
+        def registry = new DefaultManagedFactoryRegistry(parent).withFactories(barFactory)
 
         expect:
         registry.lookup(fooFactory.id) == fooFactory
@@ -70,8 +71,8 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         def fooFactory1 = factory(Foo)
         def fooFactory2 = factory(Foo)
 
-        def parent = new DefaultManagedFactoryRegistry(fooFactory1)
-        def registry = new DefaultManagedFactoryRegistry(parent, fooFactory2)
+        def parent = new DefaultManagedFactoryRegistry().withFactories(fooFactory1)
+        def registry = new DefaultManagedFactoryRegistry(parent).withFactories(fooFactory2)
 
         expect:
         registry.lookup(fooFactory1.id) == fooFactory2
@@ -81,8 +82,8 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         def fooFactory = factory(Foo)
         def barFactory = factory(Bar)
         def buzzFactory = factory(Buzz)
-        def parent = new DefaultManagedFactoryRegistry(fooFactory)
-        def registry = new DefaultManagedFactoryRegistry(parent, barFactory)
+        def parent = new DefaultManagedFactoryRegistry().withFactories(fooFactory)
+        def registry = new DefaultManagedFactoryRegistry(parent).withFactories(barFactory)
 
         expect:
         registry.lookup(buzzFactory.id) == null
@@ -90,7 +91,7 @@ class DefaultManagedFactoryRegistryTest extends Specification {
 
     ManagedFactory factory(Class<?> type) {
         return Stub(ManagedFactory) {
-            _ * getId() >> Objects.hashCode(type)
+            _ * getId() >> Objects.hashCode(type.name)
         }
     }
 

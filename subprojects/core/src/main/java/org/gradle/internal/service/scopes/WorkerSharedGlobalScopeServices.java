@@ -73,10 +73,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     }
     
     ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver) {
-        return new DefaultManagedFactoryRegistry(
-                // Note that order is important - the first factory in the list that can create
-                // a given type will be selected, so the order should be from most specific type to
-                // least specific type
+        return new DefaultManagedFactoryRegistry().withFactories(
                 new ConfigurableFileCollectionManagedFactory(fileResolver),
                 new RegularFileManagedFactory(),
                 new RegularFilePropertyManagedFactory(fileResolver),

@@ -25,20 +25,24 @@ public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
     private final ManagedFactoryRegistry parent;
     private final Cache<Integer, ManagedFactory> managedFactoryCache = CacheBuilder.newBuilder().build();
 
-    public DefaultManagedFactoryRegistry(ManagedFactoryRegistry parent, ManagedFactory... factories) {
+    public DefaultManagedFactoryRegistry(ManagedFactoryRegistry parent) {
         this.parent = parent;
-        for (ManagedFactory factory : factories) {
-            managedFactoryCache.put(factory.getId(), factory);
-        }
     }
 
-    public DefaultManagedFactoryRegistry(ManagedFactory... factories) {
-        this(null, factories);
+    public DefaultManagedFactoryRegistry() {
+        this(null);
+    }
+
+    public ManagedFactoryRegistry withFactories(ManagedFactory... factories) {
+        for (ManagedFactory factory : factories) {
+            register(factory);
+        }
+        return this;
     }
 
     @Override
     @Nullable
-    public <T> ManagedFactory lookup(int id) {
+    public ManagedFactory lookup(int id) {
         ManagedFactory factory = managedFactoryCache.getIfPresent(id);
         if (factory == null && parent != null) {
             factory = parent.lookup(id);

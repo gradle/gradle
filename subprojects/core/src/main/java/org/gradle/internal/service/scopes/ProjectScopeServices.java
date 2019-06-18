@@ -331,11 +331,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver) {
-        return new DefaultManagedFactoryRegistry(
-            parent,
-            // Note that order is important - the first factory in the list that can create
-            // a given type will be selected, so the order should be from most specific type to
-            // least specific type
+        return new DefaultManagedFactoryRegistry(parent).withFactories(
             new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver),
             new org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory(fileResolver),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileResolver),
