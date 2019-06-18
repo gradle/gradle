@@ -128,6 +128,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     }
 
     public static boolean isProjectOpen(EclipseWorkspaceProject project) {
+        // TODO we should refactor this to general, compatibility mapping solution, as we have it for model loading. See HasCompatibilityMapping class.
         try {
             return project.isOpen();
         } catch (UnsupportedMethodException e) {
