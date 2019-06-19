@@ -83,6 +83,6 @@ final class DefaultModuleExclude implements ModuleExclude {
 
     @Override
     public String toString() {
-        return "{exclude module = '" + module + "'}";
+        return "{\"exclude module\" : \"" + module + "\"}";
     }
 }

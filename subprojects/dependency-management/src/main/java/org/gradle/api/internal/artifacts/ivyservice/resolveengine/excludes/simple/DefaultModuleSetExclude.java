@@ -78,6 +78,6 @@ final class DefaultModuleSetExclude implements ModuleSetExclude {
 
     @Override
     public String toString() {
-        return "{ module names = " + modules + '}';
+        return "{ \"module names\" : [" + ExcludeJsonHelper.toJson(modules) + "]}";
     }
 }

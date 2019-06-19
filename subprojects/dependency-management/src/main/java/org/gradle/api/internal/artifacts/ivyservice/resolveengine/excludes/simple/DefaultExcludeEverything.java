@@ -48,7 +48,7 @@ final class DefaultExcludeEverything implements ExcludeEverything {
 
     @Override
     public String toString() {
-        return "{excludes everything}";
+        return "\"excludes everything\"";
     }
 
     @Override
