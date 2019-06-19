@@ -66,6 +66,22 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         verifyPluginApplied('1.0')
     }
 
+    def "can define plugin version in settings script using gradle properties"() {
+        when:
+        file("gradle.properties") << "myPluginVersion=2.0"
+        withSettings """
+            pluginManagement {
+                plugins {
+                    id '$PLUGIN_ID' version "\${myPluginVersion}"
+                }
+            }
+"""
+        buildScript "plugins { id '$PLUGIN_ID' }"
+
+        then:
+        verifyPluginApplied('2.0')
+    }
+
     def "can override plugin version in settings script"() {
         when:
         buildScript "plugins { id '$PLUGIN_ID' version '2.0' }"
