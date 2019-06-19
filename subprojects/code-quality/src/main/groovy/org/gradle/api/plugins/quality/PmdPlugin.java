@@ -109,7 +109,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         });
     }
 
-    private void configureTaskConventionMapping(Configuration configuration, Pmd task) {
+    private void configureTaskConventionMapping(Configuration configuration, final Pmd task) {
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("pmdClasspath", Callables.returning(configuration));
         taskMapping.map("ruleSets", new Callable<List<String>>() {
@@ -152,6 +152,12 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             @Override
             public TargetJdk call() {
                 return extension.getTargetJdk();
+            }
+        });
+        taskMapping.map("incrementalAnalysis", new Callable<Boolean>() {
+            @Override
+            public Boolean call() {
+                return extension.isIncrementalAnalysis();
             }
         });
     }
