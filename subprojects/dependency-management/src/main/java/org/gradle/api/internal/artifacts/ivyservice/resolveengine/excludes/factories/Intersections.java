@@ -58,6 +58,10 @@ class Intersections {
             return intersectGroupSet((GroupSetExclude) left, right);
         } else if (right instanceof GroupSetExclude) {
             return intersectGroupSet((GroupSetExclude) right, left);
+        } else if (left instanceof ModuleIdExclude) {
+            return intersectModuleId((ModuleIdExclude) left, right);
+        } else if (right instanceof ModuleIdExclude) {
+            return intersectModuleId((ModuleIdExclude) right, left);
         } else if (left instanceof ModuleIdSetExclude) {
             return intersectModuleIdSet((ModuleIdSetExclude) left, right);
         } else if (right instanceof ModuleIdSetExclude) {
@@ -97,15 +101,25 @@ class Intersections {
         return remainderLeft.size() == 1 ? remainderLeft.iterator().next() : factory.anyOf(remainderLeft);
     }
 
-    private ExcludeSpec intersectModuleIdSet(ModuleIdSetExclude left, ExcludeSpec right) {
-        Set<ModuleIdentifier> moduleIds = left.getModuleIds();
+    private ExcludeSpec intersectModuleId(ModuleIdExclude left, ExcludeSpec right) {
         if (right instanceof ModuleIdExclude) {
-            Set<ModuleIdentifier> leftModuleIds = left.getModuleIds();
-            if (leftModuleIds.contains(((ModuleIdExclude) right).getModuleId())) {
-                return right;
+            if (left.equals(right)) {
+                return left;
             }
             return factory.nothing();
         } else if (right instanceof ModuleIdSetExclude) {
+            Set<ModuleIdentifier> rightModuleIds = ((ModuleIdSetExclude) right).getModuleIds();
+            if (rightModuleIds.contains(left.getModuleId())) {
+                return left;
+            }
+            return factory.nothing();
+        }
+        return null;
+    }
+
+    private ExcludeSpec intersectModuleIdSet(ModuleIdSetExclude left, ExcludeSpec right) {
+        Set<ModuleIdentifier> moduleIds = left.getModuleIds();
+        if (right instanceof ModuleIdSetExclude) {
             Set<ModuleIdentifier> common = Sets.newHashSet(((ModuleIdSetExclude) right).getModuleIds());
             common.retainAll(moduleIds);
             return moduleIds(common);

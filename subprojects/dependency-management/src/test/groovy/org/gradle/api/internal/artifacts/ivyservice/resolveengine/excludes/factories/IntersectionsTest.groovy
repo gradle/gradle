@@ -75,6 +75,7 @@ class IntersectionsTest extends Specification implements ExcludeTestSupport {
         moduleIdSet(["org", "foo"], ["org", "bar"])              | moduleIdSet(["org", "bar"], ["org2", "baz"], ["org", "foo"])                                                          | moduleIdSet(["org", "bar"], ["org", "foo"])
         moduleId("com.google.collections", "google-collections") | moduleIdSet(["com.sun.jmx", "jmxri"], ["javax.jms", "jms"], ["com.sun.jdmk", "jmxtools"])                             | nothing()
         moduleId("com.google.collections", "google-collections") | moduleIdSet(["com.sun.jmx", "jmxri"], ["com.google.collections", "google-collections"], ["com.sun.jdmk", "jmxtools"]) | moduleId("com.google.collections", "google-collections")
+        moduleId("org", "foo")                                   | moduleId("org2", "baz")                                                                                               | nothing()
 
         anyOf(group("org.slf4j"), module("py4j"))                | anyOf(group("org.slf4j"), module("py4j"), moduleIdSet(["org.jboss.netty", "netty"], ["jline", "jline"]))              | anyOf(group("org.slf4j"), module("py4j"))
         anyOf(group("G1"), module("M1"), group("G2"))            | anyOf(group("G1"), module("M2"))                                                                                      | anyOf(group("G1"), allOf(anyOf(module("M1"), group("G2")), module("M2")))
