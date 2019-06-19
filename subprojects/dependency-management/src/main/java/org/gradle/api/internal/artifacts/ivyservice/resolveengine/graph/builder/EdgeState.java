@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -54,7 +54,7 @@ class EdgeState implements DependencyGraphEdge {
     private final NodeState from;
     private final SelectorState selector;
     private final ResolveState resolveState;
-    private final ExcludeSpec transitiveExclusions;
+    private final ModuleExclusion transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
     private final boolean isTransitive;
     private final boolean isConstraint;
@@ -62,10 +62,8 @@ class EdgeState implements DependencyGraphEdge {
 
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
-    private ExcludeSpec cachedEdgeExclusions;
-    private ExcludeSpec cachedExclusions;
 
-    EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
+    EdgeState(NodeState from, DependencyState dependencyState, ModuleExclusion transitiveExclusions, ResolveState resolveState) {
         this.from = from;
         this.dependencyState = dependencyState;
         this.dependencyMetadata = dependencyState.getDependency();
@@ -263,38 +261,21 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public ExcludeSpec getExclusions() {
-        if (cachedExclusions == null) {
-            computeExclusions();
-        }
-        return cachedExclusions;
-    }
-
-    private void computeExclusions() {
+    public ModuleExclusion getExclusions() {
         List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
         if (excludes.isEmpty()) {
-            cachedExclusions = transitiveExclusions;
-        } else {
-            computeExclusionsWhenExcludesPresent(excludes);
+            return transitiveExclusions;
         }
+        ModuleExclusion edgeExclusions = resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
+        return resolveState.getModuleExclusions().either(edgeExclusions, transitiveExclusions);
     }
 
-    private void computeExclusionsWhenExcludesPresent(List<ExcludeMetadata> excludes) {
-        ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
-        ExcludeSpec edgeExclusions = moduleExclusions.excludeAny(excludes);
-        cachedExclusions = moduleExclusions.excludeAny(edgeExclusions, transitiveExclusions);
-    }
-
-    ExcludeSpec getEdgeExclusions() {
-        if (cachedEdgeExclusions == null) {
-            List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
-            ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
-            if (excludes.isEmpty()) {
-                return moduleExclusions.nothing();
-            }
-            cachedEdgeExclusions = moduleExclusions.excludeAny(excludes);
+    public ModuleExclusion getEdgeExclusions() {
+        List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
+        if (excludes.isEmpty()) {
+            return null;
         }
-        return cachedEdgeExclusions;
+        return resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
     }
 
     @Override
