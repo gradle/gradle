@@ -51,6 +51,21 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         verifyPluginApplied('1.0')
     }
 
+    def "can define plugin version with apply false in settings script"() {
+        when:
+        withSettings """
+            pluginManagement {
+                plugins {
+                    id '$PLUGIN_ID' version '1.0' apply false
+                }
+            }
+"""
+        buildScript "plugins { id '$PLUGIN_ID' }"
+
+        then:
+        verifyPluginApplied('1.0')
+    }
+
     def "can override plugin version in settings script"() {
         when:
         buildScript "plugins { id '$PLUGIN_ID' version '2.0' }"
@@ -136,6 +151,47 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         verifyPluginApplied('2.0')
+    }
+
+    def "cannot request that plugin be applied in settings script"() {
+        when:
+        withSettings """
+            pluginManagement {
+                plugins {
+                    id '$PLUGIN_ID' version '1.0' apply true
+                }
+            }
+"""
+
+        then:
+        fails "help"
+    }
+
+    def "cannot specify plugin version twice in settings script"() {
+        when:
+        withSettings """
+            pluginManagement {
+                plugins {
+                    id '$PLUGIN_ID' version '1.0'
+                    id '$PLUGIN_ID' version '2.0'
+                }
+            }
+"""
+
+        then:
+        fails "help"
+
+        when:
+        withSettings """
+            pluginManagement {
+                plugins {
+                    id('$PLUGIN_ID').version('1.0').version('2.0')
+                }
+            }
+"""
+
+        then:
+        fails "help"
     }
 
     private void withSettings(String settings) {

@@ -65,6 +65,10 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
 
     @Override
     public void setDefaultPluginVersion(PluginId id, String version) {
+        String existing = pluginVersions.get(id);
+        if (existing != null && !existing.equals(version)) {
+            throw new IllegalArgumentException("Cannot provide multiple default versions for the same plugin.");
+        }
         pluginVersions.put(id, version);
     }
 }
