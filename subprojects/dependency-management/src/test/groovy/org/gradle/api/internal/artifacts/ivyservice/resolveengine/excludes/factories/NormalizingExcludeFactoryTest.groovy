@@ -16,24 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories
 
-import com.google.common.collect.ImmutableSet
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
-class NormalizingExcludeFactoryTest extends Specification {
+class NormalizingExcludeFactoryTest extends Specification implements ExcludeTestSupport {
 
-    @Shared
-    private ExcludeFactory delegate = new DefaultExcludeFactory()
-
-    @Subject
-    private NormalizingExcludeFactory factory = new NormalizingExcludeFactory(delegate)
+    def setup() {
+        factory = new NormalizingExcludeFactory(factory)
+    }
 
     @Shared
     private DefaultIvyArtifactName artifactName = new DefaultIvyArtifactName("a", "b", "c")
@@ -53,9 +45,9 @@ class NormalizingExcludeFactoryTest extends Specification {
         nothing()                          | nothing()     | nothing()
         everything()                       | group("foo")  | everything()
         nothing()                          | group("foo")  | group("foo")
-        //group("foo")                       | group("bar")         | anyOf(group("foo"), group("bar"))
+        group("foo")                       | group("bar")  | groupSet("foo", "bar")
         group("foo")                       | module("bar") | anyOf(group("foo"), module("bar"))
-        //anyOf(group("foo"), group("bar"))  | group("foo")         | anyOf(group("foo"), group("bar"))
+        anyOf(group("foo"), group("bar"))  | group("foo")  | groupSet("foo", "bar")
         anyOf(group("foo"), module("bar")) | module("bar") | anyOf(module("bar"), group("foo"))
     }
 
@@ -72,7 +64,7 @@ class NormalizingExcludeFactoryTest extends Specification {
         everything() | everything() | everything() | everything()
         nothing()    | nothing()    | nothing()    | nothing()
         everything() | group("foo") | everything() | everything()
-        //group("foo") | group("bar") | group("baz") | anyOf(group("foo"), group("bar"), group("baz"))
+        group("foo") | group("bar") | group("baz") | groupSet("foo", "bar", "baz")
     }
 
     @Unroll("#left ∩ #right = #expected")
@@ -92,46 +84,6 @@ class NormalizingExcludeFactoryTest extends Specification {
         nothing()                          | group("foo")  | nothing()
         group("foo")                       | group("foo")  | group("foo")
         allOf(group("foo"), group("foo2")) | module("bar") | nothing()
-        allOf(group("foo"), module("bar")) | module("bar") | module("foo", "bar")
-    }
-
-    private ExcludeSpec nothing() {
-        delegate.nothing()
-    }
-
-    private ExcludeSpec everything() {
-        delegate.everything()
-    }
-
-    private ExcludeSpec group(String group) {
-        delegate.group(group)
-    }
-
-    private ExcludeSpec module(String module) {
-        delegate.module(module)
-    }
-
-    private ExcludeSpec module(String group, String name) {
-        delegate.moduleId(DefaultModuleIdentifier.newId(group, name))
-    }
-
-    private ExcludeSpec anyOf(ExcludeSpec... specs) {
-        delegate.anyOf(ImmutableSet.copyOf(specs))
-    }
-
-    private ExcludeSpec allOf(ExcludeSpec... specs) {
-        delegate.allOf(ImmutableSet.copyOf(specs))
-    }
-
-    private ExcludeSpec ivy(String group, String module, IvyArtifactName artifact, String matcher) {
-        delegate.ivyPatternExclude(
-            DefaultModuleIdentifier.newId(group, module),
-            artifact,
-            matcher
-        )
-    }
-
-    private static IvyArtifactName artifact(String name) {
-        new DefaultIvyArtifactName(name, "jar", "jar")
+        allOf(group("foo"), module("bar")) | module("bar") | moduleId("foo", "bar")
     }
 }
