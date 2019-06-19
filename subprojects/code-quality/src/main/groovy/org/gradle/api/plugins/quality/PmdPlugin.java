@@ -154,12 +154,8 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
                 return extension.getTargetJdk();
             }
         });
-        taskMapping.map("incrementalAnalysis", new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                return extension.isIncrementalAnalysis();
-            }
-        });
+
+        task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {

@@ -15,9 +15,11 @@
  */
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 
 import javax.annotation.Nullable;
@@ -39,10 +41,12 @@ public class PmdExtension extends CodeQualityExtension {
     private TextResource ruleSetConfig;
     private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
-    private boolean incrementalAnalysis;
+    private Property<Boolean> incrementalAnalysis;
 
     public PmdExtension(Project project) {
         this.project = project;
+        // TODO: Enable this by default when toolVersion >= 6.0.0 if it's stable enough.
+        this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(false);
     }
 
     /**
@@ -212,28 +216,14 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * Retrieves whether to use incremental analysis or not.
+     * Controls whether to use incremental analysis or not.
      *
-     * This is only supported for PMD 5.6.0 or better. See <a href="https://pmd.github.io/pmd-5.6.0/overview/changelog.html#Incremental_Analysis"></a> for more details.
+     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.15.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
      *
-     * @since 4.3
+     * @since 5.6
      */
     @Incubating
-    public boolean isIncrementalAnalysis() {
+    public Property<Boolean> getIncrementalAnalysis() {
         return incrementalAnalysis;
-    }
-
-    /**
-     * Configures whether to use incremental analysis or not.
-     *
-     * This is only supported for PMD 5.6.0 or better.See <a href="https://pmd.github.io/pmd-5.6.0/overview/changelog.html#Incremental_Analysis"></a> for more details.
-     *
-     * @param incrementalAnalysis True to enable incremental analysis.
-     *
-     * @since 4.3
-     */
-    @Incubating
-    public void setIncrementalAnalysis(boolean incrementalAnalysis) {
-        this.incrementalAnalysis = incrementalAnalysis;
     }
 }

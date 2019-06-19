@@ -37,4 +37,7 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
         return !TestPrecondition.WINDOWS.fulfilled || VersionNumber.parse("5.5.1") <= versionNumber
     }
 
+    static boolean supportIncrementalAnalysis() {
+        return versionNumber >= VersionNumber.parse('6.0.0')
+    }
 }

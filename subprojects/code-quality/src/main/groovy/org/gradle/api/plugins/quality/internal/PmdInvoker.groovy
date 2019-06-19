@@ -37,6 +37,7 @@ abstract class PmdInvoker {
         def stdOutIsAttachedToTerminal = pmdTask.stdOutIsAttachedToTerminal()
         def ignoreFailures = pmdTask.ignoreFailures
         def logger = pmdTask.logger
+        def incrementalAnalysis = pmdTask.incrementalAnalysis.get()
 
         def prePmd5 = pmdClasspath.any {
             it.name ==~ /pmd-([1-4]\.[0-9\.]+)\.jar/
@@ -56,15 +57,28 @@ abstract class PmdInvoker {
                 ruleSets = ['basic']
                 pmdTask.setRuleSets(ruleSets)
             }
+            if (incrementalAnalysis) {
+                assertUnsupportedIncrementalAnalysis()
+            }
         } else if (prePmd6) {
             if (ruleSets == ["category/java/errorprone.xml"]) {
                 ruleSets = ['java-basic']
                 pmdTask.setRuleSets(ruleSets)
             }
+            if (incrementalAnalysis) {
+                assertUnsupportedIncrementalAnalysis()
+            }
+        } else {
+            // 6.+
+            if (incrementalAnalysis) {
+                antPmdArgs["cacheLocation"] = new File(pmdTask.temporaryDir, "incremental.cache")
+            } else {
+                antPmdArgs['noCache'] = true
+
+            }
         }
 
         antPmdArgs["minimumPriority"] = rulePriority
-        antPmdArgs['noCache'] = true
 
         antBuilder.withClasspath(pmdClasspath).execute { a ->
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
@@ -116,5 +130,9 @@ abstract class PmdInvoker {
                 }
             }
         }
+    }
+
+    static void assertUnsupportedIncrementalAnalysis() {
+        throw new GradleException("Incremental analysis only supports PMD 6.0.0 and newer")
     }
 }

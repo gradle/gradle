@@ -15,13 +15,11 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.plugins.quality.pmd.AbstractPmdPluginVersionIntegrationTest
 import org.gradle.util.Matchers
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.Unroll
-
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
 
 class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
     def setup() {
@@ -39,8 +37,8 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
                 // clear the classpath to avoid file locking issues on PMD version < 5.5.1
                 classpath = files()
             }"""}
-            
-            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
+
+            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.7" : ""}
         """.stripIndent()
     }
 
@@ -54,7 +52,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
     def "incremental analysis can be enabled"() {
         given:
-        Assume.assumeTrue(fileLockingIssuesSolvedWithIncrementalAnalysis())
         Assume.assumeTrue(supportIncrementalAnalysis())
         enableIncrementalAnalysis()
         goodCode()
@@ -77,7 +74,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
     def 'incremental analysis is transparent'() {
         given:
-        Assume.assumeTrue(fileLockingIssuesSolvedWithIncrementalAnalysis())
         Assume.assumeTrue(supportIncrementalAnalysis())
         enableIncrementalAnalysis()
         goodCode()
@@ -100,7 +96,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
     @Unroll
     def 'incremental analysis invalidated when #reason'() {
         given:
-        Assume.assumeTrue(fileLockingIssuesSolvedWithIncrementalAnalysis())
         Assume.assumeTrue(supportIncrementalAnalysis())
         enableIncrementalAnalysis()
         goodCode()
@@ -123,7 +118,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
     def "incremental analysis is available in 5.6.0+"() {
         given:
-        Assume.assumeTrue(fileLockingIssuesSolvedWithIncrementalAnalysis())
         Assume.assumeTrue(supportIncrementalAnalysis())
         enableIncrementalAnalysis()
         goodCode()
