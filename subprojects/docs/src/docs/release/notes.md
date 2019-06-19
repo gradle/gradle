@@ -17,6 +17,7 @@ Include only their name, impactful features should be called out separately belo
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Ivo Anjo](https://github.com/ivoanjo),
 [Stefan M.](https://github.com/StefMa),
+[Dominik Giger](https://github.com/gigerdo),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 <!-- 
