@@ -19,11 +19,14 @@ package org.gradle.api.plugins.quality.internal
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.Pmd
+import org.gradle.api.specs.Spec
+import org.gradle.internal.Factory
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.ConsoleRenderer
 
 abstract class PmdInvoker {
     static void invoke(Pmd pmdTask) {
-        def pmdClasspath = pmdTask.pmdClasspath
+        def pmdClasspath = pmdTask.pmdClasspath.filter(new FileExistFilter())
         def targetJdk = pmdTask.targetJdk
         def ruleSets = pmdTask.ruleSets
         def rulePriority = pmdTask.rulePriority
@@ -31,7 +34,7 @@ abstract class PmdInvoker {
         def source = pmdTask.source
         def ruleSetFiles = pmdTask.ruleSetFiles
         def ruleSetConfig = pmdTask.ruleSetConfig
-        def classpath = pmdTask.classpath
+        def classpath = pmdTask.classpath?.filter(new FileExistFilter())
         def reports = pmdTask.reports
         def consoleOutput = pmdTask.consoleOutput
         def stdOutIsAttachedToTerminal = pmdTask.stdOutIsAttachedToTerminal()
@@ -71,7 +74,7 @@ abstract class PmdInvoker {
         } else {
             // 6.+
             if (incrementalAnalysis) {
-                antPmdArgs["cacheLocation"] = new File(pmdTask.temporaryDir, "incremental.cache")
+                antPmdArgs["cacheLocation"] = pmdTask.incrementalCacheFile
             } else {
                 antPmdArgs['noCache'] = true
 
@@ -80,55 +83,72 @@ abstract class PmdInvoker {
 
         antPmdArgs["minimumPriority"] = rulePriority
 
-        antBuilder.withClasspath(pmdClasspath).execute { a ->
-            ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
-            ant.pmd(antPmdArgs) {
-                source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                ruleSets.each {
-                    ruleset(it)
-                }
-                ruleSetFiles.each {
-                    ruleset(it)
-                }
-                if (ruleSetConfig != null) {
-                    ruleset(ruleSetConfig.asFile())
-                }
+        // PMD uses java.class.path to determine it's implementation classpath for incremental analysis
+        // Since we run PMD inside the Gradle daemon, this pulls in all of Gradle's runtime.
+        // To hide this from PMD, we override the java.class.path to just the PMD classpath from Gradle's POV.
+        SystemProperties.instance.withSystemProperty("java.class.path", pmdClasspath.files.join(File.pathSeparator), new Factory<Void>() {
+            @Override
+            Void create() {
+                antBuilder.withClasspath(pmdClasspath).execute { a ->
+                    ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
+                    ant.pmd(antPmdArgs) {
+                        source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                        ruleSets.each {
+                            ruleset(it)
+                        }
+                        ruleSetFiles.each {
+                            ruleset(it)
+                        }
+                        if (ruleSetConfig != null) {
+                            ruleset(ruleSetConfig.asFile())
+                        }
 
-                if (classpath != null) {
-                    classpath.addToAntBuilder(ant, 'auxclasspath', FileCollection.AntType.ResourceCollection)
-                }
+                        if (classpath != null) {
+                            classpath.addToAntBuilder(ant, 'auxclasspath', FileCollection.AntType.ResourceCollection)
+                        }
 
-                if (reports.html.enabled) {
-                    assert reports.html.destination.parentFile.exists()
-                    formatter(type: prePmd5 ? "betterhtml" : "html", toFile: reports.html.destination)
-                }
-                if (reports.xml.enabled) {
-                    formatter(type: 'xml', toFile: reports.xml.destination)
-                }
+                        if (reports.html.enabled) {
+                            assert reports.html.destination.parentFile.exists()
+                            formatter(type: prePmd5 ? "betterhtml" : "html", toFile: reports.html.destination)
+                        }
+                        if (reports.xml.enabled) {
+                            formatter(type: 'xml', toFile: reports.xml.destination)
+                        }
 
-                if (consoleOutput) {
-                    def consoleOutputType = 'text'
-                    if (stdOutIsAttachedToTerminal) {
-                        consoleOutputType = 'textcolor'
+                        if (consoleOutput) {
+                            def consoleOutputType = 'text'
+                            if (stdOutIsAttachedToTerminal) {
+                                consoleOutputType = 'textcolor'
+                            }
+                            a.builder.saveStreams = false
+                            formatter(type: consoleOutputType, toConsole: true)
+                        }
                     }
-                    a.builder.saveStreams = false
-                    formatter(type: consoleOutputType, toConsole: true)
+                    def failureCount = ant.project.properties["pmdFailureCount"]
+                    if (failureCount) {
+                        def message = "$failureCount PMD rule violations were found."
+                        def report = reports.firstEnabled
+                        if (report) {
+                            def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                            message += " See the report at: $reportUrl"
+                        }
+                        if (ignoreFailures) {
+                            logger.warn(message)
+                        } else {
+                            throw new GradleException(message)
+                        }
+                    }
                 }
+
+                return null
             }
-            def failureCount = ant.project.properties["pmdFailureCount"]
-            if (failureCount) {
-                def message = "$failureCount PMD rule violations were found."
-                def report = reports.firstEnabled
-                if (report) {
-                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
-                    message += " See the report at: $reportUrl"
-                }
-                if (ignoreFailures) {
-                    logger.warn(message)
-                } else {
-                    throw new GradleException(message)
-                }
-            }
+        })
+    }
+
+    static class FileExistFilter implements Spec<File> {
+        @Override
+        boolean isSatisfiedBy(File element) {
+            return element.exists()
         }
     }
 

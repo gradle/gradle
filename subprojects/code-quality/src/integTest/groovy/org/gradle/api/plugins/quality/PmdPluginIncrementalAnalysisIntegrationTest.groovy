@@ -18,8 +18,11 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.plugins.quality.pmd.AbstractPmdPluginVersionIntegrationTest
 import org.gradle.util.Matchers
 import org.gradle.util.TestPrecondition
+import org.hamcrest.CoreMatchers
 import org.junit.Assume
 import spock.lang.Unroll
+
+import static org.hamcrest.CoreMatchers.containsString
 
 class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
     def setup() {
@@ -46,7 +49,8 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         goodCode()
 
         expect:
-        succeeds("check")
+        succeeds("check", "-i")
+        !output.contains("This analysis could be faster, please consider using Incremental Analysis")
         !file("build/tmp/pmdMain/incremental.cache").exists()
     }
 
@@ -62,7 +66,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         file("build/tmp/pmdMain/incremental.cache").exists()
 
         then:
-        output.contains('Analysis cache invalidated, rulesets changed')
+        output.contains('Analysis cache created')
 
         when:
         args('--rerun-tasks', '--info')
@@ -90,7 +94,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         succeeds('pmdMain')
 
         then:
-        file("build/reports/pmd/main.xml").assertContents(not(containsString('BadClass')))
+        file("build/reports/pmd/main.xml").assertContents(CoreMatchers.not(containsString('BadClass')))
     }
 
     @Unroll
@@ -101,9 +105,11 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         goodCode()
         customRuleSet()
 
-        when:
         succeeds('pmdMain')
+
+        when:
         buildFile << "\npmd{${code}}"
+        executer.noDeprecationChecks() // PMD complains about outdated rule sets
         succeeds('pmdMain', '--info')
 
         then:
@@ -112,11 +118,11 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
         where:
         reason                | code
-        'PMD version changed' | 'toolVersion="5.8.0"'
+        'PMD version changed' | 'toolVersion="6.5.0"'
         'rulesets changed'    | 'ruleSetFiles = files("customRuleSet.xml")'
     }
 
-    def "incremental analysis is available in 5.6.0+"() {
+    def "incremental analysis is available in 6.0.0 or newer"() {
         given:
         Assume.assumeTrue(supportIncrementalAnalysis())
         enableIncrementalAnalysis()
@@ -126,7 +132,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         succeeds('pmdMain')
     }
 
-    def "incremental analysis fails when enabled with < 5.6.0"() {
+    def "incremental analysis fails when enabled with older than 6.0.0"() {
         given:
         Assume.assumeFalse(supportIncrementalAnalysis())
         enableIncrementalAnalysis()
@@ -136,7 +142,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         fails('pmdMain')
 
         then:
-        failure.error.contains('Incremental analysis only supports PMD 5.6.0+')
+        failure.error.contains("Incremental analysis only supports PMD 6.0.0 and newer")
     }
 
     private goodCode() {

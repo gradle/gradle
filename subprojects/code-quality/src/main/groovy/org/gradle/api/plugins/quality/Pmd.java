@@ -33,6 +33,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -47,6 +48,7 @@ import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -362,5 +364,16 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     @Incubating
     public Property<Boolean> getIncrementalAnalysis() {
         return incrementalAnalysis;
+    }
+
+    /**
+     * Path to the incremental cache file, if incremental analysis is used.
+     *
+     * @since 5.6
+     */
+    @LocalState
+    @Incubating
+    public File getIncrementalCacheFile() {
+        return new File(getTemporaryDir(), "incremental.cache");
     }
 }
