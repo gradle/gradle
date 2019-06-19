@@ -82,6 +82,7 @@ class Codecs(
         bind(FileTreeCodec(fileSetSerializer, directoryFileTreeFactory))
         bind(FILE_SERIALIZER)
         bind(ClassCodec)
+        bind(MethodCodec)
 
         bind(listCodec)
 

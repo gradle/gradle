@@ -31,24 +31,18 @@ import java.lang.reflect.Modifier
 
 internal
 fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
-    relevantTypeHierarchyOf(taskType).flatMap { type ->
-        type.declaredFields.asSequence().filterNot { field ->
-            Modifier.isStatic(field.modifiers)
-                // Ignore the `metaClass` field that Groovy generates
-                || (field.isSynthetic && field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
-                // Ignore the `__meta_class__` field that Gradle generates
-                || (field.name == "__meta_class__" && MetaClass::class.java.isAssignableFrom(field.type))
-        }
-    }.onEach {
-        it.isAccessible = true
-    }
+    relevantTypeHierarchyOf(taskType)
+        .flatMap(Class<*>::relevantFields)
+        .onEach(Field::makeAccessible)
 
 
 private
 fun relevantTypeHierarchyOf(taskType: Class<*>): Sequence<Class<*>> = sequence {
-    var current = taskType
-    while (isRelevantDeclaringClass(current)) {
-        yield(current)
+    var current: Class<*>? = taskType
+    while (current != null) {
+        if (isRelevantDeclaringClass(current)) {
+            yield(current!!)
+        }
         current = current.superclass
     }
 }
@@ -66,6 +60,26 @@ val irrelevantDeclaringClasses = setOf(
     Task::class.java,
     TaskInternal::class.java,
     DefaultTask::class.java,
-    AbstractTask::class.java,
     ConventionTask::class.java
 )
+
+
+private
+val Class<*>.relevantFields: Sequence<Field>
+    get() = declaredFields.asSequence()
+        .filterNot { field ->
+            Modifier.isStatic(field.modifiers)
+                // Ignore the `metaClass` field that Groovy generates
+                || (field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
+                // Ignore the `__meta_class__` field that Gradle generates
+                || (field.name == "__meta_class__" && MetaClass::class.java.isAssignableFrom(field.type))
+        }
+        .filter { field ->
+            field.declaringClass != AbstractTask::class.java || field.name == "actions"
+        }
+
+
+private
+fun Field.makeAccessible() {
+    if (!isAccessible) isAccessible = true
+}
