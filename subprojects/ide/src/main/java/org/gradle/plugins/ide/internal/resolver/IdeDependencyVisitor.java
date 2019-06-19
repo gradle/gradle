@@ -52,12 +52,12 @@ public interface IdeDependencyVisitor {
      * The component identifier is guaranteed to be a {@link org.gradle.api.artifacts.component.ModuleComponentIdentifier}.
      * The source and javadoc locations maybe be empty, but never null.
      */
-    void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc);
+    void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency);
 
     /**
      * The dependency points neither to a project, nor an external module, so this method should treat it as an opaque file.
      */
-    void visitFileDependency(ResolvedArtifactResult artifact);
+    void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency);
 
     /**
      * There was an unresolved dependency in the result.
