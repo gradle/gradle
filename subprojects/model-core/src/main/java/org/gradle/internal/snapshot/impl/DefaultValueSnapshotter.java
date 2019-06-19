@@ -363,7 +363,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         @Override
         public Isolatable<?> enumValue(Enum value) {
-            return new IsolatableEnumValueSnapshot(value);
+            return new IsolatedEnumValueSnapshot(value);
         }
 
         @Override

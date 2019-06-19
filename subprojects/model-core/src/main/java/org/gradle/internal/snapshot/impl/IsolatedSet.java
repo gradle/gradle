@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-class IsolatedSet extends AbstractSetSnapshot<Isolatable<?>> implements Isolatable<Set<Object>> {
+public class IsolatedSet extends AbstractSetSnapshot<Isolatable<?>> implements Isolatable<Set<Object>> {
     public IsolatedSet(ImmutableSet<Isolatable<?>> elements) {
         super(elements);
     }

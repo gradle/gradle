@@ -22,7 +22,7 @@ import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
 
-class IsolatedManagedValue extends AbstractManagedValueSnapshot<Isolatable<?>> implements Isolatable<Object> {
+public class IsolatedManagedValue extends AbstractManagedValueSnapshot<Isolatable<?>> implements Isolatable<Object> {
     private final ManagedFactory factory;
     private final Class<?> targetType;
 
@@ -49,5 +49,13 @@ class IsolatedManagedValue extends AbstractManagedValueSnapshot<Isolatable<?>> i
             return type.cast(isolate());
         }
         return type.cast(factory.fromState(type, state.isolate()));
+    }
+
+    public int getFactoryId() {
+        return factory.getId();
+    }
+
+    public Class<?> getTargetType() {
+        return targetType;
     }
 }

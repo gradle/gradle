@@ -48,6 +48,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
     private static InstantiatorFactory instantiatorFactory
+    private static ManagedFactoryRegistry managedFactoryRegistry
     private static ServiceRegistry services
 
     private final File rootDir
@@ -65,6 +66,14 @@ class TestUtil {
             instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers, managedFactoryRegistry)
         }
         return instantiatorFactory
+    }
+
+    static ManagedFactoryRegistry managedFactoryRegistry() {
+        if (managedFactoryRegistry == null) {
+            NativeServicesTestFixture.initialize()
+            managedFactoryRegistry = ProjectBuilderImpl.getGlobalServices().get(ManagedFactoryRegistry.class)
+        }
+        return managedFactoryRegistry
     }
 
     static DomainObjectCollectionFactory domainObjectCollectionFactory() {
