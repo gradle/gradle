@@ -48,7 +48,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionPerformanc
     def "assemble on #testProject #action instant execution state with #daemon daemon"() {
 
         given:
-        runner.targetVersions = ["5.6-20190524021549+0000"]
+        runner.targetVersions = ["5.6-20190619122526+0000"]
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
         runner.args = ["-Dorg.gradle.unsafe.instant-execution"]
