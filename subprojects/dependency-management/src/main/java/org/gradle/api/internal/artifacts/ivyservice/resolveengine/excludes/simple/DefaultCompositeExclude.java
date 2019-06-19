@@ -32,8 +32,10 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
     DefaultCompositeExclude(ImmutableSet<ExcludeSpec> components) {
         this.components = components;
         this.size = components.size();
-        this.hashCode = 31 * components.hashCode() + this.size ^ this.getClass().hashCode();
+        this.hashCode = (31 * components.hashCode() + this.size) ^ mask();
     }
+
+    abstract int mask();
 
     @Override
     public boolean equals(Object o) {
