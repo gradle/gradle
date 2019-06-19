@@ -27,6 +27,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,9 +56,19 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     @Override
     public List<String> getAllJvmArgs() {
         List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
-        if (classpath != null && !classpath.isEmpty()) {
-            allArgs.add("-cp");
-            allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
+        if (mainClass == null) {
+            if (classpath != null && classpath.getFiles().size() == 1) {
+                allArgs.add("-jar");
+                allArgs.add(classpath.getSingleFile().getAbsolutePath());
+            } else {
+                throw new IllegalStateException("No main class specified and classpath is not an executable jar.");
+            }
+        } else {
+            if (classpath != null && !classpath.isEmpty()) {
+                allArgs.add("-cp");
+                allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
+            }
+            allArgs.add(mainClass);
         }
         return allArgs;
     }
@@ -199,6 +210,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
+    @Nonnull
     public List<String> getArgs() {
         List<String> args = new ArrayList<String>();
         for (Object applicationArg : applicationArgs) {
@@ -267,7 +279,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     @Override
     public List<String> getAllArguments() {
         List<String> arguments = new ArrayList<String>(getAllJvmArgs());
-        arguments.add(mainClass);
         arguments.addAll(getArgs());
         for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
             Iterables.addAll(arguments, argumentProvider.asArguments());
@@ -278,14 +289,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     @Override
     public JavaForkOptions copyTo(JavaForkOptions options) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ExecHandle build() {
-        if (mainClass == null) {
-            throw new IllegalStateException("No main class specified");
-        }
-        return super.build();
     }
 
     @Override
