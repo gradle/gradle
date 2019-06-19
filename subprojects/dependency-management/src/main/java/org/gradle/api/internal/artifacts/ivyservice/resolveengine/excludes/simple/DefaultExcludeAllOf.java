@@ -30,6 +30,11 @@ final class DefaultExcludeAllOf extends DefaultCompositeExclude implements Exclu
         super(components);
     }
 
+    @Override
+    int mask() {
+        return 1877062907;
+    }
+
     private Boolean mayExcludeArtifacts;
 
     @Override
