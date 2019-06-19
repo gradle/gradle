@@ -146,7 +146,7 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
 
     @Override
     public String toString() {
-        return "{" + getDisplayName() +
+        return "{\"" + getDisplayName() + "\": " +
             " " + components +
             '}';
     }

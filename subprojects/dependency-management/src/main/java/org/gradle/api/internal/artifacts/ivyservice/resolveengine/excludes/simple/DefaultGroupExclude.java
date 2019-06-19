@@ -83,6 +83,6 @@ final class DefaultGroupExclude implements GroupExclude {
 
     @Override
     public String toString() {
-        return "{exclude group = '" + group + "'}";
+        return "{\"exclude group\" : \"" + group + "\"}";
     }
 }

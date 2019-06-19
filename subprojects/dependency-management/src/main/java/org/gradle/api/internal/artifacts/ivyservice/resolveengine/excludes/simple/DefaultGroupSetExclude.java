@@ -78,6 +78,7 @@ final class DefaultGroupSetExclude implements GroupSetExclude {
 
     @Override
     public String toString() {
-        return "{ groups = " + groups + '}';
+        return "{ \"groups\" : [" + ExcludeJsonHelper.toJson(groups) + "]}";
     }
+
 }

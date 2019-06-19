@@ -85,6 +85,6 @@ final class DefaultModuleArtifactExclude implements ArtifactExclude {
 
     @Override
     public String toString() {
-        return "{artifact " + artifactName + " of module=" + moduleId + "}";
+        return "{ \"artifact\": { \"name\": \"" + artifactName + "\", \"module\" : \"" + moduleId + "\"} }";
     }
 }

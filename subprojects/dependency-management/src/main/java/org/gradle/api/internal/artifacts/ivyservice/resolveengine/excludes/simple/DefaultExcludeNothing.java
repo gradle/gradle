@@ -47,7 +47,7 @@ class DefaultExcludeNothing implements ExcludeNothing {
 
     @Override
     public String toString() {
-        return "{excludes none}";
+        return "\"excludes none\"";
     }
 
     @Override
