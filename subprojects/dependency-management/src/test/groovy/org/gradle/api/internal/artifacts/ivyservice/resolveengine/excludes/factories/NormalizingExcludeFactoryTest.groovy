@@ -39,16 +39,24 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         factory.anyOf(right, left) == expected
 
         where:
-        left                               | right         | expected
-        everything()                       | nothing()     | everything()
-        everything()                       | everything()  | everything()
-        nothing()                          | nothing()     | nothing()
-        everything()                       | group("foo")  | everything()
-        nothing()                          | group("foo")  | group("foo")
-        group("foo")                       | group("bar")  | groupSet("foo", "bar")
-        group("foo")                       | module("bar") | anyOf(group("foo"), module("bar"))
-        anyOf(group("foo"), group("bar"))  | group("foo")  | groupSet("foo", "bar")
-        anyOf(group("foo"), module("bar")) | module("bar") | anyOf(module("bar"), group("foo"))
+        left                                        | right                                       | expected
+        everything()                                | nothing()                                   | everything()
+        everything()                                | everything()                                | everything()
+        nothing()                                   | nothing()                                   | nothing()
+        everything()                                | group("foo")                                | everything()
+        nothing()                                   | group("foo")                                | group("foo")
+        group("foo")                                | group("bar")                                | groupSet("foo", "bar")
+        group("foo")                                | module("bar")                               | anyOf(group("foo"), module("bar"))
+        anyOf(group("foo"), group("bar"))           | group("foo")                                | groupSet("foo", "bar")
+        anyOf(group("foo"), module("bar"))          | module("bar")                               | anyOf(module("bar"), group("foo"))
+        moduleId("org", "a")                        | moduleId("org", "b")                        | moduleIdSet(["org", "a"], ["org", "b"])
+        module("org")                               | module("org2")                              | moduleSet("org", "org2")
+        groupSet("org", "org2")                     | groupSet("org3", "org4")                    | groupSet("org", "org2", "org3", "org4")
+        moduleSet("mod", "mod2")                    | moduleSet("mod3", "mod4")                   | moduleSet("mod", "mod2", "mod3", "mod4")
+        moduleIdSet(["org", "foo"], ["org", "bar"]) | moduleIdSet(["org", "baz"], ["org", "quz"]) | moduleIdSet(["org", "foo"], ["org", "bar"], ["org", "baz"], ["org", "quz"])
+        module("mod")                               | moduleSet("m1", "m2")                       | moduleSet("m1", "m2", "mod")
+        group("g1")                                 | groupSet("g2", "g3")                        | groupSet("g1", "g2", "g3")
+        moduleId("g1", "m1")                        | moduleIdSet(["g2", "m2"], ["g3", "m3"])     | moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])
     }
 
     @Unroll("#one ∪ #two ∪ #three = #expected")
@@ -85,5 +93,26 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         group("foo")                       | group("foo")  | group("foo")
         allOf(group("foo"), group("foo2")) | module("bar") | nothing()
         allOf(group("foo"), module("bar")) | module("bar") | moduleId("foo", "bar")
+    }
+
+    @Unroll("#one ∩ #two ∩ #three = #expected")
+    def "intersection of three elements"() {
+        expect:
+        [one, two, three].combinations().each { list ->
+            assert factory.allOf(list as Set) == expected
+        }
+
+        where:
+        one                                                   | two                                         | three                                                                      | expected
+        everything()                                          | nothing()                                   | nothing()                                                                  | nothing()
+        everything()                                          | everything()                                | everything()                                                               | everything()
+        nothing()                                             | nothing()                                   | nothing()                                                                  | nothing()
+        everything()                                          | group("foo")                                | everything()                                                               | group("foo")
+        group("foo")                                          | group("bar")                                | group("baz")                                                               | nothing()
+        group("foo")                                          | module("bar")                               | groupSet("foo", "bar")                                                     | moduleId("foo", "bar")
+        moduleId("org", "foo")                                | ivy("org", "mod", artifact("mod"), "exact") | group("org")                                                               | allOf(moduleId("org", "foo"), ivy("org", "mod", artifact("mod"), "exact"))
+        anyOf(moduleId("org", "foo"), moduleId("org", "bar")) | ivy("org", "mod", artifact("mod"), "exact") | anyOf(group("org"), module("bar"))                                         | allOf(anyOf(moduleId("org", "foo"), moduleId("org", "bar")), ivy("org", "mod", artifact("mod"), "exact"), anyOf(group("org"), module("bar")))
+        anyOf(moduleId("org", "foo"), moduleId("org", "bar")) | ivy("org", "mod", artifact("mod"), "exact") | anyOf(moduleId("org", "foo"), module("bar"))                               | allOf(moduleIdSet(["org", "foo"], ["org", "bar"]), ivy("org", "mod", artifact("mod"), "exact"))
+        anyOf(moduleId("org", "foo"), moduleId("org", "bar")) | ivy("org", "mod", artifact("mod"), "exact") | anyOf(moduleId("org", "foo"), ivy("org", "mod", artifact("mod"), "exact")) | allOf(anyOf(moduleId("org", "foo"), moduleId("org", "bar")), ivy("org", "mod", artifact("mod"), "exact"))
     }
 }

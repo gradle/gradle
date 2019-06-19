@@ -84,6 +84,8 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
         return orElse.apply(one, two);
     }
 
+    // A ∩ (A ∪ B) ∩ (A ∪ C) -> A
+    // A ∪ (A ∩ B) ∪ (A ∩ C) -> A
     private Set<ExcludeSpec> simplifySet(Class<? extends CompositeExclude> clazz, Set<ExcludeSpec> specs) {
         if (specs.stream().noneMatch(clazz::isInstance)) {
             return specs;
