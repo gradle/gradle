@@ -500,18 +500,18 @@ public class NodeState implements DependencyGraphNode {
         return incomingEdges.stream().anyMatch(EdgeState::isTransitive);
     }
 
-    private boolean isExcluded(ExcludeSpec selector, DependencyState dependencyState) {
+    private boolean isExcluded(ExcludeSpec excludeSpec, DependencyState dependencyState) {
         DependencyMetadata dependency = dependencyState.getDependency();
         if (!resolveState.getEdgeFilter().isSatisfiedBy(dependency)) {
             LOGGER.debug("{} is filtered.", dependency);
             return true;
         }
-        if (selector == moduleExclusions.nothing()) {
+        if (excludeSpec == moduleExclusions.nothing()) {
             return false;
         }
         ModuleIdentifier targetModuleId = dependencyState.getModuleIdentifier();
-        if (selector.excludes(targetModuleId)) {
-            LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
+        if (excludeSpec.excludes(targetModuleId)) {
+            LOGGER.debug("{} is excluded from {} by {}.", targetModuleId, this, excludeSpec);
             return true;
         }
 
