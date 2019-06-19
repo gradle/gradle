@@ -30,7 +30,8 @@ public class ManagedFactories {
 
     public static class RegularFileManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = RegularFile.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = DefaultFilePropertyFactory.FixedFile.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         @Override
         public <T> T fromState(Class<T> type, Object state) {
@@ -48,7 +49,8 @@ public class ManagedFactories {
 
     public static class RegularFilePropertyManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = RegularFileProperty.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = DefaultFilePropertyFactory.DefaultRegularFileVar.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         private final FileResolver fileResolver;
 
@@ -72,7 +74,8 @@ public class ManagedFactories {
 
     public static class DirectoryManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = Directory.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = FixedDirectory.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         private final FileResolver fileResolver;
 
@@ -96,7 +99,8 @@ public class ManagedFactories {
 
     public static class DirectoryPropertyManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = DirectoryProperty.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = DefaultFilePropertyFactory.DefaultDirectoryVar.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         private final FileResolver fileResolver;
 

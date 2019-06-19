@@ -89,7 +89,7 @@ public class Providers {
         return Cast.uncheckedCast(value);
     }
 
-    private static class FixedValueProvider<T> extends AbstractMinimalProvider<T> {
+    public static class FixedValueProvider<T> extends AbstractMinimalProvider<T> {
         private final T value;
 
         FixedValueProvider(T value) {

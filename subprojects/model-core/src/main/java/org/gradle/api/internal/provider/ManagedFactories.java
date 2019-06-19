@@ -29,7 +29,8 @@ import java.util.Map;
 public class ManagedFactories {
     public static class ProviderManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = Provider.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = Providers.FixedValueProvider.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         @Nullable
         @Override
@@ -52,7 +53,8 @@ public class ManagedFactories {
 
     public static class PropertyManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = Property.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = DefaultPropertyState.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         @Nullable
         @Override
@@ -71,7 +73,8 @@ public class ManagedFactories {
 
     public static class ListPropertyManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = ListProperty.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = DefaultListProperty.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         @Nullable
         @Override
@@ -92,7 +95,8 @@ public class ManagedFactories {
 
     public static class SetPropertyManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = SetProperty.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = DefaultSetProperty.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         @Nullable
         @Override
@@ -113,7 +117,8 @@ public class ManagedFactories {
 
     public static class MapPropertyManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = MapProperty.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = MapProperty.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         @Nullable
         @Override

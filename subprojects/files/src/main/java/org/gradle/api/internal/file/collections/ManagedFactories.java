@@ -28,7 +28,8 @@ import java.util.Set;
 public class ManagedFactories {
     public static class ConfigurableFileCollectionManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = ConfigurableFileCollection.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private static final Class<?> IMPL_TYPE = DefaultConfigurableFileCollection.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         private final FileResolver resolver;
 
