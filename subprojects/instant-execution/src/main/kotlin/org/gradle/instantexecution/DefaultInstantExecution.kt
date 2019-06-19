@@ -98,20 +98,26 @@ class DefaultInstantExecution(
         }
 
         buildOperationExecutor.withStoreOperation {
-            KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                writeContextFor(encoder).run {
+            try {
+                KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
+                    writeContextFor(encoder).run {
 
-                    val build = host.currentBuild
-                    writeString(build.rootProject.name)
-                    val scheduledTasks = build.scheduledTasks
-                    writeRelevantProjectsFor(scheduledTasks)
+                        val build = host.currentBuild
+                        writeString(build.rootProject.name)
+                        val scheduledTasks = build.scheduledTasks
+                        writeRelevantProjectsFor(scheduledTasks)
 
-                    writeClassPath(collectClassPath())
+                        writeClassPath(collectClassPath())
 
-                    TaskGraphCodec().run {
-                        writeTaskGraphOf(build, scheduledTasks)
+                        TaskGraphCodec().run {
+                            writeTaskGraphOf(build, scheduledTasks)
+                        }
                     }
                 }
+            } catch (e: Throwable) {
+                // Discard the state file on failure
+                instantExecutionStateFile.delete()
+                throw e
             }
         }
     }
