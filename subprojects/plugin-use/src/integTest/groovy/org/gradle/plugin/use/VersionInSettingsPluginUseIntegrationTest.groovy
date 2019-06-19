@@ -51,6 +51,33 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         verifyPluginApplied('1.0')
     }
 
+    def "can define plugin version in kotlin settings script"() {
+        when:
+        settingsFile.delete()
+        settingsKotlinFile << """
+            pluginManagement {
+                plugins {
+                    id("$PLUGIN_ID").version("2.0")
+                }
+            }
+"""
+        buildKotlinFile << """
+            plugins { id("$PLUGIN_ID") }
+            tasks.register("verify") {
+                doLast {
+                    val pluginVersion: String by project
+                    println("pluginVersion = {")
+                    println(pluginVersion)
+                    println("}")
+                    assert(pluginVersion == "2.0")
+                }
+            }
+"""
+
+        then:
+        succeeds("verify")
+    }
+
     def "can define plugin version with apply false in settings script"() {
         when:
         withSettings """
