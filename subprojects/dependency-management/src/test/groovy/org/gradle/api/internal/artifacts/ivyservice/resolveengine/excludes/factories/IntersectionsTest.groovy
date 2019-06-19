@@ -86,18 +86,18 @@ class IntersectionsTest extends Specification implements ExcludeTestSupport {
     def "further simplifications are performed by the normalizing factory"() {
         given:
         factory = new NormalizingExcludeFactory(factory)
-        ops = new Intersections(factory)
 
         expect:
-        ops.tryIntersect(one, other) == expected
-        ops.tryIntersect(other, one) == expected
+        factory.allOf(one, other) == expected
+        factory.allOf(other, one) == expected
 
         where:
-        one                                                     | other                                                   | expected
-        anyOf(group("foo"), group("bar"))                       | anyOf(group("foo"), group("baz"))                       | group("foo")
-        anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "c"])) | anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "d"])) | anyOf(group("g1"), moduleId("a", "b"))
+        one                                                                                    | other                                                                                                                | expected
+        anyOf(group("foo"), group("bar"))                                                      | anyOf(group("foo"), group("baz"))                                                                                    | group("foo")
+        anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "c"]))                                | anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "d"]))                                                              | anyOf(group("g1"), moduleId("a", "b"))
 
-
+        anyOf(ivy("org", "foo", artifact("foo"), "exact"), module("foo"))                      | anyOf(ivy("org", "foo", artifact("foo"), "exact"), module("bar"))                                                    | ivy("org", "foo", artifact("foo"), "exact")
+        anyOf(allOf(ivy("org", "foo", artifact("foo"), "exact"), module("foo")), group("bar")) | anyOf(allOf(ivy("org", "foo", artifact("foo"), "exact"), module("mod")), group("bar"))                               | group("bar")
     }
 
 
