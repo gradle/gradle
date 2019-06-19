@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories
 
+import groovy.transform.CompileStatic
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
@@ -24,6 +25,7 @@ import org.gradle.internal.component.model.IvyArtifactName
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
 
+@CompileStatic
 trait ExcludeTestSupport {
     ExcludeFactory factory = new DefaultExcludeFactory()
 
@@ -36,11 +38,11 @@ trait ExcludeTestSupport {
     }
 
     ExcludeSpec moduleSet(String... names) {
-        factory.moduleSet(names as Set<String>)
+        factory.moduleSet(RandomizedIteratorHashSet.of(names as Set<String>))
     }
 
     ExcludeSpec groupSet(String... groups) {
-        factory.groupSet(groups as Set<String>)
+        factory.groupSet(RandomizedIteratorHashSet.of(groups as Set<String>))
     }
 
     ExcludeSpec moduleId(String group, String name) {
@@ -48,7 +50,7 @@ trait ExcludeTestSupport {
     }
 
     ExcludeSpec moduleIdSet(List<String>... ids) {
-        factory.moduleIdSet(ids.collect { newId(it[0], it[1]) } as Set)
+        factory.moduleIdSet(RandomizedIteratorHashSet.of(ids.collect { newId(it[0], it[1]) } as Set))
     }
 
     ExcludeSpec anyOf(ExcludeSpec... specs) {
@@ -60,7 +62,7 @@ trait ExcludeTestSupport {
             case 2:
                 return factory.anyOf(specs[0], specs[1])
             default:
-                return factory.anyOf(specs as Set)
+                return factory.anyOf(RandomizedIteratorHashSet.of(specs as Set))
         }
     }
 
@@ -73,7 +75,7 @@ trait ExcludeTestSupport {
             case 2:
                 return factory.allOf(specs[0], specs[1])
             default:
-                return factory.allOf(specs as Set)
+                return factory.allOf(RandomizedIteratorHashSet.of(specs as Set))
         }
     }
 
@@ -95,5 +97,27 @@ trait ExcludeTestSupport {
 
     IvyArtifactName artifact(String name) {
         new DefaultIvyArtifactName(name, "jar", "jar")
+    }
+
+    private static class RandomizedIteratorHashSet<T> extends HashSet<T> {
+        private final Random random = new Random()
+
+        static <T> RandomizedIteratorHashSet<T> of(Set<T> other) {
+            return new RandomizedIteratorHashSet<T>(other)
+        }
+
+        RandomizedIteratorHashSet(Set<T> other) {
+            super(other)
+        }
+
+        Iterator<T> iterator() {
+            List<T> asList = new ArrayList<>(size())
+            Iterator<T> iterator = super.iterator()
+            while (iterator.hasNext()) {
+                asList.add(iterator.next())
+            }
+            Collections.shuffle(asList, random)
+            asList.iterator()
+        }
     }
 }

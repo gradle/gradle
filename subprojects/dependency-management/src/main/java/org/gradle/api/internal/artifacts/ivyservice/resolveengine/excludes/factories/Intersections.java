@@ -70,21 +70,20 @@ class Intersections {
 
     private ExcludeSpec intersectAnyOf(ExcludeAnyOf left, ExcludeSpec right) {
         if (right instanceof ExcludeAnyOf) {
-            Set<ExcludeSpec> common = Sets.newHashSet(left.getComponents());
+            Set<ExcludeSpec> leftComponents = left.getComponents();
             Set<ExcludeSpec> rightComponents = ((ExcludeAnyOf) right).getComponents();
+            Set<ExcludeSpec> common = Sets.newHashSet(leftComponents);
             common.retainAll(rightComponents);
             if (common.size() >= 1) {
-                Set<ExcludeSpec> remainderLeft = Sets.newHashSet(left.getComponents());
-                remainderLeft.removeAll(common);
                 ExcludeSpec alpha = asUnion(common);
-                if (remainderLeft.isEmpty()) {
+                if (leftComponents.equals(common) || rightComponents.equals(common)) {
                     return alpha;
                 }
+                Set<ExcludeSpec> remainderLeft = Sets.newHashSet(leftComponents);
+                remainderLeft.removeAll(common);
                 Set<ExcludeSpec> remainderRight = Sets.newHashSet(rightComponents);
                 remainderRight.removeAll(common);
-                if (remainderRight.isEmpty()) {
-                    return alpha;
-                }
+
                 ExcludeSpec unionLeft = asUnion(remainderLeft);
                 ExcludeSpec unionRight = asUnion(remainderRight);
                 ExcludeSpec beta = factory.allOf(unionLeft, unionRight);
