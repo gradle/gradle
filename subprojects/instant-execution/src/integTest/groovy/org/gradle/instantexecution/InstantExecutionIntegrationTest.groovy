@@ -18,6 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
@@ -501,12 +502,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.reference = null")
 
         where:
-        type               | reference
-        Project.name       | "project"
-        Gradle.name        | "project.gradle"
-        Settings.name      | "project.gradle.settings"
-        Task.name          | "project.tasks.other"
-        TaskContainer.name | "project.tasks"
+        type                        | reference
+        Project.name                | "project"
+        Gradle.name                 | "project.gradle"
+        Settings.name               | "project.gradle.settings"
+        Task.name                   | "project.tasks.other"
+        TaskContainer.name          | "project.tasks"
+        ConfigurationContainer.name | "project.configurations"
     }
 
     def "task can reference itself"() {
