@@ -99,7 +99,13 @@ class Intersections {
 
     private ExcludeSpec intersectModuleIdSet(ModuleIdSetExclude left, ExcludeSpec right) {
         Set<ModuleIdentifier> moduleIds = left.getModuleIds();
-        if (right instanceof ModuleIdSetExclude) {
+        if (right instanceof ModuleIdExclude) {
+            Set<ModuleIdentifier> leftModuleIds = left.getModuleIds();
+            if (leftModuleIds.contains(((ModuleIdExclude) right).getModuleId())) {
+                return right;
+            }
+            return factory.nothing();
+        } else if (right instanceof ModuleIdSetExclude) {
             Set<ModuleIdentifier> common = Sets.newHashSet(((ModuleIdSetExclude) right).getModuleIds());
             common.retainAll(moduleIds);
             return moduleIds(common);
