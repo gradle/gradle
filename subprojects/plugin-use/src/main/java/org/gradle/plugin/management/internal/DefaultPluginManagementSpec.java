@@ -90,7 +90,7 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
         @Override
         public PluginDependencySpec apply(boolean apply) {
             if (apply) {
-                throw new IllegalArgumentException("Cannot apply a plugin from settings script");
+                throw new IllegalArgumentException("Cannot apply a plugin from within a pluginManagement block.");
             }
             return this;
         }

@@ -181,6 +181,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         fails "help"
+        failure.assertHasCause "Cannot apply a plugin from within a pluginManagement block."
     }
 
     def "cannot specify plugin version twice in settings script"() {
@@ -208,6 +209,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         fails "help"
+        failure.assertHasCause "Cannot provide multiple default versions for the same plugin."
     }
 
     private void withSettings(String settings) {
