@@ -22,12 +22,19 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class GroovySourceFileClassNameConverter implements SourceFileClassNameConverter {
     private final Multimap<File, String> sourceClassesMapping;
+    private final Map<String, File> classSourceMapping;
 
     public GroovySourceFileClassNameConverter(Multimap<File, String> sourceClassesMapping) {
         this.sourceClassesMapping = sourceClassesMapping;
+        this.classSourceMapping = constructReverseMapping(sourceClassesMapping);
+    }
+
+    private Map<String, File> constructReverseMapping(Multimap<File, String> sourceClassesMapping) {
+        return sourceClassesMapping.entries().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     }
 
     @Override
@@ -37,11 +44,6 @@ public class GroovySourceFileClassNameConverter implements SourceFileClassNameCo
 
     @Override
     public Optional<File> getFile(String fqcn) {
-        for (Map.Entry<File, String> entry : sourceClassesMapping.entries()) {
-            if (entry.getValue().equals(fqcn)) {
-                return Optional.of(entry.getKey());
-            }
-        }
-        return Optional.empty();
+        return Optional.ofNullable(classSourceMapping.get(fqcn));
     }
 }
