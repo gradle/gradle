@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
@@ -137,6 +138,7 @@ class Codecs(
         is Gradle -> unsupportedState(Gradle::class)
         is Settings -> unsupportedState(Settings::class)
         is TaskContainer -> unsupportedState(TaskContainer::class)
+        is ConfigurationContainer -> unsupportedState(ConfigurationContainer::class)
         else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
     }
 
