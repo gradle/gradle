@@ -64,6 +64,7 @@ abstract class PmdInvoker {
         }
 
         antPmdArgs["minimumPriority"] = rulePriority
+        antPmdArgs['noCache'] = true
 
         antBuilder.withClasspath(pmdClasspath).execute { a ->
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
