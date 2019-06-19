@@ -124,10 +124,10 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
                     StringWriter writer = new StringWriter();
                     template.make(properties).writeTo(writer);
                     return new StringReader(writer.toString());
+                } catch (MissingPropertyException e) {
+                    throw new GradleException(String.format("Missing property (%s) for Groovy template expansion. Defined keys %s.", e.getProperty(), properties.keySet()), e);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
-                } catch (MissingPropertyException e) {
-                    throw new GradleException(String.format("Missing property '%s'.", e.getProperty()), e);
                 }
             }
         });

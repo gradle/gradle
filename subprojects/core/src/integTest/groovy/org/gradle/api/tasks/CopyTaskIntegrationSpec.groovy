@@ -89,7 +89,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         when:
         fails 'copy'
         then:
-        failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'. Reason: Missing property 'one'.")
+        failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'.")
+        failure.assertHasCause("Missing property (one) for Groovy template expansion. Defined keys [notused, out].")
     }
 
     def "useful help message when property cannot be expanded in filter chain"() {
@@ -107,7 +108,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         when:
         fails 'copy'
         then:
-        failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'. Reason: Missing property 'two'.")
+        failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'.")
+        failure.assertHasCause("Missing property (two) for Groovy template expansion. Defined keys [notused, out].")
     }
 
     def "multiple source with inherited include and exclude patterns"() {

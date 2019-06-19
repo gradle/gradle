@@ -15,16 +15,20 @@
  */
 package org.gradle.api.internal.file;
 
-import groovy.lang.MissingPropertyException;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.GFileUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public abstract class AbstractFileTreeElement implements FileTreeElement {
     private final Chmod chmod;
@@ -80,10 +84,8 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
             }
             chmod.chmod(target, getMode());
             return true;
-        } catch (GradleException e) {
-            throw new GradleException(String.format("Could not copy %s to '%s'. Reason: %s", getDisplayName(), target, e.getMessage()), e);
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
+            throw new CopyFileElementException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
         }
     }
 
@@ -108,5 +110,12 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         return isDirectory()
             ? FileSystem.DEFAULT_DIR_MODE
             : FileSystem.DEFAULT_FILE_MODE;
+    }
+
+    @Contextual
+    private static class CopyFileElementException extends GradleException {
+        CopyFileElementException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }
