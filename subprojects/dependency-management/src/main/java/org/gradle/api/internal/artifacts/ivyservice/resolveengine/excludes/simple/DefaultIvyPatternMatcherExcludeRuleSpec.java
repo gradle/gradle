@@ -76,20 +76,6 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
     }
 
     @Override
-    public boolean equalsIgnoreArtifact(ExcludeSpec o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DefaultIvyPatternMatcherExcludeRuleSpec that = (DefaultIvyPatternMatcherExcludeRuleSpec) o;
-        return isArtifactExclude == that.isArtifactExclude &&
-            Objects.equal(moduleId, that.moduleId) &&
-            Objects.equal(matcher, that.matcher);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
