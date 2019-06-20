@@ -178,7 +178,7 @@ class DefaultInstantExecution(
             return
         }
 
-        InstantExecutionReport(warnings, reportFile).run {
+        InstantExecutionReport(warnings, reportOutputDir).run {
             logger.lifecycle(summary)
             writeReportFile()
         }
@@ -304,9 +304,9 @@ class DefaultInstantExecution(
     }
 
     private
-    val reportFile by lazy {
+    val reportOutputDir by lazy {
         instantExecutionStateFile.run {
-            resolveSibling("$nameWithoutExtension.html")
+            resolveSibling("$nameWithoutExtension-reports")
         }
     }
 }

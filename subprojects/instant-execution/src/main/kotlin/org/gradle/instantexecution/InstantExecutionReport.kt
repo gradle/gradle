@@ -22,16 +22,19 @@ import org.gradle.instantexecution.serialization.PropertyWarning
 
 import org.gradle.internal.logging.ConsoleRenderer
 
-import java.io.BufferedWriter
+import org.gradle.reporting.HtmlReportRenderer
+import org.gradle.reporting.ReportRenderer
+
 import java.io.File
 
 
 class InstantExecutionReport(
 
-    warnings: List<PropertyWarning>,
+    private
+    val warnings: List<PropertyWarning>,
 
     private
-    val reportFile: File
+    val outputDirectory: File
 
 ) {
 
@@ -39,6 +42,9 @@ class InstantExecutionReport(
     val uniquePropertyWarnings = warnings.groupBy {
         propertyDescriptionFor(it) to it.message
     }
+
+    private
+    val indexFileName = "index.html"
 
     val summary: String
         get() = StringBuilder().apply {
@@ -49,17 +55,61 @@ class InstantExecutionReport(
                 append(": ")
                 appendln(message)
             }
-            appendln("See the complete report at ${clickableUrlFor(reportFile)}")
+            appendln("See the complete report at ${clickableUrlFor(indexFile)}")
         }.toString()
 
     fun writeReportFile() {
-        reportFile.bufferedWriter().use { writer ->
-            writer.writeReport()
+        outputDirectory.mkdirs()
         }
+        HtmlReportRenderer().render(
+            Unit,
+            renderer {
+                renderRawHtmlPage(indexFileName, Unit, renderer {
+                    output.run {
+                        val baseCssLink = requireResource(getResource("/org/gradle/reporting/base-style.css"))
+                        writeHeader(baseCssLink)
+                        writeReport()
+                        writeFooter()
+                    }
+                })
+            },
+            outputDirectory
+        )
     }
 
     private
-    fun BufferedWriter.writeReport() {
+    fun getResource(path: String) = javaClass.getResource(path)
+
+    private
+    fun Appendable.writeHeader(baseCssLink: String?) = append("""
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <title>Instant Execution Failures</title>
+</head>
+  <body>
+    """)
+
+    private
+    fun Appendable.writeFooter() = append("""
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  </body>
+</html>
+    """)
+
+    private
+    fun Appendable.writeReport() {
         val h1 = tag("h1")
         val ul = tag("ul")
         val li = tag("li")
@@ -74,21 +124,23 @@ class InstantExecutionReport(
                     ul {
                         warnings.forEach { warning ->
                             li {
-                                val reversedTrace = warning.trace.sequence.toList().reversed()
-                                append(
-                                    reversedTrace.joinToString(separator = " / ") {
-                                        when (it) {
-                                            is PropertyTrace.Bean -> it.type.name
-                                            is PropertyTrace.Property -> it.name
-                                            is PropertyTrace.Task -> "task ${it.path} / ${it.type.name}"
-                                            else -> it.toString()
-                                        }
-                                    }
-                                )
+                                append(traceStringOf(warning))
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private
+    fun traceStringOf(warning: PropertyWarning): String {
+        return warning.trace.sequence.toList().reversed().joinToString(separator = " / ") {
+            when (it) {
+                is PropertyTrace.Bean -> it.type.name
+                is PropertyTrace.Property -> it.name
+                is PropertyTrace.Task -> "task ${it.path} / ${it.type.name}"
+                else -> it.toString()
             }
         }
     }
@@ -130,7 +182,20 @@ class InstantExecutionReport(
                 else -> null
             }
         }.first()
+
+    private
+    val indexFile
+        get() = outputDirectory.resolve(indexFileName)
 }
+
+
+internal
+fun <T, O> renderer(render: O.(T) -> Unit): ReportRenderer<T, O> =
+    object : ReportRenderer<T, O>() {
+        override fun render(model: T, output: O) {
+            output.render(model)
+        }
+    }
 
 
 private

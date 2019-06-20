@@ -58,7 +58,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantRun "c"
 
         then:
-        def reportFile = file(".instant-execution-state/${GradleVersion.current().version}/4ev4b35p4lwnfkkcxm5f3cqb7.html")
+        def reportFile = file(".instant-execution-state/${GradleVersion.current().version}/4ev4b35p4lwnfkkcxm5f3cqb7-reports/index.html")
         reportFile.isFile()
         outputContains """
             3 instant execution issues found:
