@@ -31,8 +31,16 @@ import java.util.stream.Collectors;
 public class LoggingExcludeFactory extends DelegatingExcludeFactory {
     private final static Logger LOGGER = LoggerFactory.getLogger(LoggingExcludeFactory.class);
 
+    private final Subject subject;
+
     LoggingExcludeFactory(ExcludeFactory delegate) {
         super(delegate);
+        this.subject = computeWhatToLog();
+    }
+
+    private static Subject computeWhatToLog() {
+        String subjectString = System.getProperty("org.gradle.internal.dm.trace.excludes", Subject.all.toString());
+        return Subject.valueOf(subjectString.toLowerCase());
     }
 
     public static ExcludeFactory maybeLog(ExcludeFactory factory) {
@@ -62,27 +70,31 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
         return log("allOf", () -> super.allOf(specs), specs);
     }
 
-    private static ExcludeSpec log(String operationName, Factory<ExcludeSpec> factory, Object... operands) {
+    private ExcludeSpec log(String operationName, Factory<ExcludeSpec> factory, Object... operands) {
         ExcludeSpec spec;
         try {
             spec = factory.create();
         } catch (StackOverflowError e) {
-            StringWriter sw = new StringWriter();
-            sw.append("{\"stackoverflow\": [");
-            PrintWriter printWriter = new PrintWriter(sw);
-            StackTraceElement[] stackTrace = e.getStackTrace();
-            printWriter.print(Arrays.stream(stackTrace)
-                .limit(100)
-                .map(d -> {
-                    return "\"" + d.toString() + "\"";
-                })
-                .collect(Collectors.joining(", "))
-            );
-            sw.append("]}");
-            LOGGER.debug("{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }", operationName, toList(operands), sw.toString());
+            if (subject.isTraceStackOverflows()) {
+                StringWriter sw = new StringWriter();
+                sw.append("{\"stackoverflow\": [");
+                PrintWriter printWriter = new PrintWriter(sw);
+                StackTraceElement[] stackTrace = e.getStackTrace();
+                printWriter.print(Arrays.stream(stackTrace)
+                    .limit(100)
+                    .map(d -> {
+                        return "\"" + d.toString() + "\"";
+                    })
+                    .collect(Collectors.joining(", "))
+                );
+                sw.append("]}");
+                LOGGER.debug("{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }", operationName, toList(operands), sw.toString());
+            }
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        LOGGER.debug("{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }", operationName, toList(operands), spec);
+        if (subject.isTraceOperations()) {
+            LOGGER.debug("{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }", operationName, toList(operands), spec);
+        }
         return spec;
     }
 
@@ -92,5 +104,27 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
 
     private static boolean singleCollection(Object[] operands) {
         return operands.length== 1 && operands[0] instanceof Collection;
+    }
+
+    private enum Subject {
+        all(true, true),
+        stackoverflow(false, true),
+        operations(true, false);
+
+        private final boolean traceOperations;
+        private final boolean traceStackOverflows;
+
+        Subject(boolean traceOperations, boolean traceStackOverflows) {
+            this.traceOperations = traceOperations;
+            this.traceStackOverflows = traceStackOverflows;
+        }
+
+        public boolean isTraceOperations() {
+            return traceOperations;
+        }
+
+        public boolean isTraceStackOverflows() {
+            return traceStackOverflows;
+        }
     }
 }
