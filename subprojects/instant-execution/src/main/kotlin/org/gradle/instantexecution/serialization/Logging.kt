@@ -20,8 +20,14 @@ import kotlin.reflect.KClass
 
 
 fun IsolateContext.logPropertyWarning(action: String, message: String) {
-    logger.warn("instant-execution > failed to {} {} because {}", action, trace, message)
-    warnings.add(PropertyWarning(trace, message))
+    logger.debug("instant-execution > failed to {} {} because {}", action, trace, message)
+    failures.add(PropertyFailure.Warning(trace, message))
+}
+
+
+fun IsolateContext.logPropertyError(action: String, message: String, error: Throwable) {
+    logger.debug("instant-execution > failed to {} {} because {}", action, trace, message)
+    failures.add(PropertyFailure.Error(trace, message, error))
 }
 
 

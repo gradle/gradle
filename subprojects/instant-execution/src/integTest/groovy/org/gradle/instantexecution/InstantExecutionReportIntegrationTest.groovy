@@ -58,13 +58,16 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantRun "c"
 
         then:
-        def reportFile = file(".instant-execution-state/${GradleVersion.current().version}/4ev4b35p4lwnfkkcxm5f3cqb7-reports/index.html")
+        def reportDir = file(".instant-execution-state/${GradleVersion.current().version}/4ev4b35p4lwnfkkcxm5f3cqb7")
+        def reportFile = reportDir.file("instant-execution-report.html")
         reportFile.isFile()
+        def jsFile = reportDir.file("instant-execution-failures.js")
+        jsFile.isFile()
         outputContains """
             3 instant execution issues found:
-              - field 'SomeBean.gradle': there's no serializer for type 'org.gradle.invocation.DefaultGradle'
-              - field 'NestedBean.gradle': there's no serializer for type 'org.gradle.invocation.DefaultGradle'
-              - field 'NestedBean.project': there's no serializer for type 'org.gradle.api.internal.project.DefaultProject'
+              - field 'gradle' from type 'SomeBean': there's no serializer for type 'org.gradle.invocation.DefaultGradle'
+              - field 'gradle' from type 'NestedBean': there's no serializer for type 'org.gradle.invocation.DefaultGradle'
+              - field 'project' from type 'NestedBean': there's no serializer for type 'org.gradle.api.internal.project.DefaultProject'
             See the complete report at ${clickableUrlFor(reportFile)}
         """.stripIndent()
     }

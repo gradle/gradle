@@ -5,6 +5,14 @@ plugins {
     `kotlin-library`
 }
 
+tasks {
+    processResources {
+        from(project(":instantExecutionReport").tasks.named("processResources")) {
+            into("org/gradle/instantexecution")
+        }
+    }
+}
+
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":messaging"))

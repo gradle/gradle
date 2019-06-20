@@ -77,14 +77,34 @@ interface IsolateContext {
 
     var trace: PropertyTrace
 
-    val warnings: MutableCollection<PropertyWarning>
+    val failures: MutableCollection<PropertyFailure>
 }
 
 
-data class PropertyWarning(
-    val trace: PropertyTrace,
-    val message: String
-)
+sealed class PropertyFailure {
+
+    abstract val trace: PropertyTrace
+
+    abstract val message: String
+
+    /**
+     * A failure that does not necessarily compromise the execution of the build.
+     */
+    data class Warning(
+        override val trace: PropertyTrace,
+        override val message: String
+    ) : PropertyFailure()
+
+    /**
+     * A failure that compromises the execution of the build.
+     * Instant execution state should be discarded.
+     */
+    data class Error(
+        override val trace: PropertyTrace,
+        override val message: String,
+        val error: Throwable
+    ) : PropertyFailure()
+}
 
 
 sealed class PropertyTrace {

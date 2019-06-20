@@ -16,157 +16,144 @@
 
 package org.gradle.instantexecution
 
+import groovy.json.JsonOutput
+
+import org.gradle.instantexecution.serialization.PropertyFailure
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
-import org.gradle.instantexecution.serialization.PropertyWarning
 
 import org.gradle.internal.logging.ConsoleRenderer
 
-import org.gradle.reporting.HtmlReportRenderer
-import org.gradle.reporting.ReportRenderer
+import org.gradle.util.GFileUtils.copyURLToFile
 
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.net.URL
 
 
 class InstantExecutionReport(
 
     private
-    val warnings: List<PropertyWarning>,
+    val failures: List<PropertyFailure>,
 
     private
     val outputDirectory: File
 
 ) {
-
-    private
-    val uniquePropertyWarnings = warnings.groupBy {
-        propertyDescriptionFor(it) to it.message
-    }
-
-    private
-    val indexFileName = "index.html"
-
     val summary: String
-        get() = StringBuilder().apply {
-            appendln("${uniquePropertyWarnings.size} instant execution issues found:")
-            uniquePropertyWarnings.keys.forEach { (property, message) ->
-                append("  - ")
-                append(property)
-                append(": ")
-                appendln(message)
+        get() {
+            val uniquePropertyFailures = failures.groupBy {
+                propertyDescriptionFor(it) to it.message
             }
-            appendln("See the complete report at ${clickableUrlFor(indexFile)}")
-        }.toString()
+            return StringBuilder().apply {
+                appendln("${uniquePropertyFailures.size} instant execution issues found:")
+                uniquePropertyFailures.keys.forEach { (property, message) ->
+                    append("  - ")
+                    append(property)
+                    append(": ")
+                    appendln(message)
+                }
+                appendln("See the complete report at ${clickableUrlFor(reportFile)}")
+            }.toString()
+        }
 
-    fun writeReportFile() {
+    fun writeReportFiles() {
         outputDirectory.mkdirs()
-        }
-        HtmlReportRenderer().render(
-            Unit,
-            renderer {
-                renderRawHtmlPage(indexFileName, Unit, renderer {
-                    output.run {
-                        val baseCssLink = requireResource(getResource("/org/gradle/reporting/base-style.css"))
-                        writeHeader(baseCssLink)
-                        writeReport()
-                        writeFooter()
-                    }
-                })
-            },
-            outputDirectory
-        )
+        copyReportResources()
+        writeJsFailures()
     }
 
     private
-    fun getResource(path: String) = javaClass.getResource(path)
-
-    private
-    fun Appendable.writeHeader(baseCssLink: String?) = append("""
-<!doctype html>
-<html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    
-    <title>Instant Execution Failures</title>
-</head>
-  <body>
-    """)
-
-    private
-    fun Appendable.writeFooter() = append("""
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-  </body>
-</html>
-    """)
-
-    private
-    fun Appendable.writeReport() {
-        val h1 = tag("h1")
-        val ul = tag("ul")
-        val li = tag("li")
-        h1 {
-            appendln("${uniquePropertyWarnings.size} issues found")
+    fun copyReportResources() {
+        listOf(
+            reportFile.name,
+            "instant-execution-report.js",
+            "instant-execution-report.css",
+            "kotlin.js"
+        ).forEach { resourceName ->
+            copyURLToFile(
+                getResource(resourceName),
+                outputDirectory.resolve(resourceName)
+            )
         }
-        ul {
-            uniquePropertyWarnings.forEach { (summary, warnings) ->
-                val (property, message) = summary
-                li {
-                    appendln("$property - $message")
-                    ul {
-                        warnings.forEach { warning ->
-                            li {
-                                append(traceStringOf(warning))
-                            }
-                        }
-                    }
+    }
+
+    private
+    fun writeJsFailures() {
+        outputDirectory.resolve("instant-execution-failures.js").bufferedWriter().use { writer ->
+            writer.run {
+                appendln("var instantExecutionFailures = [")
+                failures.forEach {
+                    append(
+                        JsonOutput.toJson(
+                            mapOf(
+                                "trace" to traceListOf(it),
+                                "message" to it.message,
+                                "error" to stackTraceStringOf(it)
+                            )
+                        )
+                    )
+                    appendln(",")
+                }
+                appendln("];")
+            }
+        }
+    }
+
+    private
+    fun stackTraceStringOf(failure: PropertyFailure): String? =
+        (failure as? PropertyFailure.Error)?.error?.let {
+            stackTraceStringFor(it)
+        }
+
+    private
+    fun stackTraceStringFor(error: Throwable): String =
+        StringWriter().also { error.printStackTrace(PrintWriter(it)) }.toString()
+
+    private
+    fun traceListOf(failure: PropertyFailure): List<String> = mutableListOf<String>().also { result ->
+        fun collectTrace(current: PropertyTrace): Unit = current.run {
+            when (this) {
+                is PropertyTrace.Property -> {
+                    result.add(simpleDescription())
+                    collectTrace(trace)
+                }
+                is PropertyTrace.Task -> {
+                    result.add("task '$path' of type '${type.name}'")
+                }
+                is PropertyTrace.Bean -> {
+                    result.add("bean of type '${type.name}'")
+                    collectTrace(trace)
+                }
+                PropertyTrace.Gradle -> {
+                    result.add("Gradle state")
+                }
+                else -> {
+                    throw IllegalStateException()
                 }
             }
         }
+        collectTrace(failure.trace)
     }
 
     private
-    fun traceStringOf(warning: PropertyWarning): String {
-        return warning.trace.sequence.toList().reversed().joinToString(separator = " / ") {
-            when (it) {
-                is PropertyTrace.Bean -> it.type.name
-                is PropertyTrace.Property -> it.name
-                is PropertyTrace.Task -> "task ${it.path} / ${it.type.name}"
-                else -> it.toString()
-            }
-        }
-    }
-
-    private
-    fun tag(name: String): (Appendable.(() -> Unit) -> Unit) {
-        val open = "<$name>"
-        val close = "</$name>"
-        return { body ->
-            appendln(open)
-            body()
-            appendln(close)
-        }
-    }
-
-    private
-    fun propertyDescriptionFor(warning: PropertyWarning): String = warning.trace.run {
+    fun propertyDescriptionFor(failure: PropertyFailure): String = failure.trace.run {
         when (this) {
-            is PropertyTrace.Property -> {
-                when (kind) {
-                    PropertyKind.Field -> "field '${typeFrom(trace).name}.$name'"
-                    else -> "$kind '$name' of '${taskPathFrom(trace)}'"
-                }
-            }
+            is PropertyTrace.Property -> simpleDescription()
             else -> toString()
         }
+    }
+
+    private
+    fun getResource(path: String): URL = javaClass.getResource(path).also {
+        require(it != null) { "Resource `$path` could not be found!" }
+    }
+
+    private
+    fun PropertyTrace.Property.simpleDescription(): String = when (kind) {
+        PropertyKind.Field -> "field '$name' from type '${firstTypeFrom(trace).name}'"
+        else -> "$kind '$name' of '${taskPathFrom(trace)}'"
     }
 
     private
@@ -174,28 +161,20 @@ class InstantExecutionReport(
         trace.sequence.filterIsInstance<PropertyTrace.Task>().first().path
 
     private
-    fun typeFrom(trace: PropertyTrace): Class<*> =
-        trace.sequence.mapNotNull {
-            when (it) {
-                is PropertyTrace.Bean -> it.type
-                is PropertyTrace.Task -> it.type
-                else -> null
-            }
-        }.first()
+    fun firstTypeFrom(trace: PropertyTrace): Class<*> =
+        trace.sequence.mapNotNull { typeFrom(it) }.first()
 
     private
-    val indexFile
-        get() = outputDirectory.resolve(indexFileName)
-}
-
-
-internal
-fun <T, O> renderer(render: O.(T) -> Unit): ReportRenderer<T, O> =
-    object : ReportRenderer<T, O>() {
-        override fun render(model: T, output: O) {
-            output.render(model)
-        }
+    fun typeFrom(trace: PropertyTrace): Class<out Any>? = when (trace) {
+        is PropertyTrace.Bean -> trace.type
+        is PropertyTrace.Task -> trace.type
+        else -> null
     }
+
+    private
+    val reportFile
+        get() = outputDirectory.resolve("instant-execution-report.html")
+}
 
 
 private

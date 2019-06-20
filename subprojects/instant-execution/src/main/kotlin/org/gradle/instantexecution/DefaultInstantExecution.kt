@@ -27,8 +27,8 @@ import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
+import org.gradle.instantexecution.serialization.PropertyFailure
 import org.gradle.instantexecution.serialization.PropertyTrace
-import org.gradle.instantexecution.serialization.PropertyWarning
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
@@ -127,7 +127,7 @@ class DefaultInstantExecution(
                                 writeTaskGraphOf(build, scheduledTasks)
                             }
 
-                            warnings
+                            failures
                         }
                     }
                 } catch (e: Throwable) {
@@ -173,14 +173,14 @@ class DefaultInstantExecution(
     }
 
     private
-    fun report(warnings: List<PropertyWarning>) {
-        if (warnings.isEmpty()) {
+    fun report(failures: List<PropertyFailure>) {
+        if (failures.isEmpty()) {
             return
         }
 
-        InstantExecutionReport(warnings, reportOutputDir).run {
+        InstantExecutionReport(failures, reportOutputDir).run {
             logger.lifecycle(summary)
-            writeReportFile()
+            writeReportFiles()
         }
     }
 
@@ -306,7 +306,7 @@ class DefaultInstantExecution(
     private
     val reportOutputDir by lazy {
         instantExecutionStateFile.run {
-            resolveSibling("$nameWithoutExtension-reports")
+            resolveSibling(nameWithoutExtension)
         }
     }
 }
