@@ -72,6 +72,7 @@ public class NodeState implements DependencyGraphNode {
     private final boolean isTransitive;
     private final boolean selectedByVariantAwareResolution;
     private final boolean dependenciesMayChange;
+    private boolean doesNotHaveDependencies;
 
     ExcludeSpec previousTraversalExclusions;
 
@@ -270,22 +271,23 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private boolean excludesSameDependenciesAsPreviousTraversal(ExcludeSpec newResolutionFilter) {
+        List<DependencyState> oldStates = cachedFilteredDependencyStates;
+        cachedFilteredDependencyStates = null;
         if (previousTraversalExclusions == null) {
             return false;
         }
         if (previousTraversalExclusions.equals(newResolutionFilter)) {
             return true;
         }
-        if (cachedFilteredDependencyStates == null) {
-            return false;
+        if (doesNotHaveDependencies && !dependenciesMayChange) {
+            // whatever the exclude filter, there are no dependencies
+            return true;
         }
         // here, we need to check that applying the new resolution filter
         // we would actually exclude exactly the same dependencies as in
         // the previous visit. It is important that this is NOT a heuristic
         // (it used to be) because if the filters are _equivalent_, we would
         // revisit all dependencies and possibly change the classpath order!
-        List<DependencyState> oldStates = cachedFilteredDependencyStates;
-        cachedFilteredDependencyStates = null;
         boolean sameDependencies = dependencies(newResolutionFilter).equals(oldStates);
         if (sameDependencies) {
             LOGGER.debug("Filter {} excludes same dependencies as previous {}", newResolutionFilter, previousTraversalExclusions);
@@ -384,7 +386,9 @@ public class NodeState implements DependencyGraphNode {
             cachedDependencyStates = null;
             cachedFilteredDependencyStates = null;
         }
-        return metaData.getDependencies();
+        List<? extends DependencyMetadata> dependencies = metaData.getDependencies();
+        doesNotHaveDependencies = dependencies.isEmpty();
+        return dependencies;
     }
 
     private List<DependencyState> dependencies(ExcludeSpec spec) {
@@ -399,6 +403,9 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private List<DependencyState> cacheFilteredDependencyStates(ExcludeSpec spec, List<DependencyState> from) {
+        if (from.isEmpty()) {
+            return from;
+        }
         List<DependencyState> tmp = Lists.newArrayListWithCapacity(from.size());
         for (DependencyState dependencyState : from) {
             if (!isExcluded(spec, dependencyState)) {
@@ -409,6 +416,9 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private List<DependencyState> cacheDependencyStates(List<? extends DependencyMetadata> dependencies) {
+        if (dependencies.isEmpty()) {
+            return Collections.emptyList();
+        }
         List<DependencyState> tmp = Lists.newArrayListWithCapacity(dependencies.size());
         for (DependencyMetadata dependency : dependencies) {
             tmp.add(cachedDependencyStateFor(dependency));
@@ -662,7 +672,6 @@ public class NodeState implements DependencyGraphNode {
         previousIncomingEdgeCount = incomingEdgeCount;
         previousIncomingHash = incomingHash;
         cachedModuleResolutionFilter = result;
-        cachedFilteredDependencyStates = null;
         return result;
     }
 
