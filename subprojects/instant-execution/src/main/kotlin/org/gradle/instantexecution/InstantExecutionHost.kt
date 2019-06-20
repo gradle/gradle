@@ -77,7 +77,7 @@ class InstantExecutionHost internal constructor(
         DefaultClassicModeBuild()
 
     override fun createBuild(rootProjectName: String): InstantExecutionBuild =
-        DefaultInstantExecutionBuild(service(), rootProjectName)
+        DefaultInstantExecutionBuild(gradle, service(), rootProjectName)
 
     override fun <T> getService(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -112,12 +112,13 @@ class InstantExecutionHost internal constructor(
     }
 
     inner class DefaultInstantExecutionBuild(
+        override val gradle: GradleInternal,
         private val fileResolver: PathToFileResolver,
         rootProjectName: String
     ) : InstantExecutionBuild {
 
         init {
-            this@InstantExecutionHost.gradle.run {
+            gradle.run {
                 settings = createSettings()
 
                 // Fire build operation required by build scan to determine startup duration and settings evaluated duration
@@ -135,8 +136,6 @@ class InstantExecutionHost internal constructor(
                 defaultProject = rootProject
             }
         }
-
-        override val gradle: GradleInternal = this@InstantExecutionHost.gradle
 
         override fun createProject(path: String): ProjectInternal {
             val projectPath = Path.path(path)
