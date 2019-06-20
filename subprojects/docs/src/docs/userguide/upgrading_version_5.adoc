@@ -75,7 +75,7 @@ Previously, all copies of a configuration always had the name `<OriginConfigurat
 
 === Changed classpath filtering for Eclipse
 
-Gradle 5.6 no longer supplies custom classpath attributes in the Eclipse model. Instead, it provides the attributes for [Eclipse test sources](https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources). This change requires Buildship version 3.1.1 or later.
+Gradle 5.6 no longer supplies custom classpath attributes in the Eclipse model. Instead, it provides the attributes for link:https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources[Eclipse test sources]. This change requires Buildship version 3.1.1 or later.
 
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
