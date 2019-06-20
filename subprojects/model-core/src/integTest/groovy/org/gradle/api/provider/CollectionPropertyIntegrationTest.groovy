@@ -40,12 +40,18 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "can define task with abstract ListProperty getter"() {
+    @Unroll
+    def "can define task with abstract ListProperty<#type> getter"() {
         given:
         buildFile << """
+            class Param<T> {
+                T display
+                String toString() { display.toString() }
+            }
+
             abstract class ATask extends DefaultTask {
                 @Input
-                abstract ListProperty<String> getProp()
+                abstract ListProperty<$type> getProp()
                 
                 @TaskAction
                 void go() {
@@ -54,7 +60,7 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
             }
             
             tasks.create("thing", ATask) {
-                prop = ["a", "b", "c"]
+                prop = $value
             }
         """
 
@@ -62,7 +68,12 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thing")
 
         then:
-        outputContains("prop = [a, b, c]")
+        outputContains("prop = $display")
+
+        where:
+        type            | value                                                                | display
+        "String"        | '["a", "b", "c"]'                                                    | '[a, b, c]'
+        "Param<String>" | '[new Param<String>(display: "a"), new Param<String>(display: "b")]' | '[a, b]'
     }
 
     def "can finalize the value of a property using API"() {

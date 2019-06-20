@@ -413,7 +413,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             includeNotInheritedAnnotations();
 
             visitor.visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
-                    superclass.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
+                superclass.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
 
             if (requiresServicesMethod) {
                 generateServiceRegistrySupportMethods();
@@ -564,7 +564,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     // GENERATE super.getAsDynamicObject()
                     visitor.visitVarInsn(ALOAD, 0);
                     visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(type).getInternalName(),
-                            "getAsDynamicObject", RETURN_DYNAMIC_OBJECT, false);
+                        "getAsDynamicObject", RETURN_DYNAMIC_OBJECT, false);
                 } else {
                     // GENERATE null
                     visitor.visitInsn(Opcodes.ACONST_NULL);
@@ -796,64 +796,64 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE public void setProperty(String name, Object value) { getAsDynamicObject().setProperty(name, value); }
 
             addSetter("setProperty", RETURN_VOID_FROM_STRING_OBJECT,
-                    new MethodCodeBody() {
-                        @Override
-                        public void add(MethodVisitor methodVisitor) {
-                            // GENERATE getAsDynamicObject().setProperty(name, value)
+                new MethodCodeBody() {
+                    @Override
+                    public void add(MethodVisitor methodVisitor) {
+                        // GENERATE getAsDynamicObject().setProperty(name, value)
 
-                            methodVisitor.visitVarInsn(ALOAD, 0);
-                            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getAsDynamicObject", RETURN_DYNAMIC_OBJECT, false);
+                        methodVisitor.visitVarInsn(ALOAD, 0);
+                        methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getAsDynamicObject", RETURN_DYNAMIC_OBJECT, false);
 
-                            methodVisitor.visitVarInsn(ALOAD, 1);
-                            methodVisitor.visitVarInsn(ALOAD, 2);
-                            String setPropertyDesc = RETURN_VOID_FROM_STRING_OBJECT;
-                            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "setProperty", setPropertyDesc, true);
+                        methodVisitor.visitVarInsn(ALOAD, 1);
+                        methodVisitor.visitVarInsn(ALOAD, 2);
+                        String setPropertyDesc = RETURN_VOID_FROM_STRING_OBJECT;
+                        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "setProperty", setPropertyDesc, true);
 
-                            // END
-                        }
-                    });
+                        // END
+                    }
+                });
 
             // GENERATE public Object invokeMethod(String name, Object params) { return getAsDynamicObject().invokeMethod(name, (Object[])params); }
 
             addGetter("invokeMethod", OBJECT_TYPE, RETURN_OBJECT_FROM_STRING_OBJECT, null,
-                    new MethodCodeBody() {
-                        @Override
-                        public void add(MethodVisitor methodVisitor) {
-                            String invokeMethodDesc = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_ARRAY_TYPE);
+                new MethodCodeBody() {
+                    @Override
+                    public void add(MethodVisitor methodVisitor) {
+                        String invokeMethodDesc = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_ARRAY_TYPE);
 
-                            // GENERATE getAsDynamicObject().invokeMethod(name, (args instanceof Object[]) ? args : new Object[] { args })
+                        // GENERATE getAsDynamicObject().invokeMethod(name, (args instanceof Object[]) ? args : new Object[] { args })
 
-                            methodVisitor.visitVarInsn(ALOAD, 0);
-                            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getAsDynamicObject", RETURN_DYNAMIC_OBJECT, false);
+                        methodVisitor.visitVarInsn(ALOAD, 0);
+                        methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getAsDynamicObject", RETURN_DYNAMIC_OBJECT, false);
 
-                            methodVisitor.visitVarInsn(ALOAD, 1);
+                        methodVisitor.visitVarInsn(ALOAD, 1);
 
-                            // GENERATE (args instanceof Object[]) ? args : new Object[] { args }
-                            methodVisitor.visitVarInsn(ALOAD, 2);
-                            methodVisitor.visitTypeInsn(Opcodes.INSTANCEOF, OBJECT_ARRAY_TYPE.getDescriptor());
-                            Label end = new Label();
-                            Label notArray = new Label();
-                            methodVisitor.visitJumpInsn(Opcodes.IFEQ, notArray);
+                        // GENERATE (args instanceof Object[]) ? args : new Object[] { args }
+                        methodVisitor.visitVarInsn(ALOAD, 2);
+                        methodVisitor.visitTypeInsn(Opcodes.INSTANCEOF, OBJECT_ARRAY_TYPE.getDescriptor());
+                        Label end = new Label();
+                        Label notArray = new Label();
+                        methodVisitor.visitJumpInsn(Opcodes.IFEQ, notArray);
 
-                            // Generate args
-                            methodVisitor.visitVarInsn(ALOAD, 2);
-                            methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, OBJECT_ARRAY_TYPE.getDescriptor());
-                            methodVisitor.visitJumpInsn(Opcodes.GOTO, end);
+                        // Generate args
+                        methodVisitor.visitVarInsn(ALOAD, 2);
+                        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, OBJECT_ARRAY_TYPE.getDescriptor());
+                        methodVisitor.visitJumpInsn(Opcodes.GOTO, end);
 
-                            // Generate new Object[] { args }
-                            methodVisitor.visitLabel(notArray);
-                            methodVisitor.visitInsn(Opcodes.ICONST_1);
-                            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, OBJECT_TYPE.getInternalName());
-                            methodVisitor.visitInsn(Opcodes.DUP);
-                            methodVisitor.visitInsn(Opcodes.ICONST_0);
-                            methodVisitor.visitVarInsn(ALOAD, 2);
-                            methodVisitor.visitInsn(Opcodes.AASTORE);
+                        // Generate new Object[] { args }
+                        methodVisitor.visitLabel(notArray);
+                        methodVisitor.visitInsn(Opcodes.ICONST_1);
+                        methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, OBJECT_TYPE.getInternalName());
+                        methodVisitor.visitInsn(Opcodes.DUP);
+                        methodVisitor.visitInsn(Opcodes.ICONST_0);
+                        methodVisitor.visitVarInsn(ALOAD, 2);
+                        methodVisitor.visitInsn(Opcodes.AASTORE);
 
-                            methodVisitor.visitLabel(end);
+                        methodVisitor.visitLabel(end);
 
-                            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "invokeMethod", invokeMethodDesc, true);
-                        }
-                    });
+                        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "invokeMethod", invokeMethodDesc, true);
+                    }
+                });
         }
 
         @Override
@@ -991,23 +991,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "directoryProperty", RETURN_DIRECTORY_PROPERTY, true);
                 } else if (property.getType().equals(Property.class)) {
                     // GENERATE objectFactory.property(type)
-                    Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
+                    Class<?> elementType = rawTypeParam(property, 0);
                     methodVisitor.visitLdcInsn(Type.getType(elementType));
                     methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "property", RETURN_PROPERTY_FROM_CLASS, true);
                 } else if (property.getType().equals(ListProperty.class)) {
                     // GENERATE objectFactory.listProperty(type)
-                    Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
+                    Class<?> elementType = rawTypeParam(property, 0);
                     methodVisitor.visitLdcInsn(Type.getType(elementType));
                     methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "listProperty", RETURN_LIST_PROPERTY_FROM_CLASS, true);
                 } else if (property.getType().equals(SetProperty.class)) {
                     // GENERATE objectFactory.setProperty(type)
-                    Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
+                    Class<?> elementType = rawTypeParam(property, 0);
                     methodVisitor.visitLdcInsn(Type.getType(elementType));
                     methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "setProperty", RETURN_SET_PROPERTY_FROM_CLASS, true);
                 } else if (property.getType().equals(MapProperty.class)) {
                     // GENERATE objectFactory.setProperty(type)
-                    Class<?> keyType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
-                    Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[1];
+                    Class<?> keyType = rawTypeParam(property, 0);
+                    Class<?> elementType = rawTypeParam(property, 1);
                     methodVisitor.visitLdcInsn(Type.getType(keyType));
                     methodVisitor.visitLdcInsn(Type.getType(elementType));
                     methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "mapProperty", RETURN_MAP_PROPERTY_FROM_CLASS_CLASS, true);
@@ -1219,7 +1219,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             methodVisitor.visitVarInsn(ALOAD, 0);
             methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), flagName,
-                    Type.BOOLEAN_TYPE.getDescriptor());
+                Type.BOOLEAN_TYPE.getDescriptor());
 
             methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "getConventionValue", RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN, true);
 
@@ -1243,8 +1243,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             } else {
                 // Cast to return type
                 methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,
-                        targetClass.isArray() ? "[" + targetType.getElementType().getDescriptor()
-                                : targetType.getInternalName());
+                    targetClass.isArray() ? "[" + targetType.getElementType().getDescriptor()
+                        : targetType.getInternalName());
             }
         }
 
@@ -1529,6 +1529,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 this.getterName = getterName;
             }
         }
+    }
+
+    private static Class<?> rawTypeParam(PropertyMetadata property, int paramNum) {
+        java.lang.reflect.Type type = property.getGenericType();
+        if (!(type instanceof ParameterizedType)) {
+            throw new IllegalArgumentException("Declaration of property " + property.getName() + " does not include any type arguments in its property type " + type);
+        }
+        java.lang.reflect.Type argument = ((ParameterizedType) type).getActualTypeArguments()[paramNum];
+        if (argument instanceof Class) {
+            return (Class<?>) argument;
+        }
+        return (Class<?>) ((ParameterizedType) argument).getRawType();
     }
 
     private interface MethodCodeBody {
