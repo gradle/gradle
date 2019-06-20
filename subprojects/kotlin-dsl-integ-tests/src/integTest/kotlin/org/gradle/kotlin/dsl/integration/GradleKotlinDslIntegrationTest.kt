@@ -651,7 +651,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         }
     }
 
-    private fun MockWebServer.safeUrl(path: String, scheme: String = "http"): HttpUrl? {
+    private
+    fun MockWebServer.safeUrl(path: String, scheme: String = "http"): HttpUrl? {
         return HttpUrl.Builder()
             .scheme(scheme)
             .host("127.0.0.1")
