@@ -18,6 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
@@ -449,13 +450,15 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = ${expected}")
 
         where:
-        type                  | factory                       | reference     | output
-        "Property<String>"    | "objects.property(String)"    | "'value'"     | "value"
-        "Property<String>"    | "objects.property(String)"    | "null"        | "null"
-        "DirectoryProperty"   | "objects.directoryProperty()" | "file('abc')" | new File('abc')
-        "DirectoryProperty"   | "objects.directoryProperty()" | "null"        | "null"
-        "RegularFileProperty" | "objects.fileProperty()"      | "file('abc')" | new File('abc')
-        "RegularFileProperty" | "objects.fileProperty()"      | "null"        | "null"
+        type                   | factory                        | reference     | output
+        "Property<String>"     | "objects.property(String)"     | "'value'"     | "value"
+        "Property<String>"     | "objects.property(String)"     | "null"        | "null"
+        "DirectoryProperty"    | "objects.directoryProperty()"  | "file('abc')" | new File('abc')
+        "DirectoryProperty"    | "objects.directoryProperty()"  | "null"        | "null"
+        "RegularFileProperty"  | "objects.fileProperty()"       | "file('abc')" | new File('abc')
+        "RegularFileProperty"  | "objects.fileProperty()"       | "null"        | "null"
+        "ListProperty<String>" | "objects.listProperty(String)" | "[]"          | "[]"
+        "ListProperty<String>" | "objects.listProperty(String)" | "['abc']"     | ['abc']
     }
 
     @Unroll
@@ -489,7 +492,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "broken"
 
         then:
-        outputContains("instant-execution > Cannot serialize object of type ${type} as these are not supported with instant execution.")
+        outputContains("instant-execution > cannot serialize object of type ${type} as these are not supported with instant execution.")
 
         when:
         instantRun "broken"
@@ -499,12 +502,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.reference = null")
 
         where:
-        type               | reference
-        Project.name       | "project"
-        Gradle.name        | "project.gradle"
-        Settings.name      | "project.gradle.settings"
-        Task.name          | "project.tasks.other"
-        TaskContainer.name | "project.tasks"
+        type                        | reference
+        Project.name                | "project"
+        Gradle.name                 | "project.gradle"
+        Settings.name               | "project.gradle.settings"
+        Task.name                   | "project.tasks.other"
+        TaskContainer.name          | "project.tasks"
+        ConfigurationContainer.name | "project.configurations"
     }
 
     def "task can reference itself"() {

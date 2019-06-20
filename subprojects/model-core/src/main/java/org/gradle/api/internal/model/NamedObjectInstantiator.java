@@ -23,13 +23,15 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import groovy.lang.GroovyObject;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
+import org.gradle.api.Transformer;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.state.Managed;
 import org.gradle.model.internal.asm.AsmClassGenerator;
+import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
@@ -43,13 +45,13 @@ import java.lang.reflect.Modifier;
 
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.V1_5;
 
 public class NamedObjectInstantiator implements Managed.Factory {
-    public static final NamedObjectInstantiator INSTANCE = new NamedObjectInstantiator();
     private static final Type OBJECT = Type.getType(Object.class);
     private static final Type STRING = Type.getType(String.class);
     private static final Type NAMED_OBJECT_INSTANTIATOR = Type.getType(NamedObjectInstantiator.class);
@@ -67,40 +69,31 @@ public class NamedObjectInstantiator implements Managed.Factory {
     private static final String NAME_FIELD = "_gr_name_";
     private static final String[] EMPTY_STRINGS = new String[0];
     private static final String CONSTRUCTOR_NAME = "<init>";
+    private static final String FACTORY_FIELD = "FACTORY";
 
-    private final Factory<LoadingCache<Class<?>, LoadingCache<String, Object>>> cacheFactory = new Factory<LoadingCache<Class<?>, LoadingCache<String, Object>>>() {
+    private final CrossBuildInMemoryCache<Class<?>, LoadingCache<String, Object>> generatedTypes;
+    private final String implSuffix;
+    private final String factorySuffix;
+    private final Transformer<LoadingCache<String, Object>, Class<?>> cacheFactory = new Transformer<LoadingCache<String, Object>, Class<?>>() {
         @Override
-        public LoadingCache<Class<?>, LoadingCache<String, Object>> create() {
-            return newValuesCache();
+        public LoadingCache<String, Object> transform(Class<?> type) {
+            return CacheBuilder.newBuilder().build(loaderFor(type));
         }
     };
 
-    // Currently retains strong references to types
-    private final LoadingCache<Class<?>, LoadingCache<String, Object>> leakyValues = newValuesCache();
-
-    private LoadingCache<Class<?>, LoadingCache<String, Object>> newValuesCache() {
-        return CacheBuilder.newBuilder()
-                .build(new CacheLoader<Class<?>, LoadingCache<String, Object>>() {
-                    @Override
-                    public LoadingCache<String, Object> load(Class<?> type) {
-                        return CacheBuilder.newBuilder().build(loaderFor(type));
-                    }
-                });
-    }
-
-    private LoadingCache<Class<?>, LoadingCache<String, Object>> getCacheScope(Class<?> type) {
-        ClassLoader classLoader = type.getClassLoader();
-        if (classLoader instanceof VisitableURLClassLoader) {
-            return ((VisitableURLClassLoader) classLoader).getUserData(VisitableURLClassLoader.UserData.NAMED_OBJECT_INSTANTIATOR, cacheFactory);
-        }
-        return leakyValues;
+    public NamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
+        implSuffix = ClassGeneratorSuffixRegistry.assign("$Impl");
+        factorySuffix = ClassGeneratorSuffixRegistry.assign(implSuffix + "Factory");
+        generatedTypes = cacheFactory.newClassMap();
     }
 
     public <T extends Named> T named(final Class<T> type, final String name) throws ObjectInstantiationException {
         try {
-            return type.cast(getCacheScope(type).getUnchecked(type).getUnchecked(name));
+            return type.cast(generatedTypes.get(type, cacheFactory).getUnchecked(name));
         } catch (UncheckedExecutionException e) {
             throw new ObjectInstantiationException(type, e.getCause());
+        } catch (Exception e) {
+            throw new ObjectInstantiationException(type, e);
         }
     }
 
@@ -123,7 +116,7 @@ public class NamedObjectInstantiator implements Managed.Factory {
             throw new GradleException(problemCollector.format());
         }
 
-        AsmClassGenerator generator = new AsmClassGenerator(publicClass, "$Impl");
+        AsmClassGenerator generator = new AsmClassGenerator(publicClass, implSuffix);
         Type implementationType = generator.getGeneratedType();
         ClassWriter visitor = generator.getVisitor();
         Type publicType = Type.getType(publicClass);
@@ -141,10 +134,16 @@ public class NamedObjectInstantiator implements Managed.Factory {
         visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, implementationType.getInternalName(), null, superClass.getInternalName(), interfaces);
 
         //
-        // Add name field
+        // Add `name` field
         //
 
         visitor.visitField(ACC_PRIVATE, NAME_FIELD, STRING.getDescriptor(), null, null);
+
+        //
+        // Add static `factory` field to hold the owning factory for the type (this factory)
+        //
+
+        visitor.visitField(ACC_PRIVATE | ACC_STATIC, FACTORY_FIELD, NAMED_OBJECT_INSTANTIATOR.getDescriptor(), null, null);
 
         //
         // Add constructor
@@ -228,18 +227,19 @@ public class NamedObjectInstantiator implements Managed.Factory {
         //
 
         methodVisitor = visitor.visitMethod(ACC_PUBLIC, "managedFactory", RETURN_MANAGED_FACTORY, null, EMPTY_STRINGS);
-        methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, NAMED_OBJECT_INSTANTIATOR.getInternalName(), "INSTANCE", NAMED_OBJECT_INSTANTIATOR.getDescriptor());
+        methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, generator.getGeneratedType().getInternalName(), FACTORY_FIELD, NAMED_OBJECT_INSTANTIATOR.getDescriptor());
         methodVisitor.visitInsn(Opcodes.ARETURN);
         methodVisitor.visitMaxs(0, 0);
         methodVisitor.visitEnd();
 
-        generator.define();
+        Class<?> implClass = generator.define();
+        attachFactoryToImplType(implClass);
 
         //
         // Generate factory class
         //
 
-        generator = new AsmClassGenerator(publicClass, "$Factory");
+        generator = new AsmClassGenerator(publicClass, factorySuffix);
         visitor = generator.getVisitor();
         visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generator.getGeneratedType().getInternalName(), null, CLASS_GENERATING_LOADER.getInternalName(), EMPTY_STRINGS);
 
@@ -276,6 +276,16 @@ public class NamedObjectInstantiator implements Managed.Factory {
         Class<Object> factoryClass = generator.define();
         try {
             return (ClassGeneratingLoader) factoryClass.getConstructor().newInstance();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private void attachFactoryToImplType(Class<?> implClass) {
+        try {
+            Field factoryField = implClass.getDeclaredField(FACTORY_FIELD);
+            factoryField.setAccessible(true);
+            factoryField.set(null, this);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

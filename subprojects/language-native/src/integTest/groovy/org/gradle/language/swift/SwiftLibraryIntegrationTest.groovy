@@ -57,24 +57,6 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }
 
-    def "sources are compiled with Swift compiler"() {
-        given:
-        def lib = new SwiftLib()
-        settingsFile << "rootProject.name = '${lib.projectName}'"
-        lib.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            apply plugin: 'swift-library'
-         """
-
-        expect:
-        succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
-        file("build/modules/main/debug/${lib.moduleName}.swiftmodule").assertIsFile()
-        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
-    }
-
     def "can build debug and release variants of library"() {
         given:
         def lib = new SwiftLib()

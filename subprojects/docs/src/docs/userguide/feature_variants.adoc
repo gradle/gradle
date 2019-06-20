@@ -88,8 +88,8 @@ Gradle will automatically setup a number of things for you, in a very similar wa
 
 - the configuration `mongodbSupportApi`, used to _declare API dependencies_ for this feature
 - the configuration `mongodbSupportImplementation`, used to _declare implementation dependencies_ for this feature
-- the configuration `mongodyDbSupportApiElements`, used by consumers to fetch the artifacts and API dependencies of this feature
-- the configuration `mongodyDbSupportRuntimeElements`, used by consumers to fetch the artifacts and runtime dependencies of this feature
+- the configuration `mongodbSupportApiElements`, used by consumers to fetch the artifacts and API dependencies of this feature
+- the configuration `mongodbSupportRuntimeElements`, used by consumers to fetch the artifacts and runtime dependencies of this feature
 
 Most users will only need to care about the first two configurations, to declare the specific dependencies of this feature:
 

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.tasks.compile.incremental.classpath
 
 import org.gradle.api.file.ConfigurableFileTree
@@ -73,11 +71,11 @@ class DefaultClasspathEntrySnapshotterTest extends Specification {
             visitor.visitFile(f2Details)
             visitor.visitFile(new DefaultFileVisitDetails(f3, null, null))
         }
-        1 * fileHasher.hash(_) >> f1Hash
+        1 * fileHasher.hash(_, _, _) >> f1Hash
         1 * classDependenciesAnalyzer.getClassAnalysis(f1Hash, f1Details) >> Stub(ClassAnalysis) {
             getClassName() >> "Foo"
         }
-        1 * fileHasher.hash(_) >> f2Hash
+        1 * fileHasher.hash(_, _, _) >> f2Hash
         1 * classDependenciesAnalyzer.getClassAnalysis(f2Hash, f2Details) >> Stub(ClassAnalysis) {
             getClassName() >> "com.Foo2"
         }

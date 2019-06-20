@@ -88,8 +88,6 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.remote.MessagingServer;
-import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.CachingServiceLocator;
@@ -185,10 +183,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultJdkToolsInitializer(new DefaultClassLoaderFactory());
     }
 
-    MessagingServer createMessagingServer(MessagingServices messagingServices) {
-        return messagingServices.get(MessagingServer.class);
-    }
-
     Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
         return instantiatorFactory.decorateLenient();
     }
@@ -266,10 +260,14 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultFilePropertyFactory(fileResolver);
     }
 
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    NamedObjectInstantiator createNamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new NamedObjectInstantiator(cacheFactory);
+    }
+
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
         return new DefaultObjectFactory(
             instantiatorFactory.injectAndDecorate(services),
-            NamedObjectInstantiator.INSTANCE,
+            instantiator,
             fileResolver,
             directoryFileTreeFactory,
             new DefaultFilePropertyFactory(fileResolver),

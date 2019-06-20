@@ -30,6 +30,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -158,5 +159,19 @@ public class ClasspathUtil {
                 throw UncheckedException.throwAsUncheckedException(e1);
             }
         }
+    }
+
+    /**
+     * Collects all URLs from {@code startingClassloader} (inclusive) until {@code stopAt} (exclusive) into {@code classpath}.
+     *
+     * If {@code stopAt} is not a parent of {@code startingClassloader}, this effectively collects all URLs from the classloader hierarchy.
+     */
+    public static void collectClasspathUntil(ClassLoader startingClassloader, ClassLoader stopAt, final Set<URL> classpath) {
+        new ClassLoaderVisitor(stopAt) {
+            @Override
+            public void visitClassPath(URL[] classPath) {
+                classpath.addAll(Arrays.asList(classPath));
+            }
+        }.visit(startingClassloader);
     }
 }

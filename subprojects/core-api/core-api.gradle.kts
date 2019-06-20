@@ -39,16 +39,14 @@ dependencies {
 
     testImplementation(library("asm"))
     testImplementation(library("asm_commons"))
+    testImplementation(testFixtures(project(":logging")))
     
     testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":baseServices"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":logging")
 }
 
 testFilesCleanup {

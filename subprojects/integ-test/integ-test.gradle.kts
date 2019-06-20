@@ -50,16 +50,14 @@ dependencies {
     allTestRuntimeDependencies.forEach {
         crossVersionTestRuntimeOnly(it)
     }
+
+    integTestImplementation(testFixtures(project(":core")))
+    integTestImplementation(testFixtures(project(":diagnostics")))
+    integTestImplementation(testFixtures(project(":platformNative")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
-}
-
-testFixtures {
-    from(":core", "integTest")
-    from(":diagnostics", "integTest")
-    from(":platformNative", "integTest")
 }
 
 val integTestTasks: DomainObjectCollection<IntegrationTest> by extra

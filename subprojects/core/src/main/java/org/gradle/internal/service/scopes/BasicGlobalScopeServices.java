@@ -42,6 +42,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
@@ -52,6 +53,10 @@ import org.gradle.process.internal.ExecHandleFactory;
  * {@link GlobalScopeServices}.
  */
 public class BasicGlobalScopeServices {
+    void configure(ServiceRegistration serviceRegistration) {
+        serviceRegistration.addProvider(new MessagingServices());
+    }
+
     FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
         return new DefaultFileLockManager(
             new DefaultProcessMetaDataProvider(
@@ -68,14 +73,6 @@ public class BasicGlobalScopeServices {
 
     ExecutorFactory createExecutorFactory() {
         return new DefaultExecutorFactory();
-    }
-
-    InetAddressFactory createInetAddressFactory(MessagingServices messagingServices) {
-        return messagingServices.get(InetAddressFactory.class);
-    }
-
-    MessagingServices createMessagingServices() {
-        return new MessagingServices();
     }
 
     DocumentationRegistry createDocumentationRegistry() {

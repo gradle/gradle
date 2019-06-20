@@ -32,6 +32,7 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.CachingResult
@@ -60,6 +61,8 @@ import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
 
 import static java.util.Collections.emptyList
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
 
 class ExecuteActionsTaskExecuterTest extends Specification {
     def task = Mock(TaskInternal)
@@ -84,6 +87,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
     def buildCacheController = Mock(BuildCacheController)
+    def listenerManager = Mock(ListenerManager)
     def workExecutor = new DefaultWorkExecutor<IncrementalContext, CachingResult>(
         new ResolveCachingStateStep(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
@@ -114,7 +118,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         asyncWorkTracker,
         actionListener,
         taskCacheabilityResolver,
-        workExecutor
+        workExecutor,
+        listenerManager
     )
 
     def setup() {
@@ -177,7 +182,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_AND_REACQUIRE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -189,7 +194,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action2.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -225,7 +230,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -251,7 +256,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_AND_REACQUIRE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
 
@@ -284,7 +289,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_AND_REACQUIRE_PROJECT_LOCKS)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -315,7 +320,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_AND_REACQUIRE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -327,7 +332,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action2.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true)
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_PROJECT_LOCKS)
         then:
         1 * standardOutputCapture.stop()
 
@@ -355,7 +360,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true) >> {
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_AND_REACQUIRE_PROJECT_LOCKS) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
@@ -393,7 +398,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true) >> {
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_AND_REACQUIRE_PROJECT_LOCKS) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
@@ -430,7 +435,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.clearInputChanges()
         then:
-        1 * asyncWorkTracker.waitForCompletion(_, true) >> {
+        1 * asyncWorkTracker.waitForCompletion(_, RELEASE_AND_REACQUIRE_PROJECT_LOCKS) >> {
             throw new DefaultMultiCauseException("mock failures", failure)
         }
         then:

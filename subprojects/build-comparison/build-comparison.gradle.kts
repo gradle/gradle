@@ -52,21 +52,28 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":processServices"))
     testImplementation(project(":files"))
+    testImplementation(project(":snapshots"))
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":dependencyManagement"))
     testImplementation(testLibrary("jsoup"))
 
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":toolingApi"))
+    testFixturesImplementation(project(":modelCore"))
+    testFixturesImplementation(library("commons_lang"))
+
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+
 
     css(project(":docs"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
 }
 
 tasks.processResources {

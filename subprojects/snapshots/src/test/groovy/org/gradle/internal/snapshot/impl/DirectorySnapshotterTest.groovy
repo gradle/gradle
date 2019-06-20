@@ -20,17 +20,19 @@ import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.MutableBoolean
+import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.file.Paths
+import java.util.concurrent.atomic.AtomicBoolean
 
 @UsesNativeServices
 class DirectorySnapshotterTest extends Specification {
@@ -38,7 +40,7 @@ class DirectorySnapshotterTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def fileHasher = new TestFileHasher()
-    def directorySnapshotter = new DirectorySnapshotter(fileHasher, TestFiles.fileSystem(), new StringInterner())
+    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner())
 
     def "should snapshot without filters"() {
         given:
@@ -58,7 +60,7 @@ class DirectorySnapshotterTest extends Specification {
         def visited = []
         def relativePaths = []
 
-        def actuallyFiltered = new MutableBoolean(false)
+        def actuallyFiltered = new AtomicBoolean(false)
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
         snapshot.accept(new RelativePathTrackingVisitor() {
@@ -91,10 +93,10 @@ class DirectorySnapshotterTest extends Specification {
         given:
         def fileSystemRoot = fileSystemRoot()
         def patterns = new PatternSet().exclude("*")
-        def actuallyFiltered = new MutableBoolean(false)
+        def actuallyFiltered = new AtomicBoolean(false)
 
         when:
-        def snapshot = directorySnapshotter.snapshot(fileSystemRoot, patterns, actuallyFiltered)
+        def snapshot = directorySnapshotter.snapshot(fileSystemRoot, directoryWalkerPredicate(patterns) , actuallyFiltered)
 
         then:
         snapshot.absolutePath == fileSystemRoot
@@ -119,9 +121,9 @@ class DirectorySnapshotterTest extends Specification {
         def visited = []
         def relativePaths = []
 
-        def actuallyFiltered = new MutableBoolean(false)
+        def actuallyFiltered = new AtomicBoolean(false)
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, patterns, actuallyFiltered)
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered)
         snapshot.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {
@@ -171,6 +173,10 @@ class DirectorySnapshotterTest extends Specification {
 
     private static String fileSystemRoot() {
         "${Paths.get("").toAbsolutePath().root}"
+    }
+
+    private static SnapshottingFilter.DirectoryWalkerPredicate directoryWalkerPredicate(PatternSet patternSet) {
+        return new PatternSetSnapshottingFilter(patternSet, TestFiles.fileSystem()).asDirectoryWalkerPredicate
     }
 }
 

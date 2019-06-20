@@ -17,9 +17,7 @@
 package org.gradle.caching.http.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpMessage;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
@@ -37,7 +35,6 @@ import org.gradle.caching.internal.CacheFormat;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpClientResponse;
-import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,10 +65,12 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     private final URI root;
     private final HttpClientHelper httpClientHelper;
+    private final HttpBuildCacheRequestCustomizer requestCustomizer;
 
-    public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url) {
+    public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url, HttpBuildCacheRequestCustomizer requestCustomizer) {
+        this.requestCustomizer = requestCustomizer;
         if (!url.getPath().endsWith("/")) {
-            throw new IncompleteArgumentException("HTTP cache root URI must end with '/'");
+            throw new IllegalArgumentException("HTTP cache root URI must end with '/'");
         }
         this.root = url;
         this.httpClientHelper = httpClientHelper;
@@ -82,7 +81,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         final URI uri = root.resolve("./" + key.getHashCode());
         HttpGet httpGet = new HttpGet(uri);
         httpGet.addHeader(HttpHeaders.ACCEPT, BUILD_CACHE_CONTENT_TYPE + ", */*");
-        addDiagnosticHeaders(httpGet);
+        requestCustomizer.customize(httpGet);
 
         try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpGet)) {
             StatusLine statusLine = response.getStatusLine();
@@ -125,16 +124,12 @@ public class HttpBuildCacheService implements BuildCacheService {
         return statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY || statusCode == HttpStatus.SC_TEMPORARY_REDIRECT;
     }
 
-    private void addDiagnosticHeaders(HttpMessage request) {
-        request.addHeader("X-Gradle-Version", GradleVersion.current().getVersion());
-    }
-
     @Override
     public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
         HttpPut httpPut = new HttpPut(uri);
         httpPut.addHeader(HttpHeaders.CONTENT_TYPE, BUILD_CACHE_CONTENT_TYPE);
-        addDiagnosticHeaders(httpPut);
+        requestCustomizer.customize(httpPut);
 
         httpPut.setEntity(new AbstractHttpEntity() {
             @Override
@@ -148,7 +143,7 @@ public class HttpBuildCacheService implements BuildCacheService {
             }
 
             @Override
-            public InputStream getContent() throws IOException, UnsupportedOperationException {
+            public InputStream getContent() {
                 throw new UnsupportedOperationException();
             }
 

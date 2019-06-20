@@ -51,6 +51,12 @@
             "changes": []
         },
         {
+            "type": "org.gradle.api.plugins.JavaLibraryPlugin",
+            "member": "Constructor org.gradle.api.plugins.JavaLibraryPlugin()",
+            "acceptation": "Removed old injecting constructor",
+            "changes": []
+        },
+        {
             "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "member": "Class org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "acceptation": "Common methods extracted to UrlArtifactRepository",

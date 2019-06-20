@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.publish.maven
 
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
@@ -112,7 +113,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         def optional = params.optionalFeatureCapabilities.collect {
             "resolve($dependencyNotation) { capabilities { requireCapability('$it') } }"
         }.join('\n')
-        buildFile.text = """import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
+        buildFile.text = """import ${PlatformSupport.name}
 
             apply plugin: 'java-base' // to get the standard Java library derivation strategy
             configurations {
@@ -131,11 +132,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
             }
 
             dependencies {
-               attributesSchema { 
-                getMatchingStrategy(Category.CATEGORY_ATTRIBUTE)
-                   .disambiguationRules
-                   .add(PlatformSupport.PreferRegularPlatform)
-               }
+               services.get(PlatformSupport).addDisambiguationRule(attributesSchema)
                resolve($dependencyNotation) $extraArtifacts
                $optional
             }

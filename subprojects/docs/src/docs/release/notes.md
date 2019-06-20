@@ -13,7 +13,12 @@ Include only their name, impactful features should be called out separately belo
 [John Rodriguez](https://github.com/jrodbx),
 [mig4](https://github.com/mig4),
 [Evgeny Mandrikov](https://github.com/Godin),
-and [Ivo Anjo](https://github.com/ivoanjo).
+[Bjørn Mølgård Vester](https://github.com/bjornvester),
+[Simon Legner](https://github.com/simon04),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Ivo Anjo](https://github.com/ivoanjo),
+[Stefan M.](https://github.com/StefMa),
+and [Christian Fränkel](https://github.com/fraenkelc).
 
 <!-- 
 ## 1
@@ -75,6 +80,10 @@ that take such nested zips as an input, e.g. when testing applications packaged 
 The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
 This improves performance for projects with a large amount of resource files.
 
+## File case changes when copying files on case-insensitive file systems are now handled correctly
+
+On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename where only the case is changed is now handled properly by Gradle's file copying operations. For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
+
 <!--
 ### Example promoted
 -->
@@ -86,6 +95,12 @@ This accelerates Groovy compilation by avoiding re-compiling dependent projects 
 See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
 
 ## Fixed issues
+
+### Processing of excludes
+
+Previous versions of Gradle could, in some complex dependency graphs, have a wrong result or a randomized dependency order when lots of excludes were present.
+To mitigate this, the algorithm that computes exclusions has been completely rewritten.
+In some rare cases this may cause some differences in resolution, due to the correctness changes.
 
 ## Known issues
 

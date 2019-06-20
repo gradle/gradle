@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
@@ -38,6 +39,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
@@ -68,10 +70,14 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
@@ -88,6 +94,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
+    private final ListenerManager listenerManager;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -98,7 +105,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
-        WorkExecutor<IncrementalContext, CachingResult> workExecutor
+        WorkExecutor<IncrementalContext, CachingResult> workExecutor,
+        ListenerManager listenerManager
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.scanPluginApplied = scanPluginApplied;
@@ -109,6 +117,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.actionListener = actionListener;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
         this.workExecutor = workExecutor;
+        this.listenerManager = listenerManager;
     }
 
     @Override
@@ -366,11 +375,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
-        for (InputChangesAwareTaskAction action : new ArrayList<InputChangesAwareTaskAction>(task.getTaskActions())) {
+        boolean hasTaskListener = listenerManager.hasListeners(TaskActionListener.class) || listenerManager.hasListeners(TaskExecutionListener.class);
+        Iterator<InputChangesAwareTaskAction> actions = new ArrayList<>(task.getTaskActions()).iterator();
+        while (actions.hasNext()) {
+            InputChangesAwareTaskAction action = actions.next();
             task.getState().setDidWork(true);
             task.getStandardOutputCapture().start();
+            boolean hasMoreWork = hasTaskListener || actions.hasNext();
             try {
-                executeAction(action.getDisplayName(), task, action, inputChanges);
+                executeAction(action.getDisplayName(), task, action, inputChanges, hasMoreWork);
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -383,7 +396,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeAction(final String actionDisplayName, final TaskInternal task, final InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges) {
+    private void executeAction(final String actionDisplayName, final TaskInternal task, final InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges, boolean hasMoreWork) {
         if (inputChanges != null) {
             action.setInputChanges(inputChanges);
         }
@@ -406,7 +419,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
 
                 try {
-                    asyncWorkTracker.waitForCompletion(currentOperation, true);
+                    asyncWorkTracker.waitForCompletion(currentOperation, hasMoreWork ? RELEASE_AND_REACQUIRE_PROJECT_LOCKS : RELEASE_PROJECT_LOCKS);
                 } catch (Throwable t) {
                     List<Throwable> failures = Lists.newArrayList();
 

@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
+    implementation(project(":snapshots"))
 
     implementation(library("slf4j_api"))
     implementation(library("guava"))
@@ -23,10 +24,17 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":files"))
     testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":logging")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":dependencyManagement"))
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":internalIntegTesting"))
 
+    testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":internalTesting"))
 }
 
@@ -34,7 +42,3 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":logging")
-}

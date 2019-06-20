@@ -38,12 +38,12 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(library("ant"))
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

@@ -219,12 +219,11 @@ buildscript {
         mavenRepo.module('org', 'bar').dependsOn(['scope': 'runtime'], foo).publish()
 
         settingsFile << """
-import org.gradle.api.internal.model.NamedObjectInstantiator
 buildscript {
     $repositoryDeclaration
 
     configurations.classpath {
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage, Usage.JAVA_API))
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, services.get(ObjectFactory).named(Usage, Usage.JAVA_API))
     }
     
     dependencies {

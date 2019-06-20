@@ -23,7 +23,6 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
@@ -55,12 +54,13 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         completed = new CountDownLatch(1);
         try {
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.<InjectAnnotationHandler>emptyList());
+                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.emptyList());
             }
             DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", workerProcessContext.getServiceRegistry());
             // Make the argument serializers available so work implementations can register their own serializers
             RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
             serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
+            serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
             workerProcessContext.getServerConnection().useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
             workerImplementation = Class.forName(workerImplementationName);
             implementation = instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);

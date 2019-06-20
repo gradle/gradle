@@ -18,6 +18,7 @@ package org.gradle.api.internal.model
 
 import org.gradle.api.Named
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.state.Managed
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Matchers
@@ -27,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CyclicBarrier
 
 class NamedObjectInstantiatorTest extends ConcurrentSpec {
-    static factory = NamedObjectInstantiator.INSTANCE
+    static factory = new NamedObjectInstantiator(new TestCrossBuildInMemoryCacheFactory())
 
     def "creates instance of Named"() {
         expect:

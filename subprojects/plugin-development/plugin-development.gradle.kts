@@ -49,24 +49,24 @@ dependencies {
     implementation(library("asm"))
 
     testImplementation(project(":files"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":logging")))
 
     testRuntimeOnly(project(":toolingApi"))
     testRuntimeOnly(project(":launcher"))
     testRuntimeOnly(project(":testKit"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":baseServicesGroovy"))
     integTestImplementation(library("jetbrains_annotations"))
     
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":logging")
 }
 
 testFilesCleanup {

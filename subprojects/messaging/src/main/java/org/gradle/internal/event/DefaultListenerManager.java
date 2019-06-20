@@ -92,6 +92,12 @@ public class DefaultListenerManager implements ListenerManager {
     }
 
     @Override
+    public <T> boolean hasListeners(Class<T> listenerClass) {
+        EventBroadcast<T> broadcaster = getBroadcasterInternal(listenerClass);
+        return !broadcaster.listeners.isEmpty();
+    }
+
+    @Override
     public <T> T getBroadcaster(Class<T> listenerClass) {
         return getBroadcasterInternal(listenerClass).getBroadcaster();
     }

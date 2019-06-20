@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import accessors.groovy
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
@@ -60,15 +60,14 @@ dependencies {
     smokeTestRuntimeOnly(project(":plugins"))
     smokeTestRuntimeOnly(project(":pluginDevelopment"))
     smokeTestRuntimeOnly(project(":toolingApiBuilders"))
+    smokeTestRuntimeOnly(project(":testingJunitPlatform"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":versionControl")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
-}
-
-testFixtures {
-    from(":core")
-    from(":versionControl")
 }
 
 tasks.named<Copy>("processSmokeTestResources").configure {

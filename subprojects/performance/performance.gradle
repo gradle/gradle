@@ -29,6 +29,7 @@ dependencies {
     performanceTestImplementation libraries.commons_io.coordinates
     performanceTestImplementation libraries.commons_compress.coordinates
     performanceTestImplementation testLibraries.jetty
+    performanceTestImplementation(testFixtures(project(":toolingApi")))
 
     // so that all Gradle features are available
     performanceTestRuntimeOnly allTestRuntimeDependencies
@@ -38,6 +39,3 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-testFixtures {
-    from(":toolingApi", "performanceTest")
-}

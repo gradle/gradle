@@ -48,6 +48,7 @@ import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
@@ -63,13 +64,13 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -111,9 +112,11 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     PropertyWalker propertyWalker,
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     TaskExecutionListener taskExecutionListener,
+                                    TaskListenerInternal taskListenerInternal,
                                     TaskCacheabilityResolver taskCacheabilityResolver,
                                     WorkExecutor<IncrementalContext, CachingResult> workExecutor,
-                                    ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry
+                                    ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
+                                    ListenerManager listenerManager
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -128,7 +131,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             asyncWorkTracker,
             actionListener,
             taskCacheabilityResolver,
-            workExecutor
+            workExecutor,
+            listenerManager
         );
         executer = new ResolveBeforeExecutionStateTaskExecuter(classLoaderHierarchyHasher, valueSnapshotter, taskFingerprinter, executer);
         executer = new ValidatingTaskExecuter(executer, reservedFileSystemLocationRegistry);
@@ -146,15 +150,15 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, executer);
+        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, taskListenerInternal, executer);
         return executer;
     }
 
     // Overrides the global ClasspathFingerPrinter, currently need to have the parent parameter
-    ClasspathFingerprinter createClasspathFingerprinter(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
+    ClasspathFingerprinter createClasspathFingerprinter(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
         return new DefaultClasspathFingerprinter(
             resourceSnapshotterCacheService,
-            fileSystemSnapshotter,
+            fileCollectionSnapshotter,
             inputNormalizationHandler.getRuntimeClasspath().getResourceFilter(),
             stringInterner
         );

@@ -37,16 +37,13 @@ import java.util.Set;
  * declaring no preference for a particular variant.
  */
 public class PreferJavaRuntimeVariant extends EmptySchema {
-    private static final Usage RUNTIME_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME);
-    private static final Usage RUNTIME_JARS_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME_JARS);
     private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Collections.<Attribute<?>>singleton(Usage.USAGE_ATTRIBUTE);
-    private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = new PreferJavaRuntimeVariant();
+    private final PreferRuntimeVariantUsageDisambiguationRule disambiguationRule;
 
-    static PreferJavaRuntimeVariant schema() {
-        return SCHEMA_DEFAULT_JAVA_VARIANTS;
-    }
-
-    private PreferJavaRuntimeVariant() {
+    public PreferJavaRuntimeVariant(NamedObjectInstantiator instantiator) {
+        Usage runtimeUsage = instantiator.named(Usage.class, Usage.JAVA_RUNTIME);
+        Usage runtimeJarsUsage = instantiator.named(Usage.class, Usage.JAVA_RUNTIME_JARS);
+        disambiguationRule = new PreferRuntimeVariantUsageDisambiguationRule(runtimeUsage, runtimeJarsUsage);
     }
 
     @Override
@@ -57,13 +54,19 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
     @Override
     public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
         if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
-            return Cast.uncheckedCast(PreferRuntimeVariantUsageDisambiguationRule.INSTANCE);
+            return Cast.uncheckedCast(disambiguationRule);
         }
         return super.disambiguationRules(attribute);
     }
 
     private static class PreferRuntimeVariantUsageDisambiguationRule implements DisambiguationRule<Usage> {
-        private final static PreferRuntimeVariantUsageDisambiguationRule INSTANCE = new PreferRuntimeVariantUsageDisambiguationRule();
+        private final Usage runtimeUsage;
+        private final Usage runtimeJarsUsage;
+
+        public PreferRuntimeVariantUsageDisambiguationRule(Usage runtimeUsage, Usage runtimeJarsUsage) {
+            this.runtimeUsage = runtimeUsage;
+            this.runtimeJarsUsage = runtimeJarsUsage;
+        }
 
         @Override
         public boolean doesSomething() {
@@ -74,10 +77,10 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
         public void execute(MultipleCandidatesResult<Usage> details) {
             if (details.getConsumerValue() == null) {
                 Set<Usage> candidates = details.getCandidateValues();
-                if (candidates.contains(RUNTIME_JARS_USAGE)) {
-                    details.closestMatch(RUNTIME_JARS_USAGE);
-                } else if (candidates.contains(RUNTIME_USAGE)) {
-                    details.closestMatch(RUNTIME_USAGE);
+                if (candidates.contains(runtimeJarsUsage)) {
+                    details.closestMatch(runtimeJarsUsage);
+                } else if (candidates.contains(runtimeUsage)) {
+                    details.closestMatch(runtimeUsage);
                 }
             }
         }

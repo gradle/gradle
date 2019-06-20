@@ -18,19 +18,16 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependenciesMetadata
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
-import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRulesTest {
-    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    private final mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
 
     @Override
     boolean addAllDependenciesAsConstraints() {

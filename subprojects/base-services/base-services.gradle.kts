@@ -6,7 +6,6 @@
  */
 
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import java.util.concurrent.Callable
 
 plugins {
     `java-library`
@@ -18,6 +17,7 @@ gradlebuildJava {
 }
 
 dependencies {
+    api(project(":pineapple"))
     api(library("jsr305"))
 
     implementation(library("slf4j_api"))
@@ -33,10 +33,12 @@ dependencies {
     }
 
     integTestImplementation(project(":logging"))
-}
-
-testFixtures {
-    from(":core")
+    
+    testFixturesImplementation(library("guava"))
+    testImplementation(testFixtures(project(":core")))
+    testRuntimeOnly(library("xerces"))
+    
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 jmh {

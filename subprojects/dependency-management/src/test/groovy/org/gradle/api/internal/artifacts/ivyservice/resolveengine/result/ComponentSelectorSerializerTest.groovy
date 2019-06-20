@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.external.model.ImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
@@ -35,12 +34,13 @@ import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
 import static org.gradle.util.Path.path
 
 class ComponentSelectorSerializerTest extends SerializerSpec {
-    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()))
 
     private static ImmutableVersionConstraint constraint(String version, String preferredVersion = '', String strictVersion = '', List<String> rejectVersions = []) {
         return new DefaultImmutableVersionConstraint(

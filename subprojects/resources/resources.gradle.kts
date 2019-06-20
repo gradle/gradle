@@ -20,14 +20,14 @@ dependencies {
     testImplementation(project(":processServices"))
     testImplementation(project(":coreApi"))
     testImplementation(project(":files"))
+    testImplementation(project(":snapshots"))
 
+    testImplementation(testFixtures(project(":core")))
+    
     integTestImplementation(project(":internalIntegTesting"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
 }

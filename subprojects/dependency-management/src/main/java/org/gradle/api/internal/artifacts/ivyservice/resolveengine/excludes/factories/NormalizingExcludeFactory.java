@@ -51,8 +51,11 @@ import static java.util.stream.Collectors.toSet;
  * It shouldn't be too slow, or the whole chain will pay the price.
  */
 public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
+    private final Intersections intersections;
+
     public NormalizingExcludeFactory(ExcludeFactory delegate) {
         super(delegate);
+        this.intersections = new Intersections(this);
     }
 
     @Override
@@ -264,6 +267,35 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
         Set<ExcludeSpec> result = flattened.result;
         if (result.isEmpty()) {
             return everything();
+        }
+        if (result.size() > 1) {
+            // try simplify
+            ExcludeSpec[] asArray = result.toArray(new ExcludeSpec[result.size()]);
+            boolean simplified = false;
+            for (int i = 0; i < asArray.length; i++) {
+                ExcludeSpec left = asArray[i];
+                if (left != null) {
+                    for (int j = 0; j < asArray.length; j++) {
+                        ExcludeSpec right = asArray[j];
+                        if (right != null && i != j) {
+                            ExcludeSpec merged = intersections.tryIntersect(left, right);
+                            if (merged != null) {
+                                if (merged instanceof ExcludeNothing) {
+                                    return merged;
+                                }
+                                left = merged;
+                                asArray[i] = merged;
+                                asArray[j] = null;
+                                simplified = true;
+                            }
+                        }
+                    }
+                }
+            }
+            if (simplified) {
+                Set<ExcludeSpec> tmp = Arrays.stream(asArray).filter(Objects::nonNull).collect(toSet());
+                result = tmp;
+            }
         }
         return Optimizations.optimizeCollection(this, result, delegate::allOf);
     }

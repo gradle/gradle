@@ -53,13 +53,14 @@ dependencies {
 
     testImplementation(project(":modelCore"))
     testImplementation(project(":files"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":baseServices")
-}

@@ -111,7 +111,7 @@ allprojects {
         assert actualRoot.startsWith(expectedRoot)
 
         def expectedFirstLevel = graph.root.deps.findAll { !it.constraint }.collect { d ->
-            def configs = d.selected.configurations.collect {
+            def configs = d.selected.firstLevelConfigurations.collect {
                 "[${d.selected.moduleVersionId}:${it}]"
             }
             if (configs.empty) {
@@ -558,6 +558,7 @@ allprojects {
         final String module
         final String version
         final Set<String> configurations = []
+        Set<String> firstLevelConfigurations
         private boolean implicitArtifact = true
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
@@ -797,6 +798,14 @@ allprojects {
 
         void configuration(String configuration) {
             configurations << configuration
+        }
+
+        void setFirstLevelConfigurations(Collection<String> firstLevelConfigurations) {
+            this.firstLevelConfigurations = firstLevelConfigurations as Set
+        }
+
+        Set<String> getFirstLevelConfigurations() {
+            firstLevelConfigurations == null ? configurations : firstLevelConfigurations
         }
     }
 

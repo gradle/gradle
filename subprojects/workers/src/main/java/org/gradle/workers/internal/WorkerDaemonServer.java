@@ -16,18 +16,12 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
-import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
 public class WorkerDaemonServer implements WorkerProtocol {
     private final ServiceRegistry serviceRegistry;
@@ -40,11 +34,10 @@ public class WorkerDaemonServer implements WorkerProtocol {
     }
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
-        ServiceRegistry workerSharedGlobalServices = ServiceRegistryBuilder.builder()
+        return ServiceRegistryBuilder.builder()
                 .parent(parent)
                 .provider(new WorkerSharedGlobalScopeServices())
                 .build();
-        return new WorkerDaemonServices(workerSharedGlobalServices);
     }
 
     @Override
@@ -72,19 +65,5 @@ public class WorkerDaemonServer implements WorkerProtocol {
     @Override
     public String toString() {
         return "WorkerDaemonServer{}";
-    }
-
-    private static class WorkerDaemonServices extends DefaultServiceRegistry {
-        public WorkerDaemonServices(ServiceRegistry... parents) {
-            super("WorkerDaemonServices", parents);
-        }
-
-        InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory) {
-            return new DefaultInstantiatorFactory(cacheFactory, Collections.<InjectAnnotationHandler>emptyList());
-        }
-
-        WorkerDaemonServices createWorkerDaemonServices() {
-            return this;
-        }
     }
 }

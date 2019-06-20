@@ -48,22 +48,6 @@ object ProjectGroups {
             rootProject.project("kotlinDslToolingBuilders")
         )
 
-    val Project.publishedProjects
-        get() = setOf(
-            rootProject.project(":logging"),
-            rootProject.project(":core"),
-            rootProject.project(":modelCore"),
-            rootProject.project(":toolingApi"),
-            rootProject.project(":wrapper"),
-            rootProject.project(":baseServices"),
-            rootProject.project(":baseServicesGroovy"),
-            rootProject.project(":workers"),
-            rootProject.project(":dependencyManagement"),
-            rootProject.project(":messaging"),
-            rootProject.project(":processServices"),
-            rootProject.project(":resources"),
-            rootProject.project(":kotlinDslToolingModels"))
-
     val Project.publicProjects
         get() = pluginProjects +
             implementationPluginProjects +

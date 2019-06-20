@@ -61,12 +61,18 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             '''
     }
 
-    def "can define task with abstract MapProperty getter"() {
+    @Unroll
+    def "can define task with abstract MapProperty<#keyType, #valueType> getter"() {
         given:
         buildFile << """
+            class Param<T> {
+                T display
+                String toString() { display.toString() }
+            }
+
             abstract class MyTask extends DefaultTask {
                 @Input
-                abstract MapProperty<String, Number> getProp()
+                abstract MapProperty<$keyType, $valueType> getProp()
                 
                 @TaskAction
                 void go() {
@@ -74,8 +80,12 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             
+            def key = new Param<String>(display: 'a')
+            def map = [:]
+            map[key] = new Param<Number>(display: 12)
+            
             tasks.create("thing", MyTask) {
-                prop = [a: 12, b: 4]
+                prop = $value
             }
         """
 
@@ -83,7 +93,12 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thing")
 
         then:
-        outputContains("prop = [a:12, b:4]")
+        outputContains("prop = $display")
+
+        where:
+        keyType         | valueType       | value           | display
+        "String"        | "Number"        | "[a: 12, b: 4]" | "[a:12, b:4]"
+        "Param<String>" | "Param<Number>" | "map"           | "[a:12]"
     }
 
     def "can finalize the value of a property using API"() {
@@ -226,9 +241,9 @@ task thing {
         succeeds('verify')
 
         where:
-        value                                                          | _
-        "['key1': 'value1', 'key2': 'value2']"                       | _
-        "new LinkedHashMap(['key1': 'value1', 'key2': 'value2'])"    | _
+        value                                                         | _
+        "['key1': 'value1', 'key2': 'value2']"                        | _
+        "new LinkedHashMap(['key1': 'value1', 'key2': 'value2'])"     | _
         "providers.provider { ['key1': 'value1', 'key2': 'value2'] }" | _
     }
 

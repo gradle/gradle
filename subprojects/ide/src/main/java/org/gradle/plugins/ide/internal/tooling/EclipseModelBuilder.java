@@ -63,6 +63,7 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirec
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.eclipse.EclipseRuntime;
 import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
@@ -121,9 +122,19 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         List<EclipseWorkspaceProject> projects = eclipseRuntime.getWorkspace().getProjects();
         HashSet<EclipseWorkspaceProject> projectsInBuild = new HashSet<>(projects);
         projectsInBuild.removeAll(gatherExternalProjects(project.getRootProject(), projects));
-        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseWorkspaceProject::isOpen, (a, b) -> a | b));
+        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a | b));
 
         return buildAll(modelName, project);
+    }
+
+    public static boolean isProjectOpen(EclipseWorkspaceProject project) {
+        // TODO we should refactor this to general, compatibility mapping solution, as we have it for model loading. See HasCompatibilityMapping class.
+        try {
+            return project.isOpen();
+        } catch (UnsupportedMethodException e) {
+            // isOpen was added in gradle 5.6. for 5.5 we default to true
+            return true;
+        }
     }
 
     @Override

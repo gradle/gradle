@@ -136,7 +136,7 @@ public class DefaultClasspathEntrySnapshotter {
 
         @Override
         protected HashCode getHashCode(FileVisitDetails fileDetails) {
-            return fileHasher.hash(fileDetails);
+            return fileHasher.hash(fileDetails.getFile(), fileDetails.getSize(), fileDetails.getLastModified());
         }
     }
 

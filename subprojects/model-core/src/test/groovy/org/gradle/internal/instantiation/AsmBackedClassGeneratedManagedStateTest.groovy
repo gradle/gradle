@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instantiation
 
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.state.Managed
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -34,6 +35,7 @@ import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Inte
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceFilePropertyBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceListPropertyBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceMapPropertyBean
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfacePrimitiveBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfacePropertyBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceSetPropertyBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceWithDefaultMethods
@@ -42,7 +44,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
     @ClassRule
     @Shared
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [])
+    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory())
 
     def canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndSetter() {
         def bean = create(BeanWithAbstractProperty)
@@ -174,11 +176,13 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.get() == newValue
 
         where:
-        type                      | defaultValue | newValue
-        InterfacePropertyBean     | null         | "value"
-        InterfaceListPropertyBean | []           | ["a", "b"]
-        InterfaceSetPropertyBean  | [] as Set    | ["a", "b"] as Set
-        InterfaceMapPropertyBean  | [:]          | [a: 1, b: 12]
+        type                               | defaultValue | newValue
+        InterfacePropertyBean              | null         | "value"
+        InterfacePropertyWithParamTypeBean | null         | Param.of(Param.of(12))
+        AbstractClassWithTypeParamProperty | null         | Param.of("value")
+        InterfaceListPropertyBean          | []           | ["a", "b"]
+        InterfaceSetPropertyBean           | [] as Set    | ["a", "b"] as Set
+        InterfaceMapPropertyBean           | [:]          | [a: 1, b: 12]
     }
 
     @Unroll

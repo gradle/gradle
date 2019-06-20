@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFutureTask
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.Factory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecutionQueue
@@ -32,6 +33,8 @@ import org.gradle.workers.WorkerExecutionException
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Unroll
+
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS
 
 @UsesNativeServices
 class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
@@ -50,12 +53,13 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
     def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
+    def isolatableFactory = Mock(IsolatableFactory)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, isolatableFactory)
     }
 
     @Unroll
@@ -87,7 +91,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         workerExecutor.await()
 
         then:
-        1 * asyncWorkerTracker.waitForCompletion(_, false)
+        1 * asyncWorkerTracker.waitForCompletion(_, RETAIN_PROJECT_LOCKS)
     }
 
     def "all errors are thrown when waiting on multiple results"() {
@@ -95,7 +99,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         workerExecutor.await()
 
         then:
-        1 * asyncWorkerTracker.waitForCompletion(_, false) >> {
+        1 * asyncWorkerTracker.waitForCompletion(_, RETAIN_PROJECT_LOCKS) >> {
             throw new DefaultMultiCauseException(null, new RuntimeException(), new RuntimeException())
         }
 

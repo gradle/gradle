@@ -68,8 +68,10 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.JarCache;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -79,6 +81,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -185,8 +188,12 @@ public class GradleUserHomeScopeServices {
         return fileSystemMirror;
     }
 
-    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror) {
+        return new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+    }
+
+    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, Stat stat) {
+        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter, stat);
     }
 
     ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
@@ -197,8 +204,8 @@ public class GradleUserHomeScopeServices {
         return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
     }
 
-    ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, ResourceFilter.FILTER_NOTHING, stringInterner);
+    ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
+        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, stringInterner);
     }
 
     ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {

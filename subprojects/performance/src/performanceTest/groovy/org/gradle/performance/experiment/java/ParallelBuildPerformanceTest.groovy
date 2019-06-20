@@ -54,8 +54,8 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
         where:
         testProject                   | warmUpRuns | runs
-        LARGE_MONOLITHIC_JAVA_PROJECT | 2          | 6
-        LARGE_JAVA_MULTI_PROJECT      | 2          | 6
+        LARGE_MONOLITHIC_JAVA_PROJECT | 2          | 3
+        LARGE_JAVA_MULTI_PROJECT      | 2          | 3
     }
 
 }

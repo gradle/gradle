@@ -911,6 +911,37 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         executor.failure == null
     }
 
+    def "can query for registered listeners"() {
+        expect:
+        !manager.hasListeners(TestFooListener)
+
+        when:
+        manager.getBroadcaster(TestFooListener)
+
+        then:
+        !manager.hasListeners(TestFooListener)
+
+        when:
+        manager.addListener(fooListener1)
+
+        then:
+        manager.hasListeners(TestFooListener)
+        !manager.hasListeners(TestBarListener)
+
+        when:
+        manager.removeListener(fooListener1)
+
+        then:
+        !manager.hasListeners(TestFooListener)
+
+        when:
+        manager.addListener(Mock(BothListener))
+
+        then:
+        manager.hasListeners(TestFooListener)
+        manager.hasListeners(TestBarListener)
+    }
+
     public interface TestFooListener {
         void foo(String param);
     }

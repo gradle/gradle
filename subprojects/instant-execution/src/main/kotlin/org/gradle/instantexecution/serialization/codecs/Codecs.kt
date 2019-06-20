@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
@@ -51,6 +52,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
+import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import kotlin.reflect.KClass
 
@@ -81,6 +83,7 @@ class Codecs(
         bind(FileTreeCodec(fileSetSerializer, directoryFileTreeFactory))
         bind(FILE_SERIALIZER)
         bind(ClassCodec)
+        bind(MethodCodec)
 
         bind(listCodec)
 
@@ -116,6 +119,7 @@ class Codecs(
         bind(ownerProjectService<FileOperations>())
         bind(ownerProjectService<BuildOperationExecutor>())
         bind(ownerProjectService<ToolingModelBuilderRegistry>())
+        bind(ownerProjectService<ExecActionFactory>())
 
         bind(BeanCodec())
     }
@@ -134,6 +138,7 @@ class Codecs(
         is Gradle -> unsupportedState(Gradle::class)
         is Settings -> unsupportedState(Settings::class)
         is TaskContainer -> unsupportedState(TaskContainer::class)
+        is ConfigurationContainer -> unsupportedState(ConfigurationContainer::class)
         else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
     }
 

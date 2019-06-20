@@ -32,12 +32,13 @@ dependencies {
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
     implementation(library("bndlib"))
+
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

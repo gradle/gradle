@@ -43,6 +43,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -60,7 +61,6 @@ import spock.lang.Issue;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -101,7 +101,7 @@ import static org.junit.Assert.fail;
 public class AsmBackedClassGeneratorTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-    private final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.<InjectAnnotationHandler>emptyList(), Collections.<Class<? extends Annotation>>emptyList());
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.emptyList(), Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory());
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
@@ -1786,6 +1786,31 @@ public class AsmBackedClassGeneratorTest {
         Property<String> getProp();
     }
 
+    static class Param<T> {
+        private final T value;
+
+        private Param(T value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
+
+        static <S> Param<S> of(S value) {
+            return new Param<>(value);
+        }
+    }
+
+    public interface InterfacePropertyWithParamTypeBean {
+        Property<Param<Param<Number>>> getProp();
+    }
+
+    public interface InterfacePropertyWithTypeParamBean<T> {
+        Property<T> getProp();
+    }
+
     public interface InterfaceFilePropertyBean {
         RegularFileProperty getProp();
     }
@@ -1856,5 +1881,8 @@ public class AsmBackedClassGeneratorTest {
             List<String> otherThing = getOtherThing();
             return Joiner.on(" ").join(otherThing) + " " + thing;
         }
+    }
+
+    public static abstract class AbstractClassWithTypeParamProperty implements InterfacePropertyWithTypeParamBean<Param<String>> {
     }
 }

@@ -51,6 +51,7 @@ abstract class FileContentGenerator {
         import org.gradle.util.GradleVersion
 
         ${missingJavaLibrarySupportFlag()}
+        ${noJavaLibraryPluginFlag()}
 
         ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
         
@@ -379,7 +380,7 @@ abstract class FileContentGenerator {
         if (plugin.contains('java')) {
             if (projectHasParents) {
                 return """
-                    if(missingJavaLibrarySupport) {
+                    if (missingJavaLibrarySupport || noJavaLibraryPlugin) {
                         ${imperativelyApplyPlugin("java")}
                     } else {
                         ${imperativelyApplyPlugin("java-library")}
@@ -402,15 +403,23 @@ abstract class FileContentGenerator {
                 it == abiProjectNumber ? projectDependencyDeclaration(hasParent ? api : implementation, abiProjectNumber) : projectDependencyDeclaration(implementation, it)
             }.join("\n            ")
         }
+        def block = """
+                    ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
+                    ${config.externalImplementationDependencies.collect { directDependencyDeclaration(implementation, it) }.join("\n            ")}
+                    ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12')}
+    
+                    $subProjectDependencies
+        """
         return """
             ${configurationsIfMissingJavaLibrarySupport(hasParent)}
-
-            dependencies {
-                ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
-                ${config.externalImplementationDependencies.collect { directDependencyDeclaration(implementation, it) }.join("\n            ")}
-                ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12')}
-
-                $subProjectDependencies
+            if (hasProperty("compileConfiguration")) {
+                dependencies {
+                    ${block.replace(api, 'compile').replace(implementation, 'compile').replace(testImplementation, 'testCompile')}
+                }
+            } else {
+                dependencies {
+                    $block
+                }
             }
         """
     }
@@ -430,6 +439,8 @@ abstract class FileContentGenerator {
     }
 
     protected abstract String missingJavaLibrarySupportFlag()
+
+    protected abstract String noJavaLibraryPluginFlag()
 
     protected abstract String tasksConfiguration()
 

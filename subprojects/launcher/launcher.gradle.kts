@@ -31,12 +31,44 @@ dependencies {
     implementation(library("asm"))
     implementation(library("ant"))
 
+    runtimeOnly(library("asm"))
+    runtimeOnly(library("commons_io"))
+    runtimeOnly(library("commons_lang"))
+    runtimeOnly(library("slf4j_api"))
+
+    testImplementation(project(":internalIntegTesting"))
+    testImplementation(project(":native"))
+    testImplementation(project(":cli"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":coreApi"))
     testImplementation(project(":modelCore"))
     testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
     testImplementation(project(":baseServicesGroovy")) // for 'Specs'
 
-    integTestRuntimeOnly(project(":languageNative")) // for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":languageJava")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":logging")))
+    testImplementation(testFixtures(project(":toolingApi")))
 
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":kotlinDsl"))
+
+    integTestImplementation(project(":persistentCache"))
+    integTestImplementation(project(":internalIntegTesting"))
+    integTestImplementation(library("slf4j_api"))
+    integTestImplementation(library("guava"))
+    integTestImplementation(library("commons_lang"))
+    integTestImplementation(library("commons_io"))
+    integTestRuntimeOnly(project(":plugins"))
+    integTestRuntimeOnly(project(":languageNative")) {
+        because("for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
+    }
+
+    testFixturesApi(project(":baseServices")) {
+        because("Test fixtures export the Action class")
+    }
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
 }
@@ -55,13 +87,6 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":languageJava")
-    from(":messaging")
-    from(":logging")
-    from(":toolingApi")
-}
 val configureJar by tasks.registering {
     doLast {
         val classpath = listOf(":bootstrap", ":baseServices", ":coreApi", ":core").joinToString(" ") {

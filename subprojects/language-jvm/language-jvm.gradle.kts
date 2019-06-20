@@ -26,18 +26,20 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
+    testImplementation(testFixtures(project(":core")))
+    
     testRuntimeOnly(project(":languageJava"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesImplementation(library("commons_lang"))
+    testFixturesImplementation(library("guava"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(testFixtures(project(":launcher")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":core", "testFixtures")
-    from(":launcher", "testFixtures")
-}
