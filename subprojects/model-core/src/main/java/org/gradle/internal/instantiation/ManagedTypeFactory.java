@@ -18,7 +18,6 @@ package org.gradle.internal.instantiation;
 
 import com.google.common.base.Objects;
 import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.state.ManagedFactory;
 
 import java.lang.reflect.Constructor;
@@ -31,7 +30,7 @@ public class ManagedTypeFactory implements ManagedFactory {
         try {
             constructor = type.getConstructor(Object[].class);
         } catch (NoSuchMethodException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new IllegalArgumentException("The class " + type.getSimpleName() + " does not appear to a be a generated managed class.", e);
         }
     }
 

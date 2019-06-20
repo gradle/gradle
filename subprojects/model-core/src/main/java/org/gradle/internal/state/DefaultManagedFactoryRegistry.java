@@ -52,6 +52,10 @@ public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
 
     @Override
     public void register(ManagedFactory factory) {
+        ManagedFactory existing = managedFactoryCache.getIfPresent(factory.getId());
+        if (existing != null) {
+            throw new IllegalArgumentException("A managed factory with type " + existing.getClass().getSimpleName() + " (id: " + existing.getId() + ") has already been registered.");
+        }
         managedFactoryCache.put(factory.getId(), factory);
     }
 }

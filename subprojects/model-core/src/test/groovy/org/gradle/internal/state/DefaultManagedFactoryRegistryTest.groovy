@@ -89,6 +89,19 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         registry.lookup(buzzFactory.id) == null
     }
 
+    def "throws exception when a factory with the same id is registered twice"() {
+        def fooFactory1 = factory(Foo)
+        def fooFactory2 = factory(Foo)
+        registry.withFactories(fooFactory1)
+
+        when:
+        registry.register(fooFactory2)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.matches("A managed factory with type [^\\s]+ \\(id: [^\\s]+\\) has already been registered.")
+    }
+
     ManagedFactory factory(Class<?> type) {
         return Stub(ManagedFactory) {
             _ * getId() >> Objects.hashCode(type.name)
