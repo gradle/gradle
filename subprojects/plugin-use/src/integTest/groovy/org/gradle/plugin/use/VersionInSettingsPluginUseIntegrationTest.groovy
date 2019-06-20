@@ -66,9 +66,6 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
             tasks.register("verify") {
                 doLast {
                     val pluginVersion: String by project
-                    println("pluginVersion = {")
-                    println(pluginVersion)
-                    println("}")
                     assert(pluginVersion == "2.0")
                 }
             }
