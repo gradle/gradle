@@ -23,7 +23,7 @@ public interface ManagedFactoryRegistry {
     <T> ManagedFactory lookup(int id);
 
     /**
-     * Registers a new factory for the given type
+     * Registers a new factory
      */
     void register(ManagedFactory factory);
 }
