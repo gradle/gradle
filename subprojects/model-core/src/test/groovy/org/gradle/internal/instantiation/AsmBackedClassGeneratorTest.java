@@ -1786,6 +1786,31 @@ public class AsmBackedClassGeneratorTest {
         Property<String> getProp();
     }
 
+    static class Param<T> {
+        private final T value;
+
+        private Param(T value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
+
+        static <S> Param<S> of(S value) {
+            return new Param<>(value);
+        }
+    }
+
+    public interface InterfacePropertyWithParamTypeBean {
+        Property<Param<Param<Number>>> getProp();
+    }
+
+    public interface InterfacePropertyWithTypeParamBean<T> {
+        Property<T> getProp();
+    }
+
     public interface InterfaceFilePropertyBean {
         RegularFileProperty getProp();
     }
@@ -1856,5 +1881,8 @@ public class AsmBackedClassGeneratorTest {
             List<String> otherThing = getOtherThing();
             return Joiner.on(" ").join(otherThing) + " " + thing;
         }
+    }
+
+    public static abstract class AbstractClassWithTypeParamProperty implements InterfacePropertyWithTypeParamBean<Param<String>> {
     }
 }
