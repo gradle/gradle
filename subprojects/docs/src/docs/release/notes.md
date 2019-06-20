@@ -21,6 +21,7 @@ Include only their name, impactful features should be called out separately belo
 [Ivo Anjo](https://github.com/ivoanjo),
 [Stefan M.](https://github.com/StefMa),
 [Dominik Giger](https://github.com/gigerdo),
+[Stephan Windmüller](https://github.com/stovocor),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Upgrade Instructions
