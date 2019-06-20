@@ -135,11 +135,11 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
-    def taskTypeWithInputFilesProperty() {
+    def taskTypeWithInputFileCollection() {
         buildFile << """
             class InputFilesTask extends DefaultTask {
                 @InputFiles
-                final inFiles = project.files()
+                final ConfigurableFileCollection inFiles = project.files()
                 @OutputFile
                 final RegularFileProperty outFile = project.objects.fileProperty()
                 @TaskAction

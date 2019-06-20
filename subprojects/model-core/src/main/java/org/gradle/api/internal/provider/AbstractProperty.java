@@ -55,7 +55,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     @Override
-    public void finalizeValueOnReadAndWarnAboutChanges() {
+    public void implicitFinalizeValue() {
         finalizeOnNextGet = true;
     }
 

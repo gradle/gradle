@@ -593,7 +593,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         given:
         def property = property()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:
@@ -628,7 +628,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         given:
         def property = property()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:
@@ -671,7 +671,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         given:
         def property = property()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:

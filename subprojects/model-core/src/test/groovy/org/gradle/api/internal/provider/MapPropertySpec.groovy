@@ -458,7 +458,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     def "ignores set to empty map after value finalized leniently"() {
         given:
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:
@@ -491,7 +491,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     def "ignores add entry after value finalized leniently"() {
         given:
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:
@@ -523,7 +523,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     def "ignores add entries after value finalized leniently"() {
         given:
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:

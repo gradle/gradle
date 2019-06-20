@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
+class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     @Unroll
     def "can use 'as' operator with #type"() {
         buildFile << """
@@ -122,5 +123,90 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("The value for file collection is final and cannot be changed.")
+    }
+
+    def "task @InputFiles file collection property is implicitly finalized and changes ignored when task starts execution"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            task merge(type: InputFilesTask) {
+                outFile = file("out.txt")
+                inFiles.from = "in.txt"
+                doFirst {
+                    inFiles.from("other.txt")
+                }
+            }
+"""
+        file("in.txt").text = "in"
+
+        when:
+        executer.expectDeprecationWarning()
+        run("merge")
+
+        then:
+        file("out.txt").text == "in"
+    }
+
+    def "task ad hoc input file collection property is implicitly finalized and changes ignored when task starts execution"() {
+        buildFile << """
+            def files = project.files()
+            def outFile = file("out.txt")
+            task show {
+                inputs.files files
+                outputs.file outFile
+                files.from("in.txt")
+                doFirst {
+                    files.from("other.txt")
+                    outFile.text = files.files*.name.join(',')
+                }
+            }
+"""
+        file("in.txt").text = "in"
+
+        when:
+        executer.expectDeprecationWarning()
+        run("show")
+
+        then:
+        file("out.txt").text == "in.txt"
+    }
+
+    def "task @InputFiles file collection closure is called once only when task executes"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            task merge(type: InputFilesTask) {
+                outFile = file("out.txt")
+                inFiles.from {
+                    println("calculating value")
+                    return 'in.txt'
+                }
+            }
+"""
+        file("in.txt").text = "in"
+
+        when:
+        run("merge")
+
+        then:
+        output.count("calculating value") == 2 // once for task dependency calculation, once for task execution
+    }
+
+    def "task @InputFiles file collection provider is called once only when task executes"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            task merge(type: InputFilesTask) {
+                outFile = file("out.txt")
+                inFiles.from providers.provider {
+                    println("calculating value")
+                    return 'in.txt'
+                }
+            }
+"""
+        file("in.txt").text = "in"
+
+        when:
+        run("merge")
+
+        then:
+        output.count("calculating value") == 1
     }
 }
