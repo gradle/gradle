@@ -33,6 +33,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -288,7 +289,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * Specifies the rule priority threshold.
      *
      * @since 2.8
-     * @see PmdExtension#rulePriority
+     * @see PmdExtension#getRulePriority()
      */
     @Input
     public int getRulePriority() {
@@ -362,6 +363,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 5.6
      */
     @Incubating
+    @Internal
     public Property<Boolean> getIncrementalAnalysis() {
         return incrementalAnalysis;
     }
