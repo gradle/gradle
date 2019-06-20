@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 @SelfType(AbstractIntegrationSpec)
 trait IncrementalCompileMultiProjectTestFixture {
     TestFile libraryAppProjectWithIncrementalCompilation(CompiledLanguage language = CompiledLanguage.JAVA) {
-        multiProjectBuild('incremental', ['library', 'app'], {
+        multiProjectBuild('incremental', ['library', 'app'], language) {
             buildFile << """
                 subprojects {
                     apply plugin: '${language.name}'
@@ -38,7 +38,7 @@ trait IncrementalCompileMultiProjectTestFixture {
                     }
                 }
             """.stripIndent()
-        }, language)
+        }
         file("app/src/main/${language.name}/AClass.${language.name}") << 'public class AClass { }'
     }
 

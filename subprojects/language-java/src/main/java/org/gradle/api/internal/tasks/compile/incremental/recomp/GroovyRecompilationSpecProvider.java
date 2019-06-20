@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.execution.history.changes.DefaultFileChange;
 import org.gradle.util.RelativePathUtil;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
@@ -36,20 +35,17 @@ import java.util.Set;
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final CompilationSourceDirs sourceDirs;
     private final InputChanges inputChanges;
-    private final Iterable<FileChange> classpathChanges;
     private final Iterable<FileChange> sourceChanges;
-    private final SourceFileClassNameConverter sourceFileClassNameConverter;
+    private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(FileOperations fileOperations,
                                            FileTreeInternal sources,
                                            InputChanges inputChanges,
                                            Iterable<FileChange> sourceChanges,
-                                           Iterable<FileChange> classpathChanges,
-                                           SourceFileClassNameConverter sourceFileClassNameConverter) {
+                                           GroovySourceFileClassNameConverter sourceFileClassNameConverter) {
         super(fileOperations, sources);
         this.sourceDirs = new CompilationSourceDirs(sources);
         this.inputChanges = inputChanges;
-        this.classpathChanges = classpathChanges;
         this.sourceChanges = sourceChanges;
         this.sourceFileClassNameConverter = sourceFileClassNameConverter;
     }
@@ -69,7 +65,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         RecompilationSpec spec = new RecompilationSpec();
 
         processClasspathChanges(current, previous, spec);
-        processOtherChanges(current, previous, spec);
+        processOtherChanges(previous, spec);
 
         spec.getClassesToProcess().addAll(previous.getTypesToReprocess());
         return spec;
@@ -87,7 +83,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         PatternSet classesToDelete = patternSetFactory.create();
         PatternSet filesToRecompile = patternSetFactory.create();
 
-        prepareFilePatterns(spec, recompilationSpec.getFilesToCompile(), classesToDelete, filesToRecompile);
+        prepareFilePatterns(recompilationSpec.getFilesToCompile(), classesToDelete, filesToRecompile);
 
         spec.setSourceFiles(sourceTree.matching(filesToRecompile));
         includePreviousCompilationOutputOnClasspath(spec);
@@ -96,7 +92,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
     }
 
-    private void prepareFilePatterns(JavaCompileSpec spec, Set<File> filesToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
+    private void prepareFilePatterns(Set<File> filesToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
         for (File file : filesToCompile) {
             filesToRecompilePatterns.include(relativize(file));
 
@@ -118,7 +114,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         throw new IllegalStateException("Not found " + sourceFile + " in source dirs: " + dirs);
     }
 
-    private void processOtherChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
+    private void processOtherChanges(PreviousCompilation previous, RecompilationSpec spec) {
         if (spec.getFullRebuildCause() != null) {
             return;
         }
@@ -128,7 +124,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
                 return;
             }
             spec.getFilesToCompile().add(fileChange.getFile());
-            sourceFileChangeProcessor.processChange((DefaultFileChange) fileChange, spec);
+            sourceFileChangeProcessor.processChange(fileChange, spec);
         }
 
         for (String className : spec.getClassesToCompile()) {

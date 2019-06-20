@@ -42,7 +42,6 @@ public class GroovySourceFileClassNameConverter implements SourceFileClassNameCo
         return sourceClassesMapping.get(groovySourceFile);
     }
 
-    @Override
     public Optional<File> getFile(String fqcn) {
         return Optional.ofNullable(classSourceMapping.get(fqcn));
     }

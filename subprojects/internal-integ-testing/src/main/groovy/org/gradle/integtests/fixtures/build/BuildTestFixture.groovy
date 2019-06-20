@@ -70,7 +70,11 @@ class BuildTestFixture {
         return project
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}, CompiledLanguage language = CompiledLanguage.JAVA) {
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        multiProjectBuild(projectName, subprojects, CompiledLanguage.JAVA, cl)
+    }
+
+    def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         def rootMulti = populate(projectName) {
             subprojects.each {
                 settingsFile << "include '$it'\n"

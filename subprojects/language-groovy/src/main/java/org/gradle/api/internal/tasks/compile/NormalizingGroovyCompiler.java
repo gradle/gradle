@@ -30,6 +30,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -46,12 +47,18 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
 
     @Override
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
-        resolveAndFilterSourceFiles(spec);
+        return withExtraClasspath(spec, specWithExtraClasspath -> {
+            resolveAndFilterSourceFiles(specWithExtraClasspath);
+            resolveNonStringsInCompilerArgs(specWithExtraClasspath);
+            logSourceFiles(specWithExtraClasspath);
+            logCompilerArguments(specWithExtraClasspath);
+            return delegateAndHandleErrors(specWithExtraClasspath);
+        });
+    }
+
+    private WorkResult withExtraClasspath(GroovyJavaJointCompileSpec spec, Function<GroovyJavaJointCompileSpec, WorkResult> function) {
         List<File> originalClasspath = resolveClasspath(spec);
-        resolveNonStringsInCompilerArgs(spec);
-        logSourceFiles(spec);
-        logCompilerArguments(spec);
-        WorkResult result = delegateAndHandleErrors(spec);
+        WorkResult result = function.apply(spec);
         restoreClasspath(spec, originalClasspath);
         return result;
     }

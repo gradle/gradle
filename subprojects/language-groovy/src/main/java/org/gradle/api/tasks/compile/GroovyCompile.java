@@ -35,7 +35,6 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovySourceFileClassNameConverter;
@@ -152,7 +151,6 @@ public class GroovyCompile extends AbstractCompile {
         updateSourceClassesMappingFile(inputChanges, oldMappings);
     }
 
-
     private void doCompile(InputChanges inputChanges, Multimap<File, String> sourceClassesMapping) {
         DefaultGroovyJavaJointCompileSpec spec = createSpec();
         WorkResult result = getCompiler(spec, inputChanges, sourceClassesMapping).execute(spec);
@@ -168,7 +166,7 @@ public class GroovyCompile extends AbstractCompile {
             .forEach(oldMappings::removeAll);
         mappingsDuringIncrementalCompilation.keySet().forEach(oldMappings::removeAll);
 
-        mappingsDuringIncrementalCompilation.entries().forEach(entry -> oldMappings.put(entry.getKey(), entry.getValue()));
+        oldMappings.putAll(mappingsDuringIncrementalCompilation);
 
         writeSourceClassesMappingFile(sourceClassesMappingFile, oldMappings);
     }
@@ -211,7 +209,6 @@ public class GroovyCompile extends AbstractCompile {
             (FileTreeInternal) getSource(),
             inputChanges,
             inputChanges.getFileChanges(getStableSources()),
-            inputChanges.getFileChanges(getClasspath()),
             new GroovySourceFileClassNameConverter(sourceClassesMapping));
     }
 
@@ -234,7 +231,7 @@ public class GroovyCompile extends AbstractCompile {
      * @since 5.6
      */
     @Inject
-    protected IncrementalCompilerFactory<JavaCompileSpec> getIncrementalCompilerFactory() {
+    protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
         throw new UnsupportedOperationException();
     }
 

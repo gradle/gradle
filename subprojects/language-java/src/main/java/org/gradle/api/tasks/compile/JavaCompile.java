@@ -126,7 +126,7 @@ public class JavaCompile extends AbstractCompile {
     }
 
     @Inject
-    protected IncrementalCompilerFactory<JavaCompileSpec> getIncrementalCompilerFactory() {
+    protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
         throw new UnsupportedOperationException();
     }
 

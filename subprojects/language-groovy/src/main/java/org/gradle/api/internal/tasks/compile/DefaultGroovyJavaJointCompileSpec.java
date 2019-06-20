@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -46,12 +47,13 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
     }
 
     @Override
+    @Nullable
     public File getCompilationMappingFile() {
         return compilationMappingFile;
     }
 
     @Override
-    public void setCompilationMappingFile(File compilationMappingFile) {
+    public void setCompilationMappingFile(@Nullable File compilationMappingFile) {
         this.compilationMappingFile = compilationMappingFile;
     }
 }

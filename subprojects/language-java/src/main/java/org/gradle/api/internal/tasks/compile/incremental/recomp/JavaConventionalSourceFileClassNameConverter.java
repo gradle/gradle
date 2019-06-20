@@ -22,7 +22,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static java.lang.String.format;
 
@@ -46,10 +45,5 @@ public class JavaConventionalSourceFileClassNameConverter implements SourceFileC
         }
         throw new IllegalArgumentException(format("Unable to find source class: '%s' because it does not belong to any of the source dirs: '%s'",
             sourceFile, dirs));
-    }
-
-    @Override
-    public Optional<File> getFile(String fqcn) {
-        throw new UnsupportedOperationException();
     }
 }

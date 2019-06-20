@@ -42,7 +42,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.language.base.internal.compile.Compiler;
 
-public class IncrementalCompilerFactory<T extends JavaCompileSpec> {
+public class IncrementalCompilerFactory {
     private final FileOperations fileOperations;
     private final StreamHasher streamHasher;
     private final GeneralCompileCaches generalCompileCaches;
@@ -61,7 +61,7 @@ public class IncrementalCompilerFactory<T extends JavaCompileSpec> {
         this.fileHasher = fileHasher;
     }
 
-    public Compiler<T> makeIncremental(CleaningJavaCompilerSupport<T> cleaningJavaCompiler, String taskPath, FileTree sources, RecompilationSpecProvider recompilationSpecProvider) {
+    public <T extends JavaCompileSpec> Compiler<T> makeIncremental(CleaningJavaCompilerSupport<T> cleaningJavaCompiler, String taskPath, FileTree sources, RecompilationSpecProvider recompilationSpecProvider) {
         TaskScopedCompileCaches compileCaches = createCompileCaches(taskPath);
         Compiler<T> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), compileCaches.getClassAnalysisCache());
@@ -93,7 +93,7 @@ public class IncrementalCompilerFactory<T extends JavaCompileSpec> {
         };
     }
 
-    private Compiler<T> createRebuildAllCompiler(final CleaningJavaCompilerSupport<T> cleaningJavaCompiler, final FileTree sourceFiles) {
+    private <T extends JavaCompileSpec> Compiler<T> createRebuildAllCompiler(final CleaningJavaCompilerSupport<T> cleaningJavaCompiler, final FileTree sourceFiles) {
         return new Compiler<T>() {
             @Override
             public WorkResult execute(T spec) {

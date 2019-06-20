@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.internal.execution.history.changes.DefaultFileChange;
+import org.gradle.work.FileChange;
 
 import java.util.Collection;
 
@@ -31,7 +31,7 @@ class SourceFileChangeProcessor {
         this.sourceToNameConverter = sourceToNameConverter;
     }
 
-    public void processChange(DefaultFileChange input, RecompilationSpec spec) {
+    public void processChange(FileChange input, RecompilationSpec spec) {
         Collection<String> classNames = sourceToNameConverter.getClassNames(input.getFile());
         spec.getClassesToCompile().addAll(classNames);
 
