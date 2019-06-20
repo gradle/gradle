@@ -17,7 +17,6 @@
 package org.gradle.instantexecution.serialization.beans
 
 import groovy.lang.Closure
-import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.GeneratedSubclasses
@@ -88,7 +87,9 @@ fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind
         try {
             writeValue(value)
         } catch (e: Throwable) {
-            throw GradleException("Could not save the value of $trace with type ${value?.javaClass?.name}.", e)
+            // TODO: logPropertyError(..., e)
+            logPropertyWarning("write", "error writing value of type '${value?.javaClass?.name}'")
+            return false
         }
         logProperty("serialize", value)
         return true
