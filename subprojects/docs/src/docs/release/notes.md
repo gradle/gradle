@@ -9,6 +9,7 @@ Include only their name, impactful features should be called out separately belo
 -->
 [Andrew K.](https://github.com/miokowpak),
 [Noa Resare](https://github.com/nresare),
+[Juan Martín Sotuyo Dodero](https://github.com/jsotuyod),
 [Semyon Levin](https://github.com/remal),
 [wreulicke](https://github.com/wreulicke),
 [John Rodriguez](https://github.com/jrodbx),
@@ -52,6 +53,8 @@ The upcoming version of Buildship is required to take advantage of this behavior
 ### Support for PMD incremental analysis
 
 TBD
+
+This was contributed by [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod).
 
 ## Improvements for plugin authors
 
