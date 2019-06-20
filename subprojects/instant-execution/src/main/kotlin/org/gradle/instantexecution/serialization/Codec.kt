@@ -126,22 +126,22 @@ enum class PropertyKind {
 
 sealed class IsolateOwner {
 
-    abstract val delegate: Any
-
     fun <T> service(type: Class<T>): T =
         when (this) {
             is OwnerTask -> (delegate.project as ProjectInternal).services.get(type)
             is OwnerGradle -> (delegate as GradleInternal).services.get(type)
         }
 
+    abstract val delegate: Any
+
     class OwnerTask(override val delegate: Task) : IsolateOwner()
+
     class OwnerGradle(override val delegate: Gradle) : IsolateOwner()
 }
 
 
 internal
-inline
-fun <reified T> IsolateOwner.service() =
+inline fun <reified T> IsolateOwner.service() =
     service(T::class.java)
 
 
