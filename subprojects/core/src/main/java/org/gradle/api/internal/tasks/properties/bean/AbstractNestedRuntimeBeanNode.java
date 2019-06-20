@@ -21,6 +21,7 @@ import com.google.common.base.Suppliers;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -119,16 +121,18 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         @Override
         public void maybeFinalizeValue() {
-            if (isProvider()) {
+            if (isConfigurable()) {
                 Object value = valueSupplier.get();
-                if (value instanceof PropertyInternal) {
-                    ((PropertyInternal) value).finalizeValueOnReadAndWarnAboutChanges();
-                }
+                ((HasConfigurableValueInternal) value).implicitFinalizeValue();
             }
         }
 
         private boolean isProvider() {
             return Provider.class.isAssignableFrom(method.getReturnType());
+        }
+
+        private boolean isConfigurable() {
+            return HasConfigurableValue.class.isAssignableFrom(method.getReturnType());
         }
 
         private boolean isBuildable() {

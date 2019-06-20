@@ -471,7 +471,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.getOrNull() == null
 
         where:
-        method << ["finalizeValue", "finalizeValueOnReadAndWarnAboutChanges"]
+        method << ["finalizeValue", "implicitFinalizeValue"]
     }
 
     def "can finalize value when value set"() {
@@ -486,7 +486,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.getOrNull() == someValue()
 
         where:
-        method << ["finalizeValue", "finalizeValueOnReadAndWarnAboutChanges"]
+        method << ["finalizeValue", "implicitFinalizeValue"]
     }
 
     def "can finalize value when using convention"() {
@@ -501,7 +501,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.getOrNull() == someValue()
 
         where:
-        method << ["finalizeValue", "finalizeValueOnReadAndWarnAboutChanges"]
+        method << ["finalizeValue", "implicitFinalizeValue"]
     }
 
     def "replaces provider with fixed value when value finalized"() {
@@ -538,7 +538,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.set(provider)
 
         when:
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
 
         then:
         0 * _
@@ -563,7 +563,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         given:
         property.set(provider)
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
 
         when:
         property.finalizeValue()
@@ -618,7 +618,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.set(provider)
 
         when:
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
 
         then:
         0 * _
@@ -651,8 +651,8 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         when:
         property.finalizeValue()
-        property.finalizeValueOnReadAndWarnAboutChanges()
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
+        property.implicitFinalizeValue()
 
         then:
         0 * _
@@ -676,7 +676,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:
@@ -690,7 +690,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.set(someOtherValue())
         property.finalizeValue()
 
@@ -720,7 +720,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:
@@ -755,7 +755,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:
@@ -788,7 +788,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithDefaultValue()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:
@@ -816,7 +816,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.implicitFinalizeValue()
         property.get()
 
         when:

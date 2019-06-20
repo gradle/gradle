@@ -420,25 +420,6 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
         0 * fileResolver._
     }
 
-    def canFinalizeWhenAlreadyFinalized() {
-        given:
-        def file = new File('one')
-        collection.from('a')
-
-        when:
-        collection.finalizeValue()
-
-        then:
-        1 * fileResolver.resolve('a') >> file
-        0 * fileResolver._
-
-        when:
-        collection.finalizeValue()
-
-        then:
-        0 * fileResolver._
-    }
-
     def cannotSpecifyPathsWhenFinalized() {
         given:
         collection.from('a')
@@ -481,6 +462,20 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.from.remove('a')
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.from.iterator().remove()
+
+        then:
+        def e4 = thrown(IllegalStateException)
+        e4.message == 'The value for <display> is final and cannot be changed.'
     }
 
     def cannotAddPathsWhenFinalized() {
@@ -496,5 +491,257 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'The value for <display> is final and cannot be changed.'
+    }
+
+    def resolvesPathToFileWhenQueriedAfterImplicitlyFinalized() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+
+        when:
+        collection.implicitFinalizeValue()
+
+        then:
+        0 * fileResolver._
+
+        when:
+        def files = collection.files
+
+        then:
+        1 * fileResolver.resolve('a') >> file
+        0 * fileResolver._
+
+        then:
+        files as List == [file]
+
+        when:
+        def files2 = collection.files
+
+        then:
+        files2 as List == [file]
+
+        and:
+        0 * fileResolver._
+    }
+
+    def resolvesClosureToFilesWhenQueriedAfterImplicitlyFinalized() {
+        given:
+        def file1 = new File('one')
+        def file2 = new File('two')
+        def closure = Mock(Closure)
+        collection.from(closure)
+
+        when:
+        collection.implicitFinalizeValue()
+
+        then:
+        0 * closure._
+        0 * fileResolver._
+
+        when:
+        def files = collection.files
+
+        then:
+        files as List == [file1, file2]
+
+        then:
+        1 * closure.call() >> ['a', 'b']
+        0 * closure._
+        1 * fileResolver.resolve('a') >> file1
+        1 * fileResolver.resolve('b') >> file2
+
+        when:
+        def files2 = collection.files
+
+        then:
+        files2 as List == [file1, file2]
+
+        and:
+        0 * closure._
+        0 * fileResolver._
+    }
+
+    def resolvesCollectionToFilesWhenQueriedAfterImplicitlyFinalized() {
+        given:
+        def file1 = new File('one')
+        def file2 = new File('two')
+        def collection = Mock(Collection)
+        this.collection.from(collection)
+
+        when:
+        this.collection.implicitFinalizeValue()
+
+        then:
+        0 * collection._
+        0 * fileResolver._
+
+        when:
+        def files = this.collection.files
+
+        then:
+        files as List == [file1, file2]
+
+        then:
+        1 * collection.iterator() >> ['a', 'b'].iterator()
+        0 * collection._
+        1 * fileResolver.resolve('a') >> file1
+        1 * fileResolver.resolve('b') >> file2
+
+        when:
+        def files2 = this.collection.files
+
+        then:
+        files2 as List == [file1, file2]
+
+        and:
+        0 * collection._
+        0 * fileResolver._
+    }
+
+    def ignoresChangesToPathsAfterQueriedWhenImplicitlyFinalized() {
+        given:
+        def file1 = new File('a')
+        def file2 = new File('b')
+        collection.from('a')
+        _ * fileResolver.resolve('a') >> file1
+        _ * fileResolver.resolve('b') >> file2
+
+        when:
+        collection.implicitFinalizeValue()
+        collection.from('b')
+
+        then:
+        collection.files as List == [file1, file2]
+
+        when:
+        collection.setFrom('some', 'more')
+
+        then:
+        collection.files as List == [file1, file2]
+
+        when:
+        collection.setFrom(['some', 'more'])
+
+        then:
+        collection.files as List == [file1, file2]
+    }
+
+    def ignoresAdditionsToPathsAfterQueriedWhenImplicitlyFinalized() {
+        given:
+        def file1 = new File('a')
+        def file2 = new File('b')
+        collection.from('a')
+        _ * fileResolver.resolve('a') >> file1
+        _ * fileResolver.resolve('b') >> file2
+
+        when:
+        collection.implicitFinalizeValue()
+        collection.from('b')
+
+        then:
+        collection.files as List == [file1, file2]
+
+        when:
+        collection.from('some', 'more')
+
+        then:
+        collection.files as List == [file1, file2]
+    }
+
+    def ignoresMutationsOfFromSetAfterQueriedWhenImplicitlyFinalized() {
+        given:
+        def file1 = new File('a')
+        def file2 = new File('b')
+        collection.from('a')
+        _ * fileResolver.resolve('a') >> file1
+        _ * fileResolver.resolve('b') >> file2
+
+        when:
+        collection.implicitFinalizeValue()
+        collection.from('b')
+
+        then:
+        collection.files as List == [file1, file2]
+
+        when:
+        collection.from.clear()
+
+        then:
+        collection.files as List == [file1, file2]
+
+        when:
+        collection.from.add('c')
+
+        then:
+        collection.files as List == [file1, file2]
+
+        when:
+        collection.from.remove('a')
+
+        then:
+        collection.files as List == [file1, file2]
+
+        when:
+        collection.from.iterator().remove()
+
+        then:
+        collection.files as List == [file1, file2]
+    }
+
+    def canFinalizeWhenAlreadyFinalized() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+
+        when:
+        collection.finalizeValue()
+
+        then:
+        1 * fileResolver.resolve('a') >> file
+        0 * fileResolver._
+
+        when:
+        collection.finalizeValue()
+
+        then:
+        0 * fileResolver._
+    }
+
+    def canImplicitlyFinalizeWhenAlreadyFinalized() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+
+        when:
+        collection.finalizeValue()
+
+        then:
+        1 * fileResolver.resolve('a') >> file
+        0 * fileResolver._
+
+        when:
+        collection.implicitFinalizeValue()
+
+        then:
+        0 * fileResolver._
+    }
+
+    def canFinalizeWhenAlreadyImplicitlyFinalized() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+
+        when:
+        collection.implicitFinalizeValue()
+
+        then:
+        0 * fileResolver._
+
+        when:
+        collection.finalizeValue()
+
+        then:
+        1 * fileResolver.resolve('a') >> file
+        0 * fileResolver._
     }
 }
