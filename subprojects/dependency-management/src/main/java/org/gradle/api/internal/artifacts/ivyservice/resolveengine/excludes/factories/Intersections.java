@@ -107,6 +107,22 @@ class Intersections {
                 ExcludeSpec unionRight = asUnion(remainderRight);
                 ExcludeSpec beta = factory.allOf(unionLeft, unionRight);
                 return factory.anyOf(alpha, beta);
+            } else {
+                // slowest path, full distribution
+                // (A ∪ B) ∩ (C ∪ D) = (A ∩ C) ∪ (A ∩ D) ∪ (B ∩ C) ∪ (B ∩ D)
+                Set<ExcludeSpec> intersections = Sets.newHashSetWithExpectedSize(leftComponents.size() * rightComponents.size());
+                for (ExcludeSpec leftSpec : leftComponents) {
+                    for (ExcludeSpec rightSpec : rightComponents) {
+                        ExcludeSpec merged = tryIntersect(leftSpec, rightSpec);
+                        if (merged == null) {
+                            merged = factory.allOf(leftSpec, rightSpec);
+                        }
+                        if (!(merged instanceof ExcludeNothing)) {
+                            intersections.add(merged);
+                        }
+                    }
+                }
+                return asUnion(intersections);
             }
         } else {
             // Here, we will distribute A ∩ (B ∪ C) if, and only if, at
@@ -173,6 +189,19 @@ class Intersections {
             Set<ModuleIdentifier> common = Sets.newHashSet(((ModuleIdSetExclude) right).getModuleIds());
             common.retainAll(moduleIds);
             return moduleIds(common);
+        } else if (right instanceof ModuleSetExclude) {
+            Set<String> modules = ((ModuleSetExclude) right).getModules();
+            Set<ModuleIdentifier> identifiers = moduleIds.stream()
+                .filter(e -> modules.contains(e.getName()))
+                .collect(toSet());
+            if (identifiers.isEmpty()) {
+                return factory.nothing();
+            }
+            if (identifiers.size() == 1) {
+                return factory.moduleId(identifiers.iterator().next());
+            } else {
+                return factory.moduleIdSet(identifiers);
+            }
         }
         return null;
     }
