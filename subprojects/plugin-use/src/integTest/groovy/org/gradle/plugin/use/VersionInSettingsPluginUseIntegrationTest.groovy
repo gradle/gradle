@@ -57,7 +57,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         settingsKotlinFile << """
             pluginManagement {
                 plugins {
-                    id("$PLUGIN_ID").version("2.0")
+                    id("$PLUGIN_ID") version "2.0"
                 }
             }
 """
