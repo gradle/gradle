@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -54,11 +53,6 @@ final class DefaultModuleIdSetExclude implements ModuleIdSetExclude {
     @Override
     public boolean mayExcludeArtifacts() {
         return false;
-    }
-
-    @Override
-    public boolean equalsIgnoreArtifact(ExcludeSpec other) {
-        return equals(other);
     }
 
     @Override

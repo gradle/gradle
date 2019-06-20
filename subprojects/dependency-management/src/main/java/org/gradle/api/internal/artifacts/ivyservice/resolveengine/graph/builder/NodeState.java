@@ -244,7 +244,7 @@ public class NodeState implements DependencyGraphNode {
         // Virtual platforms require their constraints to be recomputed each time as each module addition can cause a shift in versions
         if (!isVirtualPlatformNeedsRefresh()) {
             // Check if node was previously traversed with the same net exclusion when not a virtual platform
-            if (previousTraversalExclusions != null && previousTraversalExclusions.equalsIgnoreArtifact(resolutionFilter)) {
+            if (excludesSameDependenciesAsPreviousTraversal(resolutionFilter)) {
                 boolean newConstraints = handleNewConstraints(discoveredEdges);
                 boolean edgesToRecompute = handleEdgesToRecompute(discoveredEdges);
                 if (!newConstraints && !edgesToRecompute) {
@@ -267,6 +267,30 @@ public class NodeState implements DependencyGraphNode {
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
+    }
+
+    private boolean excludesSameDependenciesAsPreviousTraversal(ExcludeSpec newResolutionFilter) {
+        if (previousTraversalExclusions == null) {
+            return false;
+        }
+        if (previousTraversalExclusions.equals(newResolutionFilter)) {
+            return true;
+        }
+        if (cachedFilteredDependencyStates == null) {
+            return false;
+        }
+        // here, we need to check that applying the new resolution filter
+        // we would actually exclude exactly the same dependencies as in
+        // the previous visit. It is important that this is NOT a heuristic
+        // (it used to be) because if the filters are _equivalent_, we would
+        // revisit all dependencies and possibly change the classpath order!
+        List<DependencyState> oldStates = cachedFilteredDependencyStates;
+        cachedFilteredDependencyStates = null;
+        boolean sameDependencies = dependencies(newResolutionFilter).equals(oldStates);
+        if (sameDependencies) {
+            LOGGER.debug("Filter {} excludes same dependencies as previous {}", newResolutionFilter, previousTraversalExclusions);
+        }
+        return sameDependencies;
     }
 
     private void prepareToRecomputeEdge(EdgeState edgeToRecompute) {
