@@ -50,7 +50,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
         expect:
         succeeds("check", "-i")
-        !output.contains("This analysis could be faster, please consider using Incremental Analysis")
         !file("build/tmp/pmdMain/incremental.cache").exists()
     }
 
@@ -61,12 +60,10 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         goodCode()
 
         when:
-        args('--info')
         succeeds("pmdMain")
-        file("build/tmp/pmdMain/incremental.cache").exists()
 
         then:
-        output.contains('Analysis cache created')
+        file("build/tmp/pmdMain/incremental.cache").exists()
 
         when:
         args('--rerun-tasks', '--info')
