@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAnyOf;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude;
@@ -46,6 +47,22 @@ class Intersections {
         if (left.equals(right)) {
             return left;
         }
+
+        // Handle anyOf first because we don't want to special case it in
+        // every other case
+
+        if (left instanceof ExcludeAnyOf) {
+            ExcludeSpec excludeSpec = intersectAnyOf((ExcludeAnyOf) left, right);
+            if (excludeSpec != null) {
+                return excludeSpec;
+            }
+        } else if (right instanceof ExcludeAnyOf) {
+            ExcludeSpec excludeSpec = intersectAnyOf((ExcludeAnyOf) right, left);
+            if (excludeSpec != null) {
+                return excludeSpec;
+            }
+        }
+
         if (left instanceof GroupExclude) {
             return intersectGroup((GroupExclude) left, right);
         } else if (right instanceof GroupExclude) {
@@ -66,15 +83,13 @@ class Intersections {
             return intersectModuleIdSet((ModuleIdSetExclude) left, right);
         } else if (right instanceof ModuleIdSetExclude) {
             return intersectModuleIdSet((ModuleIdSetExclude) right, left);
-        } else if (left instanceof ExcludeAnyOf) {
-            return intersectAnyOf((ExcludeAnyOf) left, right);
         }
         return null;
     }
 
     private ExcludeSpec intersectAnyOf(ExcludeAnyOf left, ExcludeSpec right) {
+        Set<ExcludeSpec> leftComponents = left.getComponents();
         if (right instanceof ExcludeAnyOf) {
-            Set<ExcludeSpec> leftComponents = left.getComponents();
             Set<ExcludeSpec> rightComponents = ((ExcludeAnyOf) right).getComponents();
             Set<ExcludeSpec> common = Sets.newHashSet(leftComponents);
             common.retainAll(rightComponents);
@@ -93,12 +108,47 @@ class Intersections {
                 ExcludeSpec beta = factory.allOf(unionLeft, unionRight);
                 return factory.anyOf(alpha, beta);
             }
+        } else {
+            // Here, we will distribute A ∩ (B ∪ C) if, and only if, at
+            // least one of the distribution operations (A ∩ B) can be simplified
+            ExcludeSpec[] excludeSpecs = leftComponents.toArray(new ExcludeSpec[0]);
+            ExcludeSpec[] intersections = null;
+            for (int i = 0; i < excludeSpecs.length; i++) {
+                ExcludeSpec excludeSpec = tryIntersect(excludeSpecs[i], right);
+                if (excludeSpec != null) {
+                    if (intersections == null) {
+                        intersections = new ExcludeSpec[excludeSpecs.length];
+                    }
+                    intersections[i] = excludeSpec;
+                }
+            }
+            if (intersections != null) {
+                Set<ExcludeSpec> simplified = Sets.newHashSetWithExpectedSize(excludeSpecs.length);
+                for (int i = 0; i < intersections.length; i++) {
+                    ExcludeSpec intersection = intersections[i];
+                    if (intersection instanceof ExcludeNothing) {
+                        continue;
+                    }
+                    if (intersection != null) {
+                        simplified.add(intersection);
+                    } else {
+                        simplified.add(factory.allOf(excludeSpecs[i], right));
+                    }
+                }
+                return asUnion(simplified);
+            }
         }
         return null;
     }
 
-    private ExcludeSpec asUnion(Set<ExcludeSpec> remainderLeft) {
-        return remainderLeft.size() == 1 ? remainderLeft.iterator().next() : factory.anyOf(remainderLeft);
+    private ExcludeSpec asUnion(Set<ExcludeSpec> remainder) {
+        if (remainder.isEmpty()) {
+            // It's an intersection, and this method is always called on the remainder
+            // of a reduction operation. If the remainder is empty then it means that
+            // the intersection is empty
+            return factory.nothing();
+        }
+        return remainder.size() == 1 ? remainder.iterator().next() : factory.anyOf(remainder);
     }
 
     private ExcludeSpec intersectModuleId(ModuleIdExclude left, ExcludeSpec right) {
