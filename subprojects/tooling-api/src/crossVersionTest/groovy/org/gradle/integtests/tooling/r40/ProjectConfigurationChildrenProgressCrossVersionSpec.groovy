@@ -274,23 +274,23 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
 
         applyBuildScript.child("Resolve dependencies of :compileClasspath").with {
             it.child "Configure project :a"
-            it.descendant "Download http://localhost:${server.port}${projectB.pomPath}"
-            it.descendant "Download http://localhost:${server.port}/repo/group/projectC/maven-metadata.xml"
-            it.descendant "Download http://localhost:${server.port}${projectC.pomPath}"
-            it.descendant "Download http://localhost:${server.port}${projectD.metaDataPath}"
-            it.descendant "Download http://localhost:${server.port}${projectD.pomPath}"
+            it.descendant "Download ${server.uri}${projectB.pomPath}"
+            it.descendant "Download ${server.uri}/repo/group/projectC/maven-metadata.xml"
+            it.descendant "Download ${server.uri}${projectC.pomPath}"
+            it.descendant "Download ${server.uri}${projectD.metaDataPath}"
+            it.descendant "Download ${server.uri}${projectD.pomPath}"
         }
 
         def resolveArtifacts = applyBuildScript.child("Resolve files of :compileClasspath")
 
         resolveArtifacts.child("Resolve projectB.jar (group:projectB:1.0)")
-            .child "Download http://localhost:${server.port}${projectB.artifactPath}"
+            .child "Download ${server.uri}${projectB.artifactPath}"
 
         resolveArtifacts.child("Resolve projectC.jar (group:projectC:1.5)")
-            .child "Download http://localhost:${server.port}${projectC.artifactPath}"
+            .child "Download ${server.uri}${projectC.artifactPath}"
 
         resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)", "Resolve projectD.jar (group:projectD:2.0-SNAPSHOT:${projectD.uniqueSnapshotVersion})")
-            .child "Download http://localhost:${server.port}${projectD.artifactPath}"
+            .child "Download ${server.uri}${projectD.artifactPath}"
     }
 
     def "generates events for interleaved project configuration and dependency resolution"() {
