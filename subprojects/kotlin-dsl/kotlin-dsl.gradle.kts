@@ -57,10 +57,13 @@ dependencies {
     implementation(futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
     }
+    implementation(futureKotlin("scripting-compiler-impl-embeddable")) {
+        isTransitive = false
+    }
     implementation(futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.5") {
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.5") { // 0.1.0
         isTransitive = false
     }
 
