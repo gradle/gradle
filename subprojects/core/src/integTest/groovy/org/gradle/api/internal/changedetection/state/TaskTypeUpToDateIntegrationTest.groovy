@@ -176,6 +176,33 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         then: skipped(":copy")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/9723")
+    def "task without output is never up-to-date"() {
+        def input = file('input.txt').createFile()
+        buildFile << """
+            class Task extends DefaultTask {
+                @InputFile File input
+             
+                @TaskAction execute(InputChanges inputChanges) {
+                }
+            }   
+            
+            task noOutput(type: Task) {
+                input = file('${input.name}')
+            }
+        """
+
+        when:
+        run 'noOutput'
+        then:
+        noneSkipped()
+
+        when:
+        run 'noOutput'
+        then:
+        noneSkipped()
+    }
+
     private static String declareSimpleCopyTask(boolean modification = false) {
         """
             ${declareSimpleCopyTaskType(modification)}
