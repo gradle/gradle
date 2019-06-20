@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.IncrementalChangesContext;
@@ -31,6 +32,7 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.IncrementalInputProperties;
 import org.gradle.internal.execution.history.changes.RebuildExecutionStateChanges;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import java.util.Optional;
 
@@ -53,13 +55,13 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
         UnitOfWork work = context.getWork();
         Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
         ExecutionStateChanges changes = context.getRebuildReason()
-            .<ExecutionStateChanges>map(rebuildReason ->
-                new RebuildExecutionStateChanges(rebuildReason, beforeExecutionState
-                    .map(beforeExecution -> beforeExecution.getInputFileProperties())
-                    .orElse(null),
-                    createIncrementalInputProperties(work))
-            )
-            .orElseGet(() ->
+            .<ExecutionStateChanges>map(rebuildReason -> {
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties =
+                    beforeExecutionState.map(beforeExecution -> beforeExecution.getInputFileProperties())
+                        .orElse(ImmutableSortedMap.of());
+                IncrementalInputProperties properties = createIncrementalInputProperties(work);
+                return new RebuildExecutionStateChanges(rebuildReason, inputFileProperties, properties);
+            }).orElseGet(() ->
                 beforeExecutionState
                     .map(beforeExecution -> context.getAfterPreviousExecutionState()
                         .map(afterPreviousExecution -> changeDetector.detectChanges(

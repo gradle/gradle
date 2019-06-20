@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -57,7 +58,11 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
 
     public Iterable<FileChange> getObjectFileChanges(Object parameter) {
         CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(incrementalInputProperties.getPropertyNameFor(parameter));
-        return () -> getAllFileChanges(currentFileCollectionFingerprint).iterator();
+        if (currentFileCollectionFingerprint == null) {
+            return ImmutableList.of();
+        } else {
+            return () -> getAllFileChanges(currentFileCollectionFingerprint).iterator();
+        }
     }
 
     @Override

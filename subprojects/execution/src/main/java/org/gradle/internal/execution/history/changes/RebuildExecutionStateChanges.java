@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-import javax.annotation.Nullable;
-
 public class RebuildExecutionStateChanges implements ExecutionStateChanges {
     private final String rebuildReason;
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties;
@@ -29,7 +27,7 @@ public class RebuildExecutionStateChanges implements ExecutionStateChanges {
 
     public RebuildExecutionStateChanges(
         String rebuildReason,
-        @Nullable ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
         IncrementalInputProperties incrementalInputProperties
     ) {
         this.rebuildReason = rebuildReason;
