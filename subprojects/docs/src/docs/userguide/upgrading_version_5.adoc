@@ -36,13 +36,20 @@ Some plugins will break with this new version of Gradle, for example because the
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
 
+=== Deprecations
+
+==== Changing the contents of `ConfigurableFileCollection` task properties after task starts execution
+
+When a task property has type `ConfigurableFileCollection`, then the file collection referenced by the property will ignore changes made to the contents of the collection once the task
+starts execution. This will become an error in Gradle 6.0.
+
 === Potential breaking changes
 
 ==== Task dependencies are honored for task `@Input` properties whose value is a `Property`
 
 Previously, task dependencies would be ignored for task `@Input` properties of type `Property<T>`. These are now honored, so that it is possible to attach a task output property to a task `@Input` property.
 
-This may introduce unexpected cycles in the task dependency graph.
+This may introduce unexpected cycles in the task dependency graph, where the value of an output property is mapped to produce a value for an input property.
 
 ==== Declaring task dependencies using a file `Provider` that does not represent a task output
 
@@ -50,7 +57,7 @@ Previously, it was possible to pass `Task.dependsOn()` a `Provider<File>`, `Prov
 
 This is now an error because Gradle does not know how to build files that are not task outputs.
 
-*Note* that it is still possible to to pass `dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDirectory })`, when the `Provider` is an annotated `@OutputFile` or `@OutputDirectory` property of a task.
+*Note* that it is still possible to to pass `Task.dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDirectory })`, when the `Provider` is an annotated `@OutputFile` or `@OutputDirectory` property of a task.
 
 ==== Enhanced validation of names for `publishing.publications` and `publishing.repositories`
 
@@ -72,13 +79,24 @@ Contributed by link:https://github.com/wreulicke[wreulicke]
 
 Previously, all copies of a configuration always had the name `<OriginConfigurationName>Copy`. Now when creating multiple copies, each will have a unique name by adding an index starting from the second copy. (e.g. `CompileOnlyCopy2`)
 
-
-=== Changed classpath filtering for Eclipse
+==== Changed classpath filtering for Eclipse
 
 Gradle 5.6 no longer supplies custom classpath attributes in the Eclipse model. Instead, it provides the attributes for link:https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources[Eclipse test sources]. This change requires Buildship version 3.1.1 or later.
 
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
+
+=== Deprecations
+
+==== Play
+
+The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated and will be replaced by a new link:https://gradle.github.io/playframework[Play Framework plugin] available from the plugin portal.
+
+==== Build Comparison
+
+The <<comparing_builds.adoc#comparing_builds, build comparison>> plugin has been deprecated and will be removed in the next major version of Gradle.
+
+link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/[Gradle Enterprise] to directly compare two build's build-scans.
 
 === Potential breaking changes
 
@@ -117,22 +135,10 @@ In some rare cases this may cause some differences in resolution, due to the cor
 
 The system classpath for worker daemons started by the <<custom_tasks.adoc#worker_api, Worker API>> when using `PROCESS` isolation has been reduced to a minimum set of Gradle infrastructure. User code is still segregated into a separate classloader to isolate it from the Gradle runtime. This should be a transparent change for tasks using the worker API, but previous versions of Gradle mixed user code and Gradle internals in the worker process. Worker actions that rely on things like the `java.class.path` system property may be affected, since `java.class.path` now represents only the classpath of the Gradle internals.
 
-=== Deprecations
-
-==== Play
-
-The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated and will be replaced by a new link:https://gradle.github.io/playframework[Play Framework plugin] available from the plugin portal.
-
-==== Build Comparison
-
-The <<comparing_builds.adoc#comparing_builds, build comparison>> plugin has been deprecated and will be removed in the next major version of Gradle.
-
-link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/[Gradle Enterprise] to directly compare two build's build-scans.
-
 [[changes_5.4]]
 == Upgrading from 5.3 and earlier
 
-=== Deprecated classes, methods and properties
+=== Deprecations
 
 ==== Using custom local build cache implementations
 
@@ -217,6 +223,18 @@ none
 [[changes_5.1]]
 == Upgrading from 5.0 and earlier
 
+=== Deprecations
+
+Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
+
+ * Setters for `classes` and `classpath` on link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[`ValidateTaskProperties`]
+
+ * There should not be setters for lazy properties like link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].  Use `setFrom` instead. For example,
+----
+    validateTaskProperties.getClasses().setFrom(fileCollection)
+    validateTaskProperties.getClasspath().setFrom(fileCollection)
+----
+
 === Potential breaking changes
 
 The following changes were not previously deprecated:
@@ -263,28 +281,11 @@ This may break plugins that relied on the previous behaviour.
 
 The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines()[targetMachines] property.
 
-### Change in behavior for tasks extending `AbstractArchiveTask` or subtypes (`Zip`, `Jar`, `War`, `Ear`, `Tar`)
+==== Change in behavior for tasks extending `AbstractArchiveTask` or subtypes (`Zip`, `Jar`, `War`, `Ear`, `Tar`)
 
 The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#provider-files-api-reference,Provider API>>. Plugins that extend these types and override methods from the base class may no longer behave the same way. Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
 
 If your plugin/build only uses these types (and does not extend them), nothing has changed.
-
-////
-The following breaking changes will appear as deprecation warnings with Gradle 5.X:
- *
-////
-
-=== Deprecated classes, methods and properties
-
-Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
-
- * Setters for `classes` and `classpath` on link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[`ValidateTaskProperties`]
-
- * There should not be setters for lazy properties like link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].  Use `setFrom` instead. For example,
-----
-    validateTaskProperties.getClasses().setFrom(fileCollection)
-    validateTaskProperties.getClasspath().setFrom(fileCollection)
-----
 
 ////
 == Changes in detail
