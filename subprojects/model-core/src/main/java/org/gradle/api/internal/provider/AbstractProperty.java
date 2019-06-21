@@ -22,11 +22,12 @@ import org.gradle.util.DeprecationLogger;
 
 public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private enum State {
-        InitialValue, Convention, Mutable, FinalLenient, FinalStrict
+        InitialValue, Convention, Mutable, Final
     }
 
     private State state = State.InitialValue;
     private boolean finalizeOnNextGet;
+    private boolean disallowChanges;
     private Task producer;
 
     @Override
@@ -48,10 +49,16 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     @Override
     public void finalizeValue() {
-        if (state != State.FinalStrict) {
+        if (state != State.Final) {
             makeFinal();
         }
-        state = State.FinalStrict;
+        state = State.Final;
+        disallowChanges = true;
+    }
+
+    @Override
+    public void disallowChanges() {
+        disallowChanges = true;
     }
 
     @Override
@@ -67,12 +74,12 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
      * Call prior to reading the value of this property.
      */
     protected void beforeRead() {
-        if (state == State.FinalLenient || state == State.FinalStrict) {
+        if (state == State.Final) {
             return;
         }
         if (finalizeOnNextGet) {
             makeFinal();
-            state = State.FinalLenient;
+            state = State.Final;
         }
     }
 
@@ -80,9 +87,11 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
      * Call prior to mutating the value of this property.
      */
     protected boolean beforeMutate() {
-        if (state == State.FinalStrict) {
+        if (state == State.Final && disallowChanges) {
             throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
-        } else if (state == State.FinalLenient) {
+        } else if (disallowChanges) {
+            throw new IllegalStateException("The value for this property cannot be changed any further.");
+        } else if (state == State.Final) {
             DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a property with a final value");
             return false;
         } else if (state == State.Convention) {

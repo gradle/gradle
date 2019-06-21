@@ -122,6 +122,31 @@ property.set(12)
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
+    def "can disallow changes to a property using API without finalizing the value"() {
+        given:
+        buildFile << """
+Integer counter = 0
+def provider = providers.provider { ++counter }
+
+def property = objects.property(Integer)
+property.set(provider)
+
+assert property.get() == 1 
+assert property.get() == 2 
+property.disallowChanges()
+assert property.get() == 3
+assert property.get() == 4 
+
+property.set(12)
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("The value for this property cannot be changed any further.")
+    }
+
     def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
         given:
         buildFile << """
