@@ -25,7 +25,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 
-public class JavaConventionalSourceFileClassNameConverter implements SourceFileClassNameConverter {
+class JavaConventionalSourceFileClassNameConverter implements SourceFileClassNameConverter {
     private final CompilationSourceDirs sourceDirs;
 
     public JavaConventionalSourceFileClassNameConverter(CompilationSourceDirs sourceDirs) {

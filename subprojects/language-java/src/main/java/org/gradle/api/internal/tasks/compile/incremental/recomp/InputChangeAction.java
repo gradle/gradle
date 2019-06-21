@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.internal.execution.history.changes.DefaultFileChange;
 
 import java.io.File;
 
@@ -45,7 +44,7 @@ class InputChangeAction implements Action<InputFileDetails> {
 
         File file = input.getFile();
         if (hasExtension(file, ".java")) {
-            javaChangeProcessor.processChange((DefaultFileChange) input, spec);
+            javaChangeProcessor.processChange(input.getFile(), spec);
         } else if (hasExtension(file, ".jar") || hasExtension(file, ".class")) {
             annotationProcessorChangeProcessor.processChange(input, spec);
         } else {

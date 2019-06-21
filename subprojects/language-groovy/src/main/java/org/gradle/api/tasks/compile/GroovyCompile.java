@@ -27,6 +27,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
@@ -47,6 +48,7 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -144,9 +146,30 @@ public class GroovyCompile extends AbstractCompile {
         checkGroovyClasspathIsNonEmpty();
         warnIfCompileAvoidanceEnabled();
 
-        this.sourceClassesMappingFile = new File(getTemporaryDir(), "source-classes-mapping.txt");
+        if (inputChanges != null && getOptions().isIncremental()) {
+            doIncrementalCompile(inputChanges);
+        } else {
+            doCompile(inputChanges, null);
+        }
+    }
 
-        Multimap<File, String> oldMappings = readSourceClassesMappingFile(sourceClassesMappingFile);
+    /**
+     * The Groovy source-classes mapping file. Internal use only.
+     *
+     * @since 5.6
+     */
+    @LocalState
+    @Incubating
+    protected File getSourceClassesMappingFile() {
+        if (sourceClassesMappingFile == null) {
+            File tmpDir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
+            sourceClassesMappingFile = new File(tmpDir, "source-classes-mapping.txt");
+        }
+        return sourceClassesMappingFile;
+    }
+
+    private void doIncrementalCompile(InputChanges inputChanges) {
+        Multimap<File, String> oldMappings = readSourceClassesMappingFile(getSourceClassesMappingFile());
         doCompile(inputChanges, oldMappings);
         updateSourceClassesMappingFile(inputChanges, oldMappings);
     }
@@ -158,7 +181,7 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     private void updateSourceClassesMappingFile(InputChanges inputChanges, Multimap<File, String> oldMappings) {
-        Multimap<File, String> mappingsDuringIncrementalCompilation = readSourceClassesMappingFile(sourceClassesMappingFile);
+        Multimap<File, String> mappingsDuringIncrementalCompilation = readSourceClassesMappingFile(getSourceClassesMappingFile());
 
         StreamSupport.stream(inputChanges.getFileChanges(getStableSources()).spliterator(), false)
             .filter(fileChange -> fileChange.getChangeType() == ChangeType.REMOVED)
@@ -168,7 +191,7 @@ public class GroovyCompile extends AbstractCompile {
 
         oldMappings.putAll(mappingsDuringIncrementalCompilation);
 
-        writeSourceClassesMappingFile(sourceClassesMappingFile, oldMappings);
+        writeSourceClassesMappingFile(getSourceClassesMappingFile(), oldMappings);
     }
 
     private void warnIfCompileAvoidanceEnabled() {
@@ -201,7 +224,6 @@ public class GroovyCompile extends AbstractCompile {
             return cleaningGroovyCompiler;
         }
     }
-
 
     private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges, Multimap<File, String> sourceClassesMapping) {
         return new GroovyRecompilationSpecProvider(
@@ -257,8 +279,8 @@ public class GroovyCompile extends AbstractCompile {
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
         if (getOptions().isIncremental()) {
-            spec.setCompilationMappingFile(sourceClassesMappingFile);
-            sourceClassesMappingFile.delete();
+            spec.setCompilationMappingFile(getSourceClassesMappingFile());
+            getSourceClassesMappingFile().delete();
         }
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
             File dir = new File(getTemporaryDir(), "groovy-java-stubs");

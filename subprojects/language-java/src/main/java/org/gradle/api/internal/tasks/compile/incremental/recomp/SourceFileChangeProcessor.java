@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.work.FileChange;
 
+import java.io.File;
 import java.util.Collection;
 
 class SourceFileChangeProcessor {
@@ -31,14 +31,14 @@ class SourceFileChangeProcessor {
         this.sourceToNameConverter = sourceToNameConverter;
     }
 
-    public void processChange(FileChange input, RecompilationSpec spec) {
-        Collection<String> classNames = sourceToNameConverter.getClassNames(input.getFile());
+    public void processChange(File inputFile, RecompilationSpec spec) {
+        Collection<String> classNames = sourceToNameConverter.getClassNames(inputFile);
         spec.getClassesToCompile().addAll(classNames);
 
         for (String className : classNames) {
             DependentsSet actualDependents = previousCompilation.getDependents(className, IntSets.EMPTY_SET);
             if (actualDependents.isDependencyToAll()) {
-                spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
+                spec.setFullRebuildCause(actualDependents.getDescription(), inputFile);
                 return;
             }
             spec.getClassesToCompile().addAll(actualDependents.getDependentClasses());

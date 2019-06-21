@@ -63,6 +63,10 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     @Override
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
+        if (sourceFileClassNameConverter.isEmpty()) {
+            spec.setFullRebuildCause("no source class mapping file found", null);
+            return spec;
+        }
 
         processClasspathChanges(current, previous, spec);
         processOtherChanges(previous, spec);
@@ -124,7 +128,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
                 return;
             }
             spec.getFilesToCompile().add(fileChange.getFile());
-            sourceFileChangeProcessor.processChange(fileChange, spec);
+            sourceFileChangeProcessor.processChange(fileChange.getFile(), spec);
         }
 
         for (String className : spec.getClassesToCompile()) {

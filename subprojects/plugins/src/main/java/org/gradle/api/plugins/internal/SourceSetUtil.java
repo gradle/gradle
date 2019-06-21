@@ -22,9 +22,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -47,7 +45,7 @@ public class SourceSetUtil {
         compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
         compile.setSource(sourceSet.getJava());
 
-        ConfigurableFileCollection classpath = ((ProjectInternal) compile.getProject()).getServices().get(ObjectFactory.class).fileCollection();
+        ConfigurableFileCollection classpath = compile.getProject().getObjects().fileCollection();
         classpath.from(new Callable<Object>() {
             @Override
             public Object call() {

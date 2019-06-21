@@ -17,8 +17,9 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
-class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest {
+class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
     CompiledLanguage language = CompiledLanguage.GROOVY
 
     def setup() {
@@ -28,5 +29,29 @@ class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIn
     void recompiledWithFailure(String expectedFailure, String... recompiledClasses) {
         succeeds language.compileTaskName
         outputs.recompiledClasses(recompiledClasses)
+    }
+
+    def 'rebuild all after loading from cache'() {
+        given:
+        def a = source "class A {}"
+        source "class B {}"
+
+        withBuildCache()
+        run language.compileTaskName
+        file('build/classes/groovy/main').forceDeleteDir()
+
+        when:
+        withBuildCache()
+        run language.compileTaskName, '-i'
+
+        then:
+        outputContains('FROM-CACHE')
+
+        when:
+        a.text = 'class A { int a }'
+        run language.compileTaskName, '-i'
+
+        then:
+        outputContains('no source class mapping file found')
     }
 }
