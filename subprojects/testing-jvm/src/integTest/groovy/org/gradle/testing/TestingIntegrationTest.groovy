@@ -18,12 +18,10 @@ package org.gradle.testing
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -37,7 +35,6 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
-    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "test interrupting its own thread does not kill test execution"() {
         given:
         buildFile << """

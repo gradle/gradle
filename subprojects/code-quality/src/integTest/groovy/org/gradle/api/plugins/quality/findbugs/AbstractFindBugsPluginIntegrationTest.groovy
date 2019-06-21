@@ -16,19 +16,17 @@
 package org.gradle.api.plugins.quality.findbugs
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Matchers
 import org.gradle.util.Resources
 import org.hamcrest.Matcher
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.startsWith
 
 abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -90,7 +88,6 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.BadClassTest"))
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental"() {
         given:
         goodCode()
@@ -292,7 +289,6 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class800Test"))
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental for reporting settings"() {
         given:
         buildFile << """
@@ -332,7 +328,6 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         executedAndNotSkipped(":findbugsMain" )
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental for withMessage"() {
         given:
         buildFile << """
@@ -385,7 +380,6 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         executedAndNotSkipped(":findbugsMain")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is withMessage ignored for non-XML report setting"() {
         given:
         buildFile << """
@@ -524,7 +518,6 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         failure.assertThatCause(Matchers.matchesRegexp("Process 'Gradle FindBugs Worker [0-9]+' finished with non-zero exit value 1"))
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "out-of-date with mixed Java and Groovy sources"() {
         given:
         goodCode()

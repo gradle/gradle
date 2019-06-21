@@ -15,8 +15,7 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -42,7 +41,6 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         failureHasCause "Cannot perform signing task ':signJar' because it has no configured signatory"
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "trying to perform a signing operation without a signatory when not required does not error, and other artifacts still uploaded"() {
         when:
         buildFile << """
