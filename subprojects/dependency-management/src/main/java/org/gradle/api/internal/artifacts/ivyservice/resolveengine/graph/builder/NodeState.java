@@ -272,8 +272,7 @@ public class NodeState implements DependencyGraphNode {
 
     private boolean excludesSameDependenciesAsPreviousTraversal(ExcludeSpec newResolutionFilter) {
         List<DependencyState> oldStates = cachedFilteredDependencyStates;
-        cachedFilteredDependencyStates = null;
-        if (previousTraversalExclusions == null) {
+        if (previousTraversalExclusions == null || oldStates == null) {
             return false;
         }
         if (previousTraversalExclusions.equals(newResolutionFilter)) {
@@ -283,14 +282,19 @@ public class NodeState implements DependencyGraphNode {
             // whatever the exclude filter, there are no dependencies
             return true;
         }
+        cachedFilteredDependencyStates = null;
         // here, we need to check that applying the new resolution filter
         // we would actually exclude exactly the same dependencies as in
         // the previous visit. It is important that this is NOT a heuristic
         // (it used to be) because if the filters are _equivalent_, we would
         // revisit all dependencies and possibly change the classpath order!
         boolean sameDependencies = dependencies(newResolutionFilter).equals(oldStates);
-        if (sameDependencies) {
-            LOGGER.debug("Filter {} excludes same dependencies as previous {}", newResolutionFilter, previousTraversalExclusions);
+        if (LOGGER.isDebugEnabled()) {
+            if (sameDependencies) {
+                LOGGER.debug("Filter {} excludes same dependencies as previous {}. Dependencies left = {}", newResolutionFilter, previousTraversalExclusions, oldStates);
+            } else {
+                LOGGER.debug("Filter {} doesn't exclude same dependencies as previous {}. Previous dependencies left = {} - New dependencies left = {}", newResolutionFilter, previousTraversalExclusions, oldStates, cachedFilteredDependencyStates);
+            }
         }
         return sameDependencies;
     }
