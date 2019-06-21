@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization
 
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -32,8 +31,8 @@ fun <T> singleton(value: T): Codec<T> =
 
 
 internal
-inline fun <reified T> ownerProjectService() =
-    codec<T>({ }, { readProjectService() })
+inline fun <reified T> ownerService() =
+    codec<T>({ }, { readOwnerService() })
 
 
 internal
@@ -47,13 +46,8 @@ fun <T> codec(
 
 
 private
-inline fun <reified T> ReadContext.readProjectService() =
-    ownerProject.services.get(T::class.java)
-
-
-internal
-val IsolateContext.ownerProject
-    get() = isolate.owner.project as ProjectInternal
+inline fun <reified T> ReadContext.readOwnerService() =
+    isolate.owner.service<T>()
 
 
 private

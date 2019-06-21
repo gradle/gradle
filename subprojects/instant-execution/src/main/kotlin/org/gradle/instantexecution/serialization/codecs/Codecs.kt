@@ -27,6 +27,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
+import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DecodingProvider
 import org.gradle.instantexecution.serialization.Encoding
@@ -36,9 +37,10 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logUnsupported
-import org.gradle.instantexecution.serialization.ownerProjectService
+import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
@@ -111,15 +113,17 @@ class Codecs(
 
         bind(TaskReferenceCodec)
 
-        bind(ownerProjectService<ObjectFactory>())
-        bind(ownerProjectService<PatternSpecFactory>())
-        bind(ownerProjectService<FileResolver>())
-        bind(ownerProjectService<Instantiator>())
-        bind(ownerProjectService<FileCollectionFactory>())
-        bind(ownerProjectService<FileOperations>())
-        bind(ownerProjectService<BuildOperationExecutor>())
-        bind(ownerProjectService<ToolingModelBuilderRegistry>())
-        bind(ownerProjectService<ExecActionFactory>())
+        bind(ownerService<ObjectFactory>())
+        bind(ownerService<PatternSpecFactory>())
+        bind(ownerService<FileResolver>())
+        bind(ownerService<Instantiator>())
+        bind(ownerService<FileCollectionFactory>())
+        bind(ownerService<FileOperations>())
+        bind(ownerService<BuildOperationExecutor>())
+        bind(ownerService<ToolingModelBuilderRegistry>())
+        bind(ownerService<ExecActionFactory>())
+        bind(ownerService<BuildOperationListenerManager>())
+        bind(ownerService<BuildRequestMetaData>())
 
         bind(BeanCodec())
     }

@@ -27,7 +27,7 @@ internal
 object TaskReferenceCodec : Codec<Task> {
 
     override fun WriteContext.encode(value: Task) {
-        if (value === isolate.owner) {
+        if (value === isolate.owner.delegate) {
             writeBoolean(true)
         } else {
             logUnsupported(Task::class)
@@ -36,5 +36,5 @@ object TaskReferenceCodec : Codec<Task> {
     }
 
     override fun ReadContext.decode(): Task? =
-        isolate.owner.takeIf { readBoolean() }
+        isolate.owner.delegate.takeIf { readBoolean() } as Task?
 }
