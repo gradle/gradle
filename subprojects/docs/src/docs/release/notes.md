@@ -144,12 +144,6 @@ The Gradle Kotlin DSL embedded Kotlin compiler has been upgraded from version `1
 
 ## Fixed issues
 
-### Processing of excludes
-
-Previous versions of Gradle could, in some complex dependency graphs, have a wrong result or a randomized dependency order when lots of excludes were present.
-To mitigate this, the algorithm that computes exclusions has been completely rewritten.
-In some rare cases this may cause some differences in resolution, due to the correctness changes.
-
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.

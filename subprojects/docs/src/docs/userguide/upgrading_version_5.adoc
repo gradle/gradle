@@ -63,7 +63,13 @@ The version of Ant distributed with Gradle has been upgraded to link:https://arc
 
 This affects Kotlin DSL build scripts that make use of `ExtensionAware` extension members such as the `extra` properties accessor inside the `dependencies {}` block. The receiver for those members will no longer be the enclosing `Project` instance but the `dependencies` object itself, the innermost `ExtensionAware` conforming receiver. In order to address `Project` extra properties inside `dependencies {}` the receiver must be explicitly qualified i.e. `project.extra` instead of just `extra`. Affected extensions also include `the<T>()` and `configure<T>(T.() -> Unit)`.
 
-==== Classpath for worker processes
+==== Improved processing of dependency excludes
+
+Previous versions of Gradle could, in some complex dependency graphs, have a wrong result or a randomized dependency order when lots of excludes were present.
+To mitigate this, the algorithm that computes exclusions has been rewritten.
+In some rare cases this may cause some differences in resolution, due to the correctness changes.
+
+==== Improved classpath separation for worker processes
 
 The system classpath for worker daemons started by the <<custom_tasks.adoc#worker_api, Worker API>> when using `PROCESS` isolation has been reduced to a minimum set of Gradle infrastructure. User code is still segregated into a separate classloader to isolate it from the Gradle runtime. This should be a transparent change for tasks using the worker API, but previous versions of Gradle mixed user code and Gradle internals in the worker process. Worker actions that rely on things like the `java.class.path` system property may be affected, since `java.class.path` now represents only the classpath of the Gradle internals.
 
