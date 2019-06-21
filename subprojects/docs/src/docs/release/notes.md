@@ -56,15 +56,23 @@ dependencies {
 
 ### Task dependencies are honored for `@Input` properties of type `Property`
 
-TBD - honors dependencies on `@Input` properties.
+Gradle can automatically calculate task dependencies based on the value of certain task input properties. For example, for a property of type `FileCollection` or `Provider<Set<RegularFile>>` 
+and that is annotated with `@InputFiles`, Gradle will inspect the value of the property and automatically add task dependencies for any task output files or directories in the collection. 
+
+In this release, Gradle also performs this analysis on task properties of type `Property<T>` and that are annotated with `@Input`. This allow you to connect an output of a task to a non-file input parameter of another task.
+For example, you might have a task that runs the `git` command to determine the name of the current branch, and another task that uses the branch name to produce an application bundle. With this change
+you can connect the output of the first task as an input of the second task, and avoid running the `git` command at configuration time. 
+
+See the [user manual](userguide/lazy_configuration.html#sec:working_with_task_dependencies_in_lazy_properties) for examples and more details.
 
 ### Finalize the value of a `ConfigurableFileCollection`
 
-TBD - added `ConfigurableFileCollection.finalizeValue()`
+A new method `ConfigurableFileCollection.finalizeValue()` has been added. This method resolves any deferred values, such as Groovy closures or Kotlin functions, that may be present in the collection 
+to their final file locations and prevents further changes to the collection.
 
-### Property methods
+### Prevent changes to a `Property` or `ConfigurableFileCollection`
 
-TBD - added `getLocationOnly()`. 
+New methods `Property.disallowChanges()` and `ConfigurableFileCollection.disallowChanges()` have been added. These methods disallow furyher changes to the property or collection.
 
 ### Worker API improvements
 
