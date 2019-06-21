@@ -54,22 +54,22 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private boolean disallowChanges;
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
-        this("file collection", fileResolver, taskResolver, null);
+        this(null, fileResolver, taskResolver, null);
     }
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Collection<?> files) {
-        this("file collection", fileResolver, taskResolver, files);
+        this(null, fileResolver, taskResolver, files);
     }
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Object[] files) {
         this("file collection", fileResolver, taskResolver, Arrays.asList(files));
     }
 
-    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
+    public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
         this(displayName, fileResolver, taskResolver, null);
     }
 
-    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable Collection<?> files) {
+    public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable Collection<?> files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.files = new LinkedHashSet<Object>();
@@ -122,7 +122,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return displayName == null ? "file collection" : displayName;
     }
 
     @Override
@@ -156,15 +156,19 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     private boolean assertMutable() {
         if (state == State.Final && disallowChanges) {
-            throw new IllegalStateException("The value for " + displayName + " is final and cannot be changed.");
+            throw new IllegalStateException("The value for " + displayNameForThisCollection() + " is final and cannot be changed.");
         } else if (disallowChanges) {
-            throw new IllegalStateException("The value for " + displayName + " cannot be changed.");
+            throw new IllegalStateException("The value for " + displayNameForThisCollection() + " cannot be changed.");
         } else if (state == State.Final) {
             DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a FileCollection with a final value");
             return false;
         } else {
             return true;
         }
+    }
+
+    private String displayNameForThisCollection() {
+        return displayName == null ? "this file collection" : displayName;
     }
 
     @Override

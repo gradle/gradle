@@ -122,7 +122,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         fails('broken')
 
         then:
-        failure.assertHasCause("The value for file collection is final and cannot be changed.")
+        failure.assertHasCause("The value for this file collection is final and cannot be changed.")
     }
 
     def "can disallow changes to file collection without finalizing value"() {
@@ -147,7 +147,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         fails('broken')
 
         then:
-        failure.assertHasCause("The value for file collection cannot be changed.")
+        failure.assertHasCause("The value for this file collection cannot be changed.")
     }
 
     def "task @InputFiles file collection property is implicitly finalized and changes ignored when task starts execution"() {
