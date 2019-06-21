@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.workers.IsolationMode
 import org.junit.Rule
 import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
@@ -586,6 +587,52 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         then:
         assertRunnableExecuted("runInWorkerWithNullParameter")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/8628")
+    def "can find resources in the classpath via the context classloader using #isolationMode"() {
+        fixture.withRunnableClassInBuildSrc()
+
+        file('foo.txt').text = "foo!"
+        buildFile << """
+            apply plugin: "base"
+
+            class ResourceRunnable extends TestRunnable {
+                @Inject
+                public ResourceRunnable(List<String> files, File outputDir, Foo foo) {
+                    super(files, outputDir, foo);
+                }
+
+                public void run() {
+                    super.run()
+                    def resource = Thread.currentThread().getContextClassLoader().getResource("foo.txt")
+                    assert resource != null && resource.getPath().endsWith('build/libs/foo.jar!/foo.txt')
+                    println resource
+                }
+            }
+
+            task jarFoo(type: Jar) {
+                archiveBaseName = 'foo'
+                from 'foo.txt'
+            }
+
+            task runInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.${isolationMode}
+                runnableClass = ResourceRunnable
+                additionalClasspath = tasks.jarFoo.outputs.files
+                dependsOn jarFoo
+            } 
+        """
+
+        when:
+        succeeds("runInWorker")
+
+        then:
+        assertRunnableExecuted("runInWorker")
+
+        where:
+        isolationMode << [IsolationMode.CLASSLOADER, IsolationMode.PROCESS]
+
     }
 
     void withParameterClassReferencingClassInAnotherPackage() {
