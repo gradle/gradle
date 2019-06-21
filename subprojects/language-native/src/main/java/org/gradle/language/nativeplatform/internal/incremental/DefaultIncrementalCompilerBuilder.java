@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
@@ -106,7 +105,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
 
         @Override
         public Set<File> getFiles() {
-            List<File> includeRoots = Lists.newArrayList(includeDirs);
+            List<File> includeRoots = ImmutableList.copyOf(includeDirs);
             compileStateCache = compilationStateCacheFactory.create(taskPath);
             DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importAware.get());
             DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots, fileSystemSnapshotter);

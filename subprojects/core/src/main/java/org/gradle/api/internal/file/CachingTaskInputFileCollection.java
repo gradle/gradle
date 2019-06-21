@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -49,11 +48,11 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
             if (cachedValue == null) {
                 DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext(fileResolver);
                 super.visitContents(nested);
-                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
+                ImmutableSet.Builder<File> files = ImmutableSet.builder();
                 for (FileCollectionInternal fileCollection : nested.resolveAsFileCollections()) {
-                    builder.addAll(Lists.newArrayList(fileCollection));
+                    files.addAll(fileCollection);
                 }
-                this.cachedValue = builder.build();
+                this.cachedValue = files.build();
             }
             context.add(cachedValue);
         } else {

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
@@ -77,8 +76,8 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
                 return sourceCollections.get(0).getFiles();
             default:
                 ImmutableSet.Builder<File> builder = ImmutableSet.builder();
-                for (FileCollection fileCollection : sourceCollections) {
-                    builder.addAll(Lists.newArrayList(fileCollection));
+                for (FileCollection collection : sourceCollections) {
+                    builder.addAll(collection);
                 }
                 return builder.build();
         }
