@@ -57,6 +57,14 @@
             "changes": []
         },
         {
+            "type": "org.gradle.api.file.ConfigurableFileCollection",
+            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
+            "acceptation": "Introduce new abstraction for lazy types",
+            "changes": [
+                "org.gradle.api.provider.HasConfigurableValue"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "member": "Class org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "acceptation": "Common methods extracted to UrlArtifactRepository",

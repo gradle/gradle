@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Task;
+import org.gradle.api.provider.HasConfigurableValue;
 
-public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal {
+public interface HasConfigurableValueInternal extends HasConfigurableValue {
     /**
-     * Sets the property's value from some arbitrary object. Used from the Groovy DSL.
+     * Same semantics as {@link org.gradle.api.provider.HasConfigurableValue#finalizeValue()}, but finalizes the value of this object lazily, when the value is queried.
+     * Implementations may then fail on subsequent changes, or generate a deprecation warning and ignore changes.
      */
-    void setFromAnyValue(Object object);
-
-    /**
-     * Associates this property with the task that produces its value.
-     */
-    void attachProducer(Task producer);
+    void implicitFinalizeValue();
 }

@@ -414,7 +414,7 @@ The following types/formats are supported:
 
     def "input file collection containing task provider implies dependency on all outputs of the task"() {
         taskTypeWithMultipleOutputFiles()
-        taskTypeWithInputFilesProperty()
+        taskTypeWithInputFileCollection()
         buildFile << """
             def provider = tasks.register("a", OutputFilesTask) {
                 out1 = file("file1.txt")
@@ -436,7 +436,7 @@ The following types/formats are supported:
 
     def "input file collection containing mapped task provider implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFiles()
-        taskTypeWithInputFilesProperty()
+        taskTypeWithInputFileCollection()
         buildFile << """
             def provider = tasks.register("a", OutputFilesTask) {
                 out1 = file("file1.txt")
@@ -480,7 +480,7 @@ The following types/formats are supported:
 
     def "input file collection containing mapped task output property implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFileProperties()
-        taskTypeWithInputFilesProperty()
+        taskTypeWithInputFileCollection()
         buildFile << """
             def a = tasks.create("a", OutputFilesTask) {
                 out1 = file("file1.txt")
@@ -502,7 +502,7 @@ The following types/formats are supported:
 
     def "input file collection containing task output property implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFileProperties()
-        taskTypeWithInputFilesProperty()
+        taskTypeWithInputFileCollection()
         buildFile << """
             def a = tasks.create("a", OutputFilesTask) {
                 out1 = file("file1.txt")
@@ -524,7 +524,7 @@ The following types/formats are supported:
 
     def "input file collection containing collection property implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFileProperties()
-        taskTypeWithInputFilesProperty()
+        taskTypeWithInputFileCollection()
         buildFile << """
             def a = tasks.create("a", OutputFilesTask) {
                 out1 = file("a-1.txt")
@@ -575,7 +575,7 @@ The following types/formats are supported:
 
     def "input file collection containing flat map task provider implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFileProperties()
-        taskTypeWithInputFilesProperty()
+        taskTypeWithInputFileCollection()
         buildFile << """
             def a = tasks.register("a", OutputFilesTask) {
                 out1 = file("file1.txt")
@@ -597,7 +597,7 @@ The following types/formats are supported:
 
     def "input file collection containing container element provider implies dependency on task"() {
         taskTypeWithOutputFileProperty()
-        taskTypeWithInputFilesProperty()
+        taskTypeWithInputFileCollection()
         buildFile << """
             def a = tasks.create("a", FileProducer) {
                 output = file("file1.txt")
@@ -621,7 +621,7 @@ The following types/formats are supported:
 
     @Unroll
     def "input file collection containing provider that returns #value does not imply task dependency"() {
-        taskTypeWithInputFilesProperty()
+        taskTypeWithInputFileCollection()
         buildFile << """
             tasks.register("b", InputFilesTask) {
                 inFiles.from provider { ${value} }

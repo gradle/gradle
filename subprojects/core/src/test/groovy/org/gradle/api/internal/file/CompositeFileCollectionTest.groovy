@@ -181,7 +181,7 @@ class CompositeFileCollectionTest extends Specification {
 
         @Override
         void visitContents(FileCollectionResolveContext context) {
-            context.add(sourceCollections)
+            context.addAll(sourceCollections)
         }
 
         @Override

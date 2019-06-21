@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -25,12 +26,15 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdInvoker;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -45,6 +49,7 @@ import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -66,9 +71,12 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private int rulePriority;
     private boolean consoleOutput;
     private FileCollection classpath;
+    private Property<Boolean> incrementalAnalysis;
 
     public Pmd() {
-        reports = getObjectFactory().newInstance(PmdReportsImpl.class, this);
+        ObjectFactory objects = getObjectFactory();
+        reports = objects.newInstance(PmdReportsImpl.class, this);
+        this.incrementalAnalysis = objects.property(Boolean.class);
     }
 
     @Inject
@@ -281,7 +289,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * Specifies the rule priority threshold.
      *
      * @since 2.8
-     * @see PmdExtension#rulePriority
+     * @see PmdExtension#getRulePriority()
      */
     @Input
     public int getRulePriority() {
@@ -345,5 +353,29 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      */
     public void setClasspath(@Nullable FileCollection classpath) {
         this.classpath = classpath;
+    }
+
+    /**
+     * Controls whether to use incremental analysis or not.
+     *
+     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.15.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    @Internal
+    public Property<Boolean> getIncrementalAnalysis() {
+        return incrementalAnalysis;
+    }
+
+    /**
+     * Path to the incremental cache file, if incremental analysis is used.
+     *
+     * @since 5.6
+     */
+    @LocalState
+    @Incubating
+    public File getIncrementalCacheFile() {
+        return new File(getTemporaryDir(), "incremental.cache");
     }
 }

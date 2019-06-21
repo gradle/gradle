@@ -18,28 +18,39 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
-import org.gradle.util.GUtil;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal {
+    private enum State {
+        Mutable, FinalizeNextQuery, FinalLenient, FinalStrict
+    }
+
     private final Set<Object> files;
+    private final PathSet filesWrapper;
     private final String displayName;
     private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
+    private State state = State.Mutable;
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
         this("file collection", fileResolver, taskResolver, null);
@@ -64,6 +75,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         if (files != null) {
             this.files.addAll(files);
         }
+        filesWrapper = new PathSet(this.files);
         buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
@@ -97,31 +109,63 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
+    public void finalizeValue() {
+        if (state != State.FinalStrict) {
+            calculateFinalizedValue();
+            state = State.FinalStrict;
+        }
+    }
+
+    @Override
+    public void implicitFinalizeValue() {
+        if (state == State.Mutable) {
+            state = State.FinalizeNextQuery;
+        }
+    }
+
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
     @Override
     public Set<Object> getFrom() {
-        return files;
+        return filesWrapper;
     }
 
     @Override
     public void setFrom(Iterable<?> path) {
-        files.clear();
-        files.add(path);
+        if (assertMutable()) {
+            files.clear();
+            files.add(path);
+        }
     }
 
     @Override
     public void setFrom(Object... paths) {
-        files.clear();
-        GUtil.addToCollection(files, Arrays.asList(paths));
+        if (assertMutable()) {
+            files.clear();
+            Collections.addAll(files, paths);
+        }
     }
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
-        GUtil.addToCollection(files, Arrays.asList(paths));
+        if (assertMutable()) {
+            Collections.addAll(files, paths);
+        }
         return this;
+    }
+
+    private boolean assertMutable() {
+        if (state == State.FinalStrict) {
+            throw new IllegalStateException("The value for " + displayName + " is final and cannot be changed.");
+        } else if (state == State.FinalLenient) {
+            DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a FileCollection with a final value");
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @Override
@@ -141,15 +185,97 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return this;
     }
 
+    private void calculateFinalizedValue() {
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver().getPatternSetFactory());
+        UnpackingVisitor nested = new UnpackingVisitor(context, resolver);
+        nested.add(files);
+        files.clear();
+        files.addAll(context.resolveAsFileCollections());
+    }
+
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        FileCollectionResolveContext nested = context.push(resolver);
-        nested.add(files);
+        if (state == State.FinalizeNextQuery) {
+            calculateFinalizedValue();
+            state = State.FinalLenient;
+        }
+        if (state == State.FinalStrict || state == State.FinalLenient) {
+            context.addAll(files);
+        } else {
+            UnpackingVisitor nested = new UnpackingVisitor(context, resolver);
+            nested.add(files);
+        }
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(buildDependency);
         super.visitDependencies(context);
+    }
+
+    private class PathSet extends AbstractSet<Object> {
+        private final Set<Object> delegate;
+
+        public PathSet(Set<Object> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Iterator<Object> iterator() {
+            Iterator<Object> iterator = delegate.iterator();
+            return new Iterator<Object>() {
+                @Override
+                public boolean hasNext() {
+                    return iterator.hasNext();
+                }
+
+                @Override
+                public Object next() {
+                    return iterator.next();
+                }
+
+                @Override
+                public void remove() {
+                    if (assertMutable()) {
+                        iterator.remove();
+                    }
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return delegate.contains(o);
+        }
+
+        @Override
+        public boolean add(Object o) {
+            if (assertMutable()) {
+                return delegate.add(o);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (assertMutable()) {
+                return delegate.remove(o);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public void clear() {
+            if (assertMutable()) {
+                delegate.clear();
+            }
+        }
     }
 }

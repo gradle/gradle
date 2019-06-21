@@ -18,8 +18,10 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -63,8 +65,8 @@ public class StaticValue implements PropertyValue {
 
     @Override
     public void maybeFinalizeValue() {
-        if (value instanceof PropertyInternal) {
-            ((PropertyInternal)value).finalizeValueOnReadAndWarnAboutChanges();
+        if (value instanceof HasConfigurableValue) {
+            ((HasConfigurableValueInternal)value).implicitFinalizeValue();
         }
     }
 

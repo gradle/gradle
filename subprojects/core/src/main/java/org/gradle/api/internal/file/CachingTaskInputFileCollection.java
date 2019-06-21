@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.ListBackedFileSet;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 
@@ -34,7 +36,7 @@ import java.io.File;
 public class CachingTaskInputFileCollection extends DefaultConfigurableFileCollection implements LifecycleAwareValue {
     private final FileResolver fileResolver;
     private boolean canCache;
-    private ImmutableSet<File> cachedValue;
+    private MinimalFileSet cachedValue;
 
     // TODO - display name
     public CachingTaskInputFileCollection(FileResolver fileResolver, TaskResolver taskResolver) {
@@ -46,13 +48,13 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
     public void visitContents(FileCollectionResolveContext context) {
         if (canCache) {
             if (cachedValue == null) {
-                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext(fileResolver);
+                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext(fileResolver.getPatternSetFactory());
                 super.visitContents(nested);
                 ImmutableSet.Builder<File> files = ImmutableSet.builder();
                 for (FileCollectionInternal fileCollection : nested.resolveAsFileCollections()) {
                     files.addAll(fileCollection);
                 }
-                this.cachedValue = files.build();
+                this.cachedValue = new ListBackedFileSet(files.build());
             }
             context.add(cachedValue);
         } else {

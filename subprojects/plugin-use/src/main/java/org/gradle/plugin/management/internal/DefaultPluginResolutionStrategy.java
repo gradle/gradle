@@ -16,16 +16,21 @@
 
 package org.gradle.plugin.management.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.plugin.management.PluginResolveDetails;
+import org.gradle.plugin.use.PluginId;
+
+import java.util.Map;
 
 public class DefaultPluginResolutionStrategy implements PluginResolutionStrategyInternal {
 
     private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
+    private final Map<PluginId, String> pluginVersions = Maps.newHashMap();
     private boolean locked;
 
     public DefaultPluginResolutionStrategy(ListenerManager listenerManager) {
@@ -48,7 +53,22 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
     @Override
     public PluginRequestInternal applyTo(PluginRequestInternal pluginRequest) {
         DefaultPluginResolveDetails details = new DefaultPluginResolveDetails(pluginRequest);
+        if (details.getRequested().getVersion() == null) {
+            String version = pluginVersions.get(details.getRequested().getId());
+            if (version != null) {
+                details.useVersion(version);
+            }
+        }
         resolutionRules.execute(details);
         return details.getTarget();
+    }
+
+    @Override
+    public void setDefaultPluginVersion(PluginId id, String version) {
+        String existing = pluginVersions.get(id);
+        if (existing != null && !existing.equals(version)) {
+            throw new IllegalArgumentException("Cannot provide multiple default versions for the same plugin.");
+        }
+        pluginVersions.put(id, version);
     }
 }

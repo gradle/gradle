@@ -277,7 +277,7 @@ class TestTest extends AbstractConventionTaskTest {
     private void assertIsDirectoryTree(FileTree classFiles, Set<String> includes, Set<String> excludes) {
         assert classFiles instanceof CompositeFileTree
         def files = (CompositeFileTree) classFiles
-        def context = new DefaultFileCollectionResolveContext(TestFiles.resolver())
+        def context = new DefaultFileCollectionResolveContext(TestFiles.patternSetFactory)
         files.visitContents(context)
         List<? extends FileTree> contents = context.resolveAsFileTrees()
         FileTreeAdapter adapter = (FileTreeAdapter) contents.get(0)

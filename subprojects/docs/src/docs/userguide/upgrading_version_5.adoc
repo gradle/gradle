@@ -40,17 +40,27 @@ Some plugins will break with this new version of Gradle, for example because the
 
 ==== Task dependencies are honored for task `@Input` properties whose value is a `Property`
 
-Previously, task dependencies would be ignored for task `@Input` properties of type `Property<T>`. These are now honored, so that it is possible to attach a task output property to a task `@Input` property. However, this may introduce unexpected cycles in the task dependency graph.
+Previously, task dependencies would be ignored for task `@Input` properties of type `Property<T>`. These are now honored, so that it is possible to attach a task output property to a task `@Input` property.
+
+This may introduce unexpected cycles in the task dependency graph.
 
 ==== Declaring task dependencies using a file `Provider` that does not represent a task output
 
-Previously, it was possible to pass `Task.dependsOn()` a `Provider<File>`, `Provider<RegularFile>` or `Provider<Directory>` instance that does not represent a task output. These providers would be silently ignored. In Gradle 5.5 this is now an error, because Gradle does not know how to build files that are not task outputs.
+Previously, it was possible to pass `Task.dependsOn()` a `Provider<File>`, `Provider<RegularFile>` or `Provider<Directory>` instance that did not represent a task output. These providers would be silently ignored.
 
-Note that it is still possible to to pass `dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDir })`.
+This is now an error because Gradle does not know how to build files that are not task outputs.
+
+*Note* that it is still possible to to pass `dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDirectory })`, when the `Provider` is an annotated `@OutputFile` or `@OutputDirectory` property of a task.
 
 ==== Enhanced validation of names for `publishing.publications` and `publishing.repositories`
 
-The repository and publication names are used to construct task names when publishing. Previously is was possible to supply a name that resulted in an invalid task name. These names are now restricted to `[A-Za-z0-9_\\-.]+`.
+The repository and publication names are used to construct task names for publishing. It was possible to supply a name that would result in an invalid task name. Names for publications and repositories are now restricted to `[A-Za-z0-9_\\-.]+`.
+
+==== Restricted Worker API classloader and process classpath
+
+Gradle now prevents internal dependencies (like Guava) from leaking into the classpath used by Worker API actions. This fixes link:https://github.com/gradle/gradle/issues/3698[an issue] where a worker needs to use a dependency that is also used by Gradle internally.
+
+In previous releases, it was possible to rely on these leaked classes. Plugins relying on this behavior will now fail.  To fix the plugin, the worker should explicitly include all required dependencies in its classpath.
 
 ==== Default PMD version upgraded to 6.15.0
 
@@ -60,12 +70,12 @@ Contributed by link:https://github.com/wreulicke[wreulicke]
 
 ==== Configuration copies have unique names
 
-Previously, all copies of a configuration always had the name `<OriginConfigurationName>Copy`. Now when creating multiple copies will have a unique name by adding an index starting from the second copy. (e.g. `CompileOnlyCopy2`)
+Previously, all copies of a configuration always had the name `<OriginConfigurationName>Copy`. Now when creating multiple copies, each will have a unique name by adding an index starting from the second copy. (e.g. `CompileOnlyCopy2`)
 
 
 === Changed classpath filtering for Eclipse
 
-Gradle 5.6 no longer supplies custom classpath attributes in the Eclipse model. Instead, it provides the attributes for [Eclipse test sources](https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources). This change requires Buildship version 3.1.1 or later.
+Gradle 5.6 no longer supplies custom classpath attributes in the Eclipse model. Instead, it provides the attributes for link:https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources[Eclipse test sources]. This change requires Buildship version 3.1.1 or later.
 
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier

@@ -227,7 +227,7 @@ class BaseDirFileResolverTest {
     @Test public void testFiles() {
         FileCollection collection = baseDirConverter.resolveFiles('a', 'b')
         assertThat(collection, instanceOf(DefaultConfigurableFileCollection))
-        assertThat(collection.from, equalTo(['a', 'b'] as LinkedHashSet))
+        assertThat(collection.from as List, equalTo(['a', 'b']))
     }
 
     @Test public void testFilesReturnsSourceFileCollection() {

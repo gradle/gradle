@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.file.PathToFileResolver;
 
 public interface FileCollectionResolveContext {
@@ -22,20 +24,14 @@ public interface FileCollectionResolveContext {
      * Adds the given element to be resolved. Handles the following types:
      *
      * <ul>
-     *     <li>{@link Iterable} or array - elements are recursively resolved.
-     *     <li>{@link groovy.lang.Closure} - return value is recursively resolved, if not null.
-     *     <li>{@link java.util.concurrent.Callable} - return value is recursively resolved, if not null.
      *     <li>{@link org.gradle.api.file.FileCollection} - resolved as is.
-     *     <li>{@link org.gradle.api.Task} - resolved to task.outputs.files
-     *     <li>{@link org.gradle.api.tasks.TaskOutputs} - resolved to outputs.files
      *     <li>{@link MinimalFileSet} - wrapped as a {@link org.gradle.api.file.FileCollection}.
      *     <li>{@link MinimalFileTree} - wrapped as a {@link org.gradle.api.file.FileTree}.
      *     <li>{@link FileCollectionContainer} - recursively resolved.
-     *     <li>{@link org.gradle.api.tasks.TaskDependency} - resolved to an empty {@link org.gradle.api.file.FileCollection} which is builtBy the given dependency.
-     *     <li>Everything else - resolved to a File and wrapped in a singleton {@link org.gradle.api.file.FileCollection}.
+     *     <li>{@link TaskDependencyContainer} - resolved to an empty {@link org.gradle.api.file.FileCollection} which is builtBy the given dependency.
      * </ul>
      *
-     * Generally, the result of resolution is a composite {@link org.gradle.api.file.FileCollection} which contains the union of all files and dependencies add to this context.
+     * Generally, the result of resolution is a composite {@link org.gradle.api.file.FileCollection} which contains the union of all files and dependencies added to this context.
      *
      * @param element The element to add.
      * @return this
@@ -43,10 +39,25 @@ public interface FileCollectionResolveContext {
     FileCollectionResolveContext add(Object element);
 
     /**
-     * Adds a nested context which resolves elements using the given resolver. Any element added to the returned context will be added to this context. Those elements
-     * which need to be resolved using a file resolver will use the provided resolver, instead of the default used by this context.
+     * Adds an element that may contribute task dependencies, but not necessarily contribute files. Handles the following types:
+     *
+     * <ul>
+     *     <li>{@link ProviderInternal}</li>
+     *     <li>{@link org.gradle.api.Buildable}</li>
+     *     <li>{@link TaskDependencyContainer}</li>
+     * </ul>
      */
-    FileCollectionResolveContext push(PathToFileResolver fileResolver);
+    boolean maybeAdd(Object element);
+
+    /**
+     * Adds a collection of elements, as for {@link #add(Object)}.
+     */
+    FileCollectionResolveContext addAll(Iterable<?> elements);
+
+    /**
+     * Adds a single element to be resolved to a file.
+     */
+    FileCollectionResolveContext add(Object element, PathToFileResolver resolver);
 
     /**
      * Creates a new context which can be used to resolve element. Elements added to the returned context will not be added to this context. Instead, the caller should use
