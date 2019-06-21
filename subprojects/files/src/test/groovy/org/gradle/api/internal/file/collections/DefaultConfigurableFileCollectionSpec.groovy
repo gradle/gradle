@@ -688,6 +688,126 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
         collection.files as List == [file1, file2]
     }
 
+    def cannotSpecifyPathsWhenChangesDisallowed() {
+        given:
+        collection.from('a')
+
+        collection.disallowChanges()
+
+        when:
+        collection.setFrom('some', 'more')
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.setFrom(['some', 'more'])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> cannot be changed.'
+    }
+
+    def cannotMutateFromSetWhenChangesDisallowed() {
+        given:
+        collection.from('a')
+
+        collection.disallowChanges()
+
+        when:
+        collection.from.clear()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.from.add('b')
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.from.remove('a')
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.from.iterator().remove()
+
+        then:
+        def e4 = thrown(IllegalStateException)
+        e4.message == 'The value for <display> cannot be changed.'
+    }
+
+    def cannotAddPathsWhenChangesDisallowed() {
+        given:
+        collection.from('a')
+
+        collection.disallowChanges()
+
+        when:
+        collection.from('more')
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> cannot be changed.'
+    }
+
+    def cannotSpecifyPathsWhenChangesDisallowedAndImplicitlyFinalized() {
+        given:
+        collection.from('a')
+
+        collection.disallowChanges()
+        collection.implicitFinalizeValue()
+
+        when:
+        collection.setFrom('some', 'more')
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.setFrom(['some', 'more'])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> cannot be changed.'
+    }
+
+    def resolvesClosureToFilesWhenChangesDisallowed() {
+        given:
+        def file1 = new File('one')
+        def file2 = new File('two')
+        def closure = Mock(Closure)
+        collection.from(closure)
+
+        when:
+        collection.disallowChanges()
+
+        then:
+        0 * closure._
+        0 * fileResolver._
+
+        when:
+        def files = collection.files
+
+        then:
+        files as List == [file1, file2]
+
+        and:
+        1 * closure.call() >> ['a', 'b']
+        0 * closure._
+        1 * fileResolver.resolve('a') >> file1
+        1 * fileResolver.resolve('b') >> file2
+        0 * fileResolver._
+    }
+
     def canFinalizeWhenAlreadyFinalized() {
         given:
         def file = new File('one')

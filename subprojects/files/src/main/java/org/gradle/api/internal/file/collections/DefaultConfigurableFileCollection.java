@@ -42,7 +42,7 @@ import java.util.Set;
  */
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal {
     private enum State {
-        Mutable, FinalizeNextQuery, FinalLenient, FinalStrict
+        Mutable, FinalizeNextQuery, Final
     }
 
     private final Set<Object> files;
@@ -51,6 +51,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
     private State state = State.Mutable;
+    private boolean disallowChanges;
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
         this("file collection", fileResolver, taskResolver, null);
@@ -96,10 +97,16 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void finalizeValue() {
-        if (state != State.FinalStrict) {
+        if (state != State.Final) {
             calculateFinalizedValue();
-            state = State.FinalStrict;
         }
+        state = State.Final;
+        disallowChanges = true;
+    }
+
+    @Override
+    public void disallowChanges() {
+        disallowChanges = true;
     }
 
     @Override
@@ -148,9 +155,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private boolean assertMutable() {
-        if (state == State.FinalStrict) {
+        if (state == State.Final && disallowChanges) {
             throw new IllegalStateException("The value for " + displayName + " is final and cannot be changed.");
-        } else if (state == State.FinalLenient) {
+        } else if (disallowChanges) {
+            throw new IllegalStateException("The value for " + displayName + " cannot be changed.");
+        } else if (state == State.Final) {
             DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a FileCollection with a final value");
             return false;
         } else {
@@ -187,9 +196,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     public void visitContents(FileCollectionResolveContext context) {
         if (state == State.FinalizeNextQuery) {
             calculateFinalizedValue();
-            state = State.FinalLenient;
+            state = State.Final;
         }
-        if (state == State.FinalStrict || state == State.FinalLenient) {
+        if (state == State.Final) {
             context.addAll(files);
         } else {
             UnpackingVisitor nested = new UnpackingVisitor(context, resolver);

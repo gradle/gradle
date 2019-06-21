@@ -126,6 +126,31 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('The value for this property is final and cannot be changed any further.')
     }
 
+    def "can disallow changes to a property using API without finalizing the value"() {
+        given:
+        buildFile << '''
+            int counter = 0
+            def provider = providers.provider { [(++counter): ++counter] }
+            
+            def property = objects.mapProperty(Integer, Integer)
+            property.set(provider)
+            
+            assert property.get() == [1: 2]
+            assert property.get() == [3: 4]
+            property.disallowChanges()
+            assert property.get() == [5: 6]
+            assert property.get() == [7: 8]
+            
+            property.set([1: 2])
+            '''.stripIndent()
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause('The value for this property cannot be changed any further.')
+    }
+
     def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
         given:
         buildFile << '''

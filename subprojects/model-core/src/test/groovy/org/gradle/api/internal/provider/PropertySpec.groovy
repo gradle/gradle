@@ -584,7 +584,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         result == someValue()
     }
 
-    def "replaces provider with fixed missing value when value finalized"() {
+    def "replaces provider with no value with fixed missing value when value finalized"() {
         def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
@@ -609,7 +609,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         0 * _
     }
 
-    def "replaces provider with fixed missing value when value finalized on next read"() {
+    def "replaces provider with no value with fixed missing value when value finalized on next read"() {
         def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
@@ -653,8 +653,52 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.finalizeValue()
         property.implicitFinalizeValue()
         property.implicitFinalizeValue()
+        property.disallowChanges()
 
         then:
+        0 * _
+    }
+
+    def "can finalize after changes disallowed"() {
+        def property = propertyWithNoValue()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        when:
+        property.set(provider)
+        property.disallowChanges()
+
+        then:
+        0 * _
+
+        when:
+        property.finalizeValue()
+
+        then:
+        1 * function.call() >> someValue()
+        0 * _
+    }
+
+    def "uses value from provider after changes disallowed"() {
+        def property = propertyWithNoValue()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        given:
+        property.set(provider)
+
+        when:
+        property.disallowChanges()
+
+        then:
+        0 * function._
+
+        when:
+        def result = property.getOrNull()
+
+        then:
+        result == someValue()
+        1 * function.call() >> someValue()
         0 * _
     }
 
@@ -702,6 +746,50 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         e.message == 'The value for this property is final and cannot be changed any further.'
     }
 
+    def "cannot set value after changes disallowed"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.set(someValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot set value after changes disallowed and implicitly finalized"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.disallowChanges()
+        property.implicitFinalizeValue()
+
+        when:
+        property.set(someValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot set value after changes disallowed and finalized"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.disallowChanges()
+        property.finalizeValue()
+
+        when:
+        property.set(someValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
     def "cannot set value using provider after value finalized"() {
         given:
         def property = propertyWithNoValue()
@@ -728,6 +816,20 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         property.get() == someValue()
+    }
+
+    def "cannot set value using provider after changes disallowed"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.set(Mock(ProviderInternal))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot set value using any type after value finalized"() {
@@ -771,6 +873,27 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.get() == someValue()
     }
 
+    def "cannot set value using any type after changes disallowed"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.setFromAnyValue(someOtherValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.setFromAnyValue(Stub(ProviderInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
     def "cannot set convention value after value finalized"() {
         given:
         def property = propertyWithDefaultValue()
@@ -796,6 +919,19 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         property.get() == someValue()
+    }
+
+    def "cannot set convention value after changes disallowed"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.disallowChanges()
+
+        when:
+        property.convention(someValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot set convention value using provider after value finalized"() {
@@ -824,6 +960,20 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         property.get() == someValue()
+    }
+
+    def "cannot set convention value using provider after changes disallowed"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.convention(Mock(ProviderInternal))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
     }
 
     def "producer task for a property is not known by default"() {
