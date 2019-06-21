@@ -161,6 +161,10 @@ abstract class PmdInvoker {
                 Field versionField = pmdVersion.getDeclaredField("VERSION")
                 return VersionNumber.parse(Cast.cast(String.class, versionField.get(null)))
             }
+
+            private void assertUnsupportedIncrementalAnalysis() {
+                throw new GradleException("Incremental analysis only supports PMD 6.0.0 and newer")
+            }
         })
     }
 
@@ -169,9 +173,5 @@ abstract class PmdInvoker {
         boolean isSatisfiedBy(File element) {
             return element.exists()
         }
-    }
-
-    private static void assertUnsupportedIncrementalAnalysis() {
-        throw new GradleException("Incremental analysis only supports PMD 6.0.0 and newer")
     }
 }
