@@ -21,6 +21,7 @@ Include only their name, impactful features should be called out separately belo
 [Ian Kerins](https://github.com/isker),
 [Ivo Anjo](https://github.com/ivoanjo),
 [Stefan M.](https://github.com/StefMa),
+[Nickolay Chameev](https://github.com/lukaville),
 [Dominik Giger](https://github.com/gigerdo),
 [Stephan Windmüller](https://github.com/stovocor),
 [Zemian Deng](https://github.com/zemian),
