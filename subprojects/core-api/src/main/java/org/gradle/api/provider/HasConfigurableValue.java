@@ -28,6 +28,8 @@ import org.gradle.api.Incubating;
  *
  * <p>When a task property has a value of this type, it will be implicitly finalized when the task starts execution, to prevent accidental changes to the task parameters as the task runs.</p>
  *
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
+ *
  * @since 5.6
  */
 @Incubating

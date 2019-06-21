@@ -24,6 +24,8 @@ import java.util.Set;
  * <p>A {@code ConfigurableFileCollection} is a mutable {@code FileCollection}.</p>
  *
  * <p>You can obtain an instance of {@code ConfigurableFileCollection} by calling {@link org.gradle.api.Project#files(Object...)} or {@link ObjectFactory#fileCollection()}.</p>
+ *
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
  */
 public interface ConfigurableFileCollection extends FileCollection, HasConfigurableValue {
     /**
