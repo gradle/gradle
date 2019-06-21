@@ -18,11 +18,11 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.codec
-import org.gradle.instantexecution.serialization.readClass
+import org.gradle.instantexecution.serialization.readArray
 import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.readMapInto
-import org.gradle.instantexecution.serialization.writeClass
+import org.gradle.instantexecution.serialization.writeArray
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeMap
 import java.util.TreeMap
@@ -84,17 +84,9 @@ fun <T : MutableMap<Any?, Any?>> mapCodec(factory: (Int) -> T): Codec<T> = codec
 
 internal
 val arrayCodec: Codec<Array<*>> = codec({
-    writeClass(it.javaClass.componentType)
-    writeSmallInt(it.size)
-    for (element in it) {
+    writeArray(it) { element ->
         write(element)
     }
 }, {
-    val componentType = readClass()
-    val size = readSmallInt()
-    val array = java.lang.reflect.Array.newInstance(componentType, size) as Array<Any?>
-    for (i in 0 until size) {
-        array[i] = read()
-    }
-    array
+    readArray { read() }
 })

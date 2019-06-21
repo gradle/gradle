@@ -18,19 +18,25 @@ dependencies {
     implementation(library("slf4j_api"))
     implementation(futureKotlin("stdlib-jdk8"))
 
+    testImplementation(testFixtures(project(":core")))
+
     integTestImplementation(project(":toolingApi"))
 
     integTestImplementation(library("guava"))
     integTestImplementation(library("ant"))
     integTestImplementation(library("inject"))
 
+    integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+
+    testRuntimeOnly(kotlin("reflect"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

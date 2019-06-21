@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization
 
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -32,8 +31,8 @@ fun <T> singleton(value: T): Codec<T> =
 
 
 internal
-inline fun <reified T> ownerProjectService() =
-    codec<T>({ }, { readProjectService() })
+inline fun <reified T> ownerService() =
+    codec<T>({ }, { readOwnerService() })
 
 
 internal
@@ -47,13 +46,8 @@ fun <T> codec(
 
 
 private
-inline fun <reified T> ReadContext.readProjectService() =
-    ownerProject.services.get(T::class.java)
-
-
-internal
-val IsolateContext.ownerProject
-    get() = isolate.owner.project as ProjectInternal
+inline fun <reified T> ReadContext.readOwnerService() =
+    isolate.owner.service<T>()
 
 
 private
@@ -84,7 +78,26 @@ fun ReadContext.readClass(): Class<*> =
 
 
 internal
-fun ReadContext.readList() = readCollectionInto { size -> ArrayList<Any?>(size) }
+fun WriteContext.writeClassArray(values: Array<Class<*>>) {
+    writeArray(values) { writeClass(it) }
+}
+
+
+internal
+fun ReadContext.readClassArray(): Array<Class<*>> =
+    readArray { readClass() }
+
+
+internal
+fun ReadContext.readList(): List<Any?> =
+    readList { read() }
+
+
+internal
+fun <T : Any?> ReadContext.readList(readElement: () -> T): List<T> =
+    readCollectionInto({ size -> ArrayList<T>(size) }) {
+        readElement()
+    }
 
 
 internal
@@ -193,6 +206,28 @@ inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
         container.add(readElement())
     }
     return container
+}
+
+
+internal
+fun <T : Any?> WriteContext.writeArray(array: Array<T>, writeElement: (T) -> Unit) {
+    writeClass(array.javaClass.componentType)
+    writeSmallInt(array.size)
+    for (element in array) {
+        writeElement(element)
+    }
+}
+
+
+internal
+fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
+    val componentType = readClass()
+    val size = readSmallInt()
+    val array = java.lang.reflect.Array.newInstance(componentType, size) as Array<T>
+    for (i in 0 until size) {
+        array[i] = readElement()
+    }
+    return array
 }
 
 

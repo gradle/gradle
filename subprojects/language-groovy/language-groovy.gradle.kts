@@ -30,6 +30,14 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":launcher")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    
+    testFixturesApi(testFixtures(project(":languageJvm")))
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":internalTesting"))
 
     integTestImplementation(library("commons_lang"))
     integTestRuntimeOnly(project(":plugins"))
@@ -37,12 +45,6 @@ dependencies {
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":launcher")
-    from(":languageJvm", "testFixtures")
 }
 
 classycle {

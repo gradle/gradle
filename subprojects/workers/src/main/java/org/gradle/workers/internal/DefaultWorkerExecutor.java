@@ -17,8 +17,8 @@
 package org.gradle.workers.internal;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -38,7 +38,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
-import org.gradle.util.CollectionUtils;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutionException;
@@ -47,6 +46,8 @@ import org.gradle.workers.WorkerExecutor;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ConditionalExecutionQueue<DefaultWorkResult> executionQueue;
@@ -166,7 +167,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             if (asyncWorkTracker.hasUncompletedWork(currentOperation)) {
                 executionQueue.expand();
             }
-            asyncWorkTracker.waitForCompletion(currentOperation, false);
+            asyncWorkTracker.waitForCompletion(currentOperation, RETAIN_PROJECT_LOCKS);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());
         }
@@ -219,7 +220,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
-    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Object[] params, JavaForkOptions userForkOptions, Iterable<File> classpath, IsolationMode isolationMode) {
+    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Object[] params, JavaForkOptions userForkOptions, Iterable<File> additionalClasspath, IsolationMode isolationMode) {
         JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         userForkOptions.copyTo(forkOptions);
         forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
@@ -229,37 +230,23 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             .keepAliveMode(KeepAliveMode.DAEMON);
 
         if (isolationMode != IsolationMode.NONE) {
-            ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
-
-            if (classpath != null) {
-                classpathBuilder.addAll(classpath);
-            }
-
-            addVisibilityFor(actionClass, classpathBuilder);
-
-            for (Class<?> paramClass : getParamClasses(params)) {
-                addVisibilityFor(paramClass, classpathBuilder);
-            }
-
-            Iterable<File> daemonClasspath = classpathBuilder.build();
-
             if (isolationMode == IsolationMode.PROCESS) {
-                builder.withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(daemonClasspath));
+                builder.withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(additionalClasspath, getParamClasses(actionClass, params)));
             } else {
-                builder.withClassLoaderStructure(classLoaderStructureProvider.getInProcessClassLoaderStructure(daemonClasspath));
+                builder.withClassLoaderStructure(classLoaderStructureProvider.getInProcessClassLoaderStructure(additionalClasspath, getParamClasses(actionClass, params)));
             }
         }
 
         return builder.build();
     }
 
-    private Iterable<Class<?>> getParamClasses(Object[] params) {
-        return CollectionUtils.collect(params, new Transformer<Class<?>, Object>() {
-            @Override
-            public Class<?> transform(Object o) {
-                return o.getClass();
-            }
-        });
+    private Class<?>[] getParamClasses(Class<?> actionClass, Object[] params) {
+        List<Class<?>> classes = Lists.newArrayList();
+        classes.add(actionClass);
+        for (Object param : params) {
+            classes.add(param.getClass());
+        }
+        return classes.toArray(new Class[0]);
     }
 
     private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder) {

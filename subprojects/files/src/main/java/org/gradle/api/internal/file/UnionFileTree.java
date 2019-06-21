@@ -49,7 +49,7 @@ public class UnionFileTree extends CompositeFileTree {
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        context.add(sourceTrees);
+        context.addAll(sourceTrees);
     }
 
     public void addToUnion(FileCollection source) {

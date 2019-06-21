@@ -642,4 +642,27 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
             }
         }
     }
+
+    void 'dependency constraint on failed variant resolution needs to be in the right state'() {
+        mavenRepo.module('org', 'bar', '1.0').publish()
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf 'org:bar:1.0'
+                }
+                conf('org:bar') {
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'wrong'))
+                    }
+                }
+            }
+"""
+
+        when:
+        succeeds 'dependencyInsight', '--configuration', 'conf', '--dependency', 'org:bar'
+
+        then:
+        outputContains("org:bar: FAILED")
+    }
 }

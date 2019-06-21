@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotBuilder
@@ -36,7 +37,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     @Override
     FileSystemLocationSnapshot snapshot(File file) {
         if (file.isFile()) {
-            return new RegularFileSnapshot(file.absolutePath, file.name, Hashing.hashBytes(file.bytes), file.lastModified())
+            return new RegularFileSnapshot(file.absolutePath, file.name, Hashing.hashBytes(file.bytes), new FileMetadata(file.length(), file.lastModified()))
         }
         if (!file.exists()) {
             return new MissingFileSnapshot(file.absolutePath, file.name)

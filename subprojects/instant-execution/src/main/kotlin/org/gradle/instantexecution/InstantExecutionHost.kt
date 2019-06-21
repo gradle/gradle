@@ -77,7 +77,7 @@ class InstantExecutionHost internal constructor(
         DefaultClassicModeBuild()
 
     override fun createBuild(rootProjectName: String): InstantExecutionBuild =
-        DefaultInstantExecutionBuild(service(), rootProjectName)
+        DefaultInstantExecutionBuild(gradle, service(), rootProjectName)
 
     override fun <T> getService(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -112,6 +112,7 @@ class InstantExecutionHost internal constructor(
     }
 
     inner class DefaultInstantExecutionBuild(
+        override val gradle: GradleInternal,
         private val fileResolver: PathToFileResolver,
         rootProjectName: String
     ) : InstantExecutionBuild {

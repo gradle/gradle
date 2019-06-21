@@ -19,7 +19,6 @@ package org.gradle.workers.internal;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.workers.IsolationMode;
 
@@ -30,7 +29,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
     public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry parent, ClassLoaderRegistry classLoaderRegistry) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.serviceRegistry = new IsolatedClassloaderServices(parent);
+        this.serviceRegistry = parent;
         this.classLoaderRegistry = classLoaderRegistry;
     }
 
@@ -53,15 +52,5 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     @Override
     public IsolationMode getIsolationMode() {
         return IsolationMode.CLASSLOADER;
-    }
-
-    private static class IsolatedClassloaderServices extends DefaultServiceRegistry {
-        public IsolatedClassloaderServices(ServiceRegistry... parents) {
-            super("IsolatedClassloaderServices", parents);
-        }
-
-        IsolatedClassloaderServices createIsolatedWorkerServices() {
-            return this;
-        }
     }
 }

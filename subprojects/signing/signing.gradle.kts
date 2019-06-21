@@ -39,12 +39,12 @@ dependencies {
     implementation(library("bouncycastle_pgp"))
 
     testImplementation(project(":ivy"))
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

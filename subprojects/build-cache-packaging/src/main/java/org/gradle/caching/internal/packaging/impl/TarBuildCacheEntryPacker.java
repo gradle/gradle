@@ -19,6 +19,7 @@ package org.gradle.caching.internal.packaging.impl;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
+import com.google.common.io.CountingOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -41,6 +42,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
@@ -264,7 +266,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private RegularFileSnapshot unpackFile(TarArchiveInputStream input, TarArchiveEntry entry, File file, String fileName) throws IOException {
-        OutputStream output = new FileOutputStream(file);
+        CountingOutputStream output = new CountingOutputStream(new FileOutputStream(file));
         HashCode hash;
         try {
             hash = streamHasher.hashCopy(input, output);
@@ -274,7 +276,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
         String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
         String internedFileName = stringInterner.intern(fileName);
-        return new RegularFileSnapshot(internedAbsolutePath, internedFileName, hash, file.lastModified());
+        return new RegularFileSnapshot(internedAbsolutePath, internedFileName, hash, new FileMetadata(output.getCount(), file.lastModified()));
     }
 
     @Nullable

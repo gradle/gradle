@@ -64,39 +64,53 @@ dependencies {
     testImplementation(project(":diagnostics"))
     testImplementation(project(":buildCachePackaging"))
     testImplementation(library("nekohtml"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(testFixtures(project(":versionControl")))
+    testImplementation(testFixtures(project(":resourcesHttp")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(project(":execution")))
+    
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":buildOption"))
     integTestImplementation(library("jansi"))
     integTestImplementation(library("ansi_control_sequence_util"))
+    integTestImplementation(testLibrary("jetty")) {
+        because("tests use HttpServlet directly")
+    }
 
     integTestRuntimeOnly(project(":ivy"))
     integTestRuntimeOnly(project(":maven"))
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":testKit"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
 
-    testFixturesImplementation(project(":core", "testFixturesApiElements"))
-    testFixturesImplementation(project(":resourcesHttp", "testFixturesApiElements"))
+    testFixturesApi(project(":baseServices")) {
+        because("Test fixtures export the Action class")
+    }
+    testFixturesApi(project(":persistentCache")) {
+        because("Test fixtures export the CacheAccess class")
+    }
+
+    testFixturesApi(testLibrary("jetty"))
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(testFixtures(project(":resourcesHttp")))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(testLibrary("jetty"))
+    testFixturesImplementation(library("slf4j_api"))
 
     crossVersionTestRuntimeOnly(project(":maven"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":messaging")
-    from(":coreApi")
-    from(":versionControl")
-    from(":resourcesHttp")
-    from(":baseServices")
-    from(":snapshots")
-    from(":execution")
 }
 
 testFilesCleanup {

@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.beans
 
+import groovy.lang.Closure
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -62,6 +63,7 @@ class BeanPropertyWriter(
         is RegularFileProperty -> fieldValue.asFile.orNull
         is Property<*> -> fieldValue.orNull
         is Provider<*> -> fieldValue.orNull
+        is Closure<*> -> fieldValue.dehydrate()
         is Callable<*> -> fieldValue.call()
         is Supplier<*> -> fieldValue.get()
         is Function0<*> -> (fieldValue as (() -> Any?)).invoke()

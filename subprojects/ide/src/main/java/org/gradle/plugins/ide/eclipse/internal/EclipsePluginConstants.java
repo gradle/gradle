@@ -19,8 +19,8 @@ package org.gradle.plugins.ide.eclipse.internal;
 public class EclipsePluginConstants {
 
     public static final String DEFAULT_PROJECT_OUTPUT_PATH = "bin/default";
-    public static final String GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME = "gradle_used_by_scope";
-    public static final String GRADLE_SCOPE_ATTRIBUTE_NAME = "gradle_scope";
+    public static final String TEST_SOURCES_ATTRIBUTE_KEY = "test";
+    public static final String TEST_SOURCES_ATTRIBUTE_VALUE = "true";
 
     private EclipsePluginConstants() {
     }

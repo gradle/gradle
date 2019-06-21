@@ -27,6 +27,11 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
+    protected String noJavaLibraryPluginFlag() {
+        'val noJavaLibraryPlugin = hasProperty("noJavaLibraryPlugin")'
+    }
+
+    @Override
     protected String tasksConfiguration() {
         """
         val compilerMemory: String by project
@@ -85,6 +90,11 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
                 ${hasParent ? '"compile" { extendsFrom(configurations["api"]) }' : ''}
                 "compile" { extendsFrom(configurations["implementation"]) }
                 "testCompile" { extendsFrom(configurations["testImplementation"]) }
+            }
+        } else if (noJavaLibraryPlugin) {
+            configurations {
+                ${hasParent ? '"api"()' : ''}
+                ${hasParent ? '"compile" { extendsFrom(configurations["api"]) }' : ''}
             }
         }
         """

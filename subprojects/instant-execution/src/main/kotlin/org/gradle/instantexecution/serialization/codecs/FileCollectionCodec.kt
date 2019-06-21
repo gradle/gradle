@@ -35,20 +35,15 @@ class FileCollectionCodec(
 ) : Codec<FileCollection> {
 
     override fun WriteContext.encode(value: FileCollection) {
-
-        val (files, ex) = try {
-            value.files to null
-        } catch (ex: Exception) {
-            null to ex
-        }
-        require((files == null) != (ex == null))
-
-        if (files != null) {
-            writeBoolean(true)
-            fileSetSerializer.write(this, files)
-        } else {
-            writeBoolean(false)
-            writeString(ex!!.message)
+        runCatching { value.files }.apply {
+            onSuccess { files ->
+                writeBoolean(true)
+                fileSetSerializer.write(this@encode, files)
+            }
+            onFailure { ex ->
+                writeBoolean(false)
+                writeString(ex.message)
+            }
         }
     }
 

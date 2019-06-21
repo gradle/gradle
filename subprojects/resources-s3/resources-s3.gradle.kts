@@ -28,17 +28,16 @@ dependencies {
     implementation(library("joda"))
     implementation(library("commons_lang"))
 
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":ivy")))
+    testImplementation(testFixtures(project(":maven")))
+
     integTestImplementation(project(":logging"))
     integTestImplementation(library("commons_io"))
     integTestImplementation(testLibrary("littleproxy"))
     integTestImplementation(testLibrary("jetty"))
-}
-
-testFixtures {
-    from(":core")
-    from(":dependencyManagement")
-    from(":ivy")
-    from(":maven")
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {

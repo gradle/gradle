@@ -83,16 +83,15 @@ dependencies {
     minimalRuntime(project(":dependencyManagement"))
     minimalRuntime(project(":platformJvm"))
 
+    testImplementation(testFixtures(project(":core")))
+    
     integTestImplementation(project(":baseServices"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":coreApi"))
     integTestImplementation(libraries.guava.coordinates)
     integTestImplementation(libraries.commons_io.coordinates)
     integTestImplementation(libraries.ant.coordinates)
-}
-
-testFixtures {
-    from(":core")
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 ext {

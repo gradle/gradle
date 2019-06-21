@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.instantexecution.ClassicModeBuild
 import org.gradle.instantexecution.serialization.IsolateContext
+import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
 import org.gradle.instantexecution.serialization.beans.writingProperties
@@ -129,7 +130,7 @@ inline fun <T> T.withTaskOf(
     task: Task,
     action: () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
-    withIsolate(task) {
+    withIsolate(IsolateOwner.OwnerTask(task)) {
         withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
             action()
         }

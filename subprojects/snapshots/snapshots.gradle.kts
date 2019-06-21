@@ -23,30 +23,30 @@ plugins {
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
 dependencies {
-    implementation(project(":baseServices"))
-    implementation(project(":native"))
-    implementation(project(":messaging"))
-    implementation(project(":coreApi"))
-    implementation(project(":persistentCache"))
-    implementation(project(":modelCore"))
-    
     implementation(library("guava"))
     implementation(library("jsr305"))
-    implementation(library("inject"))
+    implementation(project(":pineapple"))
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
+    testImplementation(project(":native"))
     testImplementation(library("ant"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":files")))
+    testImplementation(testFixtures(project(":messaging")))
+    
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":files"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":baseServices")
-    from(":files")
-    from(":messaging")
-    from(":core")
-    from(":coreApi")
-}

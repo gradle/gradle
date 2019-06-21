@@ -23,6 +23,7 @@ import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
@@ -76,7 +77,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "root file can be filtered"() {
         def root = temporaryFolder.createFile("root")
-        def regularFileSnapshot = new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), 1234)
+        def regularFileSnapshot = new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), new FileMetadata(5, 1234))
 
         expect:
         filteredPaths(regularFileSnapshot, include("different")) == [] as Set

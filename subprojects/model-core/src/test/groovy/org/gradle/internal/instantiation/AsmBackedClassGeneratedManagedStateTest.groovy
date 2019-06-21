@@ -24,6 +24,7 @@ import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Unroll
 
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.*
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Bean
@@ -175,11 +176,13 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.get() == newValue
 
         where:
-        type                      | defaultValue | newValue
-        InterfacePropertyBean     | null         | "value"
-        InterfaceListPropertyBean | []           | ["a", "b"]
-        InterfaceSetPropertyBean  | [] as Set    | ["a", "b"] as Set
-        InterfaceMapPropertyBean  | [:]          | [a: 1, b: 12]
+        type                               | defaultValue | newValue
+        InterfacePropertyBean              | null         | "value"
+        InterfacePropertyWithParamTypeBean | null         | Param.of(Param.of(12))
+        AbstractClassWithTypeParamProperty | null         | Param.of("value")
+        InterfaceListPropertyBean          | []           | ["a", "b"]
+        InterfaceSetPropertyBean           | [] as Set    | ["a", "b"] as Set
+        InterfaceMapPropertyBean           | [:]          | [a: 1, b: 12]
     }
 
     @Unroll

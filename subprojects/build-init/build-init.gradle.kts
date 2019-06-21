@@ -46,7 +46,12 @@ dependencies {
 
     testImplementation(project(":cli"))
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformNative")))
+    
+    testFixturesImplementation(project(":baseServices"))
 
+    integTestImplementation(project(":native"))
     integTestImplementation(testLibrary("jetty"))
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra
@@ -55,16 +60,14 @@ dependencies {
     }
     
     testFixturesImplementation(project(":internalTesting"))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":platformNative")
-}
 
 tasks {
     register("updateInitPluginTemplateVersionFile") {

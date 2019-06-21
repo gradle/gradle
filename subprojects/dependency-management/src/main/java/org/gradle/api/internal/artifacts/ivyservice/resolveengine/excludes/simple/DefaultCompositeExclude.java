@@ -49,14 +49,17 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
 
     @Override
     public boolean equalsIgnoreArtifact(ExcludeSpec o) {
-        if (this == o) {
-            return true;
+        if (mayExcludeArtifacts()) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            DefaultCompositeExclude that = (DefaultCompositeExclude) o;
+            return equalsIgnoreArtifact(components, that.components);
         }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DefaultCompositeExclude that = (DefaultCompositeExclude) o;
-        return equalsIgnoreArtifact(components, that.components);
+        return equals(o);
     }
 
     private boolean equalsIgnoreArtifact(ImmutableSet<ExcludeSpec> components, ImmutableSet<ExcludeSpec> other) {
@@ -73,17 +76,42 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
         // The fast check iterator is there assuming that we have 2 collections with identical contents
         // in which case we can perform a faster check for sets, as if they were lists
         Iterator<ExcludeSpec> fastCheckIterator = other.iterator();
+        boolean[] alreadyFound = new boolean[other.size()];
+        int fastCheckCount = 0;
         for (ExcludeSpec component : components) {
             boolean found = false;
-            if (fastCheckIterator != null && fastCheckIterator.next().equalsIgnoreArtifact(component)) {
-                continue;
+            if (fastCheckIterator != null) {
+                if (fastCheckIterator.next().equalsIgnoreArtifact(component)) {
+                    alreadyFound[fastCheckCount++] = true;
+                    continue;
+                } else if (!fastCheckIterator.hasNext()) {
+                    // this was the last element, so we already know there's no possible match
+                    return false;
+                }
             }
             // we're unlucky, sets are either different, or in a different order
             fastCheckIterator = null;
+            int innerCount = 0;
+            // perform a first, quick check based on identity, in case it's just
+            // a matter of ordering
             for (ExcludeSpec o : other) {
-                if (component.equalsIgnoreArtifact(o)) {
+                if (!alreadyFound[innerCount] && component == o) {
                     found = true;
+                    alreadyFound[innerCount] = true;
                     break;
+                }
+                innerCount++;
+            }
+            if (!found) {
+                // slowest path when we can't find something which is the same instance
+                innerCount = 0;
+                for (ExcludeSpec o : other) {
+                    if (!alreadyFound[innerCount] && component.equalsIgnoreArtifact(o)) {
+                        found = true;
+                        alreadyFound[innerCount] = true;
+                        break;
+                    }
+                    innerCount++;
                 }
             }
             if (!found) {

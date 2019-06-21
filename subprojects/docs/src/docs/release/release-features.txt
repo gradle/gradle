@@ -1,0 +1,3 @@
+ - PMD incremental analysis support
+ - JavaExec supports executable jar
+ - Test fixtures for Java projects

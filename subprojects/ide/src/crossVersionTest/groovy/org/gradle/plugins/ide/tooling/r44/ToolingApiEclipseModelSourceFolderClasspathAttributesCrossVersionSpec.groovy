@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=4.4')
-@TargetGradleVersion(">=4.4")
+@TargetGradleVersion(">=4.4 <5.5")
 class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec extends ToolingApiSpecification {
 
     def "Source folder contains source set information in classpath attributes"() {

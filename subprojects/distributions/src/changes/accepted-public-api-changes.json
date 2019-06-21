@@ -55,6 +55,14 @@
             "member": "Constructor org.gradle.api.plugins.JavaLibraryPlugin()",
             "acceptation": "Removed old injecting constructor",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.ConfigurableFileCollection",
+            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
+            "acceptation": "Introduce new abstraction for lazy types",
+            "changes": [
+                "org.gradle.api.provider.HasConfigurableValue"
+            ]
         }
     ]
 }

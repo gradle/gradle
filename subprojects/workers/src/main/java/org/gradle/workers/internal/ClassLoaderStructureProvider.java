@@ -16,61 +16,63 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Sets;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.MixInLegacyTypesClassLoader;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 
 import java.io.File;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Set;
 
 public class ClassLoaderStructureProvider {
     private final ClassLoaderRegistry classLoaderRegistry;
-    private final Cache<Iterable<File>, ClassLoaderStructure> knownClassLoaderStructures;
 
     public ClassLoaderStructureProvider(final ClassLoaderRegistry classLoaderRegistry) {
         this.classLoaderRegistry = classLoaderRegistry;
-        this.knownClassLoaderStructures = CacheBuilder.newBuilder().softValues().build();
     }
 
-    public ClassLoaderStructure getWorkerProcessClassLoaderStructure(final Iterable<File> userClasspathFiles) {
-        try {
-            return knownClassLoaderStructures.get(userClasspathFiles, new Callable<ClassLoaderStructure>() {
-                @Override
-                public ClassLoaderStructure call() throws Exception {
-                    MixInLegacyTypesClassLoader.Spec workerExtensionSpec = classLoaderRegistry.getGradleWorkerExtensionSpec();
-                    FilteringClassLoader.Spec gradleApiFilter = classLoaderRegistry.getGradleApiFilterSpec();
-                    VisitableURLClassLoader.Spec userSpec = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(userClasspathFiles).getAsURLs());
-                    // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
-                    return new HierarchicalClassLoaderStructure(workerExtensionSpec)
-                            .withChild(gradleApiFilter)
-                            .withChild(userSpec);
-                }
-            });
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    public ClassLoaderStructure getWorkerProcessClassLoaderStructure(final Iterable<File> additionalClasspath, Class<?>... classes) {
+        MixInLegacyTypesClassLoader.Spec workerExtensionSpec = classLoaderRegistry.getGradleWorkerExtensionSpec();
+        FilteringClassLoader.Spec gradleApiFilter = classLoaderRegistry.getGradleApiFilterSpec();
+        VisitableURLClassLoader.Spec userSpec = getUserSpec("worker-loader", additionalClasspath, classes);
+
+        // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
+        return new HierarchicalClassLoaderStructure(workerExtensionSpec)
+                .withChild(gradleApiFilter)
+                .withChild(userSpec);
     }
 
-    public ClassLoaderStructure getInProcessClassLoaderStructure(final Iterable<File> userClasspathFiles) {
-        try {
-            return knownClassLoaderStructures.get(userClasspathFiles, new Callable<ClassLoaderStructure>() {
-                @Override
-                public ClassLoaderStructure call() throws Exception {
-                    FilteringClassLoader.Spec gradleApiFilter = classLoaderRegistry.getGradleApiFilterSpec();
-                    VisitableURLClassLoader.Spec userSpec = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(userClasspathFiles).getAsURLs());
-                    // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
-                    return new HierarchicalClassLoaderStructure(gradleApiFilter)
-                            .withChild(userSpec);
-                }
-            });
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+    public ClassLoaderStructure getInProcessClassLoaderStructure(final Iterable<File> additionalClasspath, Class<?>... classes) {
+        FilteringClassLoader.Spec gradleApiFilter = classLoaderRegistry.getGradleApiFilterSpec();
+        VisitableURLClassLoader.Spec userSpec = getUserSpec("worker-loader", additionalClasspath, classes);
+        // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
+        return new HierarchicalClassLoaderStructure(gradleApiFilter)
+                .withChild(userSpec);
+    }
+
+    /**
+     * Returns a spec representing the combined "user" classloader for the given classes and additional classpath.  The user classloader assumes it is used as a child of a classloader with the Gradle API.
+     */
+    public VisitableURLClassLoader.Spec getUserSpec(String name, Iterable<File> additionalClasspath, Class<?>... classes) {
+        Set<URL> classpath = Sets.newLinkedHashSet();
+        classpath.addAll(DefaultClassPath.of(additionalClasspath).getAsURLs());
+
+        Set<ClassLoader> uniqueClassloaders = Sets.newHashSet();
+        for (Class clazz : classes) {
+            ClassLoader classLoader = clazz.getClassLoader();
+            // System types come from the system classloader and their classloader is null.
+            if (classLoader != null) {
+                uniqueClassloaders.add(classLoader);
+            }
         }
+        for (ClassLoader classLoader : uniqueClassloaders) {
+            ClasspathUtil.collectClasspathUntil(classLoader, classLoaderRegistry.getGradleApiClassLoader(), classpath);
+        }
+        return new VisitableURLClassLoader.Spec(name, new ArrayList<>(classpath));
     }
 }

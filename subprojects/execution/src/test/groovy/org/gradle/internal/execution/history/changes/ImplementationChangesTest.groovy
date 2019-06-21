@@ -23,7 +23,6 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.internal.Cast
-import org.gradle.internal.change.CollectingChangeVisitor
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot

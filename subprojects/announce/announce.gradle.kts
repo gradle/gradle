@@ -33,13 +33,10 @@ dependencies {
     implementation(library("commons_io"))
 
     testRuntimeOnly(project(":plugins"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testImplementation(testFixtures(project(":core")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-
-testFixtures {
-    from(":core")
 }

@@ -41,12 +41,13 @@ dependencies {
     testImplementation(project(":files"))
     testImplementation(project(":internalIntegTesting"))
     testImplementation(testLibrary("jsoup"))
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

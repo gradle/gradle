@@ -17,15 +17,25 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.Task
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheInternal
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
+import org.gradle.instantexecution.serialization.IsolateContext
+import org.gradle.instantexecution.serialization.IsolateOwner
+import org.gradle.instantexecution.serialization.MutableIsolateContext
+import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
 import org.gradle.instantexecution.serialization.readClassPath
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.withIsolate
+import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeClassPath
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.classloader.ClasspathUtil
@@ -33,6 +43,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -96,21 +107,29 @@ class DefaultInstantExecution(
         }
 
         buildOperationExecutor.withStoreOperation {
-            KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                writeContextFor(encoder).run {
+            try {
+                KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
+                    writeContextFor(encoder).run {
 
-                    val build = host.currentBuild
-                    writeString(build.rootProject.name)
-                    val scheduledTasks = build.scheduledTasks
-                    writeRelevantProjectsFor(scheduledTasks)
+                        val build = host.currentBuild
+                        writeString(build.rootProject.name)
 
-                    val tasksClassPath = classPathFor(scheduledTasks)
-                    writeClassPath(tasksClassPath)
+                        writeClassPath(collectClassPath())
 
-                    TaskGraphCodec().run {
-                        writeTaskGraphOf(build, scheduledTasks)
+                        writeGradleState(build.rootProject.gradle)
+
+                        val scheduledTasks = build.scheduledTasks
+                        writeRelevantProjectsFor(scheduledTasks)
+
+                        TaskGraphCodec().run {
+                            writeTaskGraphOf(build, scheduledTasks)
+                        }
                     }
                 }
+            } catch (e: Throwable) {
+                // Discard the state file on failure
+                instantExecutionStateFile.delete()
+                throw e
             }
         }
     }
@@ -125,14 +144,19 @@ class DefaultInstantExecution(
 
                     val rootProjectName = readString()
                     val build = host.createBuild(rootProjectName)
+
+                    val classPath = readClassPath()
+                    val classLoader = classLoaderFor(classPath)
+                    initClassLoader(classLoader)
+
+                    readGradleState(build.gradle)
+
                     readRelevantProjects(build)
 
                     build.autoApplyPlugins()
                     build.registerProjects()
 
-                    val tasksClassPath = readClassPath()
-                    val taskClassLoader = classLoaderFor(tasksClassPath)
-                    initialize(build::getProject, taskClassLoader)
+                    initProjectProvider(build::getProject)
 
                     val scheduledTasks = TaskGraphCodec().run {
                         readTaskGraph()
@@ -168,6 +192,27 @@ class DefaultInstantExecution(
     )
 
     private
+    fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
+        withGradle(gradle) {
+            BuildOperationListenersCodec().run {
+                writeBuildOperationListeners(service())
+            }
+        }
+    }
+
+    private
+    fun DefaultReadContext.readGradleState(gradle: Gradle) {
+        withGradle(gradle) {
+            val listeners = BuildOperationListenersCodec().run {
+                readBuildOperationListeners()
+            }
+            service<BuildOperationListenerManager>().let { manager ->
+                listeners.forEach { manager.addListener(it) }
+            }
+        }
+    }
+
+    private
     fun Encoder.writeRelevantProjectsFor(tasks: List<Task>) {
         writeCollection(fillTheGapsOf(relevantProjectPathsFor(tasks))) { projectPath ->
             writeString(projectPath.path)
@@ -201,11 +246,11 @@ class DefaultInstantExecution(
         host.classLoaderFor(classPath)
 
     private
-    fun classPathFor(tasks: List<Task>) = DefaultClassPath.of(
+    fun collectClassPath() = DefaultClassPath.of(
         linkedSetOf<File>().also { classPathFiles ->
-            for (task in tasks) {
+            (service<ClassLoaderCache>() as ClassLoaderCacheInternal).visitClassLoadersUsedInThisBuild { loader ->
                 ClasspathUtil.collectClasspathOf(
-                    task.javaClass.classLoader,
+                    loader,
                     classPathFiles
                 )
             }
@@ -269,3 +314,16 @@ fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
 
 private
 val logger = Logging.getLogger(DefaultInstantExecution::class.java)
+
+
+private
+inline fun <T> T.withGradle(
+    gradle: Gradle,
+    action: () -> Unit
+) where T : IsolateContext, T : MutableIsolateContext {
+    withIsolate(IsolateOwner.OwnerGradle(gradle)) {
+        withPropertyTrace(PropertyTrace.Gradle) {
+            action()
+        }
+    }
+}

@@ -16,16 +16,10 @@
 package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Buildable
-import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.TaskOutputs
 import spock.lang.Specification
-
-import java.nio.file.Path
-import java.util.concurrent.Callable
 
 class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specification {
     def taskContext = Mock(TaskDependencyResolveContext)
@@ -60,99 +54,6 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
 
         then:
         1 * taskContext.add(fileCollection)
-        0 * taskContext._
-    }
-
-    def queuesATask() {
-        def task = Mock(Task)
-
-        when:
-        context.add(task)
-
-        then:
-        1 * taskContext.add(task)
-        0 * taskContext._
-    }
-
-    def queuesATaskOutputs() {
-        def outputs = Mock(TaskOutputs)
-        def files = Mock(FileCollection)
-
-        given:
-        outputs.files >> files
-
-        when:
-        context.add(outputs)
-
-        then:
-        1 * taskContext.add(files)
-        0 * taskContext._
-    }
-
-    def invokesAClosureAndHandlesTheResult() {
-        def closure = Mock(Closure)
-        def result = Mock(Task)
-
-        when:
-        context.add(closure)
-
-        then:
-        1 * closure.call() >> result
-        1 * taskContext.add(result)
-        0 * taskContext._
-    }
-
-    def invokesACallableAndHandlesTheResult() {
-        def callable = Mock(Callable)
-        def result = Mock(Task)
-
-        when:
-        context.add(callable)
-
-        then:
-        1 * callable.call() >> result
-        1 * taskContext.add(result)
-        0 * taskContext._
-    }
-
-    def flattensAnIterable() {
-        def collection1 = Mock(FileCollection)
-        def collection2 = Mock(FileCollection)
-        def collection3 = Mock(FileCollection)
-
-        when:
-        context.add([collection1, [collection2, [collection3], []]])
-
-        then:
-        1 * taskContext.add(collection1)
-        1 * taskContext.add(collection2)
-        1 * taskContext.add(collection3)
-        0 * taskContext._
-    }
-
-    def flattensAnArray() {
-        def collection1 = Mock(FileCollection)
-        def collection2 = Mock(FileCollection)
-        def collection3 = Mock(FileCollection)
-
-        when:
-        context.add([collection1, [collection2, collection3] as Object[]] as Object[])
-
-        then:
-        1 * taskContext.add(collection1)
-        1 * taskContext.add(collection2)
-        1 * taskContext.add(collection3)
-        0 * taskContext._
-    }
-
-    def ignoresOtherTypes() {
-        when:
-        context.add('a')
-        context.add(Stub(TaskDependency))
-        context.add(Stub(Runnable))
-        context.add(Stub(Path))
-
-        then:
         0 * taskContext._
     }
 

@@ -127,7 +127,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
             public void visitContents(FileCollectionResolveContext context) {
                 ResolvableFileCollectionResolveContext nested = context.newContext();
                 CompositeFileCollection.this.visitContents(nested);
-                context.add(nested.resolveAsFileTrees());
+                context.addAll(nested.resolveAsFileTrees());
             }
 
             @Override
@@ -187,7 +187,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     protected List<? extends FileCollectionInternal> getSourceCollections() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver());
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver().getPatternSetFactory());
         visitContents(context);
         return context.resolveAsFileCollections();
     }

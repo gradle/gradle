@@ -22,13 +22,12 @@ dependencies {
     testImplementation(project(":files"))
     testImplementation(project(":snapshots"))
 
+    testImplementation(testFixtures(project(":core")))
+    
     integTestImplementation(project(":internalIntegTesting"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
 }

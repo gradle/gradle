@@ -55,6 +55,24 @@ import java.util.Map;
  *   // arguments to pass to the application
  *   args 'appArg1'
  * }
+ *
+ * // Using and creating an Executable Jar
+ * jar {
+ *   manifest {
+ *     attributes('Main-Class': 'package.Main')
+ *   }
+ * }
+ *
+ * task runExecutableJar(type: JavaExec) {
+ *   // Executable jars can have only _one_ jar on the classpath.
+ *   classpath = files(tasks.jar)
+ *
+ *   // 'main' does not need to be specified
+ *
+ *   // arguments to pass to the application
+ *   args 'appArg1'
+ * }
+ *
  * </pre>
  * <p>
  * The process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debug-jvm` switch when invoking the build.

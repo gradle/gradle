@@ -19,9 +19,12 @@ package org.gradle.instantexecution
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.invocation.Gradle
 
 
 interface InstantExecutionBuild {
+
+    val gradle: Gradle
 
     fun createProject(path: String): Project
 

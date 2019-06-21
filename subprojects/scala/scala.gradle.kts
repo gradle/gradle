@@ -45,21 +45,22 @@ dependencies {
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(library("slf4j_api"))
     testImplementation(library("commons_io"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":plugins")))
+    testImplementation(testFixtures(project(":languageJvm")))
+    testImplementation(testFixtures(project(":languageJava")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":jvmServices"))
+    integTestImplementation(testFixtures(project(":languageScala")))
     integTestRuntimeOnly(project(":ide"))
     integTestRuntimeOnly(project(":maven"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":plugins")
-    from(":languageJvm")
-    from(":languageScala")
 }
 
 tasks.named<Test>("integTest") {

@@ -19,13 +19,12 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
-import org.gradle.api.GradleException;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
+import org.gradle.internal.snapshot.FileMetadata;
+import org.gradle.internal.snapshot.FileSnapshottingException;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -33,6 +32,7 @@ import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.FileSystemLoopException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -48,10 +48,10 @@ import java.util.function.Predicate;
 
 public class DirectorySnapshotter {
     private final FileHasher hasher;
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
     private final DefaultExcludes defaultExcludes;
 
-    public DirectorySnapshotter(FileHasher hasher, StringInterner stringInterner, String... defaultExcludes) {
+    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, String... defaultExcludes) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
@@ -64,7 +64,7 @@ public class DirectorySnapshotter {
         try {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new PathVisitor(builder, predicate, hasBeenFiltered));
         } catch (IOException e) {
-            throw new GradleException(String.format("Could not list contents of directory '%s'.", rootPath), e);
+            throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", rootPath), e);
         }
         return builder.getResult();
     }
@@ -176,11 +176,11 @@ public class DirectorySnapshotter {
             String name = stringInterner.intern(file.getFileName().toString());
             if (isAllowed(file, name, false, attrs, builder.getRelativePath())) {
                 if (attrs == null) {
-                    throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
+                    throw new FileSnapshottingException(String.format("Cannot read file '%s': not authorized.", file));
                 }
                 if (attrs.isSymbolicLink()) {
                     // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                    throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
+                    throw new FileSnapshottingException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
                 }
                 addFileSnapshot(file, name, attrs);
             }
@@ -193,7 +193,7 @@ public class DirectorySnapshotter {
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
             if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null, builder.getRelativePath())) {
-                throw new GradleException(String.format("Could not read path '%s'.", file), exc);
+                throw new UncheckedIOException(String.format("Could not read path '%s'.", file), exc);
             }
             return FileVisitResult.CONTINUE;
         }
@@ -204,7 +204,7 @@ public class DirectorySnapshotter {
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
             if (isNotFileSystemLoopException(exc)) {
-                throw new GradleException(String.format("Could not read directory path '%s'.", dir), exc);
+                throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
             }
             builder.postVisitDirectory();
             return FileVisitResult.CONTINUE;
@@ -216,9 +216,8 @@ public class DirectorySnapshotter {
 
         private void addFileSnapshot(Path file, String name, BasicFileAttributes attrs) {
             Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
-            DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
-            HashCode hash = hasher.hash(file.toFile(), metadata);
-            RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(internedAbsolutePath(file), name, hash, metadata.getLastModified());
+            HashCode hash = hasher.hash(file.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
+            RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(internedAbsolutePath(file), name, hash, FileMetadata.from(attrs));
             builder.visit(fileSnapshot);
         }
 
