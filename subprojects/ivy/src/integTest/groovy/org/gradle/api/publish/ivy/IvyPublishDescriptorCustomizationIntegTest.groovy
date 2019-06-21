@@ -17,12 +17,10 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.fixtures.ivy.IvyDescriptor
 import spock.lang.Unroll
 
 import javax.xml.namespace.QName
-import org.gradle.test.fixtures.ivy.IvyDescriptor
 
 class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishIntegTest {
 
@@ -53,7 +51,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         """
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can customize descriptor xml during publication"() {
         when:
         succeeds 'publish'

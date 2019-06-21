@@ -15,12 +15,10 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.GPG_CMD
@@ -28,7 +26,6 @@ import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.OPEN_
 
 class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "sign jar with default signatory"() {
         given:
         buildFile << """
@@ -56,7 +53,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         skipped(":signJar")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "sign multiple jars with default signatory"() {
         given:
         buildFile << """
@@ -307,7 +303,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         failureHasCause "You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign task ':clean')"
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "changes to task information after signing block are respected"() {
         given:
         buildFile << """
@@ -335,7 +330,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "sign with subkey"() {
         given:
         buildFile << """
