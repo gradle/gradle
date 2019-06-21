@@ -190,7 +190,7 @@ public class HttpClientHelper implements Closeable {
      * Redirecting through an insecure protocol can allow for a MITM redirect to an attacker controlled HTTPS server.
      */
     private void validateRedirectChain(HttpContext httpContext) {
-        for(URI redirect : getRedirectLocations(httpContext)) {
+        for (URI redirect : getRedirectLocations(httpContext)) {
             validateUrl(redirect);
         }
     }
