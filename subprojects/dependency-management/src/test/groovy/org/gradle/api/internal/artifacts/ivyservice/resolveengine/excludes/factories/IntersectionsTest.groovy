@@ -17,18 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories
 
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
-
-class IntersectionsTest extends Specification {
-    @Shared
-    private ExcludeFactory factory = new DefaultExcludeFactory()
+class IntersectionsTest extends Specification implements ExcludeTestSupport {
 
     @Subject
     private Intersections ops = new Intersections(factory)
@@ -55,103 +48,82 @@ class IntersectionsTest extends Specification {
         ops.tryIntersect(other, one) == expected
 
         where:
-        one                                                     | other                                                                                                    | expected
-        group("org")                                            | group("foo")                                                                                             | factory.nothing()
-        group("org")                                            | group("org")                                                                                             | group("org")
-        group("org")                                            | groupSet("foo", "org")                                                                                   | group("org")
-        group("org")                                            | groupSet("foo", "org", "baz")                                                                            | group("org")
-        group("org")                                            | groupSet("foo", "baz")                                                                                   | factory.nothing()
-        group("org")                                            | moduleId("org", "bar")                                                                                   | moduleId("org", "bar")
-        group("org")                                            | moduleId("com", "bar")                                                                                   | factory.nothing()
-        group("org")                                            | moduleIdSet(["foo", "bar"], ["org", "bar"])                                                              | moduleId("org", "bar")
-        group("org")                                            | moduleIdSet(["foo", "bar"], ["org", "bar"], ["org", "baz"])                                              | moduleIdSet(["org", "bar"], ["org", "baz"])
-        group("org")                                            | module("mod")                                                                                            | moduleId("org", "mod")
-        group("org")                                            | moduleSet("mod", "mod2")                                                                                 | moduleIdSet(["org", "mod"], ["org", "mod2"])
-        module("foo")                                           | module("bar")                                                                                            | factory.nothing()
-        module("foo")                                           | moduleSet("foo", "bar")                                                                                  | module("foo")
-        module("foo")                                           | moduleSet("bar", "baz")                                                                                  | factory.nothing()
-        module("foo")                                           | moduleId("org", "foo")                                                                                   | moduleId("org", "foo")
-        module("foo")                                           | moduleId("org", "bar")                                                                                   | factory.nothing()
-        module("foo")                                           | moduleIdSet(["org", "foo"], ["org", "bar"])                                                              | moduleId("org", "foo")
-        module("foo")                                           | moduleIdSet(["org", "foo"], ["org", "bar"], ["com", "foo"])                                              | moduleIdSet(["org", "foo"], ["com", "foo"])
-        groupSet("org", "org2")                                 | groupSet("org2", "org3")                                                                                 | group("org2")
-        groupSet("org", "org2", "org3")                         | groupSet("org", "org3", "org4")                                                                          | groupSet("org", "org3")
-        groupSet("org", "org2")                                 | moduleId("org", "foo")                                                                                   | moduleId("org", "foo")
-        groupSet("org", "org2")                                 | moduleIdSet(["org", "foo"], ["org2", "bar"], ["org3", "baz"])                                            | moduleIdSet(["org", "foo"], ["org2", "bar"])
-        moduleIdSet(["org", "foo"], ["org", "bar"])             | moduleIdSet(["org", "bar"], ["org2", "baz"])                                                             | moduleId("org", "bar")
-        moduleIdSet(["org", "foo"], ["org", "bar"])             | moduleIdSet(["org", "bar"], ["org2", "baz"], ["org", "foo"])                                             | moduleIdSet(["org", "bar"], ["org", "foo"])
+        one                                                                                                            | other                                                                                                                 | expected
+        group("org")                                                                                                   | group("foo")                                                                                                          | factory.nothing()
+        group("org")                                                                                                   | group("org")                                                                                                          | group("org")
+        group("org")                                                                                                   | groupSet("foo", "org")                                                                                                | group("org")
+        group("org")                                                                                                   | groupSet("foo", "org", "baz")                                                                                         | group("org")
+        group("org")                                                                                                   | groupSet("foo", "baz")                                                                                                | factory.nothing()
+        group("org")                                                                                                   | moduleId("org", "bar")                                                                                                | moduleId("org", "bar")
+        group("org")                                                                                                   | moduleId("com", "bar")                                                                                                | factory.nothing()
+        group("org")                                                                                                   | moduleIdSet(["foo", "bar"], ["org", "bar"])                                                                           | moduleId("org", "bar")
+        group("org")                                                                                                   | moduleIdSet(["foo", "bar"], ["org", "bar"], ["org", "baz"])                                                           | moduleIdSet(["org", "bar"], ["org", "baz"])
+        group("org")                                                                                                   | module("mod")                                                                                                         | moduleId("org", "mod")
+        group("org")                                                                                                   | moduleSet("mod", "mod2")                                                                                              | moduleIdSet(["org", "mod"], ["org", "mod2"])
+        module("foo")                                                                                                  | module("bar")                                                                                                         | factory.nothing()
+        module("foo")                                                                                                  | moduleSet("foo", "bar")                                                                                               | module("foo")
+        module("foo")                                                                                                  | moduleSet("bar", "baz")                                                                                               | factory.nothing()
+        module("foo")                                                                                                  | moduleId("org", "foo")                                                                                                | moduleId("org", "foo")
+        module("foo")                                                                                                  | moduleId("org", "bar")                                                                                                | factory.nothing()
+        module("foo")                                                                                                  | moduleIdSet(["org", "foo"], ["org", "bar"])                                                                           | moduleId("org", "foo")
+        module("foo")                                                                                                  | moduleIdSet(["org", "foo"], ["org", "bar"], ["com", "foo"])                                                           | moduleIdSet(["org", "foo"], ["com", "foo"])
+        groupSet("org", "org2")                                                                                        | groupSet("org2", "org3")                                                                                              | group("org2")
+        groupSet("org", "org2", "org3")                                                                                | groupSet("org", "org3", "org4")                                                                                       | groupSet("org", "org3")
+        groupSet("org", "org2")                                                                                        | moduleId("org", "foo")                                                                                                | moduleId("org", "foo")
+        groupSet("org", "org2")                                                                                        | moduleIdSet(["org", "foo"], ["org2", "bar"], ["org3", "baz"])                                                         | moduleIdSet(["org", "foo"], ["org2", "bar"])
+        moduleIdSet(["org", "foo"], ["org", "bar"])                                                                    | moduleIdSet(["org", "bar"], ["org2", "baz"])                                                                          | moduleId("org", "bar")
+        moduleIdSet(["org", "foo"], ["org", "bar"])                                                                    | moduleIdSet(["org", "bar"], ["org2", "baz"], ["org", "foo"])                                                          | moduleIdSet(["org", "bar"], ["org", "foo"])
+        moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])                                                   | module("bar")                                                                                                         | moduleIdSet(["org", "bar"], ["org2", "bar"])
+        moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])                                                   | module("foo")                                                                                                         | moduleId("org", "foo")
+        moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])                                                   | moduleSet("foo", "bar")                                                                                               | moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])
+        moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])                                                   | moduleSet("meh", "foo")                                                                                               | moduleId("org", "foo")
+        moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])                                                   | moduleSet("meh")                                                                                                      | nothing()
+        moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])                                                   | group("org")                                                                                                          | moduleIdSet(["org", "foo"], ["org", "bar"])
+        moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])                                                   | group("org2")                                                                                                         | moduleId("org2", "bar")
+        moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])                                                   | groupSet("org3", "org2")                                                                                              | moduleId("org2", "bar")
+        moduleIdSet(["org", "foo"], ["org", "bar"], ["org2", "bar"])                                                   | groupSet("org3")                                                                                                      | nothing()
+        moduleId("com.google.collections", "google-collections")                                                       | moduleIdSet(["com.sun.jmx", "jmxri"], ["javax.jms", "jms"], ["com.sun.jdmk", "jmxtools"])                             | nothing()
+        moduleId("com.google.collections", "google-collections")                                                       | moduleIdSet(["com.sun.jmx", "jmxri"], ["com.google.collections", "google-collections"], ["com.sun.jdmk", "jmxtools"]) | moduleId("com.google.collections", "google-collections")
+        moduleId("org", "foo")                                                                                         | moduleId("org2", "baz")                                                                                               | nothing()
 
-        anyOf(group("org.slf4j"), module("py4j"))               | anyOf(group("org.slf4j"), module("py4j"), moduleIdSet(["org.jboss.netty", "netty"], ["jline", "jline"])) | anyOf(group("org.slf4j"), module("py4j"))
-        anyOf(group("G1"), module("M1"), group("G2"))           | anyOf(group("G1"), module("M2"))                                                                         | anyOf(group("G1"), allOf(anyOf(module("M1"), group("G2")), module("M2")))
+        anyOf(group("org.slf4j"), module("py4j"))                                                                      | anyOf(group("org.slf4j"), module("py4j"), moduleIdSet(["org.jboss.netty", "netty"], ["jline", "jline"]))              | anyOf(group("org.slf4j"), module("py4j"))
+        anyOf(group("G1"), module("M1"), group("G2"))                                                                  | anyOf(group("G1"), module("M2"))                                                                                      | anyOf(group("G1"), allOf(anyOf(module("M1"), group("G2")), module("M2")))
+
+        anyOf(group("foo"), group("bar"))                                                                              | group("baz")                                                                                                          | nothing()
+        anyOf(moduleIdSet(["G:A"], ["G2:P"]), groupSet("G3", "G4"))                                                    | moduleIdSet(["G5", "A"], ["G6", "B"])                                                                                 | nothing()
+        anyOf(moduleIdSet(["G:A"], ["G2:P"]), groupSet("G3", "G4"))                                                    | groupSet("G3", "G4")                                                                                                  | groupSet("G3", "G4")
+
+        // should not cause stack overflow because components cannot be reduced
+        anyOf(ivy("org", "mod", artifact("mod"), "exact"), ivy("org", "mod2", artifact("mod"), "exact"))               | group("org")                                                                                                          | null
+        anyOf(ivy("org", "mod", artifact("mod"), "exact"), ivy("org", "mod2", artifact("mod"), "exact"), group("bar")) | group("org")                                                                                                          | anyOf(allOf(ivy("org", "mod", artifact("mod"), "exact"), group("org")), allOf(ivy("org", "mod2", artifact("mod"), "exact"), group("org")))
 
         // for operations below the result can be further simplified, but it's not this class responsibility to do it
-        anyOf(group("foo"), group("bar"))                       | anyOf(group("foo"), group("baz"))                                                                        | anyOf(group("foo"), allOf(group("bar"), group("baz")))
-        anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "c"])) | anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "d"]))                                                  | anyOf(group("g1"), allOf(moduleIdSet(["a", "b"], ["a", "c"]), moduleIdSet(["a", "b"], ["a", "d"])))
+        anyOf(group("foo"), group("bar"))                                                                              | anyOf(group("foo"), group("baz"))                                                                                     | anyOf(group("foo"), allOf(group("bar"), group("baz")))
+        anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "c"]))                                                        | anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "d"]))                                                               | anyOf(group("g1"), allOf(moduleIdSet(["a", "b"], ["a", "c"]), moduleIdSet(["a", "b"], ["a", "d"])))
     }
 
     @Unroll("intersection of #one with #other = #expected using normalizing factory")
     def "further simplifications are performed by the normalizing factory"() {
         given:
         factory = new NormalizingExcludeFactory(factory)
-        ops = new Intersections(factory)
 
         expect:
-        ops.tryIntersect(one, other) == expected
-        ops.tryIntersect(other, one) == expected
+        factory.allOf(one, other) == expected
+        factory.allOf(other, one) == expected
 
         where:
-        one                                                     | other                                                   | expected
-        anyOf(group("foo"), group("bar"))                       | anyOf(group("foo"), group("baz"))                       | group("foo")
-        anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "c"])) | anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "d"])) | anyOf(group("g1"), moduleId("a", "b"))
+        one                                                                                                            | other                                                                                  | expected
+        anyOf(group("foo"), group("bar"))                                                                              | anyOf(group("foo"), group("baz"))                                                      | group("foo")
+        anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "c"]))                                                        | anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "d"]))                                | anyOf(group("g1"), moduleId("a", "b"))
+
+        anyOf(ivy("org", "foo", artifact("foo"), "exact"), module("foo"))                                              | anyOf(ivy("org", "foo", artifact("foo"), "exact"), module("bar"))                      | ivy("org", "foo", artifact("foo"), "exact")
+        anyOf(allOf(ivy("org", "foo", artifact("foo"), "exact"), module("foo")), group("bar"))                         | anyOf(allOf(ivy("org", "foo", artifact("foo"), "exact"), module("mod")), group("bar")) | group("bar")
+
+        // should not cause stack overflow because components cannot be reduced
+        anyOf(ivy("org", "mod", artifact("mod"), "exact"), ivy("org", "mod2", artifact("mod"), "exact"))               | group("org")                                                                           | allOf(anyOf(ivy("org", "mod", artifact("mod"), "exact"), ivy("org", "mod2", artifact("mod"), "exact")), group("org"))
+        anyOf(ivy("org", "mod", artifact("mod"), "exact"), ivy("org", "mod2", artifact("mod"), "exact"), group("bar")) | group("org")                                                                           | anyOf(allOf(ivy("org", "mod", artifact("mod"), "exact"), group("org")), allOf(ivy("org", "mod2", artifact("mod"), "exact"), group("org")))
+
     }
 
-    private ExcludeSpec group(String group) {
-        factory.group(group)
-    }
 
-    private ExcludeSpec module(String name) {
-        factory.module(name)
-    }
-
-    private ExcludeSpec moduleSet(String... names) {
-        factory.moduleSet(names as Set<String>)
-    }
-
-    private ExcludeSpec groupSet(String... groups) {
-        factory.groupSet(groups as Set<String>)
-    }
-
-    private ExcludeSpec moduleId(String group, String name) {
-        factory.moduleId(newId(group, name))
-    }
-
-    private ExcludeSpec moduleIdSet(List<String>... ids) {
-        factory.moduleIdSet(ids.collect { newId(it[0], it[1]) } as Set)
-    }
-
-    private ExcludeSpec anyOf(ExcludeSpec... specs) {
-        switch (specs.length) {
-            case 0:
-                return factory.nothing()
-            case 1:
-                return specs[0]
-            case 2:
-                return factory.anyOf(specs[0], specs[1])
-            default:
-                return factory.anyOf(specs as Set)
-        }
-    }
-
-    private ExcludeSpec allOf(ExcludeSpec... specs) {
-        switch (specs.length) {
-            case 0:
-                return factory.nothing()
-            case 1:
-                return specs[0]
-            case 2:
-                return factory.allOf(specs[0], specs[1])
-            default:
-                return factory.allOf(specs as Set)
-        }
-    }
 }

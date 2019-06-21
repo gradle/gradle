@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -72,12 +71,8 @@ final class DefaultGroupSetExclude implements GroupSetExclude {
     }
 
     @Override
-    public boolean equalsIgnoreArtifact(ExcludeSpec other) {
-        return equals(other);
+    public String toString() {
+        return "{ \"groups\" : [" + ExcludeJsonHelper.toJson(groups) + "]}";
     }
 
-    @Override
-    public String toString() {
-        return "{ groups = " + groups + '}';
-    }
 }

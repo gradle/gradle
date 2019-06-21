@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAnyOf;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude;
@@ -46,6 +47,22 @@ class Intersections {
         if (left.equals(right)) {
             return left;
         }
+
+        // Handle anyOf first because we don't want to special case it in
+        // every other case
+
+        if (left instanceof ExcludeAnyOf) {
+            ExcludeSpec excludeSpec = intersectAnyOf((ExcludeAnyOf) left, right);
+            if (excludeSpec != null) {
+                return excludeSpec;
+            }
+        } else if (right instanceof ExcludeAnyOf) {
+            ExcludeSpec excludeSpec = intersectAnyOf((ExcludeAnyOf) right, left);
+            if (excludeSpec != null) {
+                return excludeSpec;
+            }
+        }
+
         if (left instanceof GroupExclude) {
             return intersectGroup((GroupExclude) left, right);
         } else if (right instanceof GroupExclude) {
@@ -58,44 +75,112 @@ class Intersections {
             return intersectGroupSet((GroupSetExclude) left, right);
         } else if (right instanceof GroupSetExclude) {
             return intersectGroupSet((GroupSetExclude) right, left);
+        } else if (left instanceof ModuleIdExclude) {
+            return intersectModuleId((ModuleIdExclude) left, right);
+        } else if (right instanceof ModuleIdExclude) {
+            return intersectModuleId((ModuleIdExclude) right, left);
         } else if (left instanceof ModuleIdSetExclude) {
             return intersectModuleIdSet((ModuleIdSetExclude) left, right);
         } else if (right instanceof ModuleIdSetExclude) {
             return intersectModuleIdSet((ModuleIdSetExclude) right, left);
-        } else if (left instanceof ExcludeAnyOf) {
-            return intersectAnyOf((ExcludeAnyOf) left, right);
         }
         return null;
     }
 
     private ExcludeSpec intersectAnyOf(ExcludeAnyOf left, ExcludeSpec right) {
+        Set<ExcludeSpec> leftComponents = left.getComponents();
         if (right instanceof ExcludeAnyOf) {
-            Set<ExcludeSpec> common = Sets.newHashSet(left.getComponents());
             Set<ExcludeSpec> rightComponents = ((ExcludeAnyOf) right).getComponents();
+            Set<ExcludeSpec> common = Sets.newHashSet(leftComponents);
             common.retainAll(rightComponents);
             if (common.size() >= 1) {
-                Set<ExcludeSpec> remainderLeft = Sets.newHashSet(left.getComponents());
-                remainderLeft.removeAll(common);
                 ExcludeSpec alpha = asUnion(common);
-                if (remainderLeft.isEmpty()) {
+                if (leftComponents.equals(common) || rightComponents.equals(common)) {
                     return alpha;
                 }
+                Set<ExcludeSpec> remainderLeft = Sets.newHashSet(leftComponents);
+                remainderLeft.removeAll(common);
                 Set<ExcludeSpec> remainderRight = Sets.newHashSet(rightComponents);
                 remainderRight.removeAll(common);
-                if (remainderRight.isEmpty()) {
-                    return alpha;
-                }
+
                 ExcludeSpec unionLeft = asUnion(remainderLeft);
                 ExcludeSpec unionRight = asUnion(remainderRight);
                 ExcludeSpec beta = factory.allOf(unionLeft, unionRight);
                 return factory.anyOf(alpha, beta);
+            } else {
+                // slowest path, full distribution
+                // (A ∪ B) ∩ (C ∪ D) = (A ∩ C) ∪ (A ∩ D) ∪ (B ∩ C) ∪ (B ∩ D)
+                Set<ExcludeSpec> intersections = Sets.newHashSetWithExpectedSize(leftComponents.size() * rightComponents.size());
+                for (ExcludeSpec leftSpec : leftComponents) {
+                    for (ExcludeSpec rightSpec : rightComponents) {
+                        ExcludeSpec merged = tryIntersect(leftSpec, rightSpec);
+                        if (merged == null) {
+                            merged = factory.allOf(leftSpec, rightSpec);
+                        }
+                        if (!(merged instanceof ExcludeNothing)) {
+                            intersections.add(merged);
+                        }
+                    }
+                }
+                return asUnion(intersections);
+            }
+        } else {
+            // Here, we will distribute A ∩ (B ∪ C) if, and only if, at
+            // least one of the distribution operations (A ∩ B) can be simplified
+            ExcludeSpec[] excludeSpecs = leftComponents.toArray(new ExcludeSpec[0]);
+            ExcludeSpec[] intersections = null;
+            for (int i = 0; i < excludeSpecs.length; i++) {
+                ExcludeSpec excludeSpec = tryIntersect(excludeSpecs[i], right);
+                if (excludeSpec != null) {
+                    if (intersections == null) {
+                        intersections = new ExcludeSpec[excludeSpecs.length];
+                    }
+                    intersections[i] = excludeSpec;
+                }
+            }
+            if (intersections != null) {
+                Set<ExcludeSpec> simplified = Sets.newHashSetWithExpectedSize(excludeSpecs.length);
+                for (int i = 0; i < intersections.length; i++) {
+                    ExcludeSpec intersection = intersections[i];
+                    if (intersection instanceof ExcludeNothing) {
+                        continue;
+                    }
+                    if (intersection != null) {
+                        simplified.add(intersection);
+                    } else {
+                        simplified.add(factory.allOf(excludeSpecs[i], right));
+                    }
+                }
+                return asUnion(simplified);
             }
         }
         return null;
     }
 
-    private ExcludeSpec asUnion(Set<ExcludeSpec> remainderLeft) {
-        return remainderLeft.size() == 1 ? remainderLeft.iterator().next() : factory.anyOf(remainderLeft);
+    private ExcludeSpec asUnion(Set<ExcludeSpec> remainder) {
+        if (remainder.isEmpty()) {
+            // It's an intersection, and this method is always called on the remainder
+            // of a reduction operation. If the remainder is empty then it means that
+            // the intersection is empty
+            return factory.nothing();
+        }
+        return remainder.size() == 1 ? remainder.iterator().next() : factory.anyOf(remainder);
+    }
+
+    private ExcludeSpec intersectModuleId(ModuleIdExclude left, ExcludeSpec right) {
+        if (right instanceof ModuleIdExclude) {
+            if (left.equals(right)) {
+                return left;
+            }
+            return factory.nothing();
+        } else if (right instanceof ModuleIdSetExclude) {
+            Set<ModuleIdentifier> rightModuleIds = ((ModuleIdSetExclude) right).getModuleIds();
+            if (rightModuleIds.contains(left.getModuleId())) {
+                return left;
+            }
+            return factory.nothing();
+        }
+        return null;
     }
 
     private ExcludeSpec intersectModuleIdSet(ModuleIdSetExclude left, ExcludeSpec right) {
@@ -104,6 +189,19 @@ class Intersections {
             Set<ModuleIdentifier> common = Sets.newHashSet(((ModuleIdSetExclude) right).getModuleIds());
             common.retainAll(moduleIds);
             return moduleIds(common);
+        } else if (right instanceof ModuleSetExclude) {
+            Set<String> modules = ((ModuleSetExclude) right).getModules();
+            Set<ModuleIdentifier> identifiers = moduleIds.stream()
+                .filter(e -> modules.contains(e.getName()))
+                .collect(toSet());
+            if (identifiers.isEmpty()) {
+                return factory.nothing();
+            }
+            if (identifiers.size() == 1) {
+                return factory.moduleId(identifiers.iterator().next());
+            } else {
+                return factory.moduleIdSet(identifiers);
+            }
         }
         return null;
     }
