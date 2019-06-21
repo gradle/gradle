@@ -18,6 +18,7 @@ Include only their name, impactful features should be called out separately belo
 [Bjørn Mølgård Vester](https://github.com/bjornvester),
 [Simon Legner](https://github.com/simon04),
 [Sebastian Schuberth](https://github.com/sschuberth),
+[Ian Kerins](https://github.com/isker),
 [Ivo Anjo](https://github.com/ivoanjo),
 [Stefan M.](https://github.com/StefMa),
 [Dominik Giger](https://github.com/gigerdo),
