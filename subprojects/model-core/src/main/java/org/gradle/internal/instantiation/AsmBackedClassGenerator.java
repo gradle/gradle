@@ -126,7 +126,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         super(allKnownAnnotations, enabledAnnotations, generatedClasses);
         this.decorate = decorate;
         this.suffix = suffix;
-        this.factoryId = Objects.hashCode(getClass().getName(), suffix, allKnownAnnotations, enabledAnnotations);
+        this.factoryId = Objects.hashCode(getClass().getName(), suffix, allKnownAnnotations, enabledAnnotations, generatedClasses);
     }
 
     /**
@@ -154,7 +154,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         }
 
         AsmBackedClassGenerator generator = new AsmBackedClassGenerator(true, suffix, allKnownAnnotations, enabledAnnotations, generatedClasses);
-        managedFactoryRegistry.register(generator);
+        registerManagedFactory(managedFactoryRegistry, generator);
         return generator;
     }
 
@@ -166,8 +166,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         // For now, just assign using a counter
         String suffix = ClassGeneratorSuffixRegistry.assign("$Inject");
         AsmBackedClassGenerator generator = new AsmBackedClassGenerator(false, suffix, allKnownAnnotations, enabledAnnotations, cacheFactory.newClassMap());
-        managedFactoryRegistry.register(generator);
+        registerManagedFactory(managedFactoryRegistry, generator);
         return generator;
+    }
+
+    private static void registerManagedFactory(ManagedFactoryRegistry managedFactoryRegistry, AsmBackedClassGenerator generator) {
+        // Don't register the generator if there is already one registered with the same criteria.
+        // (e.g. we reuse the same cache and suffix for decorated generators with empty annotations)
+        if (managedFactoryRegistry.lookup(generator.getId()) == null) {
+            managedFactoryRegistry.register(generator);
+        }
     }
 
     @Override
