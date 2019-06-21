@@ -719,7 +719,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link File}. Interpreted relative to the project directory, as per {@link #file(Object)}.</li>
      *
-     * <li>A {@link java.nio.file.Path} as defined by {@link #file(Object)}.</li>
+     * <li>A {@link java.nio.file.Path}, as per {@link #file(Object)}.</li>
      *
      * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Only {@code file:} URLs are supported.</li>
      *
