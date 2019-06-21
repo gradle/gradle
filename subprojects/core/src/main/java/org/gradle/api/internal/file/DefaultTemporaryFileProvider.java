@@ -44,7 +44,9 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
         File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
         GFileUtils.mkdirs(dir);
         try {
-            return File.createTempFile(prefix, suffix, dir);
+            File tempFile = File.createTempFile(prefix, suffix, dir);
+            tempFile.deleteOnExit();
+            return tempFile;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
