@@ -52,6 +52,22 @@ dependencies {
 }
 ```
 
+## Central management of plugin versions with settings script
+
+Gradle 5.6 makes it easier to manage the versions of plugins used by your build. By configuring all plugin versions in a settings script within the new `pluginManagement.plugins {}` block, build scripts can apply plugins via the `plugins {}` block without specifying a version.
+
+```groovy
+pluginManagement {
+    plugins {
+        id 'org.my.plugin' version '1.1'
+    }
+}
+```
+
+One benefit of managing plugin versions in this way is that the `pluginManagement.plugins {}` block does not have the same constrained syntax as a build script `plugins {}` block. Plugin versions may be loaded from `gradle.properties`, or defined programmatically.
+
+See [plugin version management](userguide/plugins.html#sec:plugin_version_management) for more details.
+
 ## Improvements for plugin authors
 
 ### Task dependencies are honored for `@Input` properties of type `Property`
