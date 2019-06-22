@@ -150,6 +150,21 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         failure.assertHasCause("The value for this file collection cannot be changed.")
     }
 
+    def "can view the elements of file collection as a Provider"() {
+        buildFile << """
+            def files = objects.fileCollection()
+            def elements = files.elements
+            
+            def name = 'a'
+            files.from { name }
+            
+            assert elements.get().asFile == [file('a')]
+        """
+
+        expect:
+        succeeds()
+    }
+
     def "task @InputFiles file collection property is implicitly finalized and changes ignored when task starts execution"() {
         taskTypeWithInputFileCollection()
         buildFile << """
@@ -233,5 +248,32 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
 
         then:
         output.count("calculating value") == 1
+    }
+
+    def "can connect the elements of a file collection to task input ListProperty"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileListProperty()
+        buildFile << """
+            task produce1(type: FileProducer) {
+                output = file("out1.txt") 
+                content = "one"
+            } 
+            task produce2(type: FileProducer) {
+                output = file("out2.txt") 
+                content = "two"
+            }
+            def files = project.files(produce1, produce2)
+            task merge(type: InputFilesTask) {
+                inFiles.addAll(files.elements)
+                outFile = file("merge.txt")
+            }
+        """
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":produce1", ":produce2", ":merge")
+        file("merge.txt").text == "one,two"
     }
 }

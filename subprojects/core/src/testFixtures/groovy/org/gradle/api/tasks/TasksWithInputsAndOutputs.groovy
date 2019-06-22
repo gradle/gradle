@@ -149,4 +149,19 @@ trait TasksWithInputsAndOutputs {
             }
         """
     }
+
+    def taskTypeWithInputFileListProperty() {
+        buildFile << """
+            class InputFilesTask extends DefaultTask {
+                @InputFiles
+                final ListProperty<FileSystemLocation> inFiles = project.objects.listProperty(FileSystemLocation)
+                @OutputFile
+                final RegularFileProperty outFile = project.objects.fileProperty()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = inFiles.get()*.asFile.text.sort().join(',')
+                }
+            }
+        """
+    }
 }

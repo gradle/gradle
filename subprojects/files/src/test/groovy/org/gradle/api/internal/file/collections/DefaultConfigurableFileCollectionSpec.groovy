@@ -17,24 +17,26 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionSpec
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.TaskDependency
-import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
-class DefaultConfigurableFileCollectionSpec extends Specification {
+class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
     def fileResolver = Mock(FileResolver)
     def taskResolver = Mock(TaskResolver)
     def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskResolver)
 
-    def canCreateEmptyCollection() {
-        expect:
-        collection.from.empty
-        collection.files.empty
+    @Override
+    AbstractFileCollection containing(File... files) {
+        def resolver = Stub(FileResolver)
+        _ * resolver.resolve(_) >> { File f -> f }
+        return new DefaultConfigurableFileCollection("<display>", resolver, taskResolver, files as List)
     }
 
     def resolvesSpecifiedFilesUsingFileResolver() {

@@ -26,7 +26,7 @@ import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 @UsesNativeServices
-public class AbstractFileTreeTest extends Specification {
+class AbstractFileTreeTest extends Specification {
     def isEmptyWhenVisitsNoFiles() {
         def tree = new TestFileTree([])
 
