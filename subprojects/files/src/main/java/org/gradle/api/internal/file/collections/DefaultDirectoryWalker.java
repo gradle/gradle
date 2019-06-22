@@ -55,28 +55,30 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
         Deque<FileVisitDetails> directoryDetailsHolder = new ArrayDeque<>();
 
         try {
-            PathVisitor pathVisitor = new PathVisitor(directoryDetailsHolder, spec, postfix, visitor, stopFlag, rootPath);
+            PathVisitor pathVisitor = new PathVisitor(directoryDetailsHolder, spec, postfix, visitor, stopFlag, rootPath, fileSystem);
             Files.walkFileTree(rootDir.toPath(), EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, pathVisitor);
         } catch (IOException e) {
             throw new GradleException(String.format("Could not list contents of directory '%s'.", rootDir), e);
         }
     }
 
-    private class PathVisitor implements java.nio.file.FileVisitor<Path> {
+    private static class PathVisitor implements java.nio.file.FileVisitor<Path> {
         private final Deque<FileVisitDetails> directoryDetailsHolder;
         private final Spec<? super FileTreeElement> spec;
         private final boolean postfix;
         private final FileVisitor visitor;
         private final AtomicBoolean stopFlag;
         private final RelativePath rootPath;
+        private final FileSystem fileSystem;
 
-        public PathVisitor(Deque<FileVisitDetails> directoryDetailsHolder, Spec<? super FileTreeElement> spec, boolean postfix, FileVisitor visitor, AtomicBoolean stopFlag, RelativePath rootPath) {
+        public PathVisitor(Deque<FileVisitDetails> directoryDetailsHolder, Spec<? super FileTreeElement> spec, boolean postfix, FileVisitor visitor, AtomicBoolean stopFlag, RelativePath rootPath, FileSystem fileSystem) {
             this.directoryDetailsHolder = directoryDetailsHolder;
             this.spec = spec;
             this.postfix = postfix;
             this.visitor = visitor;
             this.stopFlag = stopFlag;
             this.rootPath = rootPath;
+            this.fileSystem = fileSystem;
         }
 
         @Override
