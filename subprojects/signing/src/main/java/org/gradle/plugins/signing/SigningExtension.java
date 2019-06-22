@@ -44,6 +44,7 @@ import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.plugins.signing.type.SignatureTypeProvider;
 import org.gradle.util.DeferredUtil;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -608,7 +609,7 @@ public class SigningExtension {
     }
 
     protected SignOperation doSignOperation(Action<SignOperation> setup) {
-        SignOperation operation = instantiator().newInstance(SignOperation.class);
+        SignOperation operation = DeprecationLogger.whileDisabled(() -> instantiator().newInstance(SignOperation.class));
         addSignatureSpecConventions(operation);
         setup.execute(operation);
         operation.execute();

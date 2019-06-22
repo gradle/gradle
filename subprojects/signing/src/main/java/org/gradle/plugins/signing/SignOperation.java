@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -53,6 +54,10 @@ public class SignOperation implements SignatureSpec {
     private boolean required;
 
     private final List<Signature> signatures = new ArrayList<Signature>();
+
+    public SignOperation() {
+        DeprecationLogger.nagUserOfDiscontinuedInvocation("Creating instances of SignOperation");
+    }
 
     public String getDisplayName() {
         return "SignOperation";
