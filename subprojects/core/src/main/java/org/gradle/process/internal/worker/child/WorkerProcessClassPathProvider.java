@@ -101,7 +101,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             "commons-lang",
             "guava",
             "javax.inject",
-            "groovy-all"
+            "groovy-all",
+            "asm"
     };
 
     public WorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {

@@ -73,21 +73,13 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public Factory managedFactory() {
-            return new Factory() {
-                @Override
-                public <T> T fromState(Class<T> type, Object state) {
-                    if (!type.isAssignableFrom(Directory.class)) {
-                        return null;
-                    }
-                    return type.cast(new FixedDirectory((File) state, fileResolver));
-                }
-            };
+        public Object unpackState() {
+            return value;
         }
 
         @Override
-        public Object unpackState() {
-            return value;
+        public int getFactoryId() {
+            return ManagedFactories.DirectoryManagedFactory.FACTORY_ID;
         }
 
         @Override
@@ -162,21 +154,13 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public Factory managedFactory() {
-            return new Factory() {
-                @Override
-                public <T> T fromState(Class<T> type, Object state) {
-                    if (!type.isAssignableFrom(RegularFile.class)) {
-                        return null;
-                    }
-                    return type.cast(new FixedFile((File) state));
-                }
-            };
+        public Object unpackState() {
+            return file;
         }
 
         @Override
-        public Object unpackState() {
-            return file;
+        public int getFactoryId() {
+            return ManagedFactories.RegularFileManagedFactory.FACTORY_ID;
         }
 
         @Override
@@ -268,21 +252,13 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public Factory managedFactory() {
-            return new Factory() {
-                @Override
-                public <T> T fromState(Class<T> type, Object state) {
-                    if (!type.isAssignableFrom(RegularFileProperty.class)) {
-                        return null;
-                    }
-                    return type.cast(new DefaultRegularFileVar(fileResolver).value((RegularFile) state));
-                }
-            };
+        public Provider<File> getAsFile() {
+            return new ToFileProvider(this);
         }
 
         @Override
-        public Provider<File> getAsFile() {
-            return new ToFileProvider(this);
+        public int getFactoryId() {
+            return ManagedFactories.RegularFilePropertyManagedFactory.FACTORY_ID;
         }
 
         @Override
@@ -348,16 +324,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public Factory managedFactory() {
-            return new Factory() {
-                @Override
-                public <T> T fromState(Class<T> type, Object state) {
-                    if (!type.isAssignableFrom(DirectoryProperty.class)) {
-                        return null;
-                    }
-                    return type.cast(new DefaultDirectoryVar(resolver).value((Directory) state));
-                }
-            };
+        public int getFactoryId() {
+            return ManagedFactories.DirectoryPropertyManagedFactory.FACTORY_ID;
         }
 
         @Override

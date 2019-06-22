@@ -25,21 +25,6 @@ import org.gradle.util.GUtil;
 import javax.annotation.Nullable;
 
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
-    private static final Factory FACTORY = new Factory() {
-        @Nullable
-        @Override
-        public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(Provider.class)) {
-                return null;
-            }
-            if (state == null) {
-                return type.cast(Providers.notDefined());
-            } else {
-                return type.cast(Providers.of(state));
-            }
-        }
-    };
-
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
         return new TransformBackedProvider<S, T>(transformer, this);
@@ -101,13 +86,13 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public Factory managedFactory() {
-        return FACTORY;
+    public Object unpackState() {
+        return getOrNull();
     }
 
     @Override
-    public Object unpackState() {
-        return getOrNull();
+    public int getFactoryId() {
+        return ManagedFactories.ProviderManagedFactory.FACTORY_ID;
     }
 
     private static class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {

@@ -28,8 +28,8 @@ import org.gradle.internal.state.Managed;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.AbstractSet;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -95,20 +95,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
-            @Nullable
-            @Override
-            public <T> T fromState(Class<T> type, Object state) {
-                if (!type.isAssignableFrom(ConfigurableFileCollection.class)) {
-                    return null;
-                }
-                return type.cast(new DefaultConfigurableFileCollection(resolver, null, (Set<File>) state));
-            }
-        };
-    }
-
-    @Override
     public void finalizeValue() {
         if (state != State.FinalStrict) {
             calculateFinalizedValue();
@@ -121,6 +107,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         if (state == State.Mutable) {
             state = State.FinalizeNextQuery;
         }
+    }
+
+    public int getFactoryId() {
+        return ManagedFactories.ConfigurableFileCollectionManagedFactory.FACTORY_ID;
     }
 
     @Override

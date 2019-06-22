@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableSet
+import org.gradle.internal.state.ManagedFactory
 
 class DefaultSetPropertyTest extends CollectionPropertySpec<Set<String>> {
     @Override
@@ -43,6 +44,11 @@ class DefaultSetPropertyTest extends CollectionPropertySpec<Set<String>> {
     @Override
     protected Set<String> toMutable(Collection<String> values) {
         return new LinkedHashSet<String>(values)
+    }
+
+    @Override
+    ManagedFactory managedFactory() {
+        return new ManagedFactories.SetPropertyManagedFactory()
     }
 
     def "discards duplicates values and retains iteration order of added elements"() {

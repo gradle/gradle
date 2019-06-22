@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
+import org.gradle.internal.state.ManagedFactory
 
 class DefaultPropertyStateTest extends PropertySpec<String> {
     DefaultPropertyState<String> property() {
@@ -54,6 +55,11 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
     @Override
     String someOtherValue() {
         return "value2"
+    }
+
+    @Override
+    ManagedFactory managedFactory() {
+        return new ManagedFactories.PropertyManagedFactory()
     }
 
     def "has no value by default"() {

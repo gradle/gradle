@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
+import org.gradle.internal.state.ManagedFactory
 import org.spockframework.util.Assert
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
@@ -62,6 +63,11 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     @Override
     protected void setToNull(Object property) {
         property.set((Map) null)
+    }
+
+    @Override
+    ManagedFactory managedFactory() {
+        return new ManagedFactories.MapPropertyManagedFactory()
     }
 
     def property = property()

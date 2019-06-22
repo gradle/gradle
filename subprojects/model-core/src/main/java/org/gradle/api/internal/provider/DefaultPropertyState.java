@@ -21,8 +21,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
-import javax.annotation.Nullable;
-
 public class DefaultPropertyState<T> extends AbstractProperty<T> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
@@ -40,17 +38,8 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
-            @Nullable
-            @Override
-            public <S> S fromState(Class<S> type, Object state) {
-                if (!type.isAssignableFrom(Property.class)) {
-                    return null;
-                }
-                return type.cast(new DefaultPropertyState<T>(DefaultPropertyState.this.type).value((T) state));
-            }
-        };
+    public int getFactoryId() {
+        return ManagedFactories.PropertyManagedFactory.FACTORY_ID;
     }
 
     @Override

@@ -29,6 +29,6 @@ class SnapshotTestUtil {
             HashCode getClassLoaderHash(ClassLoader classLoader) {
                 return HashCode.fromInt(classLoader.hashCode())
             }
-        })
+        }, null)
     }
 }

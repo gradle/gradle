@@ -78,19 +78,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
-            @Nullable
-            @Override
-            public <S> S fromState(Class<S> type, Object state) {
-                if (!type.isAssignableFrom(MapProperty.class)) {
-                    return null;
-                }
-                DefaultMapProperty<K, V> property = new DefaultMapProperty<>(DefaultMapProperty.this.keyType, DefaultMapProperty.this.valueType);
-                property.set((Map<K, V>) state);
-                return type.cast(property);
-            }
-        };
+    public int getFactoryId() {
+        return ManagedFactories.MapPropertyManagedFactory.FACTORY_ID;
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.model;
 
+import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -30,6 +31,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ManagedFactory;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
@@ -45,16 +47,15 @@ import java.lang.reflect.Modifier;
 
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.V1_5;
 
-public class NamedObjectInstantiator implements Managed.Factory {
+public class NamedObjectInstantiator implements ManagedFactory {
+    private static final int FACTORY_ID = Objects.hashCode(Named.class.getName());
     private static final Type OBJECT = Type.getType(Object.class);
     private static final Type STRING = Type.getType(String.class);
-    private static final Type NAMED_OBJECT_INSTANTIATOR = Type.getType(NamedObjectInstantiator.class);
     private static final Type CLASS_GENERATING_LOADER = Type.getType(ClassGeneratingLoader.class);
     private static final Type MANAGED = Type.getType(Managed.class);
     private static final String[] INTERFACES_FOR_ABSTRACT_CLASS = {MANAGED.getInternalName()};
@@ -63,13 +64,12 @@ public class NamedObjectInstantiator implements Managed.Factory {
     private static final String RETURN_CLASS = Type.getMethodDescriptor(Type.getType(Class.class));
     private static final String RETURN_BOOLEAN = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
     private static final String RETURN_OBJECT = Type.getMethodDescriptor(OBJECT);
-    private static final String RETURN_MANAGED_FACTORY = Type.getMethodDescriptor(Type.getType(Managed.Factory.class));
+    private static final String RETURN_INT = Type.getMethodDescriptor(Type.INT_TYPE);
     private static final String RETURN_VOID_FROM_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, STRING);
     private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT, STRING);
     private static final String NAME_FIELD = "_gr_name_";
     private static final String[] EMPTY_STRINGS = new String[0];
     private static final String CONSTRUCTOR_NAME = "<init>";
-    private static final String FACTORY_FIELD = "FACTORY";
 
     private final CrossBuildInMemoryCache<Class<?>, LoadingCache<String, Object>> generatedTypes;
     private final String implSuffix;
@@ -105,6 +105,11 @@ public class NamedObjectInstantiator implements Managed.Factory {
         return named(Cast.uncheckedCast(type), (String) state);
     }
 
+    @Override
+    public int getId() {
+        return FACTORY_ID;
+    }
+
     private ClassGeneratingLoader loaderFor(Class<?> publicClass) {
         //
         // Generate implementation class
@@ -138,12 +143,6 @@ public class NamedObjectInstantiator implements Managed.Factory {
         //
 
         visitor.visitField(ACC_PRIVATE, NAME_FIELD, STRING.getDescriptor(), null, null);
-
-        //
-        // Add static `factory` field to hold the owning factory for the type (this factory)
-        //
-
-        visitor.visitField(ACC_PRIVATE | ACC_STATIC, FACTORY_FIELD, NAMED_OBJECT_INSTANTIATOR.getDescriptor(), null, null);
 
         //
         // Add constructor
@@ -223,17 +222,15 @@ public class NamedObjectInstantiator implements Managed.Factory {
         methodVisitor.visitEnd();
 
         //
-        // Add `managedFactory()`
+        // Add `getFactoryId()`
         //
-
-        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "managedFactory", RETURN_MANAGED_FACTORY, null, EMPTY_STRINGS);
-        methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, generator.getGeneratedType().getInternalName(), FACTORY_FIELD, NAMED_OBJECT_INSTANTIATOR.getDescriptor());
-        methodVisitor.visitInsn(Opcodes.ARETURN);
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "getFactoryId", RETURN_INT, null, EMPTY_STRINGS);
+        methodVisitor.visitLdcInsn(FACTORY_ID);
+        methodVisitor.visitInsn(IRETURN);
         methodVisitor.visitMaxs(0, 0);
         methodVisitor.visitEnd();
 
         Class<?> implClass = generator.define();
-        attachFactoryToImplType(implClass);
 
         //
         // Generate factory class
@@ -276,16 +273,6 @@ public class NamedObjectInstantiator implements Managed.Factory {
         Class<Object> factoryClass = generator.define();
         try {
             return (ClassGeneratingLoader) factoryClass.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private void attachFactoryToImplType(Class<?> implClass) {
-        try {
-            Field factoryField = implClass.getDeclaredField(FACTORY_FIELD);
-            factoryField.setAccessible(true);
-            factoryField.set(null, this);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

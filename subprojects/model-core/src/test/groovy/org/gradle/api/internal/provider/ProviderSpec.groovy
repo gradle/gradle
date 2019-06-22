@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.Managed
+import org.gradle.internal.state.ManagedFactory
 import spock.lang.Specification
 
 abstract class ProviderSpec<T> extends Specification {
@@ -29,6 +30,8 @@ abstract class ProviderSpec<T> extends Specification {
     abstract T someValue()
 
     abstract T someOtherValue()
+
+    abstract ManagedFactory managedFactory()
 
     boolean isNoValueProviderImmutable() {
         return false
@@ -217,7 +220,7 @@ abstract class ProviderSpec<T> extends Specification {
         provider instanceof Managed
         provider.immutable() == noValueProviderImmutable
         def state = provider.unpackState()
-        def copy = provider.managedFactory().fromState(provider.publicType(), state)
+        def copy = managedFactory().fromState(provider.publicType(), state)
         !copy.is(provider) || noValueProviderImmutable
         !copy.present
         copy.getOrNull() == null
@@ -231,7 +234,7 @@ abstract class ProviderSpec<T> extends Specification {
         provider instanceof Managed
         !provider.immutable()
         def state = provider.unpackState()
-        def copy = provider.managedFactory().fromState(provider.publicType(), state)
+        def copy = managedFactory().fromState(provider.publicType(), state)
         !copy.is(provider)
         copy.present
         copy.getOrNull() == someValue()

@@ -24,6 +24,7 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
+import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
@@ -31,7 +32,7 @@ import spock.lang.Issue
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Bean
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory())
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
 
     def "can attach nested extensions to object"() {
         given:
