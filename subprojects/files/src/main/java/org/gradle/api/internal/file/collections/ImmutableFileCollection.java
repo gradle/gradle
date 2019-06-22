@@ -33,10 +33,18 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         }
     };
 
+    /**
+     * Please use {@link org.gradle.api.file.ProjectLayout#files(Object...)} (for plugins) or {@link org.gradle.api.internal.file.FileCollectionFactory} (for core code) instead.
+     * This method will be removed eventually.
+     */
     public static ImmutableFileCollection of() {
         return EMPTY;
     }
 
+    /**
+     * Please use {@link org.gradle.api.file.ProjectLayout#files(Object...)} (for plugins) or {@link org.gradle.api.internal.file.FileCollectionFactory} (for core code) instead.
+     * This method will be removed eventually.
+     */
     public static ImmutableFileCollection of(File... files) {
         if (files.length == 0) {
             return EMPTY;
@@ -44,6 +52,10 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
     }
 
+    /**
+     * Please use {@link org.gradle.api.file.ProjectLayout#files(Object...)} (for plugins) or {@link org.gradle.api.internal.file.FileCollectionFactory} (for core code) instead.
+     * This method will be removed eventually.
+     */
     public static ImmutableFileCollection of(Iterable<? extends File> files) {
         if (Iterables.isEmpty(files)) {
             return EMPTY;
