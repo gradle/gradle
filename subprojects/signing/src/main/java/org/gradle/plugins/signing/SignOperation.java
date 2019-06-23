@@ -55,6 +55,12 @@ public class SignOperation implements SignatureSpec {
 
     private final List<Signature> signatures = new ArrayList<Signature>();
 
+    /**
+     * Creates a new {@code SignOperation}
+     *
+     * @deprecated Please use the methods of {@link SigningExtension} to create {@code SignOperation} instances instead.
+     */
+    @Deprecated
     public SignOperation() {
         DeprecationLogger.nagUserOfDiscontinuedInvocation("Creating instances of SignOperation");
     }
