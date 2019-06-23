@@ -111,7 +111,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     /**
-     * Call prior to applying a convention of this property.
+     * Call prior to applying a convention to this property.
      */
     protected boolean shouldApplyConvention() {
         if (!beforeMutate()) {

@@ -222,6 +222,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
+    public HasMultipleValues<T> value(@Nullable Iterable<? extends T> elements) {
+        set(elements);
+        return this;
+    }
+
+    @Override
+    public HasMultipleValues<T> value(Provider<? extends Iterable<? extends T>> provider) {
+        set(provider);
+        return this;
+    }
+
+    @Override
     public HasMultipleValues<T> empty() {
         if (!beforeMutate()) {
             return this;

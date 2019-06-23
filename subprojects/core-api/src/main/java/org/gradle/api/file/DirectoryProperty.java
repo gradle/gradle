@@ -48,6 +48,12 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      * {@inheritDoc}
      */
     @Override
+    DirectoryProperty value(Provider<? extends Directory> provider);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     DirectoryProperty convention(Directory value);
 
     /**
