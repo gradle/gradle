@@ -81,14 +81,21 @@ you can connect the output of the first task as an input of the second task, and
 
 See the [user manual](userguide/lazy_configuration.html#sec:working_with_task_dependencies_in_lazy_properties) for examples and more details.
 
+### Convert a `FileCollection` to a `Provider`
+
+A new method `FileCollection.getElements()` has been added to allow the contents of the file collection to be viewed as a `Provider`. This `Provider` tracks the elements of the file collection and tasks that
+produce these files and can be connected to a `Property` instance.
+ 
 ### Finalize the value of a `ConfigurableFileCollection`
 
-A new method `ConfigurableFileCollection.finalizeValue()` has been added. This method resolves any deferred values, such as Groovy closures or Kotlin functions, that may be present in the collection 
+A new method `ConfigurableFileCollection.finalizeValue()` has been added. This method resolves deferred values, such as Groovy closures or Kotlin functions, that may be present in the collection 
 to their final file locations and prevents further changes to the collection.
+
+This method works similarly to other `finalizeValue()` methods, such as `Property.finalizeValue()`.
 
 ### Prevent changes to a `Property` or `ConfigurableFileCollection`
 
-New methods `Property.disallowChanges()` and `ConfigurableFileCollection.disallowChanges()` have been added. These methods disallow furyher changes to the property or collection.
+New methods `Property.disallowChanges()` and `ConfigurableFileCollection.disallowChanges()` have been added. These methods disallow further changes to the property or collection.
 
 ### Worker API improvements
 
