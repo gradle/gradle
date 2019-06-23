@@ -24,6 +24,9 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 
+/**
+ * A partial {@link Provider} implementation.
+ */
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
@@ -47,6 +50,16 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
             return defaultValue;
         }
         return value;
+    }
+
+    @Override
+    public Provider<T> orElse(T value) {
+        return new OrElseFixedValueProvider<T>(this, value);
+    }
+
+    @Override
+    public Provider<T> orElse(Provider<? extends T> provider) {
+        return new OrElseProvider<T>(this, provider);
     }
 
     @Override
@@ -151,6 +164,59 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         @Override
         public String toString() {
             return "flatmap(" + provider + ")";
+        }
+    }
+
+    private static class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
+        private final ProviderInternal<T> provider;
+        private final T value;
+
+        public OrElseFixedValueProvider(ProviderInternal<T> provider, T value) {
+            this.provider = provider;
+            this.value = value;
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return provider.getType();
+        }
+
+        @Override
+        public T get() {
+            T value = provider.getOrNull();
+            return value != null ? value : this.value;
+        }
+    }
+
+    private static class OrElseProvider<T> extends AbstractReadOnlyProvider<T> {
+        private final ProviderInternal<T> left;
+        private final Provider<? extends T> right;
+
+        public OrElseProvider(ProviderInternal<T> left, Provider<? extends T> right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return left.getType();
+        }
+
+        @Override
+        public boolean isPresent() {
+            return left.isPresent() || right.isPresent();
+        }
+
+        @Nullable
+        @Override
+        public T getOrNull() {
+            T value = left.getOrNull();
+            if (value == null) {
+                value = right.getOrNull();
+            }
+            return value;
         }
     }
 }

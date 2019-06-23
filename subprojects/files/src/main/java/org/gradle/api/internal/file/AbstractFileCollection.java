@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
+import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -93,7 +93,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public Provider<Set<FileSystemLocation>> getElements() {
-        return new AbstractReadOnlyProvider<Set<FileSystemLocation>>() {
+        return new AbstractProviderWithValue<Set<FileSystemLocation>>() {
             @Nullable
             @Override
             public Class<Set<FileSystemLocation>> getType() {
@@ -108,7 +108,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public Set<FileSystemLocation> getOrNull() {
+            public Set<FileSystemLocation> get() {
                 // TODO - visit the contents of this collection instead.
                 // This is just a super simple implementation for now
                 Set<File> files = getFiles();
