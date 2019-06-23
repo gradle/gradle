@@ -29,10 +29,6 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalPr
         this.provider = provider;
     }
 
-    protected ProviderInternal<? extends IN> getProvider() {
-        return provider;
-    }
-
     @Nullable
     @Override
     public Class<OUT> getType() {

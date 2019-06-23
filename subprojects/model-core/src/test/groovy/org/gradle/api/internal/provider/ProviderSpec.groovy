@@ -212,6 +212,63 @@ abstract class ProviderSpec<T> extends Specification {
         t.message == "No value has been specified for this provider."
     }
 
+    def "can map to provider that uses value if present or a default value"() {
+        expect:
+        def present = providerWithValue(someValue())
+        def usesValue = present.orElse(someOtherValue())
+        usesValue.present
+        usesValue.get() == someValue()
+
+        def notPresent = providerWithNoValue()
+        def usesDefaultValue = notPresent.orElse(someOtherValue())
+        usesDefaultValue.present
+        usesDefaultValue.get() == someOtherValue()
+    }
+
+    def "can map to provider that uses value if present or a default value from another provider"() {
+        expect:
+        def supplier = Providers.of(someOtherValue())
+
+        def present = providerWithValue(someValue())
+        def usesValue = present.orElse(supplier)
+
+        usesValue.present
+        usesValue.get() == someValue()
+
+        def notPresent = providerWithNoValue()
+        def usesDefaultValue = notPresent.orElse(supplier)
+
+        usesDefaultValue.present
+        usesDefaultValue.get() == someOtherValue()
+    }
+
+    def "can map to provider that uses value if present or a default value from another provider that does not have a value"() {
+        expect:
+        def supplier = Providers.notDefined()
+
+        def present = providerWithValue(someValue())
+        def usesValue = present.orElse(supplier)
+        usesValue.present
+        usesValue.get() == someValue()
+
+        def notPresent = providerWithNoValue()
+        def usesDefaultValue = notPresent.orElse(supplier)
+        !usesDefaultValue.present
+        usesDefaultValue.getOrNull() == null
+    }
+
+    def "can chain orElse"() {
+        expect:
+        def supplier1 = Providers.notDefined()
+        def supplier2 = Providers.notDefined()
+        def supplier3 = Providers.of(someValue())
+
+        def notPresent = providerWithNoValue()
+        def usesDefaultValue = notPresent.orElse(supplier1).orElse(supplier2).orElse(supplier3)
+        usesDefaultValue.present
+        usesDefaultValue.get() == someValue()
+    }
+
     def "can unpack state and recreate instance when provider has no value"() {
         given:
         def provider = providerWithNoValue()
