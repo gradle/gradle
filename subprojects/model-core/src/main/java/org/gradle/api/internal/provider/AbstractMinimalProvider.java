@@ -59,7 +59,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public Provider<T> orElse(Provider<? extends T> provider) {
-        return new OrElseProvider<T>(this, provider);
+        return new OrElseProvider<T>(this, Providers.internal(provider));
     }
 
     @Override
@@ -183,6 +183,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         }
 
         @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            if (provider.isPresent()) {
+                return provider.maybeVisitBuildDependencies(context);
+            } else {
+                return super.maybeVisitBuildDependencies(context);
+            }
+        }
+
+        @Override
         public T get() {
             T value = provider.getOrNull();
             return value != null ? value : this.value;
@@ -191,9 +200,9 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     private static class OrElseProvider<T> extends AbstractReadOnlyProvider<T> {
         private final ProviderInternal<T> left;
-        private final Provider<? extends T> right;
+        private final ProviderInternal<? extends T> right;
 
-        public OrElseProvider(ProviderInternal<T> left, Provider<? extends T> right) {
+        public OrElseProvider(ProviderInternal<T> left, ProviderInternal<? extends T> right) {
             this.left = left;
             this.right = right;
         }
@@ -202,6 +211,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         @Override
         public Class<T> getType() {
             return left.getType();
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            if (left.isPresent()) {
+                return left.maybeVisitBuildDependencies(context);
+            } else {
+                return right.maybeVisitBuildDependencies(context);
+            }
         }
 
         @Override
