@@ -21,12 +21,12 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
-public class DefaultPropertyState<T> extends AbstractProperty<T> implements Property<T> {
+public class DefaultProperty<T> extends AbstractProperty<T> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private ProviderInternal<? extends T> provider;
 
-    public DefaultPropertyState(Class<T> type) {
+    public DefaultProperty(Class<T> type) {
         applyDefaultValue();
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);

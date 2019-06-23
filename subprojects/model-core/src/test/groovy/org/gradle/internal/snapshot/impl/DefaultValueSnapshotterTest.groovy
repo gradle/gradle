@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
-import org.gradle.api.internal.provider.DefaultPropertyState
+import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ManagedFactories
 import org.gradle.api.internal.provider.Providers
@@ -534,7 +534,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated property"() {
         def originalValue = "123"
-        def original = new DefaultPropertyState(String)
+        def original = new DefaultProperty(String)
         original.set(originalValue)
 
         given:

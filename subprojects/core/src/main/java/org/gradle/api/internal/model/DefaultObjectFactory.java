@@ -34,7 +34,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.DefaultListProperty;
 import org.gradle.api.internal.provider.DefaultMapProperty;
-import org.gradle.api.internal.provider.DefaultPropertyState;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -145,7 +145,7 @@ public class DefaultObjectFactory implements ObjectFactory {
             DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type RegularFile", "ObjectFactory.fileProperty()");
         }
 
-        return new DefaultPropertyState<T>(valueType);
+        return new DefaultProperty<T>(valueType);
     }
 
     @Override

@@ -26,7 +26,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
-import org.gradle.api.internal.provider.DefaultPropertyState;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -205,7 +205,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static abstract class AbstractFileVar<T extends FileSystemLocation> extends DefaultPropertyState<T> implements FileSystemLocationProperty<T> {
+    static abstract class AbstractFileVar<T extends FileSystemLocation> extends DefaultProperty<T> implements FileSystemLocationProperty<T> {
 
         public AbstractFileVar(Class<T> type) {
             super(type);
