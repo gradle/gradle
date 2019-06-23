@@ -34,17 +34,18 @@ import org.gradle.util.TestUtil
 import org.gradle.workers.fixtures.TestManagedTypes
 import spock.lang.Specification
 
-class IsolatableArraySerializerTest extends Specification {
+class IsolatableSerializerRegistryTest extends Specification {
     def managedFactoryRegistry = TestUtil.managedFactoryRegistry()
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> HashCode.fromInt(123)
     }
-    def serializer = new IsolatableArraySerializer(classLoaderHasher, managedFactoryRegistry)
-    def outputStream = new ByteArrayOutputStream()
-    def encoder = new KryoBackedEncoder(outputStream)
     IsolatableFactory isolatableFactory = new DefaultValueSnapshotter(classLoaderHasher, managedFactoryRegistry)
     InstantiatorFactory instantiatorFactory = TestUtil.instantiatorFactory()
     ServiceLookup services = new DefaultServiceRegistry().add(InstantiatorFactory, instantiatorFactory)
+
+    def serializer = IsolatableSerializerRegistry.create(classLoaderHasher, managedFactoryRegistry)
+    def outputStream = new ByteArrayOutputStream()
+    def encoder = new KryoBackedEncoder(outputStream)
 
     def "can serialize/deserialize isolated String values"() {
         def string1 = "foo"
@@ -306,12 +307,19 @@ class IsolatableArraySerializerTest extends Specification {
     }
 
     def serialize(Isolatable<?>... isolatables) {
-        serializer.write(encoder, isolatables)
+        encoder.writeInt(isolatables.size())
+        isolatables.each { serializer.writeIsolatable(encoder, it) }
         encoder.flush()
     }
 
     Isolatable<?>[] deserialize() {
-        return serializer.read(new KryoBackedDecoder(new ByteArrayInputStream(outputStream.toByteArray())))
+        def isolatables = []
+        def decoder = new KryoBackedDecoder(new ByteArrayInputStream(outputStream.toByteArray()));
+        int size = decoder.readInt()
+        size.times {
+            isolatables.add(serializer.readIsolatable(decoder))
+        }
+        return isolatables as Isolatable<?>[]
     }
 
     static class SomeType { }

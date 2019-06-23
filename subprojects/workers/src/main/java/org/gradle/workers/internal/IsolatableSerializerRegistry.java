@@ -29,7 +29,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.snapshot.impl.AttributeDefinitionSnapshot;
 import org.gradle.internal.snapshot.impl.BooleanValueSnapshot;
 import org.gradle.internal.snapshot.impl.FileValueSnapshot;
@@ -55,7 +54,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class IsolatableArraySerializer implements Serializer<Isolatable[]> {
+public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte STRING_VALUE = (byte) 0;
     private static final byte BOOLEAN_VALUE = (byte) 1;
     private static final byte SHORT_VALUE = (byte) 2;
@@ -74,12 +73,11 @@ public class IsolatableArraySerializer implements Serializer<Isolatable[]> {
     private static final byte ISOLATED_SET = (byte) 15;
 
     private final Map<Byte, IsolatableSerializer<?>> isolatableSerializers = Maps.newHashMap();
-    private final SerializerRegistry serializerRegistry;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ManagedFactoryRegistry managedFactoryRegistry;
 
-    public IsolatableArraySerializer(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-        this.serializerRegistry = new DefaultSerializerRegistry(false);
+    public IsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+        super(false);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.managedFactoryRegistry = managedFactoryRegistry;
 
@@ -101,36 +99,22 @@ public class IsolatableArraySerializer implements Serializer<Isolatable[]> {
         isolatableSerializers.put(ISOLATED_SET, new IsolatedSetSerializer());
 
         for (IsolatableSerializer<?> serializer : isolatableSerializers.values()) {
-            serializerRegistry.register(serializer.getIsolatableClass(), Cast.uncheckedCast(serializer));
+            register(serializer.getIsolatableClass(), Cast.uncheckedCast(serializer));
         }
     }
 
-    @Override
-    public void write(Encoder encoder, Isolatable[] value) throws Exception {
-        encoder.writeInt(value.length);
-        for (Isolatable isolatable : value) {
-            writeIsolatable(encoder, isolatable);
-        }
+    public static IsolatableSerializerRegistry create(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+        return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
-    @Override
-    public Isolatable[] read(Decoder decoder) throws Exception {
-        int size = decoder.readInt();
-        Isolatable[] isolatables = new Isolatable[size];
-        for (int i = 0; i < size; i++) {
-            isolatables[i] = readIsolatable(decoder);
-        }
-        return isolatables;
-    }
-
-    private Isolatable<?> readIsolatable(Decoder decoder) throws Exception {
+    public Isolatable<?> readIsolatable(Decoder decoder) throws Exception {
         byte type = decoder.readByte();
         Class<? extends Isolatable<?>> isolatableClass = isolatableSerializers.get(type).getIsolatableClass();
-        return serializerRegistry.build(isolatableClass).read(decoder);
+        return build(isolatableClass).read(decoder);
     }
 
-    private void writeIsolatable(Encoder encoder, Isolatable<?> isolatable) throws Exception {
-        serializerRegistry.build(isolatable.getClass()).write(encoder, Cast.uncheckedCast(isolatable));
+    public void writeIsolatable(Encoder encoder, Isolatable<?> isolatable) throws Exception {
+        build(isolatable.getClass()).write(encoder, Cast.uncheckedCast(isolatable));
     }
 
     private void readIsolatableSequence(Decoder decoder, ImmutableCollection.Builder<Isolatable<?>> builder) throws Exception {
@@ -280,8 +264,8 @@ public class IsolatableArraySerializer implements Serializer<Isolatable[]> {
             } else {
                 encoder.writeBoolean(false);
                 encoder.writeString(state.getClass().getName());
-                serializerRegistry.useJavaSerialization(state.getClass());
-                serializerRegistry.build(state.getClass()).write(encoder, Cast.uncheckedCast(state));
+                useJavaSerialization(state.getClass());
+                build(state.getClass()).write(encoder, Cast.uncheckedCast(state));
             }
         }
 
@@ -297,7 +281,7 @@ public class IsolatableArraySerializer implements Serializer<Isolatable[]> {
             } else {
                 String stateClassName = decoder.readString();
                 Class<?> stateClass = fromClassName(stateClassName);
-                state = serializerRegistry.build(stateClass).read(decoder);
+                state = build(stateClass).read(decoder);
             }
 
             ManagedFactory factory = managedFactoryRegistry.lookup(factoryId);
