@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -46,6 +47,18 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     @Override
     public SetProperty<T> empty() {
         super.empty();
+        return this;
+    }
+
+    @Override
+    public SetProperty<T> value(@Nullable Iterable<? extends T> elements) {
+        super.value(elements);
+        return this;
+    }
+
+    @Override
+    public SetProperty<T> value(Provider<? extends Iterable<? extends T>> provider) {
+        super.value(provider);
         return this;
     }
 

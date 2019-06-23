@@ -508,6 +508,26 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         assertValueIs someValue()
     }
 
+    def "cannot add entry after changes disallowed"() {
+        given:
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.put('k1', 'v1')
+
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.put('k2', Stub(ProviderInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
     def "cannot add entries after value finalized"() {
         given:
         property.set(someValue())
@@ -538,6 +558,24 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         then:
         assertValueIs someValue()
+    }
+
+    def "cannot add entries after changes disallowed"() {
+        given:
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.putAll(['k3': 'v3', 'k4': 'v4'])
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.putAll Stub(ProviderInternal)
+        then:
+        def e2 = thrown IllegalStateException
+        e2.message == 'The value for this property cannot be changed any further.'
     }
 
     def "entry provider has no value when property has no value"() {

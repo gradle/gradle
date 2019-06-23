@@ -89,6 +89,12 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     }
 
     @Override
+    public Property<T> value(Provider<? extends T> provider) {
+        set(provider);
+        return this;
+    }
+
+    @Override
     public void set(Provider<? extends T> provider) {
         if (!beforeMutate()) {
             return;
@@ -140,10 +146,6 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     @Override
     protected void makeFinal() {
         provider = provider.withFinalValue();
-    }
-
-    protected ProviderInternal<? extends T> getProvider() {
-        return provider;
     }
 
     @Override

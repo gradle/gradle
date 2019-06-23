@@ -639,6 +639,27 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         property.get() == toImmutable(someValue())
     }
 
+    def "cannot add element after changes disallowed"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.add("123")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.add(Stub(PropertyInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
     def "cannot add elements after value finalized"() {
         given:
         def property = property()
@@ -681,5 +702,33 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         then:
         property.get() == toImmutable(someValue())
+    }
+
+    def "cannot add elements after changes disallowed"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.addAll("123", "456")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.addAll(["123", "456"])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.addAll(Stub(ProviderInternal))
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property cannot be changed any further.'
     }
 }

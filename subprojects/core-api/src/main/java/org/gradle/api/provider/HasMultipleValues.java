@@ -47,6 +47,28 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
     void set(Provider<? extends Iterable<? extends T>> provider);
 
     /**
+     * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.
+     *
+     * <p>This is the same as {@link #set(Iterable)} but returns this property to allow method chaining.</p>
+     *
+     * @param elements The elements, can be null.
+     * @return this
+     * @since 5.6
+     */
+    HasMultipleValues<T> value(@Nullable Iterable<? extends T> elements);
+
+    /**
+     * Sets the property to have the same value of the given provider, and replaces any existing value. This property will track the value of the provider and query its value each time the value of this property is queried. When the provider has no value, this property will also have no value.
+     *
+     * <p>This is the same as {@link #set(Provider)} but returns this property to allow method chaining.</p>
+     *
+     * @param provider Provider of the elements.
+     * @return this
+     * @since 5.6
+     */
+    HasMultipleValues<T> value(Provider<? extends Iterable<? extends T>> provider);
+
+    /**
      * Sets the value of this property to an empty collection, and replaces any existing value.
      *
      * @return this property.

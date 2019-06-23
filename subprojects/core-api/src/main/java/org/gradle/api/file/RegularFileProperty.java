@@ -43,6 +43,12 @@ public interface RegularFileProperty extends FileSystemLocationProperty<RegularF
      * {@inheritDoc}
      */
     @Override
+    RegularFileProperty value(Provider<? extends RegularFile> provider);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     RegularFileProperty convention(RegularFile value);
 
     /**

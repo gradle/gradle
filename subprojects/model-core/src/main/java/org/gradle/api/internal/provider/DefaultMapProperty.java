@@ -201,6 +201,18 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         set(new MapCollectors.EntriesFromMapProvider<K, V>(p));
     }
 
+    @Override
+    public MapProperty<K, V> value(@Nullable Map<? extends K, ? extends V> entries) {
+        set(entries);
+        return this;
+    }
+
+    @Override
+    public MapProperty<K, V> value(Provider<? extends Map<? extends K, ? extends V>> provider) {
+        set(provider);
+        return this;
+    }
+
     private void set(MapCollector<K, V> collector) {
         collectors.clear();
         value = collector;

@@ -85,6 +85,15 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.getOrElse(null) == someValue()
     }
 
+    def "can set value using chaining method"() {
+        given:
+        def property = propertyWithNoValue()
+        property.value(someValue())
+
+        expect:
+        property.get() == someValue()
+    }
+
     def "can set value using provider"() {
         def provider = Mock(ProviderInternal)
 
@@ -127,19 +136,12 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         0 * _
     }
 
-    def "tracks value of provider"() {
-        def provider = Mock(ProviderInternal)
-
+    def "can set value using provider and chaining method"() {
         given:
-        provider.type >> type()
-        provider.get() >>> [someValue(), someOtherValue(), someValue()]
-
         def property = propertyWithNoValue()
-        property.set(provider)
+        property.value(Providers.of(someValue()))
 
         expect:
-        property.get() == someValue()
-        property.get() == someOtherValue()
         property.get() == someValue()
     }
 
@@ -714,6 +716,13 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.value(someValue())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property is final and cannot be changed any further.'
     }
 
     def "ignores set value after value finalized leniently"() {
@@ -758,6 +767,13 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.value(someValue())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot set value after changes disallowed and implicitly finalized"() {
@@ -802,6 +818,13 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.value(Mock(ProviderInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property is final and cannot be changed any further.'
     }
 
     def "ignores set value using provider after value finalized leniently"() {
@@ -830,6 +853,13 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.value(Mock(ProviderInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot set value using any type after value finalized"() {

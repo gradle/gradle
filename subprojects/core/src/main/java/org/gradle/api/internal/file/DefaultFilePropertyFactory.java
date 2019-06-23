@@ -264,7 +264,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public void set(File file) {
             if (file == null) {
-                value(null);
+                set((RegularFile) null);
                 return;
             }
             set(new FixedFile(fileResolver.resolve(file)));
@@ -273,6 +273,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public RegularFileProperty value(RegularFile value) {
             super.value(value);
+            return this;
+        }
+
+        @Override
+        public RegularFileProperty value(Provider<? extends RegularFile> provider) {
+            super.value(provider);
             return this;
         }
 
@@ -346,7 +352,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public void set(File dir) {
             if (dir == null) {
-                value(null);
+                set((Directory) null);
                 return;
             }
             File resolved = resolver.resolve(dir);
@@ -356,6 +362,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public DirectoryProperty value(Directory value) {
             super.value(value);
+            return this;
+        }
+
+        @Override
+        public DirectoryProperty value(Provider<? extends Directory> provider) {
+            super.value(provider);
             return this;
         }
 

@@ -79,12 +79,4 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * @return this
      */
     ConfigurableFileCollection builtBy(Object... tasks);
-
-    /**
-     * Disallows further changes to this collection.
-     *
-     * @since 5.6
-     */
-    @Override
-    void finalizeValue();
 }
