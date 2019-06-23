@@ -53,7 +53,7 @@ public class ManagedFactories {
 
     public static class PropertyManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = Property.class;
-        private static final Class<?> IMPL_TYPE = DefaultPropertyState.class;
+        private static final Class<?> IMPL_TYPE = DefaultProperty.class;
         public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         @Nullable
@@ -62,7 +62,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new DefaultPropertyState<>(Object.class).value(state));
+            return type.cast(new DefaultProperty<>(Object.class).value(state));
         }
 
         @Override

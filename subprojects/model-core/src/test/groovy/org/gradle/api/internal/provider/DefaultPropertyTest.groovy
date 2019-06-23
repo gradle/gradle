@@ -20,23 +20,23 @@ import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
 import org.gradle.internal.state.ManagedFactory
 
-class DefaultPropertyStateTest extends PropertySpec<String> {
-    DefaultPropertyState<String> property() {
-        return new DefaultPropertyState<String>(String)
+class DefaultPropertyTest extends PropertySpec<String> {
+    DefaultProperty<String> property() {
+        return new DefaultProperty<String>(String)
     }
 
     @Override
-    DefaultPropertyState<String> propertyWithNoValue() {
+    DefaultProperty<String> propertyWithNoValue() {
         return property()
     }
 
     @Override
-    DefaultPropertyState<String> propertyWithDefaultValue() {
+    DefaultProperty<String> propertyWithDefaultValue() {
         return property()
     }
 
     @Override
-    DefaultPropertyState<String> providerWithValue(String value) {
+    DefaultProperty<String> providerWithValue(String value) {
         def p = property()
         p.set(value)
         return p
@@ -103,7 +103,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
     }
 
     def "fails when get method is called when the property has no initial value"() {
-        def property = new DefaultPropertyState<String>(String)
+        def property = new DefaultProperty<String>(String)
 
         when:
         property.get()
@@ -114,7 +114,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
     }
 
     def "fails when value is set using incompatible type"() {
-        def property = new DefaultPropertyState<Boolean>(Boolean)
+        def property = new DefaultProperty<Boolean>(Boolean)
 
         when:
         property.set(12)
@@ -128,8 +128,8 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
     }
 
     def "fails when value set using provider whose type is known to be incompatible"() {
-        def property = new DefaultPropertyState<Boolean>(Boolean)
-        def other = new DefaultPropertyState<Number>(Number)
+        def property = new DefaultProperty<Boolean>(Boolean)
+        def other = new DefaultProperty<Number>(Number)
 
         when:
         property.set(other)
@@ -149,7 +149,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         provider.get() >>> ["a", "b", "c"]
         provider.map(_) >> provider
 
-        def propertyState = new DefaultPropertyState<String>(String)
+        def propertyState = new DefaultProperty<String>(String)
 
         when:
         propertyState.set(provider)
@@ -167,7 +167,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         provider.getType() >> Integer
         provider.get() >>> [1, 2, 3]
 
-        def propertyState = new DefaultPropertyState<Number>(Number)
+        def propertyState = new DefaultProperty<Number>(Number)
 
         when:
         propertyState.set(provider)
@@ -187,7 +187,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         provider.get() >> { transform.transform(12) }
         provider.getOrNull() >> { transform.transform(12) }
 
-        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
+        def propertyState = new DefaultProperty<Boolean>(Boolean)
         propertyState.set(provider)
 
         when:
@@ -209,7 +209,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         def transformer = Mock(Transformer)
         def provider = Mock(ProviderInternal)
 
-        def property = new DefaultPropertyState<String>(String)
+        def property = new DefaultProperty<String>(String)
 
         when:
         def p = property.map(transformer)
@@ -251,7 +251,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
     }
 
     private Property<Boolean> createBooleanPropertyState(Boolean value) {
-        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
+        def propertyState = new DefaultProperty<Boolean>(Boolean)
         propertyState.set(value)
         propertyState
     }
