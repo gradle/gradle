@@ -34,6 +34,7 @@ import org.gradle.process.internal.JavaForkOptionsFactory
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.util.TextUtil
+import org.gradle.workers.internal.ActionExecutionSpecFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -49,7 +50,8 @@ class DefaultPlayToolChainTest extends Specification {
     ClasspathFingerprinter fingerprinter = Mock()
     ClassPathRegistry classPathRegistry = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
-    def toolChain = new DefaultPlayToolChain(forkOptionsFactory, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, fingerprinter, classPathRegistry, classLoaderRegistry)
+    ActionExecutionSpecFactory actionExecutionSpecFactory = Mock()
+    def toolChain = new DefaultPlayToolChain(forkOptionsFactory, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory)
 
     def setup() {
         playPlatform.playVersion >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION

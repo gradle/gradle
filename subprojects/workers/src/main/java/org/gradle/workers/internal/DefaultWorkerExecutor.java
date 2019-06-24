@@ -22,8 +22,6 @@ import org.gradle.api.Action;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.resources.ResourceLock;
@@ -60,9 +58,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final AsyncWorkTracker asyncWorkTracker;
     private final WorkerDirectoryProvider workerDirectoryProvider;
     private final ClassLoaderStructureProvider classLoaderStructureProvider;
-    private final IsolatableFactory isolatableFactory;
+    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider, IsolatableFactory isolatableFactory) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -73,7 +71,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.asyncWorkTracker = asyncWorkTracker;
         this.workerDirectoryProvider = workerDirectoryProvider;
         this.classLoaderStructureProvider = classLoaderStructureProvider;
-        this.isolatableFactory = isolatableFactory;
+        this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
     @Override
@@ -92,12 +90,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         ActionExecutionSpec spec;
         DaemonForkOptions forkOptions = getDaemonForkOptions(actionClass, configuration);
         try {
-            // TODO: Use the isolation framework for all isolation modes
-            if (configuration.getIsolationMode() == IsolationMode.NONE) {
-                spec = new IsolatedParametersActionExecutionSpec(actionClass, description, getIsolatedParams(configuration.getParams()));
-            } else {
-                spec = new SerializedParametersActionExecutionSpec(actionClass, description, configuration.getParams(), forkOptions.getClassLoaderStructure());
-            }
+            spec = actionExecutionSpecFactory.newIsolatedSpec(description, actionClass, configuration.getParams(), forkOptions.getClassLoaderStructure());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
@@ -122,14 +115,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         });
         executionQueue.submit(execution);
         asyncWorkTracker.registerWork(currentBuildOperation, execution);
-    }
-
-    private Isolatable<?>[] getIsolatedParams(Object[] params) {
-        Isolatable<?>[] isolatedParams = new Isolatable<?>[params.length];
-        for (int i=0; i<params.length; i++) {
-            isolatedParams[i] = isolatableFactory.isolate(params[i]);
-        }
-        return isolatedParams;
     }
 
     private WorkerLease getCurrentWorkerLease() {

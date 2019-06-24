@@ -16,17 +16,19 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.snapshot.impl.IsolatedArray;
 
 public class IsolatedParametersActionExecutionSpec implements ActionExecutionSpec {
     private final String displayName;
     private final Class<?> implementationClass;
-    private final Isolatable<?>[] isolatedParams;
+    private final IsolatedArray isolatedParams;
+    private final ClassLoaderStructure classLoaderStructure;
 
-    public IsolatedParametersActionExecutionSpec(Class<?> implementationClass, String displayName, Isolatable<?>[] isolatedParams) {
+    public IsolatedParametersActionExecutionSpec(Class<?> implementationClass, String displayName, IsolatedArray isolatedParams, ClassLoaderStructure classLoaderStructure) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.isolatedParams = isolatedParams;
+        this.classLoaderStructure = classLoaderStructure;
     }
 
     @Override
@@ -41,10 +43,15 @@ public class IsolatedParametersActionExecutionSpec implements ActionExecutionSpe
 
     @Override
     public Object[] getParams() {
-        Object[] params = new Object[isolatedParams.length];
-        for (int i=0; i<isolatedParams.length; i++) {
-            params[i] = isolatedParams[i].isolate();
-        }
-        return params;
+        return isolatedParams.isolate();
+    }
+
+    @Override
+    public ClassLoaderStructure getClassLoaderStructure() {
+        return classLoaderStructure;
+    }
+
+    public IsolatedArray getIsolatedParams() {
+        return isolatedParams;
     }
 }

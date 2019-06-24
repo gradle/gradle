@@ -20,11 +20,13 @@ public class SimpleActionExecutionSpec implements ActionExecutionSpec {
     private final Class<?> implementationClass;
     private final String displayName;
     private final Object[] params;
+    private final ClassLoaderStructure classLoaderStructure;
 
-    public SimpleActionExecutionSpec(Class<?> implementationClass, String displayName, Object[] params) {
+    public SimpleActionExecutionSpec(Class<?> implementationClass, String displayName, Object[] params, ClassLoaderStructure classLoaderStructure) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.params = params;
+        this.classLoaderStructure = classLoaderStructure;
     }
 
     @Override
@@ -40,5 +42,10 @@ public class SimpleActionExecutionSpec implements ActionExecutionSpec {
     @Override
     public Object[] getParams() {
         return params;
+    }
+
+    @Override
+    public ClassLoaderStructure getClassLoaderStructure() {
+        return classLoaderStructure;
     }
 }

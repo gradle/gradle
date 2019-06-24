@@ -67,6 +67,7 @@ import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
+import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
@@ -200,6 +201,7 @@ public class GroovyCompile extends AbstractCompile {
         }
     }
 
+
     private Compiler<GroovyJavaJointCompileSpec> getCompiler(GroovyJavaJointCompileSpec spec, InputChanges inputChanges, Multimap<File, String> sourceClassesMapping) {
         WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
         IsolatedClassloaderWorkerFactory inProcessWorkerFactory = getServices().get(IsolatedClassloaderWorkerFactory.class);
@@ -209,7 +211,8 @@ public class GroovyCompile extends AbstractCompile {
         WorkerDirectoryProvider workerDirectoryProvider = getServices().get(WorkerDirectoryProvider.class);
         ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
         ClassLoaderRegistry classLoaderRegistry = getServices().get(ClassLoaderRegistry.class);
-        GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(workerDaemonFactory, inProcessWorkerFactory, forkOptionsFactory, processorDetector, jvmVersionDetector, workerDirectoryProvider, classPathRegistry, classLoaderRegistry);
+        ActionExecutionSpecFactory actionExecutionSpecFactory = getServices().get(ActionExecutionSpecFactory.class);
+        GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(workerDaemonFactory, inProcessWorkerFactory, forkOptionsFactory, processorDetector, jvmVersionDetector, workerDirectoryProvider, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
         CleaningGroovyCompiler cleaningGroovyCompiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
         if (getOptions().isIncremental()) {

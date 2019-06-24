@@ -27,6 +27,7 @@ import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 public class PlayToolChainServiceRegistry extends AbstractPluginServiceRegistry {
@@ -42,8 +43,8 @@ public class PlayToolChainServiceRegistry extends AbstractPluginServiceRegistry 
     }
 
     private static class ProjectScopeCompileServices {
-        PlayToolChainInternal createPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
-            return new DefaultPlayToolChain(forkOptionsFactory, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, fingerprinter, classPathRegistry, classLoaderRegistry);
+        PlayToolChainInternal createPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+            return new DefaultPlayToolChain(forkOptionsFactory, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
         }
     }
 }

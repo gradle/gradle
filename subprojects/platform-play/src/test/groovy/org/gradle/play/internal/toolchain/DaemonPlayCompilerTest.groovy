@@ -24,6 +24,7 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.play.internal.routes.RoutesCompiler
 import org.gradle.play.internal.spec.PlayCompileSpec
+import org.gradle.workers.internal.ActionExecutionSpecFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 
@@ -38,6 +39,7 @@ class DaemonPlayCompilerTest extends Specification {
     def forkOptionsFactory = TestFiles.execFactory()
     def classpathRegistry = Mock(ClassPathRegistry)
     def classLoaderRegistry = Mock(ClassLoaderRegistry)
+    def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
 
     def setup(){
         _ * spec.getForkOptions() >> forkOptions
@@ -49,7 +51,7 @@ class DaemonPlayCompilerTest extends Specification {
     def "passes compile classpath to daemon options"() {
         given:
         def classpath = someClasspath()
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegateClass, delegateParameters, workerDaemonFactory, classpath, forkOptionsFactory, classpathRegistry, classLoaderRegistry)
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegateClass, delegateParameters, workerDaemonFactory, classpath, forkOptionsFactory, classpathRegistry, classLoaderRegistry, actionExecutionSpecFactory)
         when:
         def daemonForkOptions = compiler.toDaemonForkOptions(spec)
         then:
@@ -58,7 +60,7 @@ class DaemonPlayCompilerTest extends Specification {
 
     def "applies fork settings to daemon options"(){
         given:
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegateClass, delegateParameters, workerDaemonFactory, someClasspath(), forkOptionsFactory, classpathRegistry, classLoaderRegistry)
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegateClass, delegateParameters, workerDaemonFactory, someClasspath(), forkOptionsFactory, classpathRegistry, classLoaderRegistry, actionExecutionSpecFactory)
         when:
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"

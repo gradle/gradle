@@ -31,6 +31,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
+import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
@@ -49,8 +50,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     private final File daemonWorkingDir;
     private final JvmVersionDetector jvmVersionDetector;
 
-    public DaemonGroovyCompiler(File daemonWorkingDir, Class<? extends Compiler<GroovyJavaJointCompileSpec>> delegateClass, ClassPathRegistry classPathRegistry, WorkerFactory workerFactory, ClassLoaderRegistry classLoaderRegistry, JavaForkOptionsFactory forkOptionsFactory, JvmVersionDetector jvmVersionDetector) {
-        super(delegateClass, new Object[0], workerFactory);
+    public DaemonGroovyCompiler(File daemonWorkingDir, Class<? extends Compiler<GroovyJavaJointCompileSpec>> delegateClass, ClassPathRegistry classPathRegistry, WorkerFactory workerFactory, ClassLoaderRegistry classLoaderRegistry, JavaForkOptionsFactory forkOptionsFactory, JvmVersionDetector jvmVersionDetector, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+        super(delegateClass, new Object[0], workerFactory, actionExecutionSpecFactory);
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
         this.forkOptionsFactory = forkOptionsFactory;

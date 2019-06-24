@@ -33,6 +33,7 @@ import org.gradle.play.internal.run.PlayRunAdapterV26X
 import org.gradle.play.platform.PlayPlatform
 import org.gradle.process.internal.JavaForkOptionsFactory
 import org.gradle.process.internal.worker.WorkerProcessFactory
+import org.gradle.workers.internal.ActionExecutionSpecFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -48,6 +49,7 @@ class DefaultPlayToolProviderTest extends Specification {
     ClasspathFingerprinter fingerprinter = Mock()
     ClassPathRegistry classPathRegistry = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
+    ActionExecutionSpecFactory actionExecutionSpecFactory = Mock()
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
@@ -55,7 +57,7 @@ class DefaultPlayToolProviderTest extends Specification {
     DefaultPlayToolProvider playToolProvider
 
     private DefaultPlayToolProvider createProvider() {
-        return new DefaultPlayToolProvider(forkOptionsFactory, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter, classPathRegistry, classLoaderRegistry)
+        return new DefaultPlayToolProvider(forkOptionsFactory, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory)
     }
 
     @Unroll

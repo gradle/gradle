@@ -281,6 +281,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
             } else {
                 String stateClassName = decoder.readString();
                 Class<?> stateClass = fromClassName(stateClassName);
+                useJavaSerialization(stateClass);
                 state = build(stateClass).read(decoder);
             }
 
