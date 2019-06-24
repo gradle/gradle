@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.Managed
+import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
@@ -109,7 +110,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r
         1 * provider.present >> true
-        0 * _
+        0 * Specification._
 
         when:
         def r2 = property.get()
@@ -117,7 +118,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r2 == someValue()
         1 * provider.get() >> someValue()
-        0 * _
+        0 * Specification._
 
         when:
         def r3 = property.getOrNull()
@@ -125,7 +126,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r3 == someOtherValue()
         1 * provider.getOrNull() >> someOtherValue()
-        0 * _
+        0 * Specification._
 
         when:
         def r4 = property.getOrElse(someOtherValue())
@@ -133,7 +134,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r4 == someValue()
         1 * provider.getOrNull() >> someValue()
-        0 * _
+        0 * Specification._
     }
 
     def "can set value using provider and chaining method"() {
@@ -364,7 +365,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         def provider = property.map(transformer)
 
         then:
-        0 * _
+        0 * Specification._
 
         when:
         property.set(someValue())
@@ -373,7 +374,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r1 == someOtherValue()
         1 * transformer.transform(someValue()) >> someOtherValue()
-        0 * _
+        0 * Specification._
 
         when:
         def r2 = provider.get()
@@ -381,7 +382,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r2 == someValue()
         1 * transformer.transform(someValue()) >> someValue()
-        0 * _
+        0 * Specification._
     }
 
     def "transformation is provided with the current value of the property each time the value is queried"() {
@@ -392,7 +393,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         def provider = property.map(transformer)
 
         then:
-        0 * _
+        0 * Specification._
 
         when:
         property.set(someValue())
@@ -401,7 +402,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r1 == 123
         1 * transformer.transform(someValue()) >> 123
-        0 * _
+        0 * Specification._
 
         when:
         property.set(someOtherValue())
@@ -410,7 +411,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r2 == 456
         1 * transformer.transform(someOtherValue()) >> 456
-        0 * _
+        0 * Specification._
     }
 
     def "can map value to some other type"() {
@@ -421,7 +422,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         def provider = property.map(transformer)
 
         then:
-        0 * _
+        0 * Specification._
 
         when:
         property.set(someValue())
@@ -430,7 +431,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r1 == 12
         1 * transformer.transform(someValue()) >> 12
-        0 * _
+        0 * Specification._
 
         when:
         def r2 = provider.get()
@@ -438,7 +439,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         r2 == 10
         1 * transformer.transform(someValue()) >> 10
-        0 * _
+        0 * Specification._
     }
 
     def "mapped provider has no value and transformer is not invoked when property has no value"() {
@@ -452,7 +453,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         !provider.present
         provider.getOrNull() == null
         provider.getOrElse(someOtherValue()) == someOtherValue()
-        0 * _
+        0 * Specification._
 
         when:
         provider.get()
@@ -519,7 +520,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         1 * function.call() >> someValue()
-        0 * _
+        0 * Specification._
 
         when:
         def present = property.present
@@ -528,7 +529,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         present
         result == someValue()
-        0 * _
+        0 * Specification._
     }
 
     def "replaces provider with fixed value when value finalized on next read"() {
@@ -543,7 +544,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.implicitFinalizeValue()
 
         then:
-        0 * _
+        0 * Specification._
 
         when:
         def present = property.present
@@ -551,7 +552,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         1 * function.call() >> someValue()
-        0 * _
+        0 * Specification._
 
         and:
         present
@@ -572,14 +573,14 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         1 * function.call() >> someValue()
-        0 * _
+        0 * Specification._
 
         when:
         def present = property.present
         def result = property.getOrNull()
 
         then:
-        0 * _
+        0 * Specification._
 
         and:
         present
@@ -599,7 +600,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         1 * function.call() >> null
-        0 * _
+        0 * Specification._
 
         when:
         def present = property.present
@@ -608,7 +609,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         !present
         result == null
-        0 * _
+        0 * Specification._
     }
 
     def "replaces provider with no value with fixed missing value when value finalized on next read"() {
@@ -623,7 +624,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.implicitFinalizeValue()
 
         then:
-        0 * _
+        0 * Specification._
 
         when:
         def present = property.present
@@ -631,7 +632,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         1 * function.call() >> null
-        0 * _
+        0 * Specification._
 
         and:
         !present
@@ -649,7 +650,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         1 * function.call() >> someValue()
-        0 * _
+        0 * Specification._
 
         when:
         property.finalizeValue()
@@ -658,7 +659,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.disallowChanges()
 
         then:
-        0 * _
+        0 * Specification._
     }
 
     def "can finalize after changes disallowed"() {
@@ -671,14 +672,14 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.disallowChanges()
 
         then:
-        0 * _
+        0 * Specification._
 
         when:
         property.finalizeValue()
 
         then:
         1 * function.call() >> someValue()
-        0 * _
+        0 * Specification._
     }
 
     def "uses value from provider after changes disallowed"() {
@@ -701,7 +702,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         result == someValue()
         1 * function.call() >> someValue()
-        0 * _
+        0 * Specification._
     }
 
     def "cannot set value after value finalized"() {

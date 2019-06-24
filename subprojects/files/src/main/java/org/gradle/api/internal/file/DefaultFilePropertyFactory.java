@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,12 +53,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         return new DefaultRegularFileVar(fileResolver);
     }
 
-    static class FixedDirectory implements Directory, Managed {
-        private final File value;
+    static class FixedDirectory extends DefaultFileSystemLocation implements Directory, Managed {
         final FileResolver fileResolver;
 
         FixedDirectory(File value, FileResolver fileResolver) {
-            this.value = value;
+            super(value);
             this.fileResolver = fileResolver;
         }
 
@@ -74,39 +73,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public Object unpackState() {
-            return value;
+            return getAsFile();
         }
 
         @Override
         public int getFactoryId() {
             return ManagedFactories.DirectoryManagedFactory.FACTORY_ID;
-        }
-
-        @Override
-        public String toString() {
-            return value.toString();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != getClass()) {
-                return false;
-            }
-            FixedDirectory other = (FixedDirectory) obj;
-            return value.equals(other.value);
-        }
-
-        @Override
-        public int hashCode() {
-            return value.hashCode();
-        }
-
-        @Override
-        public File getAsFile() {
-            return value;
         }
 
         @Override
@@ -136,11 +108,9 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static class FixedFile implements RegularFile, Managed {
-        private final File file;
-
+    static class FixedFile extends DefaultFileSystemLocation implements RegularFile, Managed {
         FixedFile(File file) {
-            this.file = file;
+            super(file);
         }
 
         @Override
@@ -155,39 +125,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public Object unpackState() {
-            return file;
+            return getAsFile();
         }
 
         @Override
         public int getFactoryId() {
             return ManagedFactories.RegularFileManagedFactory.FACTORY_ID;
-        }
-
-        @Override
-        public String toString() {
-            return file.toString();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != getClass()) {
-                return false;
-            }
-            FixedFile other = (FixedFile) obj;
-            return other.file.equals(file);
-        }
-
-        @Override
-        public int hashCode() {
-            return file.hashCode();
-        }
-
-        @Override
-        public File getAsFile() {
-            return file;
         }
     }
 

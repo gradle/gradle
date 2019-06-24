@@ -43,6 +43,7 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(testFixtures(project(":modelCore")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":workers"))

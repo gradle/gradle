@@ -261,6 +261,39 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files.empty
     }
 
+    def elementsProviderTracksChangesToContent() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def callable = Mock(Callable)
+
+        collection.from(callable)
+        def elements = collection.elements
+
+        when:
+        def f1 = elements.get()
+
+        then:
+        f1*.asFile == [file1, file2]
+
+        and:
+        1 * callable.call() >> ["src1", "src2"]
+        _ * fileResolver.resolve("src1") >> file1
+        _ * fileResolver.resolve("src2") >> file2
+        0 * _
+
+        when:
+        def f2 = elements.get()
+
+        then:
+        f2*.asFile == [file2]
+
+        and:
+        1 * callable.call() >> ["2"]
+        _ * fileResolver.resolve("2") >> file2
+        0 * _
+    }
+
     def resolveAddsEachSourceObjectAndBuildDependencies() {
         given:
         def resolveContext = Mock(FileCollectionResolveContext)

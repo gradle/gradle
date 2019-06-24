@@ -19,7 +19,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import groovy.lang.Closure;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
@@ -114,12 +113,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
                 Set<File> files = getFiles();
                 ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
                 for (File file : files) {
-                    builder.add(new FileSystemLocation() {
-                        @Override
-                        public File getAsFile() {
-                            return file;
-                        }
-                    });
+                    builder.add(new DefaultFileSystemLocation(file));
                 }
                 return builder.build();
             }
@@ -261,10 +255,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
                 return Iterators.filter(AbstractFileCollection.this.iterator(), predicate);
             }
         };
-    }
-
-    protected String getCapDisplayName() {
-        return StringUtils.capitalize(getDisplayName());
     }
 
     @Override
