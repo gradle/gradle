@@ -68,7 +68,8 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * Sets the value of this property to the entries of the given Map, and replaces any existing value.
      * This property will query the entries of the map each time the value of this property is queried.
      *
-     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
+     * <p>This method can also be used to discard the value of the property, by passing {@code null} as the value.
+     * The convention for this property, if any, will be used to provide the value instead.
      *
      * @param entries the entries, can be {@code null}
      */

@@ -39,7 +39,8 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
     /**
      * Sets the value of the property the given value, replacing whatever value the property already had.
      *
-     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
+     * <p>This method can also be used to discard the value of the property, by passing {@code null} as the value.
+     * The convention for this property, if any, will be used to provide the value instead.
      *
      * @param value The value, can be null.
      */

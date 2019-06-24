@@ -40,6 +40,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
+    private Collector<T> convention = (Collector<T>) NO_VALUE_COLLECTOR;
+    private Collector<T> defaultValue = (Collector<T>) EMPTY_COLLECTION;
     private Collector<T> value;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
@@ -98,7 +100,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     private void addCollector(Collector<T> collector) {
         collectors.add(collector);
-        afterMutate();
     }
 
     @Nullable
@@ -190,12 +191,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
-        if (!beforeMutate()) {
+        if (elements == null) {
+            if (beforeReset()) {
+                set(convention);
+                defaultValue = (Collector<T>) NO_VALUE_COLLECTOR;
+            }
             return;
         }
-        if (elements == null) {
-            set((Collector<T>) NO_VALUE_COLLECTOR);
-        } else {
+        if (beforeMutate()) {
             set(new ElementsFromCollection<T>(elements));
         }
     }
@@ -244,7 +247,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected void applyDefaultValue() {
-        value = (Collector<T>) EMPTY_COLLECTION;
+        value = defaultValue;
         collectors.clear();
     }
 
@@ -256,30 +259,32 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         } else {
             set((Collector<T>) NO_VALUE_COLLECTOR);
         }
+        convention = (Collector<T>) NO_VALUE_COLLECTOR;
     }
 
     private void set(Collector<T> collector) {
         collectors.clear();
         value = collector;
-        afterMutate();
     }
 
     @Override
     public HasMultipleValues<T> convention(Iterable<? extends T> elements) {
-        if (shouldApplyConvention()) {
-            value = new ElementsFromCollection<T>(elements);
-            collectors.clear();
-        }
+        convention(new ElementsFromCollection<T>(elements));
         return this;
     }
 
     @Override
     public HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider) {
+        convention(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
+        return this;
+    }
+
+    private void convention(Collector<T> collector) {
         if (shouldApplyConvention()) {
-            value = new ElementsFromCollectionProvider<T>(Providers.internal(provider));
+            this.value = collector;
             collectors.clear();
         }
-        return this;
+        convention = collector;
     }
 
     @Override

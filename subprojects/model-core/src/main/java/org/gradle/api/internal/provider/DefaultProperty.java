@@ -21,9 +21,12 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
+
 public class DefaultProperty<T> extends AbstractProperty<T> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
+    private ProviderInternal<? extends T> convention = Providers.notDefined();
     private ProviderInternal<? extends T> provider;
 
     public DefaultProperty(Class<T> type) {
@@ -66,24 +69,24 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
 
     @Override
     public void set(T value) {
-        if (!beforeMutate()) {
-            return;
-        }
         if (value == null) {
-            this.provider = Providers.notDefined();
-            afterMutate();
+            if (beforeReset()) {
+                this.provider = convention;
+            }
             return;
         }
-        value = sanitizer.sanitize(value);
-        if (!type.isInstance(value)) {
-            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type.getName(), value.getClass().getName()));
+
+        if (beforeMutate()) {
+            value = sanitizer.sanitize(value);
+            if (!type.isInstance(value)) {
+                throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type.getName(), value.getClass().getName()));
+            }
+            this.provider = Providers.of(value);
         }
-        this.provider = Providers.of(value);
-        afterMutate();
     }
 
     @Override
-    public Property<T> value(T value) {
+    public Property<T> value(@Nullable T value) {
         set(value);
         return this;
     }
@@ -119,22 +122,21 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
         }
 
         this.provider = p;
-        afterMutate();
     }
 
     @Override
     public Property<T> convention(T value) {
-        if (shouldApplyConvention()) {
-            this.provider = Providers.of(value);
-        }
-        return this;
+        ProviderInternal<T> provider = Providers.of(value);
+        return convention(provider);
     }
 
     @Override
     public Property<T> convention(Provider<? extends T> valueProvider) {
+        ProviderInternal<? extends T> providerInternal = Providers.internal(valueProvider);
         if (shouldApplyConvention()) {
-            this.provider = Providers.internal(valueProvider);
+            this.provider = providerInternal;
         }
+        this.convention = providerInternal;
         return this;
     }
 
@@ -146,6 +148,7 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     @Override
     protected void makeFinal() {
         provider = provider.withFinalValue();
+        convention = Providers.notDefined();
     }
 
     @Override

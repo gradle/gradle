@@ -44,6 +44,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private final Class<V> valueType;
     private final ValueCollector<K> keyCollector;
     private final MapEntryCollector<K, V> entryCollector;
+    private MapCollector<K, V> convention = (MapCollector<K, V>) NO_VALUE;
+    private MapCollector<K, V> defaultValue = (MapCollector<K, V>) EMPTY_MAP;
     private MapCollector<K, V> value;
     private final List<MapCollector<K, V>> collectors = new LinkedList<MapCollector<K, V>>();
 
@@ -182,13 +184,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     @SuppressWarnings("unchecked")
     public void set(@Nullable Map<? extends K, ? extends V> entries) {
-        if (!beforeMutate()) {
+        if (entries == null) {
+            if (beforeReset()) {
+                set(convention);
+                this.defaultValue = (MapCollector<K, V>) NO_VALUE;
+            }
             return;
         }
-        if (entries != null) {
+        if (beforeMutate()) {
             set(new MapCollectors.EntriesFromMap<K, V>(entries));
-        } else {
-            set((MapCollector<K, V>) NO_VALUE);
         }
     }
 
@@ -216,7 +220,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private void set(MapCollector<K, V> collector) {
         collectors.clear();
         value = collector;
-        afterMutate();
     }
 
     @Override
@@ -263,7 +266,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     private void addCollector(MapCollector<K, V> collector) {
         collectors.add(collector);
-        afterMutate();
     }
 
     @SuppressWarnings("unchecked")
@@ -290,20 +292,22 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public MapProperty<K, V> convention(Map<? extends K, ? extends V> value) {
-        if (shouldApplyConvention()) {
-            this.value = new MapCollectors.EntriesFromMap<K, V>(value);
-            collectors.clear();
-        }
+        convention(new MapCollectors.EntriesFromMap<K, V>(value));
         return this;
     }
 
     @Override
     public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
+        convention(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(valueProvider)));
+        return this;
+    }
+
+    private void convention(MapCollector<K, V> collector) {
         if (shouldApplyConvention()) {
-            this.value = new MapCollectors.EntriesFromMapProvider<K, V>(Providers.internal(valueProvider));
+            this.value = collector;
             collectors.clear();
         }
-        return this;
+        this.convention = collector;
     }
 
     @Override
@@ -323,7 +327,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     protected void applyDefaultValue() {
-        value = (MapCollector<K, V>) EMPTY_MAP;
+        value = defaultValue;
         collectors.clear();
     }
 
