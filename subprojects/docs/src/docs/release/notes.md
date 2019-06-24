@@ -70,14 +70,16 @@ See [plugin version management](userguide/plugins.html#sec:plugin_version_manage
 
 ## Improvements for plugin authors
 
-### Task dependencies are honored for `@Input` properties of type `Property`
+### Task dependencies are honored for `@Input` properties of type `Provider`
 
-Gradle can automatically calculate task dependencies based on the value of certain task input properties. For example, for a property of type `FileCollection` or `Provider<Set<RegularFile>>` 
-and that is annotated with `@InputFiles`, Gradle will inspect the value of the property and automatically add task dependencies for any task output files or directories in the collection. 
+Gradle can automatically calculate task dependencies based on the value of certain task input properties. 
+For example, for a property that is annotated with `@InputFiles` and that has type `FileCollection` or `Provider<Set<RegularFile>>`, 
+Gradle will inspect the value of the property and automatically add task dependencies for any task output files or directories in the collection. 
 
-In this release, Gradle also performs this analysis on task properties of type `Property<T>` and that are annotated with `@Input`. This allow you to connect an output of a task to a non-file input parameter of another task.
-For example, you might have a task that runs the `git` command to determine the name of the current branch, and another task that uses the branch name to produce an application bundle. With this change
-you can connect the output of the first task as an input of the second task, and avoid running the `git` command at configuration time. 
+In this release, Gradle also performs this analysis on task properties that are annotated with `@Input` and that have type `Provider<T>` (which also includes types such as `Property<T>`).
+This allow you to connect an output of a task to a non-file input parameter of another task.
+For example, you might have a task that runs the `git` command to determine the name of the current branch, and another task that uses the branch name to produce an application bundle.
+With this change you can connect the output of the first task as an input of the second task, and avoid running the `git` command at configuration time. 
 
 See the [user manual](userguide/lazy_configuration.html#sec:working_with_task_dependencies_in_lazy_properties) for examples and more details.
 
@@ -88,7 +90,7 @@ produce these files and can be connected to a `Property` instance.
  
 ### Finalize the value of a `ConfigurableFileCollection`
 
-A new method `ConfigurableFileCollection.finalizeValue()` has been added. This method resolves deferred values, such as Groovy closures or Kotlin functions, that may be present in the collection 
+A new method `ConfigurableFileCollection.finalizeValue()` has been added. This method resolves deferred values, such as `Provider` instances or Groovy closures or Kotlin functions, that may be present in the collection 
 to their final file locations and prevents further changes to the collection.
 
 This method works similarly to other `finalizeValue()` methods, such as `Property.finalizeValue()`.
@@ -96,6 +98,10 @@ This method works similarly to other `finalizeValue()` methods, such as `Propert
 ### Prevent changes to a `Property` or `ConfigurableFileCollection`
 
 New methods `Property.disallowChanges()` and `ConfigurableFileCollection.disallowChanges()` have been added. These methods disallow further changes to the property or collection.
+
+### `Provider` methods
+
+New methods `Provider.orElse(T)` and `Provider.orElse(Provider<T>)` has been added. These allow you to perform an 'or' operation on a provider and some other value.
 
 ### Worker API improvements
 
