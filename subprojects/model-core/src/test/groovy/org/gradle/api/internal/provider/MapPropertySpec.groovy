@@ -220,7 +220,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.put('k2', 'v2')
 
         expect:
-        assertValueIs([k2:  'v2'])
+        assertValueIs([k2: 'v2'])
     }
 
     def "queries entries of provider on every call to get()"() {
@@ -474,6 +474,17 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         assertValueIs someValue()
     }
 
+    def "cannot set to empty map after changes disallowed"() {
+        given:
+        property.set(someValue())
+        property.disallowChanges()
+        when:
+        property.empty()
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+    }
+
     def "cannot add entry after value finalized"() {
         given:
         property.set(someValue())
@@ -723,6 +734,32 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         keySetProvider.present
         keySetProvider.get() == ['k1', 'k2', 'k3', 'k4'] as Set
         keySetProvider.getOrNull() == ['k1', 'k2', 'k3', 'k4'] as Set
+    }
+
+    def "implicitly finalizes value on read of key"() {
+        def provider = Mock(ProviderInternal)
+
+        given:
+        property.implicitFinalizeValue()
+        property.put('k1', provider)
+
+        when:
+        def p = property.getting('k1')
+
+        then:
+        0 * _
+
+        when:
+        def result = p.get()
+        def result2 = property.get()
+
+        then:
+        1 * provider.getOrNull() >> "value"
+        0 * _
+
+        and:
+        result == "value"
+        result2 == [k1: "value"]
     }
 
     private void assertValueIs(Map<String, String> expected) {
