@@ -121,7 +121,7 @@ class DefaultInstantExecution(
                         val scheduledTasks = build.scheduledTasks
                         writeRelevantProjectsFor(scheduledTasks)
 
-                        TaskGraphCodec().run {
+                        TaskGraphCodec(service()).run {
                             writeTaskGraphOf(build, scheduledTasks)
                         }
                     }
@@ -158,7 +158,7 @@ class DefaultInstantExecution(
 
                     initProjectProvider(build::getProject)
 
-                    val scheduledTasks = TaskGraphCodec().run {
+                    val scheduledTasks = TaskGraphCodec(service()).run {
                         readTaskGraph()
                     }
                     build.scheduleTasks(scheduledTasks)

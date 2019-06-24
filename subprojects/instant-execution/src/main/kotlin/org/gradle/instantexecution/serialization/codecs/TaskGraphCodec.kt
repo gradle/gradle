@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
@@ -30,8 +31,6 @@ import org.gradle.instantexecution.ClassicModeBuild
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
-import org.gradle.instantexecution.serialization.beans.writeNextProperty
-import org.gradle.instantexecution.serialization.beans.writingProperties
 import org.gradle.instantexecution.serialization.MutableReadContext
 import org.gradle.instantexecution.serialization.MutableWriteContext
 import org.gradle.instantexecution.serialization.PropertyKind
@@ -40,6 +39,8 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.readEachProperty
+import org.gradle.instantexecution.serialization.beans.writeNextProperty
+import org.gradle.instantexecution.serialization.beans.writingProperties
 import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
@@ -53,12 +54,14 @@ import org.gradle.instantexecution.serialization.writeStrings
 
 
 internal
-class TaskGraphCodec {
+class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
 
     fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
         writeCollection(tasks) { task ->
             try {
-                writeTask(task, build.dependenciesOf(task))
+                projectStateRegistry.stateFor(task.project).withMutableState {
+                    writeTask(task, build.dependenciesOf(task))
+                }
             } catch (e: Throwable) {
                 throw GradleException("Could not save state of $task.", e)
             }
