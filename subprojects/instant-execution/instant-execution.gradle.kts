@@ -25,6 +25,7 @@ dependencies {
     integTestImplementation(library("guava"))
     integTestImplementation(library("ant"))
     integTestImplementation(library("inject"))
+    integTestImplementation(testFixtures(project(":dependencyManagement")))
 
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
