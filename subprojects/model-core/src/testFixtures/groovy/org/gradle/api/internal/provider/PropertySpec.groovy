@@ -213,7 +213,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         r2 == someValue()
     }
 
-    def "can set convention value before value has been set"() {
+    def "convention value is used before value has been set"() {
         def property = propertyWithDefaultValue()
         assert property.getOrNull() != someValue()
 
@@ -223,10 +223,11 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.get() == someValue()
 
         property.set(someOtherValue())
+        property.present
         property.get() == someOtherValue()
     }
 
-    def "can set convention provider before value has been set"() {
+    def "convention provider is used before value has been set"() {
         def provider = Mock(ProviderInternal)
         def property = propertyWithDefaultValue()
 
@@ -311,27 +312,40 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.get() == someValue()
     }
 
-    def "convention value ignored after value has been set to null"() {
+    def "convention value is used after value has been set to null"() {
         def property = propertyWithDefaultValue()
+
+        property.convention(someOtherValue())
         setToNull(property)
 
         expect:
-        property.convention(someOtherValue())
-        !property.present
-        property.getOrNull() == null
+        property.present
+        property.get() == someOtherValue()
+
+        property.convention(someValue())
+        property.present
+        property.get() == someValue()
     }
 
-    def "convention provider ignored after value has been set to null"() {
+    def "convention provider is used after value has been set to null"() {
         def provider = Mock(PropertyInternal)
-        0 * provider._
 
         def property = propertyWithDefaultValue()
+        property.convention(provider)
         setToNull(property)
 
-        expect:
-        property.convention(provider)
-        !property.present
-        property.getOrNull() == null
+        when:
+        def r = property.present
+        def r2 = property.get()
+
+        then:
+        r
+        r2 == someOtherValue()
+
+        and:
+        1 * provider.isPresent() >> true
+        1 * provider.get() >> someOtherValue()
+        0 * provider._
     }
 
     def "convention value ignored after value has been set using provider with no value"() {
@@ -719,11 +733,18 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.value(someValue())
+        setToNull(property)
 
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.value(someValue())
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property is final and cannot be changed any further.'
     }
 
     def "ignores set value after value finalized leniently"() {
@@ -735,6 +756,12 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         when:
         property.set(someOtherValue())
+
+        then:
+        property.get() == someValue()
+
+        when:
+        setToNull(property)
 
         then:
         property.get() == someValue()
@@ -754,6 +781,20 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        setToNull(property)
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.value(someOtherValue())
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property is final and cannot be changed any further.'
     }
 
     def "cannot set value after changes disallowed"() {
@@ -770,11 +811,18 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.value(someValue())
+        setToNull(property)
 
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.value(someValue())
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot set value after changes disallowed and implicitly finalized"() {

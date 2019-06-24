@@ -68,6 +68,11 @@ This is now an error because Gradle does not know how to build files that are no
 
 *Note* that it is still possible to to pass `Task.dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDirectory })`, when the `Provider` is an annotated `@OutputFile` or `@OutputDirectory` property of a task.
 
+==== Setting `Property` value to `null` uses the property convention
+
+Previously, calling `Property.set(null)` would always reset the value of the property to 'not defined'. Now, the convention that is associated with the property using the `convention()` method
+will be used to determine the value of the property.
+
 ==== Enhanced validation of names for `publishing.publications` and `publishing.repositories`
 
 The repository and publication names are used to construct task names for publishing. It was possible to supply a name that would result in an invalid task name. Names for publications and repositories are now restricted to `[A-Za-z0-9_\\-.]+`.
