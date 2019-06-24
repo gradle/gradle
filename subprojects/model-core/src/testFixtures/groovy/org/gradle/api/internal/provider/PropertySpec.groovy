@@ -534,7 +534,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         1 * function.call() >> someValue()
-        0 * Specification._
+        0 * _
 
         when:
         def present = property.present
@@ -543,10 +543,10 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         present
         result == someValue()
-        0 * Specification._
+        0 * _
     }
 
-    def "replaces provider with fixed value when value finalized on next read"() {
+    def "replaces provider with fixed value when value finalized on next read of value"() {
         def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
@@ -558,19 +558,73 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.implicitFinalizeValue()
 
         then:
-        0 * Specification._
+        0 * _
 
         when:
+        def result = property.get()
         def present = property.present
-        def result = property.getOrNull()
 
         then:
         1 * function.call() >> someValue()
-        0 * Specification._
+        0 * _
+
+        and:
+        result == someValue()
+        present
+    }
+
+    def "replaces provider with fixed value when value finalized on next read of nullable value"() {
+        def property = propertyWithNoValue()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        given:
+        property.set(provider)
+
+        when:
+        property.implicitFinalizeValue()
+
+        then:
+        0 * _
+
+        when:
+        def result = property.getOrNull()
+        def present = property.present
+
+        then:
+        1 * function.call() >> someValue()
+        0 * _
+
+        and:
+        result == someValue()
+        present
+    }
+
+    def "replaces provider with fixed value when value finalized on next read of `present` property"() {
+        def property = propertyWithNoValue()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        given:
+        property.set(provider)
+
+        when:
+        property.implicitFinalizeValue()
+
+        then:
+        0 * _
+
+        when:
+        def present = property.present
+        def value = property.get()
+
+        then:
+        1 * function.call() >> someValue()
+        0 * _
 
         and:
         present
-        result == someValue()
+        value == someValue()
     }
 
     def "replaces provider with fixed value when value finalized after finalize on next read"() {

@@ -19,15 +19,14 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -47,7 +46,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private MapCollector<K, V> convention = (MapCollector<K, V>) NO_VALUE;
     private MapCollector<K, V> defaultValue = (MapCollector<K, V>) EMPTY_MAP;
     private MapCollector<K, V> value;
-    private final List<MapCollector<K, V>> collectors = new LinkedList<MapCollector<K, V>>();
 
     public DefaultMapProperty(Class<K> keyType, Class<V> valueType) {
         applyDefaultValue();
@@ -87,25 +85,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     public boolean isPresent() {
         beforeRead();
-        if (!value.present()) {
-            return false;
-        }
-        for (MapCollector<K, V> collector : collectors) {
-            if (!collector.present()) {
-                return false;
-            }
-        }
-        return true;
+        return value.present();
     }
 
     @Override
     public Map<K, V> get() {
         beforeRead();
-        Map<K, V> entries = new LinkedHashMap<K, V>(1 + collectors.size());
+        Map<K, V> entries = new LinkedHashMap<K, V>();
         value.collectInto(entryCollector, entries);
-        for (MapCollector<K, V> collector : collectors) {
-            collector.collectInto(entryCollector, entries);
-        }
         return ImmutableMap.copyOf(entries);
     }
 
@@ -118,14 +105,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Nullable
     private Map<K, V> doGetOrNull() {
-        Map<K, V> entries = new LinkedHashMap<K, V>(1 + collectors.size());
+        Map<K, V> entries = new LinkedHashMap<K, V>();
         if (!value.maybeCollectInto(entryCollector, entries)) {
             return null;
-        }
-        for (MapCollector<K, V> collector : collectors) {
-            if (!collector.maybeCollectInto(entryCollector, entries)) {
-                return null;
-            }
         }
         return ImmutableMap.copyOf(entries);
     }
@@ -136,23 +118,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             @Override
             @Nullable
             public V call() {
+                beforeRead();
                 Map<K, V> dest = new LinkedHashMap<K, V>();
-                for (int i = collectors.size() - 1; i >= 0; i--) {
-                    if (collectors.get(i).maybeCollectInto(entryCollector, dest)) {
-                        V value = dest.get(key);
-                        if (value != null) {
-                            return value;
-                        }
-                    } else {
-                        return null;
-                    }
-                    dest.clear();
-                }
                 if (value.maybeCollectInto(entryCollector, dest)) {
-                    V value = dest.get(key);
-                    if (value != null) {
-                        return value;
-                    }
+                    return dest.get(key);
                 }
                 return null;
             }
@@ -218,7 +187,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     private void set(MapCollector<K, V> collector) {
-        collectors.clear();
         value = collector;
     }
 
@@ -265,7 +233,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     private void addCollector(MapCollector<K, V> collector) {
-        collectors.add(collector);
+        value = new PlusCollector<>(value, collector);
     }
 
     @SuppressWarnings("unchecked")
@@ -305,7 +273,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private void convention(MapCollector<K, V> collector) {
         if (shouldApplyConvention()) {
             this.value = collector;
-            collectors.clear();
         }
         this.convention = collector;
     }
@@ -317,18 +284,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public String toString() {
-        List<String> values = new ArrayList<String>(1 + collectors.size());
-        values.add(value.toString());
-        for (MapCollector<K, V> collector : collectors) {
-            values.add(collector.toString());
-        }
-        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), values);
+        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), value.toString());
     }
 
     @Override
     protected void applyDefaultValue() {
         value = defaultValue;
-        collectors.clear();
     }
 
     @Override
@@ -358,11 +319,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         @Override
         public Set<K> get() {
             beforeRead();
-            Set<K> keys = new LinkedHashSet<K>(1 + collectors.size());
+            Set<K> keys = new LinkedHashSet<K>();
             value.collectKeysInto(keyCollector, keys);
-            for (MapCollector<K, V> collector : collectors) {
-                collector.collectKeysInto(keyCollector, keys);
-            }
             return ImmutableSet.copyOf(keys);
         }
 
@@ -370,16 +328,62 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         @Override
         public Set<K> getOrNull() {
             beforeRead();
-            Set<K> keys = new LinkedHashSet<K>(1 + collectors.size());
+            Set<K> keys = new LinkedHashSet<K>();
             if (!value.maybeCollectKeysInto(keyCollector, keys)) {
                 return null;
             }
-            for (MapCollector<K, V> collector : collectors) {
-                if (!collector.maybeCollectKeysInto(keyCollector, keys)) {
-                    return null;
-                }
-            }
             return ImmutableSet.copyOf(keys);
+        }
+    }
+
+    private static class PlusCollector<K, V> implements MapCollector<K, V> {
+        private final MapCollector<K, V> left;
+        private final MapCollector<K, V> right;
+
+        public PlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public boolean present() {
+            return left.present() && right.present();
+        }
+
+        @Override
+        public void collectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            left.collectInto(collector, dest);
+            right.collectInto(collector, dest);
+        }
+
+        @Override
+        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            if (left.maybeCollectInto(collector, dest)) {
+                return right.maybeCollectInto(collector, dest);
+            }
+            return false;
+        }
+
+        @Override
+        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+            left.collectKeysInto(collector, dest);
+            right.collectKeysInto(collector, dest);
+        }
+
+        @Override
+        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+            if (left.maybeCollectKeysInto(collector, dest)) {
+                return right.maybeCollectKeysInto(collector, dest);
+            }
+            return false;
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            if (left.maybeVisitBuildDependencies(context)) {
+                return right.maybeVisitBuildDependencies(context);
+            }
+            return false;
         }
     }
 }

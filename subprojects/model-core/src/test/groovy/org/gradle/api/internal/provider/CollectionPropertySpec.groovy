@@ -603,6 +603,20 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         property.get() == toImmutable(someValue())
     }
 
+    def "cannot set to empty list after changes disallowed"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.disallowChanges()
+
+        when:
+        property.empty()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+    }
+
     def "cannot add element after value finalized"() {
         given:
         def property = property()
