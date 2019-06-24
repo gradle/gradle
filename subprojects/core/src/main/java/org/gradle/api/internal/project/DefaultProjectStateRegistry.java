@@ -183,7 +183,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
-        public <T> void withMutableState(Runnable action) {
+        public void withMutableState(Runnable action) {
             withMutableState(Factories.toFactory(action));
         }
 
