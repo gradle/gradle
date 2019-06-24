@@ -72,7 +72,7 @@ dependencies {
     testImplementation(testFixtures(project(":baseServices")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
-    
+
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":buildOption"))
@@ -105,6 +105,7 @@ dependencies {
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(library("inject"))
 
     crossVersionTestRuntimeOnly(project(":maven"))
 }
