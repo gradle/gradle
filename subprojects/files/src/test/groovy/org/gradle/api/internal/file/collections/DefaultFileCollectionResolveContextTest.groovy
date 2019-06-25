@@ -37,11 +37,6 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         context.resolveAsFileTrees() == []
     }
 
-    def "resolve as MinimalFileCollection returns empty List when context is empty"() {
-        expect:
-        context.resolveAsMinimalFileCollections() == []
-    }
-
     def "resolve as FileCollection wraps a MinimalFileSet"() {
         MinimalFileSet fileSet = Mock()
 
@@ -76,17 +71,6 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * fileSet.files >> ([file, dir, doesNotExist] as LinkedHashSet)
     }
 
-    def "resolve as MinimalFileCollection returns MinimalFileSet"() {
-        MinimalFileSet fileSet = Mock()
-
-        when:
-        context.add(fileSet)
-        def result = context.resolveAsMinimalFileCollections()
-
-        then:
-        result == [fileSet]
-    }
-
     def "resolve as FileCollection wraps a MinimalFileTree"() {
         MinimalFileTree fileTree = Mock()
 
@@ -111,17 +95,6 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result.size() == 1
         result[0] instanceof FileTreeAdapter
         result[0].tree == fileTree
-    }
-
-    def "resolve as MinimalFileCollection wraps a MinimalFileTree"() {
-        MinimalFileTree fileTree = Mock()
-
-        when:
-        context.add(fileTree)
-        def result = context.resolveAsMinimalFileCollections()
-
-        then:
-        result == [fileTree]
     }
 
     def "resolve as FileCollections for a FileCollection"() {
@@ -155,19 +128,6 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         when:
         context.add(composite)
         def result = context.resolveAsFileTrees()
-
-        then:
-        result == [contents]
-        1 * composite.visitContents(!null) >> { it[0].add(contents) }
-    }
-
-    def "resolve as MinimalFileCollections delegates to a CompositeFileCollection"() {
-        FileCollectionContainer composite = Mock()
-        MinimalFileCollection contents = Mock()
-
-        when:
-        context.add(composite)
-        def result = context.resolveAsMinimalFileCollections()
 
         then:
         result == [contents]
@@ -214,17 +174,6 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == []
     }
 
-    def "resolve as MinimalFileCollections ignores a TaskDependency"() {
-        TaskDependency dependency = Mock()
-
-        when:
-        context.add(dependency)
-        def result = context.resolveAsMinimalFileCollections()
-
-        then:
-        result == []
-    }
-
     def "resolve as FileCollections uses FileResolver to resolve other types"() {
         File file1 = new File('a')
         File file2 = new File('b')
@@ -258,20 +207,6 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0] instanceof FileTreeAdapter
         result[0].tree instanceof DefaultSingletonFileTree
         result[0].tree.file == file
-        1 * resolver.resolve('a') >> file
-    }
-
-    def "resolve as MinimalFileCollection uses FileResolver to resolve other types"() {
-        File file = file('a')
-
-        when:
-        context.add('a', resolver)
-        def result = context.resolveAsMinimalFileCollections()
-
-        then:
-        result.size() == 1
-        result[0] instanceof ListBackedFileSet
-        result[0].files as List == [file]
         1 * resolver.resolve('a') >> file
     }
 
