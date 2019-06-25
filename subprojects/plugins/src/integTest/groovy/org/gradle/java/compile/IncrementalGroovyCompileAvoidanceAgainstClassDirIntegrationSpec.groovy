@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.gradle.java.compile
 
-import org.gradle.integtests.fixtures.CompiledLanguage
-
-class NonIncrementalJavaCompileAvoidanceAgainstClassDirIntegrationSpec extends AbstractJavaCompileAvoidanceIntegrationSpec {
-    CompiledLanguage language = CompiledLanguage.JAVA
+class IncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec extends AbstractGroovyCompileAvoidanceIntegrationSpec {
     boolean useJar = false
-    boolean incremental = false
+    boolean incremental = true
 }

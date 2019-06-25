@@ -16,11 +16,11 @@
 
 package org.gradle.java.compile
 
-
+import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.language.fixtures.HelperProcessorFixture
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
-    Language language = Language.JAVA
+    CompiledLanguage language = CompiledLanguage.JAVA
 
     def "doesn't recompile when private inner class changes"() {
         given:

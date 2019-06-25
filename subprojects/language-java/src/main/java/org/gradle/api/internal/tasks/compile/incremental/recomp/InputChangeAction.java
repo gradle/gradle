@@ -25,11 +25,11 @@ import static org.gradle.internal.FileUtils.hasExtension;
 
 class InputChangeAction implements Action<InputFileDetails> {
     private final RecompilationSpec spec;
-    private final JavaChangeProcessor javaChangeProcessor;
+    private final SourceFileChangeProcessor javaChangeProcessor;
     private final AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor;
     private final ResourceChangeProcessor resourceChangeProcessor;
 
-    InputChangeAction(RecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor, ResourceChangeProcessor resourceChangeProcessor) {
+    InputChangeAction(RecompilationSpec spec, SourceFileChangeProcessor javaChangeProcessor, AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor, ResourceChangeProcessor resourceChangeProcessor) {
         this.spec = spec;
         this.javaChangeProcessor = javaChangeProcessor;
         this.annotationProcessorChangeProcessor = annotationProcessorChangeProcessor;
@@ -44,7 +44,7 @@ class InputChangeAction implements Action<InputFileDetails> {
 
         File file = input.getFile();
         if (hasExtension(file, ".java")) {
-            javaChangeProcessor.processChange(input, spec);
+            javaChangeProcessor.processChange(input.getFile(), spec);
         } else if (hasExtension(file, ".jar") || hasExtension(file, ".class")) {
             annotationProcessorChangeProcessor.processChange(input, spec);
         } else {

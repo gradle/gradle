@@ -133,7 +133,6 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  * <pre>
  * gradle someTestTask --debug-jvm
  * </pre>
-
  */
 @NonNullApi
 @CacheableTask
@@ -552,6 +551,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     /**
      * {@inheritDoc}
+     *
      * @since 4.4
      */
     @Override
@@ -1005,8 +1005,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * <p>
      * By default, Gradle executes a single test class at a time.
      * <ul>
-     *  <li>A value of <code>1</code> means to only execute a single test class in a single test process at a time. This is the default.</li>
-     *  <li>A value of <code>N</code> means that up to <code>N</code> test processes will be started to execute test classes. <b>This can improve test execution time by running multiple test classes in parallel.</b></li>
+     * <li>A value of <code>1</code> means to only execute a single test class in a single test process at a time. This is the default.</li>
+     * <li>A value of <code>N</code> means that up to <code>N</code> test processes will be started to execute test classes. <b>This can improve test execution time by running multiple test classes in parallel.</b></li>
      * </ul>
      *
      * This property cannot exceed the value of {@literal max-workers} for the current build. Gradle will also limit the number of started test processes across all {@link Test} tasks.
@@ -1023,6 +1023,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * <p>
      * By default, Gradle executes a single test class at a time but allows multiple {@link Test} tasks to run in parallel.
      * </p>
+     *
      * @param maxParallelForks The maximum number of forked test processes. Use 1 to disable parallel test execution for this task.
      */
     public void setMaxParallelForks(int maxParallelForks) {
