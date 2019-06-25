@@ -28,7 +28,8 @@ object ProjectGroups {
     private
     val internalProjectNames = setOf(
         "integTest", "distributions", "performance", "buildScanPerformance",
-        "kotlinCompilerEmbeddable", "kotlinDslTestFixtures", "kotlinDslIntegTests"
+        "kotlinCompilerEmbeddable", "kotlinDslTestFixtures", "kotlinDslIntegTests",
+        "instantExecutionReport"
     )
 
     val Project.javaProjects
