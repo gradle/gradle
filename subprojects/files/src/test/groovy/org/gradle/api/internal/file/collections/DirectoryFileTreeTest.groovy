@@ -16,20 +16,16 @@
 package org.gradle.api.internal.file.collections
 
 import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.ReproducibleFileVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Unroll
 
+@Unroll
 class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
-    private TestVisitor visitor
-
-    def setup() {
-        visitor = new TestVisitor()
-    }
-
-    def rootDirEmpty() {
+    def "root directory is empty - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def root = temporaryFolder.createDir("root")
         def fileTree = new DirectoryFileTree(root, new PatternSet(), TestFiles.fileSystem(), false)
@@ -38,10 +34,13 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         fileTree.visit(visitor)
 
         then:
-        visitor.assertExpectations()
+        visitor.visited == []
+
+        where:
+        visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
-    def testUsesSpecFromPatternSetToMatchFilesAndDirs() {
+    def "test uses spec from patternSet to match files and dirs - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def spec = Mock(Spec)
         def patternSet = Mock(PatternSet)
@@ -52,24 +51,29 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * patternSet.getAsSpec() >> spec
-        visitor.assertExpectations()
+        visitor.visited == []
+
+        where:
+        visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
-    def walkSingleFile() {
+    def "walk single file - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def root = temporaryFolder.createDir("root")
         def fileToCopy = root.createFile("file.txt")
         def fileTree = new DirectoryFileTree(fileToCopy, new PatternSet(), TestFiles.fileSystem(), false)
 
         when:
-        visitor.setExpectedVisitations([[fileToCopy]])
         fileTree.visit(visitor)
 
         then:
-        visitor.assertExpectations()
+        visitor.visited == [fileToCopy]
+
+        where:
+        visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
-    /*
+    /**
     file structure:
     root
         rootFile1
@@ -80,7 +84,7 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
 
         Test that the files are really walked breadth first
      */
-    def walkBreadthFirst() {
+    def "walk breadth first - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def root = temporaryFolder.createDir("root")
         def rootFile1 = root.createFile("rootFile1")
@@ -92,14 +96,16 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         def fileTree = new DirectoryFileTree(root, new PatternSet(), TestFiles.fileSystem(), false)
 
         when:
-        visitor.setExpectedVisitations([[rootFile1, rootFile2], [dir1], [dirFile1, dirFile2]])
         fileTree.visit(visitor)
 
         then:
-        visitor.assertExpectations()
+        visitor.visited.sort() == [rootFile1, rootFile2, dir1, dirFile1, dirFile2].sort()
+
+        where:
+        visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
-    def walkDepthFirst() {
+    def "walk depth first - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def root = temporaryFolder.createDir("root")
         def rootFile1 = root.createFile("rootFile1")
@@ -111,14 +117,16 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         def fileTree = new DirectoryFileTree(root, new PatternSet(), TestFiles.fileSystem(), false).postfix()
 
         when:
-        visitor.setExpectedVisitations([[rootFile1, rootFile2], [dirFile2, dirFile1], [dir1]])
         fileTree.visit(visitor)
 
         then:
-        visitor.assertExpectations()
+        visitor.visited.sort() == [rootFile1, rootFile2, dirFile2, dirFile1, dir1].sort()
+
+        where:
+        visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
-    def canApplyFilter() {
+    def "can apply filter - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def root = temporaryFolder.createDir("root")
         root.createFile("rootFile1")
@@ -137,14 +145,16 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         DirectoryFileTree fileTree = new DirectoryFileTree(root, patterns, TestFiles.fileSystem(), false).filter(filter)
 
         when:
-        visitor.setExpectedVisitations([[dir1], [dirFile2]])
         fileTree.visit(visitor)
 
         then:
-        visitor.assertExpectations()
+        visitor.visited == [dir1, dirFile2]
+
+        where:
+        visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
-    def visitorCanStopVisit() {
+    def "visitor can stop visit - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def root = temporaryFolder.createDir("root")
         def rootFile1 = root.createFile("rootFile1")
@@ -157,24 +167,25 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         def fileTree = new DirectoryFileTree(root, new PatternSet(), TestFiles.fileSystem(), false)
 
         when:
-        visitor.setStopOn(rootFile1)
-        visitor.setExpectedVisitations([[rootFile1, rootFile2]])
+        visitor.stopOn = rootFile2
         fileTree.visit(visitor)
 
         then:
-        visitor.assertExpectations()
+        visitor.visited == [rootFile1, rootFile2]
 
         when:
-        visitor = new TestVisitor()
-        visitor.setStopOn(dirFile1)
-        visitor.setExpectedVisitations([[rootFile1, rootFile2], [dir1], [dirFile2, dirFile1]])
+        visitor = new TestVisitor(true)
+        visitor.stopOn = dirFile1
         fileTree.visit(visitor)
 
         then:
-        visitor.assertExpectations()
+        visitor.visited == [rootFile1, rootFile2, dir1, dirFile1]
+
+        where:
+        visitor << [new TestVisitor(true)] // stopping at a given point assumes the order is fixed, so only reproducible visitor makes sense here
     }
 
-    def canTestForFileMembership() {
+    def "can test for file membership - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def rootDir = temporaryFolder.createDir("root")
         def rootTextFile = rootDir.file("a.txt").createFile()
@@ -197,9 +208,12 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         !fileTree.contains(excludedFile)
         !fileTree.contains(notUnderRoot)
         !fileTree.contains(doesNotExist)
+
+        where:
+        visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
-    def hasUsefulDisplayName() {
+    def "has useful displayName - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:
         def treeWithNoIncludesOrExcludes = new DirectoryFileTree(temporaryFolder.getTestDirectory(), new PatternSet(), TestFiles.fileSystem(), false)
         def includesOnly = new PatternSet()
@@ -213,14 +227,19 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         treeWithNoIncludesOrExcludes.getDisplayName() == "directory '${temporaryFolder.getTestDirectory()}'".toString()
         treeWithIncludes.getDisplayName() == "directory '${temporaryFolder.getTestDirectory()}' include 'a/b', 'c'".toString()
         treeWithExcludes.getDisplayName() == "directory '${temporaryFolder.getTestDirectory()}' exclude 'a/b', 'c'".toString()
+
+        where:
+        visitor << [new TestVisitor(false), new TestVisitor(true)]
     }
 
-    private static class TestVisitor implements FileVisitor {
-        // This is a list of lists. We want to confirm that files at each level
-        // of the directory walk are visited while not caring about their
-        // order.
-        def expectedVisitations = []
-        private stopOn = null
+    private static class TestVisitor implements ReproducibleFileVisitor {
+        def visited = []
+        def stopOn = null
+        def isReproducibleFileOrder
+
+        TestVisitor(boolean isReproducibleFileOrder) {
+            this.isReproducibleFileOrder = isReproducibleFileOrder
+        }
 
         @Override
         void visitDir(FileVisitDetails dirDetails) {
@@ -233,24 +252,15 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         }
 
         private void handleDetails(FileVisitDetails details) {
-            def file = details.getFile()
-            assert expectedVisitations[0].contains(file)
-            expectedVisitations[0].remove(file)
-            if (expectedVisitations[0].isEmpty() || file == stopOn) {
-                expectedVisitations.remove(0)
-                if (file == stopOn) {
-                    details.stopVisiting()
-                }
+            visited += details.getFile()
+            if (details.getFile() == stopOn) {
+                details.stopVisiting()
             }
         }
 
-        void setStopOn(File stop) {
-            stopOn = stop
-        }
-
-        boolean assertExpectations() {
-            assert expectedVisitations.isEmpty()
-            return true
+        @Override
+        boolean isReproducibleFileOrder() {
+            isReproducibleFileOrder
         }
     }
 }
